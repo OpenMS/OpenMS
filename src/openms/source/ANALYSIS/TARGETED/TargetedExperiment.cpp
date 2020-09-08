@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
 
 namespace OpenMS
 {
@@ -68,7 +70,7 @@ namespace OpenMS
   {
   }
 
-  TargetedExperiment & TargetedExperiment::operator=(const TargetedExperiment & rhs)
+  TargetedExperiment& TargetedExperiment::operator=(const TargetedExperiment & rhs)
   {
     if (&rhs != this)
     {
@@ -153,6 +155,21 @@ namespace OpenMS
   bool TargetedExperiment::operator!=(const TargetedExperiment & rhs) const
   {
     return !(operator==(rhs));
+  }
+
+  TargetedExperiment::SummaryStatistics TargetedExperiment::getSummary() const
+  {
+    SummaryStatistics s;
+    s.protein_count = proteins_.size();
+    s.peptide_count = peptides_.size();
+    s.compound_count = compounds_.size();
+    s.transition_count = transitions_.size();
+    for (const auto& tr : transitions_)
+    {
+      ++s.decoy_counts[tr.getDecoyTransitionType()];
+    }
+    s.contains_invalid_references = containsInvalidReferences();
+    return s;
   }
 
   void TargetedExperiment::clear(bool clear_meta_data)
@@ -578,5 +595,36 @@ namespace OpenMS
     }
     compound_reference_map_dirty_ = false;
   }
+
+  bool formatCount(const size_t count, const size_t all, const String& name, StringList& sink)
+  {
+    if (count == 0) return false; // nothing to report... 0%....
+    sink.push_back(String(count * 100.0 / all, false) + "% (" + name + ")");
+    return true;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const TargetedExperiment::SummaryStatistics& s)
+  {
+    using TYPE = ReactionMonitoringTransition::DecoyTransitionType;
+    auto count_copy = s.decoy_counts; // allow to default construct missing values with 0 counts
+    size_t all = count_copy[TYPE::DECOY] +
+                 count_copy[TYPE::TARGET] +
+                 count_copy[TYPE::UNKNOWN];
+    if (all == 0) all = 1; // avoid division by zero below
+    StringList counts;
+    formatCount(count_copy[TYPE::TARGET], all, "target", counts);
+    formatCount(count_copy[TYPE::DECOY], all, "decoy", counts);
+    formatCount(count_copy[TYPE::UNKNOWN], all, "unknown", counts);
+
+    os << "# Proteins: " << s.protein_count << '\n'
+       << "# Peptides: " << s.peptide_count << '\n'
+       << "# Compounds: " << s.compound_count << '\n'
+       << "# Transitions: " << s.transition_count << '\n'
+       << "Transition Type: " + ListUtils::concatenate(counts, ", ") + "\n"
+       << "All internal references valid: " << (!s.contains_invalid_references ? "yes" : "no") << '\n';
+    return os;
+  }
+
+
 
 } // namespace OpenMS

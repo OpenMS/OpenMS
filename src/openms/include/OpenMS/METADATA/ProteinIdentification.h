@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
-
-
 
 #include <set>
 
@@ -74,6 +73,43 @@ namespace OpenMS
 public:
     /// Hit type definition
     typedef ProteinHit HitType;
+
+    /// two way mapping from ms-run-path to protID|pepID-identifier
+    struct Mapping
+    {
+      std::map<String, StringList> identifier_to_msrunpath;
+      std::map<StringList, String> runpath_to_identifier;
+
+      Mapping() = default;
+
+      explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        create(prot_ids);
+      }
+      void create(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        identifier_to_msrunpath.clear();
+        runpath_to_identifier.clear();
+        StringList filenames;
+        for (const ProteinIdentification& prot_id : prot_ids)
+        {
+          prot_id.getPrimaryMSRunPath(filenames);
+          if (filenames.empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
+          }
+          identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
+          const auto& it = runpath_to_identifier.find(filenames);
+          if (it != runpath_to_identifier.end())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
+                                          ListUtils::concatenate(filenames, ","));
+          }
+          runpath_to_identifier[filenames] = prot_id.getIdentifier();
+        }
+      }
+    };
 
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
@@ -214,6 +250,7 @@ public:
       AVERAGE,
       SIZE_OF_PEAKMASSTYPE
     };
+
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
@@ -234,6 +271,7 @@ public:
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
       Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
+      EnzymaticDigestion::Specificity enzyme_term_specificity; ///< The number of required cutting-rule matching termini during search (none=0, semi=1, or full=2)
 
       SearchParameters();
       /// Copy constructor
@@ -371,6 +409,8 @@ public:
     void setSearchEngine(const String& search_engine);
     /// Returns the type of search engine used
     const String& getSearchEngine() const;
+    /// Return the type of search engine that was first applied (e.g., before percolator or consensusID) or "Unknown"
+    const String getOriginalSearchEngineName() const;
     /// Sets the search engine version
     void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
@@ -414,6 +454,9 @@ public:
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
 
+    /// get the number of primary MS runs involve in this ID run
+    Size nrPrimaryMSRunPaths(bool raw = false) const;
+
     /// Checks if this object has inference data. Looks for "InferenceEngine" metavalue.
     /// If not, falls back to old behaviour of reading the search engine name.
     bool hasInferenceData() const;
@@ -425,6 +468,11 @@ public:
     /// given an @param experiment_type .
     /// Checks search engine and search engine settings.
     bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
+
+    /// Collects all search engine settings registered for the given search engine @param se.
+    /// If @param se is empty, the main search engine is used, otherwise it will also search the metavalues.
+    std::vector<std::pair<String,String>> getSearchEngineSettingsAsPairs(const String& se = "") const;
+
     //@}
 
 protected:

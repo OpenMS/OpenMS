@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -438,6 +438,8 @@ protected:
       Map<String, Software> software_;
       /// The data processing list: id => Instrument
       Map<String, Instrument> instruments_;
+      /// CV terms-path-combinations that have been checked in validateCV_()
+      mutable Map<std::pair<String, String>, bool> cached_terms_;
       /// The data processing list: id => Instrument
       Map<String, std::vector< DataProcessingPtr > > processing_;
       /// id of the default data processing (used when no processing is defined)

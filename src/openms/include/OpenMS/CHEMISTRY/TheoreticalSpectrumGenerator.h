@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -98,7 +99,7 @@ namespace OpenMS
     protected:
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
+    virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, MSSpectrum::Chunks& chunks, const Residue::ResidueType res_type, Int charge = 1) const;
 
     /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     virtual void addPrecursorPeaks_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
@@ -107,13 +108,16 @@ namespace OpenMS
     void addAbundantImmoniumIons_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
 
     /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    void addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
+    void addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const Residue::ResidueType res_type, Int charge, double intensity) const;
 
     /// helper for mapping residue type to letter
-    static char residueTypeToIonLetter_(Residue::ResidueType res_type);
+    static char residueTypeToIonLetter_(const Residue::ResidueType res_type);
 
-    /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
+    /// helper to add full neutral loss ladders (for isotope clusters), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, const Residue::ResidueType res_type, int charge) const;
+
+    /// helper to add full neutral loss ladders (for single peaks), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const std::map<EmpiricalFormula, String>& formula_str_cache, double intensity, const Residue::ResidueType res_type, bool add_metainfo, int charge) const;
 
     bool add_b_ions_;
     bool add_y_ions_;
@@ -143,5 +147,8 @@ namespace OpenMS
     double pre_int_;
     double pre_int_H2O_;
     double pre_int_NH3_;
+
+    // formula.toString() is extremely expensive, so we use a member map to remember what String belongs to which formula
+    //mutable std::map<EmpiricalFormula, String> formula_str_cache_;
   };
 }

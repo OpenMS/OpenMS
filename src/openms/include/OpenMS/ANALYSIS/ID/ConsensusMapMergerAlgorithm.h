@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,8 +99,6 @@ namespace OpenMS
     bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const String& experiment_type) const;
     /// Same as above but with specific reference run
     bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const String& experiment_type) const;
-    /// Compares exactly two runs @todo refactor with above
-    bool checkRunSettings_(const ProteinIdentification& idRun, const ProteinIdentification& ref, const String& experiment_type) const;
 
 
     static size_t accessionHash_(const ProteinHit& p)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -727,49 +727,30 @@ bool OpenMS::MSstatsFile::isQuantifyable_(
     const std::set<OpenMS::String>& accs,
     const std::unordered_map<OpenMS::String, const OpenMS::IndProtGrp*>& accession_to_group) const
 {
-  bool quantifyable = true;
+  if (accs.empty()) return false;
 
-  if (accs.empty())
+  if (accs.size() == 1) return true;
+
+  auto git = accession_to_group.find(*accs.begin());
+  if (git == accession_to_group.end()) return false;
+
+  const IndProtGrp* grp = git->second;
+
+  // every prot accession in the set needs to belong to the same indist. group to make this peptide
+  // eligible for quantification
+  auto accit = ++accs.begin();
+  for (; accit != accs.end(); ++accit)
   {
-    quantifyable = false;
-  }
-  else if (accs.size() > 1)
-      // every prot accession in the set needs to belong to the same indist. group to make this peptide
-      // eligible for quantification
-  {
-    std::set<const IndProtGrp*> maps_to_indgrps;
+    const auto it = accession_to_group.find(*accit);
 
-    const IndProtGrp* grp = nullptr;
-    auto git = accession_to_group.find(*accs.begin());
-    if (git != accession_to_group.end()) grp = git->second;
+    // we assume that it is a singleton. Cannot be quantifiable anymore.
+    // Set makes them unique. Non-membership in groups means that there is at least one other
+    // non-agreeing protein in the set.
+    if (it == accession_to_group.end()) return false;
 
-    auto accit = ++accs.begin();
-    for (; accit != accs.end(); ++accit)
-    {
-      const auto it = accession_to_group.find(*accit);
-      if (it != accession_to_group.end())
-      {
-        maps_to_indgrps.insert(it->second);
-        if (it->second == grp)
-        {
-          continue;
-        }
-        else
-        {
-          // two different groups
-          quantifyable = false;
-          break;
-        }
-      }
-      else
-      {
-        // we assume that it is a singleton. Cannot be quantifiable anymore.
-        // Set makes them unique. Non-membership in groups means that there is at least one other
-        // non-agreeing protein in the set.
-        quantifyable = false;
-        break;
-      }
-    }
+    // check if two different groups
+    if (it->second != grp) return false;
   }
-  return quantifyable;
+  
+  return true;
 }

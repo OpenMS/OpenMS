@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1644,6 +1644,14 @@ namespace OpenMS
           //No member => meta data
           spec_.setMetaValue("peak list raw scans", termValue);
         }
+        else if (accession == "MS:1001581") //FAIMS compensation voltage
+        {
+          // According to the PSI-MS ontology this term should be stored below the "scan" and not "spectrum" parent.
+          // Some pwiz version put this term on the "spectrum" level so we also read it here.
+          //TODO CV term is wrongly annotated without an xref data type -> cast to double
+          spec_.setDriftTime(value.toDouble());
+          spec_.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+        }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
         {
@@ -1741,7 +1749,7 @@ namespace OpenMS
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
           }
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815") //ion mobility drift time
+        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581") //ion mobility drift time or FAIM compensation voltage
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -1762,7 +1770,11 @@ namespace OpenMS
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;
+            unit = MSSpectrum::DriftTimeUnit::VSSC;          
+          }
+          else if (accession == "MS:1001581")
+          {
+            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
           }
 
           if (in_spectrum_list_)
@@ -2081,7 +2093,7 @@ namespace OpenMS
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815") //ion mobility drift time
+        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581") //ion mobility drift time or FAIMS compensation voltage
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -2101,6 +2113,10 @@ namespace OpenMS
           else if (accession == "MS:1002815")
           {
             unit = MSSpectrum::DriftTimeUnit::VSSC;
+          }
+          else if (accession == "MS:1001581")
+          {
+            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
 
           spec_.setDriftTime(value.toDouble());
@@ -3377,14 +3393,26 @@ namespace OpenMS
 
     bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const
     {
-      SemanticValidator::CVTerm sc;
+      // We remember already validated path-term-combinations in cached_terms_
+      // This avoids recomputing SemanticValidator::locateTerm() multiple times for the same terms and paths
+      // validateCV_() is called very often for the same path-term-combinations, so we save lots of repetitive computations
+      // By caching these combinations we save about 99% of the runtime of validateCV_()
 
+      const auto it = cached_terms_.find(std::make_pair(path, c.id));
+      if (it != cached_terms_.end())
+      {
+        return it->second;
+      }
+
+      SemanticValidator::CVTerm sc;
       sc.accession = c.id;
       sc.name = c.name;
       sc.has_unit_accession = false;
       sc.has_unit_name = false;
 
-      return validator.SemanticValidator::locateTerm(path, sc);
+      bool isValid = validator.SemanticValidator::locateTerm(path, sc);
+      cached_terms_[std::make_pair(path, c.id)] = isValid;
+      return isValid;
     }
 
     String MzMLHandler::writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const
@@ -3441,28 +3469,25 @@ namespace OpenMS
 
         if (*key == "GO cellular component" || *key == "brenda source tissue")
         {
-          // the CVTerm info is in the value
-          const DataValue& metaValue = meta.getMetaValue(*key);
+          // the CVTerm info is in the meta value
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(meta.getMetaValue(*key));
 
-          if (cv_.hasTermWithName((String) metaValue))
+          if (c != nullptr)
           {
-            ControlledVocabulary::CVTerm c = cv_.getTermByName((String) metaValue);
-
             // TODO: validate CV, we currently cannot do this as the relations in the BTO and GO are not captured by our CV impl
-            cvParams.push_back(writeCV_(c, DataValue::EMPTY));
+            cvParams.push_back(writeCV_(*c, DataValue::EMPTY));
           }
         }
         else
         {
-
           bool writtenAsCVTerm = false;
-          if (cv_.hasTermWithName(*key))
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(*key);
+          if (c != nullptr)
           {
-            ControlledVocabulary::CVTerm c = cv_.getTermByName(*key); // in cv_ write cvparam else write userparam
-            if (validateCV_(c, path, validator))
+            if (validateCV_(*c, path, validator))
             {
               // write CV
-              cvParams.push_back(writeCV_(c, meta.getMetaValue(*key)));
+              cvParams.push_back(writeCV_(*c, meta.getMetaValue(*key)));
               writtenAsCVTerm = true;
             }
           }
@@ -3538,16 +3563,19 @@ namespace OpenMS
 
     ControlledVocabulary::CVTerm MzMLHandler::getChildWithName_(const String& parent_accession, const String& name) const
     {
-      std::set<String> terms;
-      cv_.getAllChildTerms(terms, parent_accession);
-      for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+      ControlledVocabulary::CVTerm res;
+      auto searcher = [&res, &name, this] (const String& child)
       {
-        if (cv_.getTerm(*it).name == name)
+        const ControlledVocabulary::CVTerm& current = this->cv_.getTerm(child);
+        if (current.name == name)
         {
-          return cv_.getTerm(*it);
+          res = current;
+          return true;
         }
-      }
-      return ControlledVocabulary::CVTerm();
+        return false;
+      };
+      cv_.iterateAllChildren(parent_accession, searcher);
+      return res;
     }
 
     void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator)
@@ -3786,11 +3814,14 @@ namespace OpenMS
       //selected ion list (optional)
       //--------------------------------------------------------------------------------------------
       //
+
       if (options_.getForceTPPCompatability() ||
           precursor.getCharge() != 0 ||
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
-          precursor.getPossibleChargeStates().size() > 0)
+          precursor.getDriftTimeUnit() == Precursor::FAIMS_COMPENSATION_VOLTAGE ||
+          precursor.getPossibleChargeStates().size() > 0 ||
+          precursor.getMZ() > 0.0)
       {
         // precursor m/z may come from "isolation window":
         mz = precursor.getMetaValue("selected ion m/z",
@@ -3810,6 +3841,7 @@ namespace OpenMS
         {
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
         }
+
         if (precursor.getDriftTime() >= 0.0)
         {
             if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::MILLISECOND)
@@ -5107,8 +5139,13 @@ namespace OpenMS
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
-          // if drift time was never set, don't report it
-          if (spec.getDriftTime() >= 0.0)
+
+          if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
+                << "\" unitAccession=\"UO:000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
+          }          
+          else if (spec.getDriftTime() >= 0.0) // if drift time was never set, don't report it
           {
             if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
             {

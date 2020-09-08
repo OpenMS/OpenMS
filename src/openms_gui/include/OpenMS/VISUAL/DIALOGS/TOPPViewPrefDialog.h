@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,12 +29,15 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <QtWidgets/QDialog>
 
@@ -61,11 +64,19 @@ public:
       TOPPViewPrefDialog(QWidget * parent);
       ~TOPPViewPrefDialog();
 
+      /// initialize GUI values with these parameters
+      void setParam(const Param& param);
+
+      /// update the parameters given the current GUI state.
+      /// Can be used to obtain default parameters and their names.
+      Param getParam() const;
+
 protected slots:
       void browseDefaultPath_();
       void browseTempPath_();
 private:
       Ui::TOPPViewPrefDialogTemplate* ui_;
+      mutable Param param_; ///< is updated in getParam()
     };
   }
 }

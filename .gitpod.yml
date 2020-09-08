@@ -1,6 +1,12 @@
 tasks:
-  - init: mkdir -p build && pushd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ && popd
-    prebuild: mkdir -p build && pushd build && make -j16 && popd 
+  - init:     mv .vscode-gitpod .vscode && echo "Welcome!" 
+    prebuild: git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
+              git submodule update --init THIRDPARTY &&
+              export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
+              export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
+              mkdir -p build && pushd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ && make -j16 && popd
+    command:  export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
+              export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
 image:
   file: .gitpod.Dockerfile
 github:

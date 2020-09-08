@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,7 +90,8 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
-    // no lock required here because read only and array is initialized in thread-safe constructor
+    //TODO why does this not throw but the String version does??
+    //no lock required here because read only and array is initialized in thread-safe constructor
     return residue_by_one_letter_code_[one_letter_code];
   }
 
@@ -514,17 +515,29 @@ namespace OpenMS
     bool residue_found(true), mod_found(true);
     #pragma omp critical (ResidueDB)
     {
-      if (residue_names_.find(res_name) == residue_names_.end())
+      // Perform a single lookup of the residue name in our database, we assume
+      // that if it is present in residue_mod_names_ then we have seen it
+      // before and can directly grab it. If its not present, we may have as
+      // unmodified residue in residue_names_ but need to create a new entry as
+      // modified residue. If the residue itself is unknow, we will throw (see
+      // below).
+      const auto& rm_entry = residue_mod_names_.find(res_name);
+      if (rm_entry == residue_mod_names_.end())
       {
-        residue_found = false;
+        if (residue_names_.find(res_name) == residue_names_.end())
+        {
+          residue_found = false;
+        }
       }
-      else
+
+      if (residue_found)
       {
         const ResidueModification* mod;
         try
         {
           // terminal modifications don't apply to residues (side chain), so only consider internal ones
-          mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+          static const ModificationsDB* mdb = ModificationsDB::getInstance();
+          mod = mdb->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
         }
         catch (...)
         {
@@ -537,15 +550,21 @@ namespace OpenMS
           const String& id = mod->getId().empty() ? mod->getFullId() : mod->getId();
 
           // check if modified residue is already present in ResidueDB
-          if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
+          bool found = false;
+          if (rm_entry != residue_mod_names_.end())
           {
-            res = residue_mod_names_[res_name][id];
+            const auto& inner = rm_entry->second.find(id);
+            if (inner != rm_entry->second.end())
+            {
+              res = inner->second;
+              found = true;
+            }
           }
-          else
+          if (!found)
           {
             // create and register this modified residue
             res = new Residue(*residue_names_[res_name]);
-            res->setModification_(*mod);
+            res->setModification(mod);
             addResidue_(res);
           }
         }

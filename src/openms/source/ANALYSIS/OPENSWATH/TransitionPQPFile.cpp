@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,6 +75,8 @@ namespace OpenMS
     {
       traml_id = "TRAML_ID";
     }
+
+    startProgress(0, 1, "reading PQP file (SQL warmup)");
 
     // Open database
     SqliteConnector conn(filename);
@@ -208,6 +210,7 @@ namespace OpenMS
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, select_sql);
     sqlite3_step(stmt);
+    endProgress();
 
     Size progress = 0;
     startProgress(0, num_transitions, "reading PQP file");

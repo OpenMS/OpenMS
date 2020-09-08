@@ -22,7 +22,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-				<UserParam type="string" name="extra_features" value="OMS:precursor_mz_error_ppm,OpenPepXL:score,precursor_correction,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
+				<UserParam type="string" name="extra_features" value="precursor_mz_error_ppm,OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,precursor_signal_proportion,precursor_target_peak_count,precursor_residual_peak_count"/>
 	</SearchParameters>
 	<IdentificationRun date="2019-07-26T11:57:57" search_engine="OpenPepXL" search_engine_version="2.4.0-feature-XLMS-Percolator-2019-06-17" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
@@ -38,7 +38,7 @@
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="467.945617675781023" RT="2129.236083984380002" spectrum_reference="spectrum=123,spectrum=77" >
-			<PeptideHit score="-0.09115937126206" sequence="GGVHVK(Xlink:DSS)LAHLSK" charge="3" aa_before="R" aa_after="H" start="292" end="303" protein_refs="PH_2" >
+			<PeptideHit score="-0.09115937126206" sequence="GGVHVK(Xlink:DSS[156])LAHLSK" charge="3" aa_before="R" aa_after="H" start="292" end="303" protein_refs="PH_2" >
 				<UserParam type="string" name="fragment_annotation" value="147.129928588867188,0.028377335518599,1,&quot;[alpha|ci$y1]&quot;|234.181854248046875,0.069801956415176,1,&quot;[alpha|ci$y2]&quot;|396.987884521484375,0.384458035230637,3,&quot;[alpha|xi$y9]&quot;|449.32391357421875,0.387931138277054,3,&quot;[alpha|xi$y11]&quot;|450.284820556640625,0.393777251243591,1,&quot;[alpha|ci$b5]&quot;|484.207611083984375,0.215591758489609,1,&quot;[alpha|ci$y4]&quot;|555.27435302734375,0.297201305627823,1,&quot;[alpha|ci$y5]&quot;|595.05352783203125,1.0,2,&quot;[alpha|xi$y9]&quot;|668.34527587890625,0.243629142642021,1,&quot;[alpha|ci$y6]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=123"/>
 				<UserParam type="int" name="spectrum_index" value="101"/>
@@ -49,12 +49,12 @@
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2110.989013671880002"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="471.971282958983977"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=77"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="63"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.738323484929064"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="0.738323484929064"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.09115937126206"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="21.268635057165241"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.058823529411765"/>
@@ -113,12 +113,12 @@
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929687955"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="92"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.449845658571601"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="2.449845658571601"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.190406834856118"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="26.959307476079957"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.047619047619048"/>
@@ -181,12 +181,12 @@
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906023"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="18"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.449845658571601"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="2.449845658571601"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.202402484471653"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="22.577260335424882"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.055555555555556"/>
@@ -249,12 +249,12 @@
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.087158203119998"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="98"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.737348370197513"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="1.737348370197513"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.159752955247908"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="20.114031109055674"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.111111111111111"/>
@@ -317,12 +317,12 @@
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="32"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.737348370197513"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="1.737348370197513"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.159994913963651"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="17.976874003548623"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.0"/>
@@ -373,7 +373,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="656.050903320312955" RT="2228.502929631069947" spectrum_reference="spectrum=238,spectrum=219" >
-			<PeptideHit score="-0.136797738202118" sequence="EVIELPLK(Xlink:DSS)NPELFLR" charge="3" aa_before="R" aa_after="V" start="145" end="159" protein_refs="PH_0" >
+			<PeptideHit score="-0.136797738202118" sequence="EVIELPLK(Xlink:DSS[156])NPELFLR" charge="3" aa_before="R" aa_after="V" start="145" end="159" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="288.286773681640625,0.019649710506201,1,&quot;[alpha|ci$y2]&quot;|324.19232177734375,0.031066630035639,1,&quot;[alpha|ci$b3-H2O1]&quot;|387.815673828125,0.215708956122398,2,&quot;[alpha|ci$y6]&quot;|435.21832275390625,0.083638317883015,1,&quot;[alpha|ci$y3]&quot;|444.9464111328125,0.119465403258801,2,&quot;[alpha|ci$y7]&quot;|453.1796875,0.09692869335413,1,&quot;[alpha|ci$b4-H2O1]&quot;|471.207763671875,0.061412189155817,1,&quot;[alpha|ci$b4]&quot;|530.84637451171875,0.069112062454224,2,&quot;[alpha|xi$b8-H2O1]&quot;|539.70709228515625,0.122676633298397,2,&quot;[alpha|xi$b8]&quot;|584.2440185546875,0.203754380345345,1,&quot;[alpha|ci$b5]&quot;|692.06878662109375,1.0,2,&quot;[alpha|xi$y10]&quot;|748.57867431640625,0.292433172464371,2,&quot;[alpha|xi$y11]&quot;|774.42498779296875,0.361789405345917,1,&quot;[alpha|ci$y6]&quot;|812.86700439453125,0.152033895254135,2,&quot;[alpha|xi$y12]&quot;|839.9815673828125,0.125570505857468,2,&quot;[alpha|xi$b13]&quot;|888.39013671875,0.356793075799942,1,&quot;[alpha|ci$y7]&quot;|896.316162109375,0.058144234120846,2,&quot;[alpha|xi$b14]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=238"/>
 				<UserParam type="int" name="spectrum_index" value="195"/>
@@ -384,12 +384,12 @@
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2221.233886662319946"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="660.072448730468977"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=219"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="180"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.211690400107035"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="6.211690400107035"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.136797738202118"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="19.639777854598876"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.1"/>
@@ -448,12 +448,12 @@
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929687955"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="92"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.534607391583498"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="2.534607391583498"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.177950536879016"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="29.905855135941039"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.083333333333333"/>
@@ -516,12 +516,12 @@
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906023"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="18"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.534607391583498"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="2.534607391583498"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.261280289109611"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="25.954602467113794"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.071428571428571"/>
@@ -584,12 +584,12 @@
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.087158203119998"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="98"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.737348370197513"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="1.737348370197513"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.122229997194374"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="19.728876211598397"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.0"/>
@@ -652,12 +652,12 @@
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec_alpha" value="ANYWHERE"/>
 				<UserParam type="string" name="xl_term_spec_beta" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="0"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
 				<UserParam type="int" name="spectrum_index_heavy" value="32"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.737348370197513"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="1.737348370197513"/>
 				<UserParam type="float" name="OpenPepXL:score" value="-0.159752955247908"/>
 				<UserParam type="float" name="OpenPepXL:xquest_score" value="19.345752673902883"/>
 				<UserParam type="float" name="OpenPepXL:xcorr xlink" value="0.0"/>

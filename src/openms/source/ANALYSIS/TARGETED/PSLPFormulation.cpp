@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -441,7 +441,6 @@ namespace OpenMS
     std::map<String, std::vector<double> >::const_iterator map_iter = pt_prot_map.begin();
 
     model_ = new LPWrapper();
-    model_->setSolver(solver_);
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
     double min_rt = param_.getValue("rt:min_rt");
@@ -1034,7 +1033,6 @@ namespace OpenMS
     std::cout << "k2: " << k2 << std::endl;
 #endif
     model_ = new LPWrapper();
-    model_->setSolver(solver_);
     Int counter = 0;
 
 #ifdef DEBUG_OPS

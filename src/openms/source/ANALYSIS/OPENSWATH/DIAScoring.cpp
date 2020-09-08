@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -189,7 +189,7 @@ namespace OpenMS
       // value. Otherwise calculate the difference in ppm.
       if (!signalFound)
       {
-        ppm_score = dia_extract_window_ / precursor_mz * 1000000;
+        ppm_score = (right - left) / precursor_mz * 1000000;
         return false;
       }
       else

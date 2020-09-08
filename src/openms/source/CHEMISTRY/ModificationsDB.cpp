@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,33 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  bool ModificationsDB::residuesMatch_(const char residue, const ResidueModification* curr_mod) const
+  {
+    const char origin = curr_mod->getOrigin();
+
+    if (origin != 'X')
+    {
+      // residues match if they are equal or they match everything (X/.)
+      return (origin == residue || residue == 'X' || residue == '.' || residue == '?');
+    }
+    else
+    {
+      // origin is X, this usually means that the modification can be at any amino acid
+
+      // residues do NOT match if the modification is user-defined and has origin
+      // X (which here means an actual input AA X and it does *not* mean "match
+      // all AA") while the current residue is not X. Make sure we dont match things like
+      // PEPN[400] and PEPX[400] since these have very different masses.
+      bool non_matching_user_defined = (
+           curr_mod->isUserDefined() &&
+           residue != '?' &&
+           origin != residue );
+
+      return !non_matching_user_defined;
+    }
+  }
+
   bool ModificationsDB::is_instantiated_ = false;
 
   ModificationsDB* ModificationsDB::getInstance()
@@ -111,13 +138,64 @@ namespace OpenMS
     return s;
   }
 
+  const ResidueModification* ModificationsDB::searchModificationsFast(const String& mod_name_,
+                                                                      bool& multiple_matches,
+                                                                      const String& residue,
+                                                                      ResidueModification::TermSpecificity term_spec
+                                                                      ) const
+  {
+    const ResidueModification* mod(nullptr);
+
+    String mod_name = mod_name_;
+    multiple_matches = false;
+
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      bool found = true;
+      auto modifications = modification_names_.find(mod_name);
+      if (modifications == modification_names_.end())
+      {
+        // Try to fix things, Skyline for example uses unimod:10 and not UniMod:10 syntax
+        if (mod_name.size() > 6 && mod_name.prefix(6).toLower() == "unimod")
+        {
+          mod_name = "UniMod" + mod_name.substr(6, mod_name.size() - 6);
+        }
+
+        modifications = modification_names_.find(mod_name);
+        if (modifications == modification_names_.end())
+        {
+          OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
+          found = false; 
+        }
+      }
+
+      int nr_mods = 0;
+      if (found)
+      {
+        for (const auto& it : modifications->second)
+        {
+          if ( residuesMatch_(res, it) &&
+               (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+               (term_spec == it->getTermSpecificity())))
+          {
+            mod = it;
+            nr_mods++;
+          }
+        }
+      }
+      if (nr_mods > 1) multiple_matches = true;
+    }
+    return mod;
+  }
 
   const ResidueModification* ModificationsDB::getModification(Size index) const
   {
     OPENMS_PRECONDITION(index < mods_.size(), "Index out of bounds in ModificationsDB::getModification(Size index)." );
     return mods_[index];
   }
-
 
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods,
                                             const String& mod_name_,
@@ -128,10 +206,14 @@ namespace OpenMS
 
     String mod_name = mod_name_;
 
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       bool found = true;
-      if (!modification_names_.has(mod_name))
+      auto modifications = modification_names_.find(mod_name);
+      if (modifications == modification_names_.end())
       {
         // Try to fix things, Skyline for example uses unimod:10 and not UniMod:10 syntax
         if (mod_name.size() > 6 && mod_name.prefix(6).toLower() == "unimod")
@@ -139,7 +221,8 @@ namespace OpenMS
           mod_name = "UniMod" + mod_name.substr(6, mod_name.size() - 6);
         }
 
-        if (!modification_names_.has(mod_name))
+        modifications = modification_names_.find(mod_name);
+        if (modifications == modification_names_.end())
         {
           OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
           found = false; 
@@ -148,10 +231,9 @@ namespace OpenMS
 
       if (found)
       {
-        const set<const ResidueModification*>& temp = modification_names_[mod_name];
-        for (const auto& it : temp)
+        for (const auto& it : modifications->second)
         {
-          if (residuesMatch_(residue, it) &&
+          if ( residuesMatch_(res, it) &&
                (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
                (term_spec == it->getTermSpecificity())))
           {
@@ -164,42 +246,42 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
-    set<const ResidueModification*> mods;
+    const ResidueModification* mod(nullptr);
     // if residue is specified, try residue-specific search first to avoid
     // ambiguities (e.g. "Carbamidomethyl (N-term)"/"Carbamidomethyl (C)"):
+    bool multiple_matches = false;
     if (!residue.empty() &&
         (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY))
     {
-      searchModifications(mods, mod_name, residue,
+      mod = searchModificationsFast(mod_name, multiple_matches, residue,
                           ResidueModification::ANYWHERE);
     }
-    if (mods.empty()) searchModifications(mods, mod_name, residue, term_spec);
-
-    if (mods.empty())
+    if (mod == nullptr) mod = searchModificationsFast(mod_name, multiple_matches, residue, term_spec);
+    if (mod == nullptr)
     {
       String message = String("Retrieving the modification failed. It is not available for the residue '") + residue 
         + "' and term specificity '" + ResidueModification().getTermSpecificityName(term_spec) + "'. ";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message, mod_name);
     }
-    if (mods.size() > 1)
+    if (multiple_matches)
     {
-      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
-      for (auto it = mods.begin(); it != mods.end(); ++it)
-      {
-        OPENMS_LOG_WARN << " " << (*it)->getFullId();
-      }
+      OPENMS_LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one only.";
+      // for (auto it = mods.begin(); it != mods.end(); ++it)
+      // {
+      //   OPENMS_LOG_WARN << " " << (*it)->getFullId();
+      // }
       OPENMS_LOG_WARN << "\n";
     }
-    return *mods.begin();
+    return mod;
   }
 
 
-  bool ModificationsDB::has(String modification) const
+  bool ModificationsDB::has(const String & modification) const
   {
     bool has_mod;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      has_mod = modification_names_.has(modification);
+      has_mod = (modification_names_.find(modification) != modification_names_.end());
     }
     return has_mod;
   }
@@ -214,7 +296,7 @@ namespace OpenMS
     bool one_mod(true);
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      if (modification_names_[mod_name].size() > 1)
+      if (modification_names_.find(mod_name)->second.size() > 1)
       {
         one_mod = false;
       }
@@ -227,7 +309,7 @@ namespace OpenMS
     Size index(numeric_limits<Size>::max());
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      const ResidueModification* mod = *modification_names_[mod_name].begin();
+      const ResidueModification* mod = *(modification_names_.find(mod_name)->second.begin());
       for (Size i = 0; i != mods_.size(); ++i)
       {
         if (mods_[i] == mod)
@@ -249,16 +331,38 @@ namespace OpenMS
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
-            residuesMatch_(residue, m) &&
+            residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
           mods.push_back(m->getFullId());
+        }
+      }
+    }
+  }
+
+  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          mods.push_back(m);
         }
       }
     }
@@ -269,6 +373,8 @@ namespace OpenMS
   {
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
@@ -278,7 +384,7 @@ namespace OpenMS
         // first matching UniMod entry)
         double mass_error = fabs(m->getDiffMonoMass() - mass);
         if ((mass_error < min_error) &&
-            residuesMatch_(residue, m) &&
+            residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
@@ -315,22 +421,29 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::addModification(ResidueModification* new_mod)
+  const ResidueModification* ModificationsDB::addModification(std::unique_ptr<ResidueModification> new_mod)
   {
-    if (has(new_mod->getFullId()))
-    {
-      OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
-      return;
-    }
-
+    const ResidueModification* ret;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      modification_names_[new_mod->getFullId()].insert(new_mod);
-      modification_names_[new_mod->getId()].insert(new_mod);
-      modification_names_[new_mod->getFullName()].insert(new_mod);
-      modification_names_[new_mod->getUniModAccession()].insert(new_mod);
-      mods_.push_back(new_mod); // we probably want that
+      auto it = modification_names_.find(new_mod->getFullId());
+      if (it != modification_names_.end())
+      {
+        OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
+        ret = *(it->second.begin()); // returning from omp critical is not allowed
+      }
+      else
+      {
+        modification_names_[new_mod->getFullId()].insert(new_mod.get());
+        modification_names_[new_mod->getId()].insert(new_mod.get());
+        modification_names_[new_mod->getFullName()].insert(new_mod.get());
+        modification_names_[new_mod->getUniModAccession()].insert(new_mod.get());
+        mods_.push_back(new_mod.get());
+        new_mod.release(); // do not delete the object; 
+        ret = mods_.back();
+      }
     }
+    return ret;
   }
 
   void ModificationsDB::readFromOBOFile(const String& filename)
@@ -384,13 +497,13 @@ namespace OpenMS
           // for mono-links from XLMOD.obo:
           if (origin.hasSubstring("ProteinN-term"))
           {
-            mod.setTermSpecificity(ResidueModification::N_TERM);
+            mod.setTermSpecificity(ResidueModification::PROTEIN_N_TERM);
             mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
           if (origin.hasSubstring("ProteinC-term"))
           {
-            mod.setTermSpecificity(ResidueModification::C_TERM);
+            mod.setTermSpecificity(ResidueModification::PROTEIN_C_TERM);
             mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
@@ -660,30 +773,6 @@ namespace OpenMS
       }
       return a.size() < b.size();
     });
-  }
-
-  bool ModificationsDB::residuesMatch_(const String& residue, const ResidueModification* curr_mod) const
-  {
-
-    // residues match if they are equal or they match everything (X/.)
-    bool matching =  (
-             residue.empty() ||
-             (curr_mod->getOrigin() == residue[0]) ||
-             (residue == "X") ||
-             (curr_mod->getOrigin() == 'X') ||
-             (residue == ".") );
-
-    // residues do NOT match if the modification is user-defined and has origin
-    // X (which here means an actual input AA X and it does *not* mean "match
-    // all AA") while the current residue is not X. Make sure we dont match things like
-    // PEPN[400] and PEPX[400] since these have very different masses.
-    bool non_matching_user_defined =  (
-         curr_mod->isUserDefined() &&
-         curr_mod->getOrigin() == 'X' &&
-         !residue.empty() &&
-         String(curr_mod->getOrigin()) != residue );
-
-    return matching && !non_matching_user_defined;
   }
 
 } // namespace OpenMS

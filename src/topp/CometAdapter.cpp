@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,12 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -73,6 +76,8 @@ using namespace std;
 
     @em Comet must be installed before this wrapper can be used. This wrapper
     has been successfully tested with version 2016.01.2, 2016.01.3 and 2017.01.0beta of Comet.
+    
+    @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
     Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
     By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
@@ -81,9 +86,10 @@ using namespace std;
     For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
     The default parameters are set for a high resolution instrument.
 
-    Please cite: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
+    To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
     PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
 
+    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CometAdapter.cli
@@ -111,20 +117,22 @@ public:
   }
 
 protected:
+
+  map<string,int> num_enzyme_termini {{"semi",1},{"fully",2},{"C-term unspecific", 8},{"N-term unspecific",9}};
+
   void registerOptionsAndFlags_() override
   {
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", { "mzML" } );
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", { "idXML"} );
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
-    setValidFormats_("database", ListUtils::create<String>("FASTA"));
+    setValidFormats_("database", { "FASTA" } );
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
       "comet.exe", // this is the name on ALL platforms currently...
       "The Comet executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2", "comet version: (year,version,revision)", false, false); // required as first line in the param file
 
     //
     // Optional parameters
@@ -133,36 +141,33 @@ protected:
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
     setValidFormats_("pin_out", ListUtils::create<String>("tsv"));
-    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using 'comet.exe -p'", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
 
     //Masses
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance).  See also precursor_error_units to set the unit.", false, false);
-    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor monoisotopic mass tolerance for parameter precursor_mass_tolerance (Comet parameter: peptide_mass_units)", false, false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance).  See also precursor_error_units to set the unit.",false);
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor monoisotopic mass tolerance for parameter precursor_mass_tolerance (Comet parameter: peptide_mass_units)", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("amu,ppm,Da"));
     //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
-    registerStringOption_("isotope_error", "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
-    setValidStrings_("isotope_error", ListUtils::create<String>("off,0/1,0/1/2,-1/0/1/2/3,-8/-4/0/4/8"));
+    registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
+    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8"));
 
-    //Search Enzyme
-    vector<String> all_enzymes;
-    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
-    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
-    setValidStrings_("enzyme", all_enzymes);
-    registerStringOption_("num_enzyme_termini", "<choice>", "fully", "Specify the termini where the cleavage rule has to match", false, false);
-    setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
-    registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
-    setMinInt_("allowed_missed_cleavages", 0);
-    setMaxInt_("allowed_missed_cleavages", 5);
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
-    setMinFloat_("fragment_bin_tolerance", 0.01);
-    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
+    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.01,
+                          "This is half the bin size, which is used to segment the MS/MS spectrum. Thus, the value should be a bit higher than for other search engines, since the bin might not be centered around the peak apex (see 'fragment_bin_offset')."
+                          "CAUTION: Low tolerances have heavy impact on RAM usage (since Comet uses a lot of bins in this case). Consider using use_sparse_matrix and/or spectrum_batch_size.", false);
+    setMinFloat_("fragment_mass_tolerance", 0.0001);
+    
+    registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
+    setValidStrings_("fragment_error_units", { "Da" }); // only Da allowed
+    
+    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins. Recommended by Comet: low-res: 0.4, high-res: 0.0", false);
     setMinFloat_("fragment_bin_offset", 0.0);
     setMaxFloat_("fragment_bin_offset", 1.0);
-    registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap (low_res) ms/ms: sum of intensities of central M bin only", false, true);
+
+    registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high-res: sum of intensities plus flanking bins, ion trap (low-res) ms/ms: sum of intensities of central M bin only", false);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
     setValidStrings_("use_A_ions", ListUtils::create<String>("true,false"));
@@ -179,8 +184,29 @@ protected:
     registerStringOption_("use_NL_ions", "<num>", "false", "use neutral loss (NH3, H2O) ions from b/y for PSM", false, true);
     setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
 
+    //Search Enzyme
+    vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
+    setValidStrings_("enzyme", all_enzymes);
+    registerStringOption_("second_enzyme", "<cleavage site>", "", "Additional enzyme used for peptide digestion.", false, true);
+    setValidStrings_("second_enzyme", all_enzymes);
+
+    registerStringOption_("num_enzyme_termini", "<choice>", "fully", "Specify the termini where the cleavage rule has to match", false, false);
+    setValidStrings_("num_enzyme_termini", { "semi", "fully", "C-term unspecific", "N-term unspecific" } );
+    registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
+    setMinInt_("missed_cleavages", 0);
+    setMaxInt_("missed_cleavages", 5);
+
+    registerIntOption_("min_peptide_length", "<num>", 5, "Minimum peptide length to consider.", false);
+    setMinInt_("min_peptide_length", 5);
+    setMaxInt_("min_peptide_length", 63);
+    registerIntOption_("max_peptide_length", "<num>", 63, "Maximum peptide length to consider.", false);
+    setMinInt_("max_peptide_length", 5);
+    setMaxInt_("max_peptide_length", 63);
+
     //Output
-    registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
@@ -223,37 +249,47 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
+
+    registerIntList_("binary_modifications", "<mods>", {}, 
+        "List of modification group indices. Indices correspond to the binary modification index used by comet to group individually searched lists of variable modifications.\n" 
+        "Note: if set, both variable_modifications and binary_modifications need to have the same number of entries as the N-th entry corresponds to the N-th variable_modification.\n"
+        "      if left empty (default), all entries are internally set to 0 generating all permutations of modified and unmodified residues.\n"
+        "      For a detailed explanation please see the parameter description in the Comet help.",
+        false);
+
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
   }
 
-  vector<ResidueModification> getModifications_(StringList modNames)
+  vector<ResidueModification> getModifications_(const StringList& modNames)
   {
     vector<ResidueModification> modifications;
 
     // iterate over modification names and add to vector
-    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+    for (const auto& modification : modNames)
     {
-      if (mod_it->empty())
+      if (modNames.empty())
       {
         continue;
       }
-      String modification(*mod_it);
       modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
     }
 
     return modifications;
   }
 
-  void createParamFile_(ostream& os)
+  ExitCodes createParamFile_(ostream& os, const String& comet_version)
   {
-    os << "# comet_version " << getStringOption_("comet_version") << "\n";               //required as first line in the param file
+    os << comet_version << "\n";              // required as first line in the param file
     os << "# Comet MS/MS search engine parameters file.\n";
     os << "# Everything following the '#' symbol is treated as a comment.\n";
     os << "database_name = " << getStringOption_("database") << "\n";
-    os << "decoy_search = " << 0 << "\n"; // 0=no (default), 1=concatenated search, 2=separate search
-    os << "num_threads = " << getIntOption_("threads") << "\n";  // 0=poll CPU to set num threads; else specify num threads directly (max 64)
+    os << "decoy_search = " << 0 << "\n";                                               // 0=no (default), 1=concatenated search, 2=separate search
+    os << "peff_format = 0\n";                                                          // 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
+    os << "peff_obo =\n";                                                               // path to PSI Mod or Unimod OBO file
+
+    os << "num_threads = " << getIntOption_("threads") << "\n";                         // 0=poll CPU to set num threads; else specify num threads directly (max 64)
 
     // masses
     map<String,int> precursor_error_units;
@@ -263,39 +299,48 @@ protected:
 
     map<string,int> isotope_error;
     isotope_error["off"] = 0;
-    isotope_error["-1/0/1/2/3"] = 1;
-    isotope_error["-8/-4/0/4/8"] = 2;
+    isotope_error["0/1"] = 1;
+    isotope_error["0/1/2"] = 2;
+    isotope_error["0/1/2/3"] = 3;
+    isotope_error["-8/-4/0/4/8"] = 4;
 
     os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
     os << "peptide_mass_units = " << precursor_error_units[getStringOption_("precursor_error_units")] << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
-    os << "precursor_tolerance_type = " << 0 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
-    os << "isotope_error = " << isotope_error[getStringOption_("isotope_error")] << "\n";                      // 0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)
+    os << "precursor_tolerance_type = " << 1 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
+    os << "isotope_error = " << isotope_error[getStringOption_(Constants::UserParam::ISOTOPE_ERROR)] << "\n";                   // 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/1/2/3, 4=-8/-4/0/4/8 (for +4/+8 labeling)
 
     // search enzyme
 
     String enzyme_name = getStringOption_("enzyme");
     String enzyme_number = String(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
-
-    map<string,int> num_enzyme_termini;
-    num_enzyme_termini["semi"] = 1;
-    num_enzyme_termini["fully"] = 2;
-    num_enzyme_termini["C-term unspecific"] = 8;
-    num_enzyme_termini["N-term unspecific"] = 9;
+    String second_enzyme_name = getStringOption_("second_enzyme");
+    String enzyme2_number = "0";
+    if (!second_enzyme_name.empty())
+    {
+      enzyme2_number = String(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
+    }
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
-    os << "num_enzyme_termini = " << num_enzyme_termini[getStringOption_("num_enzyme_termini")] << "\n";                  // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
-    os << "allowed_missed_cleavage = " << getIntOption_("allowed_missed_cleavages") << "\n";             // maximum value is 5; for enzyme search
+    os << "search_enzyme2_number = " << enzyme2_number << "\n";              // second enzyme; set to 0 if no second enzyme
+    os << "num_enzyme_termini = " << num_enzyme_termini[getStringOption_("num_enzyme_termini")] << "\n"; // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
+    os << "allowed_missed_cleavage = " << getIntOption_("missed_cleavages") << "\n";             // maximum value is 5; for enzyme search
 
     // Up to 9 variable modifications are supported
-    // format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required>
-    //     e.g. 79.966331 STY 0 3 -1 0 0
+    // # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
+    //     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
     vector<String> variable_modifications_names = getStringList_("variable_modifications");
     vector<ResidueModification> variable_modifications = getModifications_(variable_modifications_names);
     if (variable_modifications.size() > 9)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet only supports 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet supports at most 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
+    }
+
+    IntList binary_modifications = getIntList_("binary_modifications");
+    if (binary_modifications.size() != 0 && binary_modifications.size() != variable_modifications.size())
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: List of binary modifications needs to have same size as variable modifications.");
     }
 
     int max_variable_mods_in_peptide = getIntOption_("max_variable_mods_in_peptide");
@@ -307,8 +352,14 @@ protected:
       const ResidueModification mod = variable_modifications[var_mod_index];
       double mass = mod.getDiffMonoMass();
       String residues = mod.getOrigin();
-      //TODO support binary groups, e.g. for SILAC
-      int binary_group = 0;
+
+      // support for binary groups, e.g. for SILAC
+      int binary_group{0};
+      if (!binary_modifications.empty())
+      {
+        binary_group = binary_modifications[var_mod_index];
+      }
+
       //TODO support mod-specific limit (default for now is the overall max per peptide)
       int max_current_mod_per_peptide = max_variable_mods_in_peptide;
       //TODO support term-distances?
@@ -318,7 +369,10 @@ protected:
       //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
       if (mod.getTermSpecificity() == ResidueModification::C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 3 and -1 should be equal for now.
@@ -326,7 +380,10 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 2 and -1 should be equal for now.
@@ -334,13 +391,19 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 0;
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 1;
       }
@@ -348,13 +411,21 @@ protected:
       //TODO support required variable mods
       bool required = false;
 
-      os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << binary_group << " " << max_current_mod_per_peptide << " " << term_distance << " " << nc_term << " " << required << "\n";
+      os << "variable_mod0" << var_mod_index+1 << " = " 
+         << mass << " " << residues << " " 
+         << binary_group << " " 
+         << max_current_mod_per_peptide << " " 
+         << term_distance << " " 
+         << nc_term << " " 
+         << required << " " 
+         << "0.0" // TODO: add neutral losses (from Residue or user defined?)
+         << "\n";
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
     for (; var_mod_index < 9; ++var_mod_index)
     {
-      os << "variable_mod0" << var_mod_index+1 << " = " << "0.0 X 0 3 -1 0 0" << "\n";
+      os << "variable_mod0" << var_mod_index+1 << " = " << "0.0 X 0 3 -1 0 0 0.0" << "\n";
     }
 
     os << "max_variable_mods_in_peptide = " << getIntOption_("max_variable_mods_in_peptide") << "\n";
@@ -365,20 +436,26 @@ protected:
     // high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0
 
     String instrument = getStringOption_("instrument");
-    double bin_tol = getDoubleOption_("fragment_bin_tolerance");
+    double bin_tol = getDoubleOption_("fragment_mass_tolerance") * 2; // convert 1-sided tolerance to bin size
     double bin_offset = getDoubleOption_("fragment_bin_offset");
-    if (instrument == "low_res" && (bin_tol < 0.9 || bin_offset <= 0.2))
+    if (instrument == "low_res" && (bin_tol < 0.8 || bin_offset <= 0.2))
     {
-      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
+      OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite low for low-res instruments (Comet recommends 1.005 Da bin size & 0.4 Da offset). "
+                       << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol/2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
+      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
     }
-    else if (instrument == "high_res" && (bin_tol > 0.2 || bin_offset > 0.1))
+    else if (instrument == "high_res" && (bin_tol > 0.1 || bin_offset > 0.1))
     {
-      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
-    };
+      OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite high for high-res instruments (Comet recommends 0.02 Da bin size & 0.0 Da offset). "
+                       << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol / 2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
+      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
+    }
 
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
     os << "fragment_bin_offset = " << bin_offset  << "\n";              // offset position to start the binning (0.0 to 1.0)
-    os << "theoretical_fragment_ions = " << (int)(instrument == "low_res") << "\n";           // 0=use flanking bin, 1=use M bin only
+    os << "theoretical_fragment_ions = " << (int)(instrument == "low_res") << "\n";           // 0=use flanking bins as well; 1=use M bin only
     os << "use_A_ions = " << (int)(getStringOption_("use_A_ions")=="true") << "\n";
     os << "use_B_ions = " << (int)(getStringOption_("use_B_ions")=="true") << "\n";
     os << "use_C_ions = " << (int)(getStringOption_("use_C_ions")=="true") << "\n";
@@ -394,7 +471,6 @@ protected:
     os << "output_pepxmlfile = " << 1 << "\n";                   // 0=no, 1=yes  write pep.xml file
 
     os << "output_percolatorfile = " << !getStringOption_("pin_out").empty() << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
-    os << "output_outfiles = " <<  0 << "\n";                    // 0=no, 1=yes  write .out files
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
     os << "num_output_lines = " << getIntOption_("num_hits") << "\n";                    // num peptide results to show
     os << "show_fragment_ions = " << 0 << "\n";                  // 0=no, 1=yes for out files only
@@ -433,10 +509,14 @@ protected:
     os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
     os << "clip_nterm_methionine = " << (int)(getStringOption_("clip_nterm_methionine")=="true") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
+    os << "peptide_length_range = " << getIntOption_("min_peptide_length") << " " << getIntOption_("max_peptide_length") << "\n";                       // minimum and maximum peptide length to analyze (default 5 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
+    os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
+    os << "equal_I_and_L = 1\n";
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
+    os << "precursor_NL_ions =\n"; //  one or more precursor neutral loss masses, will be added to xcorr analysis 
 
     // spectral processing
     map<string,int> remove_precursor_peak;
@@ -453,7 +533,7 @@ protected:
 
     os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
     os << "minimum_intensity = " << getDoubleOption_("minimum_intensity") << "\n";                   // minimum intensity value to read in
-    os << "remove_precursor_peak = " << remove_precursor_peak[getStringOption_("remove_precursor_peak")] << "\n";               // 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)
+    os << "remove_precursor_peak = " << remove_precursor_peak[getStringOption_("remove_precursor_peak")] << "\n";               // 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD), 3=phosphate neutral loss peaks
     os << "remove_precursor_tolerance = " << getDoubleOption_("remove_precursor_tolerance") << "\n";        // +- Da tolerance for precursor removal
     os << "clear_mz_range = " << clear_mz_range_min << " " << clear_mz_range_max << "\n";                // for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range
 
@@ -465,30 +545,37 @@ protected:
     //      add_N/Cterm_peptide = xxx       protein not available yet
     vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
     vector<ResidueModification> fixed_modifications = getModifications_(fixed_modifications_names);
-    // Comet sets Carbamidometyl (C) as modification as default even if not specified
-    // Therefor there is the need to set it to 0 if not set as flag
-    if (fixed_modifications.empty())
+
+    // merge duplicates, targeting the same AA
+    Map<String, double> mods;
+    // Comet sets Carbamidometyl (C) as modification as default even if not specified.
+    // Therefor there is the need to set it to 0, unless its set as flag (see loop below)
+    mods["add_C_cysteine"] = 0;
+
+    for (const auto& fm : fixed_modifications)
     {
-      os << "add_C_cysteine = 0.0000" << endl;
-    }
-    else
-    {
-      for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+      // check modification (amino acid or terminal)
+      String AA = fm.getOrigin(); // X (constructor) or amino acid (e.g. K)
+      String term_specificity = fm.getTermSpecificityName(); // N-term, C-term, none
+      if ((AA != "X") && (term_specificity == "none"))
       {
-        // check modification (amino acid or terminal)
-        String AA = it->getOrigin(); // X (constructor) or amino acid (e.g. K)
-        String term_specificity = it->getTermSpecificityName(); // N-term, C-term, none
-        if ((AA != "X") && (term_specificity == "none"))
-        {
-          const Residue* r = ResidueDB::getInstance()->getResidue(AA);
-          String name = r->getName();
-          os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << it->getDiffMonoMass() << endl;
-        }
-        else
-        {
-          os << "add_" << term_specificity.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
-        }
+        const Residue* r = ResidueDB::getInstance()->getResidue(AA);
+        String name = r->getName();
+        mods["add_" + r->getOneLetterCode() + "_" + name.toLower()] += fm.getDiffMonoMass();
       }
+      else if (term_specificity == "N-term" || term_specificity == "C-term")
+      {
+        mods["add_" + term_specificity.erase(1,1) + "_peptide"] += fm.getDiffMonoMass();
+      }
+      else if (term_specificity == "Protein N-term" || term_specificity == "Protein C-term")
+      {
+        term_specificity.erase(0,8); // remove "Protein "
+        mods["add_" + term_specificity.erase(1,1) + "_protein"] += fm.getDiffMonoMass();
+      }
+    }
+    for (const auto& mod : mods)
+    {
+      os << mod.first << " = " << mod.second << "\n";
     }
 
     //TODO register cut_before and cut_after in Enzymes.xml plus datastructures to add all our Enzymes with our names instead.
@@ -505,6 +592,8 @@ protected:
     os << "8.  Glu_C                  1      DE          P" << "\n";
     os << "9.  PepsinA                1      FL          P" << "\n";
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
+
+    return ExitCodes::EXECUTION_OK;
   }
 
   ExitCodes main_(int, const char**) override
@@ -515,9 +604,22 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    String tmp_param = File::getTemporaryFile();
-    writeLog_("Comet is writing the default parameter file...");
-    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str());
+    File::TempDir tmp_dir(debug_level_ >= 2);
+
+    writeDebug_("Comet is writing the default parameter file...", 1);
+    
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
+    if (exit_code != EXECUTION_OK)
+    {
+      return EXTERNAL_PROGRAM_ERROR;
+    }
+    // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
+    String comet_version; 
+    {
+      std::ifstream ifs(tmp_dir.getPath() + "/comet.params.new");
+      getline(ifs, comet_version);
+    }
+    writeDebug_("Comet Version extracted is: '" + comet_version + "\n", 2);
 
     String inputfile_name = getStringOption_("in");
     String out = getStringOption_("out");
@@ -544,60 +646,72 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
-    String tmp_pepxml = tmp_dir + "result.pep.xml";
-    String tmp_pin = tmp_dir + "result.pin";
+    String tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
+    String tmp_pin = tmp_dir.getPath() + "result.pin";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
     //default params given or to be written
     if (default_params.empty())
     {
-        tmp_file = tmp_dir + "param.txt";
+        tmp_file = tmp_dir.getPath() + "param.txt";
         ofstream os(tmp_file.c_str());
-        createParamFile_(os);
+        auto ret = createParamFile_(os, comet_version);
         os.close();
+        if (ret != EXECUTION_OK)
+        {
+          return ret;
+        }
     }
     else
     {
         tmp_file = default_params;
     }
 
-    PeakMap exp;
-    MzMLFile mzml_file;
-    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2
-    mzml_file.setLogType(log_type_);
-    mzml_file.load(inputfile_name, exp);
+    int ms_level = getIntOption_("ms_level");
+    const auto& centroid_info = MzMLFile().getCentroidInfo(inputfile_name);
+    const auto& lvl_info = centroid_info.find(ms_level);
+    if (lvl_info == centroid_info.end())
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
+    if (lvl_info->second.second > 0 && !getFlag_("force"))
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
 
-    if (exp.getSpectra().empty())
+
+    // check for mzML index (comet requires one)
+    MSExperiment exp;
+    MzMLFile mzml_file{};
+    String input_file_with_index = inputfile_name;
+    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
+    if (index_offset == (std::streampos)-1)
     {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+      OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
+                      << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
+      // Low memory conversion
+      // write mzML with index again
+      auto tmp_file = File::getTemporaryFile();
+      PlainMSDataWritingConsumer consumer(tmp_file);
+      consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
+      bool skip_full_count = true;
+      mzml_file.transform(inputfile_name, &consumer, skip_full_count);
+      input_file_with_index = tmp_file;
     }
 
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
-    {
-      if (!getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-      }
-    }
+    mzml_file.getOptions().setMetadataOnly(true);
+    mzml_file.load(inputfile_name, exp); // always load metadata for raw file name
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
-    String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
+    String paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
     QStringList arguments;
-    arguments << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
+    arguments << paramP.toQString() << paramN.toQString() << input_file_with_index.toQString();
 
     //-------------------------------------------------------------
     // run comet
     //-------------------------------------------------------------
     // Comet execution with the executable and the arguments StringList
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
@@ -618,6 +732,20 @@ protected:
 
     //Whatever the pepXML says, overwrite origin as the input mzML
     protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
+    // seems like version is not correctly parsed from pepXML. Overwrite it here.
+    protein_identifications[0].setSearchEngineVersion(comet_version);
+    // TODO let this be parsed by the pepXML parser if this info is present there.
+    protein_identifications[0].getSearchParameters().enzyme_term_specificity =
+    static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
+    protein_identifications[0].getSearchParameters().charges = getStringOption_("precursor_charge");
+    protein_identifications[0].getSearchParameters().db = getStringOption_("database");
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

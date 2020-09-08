@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,10 +68,14 @@ namespace OpenSwath
 
       if (!es.metaValueExists("nr_ms1_spectra"))
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected meta value 'nr_ms1_spectra'");
+        // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected meta value 'nr_ms1_spectra'");
+        nr_ms1_spectra_ = 0;
       }
-      // change the member, when the lambda gets called (acts like a callback function)
-      nr_ms1_spectra_ = es.getMetaValue("nr_ms1_spectra");
+      else
+      {
+        // change the member, when the lambda gets called (acts like a callback function)
+        nr_ms1_spectra_ = es.getMetaValue("nr_ms1_spectra");
+      }
     };
     return f;
   }

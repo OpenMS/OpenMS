@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -122,7 +123,7 @@ protected:
     registerInputFile_("executable", "<jar>", "novor.jar", "novor.jar", false, false, ListUtils::create<String>("skipexists"));
     // input, output and parameter file 
     registerInputFile_("in", "<file>", "", "MzML Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Novor idXML output");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     // enzyme
@@ -232,31 +233,40 @@ protected:
     //-------------------------------------------------------------
     
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     // parameter file
-    String tmp_param = tmp_dir + "param.txt";    
+    String tmp_param = tmp_dir.getPath() + "param.txt";    
     ofstream os(tmp_param.c_str());
     createParamFile_(os);
 
     // convert mzML to mgf format
-    MzMLFile f;
-    MSExperiment exp;
-    f.setLogType(log_type_);
-    f.getOptions().setMSLevels( {2} );
-    f.load(in, exp);
- 
-    String tmp_mgf = tmp_dir + "tmp_mgf.mgf"; 
-  
-    MascotGenericFile mgf;
-    mgf.setLogType(log_type_);
-    mgf.store(tmp_mgf,exp);
+    String tmp_mgf = tmp_dir.getPath() + "tmp_mgf.mgf";
+    {
+      MSDataTransformingConsumer c{};
+      std::ofstream ofs;
+      ofs.open(tmp_mgf, std::ofstream::out);
+      MascotGenericFile mgf;
+
+      auto f = [&ofs,&in,&mgf](const MSSpectrum& s)
+      {
+        UInt lvl = s.getMSLevel();
+        bool centroided = s.getType() == MSSpectrum::SpectrumType::CENTROID;
+        if (lvl == 2 && centroided)
+        {
+            mgf.writeSpectrum(ofs, s, in, "UNKNOWN");
+        }
+      };
+      c.setSpectraProcessingFunc(f);
+      MzMLFile().transform(in, &c, true);
+      ofs.close();
+    }
 
     //-------------------------------------------------------------
     // process
     //-------------------------------------------------------------
 
-    String tmp_out = tmp_dir + "tmp_out_novor.csv";
+    String tmp_out = tmp_dir.getPath() + "tmp_out_novor.csv";
 
     QStringList process_params;
     process_params << java_memory
@@ -294,7 +304,7 @@ protected:
         if (sl.empty() || sl[0][0] == '#') { continue; }
         
         PeptideIdentification pi;
-        pi.setMetaValue("scan_index", sl[1].toDouble());
+        pi.setMetaValue("scan_index", sl[1].toInt());
         pi.setScoreType("novorscore");
         pi.setHigherScoreBetter(true);
         pi.setRT(sl[2].toDouble());

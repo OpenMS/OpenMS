@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
+
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -98,7 +100,8 @@ namespace OpenMS
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
-    public UniqueIdIndexer<FeatureMap>
+    public UniqueIdIndexer<FeatureMap>,
+    public MapUtilities<FeatureMap>
   {
 public:
     /**
@@ -129,6 +132,7 @@ public:
     using privvec::back; // FeatureXMLFile
 
     using privvec::push_back;
+    using privvec::emplace_back;
     using privvec::pop_back; // FeatureXMLFile
     using privvec::erase; // source/VISUAL/Spectrum2DCanvas.cpp 2871, FeatureMap_test 599
 
@@ -313,9 +317,9 @@ protected:
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
+
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureMap& map);
 
 } // namespace OpenMS
-

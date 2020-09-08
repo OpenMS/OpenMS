@@ -5,12 +5,15 @@ set(directory include/OpenMS/QC)
 set(sources_list_h
   Contaminants.h
   FragmentMassError.h
+  FWHM.h
   MissedCleavages.h
   Ms2IdentificationRate.h
   Ms2SpectrumStats.h
   MzCalibration.h
+  PeptideMass.h
   QCBase.h
   RTAlignment.h
+  DBSuitability.h
   TIC.h
 )
 

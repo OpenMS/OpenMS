@@ -3,6 +3,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from Map cimport *
 from String cimport *
 from ResidueModification cimport *
+#from libcpp.memory cimport unique_ptr as libcpp_unique_ptr
 
 # see ../addons/CrossLinksDB.pyx
 cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
@@ -30,7 +31,7 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
 
         bool has(String modification) nogil except +
 
-        void addModification(ResidueModification * new_mod) nogil except +
+        #void addModification(libcpp_unique_ptr[ResidueModification] new_mod) nogil except +
 
         Size findModificationIndex(const String & mod_name) nogil except +
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -209,7 +210,7 @@ protected:
     // overwrite default search title with filename
     if (mascot_param.getValue("search_title") == "OpenMS_search")
     {
-      mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+      mascot_param.setValue("search_title", FileHandler::stripExtension(File::basename(in)));
     }
 
     mascot_param.setValue("internal:HTTP_format", "true");
@@ -318,8 +319,12 @@ protected:
     //-------------------------------------------------------------
 
     vector<ProteinIdentification> prot_ids;
+    prot_id.setPrimaryMSRunPath({ in }, exp);
     prot_ids.push_back(prot_id);
-    prot_id.setPrimaryMSRunPath({in}, exp);
+
+    // write all (!) parameters as metavalues to the search parameters
+    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), prot_ids[0].getSearchParameters(), this->getToolPrefix());
+
     IdXMLFile().store(out, prot_ids, pep_ids);
     
     return EXECUTION_OK;

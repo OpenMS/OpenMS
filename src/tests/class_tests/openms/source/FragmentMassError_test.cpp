@@ -2,7 +2,7 @@
 //           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,15 +36,11 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/QC/FragmentMassError.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/QC/FragmentMassError.h>
-#include <vector>
 //////////////////////////
 
 using namespace OpenMS;
@@ -198,8 +194,11 @@ START_TEST(FragmentMassError, "$Id$")
     //--------------------------------------------------------------------
 
     // featureMap with missing ProteinIdentifications
-    FeatureMap fmap_auto;
-    TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, FragmentMassError::ToleranceUnit::AUTO))
+    {
+      FeatureMap fmap_auto = fmap;
+      fmap_auto.getProteinIdentifications().clear();
+      TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, FragmentMassError::ToleranceUnit::AUTO))
+    }
     
     //--------------------------------------------------------------------
     // test with no given fragmentation method

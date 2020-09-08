@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
@@ -459,7 +460,7 @@ protected:
 
     writeDebug_("Reading output of MyriMatch", 5);
     String exp_name = File::basename(inputfile_name);
-    String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
+    String pep_file = tmp_dir + FileHandler::swapExtension(exp_name, FileTypes::PEPXML);
 
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
@@ -514,6 +515,9 @@ protected:
     if (!protein_identifications.empty())
     {
       protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <limits>
 
 using namespace OpenMS;
 using namespace std;
@@ -139,7 +141,16 @@ class TOPPFeatureFinderCentroided :
 {
 public:
   TOPPFeatureFinderCentroided() :
-    TOPPBase("FeatureFinderCentroided", "Detects two-dimensional features in LC-MS data.")
+    TOPPBase("FeatureFinderCentroided", 
+             "Detects two-dimensional features in LC-MS data.",
+             true,
+             {
+               Citation{ "Sturm M",
+                         "A novel feature detection algorithm for centroided data",
+                         "Dissertation, 2010-09-15, p.37 ff",
+                         "https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf"
+                       }
+             })
   {}
 
 protected:
@@ -173,11 +184,15 @@ protected:
     String out = getStringOption_("out");
     String out_mzq = getStringOption_("out_mzq");
 
-    //prevent loading of fragment spectra
+    // prevent loading of fragment spectra
     PeakFileOptions options;
     options.setMSLevels(vector<Int>(1, 1));
 
-    //reading input data
+    // filter out zero (and negative) intensities
+    using RP_TYPE = DRange<1>::PositionType;
+    options.setIntensityRange({std::numeric_limits<RP_TYPE>::min(), RP_TYPE::maxPositive()});
+
+    // reading input data
     MzMLFile f;
     f.getOptions() = options;
     f.setLogType(log_type_);

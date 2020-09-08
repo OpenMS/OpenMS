@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,24 +121,12 @@ START_SECTION((Int getNumberOfProtIdsPeptideRule(Int min_peptides, std::map< Str
 }
 END_SECTION
 
-START_SECTION((void setSolver(LPWrapper::SOLVER solver)))
-{
-  ptr->setSolver(LPWrapper::SOLVER_GLPK);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_GLPK)
-#if COINOR_SOLVER == 1
-  ptr->setSolver(LPWrapper::SOLVER_COINOR);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_COINOR)
-#endif
-}
-END_SECTION
-
 START_SECTION((LPWrapper::SOLVER getSolver()))
 {
-  ptr->setSolver(LPWrapper::SOLVER_GLPK);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_GLPK)
 #if COINOR_SOLVER == 1
-  ptr->setSolver(LPWrapper::SOLVER_COINOR);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_COINOR)
+  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_GLPK)
+#else
+  TEST_EQUAL(ptr->getSolver(), LPWrapper::SOLVER_GLPK)
 #endif
 }
 END_SECTION

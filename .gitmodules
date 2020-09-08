@@ -4,3 +4,4 @@
 [submodule "THIRDPARTY"]
 	path = THIRDPARTY
 	url = https://github.com/OpenMS/THIRDPARTY
+	shallow = true

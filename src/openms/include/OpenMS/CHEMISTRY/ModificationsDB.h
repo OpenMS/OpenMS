@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
+#include <memory>  // unique_ptr
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -101,7 +103,29 @@ public:
        If @p term_spec is set, only modifications with matching term specificity are considered.
         The resulting set of modifications will be empty if no modification exists that fulfills the criteria.
     */
-    void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+    void searchModifications(std::set<const ResidueModification*>& mods,
+                             const String& mod_name,
+                             const String& residue = "",
+                             ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+
+    /**
+       @brief Returns the modification which has the given name as synonym (fast version)
+
+       Unlike searchModification(), only returns the one occurrence of the
+       modification (the last occurrence). It is therefore required to check @p
+       multiple_matches to ensure that only a single modification was found.
+
+       If @p residue is set, only modifications with matching residue of origin are considered.
+       If @p term_spec is set, only modifications with matching term specificity are considered.
+
+       @return The matching modification given the constraints. Returns nullptr
+       if no modification exists that fulfills the criteria. If multiple
+       modifications are found, the @multiple_matches flag will be set.
+    */
+    const ResidueModification* searchModificationsFast(const String& mod_name,
+                                                       bool& multiple_matches,
+                                                       const String& residue = "",
+                                                       ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /**
        @brief Returns the modification with the given name
@@ -119,13 +143,16 @@ public:
     const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Returns true if the modification exists
-    bool has(String modification) const;
+    bool has(const String& modification) const;
 
     /**
        @brief Add a new modification to ModificationsDB.
-       Will skip adding if modification already exists (based on its fullID)
+       If the modification already exists (based on its fullID) it is not added.
+       The function returns a pointer to the modification in the ModificationDB (which can be differ from input if mod was already present).
+
+       @param new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
-    void addModification(ResidueModification * new_mod);
+    const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
@@ -144,6 +171,7 @@ public:
        If @p term_spec is set, only modifications with matching term specificity are considered.
     */
     void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
 
     /** @brief Returns the best matching modification for the given delta mass and residue
@@ -179,10 +207,23 @@ protected:
     std::vector<ResidueModification*> mods_;
 
     /// Stores the mappings of (unique) names to the modifications
-    Map<String, std::set<const ResidueModification*> > modification_names_;
+    std::unordered_map<String, std::set<const ResidueModification*> > modification_names_;
 
-    /// Helper function to check if a residue matches the origin for a modification
-    bool residuesMatch_(const String& residue, const ResidueModification* origin) const;
+    /** @brief Helper function to check if a residue matches the origin for a modification
+     *
+     * Special cases are handled as follows:
+     *   * if the origin of the modification is not "X" (everything), then the
+     *     residue either needs to match the origin exactly or it must be one of "X", ".", or "?"
+     *   * if the origin of the modification is "X" (can match any amino acid),
+     *     then any residue should match -- except if the modification is
+     *     user-defined and maps to an unknown amino acid (indicated by "X")
+     *
+     * Underlying logic to determine whether a given residue matches the
+     * modification: if the modification does not have origin of "X"
+     * (everything) then it is sufficient to check that the residue matches the origin
+     *
+    */
+    bool residuesMatch_(const char residue, const ResidueModification* curr_mod) const;
 
 private:
 

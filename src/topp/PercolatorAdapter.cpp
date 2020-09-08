@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <QtCore/qfile.h>
+
 #include <iostream>
 #include <cmath>
 #include <string>
@@ -85,9 +87,9 @@ using namespace std;
   </center>
   <p>Percolator is search engine sensitive, i.e. it's input features vary,
 depending on the search engine. Must be prepared beforehand. If you do not want
-to use the specific features, use the generic-feature-set flag. Will incorporate
+to use the specific features, use the generic_feature_set flag. Will incorporate
 the score attribute of a PSM, so be sure, the score you want is set as main
-score with @ref TOPP_IDScoreSwitcher . Be aware, that you might very well
+score with @ref UTILS_IDScoreSwitcher . Be aware, that you might very well
 experience a performance loss compared to the search engine specific features.
 You can also perform protein inference with percolator when you activate the protein fdr parameter.
 Additionally you need to set the enzyme setting.
@@ -228,9 +230,18 @@ protected:
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
     setValidFormats_("out_pin", ListUtils::create<String>("tsv"), !force_openms_format);
+
+    registerOutputFile_("out_pout_target", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_target", ListUtils::create<String>("tab"), !force_openms_format);
+    registerOutputFile_("out_pout_decoy", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_decoy", ListUtils::create<String>("tab"), !force_openms_format);
+    registerOutputFile_("out_pout_target_proteins", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_target_proteins", ListUtils::create<String>("tab"), !force_openms_format);
+    registerOutputFile_("out_pout_decoy_proteins", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_decoy_proteins", ListUtils::create<String>("tab"), !force_openms_format);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
@@ -246,42 +257,49 @@ protected:
         #endif
                        "The Percolator executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", is_required, !is_advanced_option, {"is_executable"}
     );
-    registerFlag_("peptide-level-fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
-    registerFlag_("protein-level-fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy-pattern to set the Fasta file and decoy pattern.");
+    registerFlag_("peptide_level_fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
+    registerFlag_("protein_level_fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy_pattern to set the Fasta file and decoy pattern.");
     registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
     registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
     setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
 
     //Advanced parameters
-    registerFlag_("generic-feature-set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
-    registerIntOption_("subset-max-train", "<number>", 0, "Only train an SVM on a subset of <x> PSMs, and use the resulting score vector to evaluate the other PSMs. Recommended when analyzing huge numbers (>1 million) of PSMs. When set to 0, all PSMs are used for training as normal.", !is_required, is_advanced_option);
+    registerFlag_("generic_feature_set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
+    registerIntOption_("subset_max_train", "<number>", 0, "Only train an SVM on a subset of <x> PSMs, and use the resulting score vector to evaluate the other PSMs. Recommended when analyzing huge numbers (>1 million) of PSMs. When set to 0, all PSMs are used for training as normal.", !is_required, is_advanced_option);
     registerDoubleOption_("cpos", "<value>", 0.0, "Cpos, penalty for mistakes made on positive examples. Set by cross validation if not specified.", !is_required, is_advanced_option);
     registerDoubleOption_("cneg", "<value>", 0.0, "Cneg, penalty for mistakes made on negative examples. Set by cross validation if not specified.", !is_required, is_advanced_option);
     registerDoubleOption_("testFDR", "<value>", 0.01, "False discovery rate threshold for evaluating best cross validation result and the reported end result.", !is_required, is_advanced_option);
     registerDoubleOption_("trainFDR", "<value>", 0.01, "False discovery rate threshold to define positive examples in training. Set to testFDR if 0.", !is_required, is_advanced_option);
     registerIntOption_("maxiter", "<number>", 10, "Maximal number of iterations", !is_required, is_advanced_option);
-    registerFlag_("quick-validation", "Quicker execution by reduced internal cross-validation.", is_advanced_option);
+    registerIntOption_("nested_xval_bins", "<number>", 1, "Number of nested cross-validation bins in the 3 splits.", !is_required, is_advanced_option);
+    registerFlag_("quick_validation", "Quicker execution by reduced internal cross-validation.", is_advanced_option);
     registerOutputFile_("weights", "<file>", "", "Output final weights to the given file", !is_required, is_advanced_option);
-    registerInputFile_("init-weights", "<file>", "", "Read initial weights to the given file", !is_required, is_advanced_option);
-    registerStringOption_("default-direction", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", !is_required, is_advanced_option);
+    setValidFormats_("weights", ListUtils::create<String>("tsv"), !force_openms_format);
+
+    registerInputFile_("init_weights", "<file>", "", "Read initial weights to the given file", !is_required, is_advanced_option);
+    setValidFormats_("init_weights", ListUtils::create<String>("tsv"), !force_openms_format);
+    registerFlag_("static", "Use static model (requires init-weights parameter to be set)", is_advanced_option);
+
+    registerStringOption_("default_direction", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", !is_required, is_advanced_option);
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerFlag_("unitnorm", "Use unit normalization [0-1] instead of standard deviation normalization", is_advanced_option);
-    registerFlag_("test-each-iteration", "Measure performance on test set each iteration", is_advanced_option);
+    registerFlag_("test_each_iteration", "Measure performance on test set each iteration", is_advanced_option);
     registerFlag_("override", "Override error check and do not fall back on default score vector in case of suspect score vector", is_advanced_option);
     registerIntOption_("seed", "<value>", 1, "Setting seed of the random number generator.", !is_required, is_advanced_option);
     registerIntOption_("doc", "<value>", 0, "Include description of correct features", !is_required, is_advanced_option);
     registerFlag_("klammer", "Retention time features calculated as in Klammer et al. Only available if -doc is set", is_advanced_option);
-    registerInputFile_("fasta", "<file>", "", "Provide the fasta file as the argument to this flag, which will be used for protein grouping based on an in-silico digest (only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
+    registerInputFile_("fasta", "<file>", "", "Provide the fasta file as the argument to this flag, which will be used for protein grouping based on an in-silico digest (only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
-    registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
-    registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
-    registerFlag_("train-best-positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
+    registerStringOption_("decoy_pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
+    registerStringOption_("post_processing_tdc", "<value>", "true", "Use target-decoy competition to assign q-values and PEPs.", !is_required, is_advanced_option);
+    setValidStrings_("post_processing_tdc", ListUtils::create<String>("true,false"));
+    registerFlag_("post_processing_tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
+    registerFlag_("train_best_positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_max_transition_isotope_overlap", "<value>", 0.5, "OSW/IPF: Maximum isotope overlap to consider transitions in IPF.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
-
   }
   
   // TODO replace with TopPerc::getScanMergeKey
@@ -323,6 +341,12 @@ protected:
       else if ((idx = it->find("index=")) != string::npos)
       {
         scan_number = it->substr(idx + 6).toInt();
+        break;
+      } 
+      else if ((idx = it->find("spectrum=")) != string::npos)
+      {
+        scan_number = it->substr(idx + 9).toInt();
+        break;
       }
     }
     return scan_number;
@@ -448,18 +472,26 @@ protected:
         
         int charge = hit.getCharge();
         String unmodified_sequence = hit.getSequence().toUnmodifiedString();
-        
-        double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
-        hit.setMetaValue("CalcMass", calc_mass);
+       
+        double calc_mass; 
+        if (!hit.metaValueExists("CalcMass"))
+        {
+          calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
+          hit.setMetaValue("CalcMass", calc_mass);
+        }
+        else
+        {
+          calc_mass = hit.getMetaValue("CalcMass");
+        }
 
-        if (hit.metaValueExists("IsotopeError"))  // MSGFPlus
+        if (hit.metaValueExists("IsotopeError"))  // for backwards compatibility (generated by MSGFPlusAdaper OpenMS < 2.6)
         {
           float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
           exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
-        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /RNPxlSearch
+        else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR)) // OpenMS user param name for isotope error
         {
-          float isoErr = hit.getMetaValue("isotope_error").toString().toFloat();
+          float isoErr = hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString().toFloat();
           exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
                 
@@ -607,6 +639,25 @@ protected:
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
+      if (protein_ids.empty())
+      {
+        throw Exception::ElementNotFound(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File '" + in + "' has not ProteinIDRuns.");
+      }
+      else if (protein_ids.size() > 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
+            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " all original single-run idXML inputs as list to this tool.",
+            "# runs: " + String(protein_ids.size()));
+      }
 
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
       for (vector<PeptideIdentification>::iterator pit = peptide_ids.begin(); pit != peptide_ids.end(); ++pit)
@@ -788,8 +839,8 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
-    bool peptide_level_fdrs = getFlag_("peptide-level-fdrs");
-    bool protein_level_fdrs = getFlag_("protein-level-fdrs");  
+    bool peptide_level_fdrs = getFlag_("peptide_level_fdrs");
+    bool protein_level_fdrs = getFlag_("protein_level_fdrs");  
 
     Int description_of_correct = getIntOption_("doc");
 
@@ -804,25 +855,25 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
     
     String txt_designator = File::getUniqueName();
     String pin_file;
     if (getStringOption_("out_pin").empty())
     {
-      pin_file = temp_directory_body + txt_designator + "_pin.tab";
+      pin_file = tmp_dir.getPath() + txt_designator + "_pin.tab";
     }
     else
     {
       pin_file = getStringOption_("out_pin");
     }
     
-    String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
-    String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
-    String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");
-    String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tab");
-    String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tab");
-    String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
+    String pout_target_file(tmp_dir.getPath() + txt_designator + "_target_pout_psms.tab");
+    String pout_decoy_file(tmp_dir.getPath() + txt_designator + "_decoy_pout_psms.tab");
+    String pout_target_file_peptides(tmp_dir.getPath() + txt_designator + "_target_pout_peptides.tab");
+    String pout_decoy_file_peptides(tmp_dir.getPath() + txt_designator + "_decoy_pout_peptides.tab");
+    String pout_target_file_proteins(tmp_dir.getPath() + txt_designator + "_target_pout_proteins.tab");
+    String pout_decoy_file_proteins(tmp_dir.getPath() + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
@@ -917,7 +968,7 @@ protected:
         StringList extra_feature_set = ListUtils::create<String>(search_parameters.getMetaValue("extra_features").toString());
         feature_set.insert(feature_set.end(), extra_feature_set.begin(), extra_feature_set.end());
       }
-      else if (getFlag_("generic-feature-set")) 
+      else if (getFlag_("generic_feature_set")) 
       {
         feature_set.push_back("score");
       } 
@@ -974,7 +1025,7 @@ protected:
 
         arguments << "-z" << String(enz_str).toQString();
 
-        String decoy_pattern = getStringOption_("decoy-pattern");
+        String decoy_pattern = getStringOption_("decoy_pattern");
         if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
       }
       
@@ -990,15 +1041,18 @@ protected:
       
       Int max_iter = getIntOption_("maxiter");
       if (max_iter != 10) arguments << "-i" << String(max_iter).toQString();
-      Int subset_max_train = getIntOption_("subset-max-train");
+      Int subset_max_train = getIntOption_("subset_max_train");
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
-      if (getFlag_("quick-validation")) arguments << "-x";
-      if (getFlag_("post-processing-tdc")) arguments << "-Y";
-      if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
-      
+      if (getFlag_("quick_validation")) arguments << "-x";
+      if (getStringOption_("post_processing_tdc") == "true") arguments << "-Y";
+      if (getFlag_("train_best_positive")) arguments << "--train-best-positive";
+      if (getFlag_("static")) arguments << "--static";
+      Int nested_xval_bins = getIntOption_("nested_xval_bins");
+      if (nested_xval_bins > 1) arguments << "--nested-xval-bins" << String(nested_xval_bins).toQString();
+ 
       String weights_file = getStringOption_("weights");
-      String init_weights_file = getStringOption_("init-weights");
-      String default_search_direction = getStringOption_("default-direction");
+      String init_weights_file = getStringOption_("init_weights");
+      String default_search_direction = getStringOption_("default_direction");
       if (!weights_file.empty()) arguments << "-w" << weights_file.toQString();
       if (!init_weights_file.empty()) arguments << "-W" << init_weights_file.toQString();
       if (!default_search_direction.empty()) arguments << "-V" << default_search_direction.toQString();
@@ -1006,7 +1060,7 @@ protected:
       Int verbose_level = getIntOption_("verbose");
       if (verbose_level != 2) arguments << "-v" << String(verbose_level).toQString();
       if (getFlag_("unitnorm")) arguments << "-u";
-      if (getFlag_("test-each-iteration")) arguments << "-R";
+      if (getFlag_("test_each_iteration")) arguments << "-R";
       if (getFlag_("override")) arguments << "-O";
       
       Int seed = getIntOption_("seed");
@@ -1035,15 +1089,40 @@ protected:
     // when percolator finished calculation, it stores the results -r option (with or without -U) or -m (which seems to be not working)
     //  WARNING: The -r option cannot be used in conjunction with -U: no peptide level statistics are calculated, redirecting PSM level statistics to provided file instead.
     map<String, PercolatorResult> pep_map;
+    String pout_target = getStringOption_("out_pout_target");
+    String pout_decoy = getStringOption_("out_pout_decoy");
+    String pout_target_proteins = getStringOption_("out_pout_target_proteins");
+    String pout_decoy_proteins = getStringOption_("out_pout_decoy_proteins");
+
     if (peptide_level_fdrs)
     {
       readPoutAsMap_(pout_target_file_peptides, pep_map);
       readPoutAsMap_(pout_decoy_file_peptides, pep_map);
+
+      // copy file in tmp folder to output
+      if (!pout_target.empty())
+      {
+        QFile::copy(pout_target_file_peptides.toQString(), pout_target.toQString());
+      }
+      if (!pout_decoy.empty())
+      {
+        QFile::copy(pout_decoy_file_peptides.toQString(), pout_decoy.toQString());
+      }
     }
     else
     {
       readPoutAsMap_(pout_target_file, pep_map);
       readPoutAsMap_(pout_decoy_file, pep_map);
+
+      // copy file in tmp folder to output
+      if (!pout_target.empty())
+      {
+        QFile::copy(pout_target_file.toQString(), pout_target.toQString());
+      }
+      if (!pout_decoy.empty())
+      {
+        QFile::copy(pout_decoy_file.toQString(), pout_decoy.toQString());
+      }
     }
     
     map<String, PercolatorProteinResult> protein_map;
@@ -1051,6 +1130,16 @@ protected:
     {
       readProteinPoutAsMapAndAddGroups_(pout_target_file_proteins, protein_map, all_protein_ids[0]);
       readProteinPoutAsMapAndAddGroups_(pout_decoy_file_proteins, protein_map, all_protein_ids[0] );
+
+      // copy file in tmp folder to output filename
+      if (!pout_target_proteins.empty())
+      {
+        QFile::copy(pout_target_file_proteins.toQString(), pout_target_proteins.toQString());
+      }
+      if (!pout_decoy_proteins.empty())
+      {
+        QFile::copy(pout_target_file_proteins.toQString(), pout_decoy_proteins.toQString());
+      }
     }
 
     // idXML or mzid input
@@ -1064,7 +1153,17 @@ protected:
       for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
         it->setIdentifier(run_identifier);
-        it->setScoreType(scoreType);
+        if (scoreType == "pep")
+        {
+          it->setScoreType("Posterior Error Probability");
+        }
+        else
+        {
+          //TODO we should make a difference between peptide-level q-values and psm-level q-values!
+          // I am just not changing it right now, because a lot of tools currently depend on
+          // the score being exactly "q-value"
+          it->setScoreType(scoreType);
+        }
         it->setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
@@ -1125,7 +1224,17 @@ protected:
           }
         }
       }
-      OPENMS_LOG_INFO << "Suitable PeptideHits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
+
+      if (!peptide_level_fdrs)
+      {
+      OPENMS_LOG_INFO << "PSM-level FDR: All PSMs are returned by percolator. Reannotating all PSMs in input data with percolator output." << endl;
+      }
+      else
+      {
+      OPENMS_LOG_INFO << "Peptide-level FDR: Only the best PSM per Peptide is returned by percolator. Reannotating the best PSM in input data with percolator output." << endl;
+      }
+      OPENMS_LOG_INFO << "Scores of all other PSMs will be set to 1.0." << endl;
+      OPENMS_LOG_INFO << cnt << " suitable PeptideHits of " << all_peptide_ids.size() <<  " PSMs were reannotated." << endl;
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
@@ -1183,17 +1292,18 @@ protected:
         it->setMetaValue("percolator", "PercolatorAdapter");
         ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();
         
-        search_parameters.setMetaValue("Percolator:peptide-level-fdrs", peptide_level_fdrs);
-        search_parameters.setMetaValue("Percolator:protein-level-fdrs", protein_level_fdrs);
-        search_parameters.setMetaValue("Percolator:generic-feature-set", getFlag_("generic-feature-set"));
+        search_parameters.setMetaValue("Percolator:peptide_level_fdrs", peptide_level_fdrs);
+        search_parameters.setMetaValue("Percolator:protein_level_fdrs", protein_level_fdrs);
+        search_parameters.setMetaValue("Percolator:generic_feature_set", getFlag_("generic_feature_set"));
         search_parameters.setMetaValue("Percolator:testFDR", getDoubleOption_("testFDR"));
         search_parameters.setMetaValue("Percolator:trainFDR", getDoubleOption_("trainFDR"));
         search_parameters.setMetaValue("Percolator:maxiter", getIntOption_("maxiter"));
-        search_parameters.setMetaValue("Percolator:subset-max-train", getIntOption_("subset-max-train"));
-        search_parameters.setMetaValue("Percolator:quick-validation", getFlag_("quick-validation"));
+        search_parameters.setMetaValue("Percolator:subset_max_train", getIntOption_("subset_max_train"));
+        search_parameters.setMetaValue("Percolator:quick_validation", getFlag_("quick_validation"));
+        search_parameters.setMetaValue("Percolator:static", getFlag_("static"));
         search_parameters.setMetaValue("Percolator:weights", getStringOption_("weights"));
-        search_parameters.setMetaValue("Percolator:init-weights", getStringOption_("init-weights"));
-        search_parameters.setMetaValue("Percolator:default-direction", getStringOption_("default-direction"));
+        search_parameters.setMetaValue("Percolator:init_weights", getStringOption_("init_weights"));
+        search_parameters.setMetaValue("Percolator:default_direction", getStringOption_("default_direction"));
         search_parameters.setMetaValue("Percolator:cpos", getDoubleOption_("cpos"));
         search_parameters.setMetaValue("Percolator:cneg", getDoubleOption_("cneg"));
         search_parameters.setMetaValue("Percolator:unitnorm", getFlag_("unitnorm"));
@@ -1202,9 +1312,9 @@ protected:
         search_parameters.setMetaValue("Percolator:doc", getIntOption_("doc"));
         search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
-        search_parameters.setMetaValue("Percolator:decoy-pattern", getStringOption_("decoy-pattern"));
-        search_parameters.setMetaValue("Percolator:post-processing-tdc", getFlag_("post-processing-tdc"));
-        search_parameters.setMetaValue("Percolator:train-best-positive", getFlag_("train-best-positive"));
+        search_parameters.setMetaValue("Percolator:decoy_pattern", getStringOption_("decoy_pattern"));
+        search_parameters.setMetaValue("Percolator:post_processing_tdc", getStringOption_("post_processing_tdc"));
+        search_parameters.setMetaValue("Percolator:train_best_positive", getFlag_("train_best_positive"));
         
         it->setSearchParameters(search_parameters);
       }

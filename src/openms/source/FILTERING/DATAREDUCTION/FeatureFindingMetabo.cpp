@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -167,6 +167,7 @@ namespace OpenMS
       chromatogram.sortByPosition();
 
       tmp_chromatograms.push_back(chromatogram);
+
     }
     return tmp_chromatograms;
   }
@@ -1055,10 +1056,11 @@ namespace OpenMS
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
       output_featmap.push_back(f);
 
-      if (report_chromatograms_)
+      if (report_chromatograms_ && f.getIntensity() != 0)
       {
         output_chromatograms.push_back(feat_hypos[hypo_idx].getChromatograms(f.getUniqueId()));
       }
+
       // add used traces to exclusion map
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
       {

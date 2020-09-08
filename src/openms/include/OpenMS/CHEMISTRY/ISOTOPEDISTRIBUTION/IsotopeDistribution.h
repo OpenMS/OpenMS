@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -219,8 +219,10 @@ public:
 
     /// @name Data Access Operators
     //@{
-    /// operator which access a cell of the distribution and wraps it in SpectrumFragment struct
+    /// operator to access a cell of the distribution and wraps it in SpectrumFragment struct
     Peak1D& operator[](const Size& index){ return distribution_[index];}
+    /// const operator to access a cell of the distribution and wraps it in SpectrumFragment struct
+    const Peak1D& operator[](const Size& index) const { return distribution_[index]; }
     //@}
 
 protected:   

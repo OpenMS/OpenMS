@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -170,9 +170,9 @@ namespace OpenMS
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
       if (signal_to_noise_ > 0.0)
       {
-        act_snt = snt.getSignalToNoise(input[i]);
-        act_snt_l1 = snt.getSignalToNoise(input[i - 1]);
-        act_snt_r1 = snt.getSignalToNoise(input[i + 1]);
+        act_snt = snt.getSignalToNoise(i);
+        act_snt_l1 = snt.getSignalToNoise(i - 1);
+        act_snt_r1 = snt.getSignalToNoise(i + 1);
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
@@ -193,8 +193,8 @@ namespace OpenMS
 
         if (signal_to_noise_ > 0.0)
         {
-          act_snt_l2 = snt.getSignalToNoise(input[i - 2]);
-          act_snt_r2 = snt.getSignalToNoise(input[i + 2]);
+          act_snt_l2 = snt.getSignalToNoise(i - 2);
+          act_snt_r2 = snt.getSignalToNoise(i + 2);
         }
 
         // checking signal-to-noise?
@@ -238,7 +238,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_lk = snt.getSignalToNoise(input[i - k]);
+            act_snt_lk = snt.getSignalToNoise(i - k);
           }
 
           if ((act_snt_lk >= signal_to_noise_) && 
@@ -279,7 +279,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_rk = snt.getSignalToNoise(input[i + k]);
+            act_snt_rk = snt.getSignalToNoise(i + k);
           }
 
           if ((act_snt_rk >= signal_to_noise_) && 

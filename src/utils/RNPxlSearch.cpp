@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1403,7 +1403,7 @@ protected:
           }
 
           ph.setPeakAnnotations(ah.fragment_annotations);
-          ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
+          ph.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, static_cast<int>(ah.isotope_error));
           ph.setMetaValue("rank", rank);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
@@ -1446,7 +1446,7 @@ protected:
      */
     StringList feature_set;
     feature_set
-       << "isotope_error"
+       << Constants::UserParam::ISOTOPE_ERROR
        << "RNPxl:score"
        << "RNPxl:total_loss_score"
        << "RNPxl:immonium_score"
@@ -2275,8 +2275,6 @@ protected:
 
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
-    progresslogger.startProgress(0, 1, "Post-processing PSMs...");
-
     // Localization
     //
 
@@ -2288,7 +2286,7 @@ protected:
     // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
     preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); // no single charge (false), annotate charge (true)
 
-    progresslogger.startProgress(0, 1, "localization...");
+    progresslogger.startProgress(0, 1, "Post-processing PSMs...localization...");
 
     // create spectrum generator. For convenience we add more peak types here.
     Param param(total_loss_spectrum_generator.getParameters());
@@ -2311,6 +2309,7 @@ protected:
                    partial_loss_spectrum_generator,
                    fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                    all_feasible_fragment_adducts);
+    progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Post-processing and annotation...");
     postProcessHits_(spectra,
@@ -2617,21 +2616,21 @@ RNPxlSearch::RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringL
     // register all fragment adducts as N- and C-terminal modification (if not already registered)
     if (!ModificationsDB::getInstance()->has(name))
     {
-      ResidueModification* c_term = new ResidueModification();
+      std::unique_ptr<ResidueModification> c_term(new ResidueModification());
       c_term->setId(name);
       c_term->setName(name);
       c_term->setFullId(name + " (C-term)");
       c_term->setTermSpecificity(ResidueModification::C_TERM);
       c_term->setDiffMonoMass(fad.mass);
-      ModificationsDB::getInstance()->addModification(c_term);
+      ModificationsDB::getInstance()->addModification(std::move(c_term));
 
-      ResidueModification* n_term = new ResidueModification();
+      std::unique_ptr<ResidueModification> n_term(new ResidueModification());
       n_term->setId(name);
       n_term->setName(name);
       n_term->setFullId(name + " (N-term)");
       n_term->setTermSpecificity(ResidueModification::N_TERM);
       n_term->setDiffMonoMass(fad.mass);
-      ModificationsDB::getInstance()->addModification(n_term);
+      ModificationsDB::getInstance()->addModification(std::move(n_term));
     }
   }
 
@@ -3092,3 +3091,5 @@ int main(int argc, const char** argv)
   RNPxlSearch tool;
   return tool.main(argc, argv);
 }
+
+///@endcond
