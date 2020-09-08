@@ -269,7 +269,7 @@ setup(
         "Topic :: Scientific/Engineering :: Chemistry",
     ],
     long_description=open("README.rst").read(),
-    long_description_content_type="text/x-rst"
+    long_description_content_type="text/x-rst",
     zip_safe=False,
 
     url="http://open-ms.de",
