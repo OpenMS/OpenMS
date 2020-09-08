@@ -1,2 +1,2 @@
-from .pyopenms_1 cimport convString
-from .pyopenms_1 cimport convOutputString
+from pyopenms_1 cimport convString
+from pyopenms_1 cimport convOutputString
