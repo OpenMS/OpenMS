@@ -6,6 +6,7 @@ set(sources_list_h
 AAIndex.h
 AASequence.h
 CrossLinksDB.h
+DecoyGenerator.h
 Element.h
 ElementDB.h
 EmpiricalFormula.h
@@ -35,6 +36,7 @@ SpectrumAnnotator.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h
+Tagger.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h
 WeightWrapper.h

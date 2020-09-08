@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,7 +115,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         * @brief constructor of iterator
         * 
         * @param scaling    The step width can be scaled by this factor. Often it is adventageous to iterate
-        * in slightly samller steps over the spectrum (or chromatogram).
+        * in slightly smaller steps over the spectrum (or chromatogram).
         */
         Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax, double scaling);
 
@@ -166,7 +166,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         * @brief scaling of the step width
         * 
         * Each package stores its own step width, which is the average spacing of the input data points.
-        * This step width can be adjusted by the scaling factor. Often it is adventageous to use a step width
+        * This step width can be adjusted by the scaling factor. Often it is advantageous to use a step width
         * which is somewhat smaller than the average raw data spacing.
         * 
         * @see getNextPos() 

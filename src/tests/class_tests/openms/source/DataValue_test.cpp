@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -700,7 +700,7 @@ START_SECTION((String toString(bool full_precision) const))
   TEST_EQUAL(a.toString(), "47.109999999999999")
   TEST_EQUAL(a.toString(false), "47.11")
   a = DataValue(-23456.78);
-  TEST_EQUAL(a.toString(), "-23456.779999999998836")
+  TEST_EQUAL(a.toString(), "-2.345678e04")
   a = DataValue(ListUtils::create<String>("test string,string2,last string"));
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
   a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));

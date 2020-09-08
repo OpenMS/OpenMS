@@ -58,36 +58,21 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
         IonOpticsType getIonOptics() nogil except +
         void setIonOptics(IonOpticsType ion_optics) nogil except +
 
-        # MetaInfoInterface:
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-
 cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS::Instrument":
 
     cdef enum IonOpticsType:
     
-        UNKNOWN,                                          #< unknown
-        MAGNETIC_DEFLECTION,                      #< magnetic deflection
-        DELAYED_EXTRACTION,                       #< delayed extraction
-        COLLISION_QUADRUPOLE,                 #< collision quadrupole
-        SELECTED_ION_FLOW_TUBE,               #< selected ion flow tube
-        TIME_LAG_FOCUSING,                        #< time lag focusing
-        REFLECTRON,                                       #< reflectron
-        EINZEL_LENS,                                      #< einzel lens
-        FIRST_STABILITY_REGION,               #< first stability region
-        FRINGING_FIELD,                               #< fringing field
-        KINETIC_ENERGY_ANALYZER,              #< kinetic energy analyzer
-        STATIC_FIELD,                                     #< static field
+        UNKNOWN,                          #< unknown
+        MAGNETIC_DEFLECTION,              #< magnetic deflection
+        DELAYED_EXTRACTION,               #< delayed extraction
+        COLLISION_QUADRUPOLE,             #< collision quadrupole
+        SELECTED_ION_FLOW_TUBE,           #< selected ion flow tube
+        TIME_LAG_FOCUSING,                #< time lag focusing
+        REFLECTRON,                       #< reflectron
+        EINZEL_LENS,                      #< einzel lens
+        FIRST_STABILITY_REGION,           #< first stability region
+        FRINGING_FIELD,                   #< fringing field
+        KINETIC_ENERGY_ANALYZER,          #< kinetic energy analyzer
+        STATIC_FIELD,                     #< static field
         SIZE_OF_IONOPTICSTYPE
 

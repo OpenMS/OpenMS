@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,6 +51,8 @@ namespace OpenMS
 {
   class IsotopeDistribution;
 
+
+
 class OPENMS_DLLAPI FeatureFinderIdentificationAlgorithm :
   public DefaultParamHandler
 {
@@ -63,10 +65,11 @@ public:
   /// in which case no machine learning or FDR estimation will be performed.
   void run(
     std::vector<PeptideIdentification> peptides,
-    std::vector<ProteinIdentification> proteins,
+    const std::vector<ProteinIdentification>& proteins,
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
-    FeatureMap& features
+    FeatureMap& features,
+    const FeatureMap& seeds = FeatureMap()
     );
 
   void runOnCandidates(FeatureMap& features);
@@ -98,17 +101,18 @@ protected:
 
   PeptideMap peptide_map_;
 
-  Size n_internal_peps_; //< number of internal peptide
-  Size n_external_peps_; //< number of external peptides
+  Size n_internal_peps_; ///< number of internal peptide
+  Size n_external_peps_; ///< number of external peptides
 
-  double rt_window_; //< RT window width
-  double mz_window_; //< m/z window width
-  bool mz_window_ppm_; //< m/z window width is given in PPM (not Da)?
+  Size batch_size_; ///< nr of peptides to use at the same time during chromatogram extraction
+  double rt_window_; ///< RT window width
+  double mz_window_; ///< m/z window width
+  bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
 
-  double mapping_tolerance_; //< RT tolerance for mapping IDs to features
+  double mapping_tolerance_; ///< RT tolerance for mapping IDs to features
 
-  double isotope_pmin_; //< min. isotope probability for peptide assay
-  Size n_isotopes_; //< number of isotopes for peptide assay
+  double isotope_pmin_; ///< min. isotope probability for peptide assay
+  Size n_isotopes_; ///< number of isotopes for peptide assay
 
   double rt_quantile_;
 
@@ -123,8 +127,8 @@ protected:
   StringList svm_predictor_names_;
   String svm_xval_out_;
   double svm_quality_cutoff;
-  Size svm_n_parts_; //< number of partitions for SVM cross-validation
-  Size svm_n_samples_; //< number of samples for SVM training
+  Size svm_n_parts_; ///< number of partitions for SVM cross-validation
+  Size svm_n_samples_; ///< number of samples for SVM training
 
   // output file (before filtering)
   String candidates_out_;
@@ -137,7 +141,7 @@ protected:
   struct RTRegion
   {
     double start, end;
-    ChargeMap ids; //< internal/external peptide IDs (per charge) in this region
+    ChargeMap ids; ///< internal/external peptide IDs (per charge) in this region
   };
 
   /// predicate for filtering features by overall quality:
@@ -195,20 +199,20 @@ protected:
     }
   } feature_compare_;
 
-  PeakMap ms_data_; //< input LC-MS data
-  PeakMap chrom_data_; //< accumulated chromatograms (XICs)
-  TargetedExperiment library_; //< accumulated assays for peptides
+  PeakMap ms_data_; ///< input LC-MS data
+  PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
+  TargetedExperiment library_; ///< accumulated assays for peptides
 
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):
   std::multiset<double> svm_probs_external_;
-  Size n_internal_features_; //< internal feature counter (for FDR calculation)
-  Size n_external_features_; //< external feature counter (for FDR calculation)
+  Size n_internal_features_; ///< internal feature counter (for FDR calculation)
+  Size n_external_features_; ///< external feature counter (for FDR calculation)
   /// TransformationDescription trafo_; // RT transformation (to range 0-1)
-  TransformationDescription trafo_external_; //< transform. to external RT scale
-  std::map<String, double> isotope_probs_; //< isotope probabilities of transitions
-  MRMFeatureFinderScoring feat_finder_; //< OpenSWATH feature finder
+  TransformationDescription trafo_external_; ///< transform. to external RT scale
+  std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
+  MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
 
   ProgressLogger prog_log_;
 
@@ -222,7 +226,7 @@ protected:
   void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions) const;
 
   void annotateFeaturesFinalizeAssay_(
-    FeatureMap& features, 
+    FeatureMap& features,
     std::map<Size, std::vector<PeptideIdentification*> >& feat_ids,
     RTMap& rt_internal);
 
@@ -236,7 +240,9 @@ protected:
   /// some statistics on detected features
   void statistics_(const FeatureMap& features) const;
 
-  void createAssayLibrary_(PeptideMap& peptide_map, PeptideRefRTMap& ref_rt_map);
+  /// creates an assay library out of the peptide sequences and their RT elution windows
+  /// the PeptideMap is mutable since we clear it on-the-go
+  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map);
 
   void addPeptideToMap_(PeptideIdentification& peptide, 
     PeptideMap& peptide_map,
@@ -258,7 +264,49 @@ protected:
 
   void calculateFDR_(FeatureMap& features);
 
-  };
+  /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
+  /// Last batch might be smaller.
+  template <typename It>
+  std::vector<std::pair<It,It>>
+  chunk_(It range_from, It range_to, const std::ptrdiff_t batch_size)
+  {
+    /* Aliases, to make the rest of the code more readable. */
+    using std::vector;
+    using std::pair;
+    using std::make_pair;
+    using std::distance;
+    using diff_t = std::ptrdiff_t;
+
+    /* Total item number and batch_size size. */
+    const diff_t total {distance(range_from, range_to)};
+    const diff_t num {total / batch_size};
+
+    vector<pair<It,It>> chunks(num);
+
+    It batch_end {range_from};
+
+    /* Use the 'generate' algorithm to create batches. */
+    std::generate(begin(chunks), end(chunks), [&batch_end, batch_size]()
+    {
+      It batch_start {batch_end };
+
+      std::advance(batch_end, batch_size);
+      return make_pair(batch_start, batch_end);
+    });
+
+    /* The last batch_size's end must always be 'range_to'. */
+    if (chunks.empty())
+    {
+      chunks.emplace_back(range_from, range_to);
+    }
+    else
+    {
+      chunks.back().second = range_to;
+    }
+
+    return chunks;
+  }
+};
 
 } // namespace OpenMS
 

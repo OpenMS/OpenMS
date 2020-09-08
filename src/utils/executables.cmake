@@ -13,6 +13,7 @@ DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
+Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
@@ -24,8 +25,6 @@ IDMassAccuracy
 IDScoreSwitcher
 IDSplitter
 LabeledEval
-LowMemPeakPickerHiRes
-LowMemPeakPickerHiResRandomAccess
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
@@ -39,8 +38,6 @@ MzMLSplitter
 NovorAdapter
 NucleicAcidSearchEngine
 OpenMSInfo
-OpenPepXL
-OpenPepXLLF
 PeakPickerIterative
 PSMFeatureExtractor
 QCCalculator
@@ -50,6 +47,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+ProteomicsLFQ
 RNADigestor
 RNAMassCalculator
 RNPxlXICFilter
@@ -61,10 +59,10 @@ SimpleSearchEngine
 SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
+StaticModification
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
-XFDR
 XMLValidator
 )
 

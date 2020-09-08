@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ namespace OpenMS
   }
 
   Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer & rhs) :
-    std::list<Annotation1DItem *>()
+    std::list<Annotation1DItem *>() //@todo all: why can't we use the copy constructor of the base container?
   {
     //copy annotations
     Annotation1DItem * new_item = nullptr;

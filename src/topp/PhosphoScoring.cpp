@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -251,7 +251,7 @@ protected:
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
-
+    setValidFormats_("out", { "idXML" });
     // Ascore algorithm parameters:
     registerFullParam_(AScore().getDefaults());
   }
@@ -287,7 +287,7 @@ protected:
 
     AScore ascore;
     Param ascore_params = ascore.getDefaults();
-    ascore_params.update(getParam_(), false, false, false, false, Log_debug);
+    ascore_params.update(getParam_(), false, false, false, false, OpenMS_Log_debug);
     ascore.setParameters(ascore_params);
 
     //-------------------------------------------------------------
@@ -324,7 +324,7 @@ protected:
         PeptideHit scored_hit = *hit;
         addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
         
-        LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
+        OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
         PeptideHit phospho_sites = ascore.compute(scored_hit, temp);
         scored_peptides.push_back(phospho_sites);

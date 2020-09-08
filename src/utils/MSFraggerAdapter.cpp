@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -49,7 +50,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MSFraggerAdapter MSFraggerAdapter
+    @page UTILS_MSFraggerAdapter MSFraggerAdapter
 
     @brief Peptide Identification with MSFragger
 
@@ -195,7 +196,6 @@ public:
                   "Nature Methods volume 14, pages 513–520 (2017)",
                   "doi:10.1038/nmeth.4256"}
              }),
-    working_directory(""),
     java_exe(""),
     exe(""),
     parameter_file_path(""),
@@ -206,7 +206,7 @@ public:
 
 
 protected:
-  void registerOptionsAndFlags_() final override
+  void registerOptionsAndFlags_() override
   {
     const StringList emptyStrings;
     const std::vector< double > emptyDoubles;
@@ -216,11 +216,11 @@ protected:
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
     // Java executable
-    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"skipexists"});
     registerIntOption_(TOPPMSFraggerAdapter::java_heapmemory, "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
     // Handle executable
-    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, {"is_executable"});
 
     // Input file
     registerInputFile_(TOPPMSFraggerAdapter::in, "<file>", "", "Input File with specta for MSFragger");
@@ -375,14 +375,15 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**) final override
-  {  
+  ExitCodes main_(int, const char**) override
+  {
+    File::TempDir working_directory(debug_level_ >= 2);
     try
     {
       // java executable
       this->java_exe = this->getStringOption_(TOPPMSFraggerAdapter::java_executable);
 
-      if (JavaInfo::canRun(this->java_exe, true) == false)
+      if (!JavaInfo::canRun(this->java_exe, true))
       {
         _fatalError("Java executable cannot be run!");
       }
@@ -393,8 +394,7 @@ protected:
       if (this->exe.empty())
       {
         // looks for MSFRAGGER_PATH in the environment
-        QProcessEnvironment env;
-        QString qmsfragger_path = env.systemEnvironment().value("MSFRAGGER_PATH");
+        QString qmsfragger_path = QProcessEnvironment::systemEnvironment().value("MSFRAGGER_PATH");
         if (qmsfragger_path.isEmpty())
         {
           _fatalError("No executable for MSFragger could be found!");
@@ -481,7 +481,7 @@ protected:
       ensureRange(arg_precursor_charge_min, arg_precursor_charge_max, "Maximum precursor charge is not allowed to be smaller than minimum precursor charge!");
 
       // ensures that the user is aware of overriding the precursoe charges
-      if ((arg_precursor_charge_min != 1 || arg_precursor_charge_max != 4) && arg_override_charge == false)
+      if ((arg_precursor_charge_min != 1 || arg_precursor_charge_max != 4) && !arg_override_charge)
       {
         _fatalError("If you want to ignore the precursor charge, please also set the -" + override_charge + " flag!");
       }
@@ -523,12 +523,11 @@ protected:
       const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      QString working_directory = this->makeAutoRemoveTempDirectory_().toQString();
-      const QFileInfo tmp_param_file(this->working_directory, "fragger.params");
+      const QFileInfo tmp_param_file(working_directory.getPath().toQString(), "fragger.params");
       this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
-      writeDebug_("Working Directory: '" + String(this->working_directory) + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+      writeDebug_("Working Directory: '" + working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("If you want to keep the working directory and the parameter file, set the -debug to 2", 1);
       ofstream os(this->parameter_file_path.c_str());
 
@@ -621,13 +620,13 @@ protected:
         << input_file;
 
     QProcess process_msfragger;
-    process_msfragger.setWorkingDirectory(this->working_directory);
+    process_msfragger.setWorkingDirectory(working_directory.getPath().toQString());
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
       writeDebug_("COMMAND LINE CALL IS:", 1);
       String command_line = this->java_exe;
-      for (const String & process_param : process_params)
+      for (const auto& process_param : process_params)
       {
         command_line += (" " + process_param);
       }
@@ -636,9 +635,9 @@ protected:
 
     process_msfragger.start(this->java_exe.toQString(), process_params);
 
-    if (process_msfragger.waitForFinished(-1) == false || process_msfragger.exitCode() != 0)
+    if (!process_msfragger.waitForFinished(-1) || process_msfragger.exitCode() != 0)
     {
-      LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
       const QString msfragger_stderr(process_msfragger.readAllStandardError());
       writeLog_(msfragger_stdout);
@@ -648,7 +647,7 @@ protected:
     }
 
     // convert from pepXML to idXML
-    String pepxmlfile = File::removeExtension(input_file) + "." + "pepXML";
+    String pepxmlfile = FileHandler::swapExtension(input_file, FileTypes::PEPXML);
     std::vector<PeptideIdentification> peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);
@@ -656,9 +655,16 @@ protected:
     { 
         it->setSearchEngine("MSFragger");
     }
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
-    // remove the msfragger pepXML output from the user lcoation
+    // remove the msfragger pepXML output from the user location
 
     if (optional_output_file.empty())
     {
@@ -666,7 +672,7 @@ protected:
     }
     else
     {
-    // rename the pepXML file to the opt_out
+      // rename the pepXML file to the opt_out
       QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
     }
 
@@ -682,8 +688,6 @@ protected:
 
 
 private:
-
-  QString working_directory;
 
   String java_exe;
   String exe;
@@ -724,7 +728,7 @@ private:
 
   inline void _fatalError(const String & message)
   {
-    LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+    OPENMS_LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
     throw 1;
   }
 
@@ -747,7 +751,7 @@ private:
   {
     if (right < left)
     {
-      LOG_ERROR << "FATAL: " << message << std::endl;
+      OPENMS_LOG_ERROR << "FATAL: " << message << std::endl;
       throw 1;
     }
   }

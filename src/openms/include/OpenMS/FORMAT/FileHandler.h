@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,11 +77,31 @@ public:
     static FileTypes::Type getTypeByFileName(const String& filename);
 
     /**
-       @brief Check if the file extension of @param type matches no other known FileType
+       @brief Check if @p filename has the extension @p type 
                
-       This means that may match the extension of @type or any other unknown extension (e.g., '.tmp')
+       If the extension is not known (e.g. '.tmp') this is also allowed.
+       However, if the extension is another one (neither @p type nor unknown), false is returned.
     */
     static bool hasValidExtension(const String& filename, const FileTypes::Type type);
+
+
+    /**
+      @brief If filename contains an extension, it will be removed (including the '.'). Special extensions, known to OpenMS, e.g. '.mzML.gz' will be recognized as well.
+
+      E.g. 'experiment.featureXML' becomes 'experiment' and 'c:\files\data.mzML.gz' becomes 'c:\files\data'
+      If the extension is unknown, the everything in the basename of the file after the last '.' is removed. E.g. 'future.newEnding' becomes 'future'
+      If the filename does not contain '.', but the path (if any) does, nothing is removed, e.g. '/my.dotted.dir/filename' is returned unchanged.
+    */
+    static String stripExtension(const String& filename);
+
+    /**
+      @brief Tries to find and remove a known file extension, and append the new one.
+
+      Internally calls 'stripExtension()' and adds the new suffix to the result.
+      E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\files\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\files\data.featureXML'
+      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
+    */
+    static String swapExtension(const String& filename, const FileTypes::Type new_type);
 
     /**
       @brief Determines the file type of a file by parsing the first few lines

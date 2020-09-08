@@ -28,9 +28,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
         libcpp_vector[ const Ribonucleotide * ] getSequence() nogil except +
 
-        #Ribonucleotide * operator[](size_t index) nogil except +
-
-
+        const Ribonucleotide * operator[](size_t index) nogil except +
 
         # check if sequence is empty
         bool empty() nogil except +

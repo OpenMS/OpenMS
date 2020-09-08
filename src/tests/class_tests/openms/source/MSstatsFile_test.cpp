@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,19 @@ using namespace OpenMS;
 
 START_TEST(MSstatsFile, "$Id$")
 
-START_SECTION(void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &consensus_map,
-                                const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
-                                const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
-                                const String& retention_time_summarization_method))
+START_SECTION(void OpenMS::MSstatsFile::storeLFQ(const OpenMS::String &filename, ConsensusMap &consensus_map,
+                                                 const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
+                                                 const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
+                                                 const String& retention_time_summarization_method))
+{
+  // tested via MSstatsConverter tool
+}
+END_SECTION
+
+START_SECTION(void OpenMS::MSstatsFile::storeISO(const OpenMS::String &filename, ConsensusMap &consensus_map,
+                                                 const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
+                                                 const String& bioreplicate, const String& condition,
+                                                 const String& mixture, const String& retention_time_summarization_method))
 {
   // tested via MSstatsConverter tool
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,8 +44,8 @@ namespace OpenMS
     timers_(),
     delay_in_seconds_(1.0)
   {
-    //Connect the slot for monitoring file changes
-    connect(this, SIGNAL(fileChanged(const QString &)), this, SLOT(monitorFileChanged_(const QString &)));
+    // Connect the slot for monitoring file changes
+    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(s.toQString()); });
   }
 
   FileWatcher::~FileWatcher()
@@ -55,7 +55,7 @@ namespace OpenMS
   void FileWatcher::monitorFileChanged_(const QString & name)
   {
     //cout << "File changed: " << String(name) << endl;
-    //Look up if there is already a timer for this file
+    // Look up if there is already a timer for this file
     QTimer * timer = nullptr;
     for (map<QString, QString>::const_iterator it = timers_.begin(); it != timers_.end(); ++it)
     {

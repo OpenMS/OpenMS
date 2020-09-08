@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,10 +42,94 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS
 {
+
+  const ResidueModification* proteinTerminalResidueHelper( ModificationsDB* mod_db,
+      const char term,
+      const std::string& str,
+      const std::string& mod,
+      const std::string& res)
+  {
+    ResidueModification::TermSpecificity protein_term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;;
+
+    if (term == 'c')
+    {
+      protein_term_spec = ResidueModification::PROTEIN_C_TERM;
+    }
+    else if (term == 'n')
+    {
+      protein_term_spec = ResidueModification::PROTEIN_N_TERM;
+    }
+
+    const ResidueModification* m;
+    try
+    {
+      m = mod_db->getModification(mod, res, protein_term_spec);
+    }
+    catch (...)
+    {
+      // catch and rethrow with some additional information on term
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+          "Cannot convert string to peptide modification. No terminal modification matches to term specificity and origin.");
+    }
+    return m;
+  }
+
+  const ResidueModification* terminalResidueHelper( ModificationsDB* mod_db,
+      const char term,
+      bool protein_term,
+      const std::string& str,
+      const std::string& mod,
+      const std::string& res)
+  {
+    ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
+    ResidueModification::TermSpecificity protein_term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;;
+
+    if (term == 'c')
+    {
+      term_spec = ResidueModification::C_TERM;
+      protein_term_spec = ResidueModification::PROTEIN_C_TERM;
+    }
+    else if (term == 'n')
+    {
+      term_spec = ResidueModification::N_TERM;
+      protein_term_spec = ResidueModification::PROTEIN_N_TERM;
+    }
+
+    const ResidueModification* m;
+    try
+    {
+      m = mod_db->getModification(mod, res, term_spec);
+    }
+    catch (...)
+    {
+      if (!protein_term)
+      {
+        // catch and rethrow with some additional information on term
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+            "Cannot convert string to peptide modification. No terminal modification matches to term specificity and origin.");
+      }
+
+      try
+      {
+        m = mod_db->getModification(mod, res, protein_term_spec);
+      }
+      catch (...)
+      {
+        // catch and rethrow with some additional information on term
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+            "Cannot convert string to peptide modification. No terminal modification matches to term specificity and origin.");
+      }
+    }
+    return m;
+  }
+
+
   AASequence::AASequence() :
     n_term_mod_(nullptr),
     c_term_mod_(nullptr)
@@ -92,13 +176,15 @@ namespace OpenMS
     if (seq.hasNTerminalModification())
     {
       const ResidueModification& mod = *(seq.getNTerminalModification());
+      double nominal_mass = Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass();
+
       if (mod.getUniModRecordId() > -1)
       {
         bs += ".(" + mod.getUniModAccession() + ")";
       }
       else
       {
-        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+        bs += ".[" + String(nominal_mass) + "]";
       }
     }
 
@@ -109,13 +195,15 @@ namespace OpenMS
       if (r.isModified())
       {
         const ResidueModification& mod = *(r.getModification());
+        double nominal_mass = r.getMonoWeight(Residue::Internal);
+
         if (mod.getUniModRecordId() > -1)
         {
           bs += aa + "(" + mod.getUniModAccession() + ")";
         }
         else
         {
-          bs += aa + "[" + String(r.getMonoWeight(Residue::Internal)) + "]";
+          bs += aa + "[" + String(nominal_mass) + "]";
         }
       }
       else  // amino acid not modified
@@ -127,21 +215,23 @@ namespace OpenMS
     if (seq.hasCTerminalModification())
     {
       const ResidueModification& mod = *(seq.getCTerminalModification());
+      double nominal_mass = Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass();
+
       if (mod.getUniModRecordId() > -1)
       {
         bs += ".(" + mod.getUniModAccession() + ")";
       }
       else
       {
-        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+        bs += ".[" + String(nominal_mass) + "]";
       }
     }
     return bs;
   }
 
-  String AASequence::toBracketString(bool integer_mass, const vector<String> & fixed_modifications) const
+  String AASequence::toBracketString(bool integer_mass, bool mass_delta, const vector<String> & fixed_modifications) const
   {
-    const AASequence & seq = *this;
+    const AASequence& seq = *this;
 
     String bs;
     if (seq.empty()) return bs;
@@ -154,15 +244,17 @@ namespace OpenMS
       // only add to string if not a fixed modification
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), nterm_mod_name) == fixed_modifications.end())
       {
-        double nominal_mass = mod.getDiffMonoMass(); // just get input mass
-        if (!mod.isUserDefined()) nominal_mass += Residue::getInternalToNTerm().getMonoWeight(); 
+        double nominal_mass = mod.getDiffMonoMass();
+        if (!mass_delta) nominal_mass += Residue::getInternalToNTerm().getMonoWeight();
+
+        String sign = (mass_delta && nominal_mass > 0) ? "+" : ""; // the '-' will be printed automatically by conversion to string
         if (integer_mass)
         {
-          bs += String("n[") + static_cast<int>(std::round(nominal_mass)) + "]";
+          bs += String("n[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
         }
         else
         {
-          bs += "n[" + String(nominal_mass) + "]";
+          bs += "n[" + sign + String(nominal_mass) + "]";
         }
       }
     }
@@ -178,15 +270,25 @@ namespace OpenMS
         const String & mod_name = mod.getFullId();
         if (std::find(fixed_modifications.begin(), fixed_modifications.end(), mod_name) == fixed_modifications.end())
         {
+          double nominal_mass;
+          if (mass_delta) nominal_mass = mod.getDiffMonoMass();
+          else nominal_mass = r.getMonoWeight(Residue::Internal);
+
+          String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
+          if (aa == "X")
+          {
+            // cannot have delta mass for X
+            nominal_mass = r.getMonoWeight(Residue::Internal);
+            sign = "";
+          }
+
           if (integer_mass)
           {
-            const double residue_mono_mass = r.getMonoWeight(Residue::Internal);
-            bs += aa + "[" + static_cast<int>(std::round(residue_mono_mass)) + "]"; 
+            bs += aa + String("[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
           }
           else
           {
-            const double residue_mono_mass = r.getMonoWeight(Residue::Internal);
-            bs += aa + "[" + residue_mono_mass + "]"; 
+            bs += aa + "[" + sign + String(nominal_mass) + "]"; 
           }
         }
         else
@@ -208,15 +310,17 @@ namespace OpenMS
       // only add to string if not a fixed modification
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), cterm_mod_name) == fixed_modifications.end())
       {
-        double nominal_mass = mod.getDiffMonoMass(); // just get input mass
-        if (!mod.isUserDefined()) nominal_mass += Residue::getInternalToCTerm().getMonoWeight();
+        double nominal_mass = mod.getDiffMonoMass();
+        if (!mass_delta) nominal_mass += Residue::getInternalToCTerm().getMonoWeight();
+
+        String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
         {
-          bs += String("c[") + static_cast<int>(std::round(nominal_mass)) + "]";
+          bs += String("c[") + sign + static_cast<int>(std::round(nominal_mass)) + "]";
         }
         else
         {
-          bs += "c[" + String(nominal_mass) + "]";
+          bs += "c[" + sign + String(nominal_mass) + "]";
         }
       }
     }
@@ -348,14 +452,14 @@ namespace OpenMS
           return ef + Residue::getInternalToZIon();
 
         default:
-          LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
+          OPENMS_LOG_ERROR << "AASequence::getFormula: unknown ResidueType" << std::endl;
       }
 
       return ef;
     }
     else
     {
-      LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      OPENMS_LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
       return EmpiricalFormula("");
     }
   }
@@ -447,14 +551,14 @@ namespace OpenMS
           return mono_weight + Residue::getInternalToZIon().getMonoWeight();
 
         default:
-          LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
+          OPENMS_LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
       }
 
       return mono_weight;
     }
     else
     {
-      LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      OPENMS_LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
       return 0.0;
     }
 }
@@ -659,7 +763,6 @@ namespace OpenMS
         {
           return true;
         }
-
       }
     }
     return false;
@@ -757,7 +860,7 @@ namespace OpenMS
 
   bool AASequence::empty() const
   {
-    return size() == 0;
+    return peptide_.empty();
   }
 
   bool AASequence::isModified() const
@@ -784,78 +887,18 @@ namespace OpenMS
     // deal with N-terminal modifications first
     if (peptide.n_term_mod_ != nullptr)
     {
-      if (peptide.n_term_mod_->isUserDefined())
-      {
-        os << peptide.n_term_mod_->getFullId();
-      }
-      else
-      {
-        os << ".(" << peptide.n_term_mod_->getId() << ")";
-      }
+      os << peptide.n_term_mod_->toString();
     }
 
-    for (Size i = 0; i != peptide.size(); ++i)
+    for (const auto& aa : peptide)
     {
-      if (peptide.peptide_[i]->isModified())
-      {
-        if (peptide.peptide_[i]->getOneLetterCode() != "")
-        {
-          os << peptide.peptide_[i]->getOneLetterCode();
-        }
-        else
-        {
-          OPENMS_PRECONDITION(false, "Something went wrong, this should never happen"); // we should not end up here any more
-          os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
-        }
-        const String& id = peptide.peptide_[i]->getModificationName();
-        if (peptide.peptide_[i]->getModification()->isUserDefined())
-        {
-          // user-defined modification
-          os << peptide.peptide_[i]->getModification()->getFullId();
-        }
-        else if (id != "")
-        {
-          os << "(" << id << ")";
-        }
-        else
-        {
-          // what is this syntax? we have no idea, we probably should never be here
-          OPENMS_PRECONDITION(false, "Something went wrong, this should never happen"); // we should not end up here any more
-          os << "([" << precisionWrapper(peptide.peptide_[i]->getModification()->getDiffMonoMass()) << "])";
-        }
-      }
-      else
-      {
-        if (peptide.peptide_[i]->getOneLetterCode() != "")
-        {
-          os << peptide.peptide_[i]->getOneLetterCode();
-        }
-        else
-        {
-          if (peptide.peptide_[i]->getShortName() != "")
-          {
-            os << peptide.peptide_[i]->getShortName();
-          }
-          else
-          {
-            OPENMS_PRECONDITION(false, "Something went wrong, this should never happen"); // we should not end up here any more
-            os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
-          }
-        }
-      }
+      os << aa.toString();
     }
     
     // deal with C-terminal modifications
     if (peptide.c_term_mod_ != nullptr)
     {
-      if (peptide.c_term_mod_->isUserDefined())
-      {
-        os << peptide.c_term_mod_->getFullId();
-      }
-      else
-      {
-        os << ".(" << peptide.c_term_mod_->getId() << ")";
-      }
+      os << peptide.c_term_mod_->toString();
     }
 
     return os;
@@ -871,6 +914,8 @@ namespace OpenMS
     String::ConstIterator mod_start = str_it;
     String::ConstIterator mod_end = ++mod_start;
     Size open_brackets = 1;
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+
     while (mod_end != str.end())
     {
       if (*mod_end == ')')
@@ -897,10 +942,9 @@ namespace OpenMS
           "Cannot convert string to peptide modification: missing ')'");
     }
 
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
-
     // First search for N or C terminal modifications (start of peptide indicates N-terminal modification as well)
-    if (aas.peptide_.empty() || specificity == ResidueModification::N_TERM) 
+    if (aas.peptide_.empty() || specificity == ResidueModification::N_TERM ||
+                                specificity == ResidueModification::PROTEIN_N_TERM)
     {
       // Advance iterator one or two positions (we may or may not have a dot
       // after the closing bracket) to point to the first AA of the peptide.
@@ -908,37 +952,29 @@ namespace OpenMS
       ++next_aa;
       if (*next_aa == '.') ++next_aa;
 
-      const ResidueModification* m;
-      try
+      if (specificity == ResidueModification::PROTEIN_N_TERM)
       {
-        m = mod_db->getModification(mod, String(*next_aa), ResidueModification::N_TERM);      
+        aas.n_term_mod_ = proteinTerminalResidueHelper(mod_db, 'n', str, mod, String(*next_aa));
+        return mod_end;
       }
-      catch (...)
+      else
       {
-        // rethrow with some additional information on term
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
-          "Cannot convert string to peptide modification. No N-terminal modification matches to term specificity and origin.");
+        //TODO why are we allowing Protein Term here?
+        aas.n_term_mod_ = terminalResidueHelper(mod_db, 'n', true, str, mod, String(*next_aa));
+        return mod_end;
       }
-            
-      aas.n_term_mod_ = m;
-      return mod_end;
     }
 
     const String& res = aas.peptide_.back()->getOneLetterCode();
-    if (specificity == ResidueModification::C_TERM) 
+    if (specificity == ResidueModification::PROTEIN_C_TERM)
     {
-      const ResidueModification* m;
-      try
-      {
-        m = mod_db->getModification(mod, res, ResidueModification::C_TERM);
-      }
-      catch (...)
-      {
-        // catch and rethrow with some additional information on term
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
-          "Cannot convert string to peptide modification. No C-terminal modification matches to term specificity and origin.");
-      }
-      aas.c_term_mod_ = m;
+      aas.c_term_mod_ = proteinTerminalResidueHelper(mod_db, 'c', str, mod, res);
+      return mod_end;
+    }
+    else if (specificity == ResidueModification::C_TERM)
+    {
+      //TODO why are we allowing Protein Term here?
+      aas.c_term_mod_ = terminalResidueHelper(mod_db, 'c', true, str, mod, res);
       return mod_end;
     }
 
@@ -950,12 +986,16 @@ namespace OpenMS
     catch(...)  // no internal mod for this residue
     {
       // TODO: get rid of this code path, its deprecated and is only a hack for
-      // C-terminal modifications that don't use the dot notation
-      if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
+      // C/N-terminal modifications that don't use the dot notation
+      if (std::distance(str_it, str.begin()) == -1)
+      {
+        // old ambiguous notation: Modification might be at first amino acid or at N-terminus
+        aas.n_term_mod_ = terminalResidueHelper(mod_db, 'n', true, str, mod, res);
+      }
+      else if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
       {
         // old ambiguous notation: Modification might be at last amino acid or at C-terminus
-        const ResidueModification* term_mod = mod_db->getModification(mod, res, ResidueModification::C_TERM);
-        aas.c_term_mod_ = term_mod;      
+        aas.c_term_mod_ = terminalResidueHelper(mod_db, 'c', true, str, mod, res);
       }
       else
       {
@@ -979,16 +1019,16 @@ namespace OpenMS
     while ((mod_end != str.end()) && (*mod_end != ']')) {++mod_end;}
 
     // Extract the actual modification as string
-    std::string mod(mod_start, mod_end);
+    String mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
           "Cannot convert string to peptide modification: missing ']'");
     }
 
-    double mass = String(mod).toDouble();
+    double mass = mod.toDouble();
     size_t decimal_pos = mod.find('.');
-    bool integer_mass = decimal_pos == std::string::npos;
+    bool integer_mass = (decimal_pos == std::string::npos);
     double tolerance = 0.5; // for integer mass values
     if (!integer_mass) // float mass values -> adapt tolerance to decimal precision
     {
@@ -1008,30 +1048,22 @@ namespace OpenMS
       String::ConstIterator next_aa = mod_end;
       ++next_aa;
       if (*next_aa == '.') ++next_aa;
-
+      std::vector<String> term_mods;
       if (delta_mass) // N-terminal mod specified by delta mass [+123.4]
       {
-        std::vector<String> term_mods;
         mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
-        if (!term_mods.empty())
-        {
-          aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
-          return mod_end;
-        }
-        LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
       else // N-terminal mod specified by absolute mass [123.4]
       {
         double mod_mass = mass - Residue::getInternalToNTerm().getMonoWeight(); // here we need to subtract the N-Term mass
-        std::vector<String> term_mods;
         mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
-        if (!term_mods.empty())
-        {
-          aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
-          return mod_end;
-        }
-        LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
+      if (!term_mods.empty())
+      {
+        aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
+        return mod_end;
+      }
+      OPENMS_LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
     }
     else if (specificity == ResidueModification::ANYWHERE) // internal (not exclusively terminal) modification
     {
@@ -1113,42 +1145,44 @@ namespace OpenMS
           }
         }
       }
-      LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
-        residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
+      if (residue->getOneLetterCode() != "X") // don't warn for mass tags
+      {
+        OPENMS_LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
+            residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
+      }
     }
     else if (specificity == ResidueModification::C_TERM)
     {
       residue = aas.peptide_.back();
+      std::vector<String> term_mods;
       if (delta_mass) // C-terminal mod specified by delta mass [+123.4]
       {
-        std::vector<String> term_mods;
         mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, residue->getOneLetterCode(),
                                                   ResidueModification::C_TERM);
-        if (!term_mods.empty())
-        {
-          aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
-          return mod_end;
-        }
-        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
       else // C-terminal mod specified by absolute mass [123.4]
       {
         double mod_mass = mass - Residue::getInternalToCTerm().getMonoWeight(); // here we need to subtract the C-Term mass
-        std::vector<String> term_mods;
         mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, residue->getOneLetterCode(),
                                                   ResidueModification::C_TERM);
-        if (!term_mods.empty())
-        {
-          aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
-          return mod_end;
-        }
-        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
+      if (!term_mods.empty())
+      {
+        aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
+        return mod_end;
+      }
+      OPENMS_LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
     }
 
     // ----------------------------------- 
     // Dealing with an unknown modification
-    // ----------------------------------- 
+    // -----------------------------------
+
+    const ResidueModification* new_mod = ResidueModification::createUnknownFromMassString(mod,
+                                                                                          mass,
+                                                                                          delta_mass,
+                                                                                          specificity,
+                                                                                          residue);
 
     // Notes on mass calculation: AASequence::getMonoWeight uses DiffMonoMass
     // for its calculation of C/N-terminal modification mass and it uses
@@ -1156,93 +1190,20 @@ namespace OpenMS
     // set when adding a modification using setModification_
     if (specificity == ResidueModification::N_TERM) 
     {
-      String residue_name = ".[" + mod + "]";
-
-      // Check if it already exists, if not create new modification, transfer
-      // ownership to ModDB
-      if (!mod_db->has(residue_name)) 
-      {
-        ResidueModification * new_mod = new ResidueModification();
-        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
-        new_mod->setDiffMonoMass(mass);
-        new_mod->setTermSpecificity(ResidueModification::N_TERM);
-        // new_mod->setMonoMass(mass);
-        // new_mod->setAverageMass(mass);
-        mod_db->addModification(new_mod);
-        aas.n_term_mod_ = new_mod;
-      }
-      else
-      {
-        Size mod_idx = mod_db->findModificationIndex(residue_name);
-        aas.n_term_mod_ = mod_db->getModification(mod_idx);
-      }
+      aas.n_term_mod_ = new_mod;
       return mod_end;
     }
     else if (specificity == ResidueModification::C_TERM)
     {
-      String residue_name = ".[" + mod + "]";
-
-      // Check if it already exists, if not create new modification, transfer
-      // ownership to ModDB
-      if (!mod_db->has(residue_name)) 
-      {
-        ResidueModification * new_mod = new ResidueModification();
-        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
-        new_mod->setDiffMonoMass(mass);
-        new_mod->setTermSpecificity(ResidueModification::C_TERM);
-        // new_mod->setMonoMass(mass);
-        // new_mod->setAverageMass(mass);
-        mod_db->addModification(new_mod);
-        aas.c_term_mod_ = new_mod;
-      }
-      else
-      {
-        Size mod_idx = mod_db->findModificationIndex(residue_name);
-        aas.c_term_mod_ = mod_db->getModification(mod_idx);
-      }
+      aas.c_term_mod_ = new_mod;
       return mod_end;
     }
     else
     {
-      String residue_name = aas.peptide_.back()->getOneLetterCode() + "[" + mod + "]"; // e.g. N[12345.6]
-      String modification_name = "[" + mod + "]";
-
-      if (!mod_db->has(modification_name)) 
-      {
-        // create new modification
-        ResidueModification * new_mod = new ResidueModification();
-        new_mod->setFullId(modification_name); // setting FullId but not Id makes it a user-defined mod
-
-        // We cannot set origin if we want to use the same modification name
-        // also at other AA (and since we have no information here, it is safer
-        // to assume that this may happen).
-        // new_mod->setOrigin(aas.peptide_.back()->getOneLetterCode()[0]);
-
-        // set masses
-        if (delta_mass)
-        {
-          new_mod->setMonoMass(mass + residue->getMonoWeight());
-          new_mod->setAverageMass(mass + residue->getAverageWeight());
-          new_mod->setDiffMonoMass(mass);
-        }
-        else
-        {
-          new_mod->setMonoMass(mass);
-          new_mod->setAverageMass(mass);
-          new_mod->setDiffMonoMass(mass - residue->getMonoWeight());
-        }
-
-        mod_db->addModification(new_mod);
-      }
-
-      // now use the new modification
-      Size mod_idx = mod_db->findModificationIndex(modification_name);
-      const ResidueModification* res_mod = mod_db->getModification(mod_idx);
-
       // Note: this calls setModification_ on a new Residue which changes its
       // weight to the weight of the modification (set above)
       aas.peptide_.back() = ResidueDB::getInstance()->
-        getModifiedResidue(residue, res_mod->getFullId());
+        getModifiedResidue(residue, new_mod->getFullId());
       return mod_end;
     }
   }
@@ -1250,9 +1211,14 @@ namespace OpenMS
   void AASequence::parseString_(const String& pep, AASequence& aas,
                                 bool permissive)
   {
+    // Reserving space, populate it and then shrink again (since we probably
+    // over-allocate due to modifications). This substantially speeds up the
+    // function for unmodified sequences (3x speedup).
     aas.peptide_.clear();
+
     String peptide(pep);
     peptide.trim();
+    aas.peptide_.reserve(peptide.size());
 
     if (peptide.empty()) return;
 
@@ -1264,9 +1230,9 @@ namespace OpenMS
 
     if (peptide.empty()) return;
 
-    if (peptide[peptide.size()-1] == 'c') 
+    if (peptide.back() == 'c') 
     {
-      peptide.erase(peptide.size()-1, 1);
+      peptide.pop_back();
     }
 
     if (peptide.empty()) return;
@@ -1352,6 +1318,8 @@ namespace OpenMS
     // since the user might just want to represent the sequence (including modifications on other AA's),
     // e.g. when digesting a peptide
     // We check for 'weightless' X in places where a mass is needed, e.g. during getMonoMass()
+
+    aas.peptide_.shrink_to_fit();
   }
 
   void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
@@ -1382,25 +1350,85 @@ namespace OpenMS
 
   void AASequence::setNTerminalModification(const String& modification)
   {
-    if (modification == "")
+    if (modification.empty())
     {
       n_term_mod_ = nullptr;
       return;
     }
 
-    n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+    String residue = "";
+    if (modification.size() > 3 && modification.hasSuffix(")"))
+    {
+      char last_char_no_parentheses = modification[modification.length()-2];
+      if (isupper(last_char_no_parentheses))
+      {
+        residue = last_char_no_parentheses;
+      }
+    }
+
+    // For strings in our most common UniMod format
+    if (!modification.hasSubstring("Protein N-term"))
+    {
+      // since this method is called setNTerminalModification without further specification
+      // we have to look for both general terminus and Protein terminus.
+      // For backwards compatibility we look for the general terminus first
+      // We have to use try-catch since getModification unfortunately throws Exceptions.
+      try
+      {
+        n_term_mod_ = ModificationsDB::getInstance()
+            ->getModification(modification, residue, ResidueModification::N_TERM);
+        return; // we found a mod. return
+      }
+      catch (...) {}
+    }
+    n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_N_TERM);
   }
 
   void AASequence::setCTerminalModification(const String& modification)
   {
-    if (modification == "")
+    if (modification.empty())
     {
       c_term_mod_ = nullptr;
       return;
     }
-    c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+
+    String residue = "";
+    if (modification.size() > 3 && modification.hasSuffix(")"))
+    {
+      char last_char_no_parentheses = modification[modification.length()-2];
+      if (isupper(last_char_no_parentheses))
+      {
+        residue = last_char_no_parentheses;
+      }
+    }
+
+    // For strings in our most common UniMod format
+    if (!modification.hasSubstring("Protein C-term"))
+    {
+      // since this method is called setCTerminalModification without further specification
+      // we have to look for both general terminus and Protein terminus.
+      // For backwards compatibility we look for the general terminus first
+      // We have to use try-catch since getModification unfortunately throws Exceptions.
+      try
+      {
+        c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::C_TERM);
+        return; // we found a mod. return
+      }
+      catch (...) {}
+    }
+    c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_C_TERM);
   }
 
+  void AASequence::setCTerminalModification(const ResidueModification* modification)
+  {
+    c_term_mod_ = modification;
+  } 
+
+  void AASequence::setNTerminalModification(const ResidueModification* modification)
+  {
+    n_term_mod_ = modification;
+  }
+ 
   const String& AASequence::getNTerminalModificationName() const
   {
     if (n_term_mod_ == nullptr) return String::EMPTY;

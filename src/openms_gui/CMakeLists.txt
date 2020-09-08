@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # Find Qt
@@ -55,7 +55,7 @@ IF (NOT Qt5Widgets_FOUND)
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
 
-set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -95,6 +95,12 @@ set(OpenMS_GUI_DEP_LIBRARIES OpenMS
                             )
 set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
 
+# manually extract .ui files and track them (trigger rebuild of ui_CLASS.h upon changing CLASS.ui)
+# see https://gitlab.kitware.com/cmake/cmake/issues/18741
+set(UI_SOURCES ${OpenMSVisual_sources}) # copy list of .cpp + .ui files
+list(FILTER UI_SOURCES INCLUDE REGEX "\\.ui$")
+qt5_wrap_ui(UI_SOURCES2 ${UI_SOURCES}) # transform .ui to ui_....h files and add them to OpenMSVisual_sources_h
+
 #------------------------------------------------------------------------------
 # add the library
 openms_add_library(TARGET_NAME OpenMS_GUI
@@ -105,8 +111,8 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 		   # The Qt5Widgets_INCLUDES also includes the include directories for
 		   # dependencies QtCore and QtGui
                                      ${Qt5Widgets_INCLUDE_DIRS}
-				                             ${Qt5Svg_INCLUDE_DIRS}
-				                             ${Qt5Network_INCLUDE_DIRS}
+				                     ${Qt5Svg_INCLUDE_DIRS}
+				                     ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")

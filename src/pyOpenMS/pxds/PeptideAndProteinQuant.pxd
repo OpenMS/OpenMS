@@ -1,4 +1,5 @@
 from MSSpectrum cimport *
+from ExperimentalDesign cimport *
 from FeatureMap cimport *
 from ConsensusMap cimport *
 from MSExperiment cimport *
@@ -19,10 +20,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         PeptideAndProteinQuant() nogil except +
         PeptideAndProteinQuant(PeptideAndProteinQuant) nogil except + #wrap-ignore
 
-        void readQuantData(FeatureMap & map_in) nogil except +
-        void readQuantData(ConsensusMap & map_in) nogil except +
+        void readQuantData(FeatureMap & map_in, ExperimentalDesign & ed) nogil except +
+        void readQuantData(ConsensusMap & map_in, ExperimentalDesign & ed) nogil except +
         void readQuantData(libcpp_vector[ProteinIdentification] & proteins,
-                           libcpp_vector[PeptideIdentification] & peptides) nogil except +
+                           libcpp_vector[PeptideIdentification] & peptides,
+                           ExperimentalDesign & ed) nogil except +
 
         void quantifyPeptides(libcpp_vector[PeptideIdentification] & peptides) nogil except +
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
@@ -67,7 +69,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       libcpp_set[String] accessions
 
       # number of identifications
-      Size id_count
+      Size psm_count
 
       # constructor
       PeptideAndProteinQuant_PeptideData()  nogil except +
@@ -82,7 +84,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       # libcpp_map[unsigned long, double] total_abundances
 
       # total number of identifications (of peptides mapping to this protein)
-      Size id_count
+      Size psm_count
 
       # constructor
       PeptideAndProteinQuant_ProteinData()  nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,8 +149,178 @@ namespace OpenMS
       }
     }
 
-    // static
-    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    bool ExperimentalDesignFile::isOneTableFile_(const TextFile& text_file)
+    {
+      // To dermine if we have a *separate* sample table, we check if a row is present
+      // that contains "Sample" but no "Fraction_Group".
+      for (String s : text_file)
+      {
+        const String line(s.trim());
+        if (line.empty()) { continue; }
+        StringList cells;
+        line.split("\t", cells);
+        // check if we are outside of run section (no Fraction_Group column) 
+        // but in sample section (Sample column present)
+        if (std::count(cells.begin(), cells.end(), "Fraction_Group") == 0 
+         && std::count(cells.begin(), cells.end(), "Sample") == 1)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    ExperimentalDesign ExperimentalDesignFile::parseOneTableFile_(const TextFile& text_file, const String& tsv_file, bool require_spectra_file)
+    {
+      ExperimentalDesign::MSFileSection msfile_section;
+      bool has_sample(false);
+      bool has_label(false);
+
+      // Attributes of the sample section
+      std::vector< std::vector < String > > sample_content_;
+      std::map< unsigned, Size > sample_sample_to_rowindex_;
+      std::map< String, Size > sample_columnname_to_columnindex_;
+
+      // Maps the column header string to the column index for
+      // the file section
+      std::map <String, Size> fs_column_header_to_index;
+
+      unsigned line_number(0);
+
+      enum ParseState { RUN_HEADER, RUN_CONTENT };
+
+      ParseState state(RUN_HEADER);
+      Size n_col = 0;
+
+      for (String s : text_file)
+      {
+        const String line(s.trim());
+	
+        if (line.empty()) { continue; }
+
+        // Now split the line into individual cells
+        StringList cells;
+        line.split("\t", cells);
+
+        // Trim whitespace from all cells (so , foo , and  ,foo, is the same)
+        std::transform(cells.begin(), cells.end(), cells.begin(),
+                       [](String cell) -> String { return cell.trim(); });
+
+        if (state == RUN_HEADER)
+        {
+          state = RUN_CONTENT;
+          line_number = 0;
+          parseHeader_(
+            cells,
+            tsv_file,
+            fs_column_header_to_index,
+            {"Fraction_Group", "Fraction", "Spectra_Filepath"},
+            {"Label", "Sample"}, true
+          );
+          has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
+          has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
+     
+          // readd label column to end of header
+          if (!has_label)
+          {
+            size_t hs = fs_column_header_to_index.size();
+            fs_column_header_to_index["Label"] = hs;
+            cells.push_back("Label");
+          }
+
+          // readd sample column to end of header
+          if (!has_sample)
+          {
+            size_t hs = fs_column_header_to_index.size();
+            fs_column_header_to_index["Sample"] = hs;
+            cells.push_back("Sample");
+          }
+    
+          n_col = fs_column_header_to_index.size();
+
+          // determine columns with sample metainfo like condition or replication
+          for (size_t i = 0; i != cells.size(); ++i)
+          {
+            const String& c = cells[i];
+            if (c != "Fraction_Group" && c != "Fraction" 
+             && c != "Spectra_Filepath" && c != "Label")
+            { 
+              sample_columnname_to_columnindex_[c] = i;
+            }
+          }
+        }
+        else if (state == RUN_CONTENT)
+        {
+          // readd label column as we already did in the header
+          if (!has_label) { cells.push_back("1"); }
+
+          // Assign label, fall back to 1 if column is missing
+          int label = cells[fs_column_header_to_index["Label"]].toInt();
+          int fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
+          int fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
+                    // readd sample column
+          if (!has_sample) 
+          {
+            int sample = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
+            cells.push_back(String(sample)); 
+          }
+
+          int sample = cells[fs_column_header_to_index["Sample"]].toInt();
+          parseErrorIf(sample < 1, tsv_file,
+                       "Sample index may not be smaller than 1");
+
+
+          parseErrorIf(n_col != cells.size(), tsv_file,
+                       "Wrong number of records in line");
+
+          ExperimentalDesign::MSFileSectionEntry e;
+
+          // Assign fraction group and fraction
+          e.fraction_group = fraction_group;
+          e.fraction = fraction;
+          e.label = label;
+          e.sample = sample;
+
+          sample_sample_to_rowindex_[e.sample] = line_number++;
+
+          // get indices of sample metadata and store content in sample cells
+          StringList sample_cells;
+          for (const auto & c2i : sample_columnname_to_columnindex_)
+          {
+            sample_cells.push_back(cells[c2i.second]);
+          }
+          sample_content_.push_back(sample_cells);
+
+          // Spectra files
+          e.path = findSpectraFile(
+            cells[fs_column_header_to_index["Spectra_Filepath"]],
+            tsv_file,
+            require_spectra_file);
+       
+          msfile_section.push_back(e);
+        }
+      }
+
+      // Assign correct position in sample column (without "Fraction_Group", "Fraction", "Spectra_Filepath", "Label")
+      int sample_index = 0;
+      for (auto & c : sample_columnname_to_columnindex_)
+      {
+        c.second = sample_index++;
+      }
+
+      // Create Sample Section and set in design
+      ExperimentalDesign::SampleSection sample_section(
+        sample_content_,
+        sample_sample_to_rowindex_,
+        sample_columnname_to_columnindex_);
+
+      // Create experimentalDesign
+      ExperimentalDesign design(msfile_section, sample_section);
+
+      return design;
+    }
+
+    ExperimentalDesign ExperimentalDesignFile::parseTwoTableFile_(const TextFile& text_file, const String& tsv_file, bool require_spectra_file)
     {
       ExperimentalDesign::MSFileSection msfile_section;
       bool has_sample(false);
@@ -172,7 +342,6 @@ namespace OpenMS
       ParseState state(RUN_HEADER);
       Size n_col = 0;
 
-      const TextFile text_file(tsv_file, true);
       for (String s : text_file)
       {
         // skip empty lines (except in state RUN_CONTENT, where the sample table is read)
@@ -203,6 +372,7 @@ namespace OpenMS
           );
           has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
           has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
+          
           n_col = fs_column_header_to_index.size();
         }
           // End of file section lines, empty line separates file and sample section
@@ -233,7 +403,7 @@ namespace OpenMS
           }
           else
           {
-            e.sample = has_label ? e.label : e.fraction_group;
+            e.sample = e.fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
           }
 
           // Spectra files
@@ -281,6 +451,24 @@ namespace OpenMS
       ExperimentalDesign design(msfile_section, sample_section);
 
       return design;
+    }
+
+    // static
+    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    {
+      const TextFile text_file(tsv_file, true);
+
+      // check if we have information stored in one or two files
+      bool has_one_table = isOneTableFile_(text_file);
+
+      if (has_one_table)
+      {
+        return parseOneTableFile_(text_file, tsv_file, require_spectra_file);
+      }
+      else // two tables
+      {
+        return parseTwoTableFile_(text_file, tsv_file, require_spectra_file);
+      }
     }
 }
 

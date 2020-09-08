@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,12 +67,12 @@ public:
     /// Copy constructor from Qt base class
     DateTime(const QDateTime& date);
     /// Move constructor
-    DateTime(DateTime&&) = default;
+    DateTime(DateTime&&) noexcept;
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
     /// Move assignment operator
-    DateTime& operator=(DateTime&&) & = default;
+    DateTime& operator=(DateTime&&) & noexcept;
 
     /**
         @brief sets date from a string

@@ -22,7 +22,7 @@
   \code
   export OPENMS_DATA_PATH=/usr/share/OpenMS 
   \endcode
-  If you used a thirdparty repsitory to install Qt5 (through the workaround above), do not forget to source the provided environment file like this (mind the version number again)
+  If you used a thirdparty repository to install Qt5 (through the workaround above), do not forget to source the provided environment file like this (mind the version number again)
   \code
   source /opt/qt59/bin/qt59-env.sh
   \endcode

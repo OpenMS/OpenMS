@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -177,7 +177,7 @@ protected:
 
     if (in.size() == 1)
     {
-      LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
+      OPENMS_LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. "
                << "You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
     }
 
@@ -210,7 +210,7 @@ protected:
       {
         if (identifiers.find(entry.identifier) != identifiers.end())
         {
-          LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
+          OPENMS_LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
         }
         identifiers.insert(entry.identifier);
 

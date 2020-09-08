@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,14 +46,18 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithmSimilarity::apply_(
-    vector<PeptideIdentification>& ids, SequenceGrouping& results)
+    vector<PeptideIdentification>& ids,
+    const map<String, String>& se_info,
+    SequenceGrouping& results)
   {
     for (vector<PeptideIdentification>::iterator id = ids.begin();
          id != ids.end(); ++id)
     {
-      if (id->getScoreType() != "Posterior Error Probability")
+      if (id->getScoreType() != "Posterior Error Probability" &&
+          id->getScoreType() != "pep" &&
+          id->getScoreType() != "MS:1001493")
       {
-        String msg = "Score type must be 'Posterior Error Probablity'";
+        String msg = "Score type must be 'Posterior Error Probability'";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, id->getScoreType());
       }
@@ -62,6 +66,13 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator id1 = ids.begin();
          id1 != ids.end(); ++id1)
     {
+      String score_type = id1->getScoreType();
+      auto se = se_info.find(id1->getIdentifier());
+      if (se != se_info.end())
+      {
+        score_type = se->second + "_" + score_type;
+      }
+
       for (vector<PeptideHit>::iterator hit1 = id1->getHits().begin();
            hit1 != id1->getHits().end(); ++hit1)
       {
@@ -69,8 +80,14 @@ namespace OpenMS
         SequenceGrouping::iterator pos = results.find(hit1->getSequence());
         if (pos != results.end())
         { 
-          compareChargeStates_(pos->second.first, hit1->getCharge(),
+          compareChargeStates_(pos->second.charge, hit1->getCharge(),
                                pos->first);
+          pos->second.scores.emplace_back(hit1->getScore());
+          pos->second.types.emplace_back(id1->getScoreType());
+          for (const auto& ev : hit1->getPeptideEvidences())
+          {
+            pos->second.evidence.emplace(ev);
+          }
           continue;
         }
         
@@ -110,22 +127,32 @@ namespace OpenMS
         }
         score /= (sum_sim * sum_sim);
 
-        vector<double> scores(2, score);
+        double support = 0.;
         // normalize similarity score to range 0-1:
         Size n_other_ids = (count_empty_ ?
                             number_of_runs_ - 1 : best_matches.size());
         if (n_other_ids == 0) // only one ID run -> similarity is ill-defined
         {
-          scores[1] = double(!count_empty_); // 0 or 1 depending on parameter
+          support = double(!count_empty_); // 0 or 1 depending on parameter
         }
         else
         {
-          scores[1] = (sum_sim - 1.0) / n_other_ids;
+          support = (sum_sim - 1.0) / n_other_ids;
         }
-        
+
+        auto ev = hit1->getPeptideEvidences();
         // don't filter based on "min_score_" yet, so we don't recompute results
         // for the same peptide sequence:
-        results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
+        results[hit1->getSequence()] =
+            {
+              hit1->getCharge(),
+              {hit1->getScore()},
+              {score_type},
+              hit1->getMetaValue("target_decoy").toString(),
+              {std::make_move_iterator(ev.begin()), std::make_move_iterator(ev.end())},
+              score,
+              support
+            };
       }
     }
   }

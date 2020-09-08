@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -171,7 +171,7 @@ namespace OpenMS
 
     if (obs_mz.empty())
     {
-      //LOG_ERROR << "Input to calibration model is empty!" << std::endl;
+      //OPENMS_LOG_ERROR << "Input to calibration model is empty!" << std::endl;
       return false;
     }
 
@@ -183,7 +183,7 @@ namespace OpenMS
       }
       if (!(md == LINEAR || md == QUADRATIC))
       {
-        LOG_ERROR << "RANSAC is implemented for LINEAR and QUADRATIC models only! Please disable RANSAC or choose the LINEAR or QUADRATIC model." << std::endl;
+        OPENMS_LOG_ERROR << "RANSAC is implemented for LINEAR and QUADRATIC models only! Please disable RANSAC or choose the LINEAR or QUADRATIC model." << std::endl;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
@@ -308,7 +308,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& /*e*/)
     {
-      //LOG_ERROR << "Exception during model fitting: " << e.getMessage() << std::endl;
+      //OPENMS_LOG_ERROR << "Exception during model fitting: " << e.getMessage() << std::endl;
       return false;
     }
   }

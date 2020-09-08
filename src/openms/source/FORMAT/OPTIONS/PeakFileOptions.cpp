@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,7 +62,8 @@ namespace OpenMS
     np_config_mz_(),
     np_config_int_(),
     np_config_fda_(),
-    maximal_data_pool_size_(100)
+    maximal_data_pool_size_(100),
+    precursor_mz_selected_ion_(true)
   {
   }
 
@@ -90,7 +91,8 @@ namespace OpenMS
     np_config_mz_(options.np_config_mz_),
     np_config_int_(options.np_config_int_),
     np_config_fda_(options.np_config_fda_),
-    maximal_data_pool_size_(options.maximal_data_pool_size_)
+    maximal_data_pool_size_(options.maximal_data_pool_size_),
+    precursor_mz_selected_ion_(options.precursor_mz_selected_ion_)
   {
   }
 
@@ -107,12 +109,12 @@ namespace OpenMS
   {
     return metadata_only_;
   }
-  
+
   void PeakFileOptions::setForceMQCompatability(bool forceMQ)
   {
     force_maxquant_compatibility_ = forceMQ;
   }
-  
+
   bool PeakFileOptions::getForceMQCompatability() const
   {
     return force_maxquant_compatibility_;
@@ -122,7 +124,7 @@ namespace OpenMS
   {
     force_tpp_compatibility_ = forceTPP;
   }
-  
+
   bool PeakFileOptions::getForceTPPCompatability() const
   {
     return force_tpp_compatibility_;
@@ -225,7 +227,7 @@ namespace OpenMS
   {
     return zlib_compression_;
   }
-  
+
   bool PeakFileOptions::getAlwaysAppendData() const
   {
     return always_append_data_;
@@ -348,6 +350,16 @@ namespace OpenMS
   void PeakFileOptions::setMaxDataPoolSize(Size size)
   {
     maximal_data_pool_size_ = size;
+  }
+
+  bool PeakFileOptions::getPrecursorMZSelectedIon() const
+  {
+    return precursor_mz_selected_ion_;
+  }
+
+  void PeakFileOptions::setPrecursorMZSelectedIon(bool choice)
+  {
+    precursor_mz_selected_ion_ = choice;
   }
 
   bool PeakFileOptions::hasFilters()

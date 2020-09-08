@@ -23,7 +23,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
-	<IdentificationRun date="2006-10-07T06:31:00" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2006-10-07T06:30:59" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_2" accession="APRT" score="40" sequence="" >
 			</ProteinHit>

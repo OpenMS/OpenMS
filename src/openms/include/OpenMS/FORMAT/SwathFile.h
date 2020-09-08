@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ public:
 
       @param [IN] file Input filename
       @param [IN] tmp Temporary directory (for cached data)
-      @param [OUT] exp_meta Experimenal metadata from mzML file
+      @param [OUT] exp_meta Experimental metadata from mzML file
       @param [IN] readoptions How are spectra accessed after reading - tradeoff between memory usage and time (disk caching)
       @param [IN] plugin_consumer An intermediate custom consumer
       @return Swath maps for MS2 and MS1 (unless readoptions == split, which returns no data)

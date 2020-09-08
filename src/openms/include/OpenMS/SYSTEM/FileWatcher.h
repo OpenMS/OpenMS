@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,17 +62,17 @@ namespace OpenMS
 
       @ingroup System
   */
-  class FileWatcher :
+  class OPENMS_DLLAPI FileWatcher :
     public QFileSystemWatcher       //find out why ICC requires public instead of protected
   {
     Q_OBJECT
 
 public:
-    ///Constructor
-    OPENMS_DLLAPI FileWatcher(QObject * parent = nullptr);
+    /// Constructor
+    FileWatcher(QObject * parent = nullptr);
 
-    ///Destructor
-    OPENMS_DLLAPI ~FileWatcher() override;
+    /// Destructor
+    ~FileWatcher() override;
 
     ///Sets the delay in seconds (default: 1s)
     inline void setDelayInSeconds(double delay)
@@ -94,13 +94,13 @@ public:
 
 signals:
     ///Delayed file change signal
-    OPENMS_DLLAPI void fileChanged(const String &);
+    void fileChanged(const String &);
 
 protected slots:
     /// Slot that is connected to the fileChanged signal in order to track the changes
-    OPENMS_DLLAPI void monitorFileChanged_(const QString & name);
+    void monitorFileChanged_(const QString & name);
     /// Slot that is called when the delay is over
-    OPENMS_DLLAPI void timerTriggered_();
+    void timerTriggered_();
 
 protected:
     /// A map that links timer name and file

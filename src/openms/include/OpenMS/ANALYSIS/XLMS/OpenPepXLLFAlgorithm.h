@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 
@@ -50,8 +49,6 @@ namespace OpenMS
   //-------------------------------------------------------------
 
   /**
-    @page UTILS_OpenPepXLLF OpenPepXLLF
-
     @brief Search for cross-linked peptide pairs in tandem MS spectra
 
     This tool performs a search for cross-links in the given mass spectra.
@@ -85,7 +82,7 @@ namespace OpenMS
     after the linking reaction (see section on output for clarification).
 
     <h3>Output: XL-MS Identifications with scores and linked positions in the proteins</h3>
-    The input paramters protein_ids and peptide_ids are filled with XL-MS search parameters and IDs
+    The input parameters protein_ids and peptide_ids are filled with XL-MS search parameters and IDs
 
     <CENTER>
       <table>
@@ -113,7 +110,8 @@ public:
     {
       EXECUTION_OK,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      INCOMPATIBLE_INPUT_DATA
     };
 
     /// Default constructor
@@ -167,6 +165,8 @@ private:
 
     Int number_top_hits_;
     String deisotope_mode_;
+    bool use_sequence_tags_;
+    Size sequence_tag_min_length_;
 
     String add_y_ions_;
     String add_b_ions_;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/Residue.h>
+
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
@@ -437,36 +439,36 @@ namespace OpenMS
     }
   }
 
-  void Residue::setModification_(const ResidueModification& mod)
+  void Residue::setModification(const ResidueModification* mod)
   {
-    modification_ = &mod;
+    modification_ = mod;
 
     // update all the members
-    if (mod.getAverageMass() != 0)
+    if (mod->getAverageMass() != 0)
     {
-      average_weight_ = mod.getAverageMass();
+      average_weight_ = mod->getAverageMass();
     }
-    if (mod.getMonoMass() != 0)
+    if (mod->getMonoMass() != 0)
     {
-      mono_weight_ = mod.getMonoMass();
+      mono_weight_ = mod->getMonoMass();
     }
     // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
     // as in the case of XLMOD.obo modifications
-    if ( (mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0) )
+    if ( (mod->getMonoMass() == 0) && (mod->getDiffMonoMass() != 0) )
     {
-      mono_weight_ += mod.getDiffMonoMass();
+      mono_weight_ += mod->getDiffMonoMass();
     }
 
     bool updated_formula(false);
-    if (!mod.getDiffFormula().isEmpty())
+    if (!mod->getDiffFormula().isEmpty())
     {
       updated_formula = true;
-      setFormula(getFormula() + mod.getDiffFormula());
+      setFormula(getFormula() + mod->getDiffFormula());
     }
-    if (mod.getFormula() != "" && !updated_formula)
+    else if (mod->getFormula() != "")
     {
       updated_formula = true;
-      String formula = mod.getFormula();
+      String formula = mod->getFormula();
       formula.removeWhitespaces();
       formula_ = EmpiricalFormula(formula);
     }
@@ -476,25 +478,14 @@ namespace OpenMS
       average_weight_ = formula_.getAverageWeight();
       mono_weight_ = formula_.getMonoWeight();
     }
-    else
-    {
-      if (mod.getAverageMass() != 0)
-      {
-        average_weight_ = mod.getAverageMass();
-      }
-      if (mod.getMonoMass() != 0)
-      {
-        mono_weight_ = mod.getMonoMass();
-      }
-    }
-
+    
     // neutral losses
     loss_formulas_.clear();
     loss_names_.clear();
-    if (mod.hasNeutralLoss())
+    if (mod->hasNeutralLoss())
     {
-      loss_formulas_.push_back(mod.getNeutralLossDiffFormula());
-      loss_names_.push_back(mod.getNeutralLossDiffFormula().toString());
+      loss_formulas_.insert(loss_formulas_.end(), mod->getNeutralLossDiffFormulas().begin(), mod->getNeutralLossDiffFormulas().end());
+      loss_names_.insert(loss_names_.end(), loss_names_.begin(), loss_names_.end());
     }
   }
 
@@ -507,7 +498,7 @@ namespace OpenMS
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
-    setModification_(*mod);
+    setModification(mod);
   }
 
   const String& Residue::getModificationName() const
@@ -647,6 +638,22 @@ namespace OpenMS
        cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
     return ' ';
+  }
+
+  String Residue::toString() const
+  {
+    if (getOneLetterCode().empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue does not have a OneLetterCode. This is a bug. Please report it!", "");
+    }
+    if (!isModified())
+    {
+      return one_letter_code_;
+    }
+    else
+    { // this already contains the origin!
+      return modification_->toString();
+    }
   }
 
   ostream& operator<<(ostream& os, const Residue& residue)

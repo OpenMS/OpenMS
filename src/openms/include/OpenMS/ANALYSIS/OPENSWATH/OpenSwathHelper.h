@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,7 +143,7 @@ public:
       @throw throws IllegalArgument exception if the sanity checks fail.
     */
     static void checkSwathMap(const OpenMS::PeakMap& swath_map,
-                              double& lower, double& upper);
+                              double& lower, double& upper, double& center);
 
     /**
       @brief Check the map and select transition in one function
@@ -170,8 +170,8 @@ public:
                   << std::endl;
         return false;
       }
-      double upper, lower;
-      OpenSwathHelper::checkSwathMap(exp, lower, upper);
+      double upper, lower, center;
+      OpenSwathHelper::checkSwathMap(exp, lower, upper, center);
       OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
       if (selected_transitions.getTransitions().size() == 0)
       {

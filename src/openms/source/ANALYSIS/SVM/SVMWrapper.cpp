@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -901,7 +901,7 @@ namespace OpenMS
       ++work_steps;
     //reset actual values:
     actual_values = start_values;
-    LOG_INFO << "SVM-CrossValidation -- number of grid cells:" << work_steps << "\n";
+    OPENMS_LOG_INFO << "SVM-CrossValidation -- number of grid cells:" << work_steps << "\n";
 
     work_steps *= number_of_runs * number_of_partitions;
     startProgress(0, work_steps, "SVM-CrossValidation");

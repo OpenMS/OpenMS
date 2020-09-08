@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -142,7 +142,7 @@ public:
      * @param trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
      * @param transition_group_map Output mapping of transition groups
@@ -259,28 +259,26 @@ private:
      * The function is used twice, for target and decoy identification transitions. The results are
      * reported analogously to the ones for detecting transitions but must be stored separately.
      *
-     * @param transition_group Containing all detecting, identifying transitions
      * @param transition_group_identification Containing all detecting and identifying transitions
      * @param scorer An instance of OpenSwathScoring
      * @param feature_idx The index of the current feature
      * @param native_ids_detection The native IDs of the detecting transitions
-     * @param sn_win_len_ The signal to noise window length
-     * @param sn_bin_count_ The signal to noise bin count
      * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param det_mi_ratio_score The MI score of the detection transitions for normalization
-     * @param write_log_messages Whether to write signal to noise log messages
-     * @value a struct of type OpenSwath_Ind_Scores containing either target or decoy values
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     *                  the chromatograms were extracted. Use empty map if no
+     *                  data is available.
+     * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
-                                          OpenSwathScoring& scorer,
-                                          const size_t feature_idx,
-                                          const std::vector<std::string> & native_ids_detection,
-                                          const double sn_win_len_,
-                                          const unsigned int sn_bin_count_,
-                                          const double det_intensity_ratio_score,
-                                          const double det_mi_ratio_score,
-                                          bool write_log_messages,
-                                          const std::vector<OpenSwath::SwathMap>& swath_maps);
+                                              OpenSwathScoring& scorer,
+                                              const size_t feature_idx,
+                                              const std::vector<std::string> & native_ids_detection,
+                                              const double det_intensity_ratio_score,
+                                              const double det_mi_ratio_score,
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps);
+
+    void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge);
 
     /// Synchronize members with param class
     void updateMembers_() override;
@@ -296,9 +294,16 @@ private:
     // scoring parameters
     double rt_normalization_factor_;
     int add_up_spectra_;
+    String spectrum_addition_method_ ;
     double spacing_for_spectra_resampling_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
+
+    double sn_win_len_;
+    unsigned int sn_bin_count_;
+    bool write_log_messages_;
+
+    double im_extra_drift_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;

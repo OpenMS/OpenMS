@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,13 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Types.h> 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 #include <map>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -329,7 +330,7 @@ protected:
 
       /// Read the next element from an InputLine and update the InputLine accordingly
       /// The @p str_line contains the same data as the stream, since it saves some forth-and-back conversion internally
-      /// TODO: avoid streams alltogether (slow, and no random access, required by boost::qi) at some point
+      /// TODO: avoid streams all together (slow, and no random access, required by boost::qi) at some point
       void fillFromInputLine(InputLine& input_line, const std::string& str_line);
     };
 

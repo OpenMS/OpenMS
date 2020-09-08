@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,15 +111,18 @@ namespace OpenMS
       }
       else // generate entries (with duplicated data) for every accession
       {
-        bool unique = (identified.parent_matches.size() == 1);
+        // in mzTab, "unique" means "peptide is unique for this protein"
+        row.unique.set(identified.parent_matches.size() == 1);
         for (const auto& match_pair : identified.parent_matches)
         {
-          const String& accession = match_pair.first->accession;
-          MzTabSectionRow copy = row;
-          copy.accession.set(accession);
-          copy.unique.set(unique);
-          addMzTabMoleculeParentContext_(match_pair.second, copy);
-          output.push_back(copy);
+          row.accession.set(match_pair.first->accession);
+          for (const IdentificationData::MoleculeParentMatch& match :
+                 match_pair.second)
+          {
+            MzTabSectionRow copy = row;
+            addMzTabMoleculeParentContext_(match, copy);
+            output.push_back(copy);
+          }
         }
       }
     }
@@ -150,12 +153,18 @@ namespace OpenMS
         xsm.spectra_ref.setMSFile(file_map[*query.input_file_opt]);
       }
       xsm.spectra_ref.setSpecRef(query.data_id);
-      if (match.metaValueExists("adduct"))
+      // @TODO: find a way of passing in the names of relevant meta values
+      // (e.g. from NucleicAcidSearchEngine), instead of hard-coding them here
+      static const std::vector<String> meta_out({"adduct", "isotope_offset"});
+      for (const String& meta : meta_out)
       {
-        MzTabOptionalColumnEntry opt_adduct;
-        opt_adduct.first = "opt_adduct";
-        opt_adduct.second.set(match.getMetaValue("adduct"));
-        xsm.opt_.push_back(opt_adduct);
+        if (match.metaValueExists(meta))
+        {
+          MzTabOptionalColumnEntry opt_meta;
+          opt_meta.first = "opt_" + meta;
+          opt_meta.second.set(match.getMetaValue(meta));
+          xsm.opt_.push_back(opt_meta);
+        }
       }
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!
@@ -175,12 +184,12 @@ namespace OpenMS
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     static void addMzTabMoleculeParentContext_(
-      const std::set<IdentificationData::MoleculeParentMatch>& matches,
+      const IdentificationData::MoleculeParentMatch& match,
       MzTabOligonucleotideSectionRow& row);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     static void addMzTabMoleculeParentContext_(
-      const std::set<IdentificationData::MoleculeParentMatch>& matches,
+      const IdentificationData::MoleculeParentMatch& match,
       MzTabPeptideSectionRow& row);
 
     /// Helper function to import DB search parameters from legacy format
@@ -191,5 +200,10 @@ namespace OpenMS
     /// Helper function to export DB search parameters to legacy format
     static ProteinIdentification::SearchParameters exportDBSearchParameters_(
       IdentificationData::SearchParamRef ref);
+
+    /// Helper function to export (primary) MS run information to legacy format
+    static void exportMSRunInformation_(
+      IdentificationData::ProcessingStepRef step_ref,
+      ProteinIdentification& protein);
   };
 }

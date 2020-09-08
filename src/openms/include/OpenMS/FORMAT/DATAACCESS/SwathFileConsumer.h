@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -269,7 +269,7 @@ public:
             boundary.center = center;
             swath_map_boundaries_.push_back(boundary);
 
-            LOG_DEBUG << "Adding Swath centered at " << center
+            OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
               << " m/z with an isolation window of " << lower << " to " << upper
               << " m/z." << std::endl;
           }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
+#include <boost/functional/hash.hpp>
 
 using namespace std;
 
@@ -525,6 +527,12 @@ namespace OpenMS
   {
     this->append(s);
     return *this;
+  }
+  
+  ::size_t hash_value(String const& s)
+  {
+    boost::hash<std::string> hasher;
+    return hasher(static_cast<std::string>(s));
   }
 
 } // namespace OpenMS

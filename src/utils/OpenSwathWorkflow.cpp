@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,12 +98,12 @@ using namespace OpenMS;
 
   @brief Complete workflow to run OpenSWATH
 
-  This implements the OpenSwath workflow as described in Rost and Rosenberger
+  This implements the OpenSWATH workflow as described in Rost and Rosenberger
   et al. (Nature Biotechnology, 2014) and provides a complete, integrated
   analysis tool without the need to run multiple tools consecutively. See also
   http://openswath.org/ for additional documentation.
 
-  It executes the following steps in order:
+  It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
 
   <ul>
     <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
@@ -114,7 +114,6 @@ using namespace OpenMS;
     <li>Reporting the peak groups and the chromatograms</li>
   </ul>
 
-  The overall execution flow for this tool is described in the TOPPOpenSwathWorkflow documentation.
 
   See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
 
@@ -397,7 +396,7 @@ using namespace OpenMS;
     <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> aggr_Fragment_Annotation </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=2> Annotation of fragment ion traces separated by semicolon </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Annotation of fragment ion traces separated by semicolon </td>
     </tr>
 
 
@@ -406,7 +405,7 @@ using namespace OpenMS;
 
   <h3>Execution flow:</h3>
 
-  The overall execution flow for this tool is described in the TOPPOpenSwathWorkflow documentation.
+  The overall execution flow for this tool is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow".
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_OpenSwathWorkflow.cli
@@ -415,22 +414,8 @@ using namespace OpenMS;
 
 */
 
-/** @brief Extended documentation on OpenSwath
-
-  The overall execution flow for this tool is as follows:
-
-    - Parameter validation
-    - Transition loading: loads input transitions into OpenSwath::LightTargetedExperiment
-    - SWATH file loading:
-      - Load SWATH files (see loadSwathFiles())
-      - Annotate SWATH-files with user-defined windows (see OpenMS::SwathWindowLoader::annotateSwathMapsFromFile() )
-      - Sanity check: there should be no overlap between the windows:
-    - Perform RT and m/z calibration (see performCalibration() and OpenMS::OpenSwathRetentionTimeNormalization)
-    - Set up chromatogram file output
-    - Set up peakgroup file output
-    - Extract and score (see OpenMS::OpenSwathWorkflow or OpenMS::OpenSwathWorkflowSonar)
-
-*/
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 class TOPPOpenSwathWorkflow
   : public TOPPOpenSwathBase 
 {
@@ -464,11 +449,14 @@ protected:
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
-    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false, true);
+    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
-    registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
-    registerFlag_("enable_uis_scoring", "Enable additional scoring of identification assays", true);
+    registerStringOption_("enable_ms1", "<name>", "true", "Extract the precursor ion trace(s) and use for scoring if present", false, true);
+    setValidStrings_("enable_ms1", ListUtils::create<String>("true,false"));
+
+    registerStringOption_("enable_ipf", "<name>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
+    setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -497,28 +485,30 @@ protected:
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
     setMinFloat_("extra_rt_extraction_window", 0.0);
     registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
-    registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window in Thomson or ppm (see mz_extraction_window_unit)", false);
+    registerDoubleOption_("mz_extraction_window", "<double>", 50, "Extraction window in Thomson or ppm (see mz_extraction_window_unit)", false);
     setMinFloat_("mz_extraction_window", 0.0);
-    registerStringOption_("mz_extraction_window_unit", "<name>", "Th", "Unit for mz extraction", false, true);
+    registerStringOption_("mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
     setValidStrings_("mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
 
     // MS1 mz windows and ion mobility
-    registerDoubleOption_("mz_extraction_window_ms1", "<double>", 0.05, "Extraction window used in MS1 in Thomson or ppm (see mz_extraction_window_ms1_unit)", false);
+    registerDoubleOption_("mz_extraction_window_ms1", "<double>", 50, "Extraction window used in MS1 in Thomson or ppm (see mz_extraction_window_ms1_unit)", false);
     setMinFloat_("mz_extraction_window_ms1", 0.0);
-    registerStringOption_("mz_extraction_window_ms1_unit", "<name>", "Th", "Unit of the MS1 m/z extraction window", false, true);
+    registerStringOption_("mz_extraction_window_ms1_unit", "<name>", "ppm", "Unit of the MS1 m/z extraction window", false, true);
     setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<String>("ppm,Th"));
     registerDoubleOption_("im_extraction_window_ms1", "<double>", -1, "Extraction window in ion mobility dimension for MS1 (in milliseconds).", false);
 
     registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
     setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("matching_window_only", "<name>", "false", "Assume the input data is targeted / PRM-like data with potentially overlapping DIA windows. Will only attempt to extract each assay from the *best* matching DIA window (instead of all matching windows).", false, true);
+    setValidStrings_("matching_window_only", ListUtils::create<String>("true,false"));
+
     // iRT mz and IM windows
-    registerDoubleOption_("irt_mz_extraction_window", "<double>", 0.05, "Extraction window used for iRT and m/z correction in Thomson or ppm (see irt_mz_extraction_window_unit)", false, true);
+    registerDoubleOption_("irt_mz_extraction_window", "<double>", 50, "Extraction window used for iRT and m/z correction in Thomson or ppm (see irt_mz_extraction_window_unit)", false, true);
     setMinFloat_("irt_mz_extraction_window", 0.0);
-    registerStringOption_("irt_mz_extraction_window_unit", "<name>", "Th", "Unit for mz extraction", false, true);
+    registerStringOption_("irt_mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
     setValidStrings_("irt_mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
     registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds)", false, true);
-
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
@@ -537,17 +527,18 @@ protected:
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 250, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 1000, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
     setMinInt_("batchSize", 0);
     registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
 
-    registerIntOption_("ms1_isotopes", "<number>", 0, "The number of MS1 isotopes used for extraction", false, true);
+    registerIntOption_("ms1_isotopes", "<number>", 3, "The number of MS1 isotopes used for extraction", false, true);
     setMinInt_("ms1_isotopes", 0);
 
     registerSubsection_("Scoring", "Scoring parameters section");
     registerSubsection_("Library", "Library parameters section");
 
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
+    registerSubsection_("Calibration", "Parameters for the m/z and ion mobility calibration.");
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
     setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
@@ -564,10 +555,12 @@ protected:
       feature_finder_param.remove("rt_extraction_window");
       feature_finder_param.setValue("stop_report_after_feature", 5);
       feature_finder_param.setValue("rt_normalization_factor", 100.0); // for iRT peptides between 0 and 100 (more or less)
+      feature_finder_param.setValue("Scores:use_ms1_mi", "true");
+      feature_finder_param.setValue("Scores:use_mi_score", "true");
 
       feature_finder_param.setValue("TransitionGroupPicker:min_peak_width", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-      feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+      feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
       feature_finder_param.setValue("TransitionGroupPicker:background_subtraction", "none");
       feature_finder_param.remove("TransitionGroupPicker:stop_after_intensity_ratio");
@@ -585,8 +578,8 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
-      feature_finder_param.setValue("uis_threshold_sn",0);
-      feature_finder_param.setValue("uis_threshold_peak_area",0);
+      feature_finder_param.setValue("uis_threshold_sn", -1);
+      feature_finder_param.setValue("uis_threshold_peak_area", 0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
@@ -599,8 +592,6 @@ protected:
       feature_finder_param.remove("EMGScoring:deltaAbsError");
 
       // remove these parameters
-      feature_finder_param.remove("add_up_spectra");
-      feature_finder_param.remove("spacing_for_spectra_resampling");
       feature_finder_param.remove("EMGScoring:statistics:mean");
       feature_finder_param.remove("EMGScoring:statistics:variance");
       return feature_finder_param;
@@ -611,7 +602,7 @@ protected:
 
       p.setValue("alignmentMethod", "linear", "How to perform the alignment to the normalized RT space using anchor points. 'linear': perform linear regression (for few anchor points). 'interpolated': Interpolate between anchor points (for few, noise-free anchor points). 'lowess' Use local regression (for many, noisy anchor points). 'b_spline' use b splines for smoothing.");
       p.setValidStrings("alignmentMethod", ListUtils::create<String>("linear,interpolated,lowess,b_spline"));
-      p.setValue("lowess:span", 2.0/3, "Span parameter for lowess");
+      p.setValue("lowess:span", 0.05, "Span parameter for lowess");
       p.setMinFloat("lowess:span", 0.0);
       p.setMaxFloat("lowess:span", 1.0);
       p.setValue("b_spline:num_nodes", 5, "Number of nodes for b spline");
@@ -640,6 +631,15 @@ protected:
     else if (name == "Library")
     {
       return TransitionTSVFile().getDefaults();
+    }
+    else if (name == "Calibration")
+    {
+      Param p = SwathMapMassCorrection().getDefaults();
+      p.remove("mz_extraction_window");
+      p.remove("mz_extraction_window_ppm");
+      p.remove("im_extraction_window");
+      p.remove("mz_correction_function");
+      return p;
     }
     else
     {
@@ -687,8 +687,8 @@ protected:
     bool force = getFlag_("force");
     bool sonar = getFlag_("sonar");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
-    bool use_ms1_traces = getFlag_("use_ms1_traces");
-    bool enable_uis_scoring = getFlag_("enable_uis_scoring");
+    bool use_ms1_traces = getStringOption_("enable_ms1") == "true";
+    bool enable_uis_scoring = getStringOption_("enable_ipf") == "true";
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
@@ -747,19 +747,20 @@ protected:
     // Check swath window input
     if (!swath_windows_file.empty())
     {
-      LOG_INFO << "Validate provided Swath windows file:" << std::endl;
+      OPENMS_LOG_INFO << "Validate provided Swath windows file:" << std::endl;
       std::vector<double> swath_prec_lower;
       std::vector<double> swath_prec_upper;
       SwathWindowLoader::readSwathWindows(swath_windows_file, swath_prec_lower, swath_prec_upper);
 
       for (Size i = 0; i < swath_prec_lower.size(); i++)
       {
-        LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
+        OPENMS_LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
       }
     }
 
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     bool use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
+    bool prm = getStringOption_("matching_window_only") == "true";
 
     ChromExtractParams cp;
     cp.min_upper_edge_dist   = min_upper_edge_dist;
@@ -805,7 +806,7 @@ protected:
     // Load the transitions
     ///////////////////////////////////
     OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
-    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
+    OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
     if (tr_type == FileTypes::PQP)
@@ -835,7 +836,7 @@ protected:
       qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, &qc_consumer))
+                          sort_swath_maps, sonar, prm, &qc_consumer))
       {
         return PARSE_ERROR;
       }
@@ -845,7 +846,7 @@ protected:
     {
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar))
+                          sort_swath_maps, sonar, prm))
       {
         return PARSE_ERROR;
       }
@@ -858,12 +859,17 @@ protected:
     String irt_trafo_out = debug_params.getValue("irt_trafo");
     String irt_mzml_out = debug_params.getValue("irt_mzml");
     Param irt_detection_param = getParam_().copy("RTNormalization:", true);
+    Param calibration_param = getParam_().copy("Calibration:", true);
+    calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
+    calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
+    calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
+    calibration_param.setValue("mz_correction_function", mz_correction_function);
     TransformationDescription trafo_rtnorm;
     if (nonlinear_irt_tr_file.empty())
     {
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
-                                        cp_irt, irt_detection_param, mz_correction_function,
+                                        cp_irt, irt_detection_param, calibration_param,
                                         debug_level, sonar, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
     }
@@ -875,9 +881,11 @@ protected:
 
       Param linear_irt = irt_detection_param;
       linear_irt.setValue("alignmentMethod", "linear");
+      Param no_calibration = calibration_param;
+      no_calibration.setValue("mz_correction_function", "none");
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
-                                        cp_irt, linear_irt, "none",
+                                        cp_irt, linear_irt, no_calibration,
                                         debug_level, sonar, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
@@ -896,10 +904,23 @@ protected:
       wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
                                     trafo_rtnorm, cp_irt, sonar, load_into_memory);
 
-      trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, min_rsq,
-                                        min_coverage, feature_finder_param, irt_detection_param,
-                                        swath_maps, mz_correction_function,
-                                        cp_irt.mz_extraction_window, cp_irt.ppm);
+      // always use estimateBestPeptides for the nonlinear approach
+      Param nonlinear_irt = irt_detection_param;
+      nonlinear_irt.setValue("estimateBestPeptides", "true");
+
+      TransformationDescription im_trafo; // exp -> theoretical
+      trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, im_trafo, swath_maps,
+                                             min_rsq, min_coverage,
+                                             feature_finder_param, nonlinear_irt, calibration_param);
+
+      TransformationDescription im_trafo_inv = im_trafo;
+      im_trafo_inv.invert(); // theoretical -> experimental
+
+      // We now modify the library as this is the easiest thing to do
+      for (auto & p : transition_exp.getCompounds())
+      {
+        p.drift_time = im_trafo_inv.apply(p.drift_time);
+      }
 
     }
 
@@ -914,7 +935,7 @@ protected:
     // Set up peakgroup file output
     ///////////////////////////////////
     FeatureMap out_featureFile;
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
     OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
 
     ///////////////////////////////////
@@ -929,7 +950,7 @@ protected:
     }
     else
     {
-      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, outer_loop_threads);
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, outer_loop_threads);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);

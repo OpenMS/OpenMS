@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,11 @@ namespace OpenMS
 
     /**
       @brief Aggregates spectra by retention time
+
+      This consumer will merge spectra passed to it that have the same
+      retention time and will then pass them to the next consumer (see
+      Constructor). Spectra are aggregated using
+      SpectrumAddition::addUpSpectra() which merges the spectra.
 
     */
     class OPENMS_DLLAPI MSDataAggregatingConsumer :

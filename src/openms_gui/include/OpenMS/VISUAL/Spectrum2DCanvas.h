@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -278,7 +278,7 @@ protected:
     */
     inline Int precalculatedColorIndex_(float val, const MultiGradient& gradient, double snap_factor)
     {
-      float gradientPos;
+      float gradientPos = val;
       switch (intensity_mode_)
       {
       case IM_NONE:
@@ -296,9 +296,6 @@ protected:
       case IM_LOG:
         gradientPos = std::log(val + 1);
         break;
-
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       return gradient.precalculatedColorIndex(gradientPos);
     }

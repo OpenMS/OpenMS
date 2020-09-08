@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <iostream>
 
@@ -58,6 +59,52 @@ namespace OpenMS
     synonyms_(synonyms),
     regex_description_(regex_description)
   {
+  }
+
+  DigestionEnzyme::DigestionEnzyme(const String& name,
+                                   String cut_before,
+                                   const String& nocut_after,
+                                   String sense,
+                                   const std::set<String>& synonyms,
+                                   String regex_description) :
+      name_(name),
+      synonyms_(synonyms),
+      regex_description_(regex_description)
+  {
+    //TODO check if all letters are A-Z?
+    if (cut_before.empty())
+    {
+      //Maybe assertion?
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No cleavage position given when trying to construct a DigestionEnzyme.");
+    }
+    else if (!cut_before.hasSuffix("X"))
+    {
+      //TODO think about this
+      cut_before = cut_before + "X";
+    }
+    cleavage_regex_ = "";
+    if (sense.toLower() == "c")
+    {
+      cleavage_regex_ += "(?<=[" + cut_before + "]";
+      if (!nocut_after.empty()) cleavage_regex_ += "(?!" + nocut_after + "])";
+    }
+    else if (sense.toLower() == "n")
+    {
+      if (!nocut_after.empty()) cleavage_regex_ += "(?<![" + nocut_after + "])";
+      cleavage_regex_ += "(?=[" + cut_before + "]";
+    }
+    else
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Cannot infer cleavage sense when constructing DigestionEnzyme. Has to be N or C.");
+    }
   }
 
   DigestionEnzyme::~DigestionEnzyme()

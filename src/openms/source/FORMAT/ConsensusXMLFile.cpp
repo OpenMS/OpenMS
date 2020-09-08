@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusXMLFile::~ConsensusXMLFile()
-  {
-  }
+  ConsensusXMLFile::~ConsensusXMLFile() = default;
 
   PeakFileOptions&
   ConsensusXMLFile::getOptions()
@@ -88,7 +86,11 @@ namespace OpenMS
     }
     else if (tag == "IdentificationRun")
     {
-      consensus_map_->getProteinIdentifications().push_back(prot_id_);
+      // post processing of ProteinGroups (hack)
+      getProteinGroups_(prot_id_.getProteinGroups(), "protein_group");
+      getProteinGroups_(prot_id_.getIndistinguishableProteins(),
+                        "indistinguishable_proteins");
+      consensus_map_->getProteinIdentifications().emplace_back(std::move(prot_id_));
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
     }
@@ -112,13 +114,13 @@ namespace OpenMS
     }
     else if (tag == "PeptideIdentification")
     {
-      act_cons_element_.getPeptideIdentifications().push_back(pep_id_);
+      act_cons_element_.getPeptideIdentifications().emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
       last_meta_ = &act_cons_element_;
     }
     else if (tag == "UnassignedPeptideIdentification")
     {
-      consensus_map_->getUnassignedPeptideIdentifications().push_back(pep_id_);
+      consensus_map_->getUnassignedPeptideIdentifications().emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
       last_meta_ = consensus_map_;
     }
@@ -342,22 +344,24 @@ namespace OpenMS
       prot_id_.setSearchEngine(attributeAsString_(attributes, "search_engine"));
       prot_id_.setSearchEngineVersion(attributeAsString_(attributes, "search_engine_version"));
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
-      //set identifier
-      String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      String id = attributeAsString_(attributes, "id");
+      // set identifier
+      // always generate a unique id to link a ProteinIdentification and the corresponding PeptideIdentifications
+      // , since any FeatureLinker might just carelessly concatenate PepIDs from different FeatureMaps.
+      // If these FeatureMaps have identical identifiers (SearchEngine time + type match exactly), then ALL PepIDs would be falsely attributed
+      // to a single ProtID...
 
-      if (!id_identifier_.has(id))
-      {
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
-      }
-      else
-      {
-        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
-        UInt64 uid = UniqueIdGenerator::getUniqueId();
-        identifier = identifier + String(uid);
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
+      String id = attributeAsString_(attributes, "id");
+      while (true)
+      { // loop until the identifier is unique (should be on the first iteration -- very(!) unlikely it will not be unique)
+        // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+        String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
+
+        if (!id_identifier_.has(id))
+        {
+          prot_id_.setIdentifier(identifier);
+          id_identifier_[id] = identifier;
+          break;
+        }
       }
     }
     else if (tag == "SearchParameters")
@@ -638,7 +642,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
     }
 
-    if (!consensus_map.isMapConsistent(&LOG_WARN))
+    if (!consensus_map.isMapConsistent(&OpenMS_Log_warn))
     {
       // Currently it is possible that FeatureLinkerUnlabeledQT triggers this exception
       // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
@@ -655,7 +659,7 @@ namespace OpenMS
       // We can detect this here but it is too late to fix the problem;
       // there is no straightforward action to be taken in all cases.
       // Note also that we are given a const reference.
-      LOG_INFO << String("ConsensusXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+      OPENMS_LOG_INFO << String("ConsensusXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
     }
 
     // This will throw if the unique ids are not unique,
@@ -666,7 +670,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition& e)
     {
-      LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
     }
 
@@ -681,15 +685,7 @@ namespace OpenMS
 
     setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    //add XSLT file if it can be found
-    try
-    {
-      String xslt_file = File::find("XSL/ConsensusXML.xsl");
-      os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
-    }
-    catch (Exception::FileNotFound&)
-    {
-    }
+    os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/ConsensusXML.xsl\" ?>\n";
 
     setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
@@ -731,6 +727,9 @@ namespace OpenMS
 
     // write identification run
     UInt prot_count = 0;
+
+    // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+    checkUniqueIdentifiers_(consensus_map.getProteinIdentifications());
 
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {
@@ -788,6 +787,7 @@ namespace OpenMS
       os << " higher_score_better=\"" << (current_prot_id.isHigherScoreBetter() ? "true" : "false") << "\"";
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
+      //TODO @julianus @timo IMPLEMENT PROTEIN GROUP SUPPORT!!
       // write protein hits
       for (Size j = 0; j < current_prot_id.getHits().size(); ++j)
       {
@@ -814,7 +814,13 @@ namespace OpenMS
         os << "\t\t\t</ProteinHit>\n";
       }
 
-      writeUserParam_("UserParam", os, current_prot_id, 3);
+      // add ProteinGroup info to metavalues (hack)
+      MetaInfoInterface meta = current_prot_id;
+      addProteinGroups_(meta, current_prot_id.getProteinGroups(),
+                        "protein_group", accession_to_id_, current_prot_id.getIdentifier(), STORE);
+      addProteinGroups_(meta, current_prot_id.getIndistinguishableProteins(),
+                        "indistinguishable_proteins", accession_to_id_, current_prot_id.getIdentifier(), STORE);
+      writeUserParam_("UserParam", os, meta, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
     }
@@ -912,7 +918,7 @@ namespace OpenMS
 
     parse_(filename, this);
 
-    if (!map.isMapConsistent(&LOG_WARN)) // a warning is printed to LOG_WARN during isMapConsistent()
+    if (!map.isMapConsistent(&OpenMS_Log_warn)) // a warning is printed to LOG_WARN during isMapConsistent()
     {
       // don't throw exception for now, since this would prevent us from reading old files...
       // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
@@ -1020,6 +1026,66 @@ namespace OpenMS
     tmp.removeMetaValue("spectrum_reference");
     writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
+  }
+
+  void ConsensusXMLFile::addProteinGroups_(
+      MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
+      const String& group_name, const std::unordered_map<string, UInt>& accession_to_id, const String& runid,
+      XMLHandler::ActionMode mode)
+  {
+    for (Size g = 0; g < groups.size(); ++g)
+    {
+      String name = group_name + "_" + String(g);
+      if (meta.metaValueExists(name))
+      {
+        warning(mode, String("Metavalue '") + name + "' already exists. Overwriting...");
+      }
+      String accessions;
+      for (StringList::const_iterator acc_it = groups[g].accessions.begin();
+           acc_it != groups[g].accessions.end(); ++acc_it)
+      {
+        if (acc_it != groups[g].accessions.begin())
+          accessions += ",";
+        const auto pos = accession_to_id.find(runid + "_" + *acc_it);
+        if (pos != accession_to_id.end())
+        {
+          accessions += "PH_" + String(pos->second);
+        }
+        else
+        {
+          fatalError(mode, String("Invalid protein reference '") + *acc_it + "'");
+        }
+      }
+      String value = String(groups[g].probability) + "," + accessions;
+      meta.setMetaValue(name, value);
+    }
+  }
+
+  void ConsensusXMLFile::getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>&
+  groups, const String& group_name)
+  {
+    groups.clear();
+    Size g_id = 0;
+    String current_meta = group_name + "_" + String(g_id);
+    StringList values;
+    while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
+    {
+      // convert to proper ProteinGroup
+      ProteinIdentification::ProteinGroup g;
+      String(last_meta_->getMetaValue(current_meta)).split(',', values);
+      if (values.size() < 2)
+      {
+        fatalError(LOAD, String("Invalid UserParam for ProteinGroups (not enough values)'"));
+      }
+      g.probability = values[0].toDouble();
+      for (Size i_ind = 1; i_ind < values.size(); ++i_ind)
+      {
+        g.accessions.push_back(proteinid_to_accession_[values[i_ind]]);
+      }
+      groups.push_back(std::move(g));
+      last_meta_->removeMetaValue(current_meta);
+      current_meta = group_name + "_" + String(++g_id);
+    }
   }
 
 } // namespace OpenMS

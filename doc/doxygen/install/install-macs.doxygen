@@ -63,7 +63,7 @@
 
   In order to facilitate the installation of the libraries required for
   %OpenMS, we provide a "contrib-package" containing the libraries Boost,
-  Eigen, WildMagic, libSVM, SeqAn, glpk, zlib, bzip2, CoinMP and Xerces-C.
+  Eigen, WildMagic, libSVM, libHDF5, SeqAn, glpk, zlib, bzip2, CoinMP and Xerces-C.
 
   The contrib package is contained in the %OpenMS release package and is
   available inside the <tt>contrib</tt> directory in the %OpenMS directory.
@@ -127,7 +127,7 @@
   required by %OpenMS.
 
     \code
-      brew install libsvm xerces-c boost glpk eigen sqlite
+      brew install libsvm xerces-c boost glpk eigen sqlite hdf5
     \endcode
 
   @note Until the CoinMP complete package is migrated to the coin-or-tools tap, we suggest to use our contrib version.
@@ -137,7 +137,7 @@
   libraries required by %OpenMS.
 
     \code
-      sudo port install libsvm xercesc3 boost glpk eigen3 sqlite
+      sudo port install libsvm xercesc3 boost glpk eigen3 sqlite hdf5
     \endcode
 
  The rest needs to be installed via the contrib.

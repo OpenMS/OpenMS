@@ -7,6 +7,7 @@ BilinearInterpolation.cpp
 BSpline2d.cpp
 CubicSpline2d.cpp
 EmgGradientDescent.cpp
+GridSearch.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp

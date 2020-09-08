@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
@@ -320,7 +322,7 @@ namespace OpenMS
     else
     {
       proposed_filename = "Workflow.toppas";
-      LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
+      OPENMS_LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
     }
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
 
@@ -356,7 +358,7 @@ namespace OpenMS
   {
     QNetworkReply::NetworkError ne = network_reply_->error();
     qint64 ba = network_reply_->bytesAvailable();
-    LOG_DEBUG << "Error code (QNetworkReply::NetworkError): " << ne << "  bytes available: " << ba << std::endl;
+    OPENMS_LOG_DEBUG << "Error code (QNetworkReply::NetworkError): " << ne << "  bytes available: " << ba << std::endl;
     return;
   }
 
@@ -546,7 +548,7 @@ namespace OpenMS
 
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
     {
-      LOG_ERROR << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+      OPENMS_LOG_ERROR << "The file '" << file_name << "' is not a .toppas file" << std::endl;
       return;
     }
 
@@ -849,7 +851,7 @@ namespace OpenMS
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
-    connect(tw, SIGNAL(aboutToBeDestroyed(int)), tab_bar_, SLOT(removeId(int)));
+    connect(tw, &TOPPASWidget::aboutToBeDestroyed, tab_bar_, &TOPPASTabBar::removeId);
 
     tab_bar_->setCurrentId(tw->getWindowId());
 
@@ -897,29 +899,22 @@ namespace OpenMS
 
   void TOPPASBase::closeEvent(QCloseEvent* event)
   {
-    bool close = true;
-    QList<QMdiSubWindow *> all_windows = ws_->subWindowList();
-    foreach(QMdiSubWindow * w, all_windows)
+    QList<QMdiSubWindow*> all_windows = ws_->subWindowList();
+    for (QMdiSubWindow* w : all_windows)
     {
-      TOPPASWidget * widget = dynamic_cast<TOPPASWidget*>(w->widget());
-      bool close_this = widget->getScene()->saveIfChanged();
-      if (!close_this)
-      {
-        close = false;
-        break;
+      TOPPASWidget* widget = dynamic_cast<TOPPASWidget*>(w->widget());
+      if (!widget) continue; // not a TOPPASWidget.. ignore it
+
+      if (!widget->getScene()->saveIfChanged())
+      { // user chose 'abort' in dialog
+        event->ignore();
+        return;
       }
     }
-    if (close)
-    {
-      event->accept();
-      QSettings settings("OpenMS", "TOPPAS");
-      settings.setValue("geometry", saveGeometry());
-      settings.setValue("windowState", saveState());
-    }
-    else
-    {
-      event->ignore();
-    }
+    event->accept();
+    QSettings settings("OpenMS", "TOPPAS");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
   }
 
   void TOPPASBase::showURL()
@@ -1331,7 +1326,7 @@ namespace OpenMS
     tv->setPos(x, y);
     tv->setZValue(z_value_);
     z_value_ += 0.000001;
-    scene->topoSort();
+    scene->topoSort(false);
     scene->setChanged(true);
   }
 

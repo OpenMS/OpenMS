@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,12 +80,18 @@ public:
     /// copy constructor
     ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs);
 
+    /// Move constructor
+    ReactionMonitoringTransition(ReactionMonitoringTransition&&) noexcept;
+
     /// destructor
     ~ReactionMonitoringTransition() override;
     //@}
 
     /// assignment operator
     ReactionMonitoringTransition & operator=(const ReactionMonitoringTransition & rhs);
+
+    /// move assignment operator
+    ReactionMonitoringTransition & operator=(ReactionMonitoringTransition && rhs);
 
     /** @name Accessors
     */
@@ -119,7 +125,7 @@ public:
 
     void addPrecursorCVTerm(const CVTerm & cv_term);
 
-    /* @brief Obtain the list of CV Terms for the precursor
+    /** @brief Obtain the list of CV Terms for the precursor
      *
      * @note You first need to check whether they exist using hasPrecursorCVTerms() 
     */
@@ -152,7 +158,7 @@ public:
 
     void addPredictionTerm(const CVTerm & prediction);
 
-    /* @brief Obtain the Prediction object 
+    /** @brief Obtain the Prediction object 
      *
      * @note You first need to check whether the object is accessible using hasPrediction() 
     */

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,12 +42,11 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Search query, e.g. spectrum or feature.
+    /** @brief Search query, e.g. spectrum or feature.
     */
     struct DataQuery: public MetaInfoInterface
     {
-      // spectrum or feature ID (from the file referenced by "input_file_ref"):
+      /// spectrum or feature ID (from the file referenced by "input_file_ref"):
       String data_id;
 
       // @TODO: make this non-optional (i.e. required)?

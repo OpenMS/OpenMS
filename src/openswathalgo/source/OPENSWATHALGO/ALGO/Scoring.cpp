@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
+#include <algorithm>
 
 #include <boost/numeric/conversion/cast.hpp>
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,13 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <vector>
+#include <functional>
+#include <set>
+#include <map>
 
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -55,6 +60,29 @@ namespace OpenMS
   {
 public:
     static const double COVERAGE_UNKNOWN; // == -1
+
+    /// @name Hashes for ProteinHit
+    //@{
+    /// Hash of a ProteinHit based on its accession only!
+    class OPENMS_DLLAPI ProteinHitAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit & p)
+      {
+        return std::hash<std::string>{}(p.getAccession());
+      }
+
+    };
+    class OPENMS_DLLAPI ProteinHitPtrAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit * p)
+      {
+        return std::hash<std::string>{}(p->getAccession());
+      }
+
+    };
+    //@}
 
     /// @name Comparators ProteinHit
     //@{
@@ -110,10 +138,8 @@ public:
     ProteinHit(const ProteinHit &) = default;
 
     /// Move constructor
-    ProteinHit(ProteinHit&&) noexcept = default;
+    ProteinHit(ProteinHit&&) = default;
 
-    /// Destructor
-    virtual ~ProteinHit();
     //@}
 
     /// Assignment operator
@@ -136,7 +162,7 @@ public:
     //@{
 
     /// returns the score of the protein hit
-    float getScore() const;
+    double getScore() const;
 
     /// returns the rank of the protein hit
     UInt getRank() const;
@@ -171,16 +197,24 @@ public:
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);
 
+    /// returns the set of modified protein positions
+    const std::set<std::pair<Size, ResidueModification> >& getModifications() const;
+
+    /// sets the set of modified protein positions
+    void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
     //@}
 
 protected:
-    float score_;        ///< the score of the protein hit
+    double score_;       ///< the score of the protein hit
     UInt rank_;          ///< the position(rank) where the hit appeared in the hit list
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
-
+    std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
   };
+
+  /// Stream operator
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit);
 
 } // namespace OpenMS
 

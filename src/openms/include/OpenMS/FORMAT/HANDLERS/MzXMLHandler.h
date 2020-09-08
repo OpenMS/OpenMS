@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -172,7 +172,8 @@ protected:
 
 
       /// write metaInfo to xml (usually in nameValue-tag)
-      inline std::ostream& writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
+      /// returns true if metavalue existed and data was written to the stream
+      inline bool writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
 
       /// write metaInfo to xml (usually in nameValue-tag)
       inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue");
@@ -203,44 +204,6 @@ private:
       
       /// initialize members (call from C'tor)
       void init_();
-
-      // init all the static members, which is necessary because otherwise the undefined order will cause problems
-      void initStaticMembers_();
-
-      static const XMLCh* s_value_;
-      static const XMLCh* s_count_;
-      static const XMLCh* s_type_;
-      static const XMLCh* s_name_;
-      static const XMLCh* s_version_;
-      static const XMLCh* s_filename_;
-      static const XMLCh* s_filetype_;
-      static const XMLCh* s_filesha1_;
-      static const XMLCh* s_completiontime_;
-      static const XMLCh* s_precision_;
-      static const XMLCh* s_byteorder_;
-      static const XMLCh* s_contentType_;
-      static const XMLCh* s_compressionType_;
-      static const XMLCh* s_precursorintensity_;
-      static const XMLCh* s_precursorcharge_;
-      static const XMLCh* s_windowwideness_;
-      static const XMLCh* s_mslevel_;
-      static const XMLCh* s_peakscount_;
-      static const XMLCh* s_polarity_;
-      static const XMLCh* s_scantype_;
-      static const XMLCh* s_filterline_;
-      static const XMLCh* s_retentiontime_;
-      static const XMLCh* s_startmz_;
-      static const XMLCh* s_endmz_;
-      static const XMLCh* s_first_;
-      static const XMLCh* s_last_;
-      static const XMLCh* s_phone_;
-      static const XMLCh* s_email_;
-      static const XMLCh* s_uri_;
-      static const XMLCh* s_num_;
-      static const XMLCh* s_intensitycutoff_;
-      static const XMLCh* s_centroided_;
-      static const XMLCh* s_deisotoped_;
-      static const XMLCh* s_chargedeconvoluted_;
     };
 
   } // namespace Internal

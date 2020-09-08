@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
 
 public:
 
-    /* @brief Summary statistics before/after applying the transformation.
+    /** @brief Summary statistics before/after applying the transformation.
               For deviations before/after transformation, the percentiles 
               100, 99, 95, 90, 75, 50, 25 are returned.
      */ 
@@ -75,7 +75,7 @@ public:
         if (this == &rhs)
           return *this;
 
-        // percents = rhs.precents; // const, cannot be assigned
+        // percents = rhs.percents; // const, cannot be assigned
         xmin = rhs.xmin;
         xmax = rhs.xmax;
         ymin = rhs.ymin;

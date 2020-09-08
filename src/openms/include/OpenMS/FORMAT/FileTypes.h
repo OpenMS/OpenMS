@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,7 +84,7 @@ namespace OpenMS
       MASCOTXML,          ///< Mascot XML file format for peptide identifications (.xml)
       PNG,                ///< Portable Network Graphics (.png)
       XMASS,              ///< XMass Analysis file (fid)
-      TSV,                ///< msInspect file (.tsv)
+      TSV,                ///< any TSV file, for example msInspect file or OpenSWATH transition file (see TransitionTSVFile)
       MZTAB,              ///< mzTab file (.mzTab)
       PEPLIST,            ///< specArray file (.peplist)
       HARDKLOER,          ///< hardkloer file (.hardkloer)
@@ -100,8 +100,8 @@ namespace OpenMS
       XSD,                ///< XSD schema format
       PSQ,                ///< NCBI binary blast db
       MRM,                ///< SpectraST MRM List
-      SQMASS,             ///< SqLite format for mass and chromatograms
-      PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB
+      SQMASS,             ///< SqLite format for mass and chromatograms, see SqMassFile
+      PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB, see TransitionPQPFile
       MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
@@ -110,7 +110,10 @@ namespace OpenMS
       SPLIB,              ///< SpectraST binary spectral library file (sptxt is the equivalent text-based format, similar to the MSP format)
       NOVOR,              ///< Novor custom parameter file
       XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
+      SPECXML,            ///< xQuest XML file format for matched spectra for spectra visualization in the xQuest results manager (.spec.xml)
       JSON,               ///< JavaScript Object Notation file (.json)
+      RAW,                ///< Thermo Raw File (.raw)
+      EXE,                ///< Executable (.exe)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

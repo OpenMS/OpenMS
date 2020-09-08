@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ namespace OpenMS
     // Catch cases where a compound has no transitions
     if (pep2tr.count(pep.id) == 0)
     {
-      LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
+      OPENMS_LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
       coord.id = OpenSwathHelper::computePrecursorId(pep.id, 0);
       return false;
     }

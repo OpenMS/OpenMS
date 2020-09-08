@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,8 +44,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Representation of a parent molecule that is identified only indirectly (e.g. a protein).
+    /** @brief Representation of a parent molecule that is identified only indirectly (e.g. a protein).
     */
     struct ParentMolecule: public ScoredProcessingResult
     {
@@ -59,7 +58,7 @@ namespace OpenMS
 
       String description;
 
-      double coverage; //< sequence coverage as a fraction between 0 and 1
+      double coverage; ///< sequence coverage as a fraction between 0 and 1
 
       bool is_decoy;
 
@@ -76,7 +75,7 @@ namespace OpenMS
       {
       }
 
-      ParentMolecule(const ParentMolecule& other) = default;
+      ParentMolecule(const ParentMolecule&) = default;
 
       ParentMolecule& operator+=(const ParentMolecule& other)
       {

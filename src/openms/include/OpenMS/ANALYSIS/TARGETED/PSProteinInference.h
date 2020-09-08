@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,11 +69,6 @@ public:
     bool isProteinInMinimalList(const String & acc);
     Int getNumberOfProtIds(double protein_id_threshold);
     Int getNumberOfProtIdsPeptideRule(Int min_peptides, std::map<String, std::set<String> > & prot_id_counter);
-
-    void setSolver(LPWrapper::SOLVER solver)
-    {
-      solver_ = solver;
-    }
 
     LPWrapper::SOLVER getSolver()
     {

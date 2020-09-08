@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1072,11 +1072,13 @@ namespace OpenMS
     {
       gradient_str = linear_gradient_.toString();
     }
+    if (layers_.empty()) return;
+    layers_[layers_.size()-1].param.setValue("dot:gradient", gradient_str);
     for (Size i = 0; i < layers_.size(); ++i)
     {
-      layers_[i].param.setValue("dot:gradient", gradient_str);
       recalculateDotGradient_(i);
     }
+
     SpectrumCanvas::intensityModeChange_();
   }
 
@@ -1100,7 +1102,7 @@ namespace OpenMS
 
   void Spectrum2DCanvas::updateProjections()
   {
-    //find the last (visible) peak layers
+    // find the last (visible) peak layers
     Size layer_count = 0;
     Size last_layer = 0;
     Size visible_layer_count = 0;
@@ -1124,7 +1126,7 @@ namespace OpenMS
       }
     }
 
-    //try to find the right layer to project
+    // try to find the right layer to project
     const LayerData * layer = nullptr;
     //first choice: current layer
     if (layer_count != 0 && getCurrentLayer().type == LayerData::DT_PEAK)
@@ -1162,14 +1164,14 @@ namespace OpenMS
     float range = visible_area_.maxPosition()[0] - visible_area_.minPosition()[0];
     float mult = 100.0f / (range <= 0 ? 1 : range);
 
-    for (ExperimentType::ConstAreaIterator i = layer->getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
+    for (auto i = layer->getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
          i != layer->getPeakData()->areaEndConst();
          ++i)
     {
       PeakIndex pi = i.getPeakIndex();
       if (layer->filters.passes((*layer->getPeakData())[pi.spectrum], pi.peak))
       {
-        //sum
+        // sum
         ++peak_count;
         intensity_sum += i->getIntensity();
         mzint[int(i->getMZ() * mult)] += i->getIntensity();
@@ -1177,7 +1179,7 @@ namespace OpenMS
         mzsum[int(i->getMZ() * mult)] += i->getMZ();
 
         rt[i.getRT()] += i->getIntensity();
-        //max
+        // max
         intensity_max = max(intensity_max, (double)(i->getIntensity()));
       }
     }
@@ -1245,12 +1247,7 @@ namespace OpenMS
       // Abort if no data points are contained (note that all data could be on disk)
       if (getCurrentLayer_().getPeakData()->size() == 0)
       {
-        layers_.resize(getLayerCount() - 1);
-        if (current_layer_ != 0)
-        {
-          current_layer_ = current_layer_ - 1;
-        }
-        QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
+        popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
         return false;
       }
       if ((getCurrentLayer_().getPeakData()->getSize() == 0) && (!getCurrentLayer_().getPeakData()->getDataRange().isEmpty()))
@@ -1263,15 +1260,10 @@ namespace OpenMS
       getCurrentLayer_().getFeatureMap()->updateRanges();
       setLayerFlag(LayerData::F_HULL, true);
 
-      //Abort if no data points are contained
+      // Abort if no data points are contained
       if (getCurrentLayer_().getFeatureMap()->size() == 0)
       {
-        layers_.resize(getLayerCount() - 1);
-        if (current_layer_ != 0)
-        {
-          current_layer_ = current_layer_ - 1;
-        }
-        QMessageBox::critical(this, "Error", "Cannot add an empty dataset. Aborting!");
+        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
         return false;
       }
     }
@@ -1282,10 +1274,7 @@ namespace OpenMS
       // abort if no data points are contained
       if (getCurrentLayer_().getConsensusMap()->size() == 0)
       {
-        layers_.resize(getLayerCount() - 1);
-        if (current_layer_ != 0)
-          current_layer_ = current_layer_ - 1;
-        QMessageBox::critical(this, "Error", "Cannot add an empty dataset. Aborting!");
+        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
         return false;
       }
     }
@@ -1296,12 +1285,7 @@ namespace OpenMS
       // abort if no data points are contained
       if (getCurrentLayer_().getPeakData()->getChromatograms().empty())
       {
-        layers_.resize(getLayerCount() - 1);
-        if (current_layer_ != 0)
-        {
-          current_layer_ = current_layer_ - 1;
-        }
-        QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no chromatograms. Aborting!");
+        popIncompleteLayer_("Cannot add a dataset that contains no chromatograms. Aborting!");
         return false;
       }
     }
@@ -1310,10 +1294,7 @@ namespace OpenMS
       // abort if no data points are contained
       if (getCurrentLayer_().peptides.empty())
       {
-        layers_.resize(getLayerCount() - 1);
-        if (current_layer_ != 0)
-          current_layer_ = current_layer_ - 1;
-        QMessageBox::critical(this, "Error", "Cannot add an empty dataset. Aborting!");
+        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
         return false;
       }
     }

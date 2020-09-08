@@ -5,6 +5,7 @@ set(directory source/CHEMISTRY)
 set(sources_list
 AASequence.cpp
 CrossLinksDB.cpp
+DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
@@ -34,6 +35,7 @@ SimpleTSGXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
+Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
 WeightWrapper.cpp

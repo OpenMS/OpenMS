@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -311,10 +311,10 @@ namespace OpenMS
           nr_peaks_added++;
 #endif
 
-          Peak1D peak;
-          peak.setMZ(max_intensities[j].first);
-          peak.setIntensity(max_intensities[j].second);
-          spectrum.push_back(peak);
+          Peak1D tmp_peak;
+          tmp_peak.setMZ(max_intensities[j].first);
+          tmp_peak.setIntensity(max_intensities[j].second);
+          spectrum.push_back(tmp_peak);
           spectrum.getFloatDataArrays()[0].push_back(map[j].getRT());
           spectrum.getFloatDataArrays()[1].push_back(fabs(map[i].getRT() - map[j].getRT()));
           spectrum.getFloatDataArrays()[2].push_back(lag);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,7 +124,7 @@ private:
       MzQuantMLHandler(const MzQuantMLHandler & rhs);
       MzQuantMLHandler & operator=(const MzQuantMLHandler & rhs);
 
-      std::map<String, std::vector<ExperimentalSettings> > current_files_;           // 1.rawfilesgroup_ref 2.inputfiles for each assay as ExperimentalSettings
+      std::map<String, std::vector<ExperimentalSettings> > current_files_;           ///< 1.rawfilesgroup_ref 2.inputfiles for each assay as ExperimentalSettings
       String current_id_;
       String current_cf_id_;
       Size current_count_;

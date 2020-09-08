@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@ namespace OpenMS
   /// Move constructor
   CVTermListInterface::CVTermListInterface(CVTermListInterface&& rhs) noexcept :
     MetaInfoInterface(std::move(rhs)), // NOTE: rhs itself is an lvalue
-    cvt_ptr_(std::move(rhs.cvt_ptr_))
+    cvt_ptr_(rhs.cvt_ptr_)
   {
     // see http://thbecker.net/articles/rvalue_references/section_05.html
     // take ownership
@@ -88,7 +88,7 @@ namespace OpenMS
     return *this;
   }
 
-  CVTermListInterface& CVTermListInterface::operator=(CVTermListInterface&& rhs)
+  CVTermListInterface& CVTermListInterface::operator=(CVTermListInterface&& rhs) noexcept
   {
     if (&rhs == this)
     {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,7 +143,7 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->unparsed.size(),0)
 	TEST_EQUAL(term->synonyms.size(),0)
 
-	TEST_EXCEPTION(Exception::InvalidValue , cv.getTerm("OpenMS:7"))
+	TEST_EXCEPTION(Exception::InvalidValue, cv.getTerm("OpenMS:7"))
 END_SECTION
 
 START_SECTION(bool isChildOf(const String& child, const String& parent) const)

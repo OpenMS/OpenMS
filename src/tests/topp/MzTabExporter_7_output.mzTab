@@ -1,0 +1,96 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Quantification
+MTD	title	ConsensusMap export from OpenMS
+MTD	description	OpenMS export from consensusXML
+MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
+MTD	psm_search_engine_score[1]	[MS, MS:1003115, OpenMS:Target-decoy PSM q-value, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-keepSamePeps-2020-08-27]
+MTD	software[2]	[MS, MS:1002251, Comet, # comet_version 2019.01 rev. 4]
+MTD	software[2]-setting[1]	db:C:\uniprot-FWBW.fasta
+MTD	software[2]-setting[2]	db_version:null
+MTD	software[2]-setting[3]	fragment_mass_tolerance:0.02
+MTD	software[2]-setting[4]	fragment_mass_tolerance_unit:Da
+MTD	software[2]-setting[5]	precursor_mass_tolerance:10.0
+MTD	software[2]-setting[6]	precursor_mass_tolerance_unit:ppm
+MTD	software[2]-setting[7]	enzyme:Trypsin/P
+MTD	software[2]-setting[8]	enzyme_term_specificity:unknown
+MTD	software[2]-setting[9]	charges:null
+MTD	software[2]-setting[10]	missed_cleavages:2
+MTD	software[2]-setting[11]	fixed_modifications:Label:15N(1) (G),Label:15N(1) (A),Label:15N(1) (S),Label:15N(1) (P),Label:15N(1) (V),Label:15N(1) (T),C+58.018500,Label:15N(1) (L),Label:15N(1) (I),Label:15N(2) (N),Label:15N(2) (Q),Label:15N(2) (K),Label:15N(1) (M),Label:15N(3) (H),Label:15N(1) (F),Label:15N(4) (R),Label:15N(1) (Y),Label:15N(2) (W)
+MTD	software[2]-setting[12]	variable_modifications:Oxidation (M)
+MTD	fixed_mod[2]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[2]-site	A
+MTD	fixed_mod[2]-position	Anywhere
+MTD	fixed_mod[3]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[3]-site	F
+MTD	fixed_mod[3]-position	Anywhere
+MTD	fixed_mod[4]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[4]-site	G
+MTD	fixed_mod[4]-position	Anywhere
+MTD	fixed_mod[5]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[5]-site	I
+MTD	fixed_mod[5]-position	Anywhere
+MTD	fixed_mod[6]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[6]-site	L
+MTD	fixed_mod[6]-position	Anywhere
+MTD	fixed_mod[7]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[7]-site	M
+MTD	fixed_mod[7]-position	Anywhere
+MTD	fixed_mod[8]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[8]-site	P
+MTD	fixed_mod[8]-position	Anywhere
+MTD	fixed_mod[9]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[9]-site	S
+MTD	fixed_mod[9]-position	Anywhere
+MTD	fixed_mod[10]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[10]-site	T
+MTD	fixed_mod[10]-position	Anywhere
+MTD	fixed_mod[11]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[11]-site	V
+MTD	fixed_mod[11]-position	Anywhere
+MTD	fixed_mod[12]	[UNIMOD, UNIMOD:994, Label:15N(1), ]
+MTD	fixed_mod[12]-site	Y
+MTD	fixed_mod[12]-position	Anywhere
+MTD	fixed_mod[13]	[UNIMOD, UNIMOD:995, Label:15N(2), ]
+MTD	fixed_mod[13]-site	K
+MTD	fixed_mod[13]-position	Anywhere
+MTD	fixed_mod[14]	[UNIMOD, UNIMOD:995, Label:15N(2), ]
+MTD	fixed_mod[14]-site	N
+MTD	fixed_mod[14]-position	Anywhere
+MTD	fixed_mod[15]	[UNIMOD, UNIMOD:995, Label:15N(2), ]
+MTD	fixed_mod[15]-site	Q
+MTD	fixed_mod[15]-position	Anywhere
+MTD	fixed_mod[16]	[UNIMOD, UNIMOD:995, Label:15N(2), ]
+MTD	fixed_mod[16]-site	W
+MTD	fixed_mod[16]-position	Anywhere
+MTD	fixed_mod[17]	[UNIMOD, UNIMOD:996, Label:15N(3), ]
+MTD	fixed_mod[17]-site	H
+MTD	fixed_mod[17]-position	Anywhere
+MTD	fixed_mod[18]	[UNIMOD, UNIMOD:897, Label:15N(4), ]
+MTD	fixed_mod[18]-site	R
+MTD	fixed_mod[18]-position	Anywhere
+MTD	variable_mod[1]	[UNIMOD, UNIMOD:35, Oxidation, ]
+MTD	variable_mod[1]-site	M
+MTD	variable_mod[1]-position	Anywhere
+MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
+MTD	protein-quantification_unit	[, , Abundance, ]
+MTD	peptide-quantification_unit	[, , Abundance, ]
+MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[1]-location	file://
+MTD	ms_run[1]-id_format	[MS, MS:1000768, Thermo nativeID format, ]
+MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[1]-ms_run_ref	ms_run[1]
+MTD	study_variable[1]-assay_refs	assay[1]
+MTD	study_variable[1]-description	no description given
+
+PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	opt_global_cv_PRIDE:0000303_decoy_hit	opt_global_result_type
+PRT	tr|Q1PI90|Q1PI90_ECOLI	null	null	null	uniprot-FWBW	null	null	0.0	null	null	null	null	null	null	null	0	protein_details
+PRT	tr|Q1PI83|Q1PI83_ECOLI	null	null	null	uniprot-FWBW	null	null	0.0	null	null	null	null	null	null	null	0	protein_details
+
+PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	opt_global_FWHM	opt_global_cf_id	opt_global_feature_id	opt_global_label	opt_global_score_correlation	opt_global_score_fit	opt_global_spectrum_index	opt_global_spectrum_native_id
+PEP	null	null	null	null	null	null	null	null	null	460.306214458680699	null	2	430.185982351020755	null	1.851918e06	null	null	21.41680908203125	576	16393779085856951517	30433	0.932299655076805	0.803239812093931	473	controllerType=0 controllerNumber=1 scan=822
+
+PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end
+PSM	GCTPEPTID	0	tr|Q1PI83|Q1PI83_ECOLI	1	uniprot-FWBW	null	[, , Comet, # comet_version 2019.01 rev. 4]	0.039528211667198	2-CHEMMOD:58.0185001105	33.0	2	300.635790031900001	495.714378359970908	ms_run[1]:controllerType=0 controllerNumber=1 scan=52	R	V	32	36

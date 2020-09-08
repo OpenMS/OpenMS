@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,12 +129,12 @@ namespace OpenMS
       ++cluster_sizes[clusters[i_outer].size()]; // for stats
     }
 
-    LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
+    OPENMS_LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
     for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
     {
-      LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+      OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
     }
-    LOG_INFO << " --> Window count before: " << list.size() << "\n"
+    OPENMS_LOG_INFO << " --> Window count before: " << list.size() << "\n"
              << "     Window count after : " << list_new.size() << "\n";
 
     // replace with clustered version
@@ -323,7 +323,7 @@ namespace OpenMS
     }
 
     if (charge_invalid_count > 0)
-      LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
+      OPENMS_LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
 
     mergeOverlappingWindows_(result);
     writeToFile_(out_path, result);

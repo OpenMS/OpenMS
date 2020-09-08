@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,14 +111,14 @@ namespace OpenMS
       for (Size i = 0; i < n_spectra_; ++i)
       {
         const MSSpectrum& spectrum = spectra[i];
-        String native_id = spectrum.getNativeID();
+        const String& native_id = spectrum.getNativeID();
         Int scan_no = -1;
         if (!scan_regexp.empty())
         {
           scan_no = extractScanNumber(native_id, scan_regexp_, true);
           if (scan_no < 0)
           {
-            LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << std::endl;
+            OPENMS_LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << std::endl;
           }
         }
         addEntry_(i, spectrum.getRT(), scan_no, native_id);

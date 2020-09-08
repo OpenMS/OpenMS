@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,17 +34,18 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
@@ -56,15 +57,17 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
@@ -73,9 +76,6 @@
 
 #ifdef _OPENMP
   #include <omp.h>
-  #define NUMBER_OF_THREADS (omp_get_num_threads())
-#else
-  #define NUMBER_OF_THREADS (1)
 #endif
 
 
@@ -118,9 +118,9 @@ namespace OpenMS
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("modifications:fixed", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", all_mods);
-    defaults_.setValue("modifications:variable", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications:variable", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
     defaults_.setValidStrings("modifications:variable", all_mods);
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
@@ -129,6 +129,13 @@ namespace OpenMS
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
     defaults_.setValidStrings("enzyme", all_enzymes);
+
+    defaults_.setValue("decoys", "false", "Should decoys be generated?");
+    defaults_.setValidStrings("decoys", {"true","false"} );
+
+    defaults_.setValue("annotate:PSM", StringList{}, "Annotations added to each PSM.");
+    defaults_.setValidStrings("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
+    defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
@@ -170,18 +177,9 @@ namespace OpenMS
     peptide_motif_ = param_.getValue("peptide:motif");
 
     report_top_hits_ = param_.getValue("report:top_hits");
-  }
 
-  // static
-  vector<const ResidueModification*> SimpleSearchEngineAlgorithm::getModifications_(const StringList& modNames)
-  {
-    vector<const ResidueModification*> modifications;
-    // iterate over modification names and add to vector
-    for (const String& m : modNames)
-    {
-      modifications.push_back(ModificationsDB::getInstance()->getModification(m));
-    }
-    return modifications;
+    decoys_ = param_.getValue("decoys") == "true";
+    annotate_psm_ = param_.getValue("annotate:PSM");
   }
 
   // static
@@ -208,9 +206,7 @@ namespace OpenMS
 
     NLargest nlargest_filter = NLargest(400);
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // sort by mz
@@ -233,14 +229,13 @@ namespace OpenMS
     }
   }
 
-  // static
 void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
       Size top_hits,
-      const std::vector<const ResidueModification*>& fixed_modifications, 
-      const std::vector<const ResidueModification*>& variable_modifications, 
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
       Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
@@ -252,12 +247,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
       const String& enzyme,
-      const String& database_name)
+      const String& database_name) const
   {
     // remove all but top n scoring
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+#pragma omp parallel for default(none) shared(annotated_hits, top_hits)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       // sort and keeps n best elements according to score
@@ -267,31 +260,35 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotated_hits.shrink_to_fit();
     }
 
-#ifdef _OPENMP
+    bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
+    bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
+
 #pragma omp parallel for
-#endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
       {
+        const MSSpectrum& spec = exp[scan_index];
         // create empty PeptideIdentification object and fill meta data
-        PeptideIdentification pi;
+        PeptideIdentification pi{};
+        pi.setMetaValue("spectrum_reference", spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
-        pi.setRT(exp[scan_index].getRT());
-        pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-        Size charge = exp[scan_index].getPrecursors()[0].getCharge();
+        double mz = spec.getPrecursors()[0].getMZ();
+        pi.setRT(spec.getRT());
+        pi.setMZ(mz);
+        Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
-        for (vector<AnnotatedHit_>::const_iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+        for (const auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
           ph.setCharge(charge);
 
           // get unmodified string
-          AASequence aas = AASequence::fromString(a_it->sequence.getString());
+          AASequence aas = AASequence::fromString(ah.sequence.getString());
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
@@ -299,22 +296,60 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a_it->peptide_mod_index]; 
-          ph.setScore(a_it->score);
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          ph.setScore(ah.score);
           ph.setSequence(fixed_and_variable_modified_peptide);
+
+          if (annotation_fragment_error_ppm)
+          {
+            TheoreticalSpectrumGenerator tsg;
+            vector<pair<Size, Size> > alignment;
+            MSSpectrum theoretical_spec;
+            tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, std::min((int)charge - 1, 2));
+            SpectrumAlignment sa;
+            sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+
+            vector<double> err;
+            for (const auto& match : alignment)
+            {
+              double fragment_error = fabs(Math::getPPM(spec[match.second].getMZ(), theoretical_spec[match.first].getMZ()));
+              err.push_back(fragment_error);
+            }
+            double median_ppm_error(0);
+            if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
+            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
+          }
+
+          if (annotation_precursor_error_ppm)
+          {
+            double theo_mz = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
+            double ppm_difference = Math::getPPM(mz, theo_mz);
+            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
+          }
+          // store PSM
           phs.push_back(ph);
         }
         pi.setHits(phs);
         pi.assignRanks();
 
-#ifdef _OPENMP
 #pragma omp critical (peptide_ids_access)
-#endif
         {
+          //clang-tidy: seems to be a false-positive in combination with omp
           peptide_ids.push_back(std::move(pi));
         }
       }
     }
+
+#ifdef _OPENMP
+    // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
+    if (omp_get_max_threads() > 1)
+    {
+      std::sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+      {
+        return a.getMetaValue("scan_index") < b.getMetaValue("scan_index");
+      });
+    }
+#endif
 
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
@@ -333,9 +368,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.missed_cleavages = peptide_missed_cleavages;
     search_parameters.fragment_mass_tolerance = fragment_mass_tolerance;
     search_parameters.precursor_mass_tolerance = precursor_mass_tolerance;
-    search_parameters.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm == "ppm" ? true : false;
-    search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm" ? true : false;
+    search_parameters.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm == "ppm";
+    search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
+    search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
@@ -361,8 +397,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       return ExitCodes::ILLEGAL_PARAMETERS;
     }
 
-    vector<const ResidueModification*> fixed_modifications = getModifications_(modifications_fixed_);
-    vector<const ResidueModification*> variable_modifications = getModifications_(modifications_variable_);
+    ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+    ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     // load MS2 map
     PeakMap spectra;
@@ -431,30 +467,47 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 #endif
 
     startProgress(0, 1, "Load database from FASTA file...");
-    FASTAFile fastaFile;
     vector<FASTAFile::FASTAEntry> fasta_db;
-    fastaFile.load(in_db, fasta_db);
+    FASTAFile::load(in_db, fasta_db);
     endProgress();
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
-    digestor.setMissedCleavages(peptide_missed_cleavages_);
+    // generate decoy protein sequences by reversing them
+    if (decoys_)
+    {
+      digestor.setMissedCleavages(0);
+      startProgress(0, 1, "Generate decoys...");
 
-    startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
+      DecoyGenerator decoy_generator;
+
+      // append decoy proteins
+      const size_t old_size = fasta_db.size();
+      for (size_t i = 0; i != old_size; ++i)
+      {
+        FASTAFile::FASTAEntry e = fasta_db[i];
+        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        e.identifier = "DECOY_" + e.identifier;
+        fasta_db.push_back(e);
+      }
+      // randomize order of targets and decoys to introduce no global bias in the case that
+      // many targets have the same score as their decoy. (As we always take the first best scoring one)
+      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      endProgress();
+      digestor.setMissedCleavages(peptide_missed_cleavages_);
+    }
+    startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     set<StringView> processed_petides;
 
     Size count_proteins(0), count_peptides(0);
 
-#ifdef _OPENMP
-#pragma omp parallel for schedule(static)
-#endif
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, count_peptides, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, peptide_motif_regex, spectra, annotated_hits_lock)
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
+
+      #pragma omp atomic
       ++count_proteins;
 
       IF_MASTERTHREAD
@@ -474,35 +527,29 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         if (!peptide_motif_.empty() && !boost::regex_match(current_peptide, peptide_motif_regex)) { continue; }          
       
         bool already_processed = false;
-#ifdef _OPENMP
-#pragma omp critical (processed_peptides_access)
-#endif
+        #pragma omp critical (processed_peptides_access)
         {
           // peptide (and all modified variants) already processed so skip it
           if (processed_petides.find(c) != processed_petides.end())
           {
             already_processed = true;
           }
-	  else
-	  {
+          else
+          {
             processed_petides.insert(c);
-	  }
+          }
         }
 
         // skip peptides that have already been processed
         if (already_processed) { continue; }
 
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
+        #pragma omp atomic
         ++count_peptides;
 
         vector<AASequence> all_modified_peptides;
 
         // this critial section is because ResidueDB is not thread safe and new residues are created based on the PTMs
-#ifdef _OPENMP
-#pragma omp critical (residuedb_access)
-#endif
+        #pragma omp critical (residuedb_access)
         {
           AASequence aas = AASequence::fromString(current_peptide);
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
@@ -578,9 +625,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     }
     endProgress();
 
-    LOG_INFO << "Proteins: " << count_proteins << endl;
-    LOG_INFO << "Peptides: " << count_peptides << endl;
-    LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
+    OPENMS_LOG_INFO << "Proteins: " << count_proteins << endl;
+    OPENMS_LOG_INFO << "Peptides: " << count_peptides << endl;
+    OPENMS_LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
 
     startProgress(0, 1, "Post-processing PSMs...");
     SimpleSearchEngineAlgorithm::postProcessHits_(spectra, 
@@ -606,9 +653,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     endProgress();
 
     // add meta data on spectra file
-    StringList ms_runs;
-    spectra.getPrimaryMSRunPath(ms_runs);
-    protein_ids[0].setPrimaryMSRunPath(ms_runs);
+    protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
 
     // reindex peptides to proteins
     PeptideIndexing indexer;
@@ -647,5 +692,5 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     return ExitCodes::EXECUTION_OK;
   }
 
-} // namespace
+} // namespace OpenMS
 

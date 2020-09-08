@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <ostream>
+
 
 using namespace std;
 
 namespace OpenMS
 {
   const double ProteinHit::COVERAGE_UNKNOWN = -1;
-  
+
   // default constructor
   ProteinHit::ProteinHit() :
     MetaInfoInterface(),
@@ -62,37 +64,33 @@ namespace OpenMS
   {
   }
 
-  // destructor
-  ProteinHit::~ProteinHit()
-  {
-  }
-
   // assignment operator for MetaInfoInterface
-  ProteinHit & ProteinHit::operator=(const MetaInfoInterface & source)
+  ProteinHit& ProteinHit::operator=(const MetaInfoInterface& source)
   {
     MetaInfoInterface::operator=(source);
     return *this;
   }
 
   // equality operator
-  bool ProteinHit::operator==(const ProteinHit & rhs) const
+  bool ProteinHit::operator==(const ProteinHit& rhs) const
   {
     return MetaInfoInterface::operator==(rhs)
            && score_ == rhs.score_
            && rank_ == rhs.rank_
            && accession_ == rhs.accession_
            && sequence_ == rhs.sequence_
-           && coverage_ == rhs.coverage_;
+           && coverage_ == rhs.coverage_
+           && modifications_ == rhs.modifications_;
   }
 
   // inequality operator
-  bool ProteinHit::operator!=(const ProteinHit & rhs) const
+  bool ProteinHit::operator!=(const ProteinHit& rhs) const
   {
     return !operator==(rhs);
   }
 
   // returns the score of the protein hit
-  float ProteinHit::getScore() const
+  double ProteinHit::getScore() const
   {
     return score_;
   }
@@ -104,13 +102,13 @@ namespace OpenMS
   }
 
   // returns the protein sequence
-  const String & ProteinHit::getSequence() const
+  const String& ProteinHit::getSequence() const
   {
     return sequence_;
   }
 
   // returns the accession of the protein
-  const String & ProteinHit::getAccession() const
+  const String& ProteinHit::getAccession() const
   {
     return accession_;
   }
@@ -140,20 +138,20 @@ namespace OpenMS
   }
 
   // sets the protein sequence
-  void ProteinHit::setSequence(const String & sequence)
+  void ProteinHit::setSequence(const String& sequence)
   {
     sequence_ = sequence;
     sequence_.trim();
   }
 
   // sets the description of the protein
-  void ProteinHit::setDescription(const String & description)
+  void ProteinHit::setDescription(const String& description)
   {
     setMetaValue("Description", description);
   }
 
   // sets the accession of the protein
-  void ProteinHit::setAccession(const String & accession)
+  void ProteinHit::setAccession(const String& accession)
   {
     accession_ = accession;
     accession_.trim();
@@ -163,6 +161,22 @@ namespace OpenMS
   void ProteinHit::setCoverage(const double coverage)
   {
     coverage_ = coverage;
+  }
+
+  const set<pair<Size, ResidueModification>>& ProteinHit::getModifications() const
+  {
+    return modifications_;
+  }
+
+  void ProteinHit::setModifications(std::set<std::pair<Size, ResidueModification>>& mods)
+  {
+    modifications_ = mods;
+  }
+
+  std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit)
+  {
+    return stream << "protein hit with accession '" + hit.getAccession() + "', score " +
+                         String(hit.getScore());
   }
 
 } // namespace OpenMS

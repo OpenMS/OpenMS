@@ -7,6 +7,9 @@ iswin = sys.platform == "win32"
 
 # osx ?
 isosx = sys.platform == "darwin"
+if isosx:
+    import platform
+    osx_ver = platform.mac_ver()[0] #e.g. ('10.15.1', ('', '', ''), 'x86_64')
 
 import sys
 single_threaded = False
@@ -19,11 +22,11 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, PY_NUM_THREADS)
+                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND, OPENMS_GIT_LC_DATE_FORMAT)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -34,9 +37,16 @@ if iswin and IS_DEBUG:
 import pickle
 import os
 import glob
+import re
 import shutil
 import time
 
+if OPEN_MS_GIT_BRANCH == "nightly":
+    package_name = "pyopenms_nightly"
+    package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
+else:
+    package_name = "pyopenms"
+    package_version = OPEN_MS_VERSION
 
 os.environ["CC"] = OPEN_MS_COMPILER
 # AFAIK distutils does not care about CXX (set it to be safe)
@@ -66,23 +76,16 @@ def parallel_build_extensions(self):
     #  - note that we are missing the self.cython_sources line, so this will not work under all circumstances
     # First, sanity-check the 'extensions' list
     self.check_extensions_list(self.extensions)
-    list(multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS)).imap(self.build_extension, self.extensions))
+    mypool = multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS))
+    list(mypool.imap(self.build_extension, self.extensions))
 if not single_threaded:
     import distutils.command.build_ext
     distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
     import Cython.Distutils.build_ext
     distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
 
-
-# create version information
-ctime = os.stat("pyopenms").st_mtime
-ts = time.gmtime(ctime)
-timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
-
-version = OPEN_MS_VERSION
-
 with open("pyopenms/version.py", "w") as fp:
-    print("version=%r" % version, file=fp)
+    print("version=%r" % package_version, file=fp)
 
 # parse config
 
@@ -113,12 +116,18 @@ else:
     print("\n")
     exit()
 
-library_dirs = [OPEN_MS_BUILD_DIR,
+if (iswin):
+    library_dirs = [OPEN_MS_BUILD_DIR,
+                    j(OPEN_MS_BUILD_DIR, "lib", "Release"),
+                    j(OPEN_MS_BUILD_DIR, "bin", "Release"),
+                    j(OPEN_MS_BUILD_DIR, "Release"),
+                    QT_INSTALL_BINS,
+                    QT_INSTALL_LIBS,
+                    ]
+else:
+    library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "lib"),
-                j(OPEN_MS_BUILD_DIR, "lib", "Release"),
                 j(OPEN_MS_BUILD_DIR, "bin"),
-                j(OPEN_MS_BUILD_DIR, "bin", "Release"),
-                j(OPEN_MS_BUILD_DIR, "Release"),
                 QT_INSTALL_BINS,
                 QT_INSTALL_LIBS,
                 ]
@@ -134,12 +143,35 @@ include_dirs = [
     j(numpy.core.__path__[0], "include"),
 ]
 
-# append all include dirs exported by CMake
+# append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
-
-include_dirs.extend(LIBRARIES_EXTEND)
-libraries.extend(LIBRARIES_EXTEND)
 library_dirs.extend(LIBRARY_DIRS_EXTEND)
+libraries.extend(LIBRARIES_EXTEND)
+
+
+# libraries of any type to be parsed and added
+objects = []
+add_libs = LIBRARIES_TO_BE_PARSED_EXTEND.split(";")
+for lib in add_libs:
+  if not iswin:
+    if lib.endswith(".a"):
+      objects.append(lib)
+      name_search = re.search('.*/lib(.*)\.a$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
+    if lib.endswith(".so") or lib.endswith(".dylib"):
+      name_search = re.search('.*/lib(.*)\.(so|dylib)$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
+  else:
+    if lib.endswith(".lib"):
+      name_search = re.search('.*/(.*)\.lib$', lib)
+      if name_search:
+        libraries.append(name_search.group(1))
+        library_dirs.append(os.path.dirname(lib))
+
 
 extra_link_args = []
 extra_compile_args = []
@@ -153,9 +185,10 @@ if iswin:
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
+    library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
     # we need to manually link to the Qt Frameworks
     extra_compile_args = ["-Qunused-arguments"]
-
+    extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 
@@ -169,6 +202,8 @@ if not iswin:
     if isosx: # MacOS c++11
         extra_compile_args.append("-stdlib=libc++")
         extra_compile_args.append("-mmacosx-version-min=10.7")
+        if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
+            extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
     extra_compile_args.append("-Wno-deprecated-register")
@@ -195,6 +230,7 @@ for module in mnames:
         libraries=libraries,
         include_dirs=include_dirs + autowrap_include_dirs,
         extra_compile_args=extra_compile_args,
+        extra_objects=objects,
         extra_link_args=extra_link_args,
 		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
@@ -210,14 +246,14 @@ if sys.platform == "darwin":
 
 setup(
 
-    name="pyopenms",
+    name=package_name,
     packages=["pyopenms"],
     ext_package="pyopenms",
 	install_requires=[
           'numpy',
     ],
 
-    version=version,
+    version=package_version,
 
     maintainer="Uwe Schmitt",
     maintainer_email="uschmitt@mineway.de",

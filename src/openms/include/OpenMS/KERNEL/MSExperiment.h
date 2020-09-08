@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -220,7 +220,7 @@ public:
         {
           continue;
         }
-				typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
+        typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
         for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
         {
           cont.push_back(s);
@@ -485,6 +485,7 @@ public:
     /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum& spectrum);
 
+
     void addSpectrum(MSSpectrum&& spectrum)
     {
       spectra_.push_back(std::forward<MSSpectrum>(spectrum));
@@ -528,8 +529,15 @@ public:
     Size getNrChromatograms() const;
     //@}
 
-    /// returns the total ion chromatogram (TIC)
-    const MSChromatogram getTIC() const;
+    /**
+    @brief Compute Total Ion Count per MS1 spectrum and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+
+    By default, each MS1 spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+
+    @param bin_size RT bin size in seconds
+    @return TIC Chromatogram
+    **/
+    const MSChromatogram getTIC(float rt_bin_size = 0) const;
 
     /**
       @brief Clears all data and meta data
@@ -537,6 +545,13 @@ public:
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
+
+    /// returns true if at least one of the spectra has the specified level
+    bool containsScanOfLevel(size_t ms_level) const;
+
+    /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
+    bool hasZeroIntensities(size_t ms_level) const;
+
 
 protected:
 
@@ -631,9 +646,8 @@ private:
 
   };
 
-
   /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
 
 } // namespace OpenMS
 

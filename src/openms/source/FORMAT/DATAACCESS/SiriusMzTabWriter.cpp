@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <boost/regex.hpp>
-
-#include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <boost/regex.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,15 +48,15 @@ int SiriusMzTabWriter::extract_scan_index(const String &path)
   return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
-                             const String & original_input_mzml,
-                             const Size & top_n_hits,
-                             MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
+                             const String& original_input_mzml,
+                             const Size& top_n_hits,
+                             MzTab& result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
 
-  for (auto it : sirius_output_paths)
+  for (const auto& it : sirius_output_paths)
   {
     // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
     String ext_nid;
@@ -111,7 +110,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
         
         // fill identification structure containing all candidate hits for a single spectrum
-        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
+        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id{};
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
@@ -125,6 +124,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         boost::smatch match;
         String feature_id;
         boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+
         bool found = boost::regex_search(str, match, regexp_feature);
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
         String unassigned = "null";
@@ -205,14 +205,14 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
             rt_list.set(v_rt);
             smsr.retention_time = rt_list;
             
-            MzTabOptionalColumnEntry adduct = make_pair("adduct", MzTabString(hit.adduct));
-            MzTabOptionalColumnEntry rank = make_pair("rank", MzTabString(hit.rank));
-            MzTabOptionalColumnEntry explainedPeaks = make_pair("explainedPeaks", MzTabString(hit.explainedpeaks));
-            MzTabOptionalColumnEntry explainedIntensity = make_pair("explainedIntensity", MzTabString(hit.explainedintensity));
-            MzTabOptionalColumnEntry compoundId = make_pair("compoundId", MzTabString(id.scan_index));
-            MzTabOptionalColumnEntry compoundScanNumber = make_pair("compoundScanNumber", MzTabString(id.scan_number));
-            MzTabOptionalColumnEntry featureId = make_pair("featureId", MzTabString(id.feature_id));
-            MzTabOptionalColumnEntry native_id = make_pair("native_id", MzTabString(id.native_id));
+            MzTabOptionalColumnEntry adduct = make_pair("opt_global_adduct", MzTabString(hit.adduct));
+            MzTabOptionalColumnEntry rank = make_pair("opt_global_rank", MzTabString(hit.rank));
+            MzTabOptionalColumnEntry explainedPeaks = make_pair("opt_global_explainedPeaks", MzTabString(hit.explainedpeaks));
+            MzTabOptionalColumnEntry explainedIntensity = make_pair("opt_global_explainedIntensity", MzTabString(hit.explainedintensity));
+            MzTabOptionalColumnEntry compoundId = make_pair("opt_global_compoundId", MzTabString(id.scan_index));
+            MzTabOptionalColumnEntry compoundScanNumber = make_pair("opt_global_compoundScanNumber", MzTabString(id.scan_number));
+            MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
+            MzTabOptionalColumnEntry native_id = make_pair("opt_global_native_id", MzTabString(id.native_id));
 
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(rank);

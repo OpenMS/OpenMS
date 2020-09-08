@@ -36,6 +36,7 @@ name	short_name	new_nomenclature	originating_base	rnamods_abbrev	html_abbrev	for
 2′-O-ribosyladenosine (phosphate)	Ar(p)	00A	A	^	&circ;	C15O11N5H22P1	479.1053	479.3408
 2′-O-ribosylguanosine (phosphate)	Gr(p)	00G	G	ℑ	&image;	C15O12N5H22P1	495.1003	495.3401
 2′3′-cyclic phosphate end	(pN)2′3′>p	3377N	pppN				None	None
+2′-O-Methyl-5-hydroxymethylcytidine	hm5Cm		C	¡	&#161;	C11H17N3O6	287.1117	287.272
 3,2′-O-dimethyluridine	m3Um	03U	U	σ	&sigma;	C11O6N2H16	272.1008	272.2583
 3-(3-amino-3-carboxypropyl)-5,6-dihydrouridine	acp3D	308U	U	Ð	&ETH;	C13H21N3O8	347.1329	347.3252
 3-(3-amino-3-carboxypropyl)pseudouridine	acp3Y	309U	U	Þ	&THORN;	C13H19N3O8	345.1172	345.3093

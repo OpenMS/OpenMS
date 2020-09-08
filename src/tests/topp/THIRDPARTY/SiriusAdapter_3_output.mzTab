@@ -5,9 +5,9 @@ MTD	description	Sirius-4.0.1
 MTD	smallmolecule_search_engine_score[1]	[, , score, ]
 MTD	smallmolecule_search_engine_score[2]	[, , treescore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , isoscore, ]
-MTD	ms_run[1]-location	/Users/alka/Documents/work/software/openms/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_3_input.mzML
+MTD	ms_run[1]-location	/home/alka/software/openms_oa/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_3_input.mzML
 
-SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber	featureId	native_id
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	opt_global_adduct	opt_global_rank	opt_global_explainedPeaks	opt_global_explainedIntensity	opt_global_compoundId	opt_global_compoundScanNumber	opt_global_featureId	opt_global_native_id
 SML	null	C16H13N5O	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0.0	null	[M + H]+	1	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4
 SML	null	C15H17NO5	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0.0	null	[M + H]+	2	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4
 SML	null	C12H21NO5S	null	null	null	292.118520142944021	null	null	404.455000000019993	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0.0	null	[M + H]+	3	1	0.0	2	2165004	null	sample=1 period=1 cycle=2165 experiment=4

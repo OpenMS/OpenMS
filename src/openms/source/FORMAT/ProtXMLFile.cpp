@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,7 +113,7 @@ namespace OpenMS
       if (!date.isValid())
         date = QDateTime::fromString(time.toQString(), Qt::ISODate);
       if (!date.isValid())
-        LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
+        OPENMS_LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
       prot_id_->setDateTime(date);
       prot_id_->setSearchEngine(analysis);
       prot_id_->setSearchEngineVersion(version);
@@ -148,7 +148,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_WARN << "Required attribute 'percent_coverage' missing\n";
+        OPENMS_LOG_WARN << "Required attribute 'percent_coverage' missing\n";
       }
       prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
 
@@ -180,7 +180,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_WARN << "Required attribute 'charge' missing\n";
+        OPENMS_LOG_WARN << "Required attribute 'charge' missing\n";
       }
 
       // add accessions of all indistinguishable proteins the peptide belongs to

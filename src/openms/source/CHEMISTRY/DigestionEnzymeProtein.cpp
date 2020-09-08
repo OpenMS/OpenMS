@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,6 +54,19 @@ namespace OpenMS
   {
   }
 
+  DigestionEnzymeProtein::DigestionEnzymeProtein(const DigestionEnzyme& d) :
+      DigestionEnzyme(d),
+      n_term_gain_(""),
+      c_term_gain_(""),
+      psi_id_(""),
+      xtandem_id_(""),
+      comet_id_(-1),
+      crux_id_(""),
+      msgf_id_(-1),
+      omssa_id_(-1)
+  {
+  }
+
   DigestionEnzymeProtein::DigestionEnzymeProtein(const String& name,
                                                  const String& cleavage_regex,
                                                  const std::set<String>& synonyms,
@@ -66,13 +79,13 @@ namespace OpenMS
                                                  String crux_id,
                                                  Int msgf_id,
                                                  Int omssa_id) :
-    DigestionEnzyme(name, cleavage_regex, synonyms, regex_description),
-    n_term_gain_(n_term_gain),
-    c_term_gain_(c_term_gain),
-    psi_id_(psi_id),
-    xtandem_id_(xtandem_id),
+    DigestionEnzyme(name, cleavage_regex, synonyms, std::move(regex_description)),
+    n_term_gain_(std::move(n_term_gain)),
+    c_term_gain_(std::move(c_term_gain)),
+    psi_id_(std::move(psi_id)),
+    xtandem_id_(std::move(xtandem_id)),
     comet_id_(comet_id),
-    crux_id_(crux_id),
+    crux_id_(std::move(crux_id)),
     msgf_id_(msgf_id),
     omssa_id_(omssa_id)
   {
@@ -82,12 +95,12 @@ namespace OpenMS
   {
   }
 
-  void DigestionEnzymeProtein::setNTermGain(EmpiricalFormula value)
+  void DigestionEnzymeProtein::setNTermGain(const EmpiricalFormula& value)
   {
     n_term_gain_ = value;
   }
 
-  void DigestionEnzymeProtein::setCTermGain(EmpiricalFormula value)
+  void DigestionEnzymeProtein::setCTermGain(const EmpiricalFormula& value)
   {
     c_term_gain_ = value;
   }
@@ -102,7 +115,7 @@ namespace OpenMS
     return c_term_gain_;
   }
 
-  void DigestionEnzymeProtein::setPSIID(String value)
+  void DigestionEnzymeProtein::setPSIID(const String& value)
   {
     psi_id_ = value;
   }
@@ -112,7 +125,7 @@ namespace OpenMS
     return psi_id_;
   }
 
-  void DigestionEnzymeProtein::setXTandemID(String value)
+  void DigestionEnzymeProtein::setXTandemID(const String& value)
   {
     xtandem_id_ = value;
   }
@@ -175,12 +188,13 @@ namespace OpenMS
            omssa_id_ == enzyme.omssa_id_;
   }
 
-  bool DigestionEnzymeProtein::operator==(String cleavage_regex) const
+  // Note: comparison operators are not inherited. TODO rename it and make virtual
+  bool DigestionEnzymeProtein::operator==(const String& cleavage_regex) const
   {
     return cleavage_regex_ == cleavage_regex;
   }
 
-  bool DigestionEnzymeProtein::operator!=(String cleavage_regex) const
+  bool DigestionEnzymeProtein::operator!=(const String& cleavage_regex) const
   {
     return cleavage_regex_ != cleavage_regex;
   }

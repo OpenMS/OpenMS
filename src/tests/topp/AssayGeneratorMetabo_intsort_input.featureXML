@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file://I:\OpenSWATH_Metabolomics_data\20181121_full_data\04_PestMixes_individually_Solvent_DDA_20-50/PestMix5_1ngSolventDDA20-50.wiff]"/>
+	<IdentificationRun id="PI_0" date="2019-04-15T10:06:33" search_engine="AccurateMassSearch" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="7">
+		<feature id="f_13338732374755754977">
+			<position dim="0">415.25500000002</position>
+			<position dim="1">388.131545800648</position>
+			<intensity>455491</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.003544</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<pt x="412.479" y="388.131062855901" />
+				<pt x="413.40400000002" y="388.13187880686" />
+				<pt x="414.33" y="388.131443865713" />
+				<pt x="415.25500000002" y="388.131504619588" />
+				<pt x="416.181" y="388.131909669622" />
+				<pt x="417.10600000002" y="388.131122599141" />
+				<pt x="418.029" y="388.130806142422" />
+				<pt x="418.299" y="388.13064363183" />
+				<pt x="418.029" y="388.130806142422" />
+				<pt x="417.10600000002" y="388.131122599141" />
+				<pt x="416.181" y="388.131909669622" />
+				<pt x="415.25500000002" y="388.131504619588" />
+				<pt x="414.33" y="388.131443865713" />
+				<pt x="413.40400000002" y="388.13187880686" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="412.479" y="389.134440809854" />
+				<pt x="413.40400000002" y="389.13402504167" />
+				<pt x="414.33" y="389.133654732803" />
+				<pt x="415.25500000002" y="389.133946855872" />
+				<pt x="416.181" y="389.134333707041" />
+				<pt x="417.10600000002" y="389.133392488857" />
+				<pt x="416.181" y="389.134333707041" />
+				<pt x="415.25500000002" y="389.133946855872" />
+				<pt x="414.33" y="389.133654732803" />
+				<pt x="413.40400000002" y="389.13402504167" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[110488-70-5]"/>
+					<UserParam type="stringList" name="description" value="[Dimethomorph]"/>
+					<UserParam type="string" name="modifications" value="M+H;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C21H22ClNO4"/>
+					<UserParam type="float" name="mz_error_ppm" value="1.4668982549512"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000569348652049939"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T20.1_T74.1"/>
+			<UserParam type="float" name="FWHM" value="5.40875577926636"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[455491.004428662, 103082.519132934]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[415.25500000002, 415.25500000002]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[388.131545800648, 389.133903862787]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00235806213891]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_9194498897831854058">
+			<position dim="0">424.76500000002</position>
+			<position dim="1">388.13242739195</position>
+			<intensity>1.48096e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.012088</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<pt x="419.21899999998" y="388.131103052164" />
+				<pt x="421.992" y="388.130442592533" />
+				<pt x="422.91400000002" y="388.131925560602" />
+				<pt x="423.83899999998" y="388.132269738259" />
+				<pt x="424.76500000002" y="388.133513209105" />
+				<pt x="425.68900000002" y="388.13207748817" />
+				<pt x="426.61600000002" y="388.131527716019" />
+				<pt x="427.54000000002" y="388.131603949165" />
+				<pt x="428.463" y="388.13119717127" />
+				<pt x="428.73199999998" y="388.13144962103" />
+				<pt x="429.75700000002" y="388.132277448749" />
+				<pt x="430.68400000002" y="388.130796929406" />
+				<pt x="431.607" y="388.131180841859" />
+				<pt x="430.68400000002" y="388.130796929406" />
+				<pt x="429.75700000002" y="388.132277448749" />
+				<pt x="428.73199999998" y="388.13144962103" />
+				<pt x="428.463" y="388.13119717127" />
+				<pt x="427.54000000002" y="388.131603949165" />
+				<pt x="426.61600000002" y="388.131527716019" />
+				<pt x="425.68900000002" y="388.13207748817" />
+				<pt x="424.76500000002" y="388.133513209105" />
+				<pt x="423.83899999998" y="388.132269738259" />
+				<pt x="422.91400000002" y="388.131925560602" />
+				<pt x="421.992" y="388.130442592533" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="418.029" y="389.134654531246" />
+				<pt x="422.91400000002" y="389.13441228963" />
+				<pt x="423.83899999998" y="389.134181434191" />
+				<pt x="424.76500000002" y="389.133475504085" />
+				<pt x="425.68900000002" y="389.133733582219" />
+				<pt x="426.61600000002" y="389.13421595119" />
+				<pt x="427.54000000002" y="389.134083241353" />
+				<pt x="428.463" y="389.133884618158" />
+				<pt x="428.73199999998" y="389.133986552855" />
+				<pt x="429.75700000002" y="389.134110220413" />
+				<pt x="428.73199999998" y="389.133986552855" />
+				<pt x="428.463" y="389.133884618158" />
+				<pt x="427.54000000002" y="389.134083241353" />
+				<pt x="426.61600000002" y="389.13421595119" />
+				<pt x="425.68900000002" y="389.133733582219" />
+				<pt x="424.76500000002" y="389.133475504085" />
+				<pt x="423.83899999998" y="389.134181434191" />
+				<pt x="422.91400000002" y="389.13441228963" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="412.479" y="390.12864977146" />
+				<pt x="413.40400000002" y="390.128834868356" />
+				<pt x="414.33" y="390.128807281895" />
+				<pt x="415.25500000002" y="390.128851455881" />
+				<pt x="416.181" y="390.128684874719" />
+				<pt x="417.10600000002" y="390.127710701069" />
+				<pt x="418.029" y="390.129079792319" />
+				<pt x="418.299" y="390.128210770025" />
+				<pt x="422.91400000002" y="390.12899368465" />
+				<pt x="423.83899999998" y="390.129275789663" />
+				<pt x="424.76500000002" y="390.128735677663" />
+				<pt x="425.68900000002" y="390.128677048715" />
+				<pt x="426.61600000002" y="390.129067709969" />
+				<pt x="427.54000000002" y="390.128895611807" />
+				<pt x="428.463" y="390.129110202139" />
+				<pt x="428.73199999998" y="390.12908142629" />
+				<pt x="429.75700000002" y="390.128539990212" />
+				<pt x="428.73199999998" y="390.12908142629" />
+				<pt x="428.463" y="390.129110202139" />
+				<pt x="427.54000000002" y="390.128895611807" />
+				<pt x="426.61600000002" y="390.129067709969" />
+				<pt x="425.68900000002" y="390.128677048715" />
+				<pt x="424.76500000002" y="390.128735677663" />
+				<pt x="423.83899999998" y="390.129275789663" />
+				<pt x="422.91400000002" y="390.12899368465" />
+				<pt x="418.299" y="390.128210770025" />
+				<pt x="418.029" y="390.129079792319" />
+				<pt x="417.10600000002" y="390.127710701069" />
+				<pt x="416.181" y="390.128684874719" />
+				<pt x="415.25500000002" y="390.128851455881" />
+				<pt x="414.33" y="390.128807281895" />
+				<pt x="413.40400000002" y="390.128834868356" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="422.91400000002" y="391.13123427241" />
+				<pt x="423.83899999998" y="391.13115626161" />
+				<pt x="424.76500000002" y="391.130756342286" />
+				<pt x="425.68900000002" y="391.130834843717" />
+				<pt x="426.61600000002" y="391.130902792837" />
+				<pt x="427.54000000002" y="391.131152623495" />
+				<pt x="428.463" y="391.131267409824" />
+				<pt x="427.54000000002" y="391.131152623495" />
+				<pt x="426.61600000002" y="391.130902792837" />
+				<pt x="425.68900000002" y="391.130834843717" />
+				<pt x="424.76500000002" y="391.130756342286" />
+				<pt x="423.83899999998" y="391.13115626161" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[110488-70-5]"/>
+					<UserParam type="stringList" name="description" value="[Dimethomorph]"/>
+					<UserParam type="string" name="modifications" value="M+H;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C21H22ClNO4"/>
+					<UserParam type="float" name="mz_error_ppm" value="3.73827404185715"/>
+					<UserParam type="float" name="mz_error_Da" value="0.001450939954111"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T20.2_T74.2_T60_T202"/>
+			<UserParam type="float" name="FWHM" value="4.10426235198975"/>
+			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1480954.47334972, 301030.811626072, 719237.193779111, 94963.8971480794]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[424.76500000002, 424.76500000002, 424.76500000002, 424.76500000002]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[388.13242739195, 389.133877928098, 390.128861793276, 391.130934174338]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00145053614813, 0.994983865178199, 1.00207238106236]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_15921228362922148421">
+			<position dim="0">414.33</position>
+			<position dim="1">391.131254175152</position>
+			<intensity>29090.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.000186399</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="413.40400000002" y="391.131483859553" />
+				<pt x="414.33" y="391.130783719969" />
+				<pt x="415.25500000002" y="391.131669844353" />
+				<pt x="416.181" y="391.131318285839" />
+				<pt x="417.10600000002" y="391.130931381836" />
+				<pt x="416.181" y="391.131318285839" />
+				<pt x="415.25500000002" y="391.131669844353" />
+				<pt x="414.33" y="391.130783719969" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T509"/>
+			<UserParam type="float" name="FWHM" value="1.90773320198059"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[29090.472499864]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[414.33]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[391.131254175152]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_12719329405459627308">
+			<position dim="0">424.76500000002</position>
+			<position dim="1">410.112973500665</position>
+			<intensity>261585</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.001957</overallquality>
+			<charge>1</charge>
+			<convexhull nr="0">
+				<pt x="412.479" y="410.112500807853" />
+				<pt x="413.40400000002" y="410.11309087246" />
+				<pt x="414.33" y="410.113386045975" />
+				<pt x="415.25500000002" y="410.113249838641" />
+				<pt x="416.181" y="410.112484294049" />
+				<pt x="417.10600000002" y="410.112374029781" />
+				<pt x="418.029" y="410.113053225924" />
+				<pt x="418.299" y="410.112114876028" />
+				<pt x="422.91400000002" y="410.113145013589" />
+				<pt x="423.83899999998" y="410.113762981975" />
+				<pt x="424.76500000002" y="410.112380656589" />
+				<pt x="425.68900000002" y="410.112768973606" />
+				<pt x="426.61600000002" y="410.113156342716" />
+				<pt x="427.54000000002" y="410.112935083241" />
+				<pt x="428.463" y="410.112637755169" />
+				<pt x="428.73199999998" y="410.112504350363" />
+				<pt x="429.75700000002" y="410.11199959694" />
+				<pt x="428.73199999998" y="410.112504350363" />
+				<pt x="428.463" y="410.112637755169" />
+				<pt x="427.54000000002" y="410.112935083241" />
+				<pt x="426.61600000002" y="410.113156342716" />
+				<pt x="425.68900000002" y="410.112768973606" />
+				<pt x="424.76500000002" y="410.112380656589" />
+				<pt x="423.83899999998" y="410.113762981975" />
+				<pt x="422.91400000002" y="410.113145013589" />
+				<pt x="418.299" y="410.112114876028" />
+				<pt x="418.029" y="410.113053225924" />
+				<pt x="417.10600000002" y="410.112374029781" />
+				<pt x="416.181" y="410.112484294049" />
+				<pt x="415.25500000002" y="410.113249838641" />
+				<pt x="414.33" y="410.113386045975" />
+				<pt x="413.40400000002" y="410.11309087246" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="422.91400000002" y="411.115879226868" />
+				<pt x="423.83899999998" y="411.115974888944" />
+				<pt x="424.76500000002" y="411.115595911032" />
+				<pt x="425.68900000002" y="411.11560410777" />
+				<pt x="426.61600000002" y="411.116126542822" />
+				<pt x="427.54000000002" y="411.116432988918" />
+				<pt x="426.61600000002" y="411.116126542822" />
+				<pt x="425.68900000002" y="411.11560410777" />
+				<pt x="424.76500000002" y="411.115595911032" />
+				<pt x="423.83899999998" y="411.115974888944" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="422.91400000002" y="412.110645310415" />
+				<pt x="423.83899999998" y="412.110834679312" />
+				<pt x="424.76500000002" y="412.110668219693" />
+				<pt x="425.68900000002" y="412.110969068758" />
+				<pt x="426.61600000002" y="412.111102832484" />
+				<pt x="427.54000000002" y="412.110707299137" />
+				<pt x="428.463" y="412.110369187285" />
+				<pt x="428.73199999998" y="412.109362575135" />
+				<pt x="428.463" y="412.110369187285" />
+				<pt x="427.54000000002" y="412.110707299137" />
+				<pt x="426.61600000002" y="412.111102832484" />
+				<pt x="425.68900000002" y="412.110969068758" />
+				<pt x="424.76500000002" y="412.110668219693" />
+				<pt x="423.83899999998" y="412.110834679312" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[110488-70-5]"/>
+					<UserParam type="stringList" name="description" value="[Dimethomorph]"/>
+					<UserParam type="string" name="modifications" value="M+Na;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C21H22ClNO4"/>
+					<UserParam type="float" name="mz_error_ppm" value="0.128744222761002"/>
+					<UserParam type="float" name="mz_error_Da" value="5.2799669219894e-05"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T154_T546_T382"/>
+			<UserParam type="float" name="FWHM" value="6.01627063751221"/>
+			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[261584.661309835, 38993.2149523118, 61108.6405002584]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[424.76500000002, 424.76500000002, 424.76500000002]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[410.112973500665, 411.115863906997, 412.110777635223]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00289040633231, 0.994913728225299]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_7838879547930450265">
+			<position dim="0">415.25500000002</position>
+			<position dim="1">411.116084839258</position>
+			<intensity>19741</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.000126491</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="413.40400000002" y="411.11643462061" />
+				<pt x="414.33" y="411.115971997417" />
+				<pt x="415.25500000002" y="411.11618312164" />
+				<pt x="416.181" y="411.115771429271" />
+				<pt x="417.10600000002" y="411.11584511335" />
+				<pt x="416.181" y="411.115771429271" />
+				<pt x="415.25500000002" y="411.11618312164" />
+				<pt x="414.33" y="411.115971997417" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T820"/>
+			<UserParam type="float" name="FWHM" value="3.42039775848389"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[19740.9811359546]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[415.25500000002]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[411.116084839258]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_14114567554724893644">
+			<position dim="0">415.25500000002</position>
+			<position dim="1">412.110594706599</position>
+			<intensity>29680.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.000190177</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="413.40400000002" y="412.111288281851" />
+				<pt x="414.33" y="412.110537054808" />
+				<pt x="415.25500000002" y="412.110737998106" />
+				<pt x="416.181" y="412.110178112276" />
+				<pt x="417.10600000002" y="412.109709000431" />
+				<pt x="416.181" y="412.110178112276" />
+				<pt x="415.25500000002" y="412.110737998106" />
+				<pt x="414.33" y="412.110537054808" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T584"/>
+			<UserParam type="float" name="FWHM" value="3.32885003089905"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[29680.1585981092]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[415.25500000002]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[412.110594706599]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_928404386352526385">
+			<position dim="0">424.76500000002</position>
+			<position dim="1">426.086745125722</position>
+			<intensity>38959.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.000249634</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="422.91400000002" y="426.087212966166" />
+				<pt x="423.83899999998" y="426.087005238249" />
+				<pt x="424.76500000002" y="426.086100280955" />
+				<pt x="425.68900000002" y="426.086542001837" />
+				<pt x="426.61600000002" y="426.087342392226" />
+				<pt x="427.54000000002" y="426.086625503171" />
+				<pt x="428.463" y="426.086139574207" />
+				<pt x="428.73199999998" y="426.08726819775" />
+				<pt x="428.463" y="426.086139574207" />
+				<pt x="427.54000000002" y="426.086625503171" />
+				<pt x="426.61600000002" y="426.087342392226" />
+				<pt x="425.68900000002" y="426.086542001837" />
+				<pt x="424.76500000002" y="426.086100280955" />
+				<pt x="423.83899999998" y="426.087005238249" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[110488-70-5]"/>
+					<UserParam type="stringList" name="description" value="[Dimethomorph]"/>
+					<UserParam type="string" name="modifications" value="M+K;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C21H22ClNO4"/>
+					<UserParam type="float" name="mz_error_ppm" value="-0.265144000003709"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000112974373905672"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T650"/>
+			<UserParam type="float" name="FWHM" value="5.3562126159668"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[38959.3615000087]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[424.76500000002]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[426.086745125722]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+	</featureList>
+</featureMap>

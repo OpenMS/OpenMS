@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,8 +115,8 @@ int main(int argc, const char** argv)
     }
     catch (Exception::BaseException& e)
     {
-      LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
-      LOG_ERROR << e << "\n";
+      OPENMS_LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
+      OPENMS_LOG_ERROR << e << "\n";
     }
 
     return 0;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,7 +166,7 @@ namespace OpenMS
 
     EmpiricalFormula our_form;
     // Add all the ribonucleotide masses
-    for (auto i : seq_)
+    for (const auto& i : seq_)
     {
       our_form += i->getFormula();
     }
@@ -220,7 +220,7 @@ namespace OpenMS
       return our_form + (H_form * charge) + local_three_prime + z_ion_to_full;
 
     default:
-      LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << endl;
+      OPENMS_LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << endl;
     }
 
     return our_form;
@@ -374,7 +374,7 @@ namespace OpenMS
           ConstRibonucleotidePtr r = rdb->getRibonucleotide(string(1, *str_it));
           nas.seq_.push_back(r);
         }
-        catch (Exception::ElementNotFound)
+        catch (Exception::ElementNotFound&)
         {
           String msg = "Cannot convert string to nucleic acid sequence: invalid character '" + String(*str_it) + "'";
           throw Exception::ParseError(__FILE__, __LINE__,

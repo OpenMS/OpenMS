@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -92,11 +93,8 @@ using namespace OpenMS;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathDecoyGenerator.cli
-
-  <B>The algorithm parameters for the Analyzer filter are:</B>
+  <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_OpenSwathDecoyGenerator.html
-
-
 */
 
 // TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
@@ -129,7 +127,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
-    registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
+    registerStringOption_("method", "<type>", "shuffle", "Decoy generation method", false);
     setValidStrings_("method", ListUtils::create<String>(String("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
@@ -226,7 +224,7 @@ protected:
     TargetedExperiment targeted_decoy;
 
     // Load data
-    LOG_INFO << "Loading targets from file: " << in << std::endl;
+    OPENMS_LOG_INFO << "Loading targets from file: " << in << std::endl;
     if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
     {
       const char* tr_file = in.c_str();
@@ -256,7 +254,7 @@ protected:
     MRMDecoy decoys = MRMDecoy();
     decoys.setLogType(ProgressLogger::CMD);
 
-    LOG_INFO << "Generate decoys" << std::endl;
+    OPENMS_LOG_INFO << "Generate decoys" << std::endl;
     decoys.generateDecoys(targeted_exp, targeted_decoy, method,
                           aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
                           identity_threshold, precursor_mz_shift,
@@ -266,10 +264,10 @@ protected:
                           enable_detection_unspecific_losses);
 
     // Check if we have enough peptides left
-    LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
-    LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
-    LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
-    LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
 
     if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
     {
@@ -279,12 +277,12 @@ protected:
     TargetedExperiment targeted_merged;
     if (separate)
     {
-      LOG_INFO << "Writing only decoys to file: " << out << std::endl;
+      OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
       targeted_merged = targeted_decoy;
     }
     else
     {
-      LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
+      OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
       targeted_merged = targeted_exp + targeted_decoy;
     }
 

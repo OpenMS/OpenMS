@@ -15,18 +15,19 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         # const_reference operator()(size_t i, size_t j) nogil except +
         # reference operator()(size_t i, size_t j) nogil except +
         # const_reference getValue(size_t i, size_t j) nogil except +
-        ValueT getValue(size_t i, size_t j) nogil except +
-        void setValue(size_t i, size_t j, ValueT value) nogil except +
+        ValueT getValue(size_t i, size_t j) nogil
+        void setValue(size_t i, size_t j, ValueT value) nogil
         ## The following two lines introduce an odd bug:
         # static PyObject *__pyx_convert_vector_to_py_double is declared twice by Cython:
         # TODO look into Cython Bug
         # libcpp_vector[ValueT] row(size_t i) nogil except +
         # libcpp_vector[ValueT] col(size_t i) nogil except +
+        libcpp_vector[ValueT] asVector() nogil except + # wrap-ignore
         void clear() nogil except +
         void resize(size_t i, size_t j, ValueT value) nogil except +
         void resize(libcpp_pair[ size_t, size_t ] & size_pair, ValueT value) nogil except +
-        size_t rows() nogil except +
-        size_t cols() nogil except +
+        size_t rows() nogil
+        size_t cols() nogil
         libcpp_pair[ size_t, size_t ] sizePair() nogil except +
         size_t index(size_t row, size_t col) nogil except +
         libcpp_pair[ size_t, size_t ] indexPair(size_t index) nogil except +

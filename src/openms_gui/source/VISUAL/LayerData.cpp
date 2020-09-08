@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,7 +89,7 @@ namespace OpenMS
   void LayerData::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
-    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
 
     // get mutable access to the spectrum
     MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
@@ -267,7 +267,7 @@ namespace OpenMS
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }

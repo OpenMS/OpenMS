@@ -124,6 +124,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="410"/>
 			<UserParam type="float" name="ms1_area_intensity" value="5995"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="100"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[100, 0, 200, 0, 300, 0, 400, 0]"/>
@@ -148,7 +149,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.488040389673534"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.28253858091952"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_3823858840059792698">
 			<position dim="0">209</position>
@@ -268,6 +268,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="417"/>
 			<UserParam type="float" name="ms1_area_intensity" value="8229"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="100"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="11"/>
 			<UserParam type="float" name="initialPeakQuality" value="0.974974762227991"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[360, 0, 460, 0, 560, 0, 570, 0]"/>
@@ -292,7 +293,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.904998371593326"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.79955528773135"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_11275867043381640475">
 			<position dim="0">25</position>
@@ -412,6 +412,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="412"/>
 			<UserParam type="float" name="ms1_area_intensity" value="7225"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="100"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[350, 0, 450, 0, 550, 0, 650, 0]"/>
@@ -436,7 +437,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.905481747652519"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.65133864719984"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_17569764383250687096">
 			<position dim="0">92</position>
@@ -556,6 +556,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="419.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9962"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="100"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[380, 0, 480, 0, 580, 0, 680, 0]"/>
@@ -580,7 +581,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.904756241889379"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.76"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.19449741343877"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_13113514917555180171">
 			<position dim="0">32.404443581899</position>
@@ -700,6 +700,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="430"/>
 			<UserParam type="float" name="ms1_area_intensity" value="15459"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="197"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[110, 0, 210, 0, 310, 0, 410, 0]"/>
@@ -724,7 +725,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.630052461006068"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.37940283411016"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_17287849381738438716">
 			<position dim="0">210.333333333333</position>
@@ -844,6 +844,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="435"/>
 			<UserParam type="float" name="ms1_area_intensity" value="8125.33349609375"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24657613052264"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[370, 0, 470, 0, 570, 0, 670, 0]"/>
@@ -868,7 +869,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.894919451095711"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.11705527393418"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_11399299100673837381">
 			<position dim="0">130.333333333333</position>
@@ -988,6 +988,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="445.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="14608"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="100"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="44"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[380, 0, 480, 0, 580, 0, 680, 0]"/>
@@ -1012,7 +1013,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.347221911470927"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.79025484467146"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_4021463513649428920">
 			<position dim="0">30.3333333333333</position>
@@ -1132,6 +1132,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="445.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="12374.6669921875"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="100"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[381, 0, 481, 0, 581, 0, 681, 0]"/>
@@ -1156,7 +1157,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.742735019216397"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.27975091654281"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_575144564576995072">
 			<position dim="0">80.3333333333333</position>
@@ -1276,6 +1276,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="446.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9774.3330078125"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[382, 0, 482, 0, 582, 0, 682, 0]"/>
@@ -1300,7 +1301,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.66937362167774"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.2769082827398"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_11630589982317102322">
 			<position dim="0">120.333333333333</position>
@@ -1420,6 +1420,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="447.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9979.6669921875"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="56"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[383, 0, 483, 0, 583, 0, 683, 0]"/>
@@ -1444,7 +1445,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.634564823097929"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.6"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.99268716084505"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_17078574238716611972">
 			<position dim="0">160.333333333333</position>
@@ -1564,6 +1564,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="448.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9920.6669921875"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[384, 0, 484, 0, 584, 0, 684, 0]"/>
@@ -1588,7 +1589,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.665304775115317"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.6"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.48643697187333"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_7344192187426184761">
 			<position dim="0">190.333333333333</position>
@@ -1708,6 +1708,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="449.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9141"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[385, 0, 485, 0, 585, 0, 685, 0]"/>
@@ -1732,7 +1733,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.792552490277728"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.7"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.32580851264761"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_16616557306000669869">
 			<position dim="0">12.3333328564961</position>
@@ -1852,6 +1852,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="439"/>
 			<UserParam type="float" name="ms1_area_intensity" value="6054.33349609375"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[100, 0, 200, 0, 300, 0, 400, 0]"/>
@@ -1876,7 +1877,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.894513399165362"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.2981768490076"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_12520536430934325912">
 			<position dim="0">32.404443581899</position>
@@ -1996,6 +1996,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="430"/>
 			<UserParam type="float" name="ms1_area_intensity" value="15459"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="197"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[110, 0, 210, 0, 310, 0, 410, 0]"/>
@@ -2020,7 +2021,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.630052461006068"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.37940283411016"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_16603831684342283009">
 			<position dim="0">27.3333333333333</position>
@@ -2140,6 +2140,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="432"/>
 			<UserParam type="float" name="ms1_area_intensity" value="7274.33349609375"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[350, 0, 450, 0, 550, 0, 650, 0]"/>
@@ -2164,7 +2165,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.898600758052808"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.88"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.77913782042676"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_3279626156608649238">
 			<position dim="0">15.3333328564961</position>
@@ -2284,6 +2284,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="431"/>
 			<UserParam type="float" name="ms1_area_intensity" value="6316.33349609375"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.24839812897918"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[360, 0, 460, 0, 560, 0, 570, 0]"/>
@@ -2308,7 +2309,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.578847947732441"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.63"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.93066881223862"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_15568981923429820128">
 			<position dim="0">15.6666661898295</position>
@@ -2428,6 +2428,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="460"/>
 			<UserParam type="float" name="ms1_area_intensity" value="6287.66650390625"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[100, 0, 200, 0, 300, 0, 400, 0]"/>
@@ -2452,7 +2453,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.883804145346413"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.09674990431294"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_16262506217367104038">
 			<position dim="0">131.666666666667</position>
@@ -2572,6 +2572,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="467"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9982.6669921875"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="76"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[350, 0, 450, 0, 550, 0, 650, 0]"/>
@@ -2596,7 +2597,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.878654990536721"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.29631788230775"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_7273255783824449336">
 			<position dim="0">122.588430563609</position>
@@ -2716,6 +2716,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="451"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9987.3330078125"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="83"/>
 			<UserParam type="float" name="initialPeakQuality" value="-0.10610670029955"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[360, 0, 460, 0, 560, 0, 570, 0]"/>
@@ -2740,7 +2741,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.889061140510244"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.00824742280330855"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.355239716397114"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_4804931408721345291">
 			<position dim="0">90.6666666666667</position>
@@ -2860,6 +2860,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="465.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9930.3330078125"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[380, 0, 480, 0, 580, 0, 680, 0]"/>
@@ -2884,7 +2885,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.617657140274255"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.92660310035698"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_435931305321438914">
 			<position dim="0">30.6666666666667</position>
@@ -3004,6 +3004,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="455.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="7467.66650390625"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[381, 0, 481, 0, 581, 0, 681, 0]"/>
@@ -3028,7 +3029,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.733173437716837"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.28991998537712"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_12175240310315893095">
 			<position dim="0">99.666667143504</position>
@@ -3148,6 +3148,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="456.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9982.6669921875"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[382, 0, 482, 0, 582, 0, 682, 0]"/>
@@ -3172,7 +3173,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.433698199006495"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.303030303030303"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.67058765558843"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_13986717998338703682">
 			<position dim="0">100.66666618983</position>
@@ -3292,6 +3292,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="457.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9987.3330078125"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.6666666666766"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[383, 0, 483, 0, 583, 0, 683, 0]"/>
@@ -3316,7 +3317,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.757049367112445"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.98989898989899"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.96488906687134"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_15490049804574065229">
 			<position dim="0">170.666666666667</position>
@@ -3436,6 +3436,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="458.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9781.3330078125"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[384, 0, 484, 0, 584, 0, 684, 0]"/>
@@ -3460,7 +3461,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.533975900234372"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.292929292929293"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="1.96897070285388"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_3109052061041085863">
 			<position dim="0">176.666666666667</position>
@@ -3580,6 +3580,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="459.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="9640.3330078125"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="99.666666666667"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="string" name="potentialOutlier" value="108"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="floatList" name="masserror_ppm" value="[385, 0, 485, 0, 585, 0, 685, 0]"/>
@@ -3604,7 +3605,6 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.883857175151856"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.939393939393939"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.08818603644809"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 	</featureList>
 </featureMap>

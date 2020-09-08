@@ -5,9 +5,9 @@ MTD	description	Sirius-4.0.1
 MTD	smallmolecule_search_engine_score[1]	[, , score, ]
 MTD	smallmolecule_search_engine_score[2]	[, , treescore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , isoscore, ]
-MTD	ms_run[1]-location	/Users/alka/Documents/work/software/openms/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_2_input.mzML
+MTD	ms_run[1]-location	/home/alka/software/openms_oa/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_2_input.mzML
 
-SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber	featureId	native_id
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	opt_global_adduct	opt_global_rank	opt_global_explainedPeaks	opt_global_explainedIntensity	opt_global_compoundId	opt_global_compoundScanNumber	opt_global_featureId	opt_global_native_id
 SML	null	C15H18ClN3O	null	null	null	292.121752827682997	null	null	410.144999999999982	null	null	null	null	null	null	5.094528738758488	-1.05964104271936	6.154169781477848	null	[M + H]+	1	1	0.0	8	2167005	id_12648171926825749403	sample=1 period=1 cycle=2177 experiment=5
 SML	null	C13H23ClNO2P	null	null	null	292.121752827682997	null	null	410.144999999999982	null	null	null	null	null	null	5.024637588216978	-2.979049211692351	8.003686799909328	null	[M + H]+	2	1	0.0	8	2167005	id_12648171926825749403	sample=1 period=1 cycle=2177 experiment=5
 SML	null	C11H25ClNO2P	null	null	null	292.121752827682997	null	null	410.144999999999982	null	null	null	null	null	null	1.210368978359226	-7.243955672098418	8.454324650457643	null	[M + Na]+	3	1	0.0	8	2167005	id_12648171926825749403	sample=1 period=1 cycle=2177 experiment=5

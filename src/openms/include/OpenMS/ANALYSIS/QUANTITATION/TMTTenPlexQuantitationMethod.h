@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ public:
     TMTTenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTTenPlexQuantitationMethod() override;
+    ~TMTTenPlexQuantitationMethod() = default;
 
     /// Copy c'tor
     TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other);
@@ -64,7 +64,7 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getName() const override;
+    const String& getMethodName() const override;
 
     const IsobaricChannelList& getChannelInformation() const override;
 
