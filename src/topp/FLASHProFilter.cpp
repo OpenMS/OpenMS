@@ -35,8 +35,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHProFilterAlgorithm.h>
-#include <QDirIterator>
-#include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
@@ -83,22 +81,26 @@ protected:
     String infile = "/Users/kyowonjeong/Google Drive/ProteinFilter/180523_Myoglobin_MS2_HCD_deconv.mzml";
     String fasta = "/Users/kyowonjeong/Google Drive/ProteinFilter/uniprot-proteome_yeast_UP000002311_Myo.fasta";
 
-    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
+    double elapsed_wall_secs = 0;
     //double elapsed_deconv_cpu_secs = 0, elapsed_deconv_wall_secs = 0;
 
     mzml.setLogType(log_type_);
     mzml.load(infile, map);
     auto flashpro = FLASHProFilterAlgorithm(fasta);
 
-
     for (auto &it : map)
     {
-      auto begin = clock();
 
-      auto scores = flashpro.getScores(it);
+      if (it.size() <= 0)
+      {
+        continue;
+      }
 
-      elapsed_cpu_secs += double(clock() - begin) / CLOCKS_PER_SEC;
-      std::cout << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
+      auto t_start = chrono::high_resolution_clock::now();
+      auto scores = flashpro.getScores(it, 1e4);
+      elapsed_wall_secs = chrono::duration<double>(
+          chrono::high_resolution_clock::now() - t_start).count();
+      std::cout << "-- done [took " << elapsed_wall_secs
                 << " s (Wall)] --"
                 << endl;
     }

@@ -46,7 +46,15 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include "boost/dynamic_bitset.hpp"
+#include <cstring>
+#include <Evergreen/evergreen.hpp>
+#include "Convolution/p_convolve.hpp"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -54,13 +62,17 @@ namespace OpenMS
   {
 
   public:
-    FLASHProFilterAlgorithm(const String& fasta);
+    FLASHProFilterAlgorithm(const String &fasta);
+
     ~FLASHProFilterAlgorithm();
-    std::map<int, double> getScores(MSSpectrum &decovSpec);
+
+    std::map<int, double> getScores(MSSpectrum &decovSpec, double intThreshold = .0);
+
   protected:
     std::vector<FASTAFile::FASTAEntry> fastaEntry;
-    std::vector<std::set<Size>> proteinVectorIndex;
-    std::vector<Byte*> proteinVectors;
-    void specToVectors(MSSpectrum &spec, std::set<Size>& vindex,  Byte* vector);
+    //Eigen::MatrixXcf
+
+    //std::vector<std::set<Size>> proteinVectorIndex;
+    std::vector<PeakSpectrum> proteinVectors;
   };
 }

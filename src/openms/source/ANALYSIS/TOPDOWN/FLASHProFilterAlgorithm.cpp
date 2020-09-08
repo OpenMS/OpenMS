@@ -38,72 +38,99 @@ namespace OpenMS
 {
   FLASHProFilterAlgorithm::FLASHProFilterAlgorithm(const String& fasta)
   {
-    FASTAFile::load(fasta,fastaEntry);
-    for (auto& fe : fastaEntry)
+    FASTAFile::load(fasta, fastaEntry);
+    for (auto &fe : fastaEntry)
     {
       auto aaSeq = AASequence::fromString(fe.sequence);
       TheoreticalSpectrumGenerator generator;
       PeakSpectrum spec;
       generator.getSpectrum(spec, aaSeq, 1, 1);
-      Byte* pvector = nullptr;
-      std::set<Size> pindices;
-      specToVectors(spec, pindices, pvector);
-      proteinVectors.push_back(pvector);
-      proteinVectorIndex.push_back(pindices);
+      proteinVectors.push_back(spec);
     }
-    std::cout<<"Total "<<proteinVectors.size()<< " proteins\n";
-  }
-
-  FLASHProFilterAlgorithm::~FLASHProFilterAlgorithm(){
-    for(auto & pvector : proteinVectors){
-      delete[] pvector;
+    #pragma omp parallel num_threads(3)
+    {
+      std::cout << "Total " << proteinVectors.size() << " proteins processed\n";
     }
   }
 
-  std::map<int, double> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec)
+  FLASHProFilterAlgorithm::~FLASHProFilterAlgorithm()
   {
-    std::set<Size> specVectorIndex;
-    Byte *specVector = nullptr;
-    specToVectors(decovSpec, specVectorIndex, specVector);
 
-    std::cout<<*specVectorIndex.rbegin()<<std::endl;//TODO
+  }//-march=native
+
+  /*
+      Size m = *specVectorIndex.rbegin();
+      evergreen::Tensor<evergreen::cpx> y({m+1});
+      for (auto j: specVectorIndex)
+        y[j] = evergreen::cpx{double(specVector[j]), .0};
+      for(int i=0;i<proteinVectors.size();i++)
+      {
+        Size  n = *proteinVectorIndex[i].rbegin();
+        evergreen::Tensor<evergreen::cpx> x({n+1});
+
+        //std::cout<<n+1<<std::endl;
+
+        for (auto &j: proteinVectorIndex[i])
+        {
+         // std::cout << j << " "<< i<< std::endl;
+          x[j] = evergreen::cpx{double(proteinVectors[i][j]), .0};
+        }
+        evergreen::Tensor<evergreen::cpx> z = fft_convolve(x, y);
+      }
+
+  */
+
+  std::map<int, double> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
+  {
+
+    MSSpectrum filtered;
+    filtered.reserve(decovSpec.size());
+    for (auto &sp : decovSpec)
+    {
+      if (sp.getIntensity() <= intThreshold)
+      {
+        continue;
+      }
+      filtered.push_back(Peak1D(sp.getMZ(), log10(sp.getIntensity())));
+    }
 
     std::map<int, double> scores;
-    for(int i=0;i<proteinVectors.size();i++){
-      auto size = *proteinVectorIndex[i].rbegin() + *specVectorIndex.rbegin(); // check
-      Byte* vector = new Byte[size];
-      std::fill_n(vector, size, 0);
-      std::set<Size> indices;
-      for (auto &pi : proteinVectorIndex[i])
-      {
-        auto pv = proteinVectors[i][pi];
-        for (auto &si : specVectorIndex)
-        {
-          auto sv = specVector[si];
-          vector[pi + si] += pv * sv;
-          indices.insert(pi + si);
-        }
-      }
+    if (filtered.size() == 0)
+    {
+      return scores;
     }
 
-    delete[] specVector;
+    auto maxPeakMass = filtered[filtered.size() - 1].getMZ();
+    auto size = FLASHDeconvAlgorithm::getNominalMass(maxPeakMass) + 1;
 
+
+    //std::cout<<"threads="<<omp_get_max_threads()<<std::endl;
+
+
+    #pragma omp parallel for
+    for (int i = 0; i < proteinVectors.size(); i++)
+    {
+      auto &pSpec = proteinVectors[i];
+      auto maxMz = pSpec[pSpec.size() - 1].getMZ();
+      auto convSize = size + FLASHDeconvAlgorithm::getNominalMass(maxMz) + 2;
+      auto *vector = new float[convSize];
+      std::fill_n(vector, convSize, 0);
+      boost::dynamic_bitset<> indices = boost::dynamic_bitset<>(convSize);
+
+      for (auto &pp : pSpec)
+      {
+        for (auto &sp : filtered)
+        {
+          auto sumMz = pp.getMZ() + sp.getMZ();
+          auto loc = FLASHDeconvAlgorithm::getNominalMass(sumMz);
+          vector[loc] += pp.getIntensity() * sp.getIntensity();
+          indices[loc] = true;
+        }
+      }
+      delete[] vector;
+    }
     return scores;
   }
 
-  void FLASHProFilterAlgorithm::specToVectors(MSSpectrum &spec,
-                                              std::set<Size> &vindex,
-                                              Byte * vector)
-  {
-    auto maxPeakMass = spec[spec.size()-1].getMZ();
-    auto size = FLASHDeconvAlgorithm::getNominalMass(maxPeakMass);
-    std::fill_n(vector, size, 0);
-    for(auto & p : spec){
-      auto pm = p.getMZ();
-      Size index = FLASHDeconvAlgorithm::getNominalMass(pm);
-      vector[index] ++;
-      vindex.insert(index);
-    }
 
-  }
 }
