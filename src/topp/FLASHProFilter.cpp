@@ -78,7 +78,7 @@ protected:
   {
     MSExperiment map;
     MzMLFile mzml;
-    String infile = "/Users/kyowonjeong/Google Drive/ProteinFilter/180523_Myoglobin_MS2_HCD_deconv.mzml";
+    String infile = "/Users/kyowonjeong/Google Drive/ProteinFilter/myo_707_ETDReagentTarget_1e+06__deconved.mzml";
     String fasta = "/Users/kyowonjeong/Google Drive/ProteinFilter/uniprot-proteome_yeast_UP000002311_Myo.fasta";
 
     double elapsed_wall_secs = 0;
@@ -87,22 +87,29 @@ protected:
     mzml.setLogType(log_type_);
     mzml.load(infile, map);
     auto flashpro = FLASHProFilterAlgorithm(fasta);
-
+    int scan = 1;
     for (auto &it : map)
     {
-
+      if (it.getMSLevel() < 2)
+      {
+        continue;
+      }
       if (it.size() <= 0)
       {
         continue;
       }
-
+      //std::cout <<it.size()<<std::endl;
       auto t_start = chrono::high_resolution_clock::now();
-      auto scores = flashpro.getScores(it, 1e4);
+      auto scores = flashpro.getScores(it, 0);
       elapsed_wall_secs = chrono::duration<double>(
           chrono::high_resolution_clock::now() - t_start).count();
-      std::cout << "-- done [took " << elapsed_wall_secs
+      std::cout << scan++ << " -- done [took " << elapsed_wall_secs
                 << " s (Wall)] --"
                 << endl;
+      if (scan > 100)
+      {
+        break;
+      }
     }
 
     return

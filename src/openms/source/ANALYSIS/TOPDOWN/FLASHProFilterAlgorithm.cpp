@@ -36,9 +36,10 @@
 
 namespace OpenMS
 {
-  FLASHProFilterAlgorithm::FLASHProFilterAlgorithm(const String& fasta)
+  FLASHProFilterAlgorithm::FLASHProFilterAlgorithm(const String &fasta)
   {
     FASTAFile::load(fasta, fastaEntry);
+    //std::set<int> map;
     for (auto &fe : fastaEntry)
     {
       auto aaSeq = AASequence::fromString(fe.sequence);
@@ -47,10 +48,9 @@ namespace OpenMS
       generator.getSpectrum(spec, aaSeq, 1, 1);
       proteinVectors.push_back(spec);
     }
-    #pragma omp parallel num_threads(3)
-    {
-      std::cout << "Total " << proteinVectors.size() << " proteins processed\n";
-    }
+
+    std::cout << "Total " << proteinVectors.size() << " proteins processed\n";
+    //std::cout << map.size() << " " << *map.rbegin() << std::endl;
   }
 
   FLASHProFilterAlgorithm::~FLASHProFilterAlgorithm()
@@ -77,57 +77,110 @@ namespace OpenMS
         }
         evergreen::Tensor<evergreen::cpx> z = fft_convolve(x, y);
       }
-
   */
 
-  std::map<int, double> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
+  std::map<double, int> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
   {
-
+    int peakcntr = 150; //100 : 64, 50 : 38, 200 : 73
+    static int cntr = 0;
+    int window = 500;
+    int count = 3;
     MSSpectrum filtered;
-    filtered.reserve(decovSpec.size());
+    filtered.reserve(peakcntr);
+    std::vector<double> intensities;
+    intensities.reserve(decovSpec.size());
     for (auto &sp : decovSpec)
     {
       if (sp.getIntensity() <= intThreshold)
       {
         continue;
       }
-      filtered.push_back(Peak1D(sp.getMZ(), log10(sp.getIntensity())));
+      intensities.push_back(sp.getIntensity());
+      // filtered.push_back(Peak1D(sp.getMZ(), log10(sp.getIntensity())));
     }
-
-    std::map<int, double> scores;
-    if (filtered.size() == 0)
+    std::map<double, int> scores;
+    if (intensities.size() == 0)
+    {
+      return scores;
+    }
+    std::sort(intensities.rbegin(), intensities.rend());
+    int th = intensities.size() > peakcntr ? peakcntr : intensities.size();
+    double intthreshold2 = intensities[th];
+    for (auto &sp : decovSpec)
+    {
+      if (sp.getIntensity() <= intthreshold2)
+      {
+        continue;
+      }
+      filtered.push_back(Peak1D(sp.getMZ(), log10(1 + sp.getIntensity()))); // log10
+    }
+    if (filtered.size() == 0 || decovSpec.getMSLevel() < 2)
     {
       return scores;
     }
 
     auto maxPeakMass = filtered[filtered.size() - 1].getMZ();
     auto size = FLASHDeconvAlgorithm::getNominalMass(maxPeakMass) + 1;
-
-
-    //std::cout<<"threads="<<omp_get_max_threads()<<std::endl;
-
+    //std::cout <<filtered.size()<<std::endl;
 
     #pragma omp parallel for
-    for (int i = 0; i < proteinVectors.size(); i++)
+    for (int i = 0; i < proteinVectors.size(); i++)//
     {
       auto &pSpec = proteinVectors[i];
+
       auto maxMz = pSpec[pSpec.size() - 1].getMZ();
       auto convSize = size + FLASHDeconvAlgorithm::getNominalMass(maxMz) + 2;
       auto *vector = new float[convSize];
       std::fill_n(vector, convSize, 0);
       boost::dynamic_bitset<> indices = boost::dynamic_bitset<>(convSize);
 
+      double max = .0;
+      int maxIndex = 0;
+
       for (auto &pp : pSpec)
       {
         for (auto &sp : filtered)
         {
-          auto sumMz = pp.getMZ() + sp.getMZ();
+          auto sumMz = maxMz - pp.getMZ() + sp.getMZ();
           auto loc = FLASHDeconvAlgorithm::getNominalMass(sumMz);
           vector[loc] += pp.getIntensity() * sp.getIntensity();
           indices[loc] = true;
+          if (max < vector[loc])
+          {
+            max = vector[loc];
+            maxIndex = loc;
+          }
         }
       }
+
+      Size index = maxIndex - window;
+      index = index < 0 ? 0 : index;
+      std::vector<float> values;
+      values.reserve(window * 2);
+      while (index != indices.npos && index < maxIndex + window)
+      {
+        values.push_back(vector[index]);
+        index = indices.find_next(index);
+      }
+      if (values.empty())
+      {
+        continue;
+      }
+      std::sort(values.rbegin(), values.rend());
+      //std::cout <<max << ": " << values[0] << " " << values[1]<< " " << values[2] <<std::endl;
+      int c = count < values.size() ? count : values.size();
+      double score = std::accumulate(values.begin(), values.begin() + c, .0);
+
+      scores[score] = i;
       delete[] vector;
+    }
+    if (!scores.empty())
+    {
+      if (scores.rbegin()->second == 0)
+      {
+        cntr++;
+      }
+      std::cout << cntr << " " << scores.rbegin()->second << " " << scores.rbegin()->first << std::endl;
     }
     return scores;
   }

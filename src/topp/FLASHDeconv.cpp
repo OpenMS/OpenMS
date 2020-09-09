@@ -163,7 +163,7 @@ protected:
     registerIntOption_("mzml_out",
                        "",
                        0,
-                       "if set, deconvoluted masses (for all spectra) are reported in mzml format ([preifx].mzml)",
+                       "if set, deconvoluted masses (for all spectra) are reported in mzml format ([preifx]_deconved.mzml)",
                        false,
                        true);
 
@@ -300,7 +300,7 @@ protected:
       }
       if (param.mzmlOut)
       {
-        mzmlOut = outfilePath + ".mzml";//[preifx]_train_MSn.csv
+        mzmlOut = outfilePath + "_deconved.mzml";//[preifx]_train_MSn.csv
         //DeconvolutedSpectrum::writeAttCsvHeader(mzmlOut[n - 1]); //
       }
       //fa.open(outfilePath + "_MassList.csv", fstream::out);//[preifx]_train_MSn.csv
@@ -403,7 +403,7 @@ protected:
         }
         if (param.mzmlOut)
         {
-          mzmlOut = outfilePath + outfileName + ".mzml";//[preifx]_train_MSn.csv
+          mzmlOut = outfilePath + outfileName + "_deconved.mzml";//[preifx]_train_MSn.csv
           //DeconvolutedSpectrum::writeAttCsvHeader(mzmlOut[n - 1]);
         }
 

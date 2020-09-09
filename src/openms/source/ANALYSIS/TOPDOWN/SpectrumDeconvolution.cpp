@@ -472,16 +472,6 @@ namespace OpenMS
 
         auto &t = massIntensities[massBinIndex];// + noneContinuousChargePeakPairCount[massBinIndex];//
 
-        /*if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
-        {
-          if(mzBinIndex ==30688){
-            std::cout<<mzBinIndex << " " << t << " " << (int) j << std::endl; //
-            //std::cout<<mzBinIndex << " " << maxIndex << " " << (int) charge << std::endl; //
-          }
-        }
-*/
-
-
         if (t == 0)
         { // no signal
           continue;
@@ -847,7 +837,7 @@ namespace OpenMS
           continue;
         }
       }
-      
+
       PeakGroup pg;
       //pg.perChargeSNR = new float[chargeRange];
       //std::fill_n(pg.perChargeSNR, chargeRange, 0);
@@ -857,6 +847,7 @@ namespace OpenMS
       Size rightIndex = avg.getRightIndex(mass);
       Size leftIndex = avg.getLeftIndex(mass);
       //auto perChargeNoisePower = new float[chargeRange];
+      //
       for (int j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
         long &binOffset = binOffsets[j];

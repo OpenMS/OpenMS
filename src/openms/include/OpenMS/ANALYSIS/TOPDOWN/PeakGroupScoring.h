@@ -10,6 +10,9 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 namespace OpenMS
 {
   class OPENMS_DLLAPI PeakGroupScoring

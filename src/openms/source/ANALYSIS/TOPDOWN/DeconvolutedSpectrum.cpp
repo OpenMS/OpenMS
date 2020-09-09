@@ -105,7 +105,7 @@ namespace OpenMS
       {
         continue;
       }
-      auto p = Peak1D(pg.monoisotopicMass, pg.intensity);
+      auto p = Peak1D(pg.monoisotopicMass, pg.intensity); //TODO
       outSpec.push_back(p);
     }
 
