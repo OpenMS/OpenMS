@@ -84,8 +84,8 @@ namespace OpenMS
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());
     if (index != SPECTRA_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
     index = addTab(id_view_widget_, id_view_widget_->objectName());
-    if (index != IDENT_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
-    setTabEnabled(SPECTRA_IDX, false);
+    if (index != IDENT_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 1");
+    setTabEnabled(SPECTRA_IDX, true);
     setTabEnabled(IDENT_IDX, false);
 
     // switch between different view tabs
