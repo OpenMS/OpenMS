@@ -1457,20 +1457,16 @@ namespace OpenMS
 
   SpectrumWidget* TOPPViewBase::getActiveSpectrumWidget() const
   {
-    if (!ws_.activeSubWindow())
+    if (!ws_.currentSubWindow())
     {
       return nullptr;
     }
-    return qobject_cast<SpectrumWidget*>(ws_.activeSubWindow()->widget());
+    return qobject_cast<SpectrumWidget*>(ws_.currentSubWindow()->widget());
   }
 
   SpectrumCanvas* TOPPViewBase::getActiveCanvas() const
   {
-    if (ws_.currentSubWindow() == nullptr)
-    {
-      return nullptr;
-    }
-    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_.currentSubWindow()->widget());
+    SpectrumWidget* sw = getActiveSpectrumWidget();
     if (sw == nullptr)
     {
       return nullptr;
@@ -1586,8 +1582,9 @@ namespace OpenMS
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
     // store active sub window
-    QMdiSubWindow* old_active = ws_.activeSubWindow();
-    
+    QMdiSubWindow* old_active = ws_.currentSubWindow();
+    RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
+
     String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz);;";
     String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
 
@@ -1601,17 +1598,11 @@ namespace OpenMS
     // which prevents us from doing GUI testing on it.
     QFileDialog dialog(this, "Open file(s)", open_path, (filter_all + filter_single).toQString());
     dialog.setFileMode(QFileDialog::ExistingFiles);
-    QStringList file_names;
-
     if (dialog.exec())
     {
-      file_names = dialog.selectedFiles();
+       return dialog.selectedFiles();
     }
-
-    // restore active sub window
-    ws_.setActiveSubWindow(old_active);
-    
-    return file_names;
+    return QStringList();
   }
 
   void TOPPViewBase::openFileDialog(const String& dir)
