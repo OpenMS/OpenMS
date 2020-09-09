@@ -686,30 +686,24 @@ namespace OpenMS
 
   void Spectrum1DCanvas::paint(QPainter* painter, QPaintEvent* e)
   {
-    const DataValue& bg_col = param_.getValue("background_color");
-
-    // Fill background if no layer is present
-    if (getLayerCount() == 0)
-    {
-      painter->fillRect(0, 0, width(), height(), QColor(bg_col.toQString()));
-      e->accept();
-      return;
-    }
-
     QTime timer;
-    if (show_timing_) { timer.start(); }
-
-    QPoint begin, end;
+    timer.start();
 
     // clear
     painter->fillRect(0, 0, this->width(), this->height(),
-                      QColor(bg_col.toQString()));
+                      QColor(param_.getValue("background_color").toQString()));
+
+    // only fill background if no layer is present
+    if (getLayerCount() == 0)
+    {
+      e->accept();
+      return;
+    }
 
     // gridlines
     emit recalculateAxes();
     paintGridLines_(*painter);
 
-    SpectrumConstIteratorType vbegin, vend;
     for (Size i = 0; i < getLayerCount(); ++i)
     {
       const LayerData& layer = getLayer(i);
@@ -728,8 +722,8 @@ namespace OpenMS
       // pen.setWidthF(1.5);
       painter->setPen(pen);
       updatePercentageFactor_(i);
-      vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
-      vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
+      SpectrumConstIteratorType vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
+      SpectrumConstIteratorType vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
 
       // draw dashed elongations for pairs of peaks annotated with a distance
       for (auto it = layer.getCurrentAnnotations().begin();
@@ -780,10 +774,9 @@ namespace OpenMS
                                << ") in spectrum."
                                << endl;
             }
-
+            QPoint begin, end;
             dataToWidget(*it, end, layer.flipped);
             dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
-
             // draw peak
             painter->drawLine(begin, end);
           }
