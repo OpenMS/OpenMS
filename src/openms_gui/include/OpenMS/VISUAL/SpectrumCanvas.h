@@ -341,6 +341,15 @@ public:
     ///removes the layer with index @p layer_index
     virtual void removeLayer(Size layer_index) = 0;
 
+    /// removes all layers by calling removeLayer() for all layer indices (from highest to lowest)
+    void removeLayers()
+    {
+      for (Size i = getLayerCount(); i > 0; --i)
+      {
+        removeLayer(i-1);
+      }
+    }
+
     /**
         @brief Add a peak data layer
 

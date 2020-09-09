@@ -272,17 +272,13 @@ namespace OpenMS
     if (layer.chromatogram_flag_set())
     {
       // first get raw data (the full experiment with all chromatograms), we
-      // only need to grab the ones with the desired indices
+      // only need to grab the one with the desired index
       ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
       auto ondisc_sptr = layer.getOnDiscPeakData();
 
       String fname = layer.filename;
 
-      Size layercount = widget_1d->canvas()->getLayerCount();
-      for (Size i = 0; i != layercount; ++i)
-      {
-        widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
-      }
+      widget_1d->canvas()->removeLayers();
 
       ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
@@ -318,24 +314,20 @@ namespace OpenMS
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
+    const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
     // new spectrum.
-    const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
-    String fname = layer.filename;
     if (layer.chromatogram_flag_set())
     {
       // first get raw data (the full experiment with all chromatograms), we
       // only need to grab the ones with the desired indices
-      ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
+      ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
       auto ondisc_sptr = layer.getOnDiscPeakData();
 
-      Size layercount = widget_1d->canvas()->getLayerCount();
-      for (Size i = 0; i != layercount; ++i)
-      {
-        widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
-      }
+      widget_1d->canvas()->removeLayers();
 
+      String fname = layer.filename;
       for (const auto& index : indices)
       {
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);

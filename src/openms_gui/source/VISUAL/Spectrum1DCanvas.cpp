@@ -744,6 +744,7 @@ namespace OpenMS
           drawDashedLine_(from, to, *painter);
         }
       }
+      QPoint begin, end; 
       switch (draw_modes_[i])
       {
       case DM_PEAKS:
@@ -774,7 +775,6 @@ namespace OpenMS
                                << ") in spectrum."
                                << endl;
             }
-            QPoint begin, end;
             dataToWidget(*it, end, layer.flipped);
             dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
             // draw peak
