@@ -257,14 +257,14 @@ namespace OpenMS
 
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
   {
-    Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
+    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     widget_1d->canvas()->activateSpectrum(index);
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
@@ -273,12 +273,10 @@ namespace OpenMS
     {
       // first get raw data (the full experiment with all chromatograms), we
       // only need to grab the ones with the desired indices
-      ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
+      ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
       auto ondisc_sptr = layer.getOnDiscPeakData();
 
-      const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
       String fname = layer.filename;
-      String lname = layer.getName();
 
       Size layercount = widget_1d->canvas()->getLayerCount();
       for (Size i = 0; i != layercount; ++i)
@@ -289,7 +287,7 @@ namespace OpenMS
       ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
       // fix legend and set layer name
-      caption = lname + "[" + index + "]";
+      caption = fname + "[" + index + "]";
 
       // add chromatogram data as peak spectrum
       if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, fname))
