@@ -826,7 +826,7 @@ namespace OpenMS
       {
         if (data_type == open_canvas->getLayer(i).type)
         {
-          layers[i] = open_canvas->getLayer(i).name;
+          layers[i] = open_canvas->getLayer(i).getName();
         }
       }
       dialog.setMergeLayers(layers);
@@ -1698,7 +1698,7 @@ namespace OpenMS
     }
 
     //Store data
-    topp_.layer_name = layer.name;
+    topp_.layer_name = layer.getName();
     topp_.window_id = getActiveSpectrumWidget()->getWindowId();
     topp_.spectrum_id = layer.getCurrentSpectrumIndex();
     if (layer.type == LayerData::DT_PEAK  && !(layer.chromatogram_flag_set()))
@@ -2142,7 +2142,7 @@ namespace OpenMS
       return;
     }
 
-    String caption = layer.name;
+    String caption = layer.getName();
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
     if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
     {
@@ -2213,7 +2213,7 @@ namespace OpenMS
       tmpe->setMetaValue("ion_mobility_unit", "1/K0");
     }
 
-    String caption = layer.name + " (Ion Mobility Scan " + String(spidx) + ")";
+    String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
     if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
     {
@@ -2296,7 +2296,7 @@ namespace OpenMS
       return;
     }
 
-    String caption = layer.name;
+    String caption = layer.getName();
     caption += caption_add;
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
     if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
@@ -2383,7 +2383,7 @@ namespace OpenMS
     }
 
     // set layer name
-    String caption = layer.name + CAPTION_3D_SUFFIX_;
+    String caption = layer.getName() + CAPTION_3D_SUFFIX_;
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
 
@@ -2561,7 +2561,7 @@ namespace OpenMS
         ODExperimentSharedPtrType on_disc_peaks = layer.getOnDiscPeakData();
 
         // add the data
-        addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
+        addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.getName(), new_id);
       }
       else if (spec_view != nullptr)
       {
@@ -2577,7 +2577,7 @@ namespace OpenMS
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.name, new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)

@@ -108,7 +108,7 @@ namespace OpenMS
         w->canvas()->setVisibleArea(a);
       }
 
-      String caption = layer.name;
+      String caption = layer.getName();
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 
       tv_->showSpectrumWidgetInWindow(w, caption);

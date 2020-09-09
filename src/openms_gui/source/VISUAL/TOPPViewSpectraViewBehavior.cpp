@@ -117,7 +117,7 @@ namespace OpenMS
       ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
       // fix legend and set layer name
-      caption = layer.name + "[" + index + "]";
+      caption = layer.getName() + "[" + index + "]";
       w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
@@ -130,7 +130,7 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_PEAK)
     {
-      caption = layer.name;
+      caption = layer.getName();
 
       // add data
       if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
@@ -177,7 +177,7 @@ namespace OpenMS
     }
 
     // basic behavior 2
-    String caption = layer.name;
+    String caption = layer.getName();
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 
     tv_->showSpectrumWidgetInWindow(w, caption);
@@ -201,7 +201,7 @@ namespace OpenMS
     // string for naming the different chromatogram layers with their index
     String chromatogram_caption;
     // string for naming the tab title with the indices of the chromatograms
-    caption = layer.name;
+    caption = layer.getName();
 
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
@@ -215,8 +215,8 @@ namespace OpenMS
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
         // fix legend and set layer name
-        caption = caption + " [" + index + "];";
-        chromatogram_caption = layer.name + "[" + index + "]";
+        caption += String(" [") + index + "];";
+        chromatogram_caption = layer.getName() + "[" + index + "]";
 
         // add chromatogram data as peak spectrum
         if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
@@ -278,7 +278,7 @@ namespace OpenMS
 
       const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
       String fname = layer.filename;
-      String lname = layer.name;
+      String lname = layer.getName();
 
       Size layercount = widget_1d->canvas()->getLayerCount();
       for (Size i = 0; i != layercount; ++i)
@@ -300,7 +300,7 @@ namespace OpenMS
       widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
       widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
 
-      widget_1d->canvas()->getCurrentLayer().name = caption;
+      widget_1d->canvas()->getCurrentLayer().setName(caption);
       widget_1d->canvas()->getCurrentLayer().filename = fname;
       widget_1d->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
       //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
@@ -358,7 +358,7 @@ namespace OpenMS
         widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
         widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
 
-        widget_1d->canvas()->getCurrentLayer().name = caption;
+        widget_1d->canvas()->getCurrentLayer().setName(caption);
         widget_1d->canvas()->getCurrentLayer().filename = fname;
         widget_1d->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
         //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected

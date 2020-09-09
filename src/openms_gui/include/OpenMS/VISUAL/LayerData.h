@@ -161,7 +161,7 @@ public:
       visible(true),
       flipped(false),
       type(DT_UNKNOWN),
-      name(),
+      name_(),
       filename(),
       peptides(),
       param(),
@@ -216,7 +216,7 @@ public:
     spectra may have zero size and contain only meta data since peak data is
     cached on disk.
 
-    @note Do *not* use this function to access the current spectrum for the 1D view
+    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
     */
     const ConstExperimentSharedPtrType getPeakData() const;
 
@@ -227,7 +227,7 @@ public:
     spectra may have zero size and contain only meta data since peak data is
     cached on disk.
 
-    @note Do *not* use this function to access the current spectrum for the 1D view
+    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
     */
     const ExperimentSharedPtrType & getPeakDataMuteable() {return peaks;}
 
@@ -410,8 +410,19 @@ public:
     /// data type (peak or feature data)
     DataType type;
 
+    private:
     /// layer name
-    String name;
+    String name_;
+
+    public:
+      const String& getName() const
+      {
+        return name_;
+      }
+      void setName(const String& new_name)
+      {
+        name_ = new_name;
+      }
 
     /// file name of the file the data comes from (if available)
     String filename;
@@ -450,7 +461,7 @@ public:
     /// get name augmented with attributes, e.g. [flipped], or '*' if modified
     String getDecoratedName() const
     {
-      String n = name;
+      String n = name_;
       if (flipped)
       {
         n += " [flipped]";

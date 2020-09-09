@@ -47,7 +47,7 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
   {
     os << "--LayerData BEGIN--" << std::endl;
-    os << "name: " << rhs.name << std::endl;
+    os << "name: " << rhs.getName() << std::endl;
     os << "visible: " << rhs.visible << std::endl;
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
     os << "--LayerData END--" << std::endl;

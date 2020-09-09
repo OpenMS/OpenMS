@@ -852,7 +852,7 @@ namespace OpenMS
         if (tmp != spectrum.end())
         {
           PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
-          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.name.toQString(), QColor(layer.param.getValue("peak_color").toQString()));
+          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.getName().toQString(), QColor(layer.param.getValue("peak_color").toQString()));
           item.draw(this, *painter);
         }
       }
@@ -1420,7 +1420,7 @@ namespace OpenMS
     else // !annot_item
     {
       //Display name and warn if current layer invisible
-      String layer_name = String("Layer: ") + getCurrentLayer().name;
+      String layer_name = String("Layer: ") + getCurrentLayer().getName();
       if (!getCurrentLayer().visible)
       {
         layer_name += " (invisible)";
