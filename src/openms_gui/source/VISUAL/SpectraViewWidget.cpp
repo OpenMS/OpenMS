@@ -44,6 +44,17 @@
 
 namespace OpenMS
 {
+
+  std::vector<int> listToVec(const QList<QVariant>& in)
+  {
+    std::vector<int> out;
+    for (Int i = 0; i != in.size(); ++i)
+    {
+      out.push_back(in[i].toInt());
+    }
+    return out;
+  }
+
   SpectraViewWidget::SpectraViewWidget(QWidget * parent) :
     QWidget(parent)
   {
@@ -168,14 +179,8 @@ namespace OpenMS
       emit spectrumSelected(spectrum_index);
     }
     else
-    {
-      // open several chromatograms at once
-      std::vector<int> chrom_indices;
-      for (Int i = 0; i != res.size(); ++i)
-      {
-        chrom_indices.push_back(res[i].toInt());
-      }
-      emit spectrumSelected(chrom_indices);
+    { // open several chromatograms at once
+      emit spectrumSelected(listToVec(res));
     }
 
   }
@@ -201,14 +206,8 @@ namespace OpenMS
       emit spectrumDoubleClicked(spectrum_index);
     }
     else
-    {
-      // open several chromatograms at once
-      std::vector<int> chrom_indices;
-      for (Int i = 0; i != res.size(); ++i)
-      {
-        chrom_indices.push_back(res[i].toInt());
-      }
-      emit spectrumDoubleClicked(chrom_indices);
+    { // open several chromatograms at once
+      emit spectrumDoubleClicked(listToVec(res));
     }
 
   }
@@ -230,13 +229,8 @@ namespace OpenMS
           emit showSpectrumAs1D(spectrum_index);
         }
         else
-        {
-          // open several chromatograms at once
-          for (Int i = 0; i != res.size(); ++i)
-          {
-            chrom_indices.push_back(res[i].toInt());
-          }
-          emit showSpectrumAs1D(chrom_indices);
+        { // open several chromatograms at once
+          emit showSpectrumAs1D(listToVec(res));
         }
       });
       context_menu.addAction("Meta data", [&]() 
