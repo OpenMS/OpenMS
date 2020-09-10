@@ -214,7 +214,7 @@ namespace OpenMS
 
   void SpectraViewWidget::spectrumContextMenu_(const QPoint& pos)
   {
-    QTreeWidgetItem * item = spectra_treewidget_->itemAt(pos);
+    QTreeWidgetItem* item = spectra_treewidget_->itemAt(pos);
     if (item)
     {
       //create menu
@@ -379,23 +379,7 @@ namespace OpenMS
           {
             const Precursor& current_pc = current_precursors[0];
             precursor_mz = current_pc.getMZ();
-            if (!current_pc.getActivationMethods().empty())
-            {
-              QString t;
-              for (std::set<Precursor::ActivationMethod>::const_iterator it = current_pc.getActivationMethods().begin(); it != current_pc.getActivationMethods().end(); ++it)
-              {
-                if (!t.isEmpty())
-                {
-                  t.append(",");
-                }
-                t.append(QString::fromStdString(current_pc.NamesOfActivationMethod[*(current_pc.getActivationMethods().begin())]));
-              }
-              item->setText(4, t);
-            }
-            else
-            {
-              item->setText(4, "-");
-            }
+            item->setText(4, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
           }
           item->setText(3, QString::number(precursor_mz));
         }
@@ -752,10 +736,6 @@ namespace OpenMS
     getTreeWidget()->clear();
     getComboBox()->clear();
     has_data_ = false;
-  }
-
-  SpectraViewWidget::~SpectraViewWidget()
-  {
   }
 
 }

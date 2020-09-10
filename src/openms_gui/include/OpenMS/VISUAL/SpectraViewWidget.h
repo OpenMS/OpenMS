@@ -56,9 +56,10 @@ public:
     /// Constructor
     SpectraViewWidget(QWidget * parent = nullptr);
     /// Destructor
-    ~SpectraViewWidget() override;
-    QTreeWidget * getTreeWidget();
-    QComboBox * getComboBox();
+    ~SpectraViewWidget() = default;
+
+    QTreeWidget* getTreeWidget();
+    QComboBox* getComboBox();
     void updateEntries(const LayerData & cl);
     /// remove all visible data
     void clear();
