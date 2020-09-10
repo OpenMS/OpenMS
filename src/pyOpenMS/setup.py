@@ -224,7 +224,7 @@ ext = []
 for module in mnames:
 
     ext.append(Extension(
-        "pyopenms.%s" % module,
+        module,
         sources=["pyopenms/%s.cpp" % module],
         language="c++",
         library_dirs=library_dirs,
