@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  float estimateNoiseFromRandomScans(const MSExperiment& exp, const int ms_level, const UInt n_scans, const double percentile)
+  float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans, const double percentile)
   {
     vector<Size> spec_indices;
     for (Size i = 0; i < exp.size(); ++i)
