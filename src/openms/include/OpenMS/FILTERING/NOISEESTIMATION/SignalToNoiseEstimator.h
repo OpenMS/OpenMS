@@ -172,9 +172,9 @@ protected:
     std::vector<double> stn_estimates_;
   };
 
-  /// Picks @p n_scans from level 1 randomly and returns either average intensity at a certain @p percentile.
-  /// If no MS1 scans are present, 0.0 is returned
-  OPENMS_DLLAPI float estimateNoiseFromRandomMS1Scans(const MSExperiment& exp, const UInt n_scans = 10, const double percentile = 80);
+  /// Picks @p n_scans from the given @p ms_level randomly and returns either average intensity at a certain @p percentile.
+  /// If no scans with the required level are present, 0.0 is returned
+  OPENMS_DLLAPI float estimateNoiseFromRandomScans(const MSExperiment& exp, int ms_level, const UInt n_scans = 10, const double percentile = 80);
 
 } // namespace OpenMS
 

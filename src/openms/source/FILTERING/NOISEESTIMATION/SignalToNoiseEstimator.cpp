@@ -44,10 +44,16 @@ using namespace std;
 namespace OpenMS
 {
 
-  float estimateNoiseFromRandomMS1Scans(const MSExperiment& exp, const UInt n_scans, const double percentile)
+  float estimateNoiseFromRandomScans(const MSExperiment& exp, int ms_level, const UInt n_scans, const double percentile)
   {
     vector<Size> ms1_indices;
-    for (Size i = 0; i < exp.size(); ++i) if (exp[i].getMSLevel() == 1 && !exp[i].empty()) ms1_indices.push_back(i);
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      if (exp[i].getMSLevel() == 1 && !exp[i].empty())
+      {
+        ms1_indices.push_back(i);
+      }
+    }
 
     if (ms1_indices.empty()) return 0.0f;
 

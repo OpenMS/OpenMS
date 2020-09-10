@@ -901,7 +901,7 @@ namespace OpenMS
         //calculate noise
         if (use_intensity_cutoff)
         {
-          double cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()), 10, 80);
+          double cutoff = estimateNoiseFromRandomScans(*(target_window->canvas()->getCurrentLayer().getPeakData()), 1, 10, 80);
           DataFilters filters;
           filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
           target_window->canvas()->setFilters(filters);
