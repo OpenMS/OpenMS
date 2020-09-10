@@ -255,6 +255,7 @@ namespace OpenMS
     tv_->updateBarsAndMenus();
   }
 
+  // called by SpectraViewWidget::spectrumSelected()
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
   {
     Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
@@ -286,26 +287,13 @@ namespace OpenMS
       caption = fname + "[" + index + "]";
 
       // add chromatogram data as peak spectrum
-      if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, fname))
-      {
-        return;
-      }
-
-      widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-      widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
-
-      widget_1d->canvas()->getCurrentLayer().setName(caption);
-      widget_1d->canvas()->getCurrentLayer().filename = fname;
-      widget_1d->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
-      //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-      widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
-      widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "false");
-      widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
-
+      widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, false);
+      
       tv_->updateBarsAndMenus();
     }
   }
 
+  // called by SpectraViewWidget::spectrumSelected()
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(const std::vector<int>& indices)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
@@ -338,23 +326,8 @@ namespace OpenMS
         {
           caption = String(chrom_exp_sptr->getMetaValue("peptide_sequence")) + "[" + index + "]";
         }
-
         // add chromatogram data as peak spectrum
-        if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, fname))
-        {
-          return;
-        }
-
-        widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-        widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
-
-        widget_1d->canvas()->getCurrentLayer().setName(caption);
-        widget_1d->canvas()->getCurrentLayer().filename = fname;
-        widget_1d->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
-        //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
-        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "true");
-        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
+        widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, true);
       }
 
       tv_->updateBarsAndMenus();

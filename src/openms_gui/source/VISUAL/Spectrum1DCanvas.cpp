@@ -109,6 +109,31 @@ namespace OpenMS
   {
   }
 
+  bool Spectrum1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr, ODExperimentSharedPtrType ondisc_sptr, const String& filename,
+                                       const String& caption,
+                                       ExperimentSharedPtrType exp_sptr,
+                                       const int index,
+                                       const bool multiple_select)
+  {
+    // add chromatogram data as peak spectrum
+    if (!addLayer(chrom_exp_sptr, ondisc_sptr, filename))
+    {
+      return false;
+    }
+
+    setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+    setIntensityMode(Spectrum1DCanvas::IM_NONE);
+
+    getCurrentLayer().setName(caption);
+    getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
+    //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
+    getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
+    getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", multiple_select ? "true" : "false");
+    getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
+
+    return true;
+  }
+
   void Spectrum1DCanvas::activateLayer(Size layer_index)
   {
     if (layer_index >= getLayerCount() || layer_index == current_layer_)
