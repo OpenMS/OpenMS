@@ -177,7 +177,7 @@ jobs:
               lnknm=$(basename "${f%/*}" ".framework")
               ln -s $f $lnknm
             done
-            for f in $Qt5_Dir/lib/*.framework/Versions/5/*
+            for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
             do
               install_name_tool -id $f $f
             done
