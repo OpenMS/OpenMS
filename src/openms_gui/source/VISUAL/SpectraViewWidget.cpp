@@ -91,26 +91,30 @@ namespace OpenMS
     spectra_treewidget_->setContextMenuPolicy(Qt::CustomContextMenu);
     spectra_treewidget_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(spectra_treewidget_, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *)));
-    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(spectrumDoubleClicked_(QTreeWidgetItem *)));
-    connect(spectra_treewidget_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumContextMenu_(const QPoint &)));
-    connect(spectra_treewidget_->header(), SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumBrowserHeaderContextMenu_(const QPoint &)));
+    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraViewWidget::spectrumSelectionChange_);
+    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraViewWidget::spectrumDoubleClicked_);
+    connect(spectra_treewidget_, &QTreeWidget::customContextMenuRequested, this, &SpectraViewWidget::spectrumContextMenu_);
+    connect(spectra_treewidget_->header(), &QHeaderView::customContextMenuRequested, this, &SpectraViewWidget::spectrumBrowserHeaderContextMenu_);
 
     spectra_widget_layout->addWidget(spectra_treewidget_);
 
     QHBoxLayout * tmp_hbox_layout = new QHBoxLayout();
 
-    spectra_search_box_ = new QLineEdit("<search text>", this);
+    spectra_search_box_ = new QLineEdit(this);
+    spectra_search_box_->setPlaceholderText("<search text>");
     spectra_search_box_->setWhatsThis("Search in a certain column. Hits are shown as you type. Press <Enter> to display the first hit.");
+    spectra_search_box_->setToolTip(spectra_search_box_->whatsThis());
 
     spectra_combo_box_ = new QComboBox(this);
     spectra_combo_box_->addItems(qsl);
     spectra_combo_box_->setWhatsThis("Sets the column in which to search.");
+    spectra_combo_box_->setToolTip(spectra_combo_box_->whatsThis());
+
 
     // search whenever text is typed (and highlight the hits)
-    connect(spectra_search_box_, SIGNAL(textEdited(const QString &)), this, SLOT(spectrumSearchText_()));
+    connect(spectra_search_box_, &QLineEdit::textEdited, this, &SpectraViewWidget::spectrumSearchText_);
     // .. show hit upon pressing Enter (internally we search again, since the user could have activated another layer with different selections after last search)
-    connect(spectra_search_box_, SIGNAL(returnPressed()), this, SLOT(searchAndShow_()));
+    connect(spectra_search_box_, &QLineEdit::returnPressed, this, &SpectraViewWidget::searchAndShow_);
 
     tmp_hbox_layout->addWidget(spectra_search_box_);
     tmp_hbox_layout->addWidget(spectra_combo_box_);
