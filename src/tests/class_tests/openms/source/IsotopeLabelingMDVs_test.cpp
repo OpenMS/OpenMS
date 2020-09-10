@@ -79,7 +79,8 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   //                                                      - Lactate1 & Lactate2 - peak_apex_int - norm_sum
 
   IsotopeLabelingMDVs                isotopelabelingmdvs;
-
+  
+  // From CHO_190316_Flux.xlsx provided by Douglas McCloskey
   std::vector<Peak2D::IntensityType> L1_peak_apex_int {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
   std::vector<Peak2D::IntensityType> L2_peak_apex_int {2.77e+07, 5.45e+04, 6.26e+05, 7.46e+04, 2.75e+04};
 
@@ -193,6 +194,8 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
   OpenMS::Feature                                   lactate_1_normalized;
   OpenMS::Feature                                   lactate_1_corrected;
   std::vector<std::vector<double>>                  correction_matrix_inversed(4, std::vector<double>(4,0));
+  // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
+  // Wahl et al, P.263, Table I"
   std::vector<std::vector<double>>                  correction_matrix_tBDMS {
 
     {0.8213, 0.1053, 0.0734, 0.0000},
@@ -201,6 +204,8 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
     {0.8484, 0.0954, 0.0337, 0.0225}
   };
 
+  // L1_norm_max, L1_peak_apex_int From CHO_190316_Flux.xlsx provided by Douglas McCloskey
+  // L1_corrected self calculated
   std::vector<double>                               L1_norm_max       {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
   std::vector<double>                               L1_corrected      {-12.7699, 140.7289, -45.3788, -47.2081};
   std::vector<Peak2D::IntensityType>                L1_peak_apex_int  {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
@@ -233,6 +238,8 @@ START_SECTION(( void inverseMatrix_(
 
   IsotopeLabelingMDVs_test                          isotopelabelingmdvs;
   std::vector<std::vector<double>>                  correction_matrix_inversed(4, std::vector<double>(4, 0));
+  // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
+  // Wahl et al, P.263, Table I"
   std::vector<std::vector<double>>                  correction_matrix_tBDMS {
 
     {0.8213, 0.1053, 0.0734, 0.0000},
@@ -270,7 +277,11 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurity(
   IsotopeLabelingMDVs             isotopelabelingmdvs;
   OpenMS::Feature                 lactate_1_normalized;
   OpenMS::Feature                 lactate_1_with_isotopic_purity;
-
+  
+  // L1_norm_max From CHO_190316_Flux.xlsx provided by Douglas McCloskey
+  // L1_1_2_13C_glucose_experiment, L1_U_13C_glucose_experiment & L1_isotopic_purity_ground_truth
+  // from "High-resolution 13C metabolic flux analysis",Long et al, doi:10.1038/s41596-019-0204-0,
+  // P.2869, Box 4
   std::vector<double>             L1_norm_max                     {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
   std::vector<double>             L1_1_2_13C_glucose_experiment   {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
   std::vector<double>             L1_U_13C_glucose_experiment     {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
@@ -312,7 +323,13 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
   IsotopeLabelingMDVs             isotopelabelingmdvs;
   OpenMS::Feature                 lactate_1_normalized;
   OpenMS::Feature                 lactate_1_with_accuracy_info;
-
+  
+  // L1_norm_max From CHO_190316_Flux.xlsx provided by Douglas McCloskey
+  // accoa_C23H37N7O17P3S_MRM_theoretical_13, accoa_C23H37N7O17P3S_MRM_measured_13,
+  // fad_C27H32N9O15P2_EPI_theoretical_48 & fad_C27H32N9O15P2_EPI_measured_48 are extracted from
+  // "MID Max: LC–MS/MS Method for Measuring the Precursor and Product Mass Isotopomer Distributions
+  // of Metabolic Intermediates and Cofactors for Metabolic Flux Analysis Applications, McCloskey et al",
+  // DOI: 10.1021/acs.analchem.5b03887, Supporting Information: Table S-2
   std::vector<double>             L1_norm_max                             {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
 
   std::vector<double>             accoa_C23H37N7O17P3S_MRM_theoretical_13 {0.69, 0.202, 0.084, 0.019, 0.004, 0.001};
