@@ -44,18 +44,18 @@ using namespace std;
 namespace OpenMS
 {
 
-  float estimateNoiseFromRandomScans(const MSExperiment& exp, int ms_level, const UInt n_scans, const double percentile)
+  float estimateNoiseFromRandomScans(const MSExperiment& exp, const int ms_level, const UInt n_scans, const double percentile)
   {
-    vector<Size> ms1_indices;
+    vector<Size> spec_indices;
     for (Size i = 0; i < exp.size(); ++i)
     {
-      if (exp[i].getMSLevel() == 1 && !exp[i].empty())
+      if (exp[i].getMSLevel() == ms_level && !exp[i].empty())
       {
-        ms1_indices.push_back(i);
+        spec_indices.push_back(i);
       }
     }
 
-    if (ms1_indices.empty()) return 0.0f;
+    if (spec_indices.empty()) return 0.0f;
 
     std::default_random_engine generator(time(nullptr));
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
@@ -65,13 +65,13 @@ namespace OpenMS
     vector<float> tmp;
     while (count++ < n_scans)
     {
-      UInt scan = (UInt)(distribution(generator) * (ms1_indices.size() - 1));
+      UInt scan = (UInt)(distribution(generator) * (spec_indices.size() - 1));
       tmp.clear();
       for (const auto& peak : exp[scan])
       {
         tmp.push_back(peak.getIntensity());
       }
-      Size idx = tmp.size() * percentile / 100;
+      Size idx = tmp.size() * percentile / 100.0;
       std::nth_element(tmp.begin(), tmp.begin() + idx, tmp.end());
       noise += tmp[idx];
     }
