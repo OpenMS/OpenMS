@@ -42,7 +42,7 @@
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -170,12 +170,12 @@ protected:
 
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
 
-    registerIntOption_("use_peak_picking",
-                       "",
-                       0,
-                       "if set to 1, peak picking is performed befre deconvolution",
-                       false,
-                       false);
+    //registerIntOption_("use_peak_picking",
+    //                  "",
+    //                  0,
+    //                  "if set to 1, peak picking is performed befre deconvolution",
+    //                  false,
+    //                  false);
 
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
   }
@@ -233,7 +233,7 @@ protected:
     param.topfdOut = getIntOption_("topfd_out");
     param.mzmlOut = getIntOption_("mzml_out");
     param.useRNAavg = getIntOption_("use_RNA_averagine") > 0;
-    param.usePeakPicking = getIntOption_("use_peak_picking") > 0;
+    //param.usePeakPicking = getIntOption_("use_peak_picking") > 0;
     return param;
   }
 
@@ -365,31 +365,6 @@ protected:
       mzml.setLogType(log_type_);
       mzml.load(infile, map);
 
-      if (param.usePeakPicking)
-      {
-        MSExperiment ms_exp_peaks;
-        Param pepi_param = getParam_().copy("algorithm:", true);
-        writeDebug_("Parameters passed to PeakPickerWavelet", pepi_param, 3);
-
-        pepi_param.setValue("peak_width", 0.05);
-        pepi_param.setValue("signal_to_noise", 0.);
-
-        PeakPickerCWT pp;
-        pp.setLogType(log_type_);
-        pp.setParameters(pepi_param);
-        try
-        {
-          pp.pickExperiment(map, ms_exp_peaks);
-        }
-        catch (Exception::BaseException &e)
-        {
-          OPENMS_LOG_ERROR << "Exception caught: " << e.what() << "\n";
-          return INTERNAL_ERROR;
-        }
-        map = ms_exp_peaks;
-
-      }
-
       param.fileName = QFileInfo(infile).fileName().toStdString();
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
@@ -466,6 +441,7 @@ protected:
       //check max ms level from the input dataset..
       param.currentMaxMSLevel = 0;
       //param.print();
+
       for (auto &it : map)
       {
         auto msLevel = it.getMSLevel();
@@ -524,6 +500,8 @@ protected:
         //{
         fd.getPeakGroups(deconvolutedSpectrum, specIndex, massIndex);
         //}
+
+
         if (param.mzmlOut)
         {
           exp.addSpectrum(deconvolutedSpectrum.toSpectrum());

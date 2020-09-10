@@ -617,16 +617,19 @@ namespace OpenMS
     peakGroups.swap(filteredPeakGroups);
     std::vector<PeakGroup>().swap(filteredPeakGroups);
 
-    removeHarmonicPeakGroups(param.tolerance[msLevel - 1]); // TODO
+    removeHarmonicPeakGroups(param.tolerance[msLevel - 1]); //
     removeOverlappingPeakGroups(param.tolerance[msLevel - 1]);
+
 
     //std::cout<< "* " << mc<<std::endl;
     //(param.currentMaxMassCount); //
 
-    if(msLevel > 1)
+    if (msLevel > 1)
     {
       filterPeakGroupsByIsotopeCosine(mc);
-    }else{
+    }
+    else
+    {
       filterPeakGroupsByQScore(mc);
     }
     delete[] perIsotopeIntensity;
@@ -779,9 +782,10 @@ namespace OpenMS
   void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
   { // pgs are sorted
     //return;
-    //sort(peakGroups.begin(), peakGroups.end());
-    std::vector<PeakGroup> merged;
-    merged.reserve(peakGroups.size());
+    int isoLength = 3; // inclusive
+    sort(peakGroups.begin(), peakGroups.end());
+    std::vector<PeakGroup> filtered;
+    filtered.reserve(peakGroups.size());
 
     for (Size i = 0; i < peakGroups.size(); i++)
     {
@@ -792,47 +796,67 @@ namespace OpenMS
       {
         continue;
       }
-      if (i > 0 && pg.monoisotopicMass == peakGroups[i - 1].monoisotopicMass)
+      if (i > 0 && abs(pg.monoisotopicMass - peakGroups[i - 1].monoisotopicMass) < 1e-3)
       {
         continue;
       }
 
       double massTol = pg.monoisotopicMass * tol;
 
-      for (Size j = i + 1; j < peakGroups.size(); j++)
+      int j = i + 1;
+      for (int l = 0; l <= isoLength; l++)
       {
-        auto &pgo = peakGroups[j];
-        if (!select || pgo.monoisotopicMass - pg.monoisotopicMass > massTol)
+        auto off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
+        for (; j < peakGroups.size(); j++)
         {
-          break;
+          auto &pgo = peakGroups[j];
+
+          if (l != 0 && pgo.monoisotopicMass - pg.monoisotopicMass < off - massTol)
+          {
+            continue;
+          }
+
+          if (!select || pgo.monoisotopicMass - pg.monoisotopicMass > off + massTol)
+          {
+            break;
+          }
+          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
         }
-        select &= pg.isotopeCosineScore >= pgo.isotopeCosineScore;
       }
 
       if (!select)
       {
         continue;
       }
-      for (int j = (int) i - 1; j >= 0; j--)
+
+      j = i - 1;
+      for (int l = 0; l <= isoLength; l++)
       {
-        auto &pgo = peakGroups[j];
-        if (!select || pg.monoisotopicMass - pgo.monoisotopicMass > massTol)
+        auto off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
+        for (; j >= 0; j--)
         {
-          break;
+          auto &pgo = peakGroups[j];
+
+          if (l != 0 && pg.monoisotopicMass - pgo.monoisotopicMass < off - massTol)
+          {
+            continue;
+          }
+
+          if (!select || pg.monoisotopicMass - pgo.monoisotopicMass > off + massTol)
+          {
+            break;
+          }
+          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
         }
-        select &= pg.isotopeCosineScore >= pgo.isotopeCosineScore;
       }
       if (!select)
       {
         continue;
       }
-      merged.push_back(pg);
+      filtered.push_back(pg);
     }
-    //pgs = merged;
-    //merged.shrink_to_fit();
     std::vector<PeakGroup>().swap(peakGroups);
-    merged.swap(peakGroups);
-    //vector<PeakGroup>().swap(merged);
+    filtered.swap(peakGroups);
   }
 
 

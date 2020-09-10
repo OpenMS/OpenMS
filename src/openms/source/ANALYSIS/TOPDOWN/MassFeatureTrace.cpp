@@ -168,6 +168,8 @@ namespace OpenMS
 
       auto massDelta = averagines.getAverageMassDelta(mass);
 
+      //
+
       //auto mass = mt.getCentroidMZ();
       ++featureCntr;
       fsf << featureIndex++ << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"
