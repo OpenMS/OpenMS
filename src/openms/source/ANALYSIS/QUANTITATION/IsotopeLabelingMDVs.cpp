@@ -81,6 +81,18 @@ namespace OpenMS
   }
 
 
+  void IsotopeLabelingMDVs::isotopicCorrections(FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap, std::vector<std::vector<double>> correction_matrix)
+  {
+    
+    for (FeatureMap::Iterator feature_it = normalized_featureMap.begin(); feature_it != normalized_featureMap.end(); feature_it++){
+      Feature corrected_feature;
+      isotopicCorrection( *feature_it, corrected_feature, correction_matrix);
+      corrected_featureMap.push_back(corrected_feature);
+    }
+    
+  }
+
+
   void IsotopeLabelingMDVs::calculateIsotopicPurity(
     Feature& normalized_featuremap,
     Feature& featuremap_with_isotopic_purity,
@@ -105,6 +117,22 @@ namespace OpenMS
       }
     }
 
+  }
+
+
+  void IsotopeLabelingMDVs::calculateIsotopicPurities(
+    FeatureMap& normalized_featureMap,
+    FeatureMap& featureMap_with_isotopic_purity,
+    std::vector<double>& experiment_data,
+    std::string& isotopic_purity_name)
+  {
+    
+    for (FeatureMap::Iterator feature_it = normalized_featureMap.begin(); feature_it != normalized_featureMap.end(); feature_it++){
+      Feature feature_with_isotopic_purity;
+      calculateIsotopicPurity( *feature_it, feature_with_isotopic_purity, experiment_data, isotopic_purity_name);
+      featureMap_with_isotopic_purity.push_back(feature_with_isotopic_purity);
+    }
+  
   }
 
   
@@ -146,6 +174,22 @@ namespace OpenMS
     feature_with_accuracy_info = normalized_feature;
     feature_with_accuracy_info.setMetaValue("average_accuracy", diff_mean);
     
+  }
+
+
+  void IsotopeLabelingMDVs::calculateMDVAccuracies(
+    FeatureMap& normalized_featureMap,
+    FeatureMap& featureMap_with_accuracy_info,
+    std::vector<double>& fragment_isotopomer_measured,
+    std::vector<double>& fragment_isotopomer_theoretical)
+  {
+    
+    for (FeatureMap::Iterator feature_it = normalized_featureMap.begin(); feature_it != normalized_featureMap.end(); feature_it++){
+      Feature feature_with_accuracy_info;
+      calculateMDVAccuracy(*feature_it, feature_with_accuracy_info, fragment_isotopomer_measured, fragment_isotopomer_theoretical);
+      featureMap_with_accuracy_info.push_back(feature_with_accuracy_info);
+    }
+  
   }
 
 
@@ -234,6 +278,21 @@ namespace OpenMS
     }
     
   }
+
+
+  void IsotopeLabelingMDVs::calculateMDVs(
+    FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
+    const String& mass_intensity_type, const String& feature_name)
+  {
+    
+    for (FeatureMap::Iterator feature_it = measured_featureMap.begin(); feature_it != measured_featureMap.end(); feature_it++){
+      Feature normalized_feature;
+      calculateMDV(*feature_it, normalized_feature, mass_intensity_type, feature_name);
+      normalized_featureMap.push_back(normalized_feature);
+    }
+    
+  }
+
 
   template<typename T>
   void IsotopeLabelingMDVs::inverseMatrix_(
