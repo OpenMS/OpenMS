@@ -81,6 +81,7 @@ namespace OpenMS
      param.currentMaxMass = dspec.precursorPeakGroup->monoisotopicMass;
     }
 
+
     auto sd = SpectrumDeconvolution(*spec, param);
 
     dspec.peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,

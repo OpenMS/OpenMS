@@ -42,6 +42,7 @@
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -169,6 +170,13 @@ protected:
 
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
 
+    registerIntOption_("use_peak_picking",
+                       "",
+                       0,
+                       "if set to 1, peak picking is performed befre deconvolution",
+                       false,
+                       false);
+
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
   }
 
@@ -225,7 +233,7 @@ protected:
     param.topfdOut = getIntOption_("topfd_out");
     param.mzmlOut = getIntOption_("mzml_out");
     param.useRNAavg = getIntOption_("use_RNA_averagine") > 0;
-
+    param.usePeakPicking = getIntOption_("use_peak_picking") > 0;
     return param;
   }
 
@@ -357,6 +365,31 @@ protected:
       mzml.setLogType(log_type_);
       mzml.load(infile, map);
 
+      if (param.usePeakPicking)
+      {
+        MSExperiment ms_exp_peaks;
+        Param pepi_param = getParam_().copy("algorithm:", true);
+        writeDebug_("Parameters passed to PeakPickerWavelet", pepi_param, 3);
+
+        pepi_param.setValue("peak_width", 0.05);
+        pepi_param.setValue("signal_to_noise", 0.);
+
+        PeakPickerCWT pp;
+        pp.setLogType(log_type_);
+        pp.setParameters(pepi_param);
+        try
+        {
+          pp.pickExperiment(map, ms_exp_peaks);
+        }
+        catch (Exception::BaseException &e)
+        {
+          OPENMS_LOG_ERROR << "Exception caught: " << e.what() << "\n";
+          return INTERNAL_ERROR;
+        }
+        map = ms_exp_peaks;
+
+      }
+
       param.fileName = QFileInfo(infile).fileName().toStdString();
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
@@ -365,6 +398,10 @@ protected:
 
       for (auto &it : map)
       {
+        if (it.empty())
+        {
+          continue;
+        }
         if (it.getMSLevel() > param.maxMSLevel)
         {
           continue;
@@ -386,8 +423,9 @@ protected:
 
       auto rw = param.RTwindow;
       param.numOverlappedScans = max(param.minNumOverLappedScans, (UInt) round(rw / rtDelta));
-      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << (rtDelta * param.numOverlappedScans) //
-          << " sec)" << endl;
+      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT "
+                      << (rtDelta * param.numOverlappedScans) //
+                      << " sec)" << endl;
 
       std::string outfileName(param.fileName);
 
@@ -455,10 +493,14 @@ protected:
 
       MSExperiment exp;
       auto fd = FLASHDeconvAlgorithm(avgine, param);
-
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         ++scanNumber;
+        if (it->empty())
+        {
+          continue;
+        }
+
         auto msLevel = it->getMSLevel();
         if (msLevel > param.currentMaxMSLevel)
         {
@@ -471,7 +513,6 @@ protected:
 
         // per spec deconvolution
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
-
         //bool proceed = true;
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
@@ -483,14 +524,16 @@ protected:
         //{
         fd.getPeakGroups(deconvolutedSpectrum, specIndex, massIndex);
         //}
-        if(param.mzmlOut){
+        if (param.mzmlOut)
+        {
           exp.addSpectrum(deconvolutedSpectrum.toSpectrum());
         }
         elapsed_deconv_cpu_secs[msLevel - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
         elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
             chrono::high_resolution_clock::now() - deconv_t_start).count();
 
-        if(msLevel<param.currentMaxMSLevel){
+        if (msLevel < param.currentMaxMSLevel)
+        {
           lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
         }
         if (deconvolutedSpectrum.empty())
@@ -522,7 +565,7 @@ protected:
 
       massTracer.findFeatures(featureCntr, featureIndex, featureOut, promexOut);
 
-      if(param.mzmlOut)
+      if (param.mzmlOut)
       {
         MzMLFile mzMlFile;
         mzMlFile.store(mzmlOut, exp);
@@ -535,10 +578,9 @@ protected:
           if (specCntr[j] == 0)
           {
             continue;
-          }
-          OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
-                          << " MS" << (j + 1) << " spectra out of "
-                          << specCntr[j] << endl;
+          }OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
+                           << " MS" << (j + 1) << " spectra out of "
+                           << specCntr[j] << endl;
         }
 
         if (featureCntr > 0)
@@ -587,10 +629,9 @@ protected:
           if (specCntr[j] == 0)
           {
             continue;
-          }
-          OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
-                          << " MS" << (j + 1) << " spectra out of "
-                          << specCntr[j] << endl;
+          }OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
+                           << " MS" << (j + 1) << " spectra out of "
+                           << specCntr[j] << endl;
         }
         if (featureCntr > 0)
         {
@@ -650,10 +691,9 @@ protected:
         if (total_specCntr[j] == 0)
         {
           continue;
-        }
-        OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr[j] << " masses in " << total_qspecCntr[j]
-                        << " MS" << (j + 1) << " spectra out of "
-                        << total_specCntr[j] << endl;
+        }OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr[j] << " masses in " << total_qspecCntr[j]
+                         << " MS" << (j + 1) << " spectra out of "
+                         << total_specCntr[j] << endl;
       }
 
       if (total_featureCntr > 0)
