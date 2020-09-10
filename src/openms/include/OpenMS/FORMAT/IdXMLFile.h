@@ -99,6 +99,7 @@ public:
         @brief Stores the data in an idXML file
 
         The data is read in and stored in the file 'filename'. PeptideHits are sorted by score.
+        Note that ranks are not stored and need to be reassigned after loading.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
