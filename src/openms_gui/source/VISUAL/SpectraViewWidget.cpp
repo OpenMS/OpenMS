@@ -274,7 +274,7 @@ namespace OpenMS
     }
 
     spectra_treewidget_->blockSignals(true);
-    RAIICleanup([&](){ spectra_treewidget_->blockSignals(false); });
+    RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });
     spectra_treewidget_->clear();
 
     QTreeWidgetItem* item = nullptr;
