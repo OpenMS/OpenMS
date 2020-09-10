@@ -62,6 +62,7 @@ namespace OpenMS
     void update(SpectrumWidget* active_widget);
 
   signals:
+    /// emitted whenever a change to a layer happened, e.g. its name was changed, it was removed, or a new layer was selected
     void layerDataChanged();
 
   private:

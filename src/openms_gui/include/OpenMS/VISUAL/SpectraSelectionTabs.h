@@ -74,11 +74,11 @@ namespace OpenMS
     /// invoked when user changes the active tab to @p tab_index
     void currentTabChanged(int tab_index);
     
+    /// forwards to the TOPPView*Behaviour classes, to show a certain spectrum in 1D
     void showSpectrumAs1D(int index);
-
+    
+    /// forwards to the TOPPView*Behaviour classes, to show a certain set of chromatograms in 1D
     void showSpectrumAs1D(std::vector<int> indices);
-
-    void setTabEnabled(int index, bool b);
 
     /// double-click on disabled identification view
     /// --> enables it and creates an empty identification structure

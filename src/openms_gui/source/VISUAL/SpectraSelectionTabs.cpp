@@ -205,15 +205,6 @@ namespace OpenMS
     }
   }
 
-  void SpectraSelectionTabs::setTabEnabled(int index, bool b)
-  {
-    if (index == 0 && b == false)
-    {
-      std::cerr << "HA!";
-    }
-    QTabWidget::setTabEnabled(index, b);
-  }
-
   void SpectraSelectionTabs::tabBarDoubleClicked(int tab_index)
   {
     if (!tv_->getActiveSpectrumWidget()) return;
