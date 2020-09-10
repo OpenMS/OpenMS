@@ -177,6 +177,7 @@ jobs:
               lnknm=$(basename "${f%/*}" ".framework")
               ln -s $f $lnknm
             done
+            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
           mkdir bld
           pushd bld
