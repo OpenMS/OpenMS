@@ -245,39 +245,21 @@ namespace OpenMS
 
   void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint& pos)
   {
-    //create menu
-    QMenu * context_menu = new QMenu(spectra_treewidget_->header());
+    // allows to hide/show columns
+    QMenu context_menu(spectra_treewidget_->header());
+    const auto& header = spectra_treewidget_->headerItem();
 
-    QStringList header_labels;
-    header_labels.append(QString("MS level"));
-    header_labels.append(QString("index"));
-    header_labels.append(QString("RT"));
-    header_labels.append(QString("precursor m/z"));
-    header_labels.append(QString("dissociation"));
-    header_labels.append(QString("scan type"));
-    header_labels.append(QString("zoom"));
-    for (int i = 0; i < header_labels.size(); ++i)
+    for (int i = 0; i < header->columnCount(); ++i)
     {
-      QAction * tmp = new QAction(header_labels[i], context_menu);
-      tmp->setCheckable(true);
-      tmp->setChecked(!spectra_treewidget_->isColumnHidden(i));
-      context_menu->addAction(tmp);
+      auto action = context_menu.addAction(header->text(i), [i, this](){
+        spectra_treewidget_->setColumnHidden(i, !spectra_treewidget_->isColumnHidden(i));
+      });
+      action->setCheckable(true);
+      action->setChecked(!spectra_treewidget_->isColumnHidden(i));
     }
-
-    //(show and) execute menu
-    QAction * selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
-    if (selected != nullptr)
-    {
-      for (int i = 0; i < header_labels.size(); ++i)
-      {
-        if (selected->text() == header_labels[i])
-        {
-          selected->isChecked() ? spectra_treewidget_->setColumnHidden(i, false)
-          : spectra_treewidget_->setColumnHidden(i, true);
-        }
-      }
-    }
-    delete (context_menu);
+    
+    // show and execute menu
+    context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
   }
 
   void SpectraViewWidget::updateEntries(const LayerData& cl)

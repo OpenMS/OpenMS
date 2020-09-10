@@ -86,6 +86,7 @@ private:
     bool has_data_ = false;
 private slots:
     void spectrumSearchText_(); ///< searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+    /// allows to show/hide columns
     void spectrumBrowserHeaderContextMenu_(const QPoint &);
     void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
     void searchAndShow_(); ///< searches using text box and plots the spectrum
