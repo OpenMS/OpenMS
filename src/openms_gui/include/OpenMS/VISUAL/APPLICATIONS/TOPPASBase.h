@@ -103,7 +103,7 @@ public slots:
     /// opens the file in a new window
     void addTOPPASFile(const String& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
-    void openFileDialog();
+    void openFilesByDialog();
     /// shows the dialog for opening example files
     void openExampleDialog();
     /// creates a new tab

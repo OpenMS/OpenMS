@@ -1579,7 +1579,7 @@ namespace OpenMS
     }
   }
 
-  QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
+  QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
     // store active sub window
     QMdiSubWindow* old_active = ws_.currentSubWindow();
@@ -1605,9 +1605,9 @@ namespace OpenMS
     return QStringList();
   }
 
-  void TOPPViewBase::openFileDialog(const String& dir)
+  void TOPPViewBase::openFilesByDialog(const String& dir)
   {
-    for (const QString& filename : getFileList_(dir))
+    for (const QString& filename : chooseFilesDialog_(dir))
     {
       addDataFile(filename, true, true);
     }
@@ -2489,7 +2489,7 @@ namespace OpenMS
 
   void TOPPViewBase::metadataFileDialog()
   {
-    QStringList files = getFileList_();
+    QStringList files = chooseFilesDialog_();
     FileHandler fh;
     fh.getOptions().setMetadataOnly(true);
     for (QStringList::iterator it = files.begin(); it != files.end(); ++it)
