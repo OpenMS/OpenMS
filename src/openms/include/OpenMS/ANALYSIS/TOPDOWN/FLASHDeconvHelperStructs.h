@@ -90,7 +90,7 @@ namespace OpenMS
       bool topfdOut = false;
       bool mzmlOut = false;
       bool useRNAavg = false;
-      bool usePeakPicking = false;
+      bool ensamble = false;
       void print();
       double chargeMass = Constants::PROTON_MASS_U;
       //int jitter = 0;
