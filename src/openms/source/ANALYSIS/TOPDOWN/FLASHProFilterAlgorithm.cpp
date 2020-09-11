@@ -79,7 +79,7 @@ namespace OpenMS
       }
   */
 
-  std::vector<double> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
+  double *FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
   {
     int peakcntr = 150; //100 : 64, 50 : 38, 200 : 73
     static int cntr = 0;
@@ -98,7 +98,9 @@ namespace OpenMS
       intensities.push_back(sp.getIntensity());
       // filtered.push_back(Peak1D(sp.getMZ(), log10(sp.getIntensity())));
     }
-    std::vector<double> scores;
+    auto scores = new double[proteinVectors.size()];
+    std::fill_n(scores, proteinVectors.size(), 0);
+
     if (intensities.size() == 0)
     {
       return scores;
@@ -123,7 +125,6 @@ namespace OpenMS
     auto size = FLASHDeconvAlgorithm::getNominalMass(maxPeakMass) + 1;
     //std::cout <<filtered.size()<<std::endl;
 
-    scores.reserve(proteinVectors.size());
     #pragma omp parallel for
     for (int i = 0; i < proteinVectors.size(); i++)//
     {
@@ -175,15 +176,14 @@ namespace OpenMS
       scores[i] = score;
       delete[] vector;
     }
-    if (!scores.empty())
+
+    double maxScore = *std::max_element(scores, scores + proteinVectors.size());
+    if (maxScore == scores[0])
     {
-      double maxScore = *max_element(scores.begin(), scores.end());
-      if (maxScore == scores[0])
-      {
-        cntr++;
-      }
-      std::cout << cntr << std::endl;
+      cntr++;
     }
+    std::cout << cntr << std::endl;
+
     return scores;
   }
 }

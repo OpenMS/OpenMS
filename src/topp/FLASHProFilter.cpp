@@ -106,6 +106,7 @@ protected:
       std::cout << scan++ << " -- done [took " << elapsed_wall_secs
                 << " s (Wall)] --"
                 << endl;
+      delete[] scores;
       if (scan > 100)
       {
         //break;
