@@ -123,6 +123,7 @@ namespace OpenMS
     auto size = FLASHDeconvAlgorithm::getNominalMass(maxPeakMass) + 1;
     //std::cout <<filtered.size()<<std::endl;
 
+    scores.reserve(proteinVectors.size());
     #pragma omp parallel for
     for (int i = 0; i < proteinVectors.size(); i++)//
     {
