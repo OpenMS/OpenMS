@@ -608,8 +608,7 @@ protected:
           if (param.ensamble)
           {
             OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr[j] << " masses in the ensamble MS"
-                            << (j + 1) << " spectrum (from "
-                            << specCntr[j] << "spectra)" << endl;
+                            << (j + 1) << " spectrum" << endl;
 
           }
           else
@@ -674,8 +673,7 @@ protected:
           if (param.ensamble)
           {
             OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in the ensamble MS"
-                            << (j + 1) << " spectrum (from "
-                            << specCntr[j] << "spectra)" << endl;
+                            << (j + 1) << " spectrum" << endl;
 
           }
           else
@@ -748,8 +746,7 @@ protected:
         if (param.ensamble)
         {
           OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr[j] << " masses in the ensamble MS"
-                          << (j + 1) << " spectrum (from "
-                          << total_specCntr[j] << "spectra)" << endl;
+                          << (j + 1) << " spectrum" << endl;
         }
         else
         {
