@@ -78,9 +78,9 @@ protected:
   {
     MSExperiment map;
     MzMLFile mzml;
-    String infile = "/Users/kyowonjeong/Google Drive/ProteinFilter/myo_707_ETDReagentTarget_1e+06__deconved.mzml";
-    String fasta = "/Users/kyowonjeong/Google Drive/ProteinFilter/uniprot-proteome_yeast_UP000002311_Myo.fasta";
-
+    String infile = "C:/Users/KyowonJeong/Google Drive/ProteinFilter/myo_707_ETDReagentTarget_1e+06__deconved.mzml";
+    String fasta = "C:/Users/kyowonjeong/Google Drive/ProteinFilter/uniprot-proteome_yeast_UP000002311_Myo.fasta";
+     
     double elapsed_wall_secs = 0;
     //double elapsed_deconv_cpu_secs = 0, elapsed_deconv_wall_secs = 0;
 
@@ -108,7 +108,7 @@ protected:
                 << endl;
       if (scan > 100)
       {
-        break;
+        //break;
       }
     }
 
