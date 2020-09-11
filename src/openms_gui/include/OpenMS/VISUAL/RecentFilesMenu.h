@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,45 +37,67 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//QT
-#include <QtWidgets/QTextEdit>
-class QContextMenuEvent;
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <QMenu>
+#include <QStringList>
+
+#include <vector>
+
+class QAction;
 
 namespace OpenMS
 {
+  class String;
+
   /**
-      @brief QTextEdit implementation with a "clear" button in the context menu
-      @ingroup Visual
+    @brief Manages recent files opened by the user and provides a QMenu to go with it
+
+
   */
-  class OPENMS_GUI_DLLAPI TOPPASLogWindow :
-    public QTextEdit
+  class RecentFilesMenu
+    : public QObject
   {
     Q_OBJECT
-    Q_PROPERTY(int max_length READ maxLength WRITE setMaxLength)
-
+  
+  signals:
+    /// when a recent file action item from the getMenu() was clicked
+    void recentFileClicked(const String& filename);
+    
   public:
-    /// Constructor
-    TOPPASLogWindow(QWidget * parent = nullptr);
-    /// Destructor
-    ~TOPPASLogWindow() override;
+    /// C'tor
+    RecentFilesMenu(int max_entries = 15);
 
-    /// read max_length
-    int maxLength() const;
-    /// set max_length
-    void setMaxLength(int max_length);
+    /// sets a list of recent files (up to max_entries many -- see C'tor)
+    void set(const QStringList& initial);
 
-  protected:
-    ///@name Reimplemented Qt events
-    //@{
-    void contextMenuEvent(QContextMenuEvent * e) override;
-    //@}
+    /// get a menu-pointer to an internal member which always contains the up-to-date recent items
+    QMenu* getMenu();
+    
+    /// current list of recent files (most recent first)
+    const QStringList& get() const;
 
-    /// Members:
-    int max_length_;  /// -1 by default, which means there is no maximum length
+  public slots:
+    /// put a new recent file at the top (removing any duplicates in other positions); will update the QMenu
+    void add(const String& filename);
 
-  protected slots:
-    /// if text length reached max_length_, then delete prefix until length of text is 1/2 of max_length_
-    void trimText_();
+  private slots:
+    /// invoked by the QAction when it was clicked; emits recentFileClicked(String filename)
+    void itemClicked_();
 
+  private:
+    /// updates the menu by synching text and and visibility of actions using the current list of recent files
+    void sync_();
+
+    /// holds the menu and the filenames (as QActions)
+    QMenu recent_menu_;
+    /// maximum of entries; adding more will delete the oldest one
+    int max_entries_;
+    /// list of the recently opened files actions (menu entries)
+    QStringList recent_files_;
+    /// .. and the actions to go with it
+    std::vector<QAction*> recent_actions_;
   };
-}
+
+} //namespace
+

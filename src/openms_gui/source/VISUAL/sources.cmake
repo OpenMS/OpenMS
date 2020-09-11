@@ -18,8 +18,10 @@ InputFile.cpp
 InputFile.ui
 InputFileList.cpp
 InputFileList.ui
+LayerListView.cpp
 LayerData.cpp
 ListEditor.cpp
+LogWindow.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
@@ -27,8 +29,10 @@ OutputDirectory.cpp
 OutputDirectory.ui
 ParamEditor.cpp
 ParamEditor.ui
+RecentFilesMenu.cpp
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
+SpectraSelectionTabs.cpp
 Spectrum1DCanvas.cpp
 Spectrum1DWidget.cpp
 Spectrum2DCanvas.cpp
@@ -42,19 +46,19 @@ SwathLibraryStats.cpp
 SwathLibraryStats.ui
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
-TOPPASLogWindow.cpp
 TOPPASMergerVertex.cpp
 TOPPASOutputFileListVertex.cpp
 TOPPASResource.cpp
 TOPPASResources.cpp
 TOPPASScene.cpp
 TOPPASSplitterVertex.cpp
-TOPPASTabBar.cpp
 TOPPASToolVertex.cpp
 TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
 TOPPViewIdentificationViewBehavior.cpp
+TOPPViewMenu.cpp
+#TOPPViewPreferences.cpp
 TOPPViewSpectraViewBehavior.cpp
 )
 

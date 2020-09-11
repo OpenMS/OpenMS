@@ -31,51 +31,79 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <random>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
-using namespace std;
+#include <QTabWidget>
 
 namespace OpenMS
 {
-
-  float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans, const double percentile)
+  class SpectraViewWidget;
+  class SpectraIdentificationViewWidget;
+  class TOPPViewIdentificationViewBehavior;
+  class TOPPViewSpectraViewBehavior;
+  class TOPPViewBase;
+  /**
+    @brief A tabbed view, to browse lists of spectra or identifications
+    
+  */
+  class OPENMS_GUI_DLLAPI SpectraSelectionTabs
+    : public QTabWidget
   {
-    vector<Size> spec_indices;
-    for (Size i = 0; i < exp.size(); ++i)
+    Q_OBJECT
+
+  public:
+    enum TAB_INDEX
     {
-      if (exp[i].getMSLevel() == ms_level && !exp[i].empty())
-      {
-        spec_indices.push_back(i);
-      }
-    }
+      SPECTRA_IDX = 0,  ///< first tab
+      IDENT_IDX = 1,    ///< second tab
+      AUTO_IDX          ///< automatically decide which tab to show (i.e. prefer IDENT_IDX if it has data)
+    };
 
-    if (spec_indices.empty()) return 0.0f;
+    /// Default constructor
+    SpectraSelectionTabs(QWidget* parent, TOPPViewBase* tv);
 
-    std::default_random_engine generator(time(nullptr));
-    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    /// update items in the two tabs according to the currently selected layer
+    void update();
 
-    float noise = 0.0;
-    UInt count = 0;
-    vector<float> tmp;
-    while (count++ < n_scans)
-    {
-      UInt scan = (UInt)(distribution(generator) * (spec_indices.size() - 1));
-      tmp.clear();
-      for (const auto& peak : exp[scan])
-      {
-        tmp.push_back(peak.getIntensity());
-      }
-      Size idx = tmp.size() * percentile / 100.0;
-      std::nth_element(tmp.begin(), tmp.begin() + idx, tmp.end());
-      noise += tmp[idx];
-    }
-    return noise / n_scans;
-  }
+    /// invoked when user changes the active tab to @p tab_index
+    void currentTabChanged(int tab_index);
+    
+    /// forwards to the TOPPView*Behaviour classes, to show a certain spectrum in 1D
+    void showSpectrumAs1D(int index);
+    
+    /// forwards to the TOPPView*Behaviour classes, to show a certain set of chromatograms in 1D
+    void showSpectrumAs1D(std::vector<int> indices);
 
-}
+    /// double-click on disabled identification view
+    /// --> enables it and creates an empty identification structure
+    void tabBarDoubleClicked(int tab_index);
+
+    /// enable and show the @p which tab
+    void show(TAB_INDEX which);
+
+    SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
+  signals:
+
+  private:
+    ///@name Spectrum selection widgets
+    //@{
+    SpectraViewWidget* spectra_view_widget_;
+    SpectraIdentificationViewWidget* id_view_widget_;
+    //@}
+
+    /// TOPPView behavior for the spectra view
+    TOPPViewSpectraViewBehavior* spectraview_behavior_;
+    /// TOPPView behavior for the identification view
+    TOPPViewIdentificationViewBehavior* idview_behaviour_;
+    /// pointer to base class to access some members (going signal/slot would be cleaner)
+    TOPPViewBase* tv_;
+  };
+
+} //namespace
+

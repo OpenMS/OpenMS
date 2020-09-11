@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,70 +37,61 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//QT
-#include <QtWidgets/QTabBar>
-class QMouseEvent;
-class QMimeData;
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <QTextEdit>
 
 namespace OpenMS
 {
   class String;
 
   /**
-      @brief Convenience tab bar implementation
+    @brief A log window (QTextEdit) with convenience functions
 
-      This tab bar differs in several ways from the QTabBar:
-      - you can close a tab by double-clicking it or through its context menu.
-      - it works based on tab identifiers (a fixed id stored in tab data) rather than on tab indices, which might
-        change when inserting or removing a tab.
 
-      @ingroup Visual
   */
-  class OPENMS_GUI_DLLAPI TOPPASTabBar :
-    public QTabBar
+  class LogWindow
+    : public QTextEdit
   {
     Q_OBJECT
-public:
-    /// Constructor
-    TOPPASTabBar(QWidget * parent = nullptr);
-    /// Destructor
-    ~TOPPASTabBar() override;
+    Q_PROPERTY(int max_length READ maxLength WRITE setMaxLength)
 
-    /// Adds a new tab with the name @p text and the identifier @p id
-    int addTab(const String & text, int id);
-    /// Selects the tab with identifier @p id
-    void setCurrentId(int id);
+  public:
+    ///Log message states
+    enum LogState
+    {
+      NOTICE, ///< Notice
+      WARNING, ///< Warning
+      CRITICAL ///< Fatal error
+    };
 
-public slots:
-    /// Remove the tab with identifier @p id
-    void removeId(int id);
+    /// Default constructor
+    LogWindow(QWidget* parent);
 
-signals:
-    /// Signal that indicates that the current tab changed
-    void currentIdChanged(int id);
-    /// Signal that indicates that the tab with identifier @p id is about to be removed (double click or context menu)
-    void aboutToCloseId(int id);
+    /// appends text without adding linebreaks and shows the log-window
+    void appendText(const QString& text);
 
-    // /// Signal that is emitted, when a drag-and-drop action ends on a tab
-    // void dropOnTab(const QMimeData* data, QWidget* source, int id);
-    // /// Signal that is emitted, when a drag-and-drop action ends on the unused space on the right side of the tabs.
-    // void dropOnWidget(const QMimeData* data, QWidget* source);
+    /// appends a new block with @p heading and a @p body
+    void appendNewHeader(const LogState state, const String& heading, const String& body);
+    
+    /// appends a line break (same as append(""))
+    void addNewline();
 
-protected:
-    ///@name Reimplemented Qt events
-    //@{
-    void mouseDoubleClickEvent(QMouseEvent * e) override;
-    void contextMenuEvent(QContextMenuEvent * e) override;
-    //void dragEnterEvent(QDragEnterEvent* e);
-    //void dropEvent(QDropEvent* e);
-    //@}
+    /// read max_length
+    int maxLength() const;
+    /// set max_length
+    void setMaxLength(int max_length);
 
-    ///Returns the QTabBar index of the tab at position @p pos. If there is no tab at that position -1 is returned.
-    int tabAt_(const QPoint & pos);
+  signals:
 
-protected slots:
-    /// Slot that translates the currentChanged(int) signal to currentIdChanged(int)
-    void currentChanged_(int id);
+  protected slots:
+    /// if text length reached max_length_, then delete prefix until length of text is 1/2 of max_length_
+    void trimText_();
+
+  private:
+    void contextMenuEvent(QContextMenuEvent* event) override;
+    int max_length_ { -1 };  ///< -1 by default, which means there is no maximum length
   };
 
-}
+} //namespace
+

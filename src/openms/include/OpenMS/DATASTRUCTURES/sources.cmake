@@ -24,6 +24,7 @@ DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
 FASTAContainer.h
+FlagSet.h
 GridFeature.h
 IsotopeCluster.h
 KDTree.h
@@ -41,7 +42,6 @@ String.h
 StringUtils.h
 StringListUtils.h
 ToolDescription.h
-
 )
 
 ### add path to the filenames

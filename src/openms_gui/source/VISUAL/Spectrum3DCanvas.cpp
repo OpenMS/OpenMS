@@ -253,7 +253,7 @@ namespace OpenMS
     QAction * result = nullptr;
 
     //Display name and warn if current layer invisible
-    String layer_name = String("Layer: ") + getCurrentLayer().name;
+    String layer_name = String("Layer: ") + getCurrentLayer().getName();
     if (!getCurrentLayer().visible)
     {
       layer_name += " (invisible)";

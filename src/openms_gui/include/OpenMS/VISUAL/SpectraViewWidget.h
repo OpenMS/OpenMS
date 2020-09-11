@@ -56,10 +56,18 @@ public:
     /// Constructor
     SpectraViewWidget(QWidget * parent = nullptr);
     /// Destructor
-    ~SpectraViewWidget() override;
-    QTreeWidget * getTreeWidget();
-    QComboBox * getComboBox();
+    ~SpectraViewWidget() = default;
+
+    QTreeWidget* getTreeWidget();
+    QComboBox* getComboBox();
     void updateEntries(const LayerData & cl);
+    /// remove all visible data
+    void clear();
+    /// do we have data to show?
+    bool hasData() const
+    {
+      return has_data_;
+    }
 signals:
     void spectrumSelected(int);
     void spectrumSelected(std::vector<int> indices);
@@ -74,8 +82,12 @@ private:
     QTreeWidget * spectra_treewidget_;
     /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
+
+    /// do we currently show data? 
+    bool has_data_ = false;
 private slots:
     void spectrumSearchText_(); ///< searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+    /// allows to show/hide columns
     void spectrumBrowserHeaderContextMenu_(const QPoint &);
     void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
     void searchAndShow_(); ///< searches using text box and plots the spectrum

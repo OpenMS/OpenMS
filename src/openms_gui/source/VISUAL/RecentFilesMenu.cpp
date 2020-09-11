@@ -28,68 +28,106 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASLogWindow.h>
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
 
-#include <iostream>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
 
-#include <QContextMenuEvent>
-#include <QtWidgets/QMenu>
 #include <QAction>
+
+/*
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+
+#include <QAction>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMenuBar>
+*/
 
 using namespace std;
 
 namespace OpenMS
 {
-
-  TOPPASLogWindow::TOPPASLogWindow(QWidget * parent) :
-    QTextEdit(parent),
-    max_length_(-1)
+  RecentFilesMenu::RecentFilesMenu(int max_entries)
+    : recent_menu_("&Recent files"),
+    max_entries_(max_entries),
+    recent_files_()
   {
-    // trim if required
-    connect (this, SIGNAL(textChanged()), this, SLOT(trimText_())); 
-  }
-
-  TOPPASLogWindow::~TOPPASLogWindow()
-  {
-  }
-
-  void TOPPASLogWindow::contextMenuEvent(QContextMenuEvent * e)
-  {
-    QMenu * menu = createStandardContextMenu();
-    menu->addAction("Clear");
-    QAction * selected = menu->exec(e->globalPos());
-    if (selected && selected->text() == "Clear")
+    // add hidden actions
+    recent_actions_.resize(max_entries_);
+    for (int i = 0; i < max_entries_; ++i)
     {
-      clear();
+      recent_actions_[i] = recent_menu_.addAction("", this, &RecentFilesMenu::itemClicked_);
+      recent_actions_[i]->setVisible(false);
     }
-    delete menu;
   }
 
-
-  void TOPPASLogWindow::trimText_()
+  void RecentFilesMenu::set(const QStringList& initial)
   {
-     if (max_length_ <= 0) return;
-
-     if (this->toPlainText().size() > max_length_)
-     {
-       this->setPlainText(this->toPlainText().right(max_length_/2));
-       //std::cerr << "cut text to " << this->toPlainText().size() << "\n";
-     }
+    recent_files_ = initial;
+    recent_files_.removeDuplicates();
+    while (recent_files_.size() > max_entries_)
+    {
+      recent_files_.removeLast();
+    }
+    sync_();
   }
-  int TOPPASLogWindow::maxLength() const
+
+
+  QMenu* RecentFilesMenu::getMenu()
   {
-     return (max_length_);
+    return &recent_menu_;
   }
-  
 
-  void TOPPASLogWindow::setMaxLength(int max_length)
+  const QStringList& RecentFilesMenu::get() const
   {
-    max_length_ = max_length;
+    return recent_files_;
   }
 
+  void RecentFilesMenu::add(const String& filename)
+  {
+    // find out absolute path
+    String tmp = File::absolutePath(filename);
 
-} //namespace OpenMS
+    // remove the new file if already in the recent list and prepend it
+    recent_files_.removeAll(tmp.toQString());
+    recent_files_.prepend(tmp.toQString());
+
+    // remove those files exceeding the defined number
+    while (recent_files_.size() > max_entries_)
+    {
+      recent_files_.removeLast();
+    }
+    sync_();
+  }
+
+  void RecentFilesMenu::itemClicked_()
+  {
+    QAction* action = qobject_cast<QAction*>(sender());
+    if (!action) return;
+    String filename = String(action->text());
+    emit recentFileClicked(filename);
+  }
+
+  void RecentFilesMenu::sync_()
+  {
+    for (int i = 0; i < max_entries_; ++i)
+    {
+      if (i < recent_files_.size())
+      {
+        recent_actions_[i]->setText(recent_files_[i]);
+        recent_actions_[i]->setVisible(true);
+      }
+      else
+      {
+        recent_actions_[i]->setVisible(false);
+      }
+    }
+  }
+
+} //Namespace

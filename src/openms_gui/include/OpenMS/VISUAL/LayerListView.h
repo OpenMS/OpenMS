@@ -31,51 +31,53 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+#pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <random>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
-using namespace std;
+#include <QtWidgets/QListWidget>
 
 namespace OpenMS
 {
+  class SpectrumWidget;
+  /**
+    @brief Pimped QListView for Layers of a Canvas
 
-  float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans, const double percentile)
+
+  */
+  class OPENMS_GUI_DLLAPI LayerListView
+    : public QListWidget
   {
-    vector<Size> spec_indices;
-    for (Size i = 0; i < exp.size(); ++i)
-    {
-      if (exp[i].getMSLevel() == ms_level && !exp[i].empty())
-      {
-        spec_indices.push_back(i);
-      }
-    }
+    Q_OBJECT
 
-    if (spec_indices.empty()) return 0.0f;
+  public:
+    /// Default constructor
+    LayerListView(QWidget* parent);
 
-    std::default_random_engine generator(time(nullptr));
-    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    /// rebuild list of layers and remember current widget (for context menu etc)
+    void update(SpectrumWidget* active_widget);
 
-    float noise = 0.0;
-    UInt count = 0;
-    vector<float> tmp;
-    while (count++ < n_scans)
-    {
-      UInt scan = (UInt)(distribution(generator) * (spec_indices.size() - 1));
-      tmp.clear();
-      for (const auto& peak : exp[scan])
-      {
-        tmp.push_back(peak.getIntensity());
-      }
-      Size idx = tmp.size() * percentile / 100.0;
-      std::nth_element(tmp.begin(), tmp.begin() + idx, tmp.end());
-      noise += tmp[idx];
-    }
-    return noise / n_scans;
-  }
+  signals:
+    /// emitted whenever a change to a layer happened, e.g. its name was changed, it was removed, or a new layer was selected
+    void layerDataChanged();
 
-}
+  private:
+    /// active row was changed by user to new row @p i
+    void currentRowChangedAction_(int i);
+
+    void itemChangedAction_(QListWidgetItem* item);
+
+    void contextMenuEvent(QContextMenuEvent* event) override;
+
+    /// show preferences dialog
+    void itemDoubleClickedAction_(QListWidgetItem*);
+
+    SpectrumWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
+  };
+
+} //namespace
+

@@ -87,6 +87,16 @@ public:
     /// Destructor
     ~Spectrum1DCanvas() override;
 
+    /// add a chromatogram layer
+    bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
+                       ODExperimentSharedPtrType ondisc_sptr, 
+                       const String& filename, 
+                       const String& caption, 
+                       ExperimentSharedPtrType exp_sptr,
+                       const int index,
+                       const bool multiple_select);
+
+    
     ///Enumerate all available paint styles
     enum DrawModes
     {
