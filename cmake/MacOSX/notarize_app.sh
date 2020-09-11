@@ -59,10 +59,16 @@ if xcrun altool --notarize-app --primary-bundle-id "$BUNDLE_ID" --username "$ASC
 			fi
 		else
 			cat "$NOTARIZE_INFO_LOG" 1>&2
+			if [ "$REMOVE_PKG" = true ] ; then
+			  rm $BUNDLE_PKG
+			fi
 			exit 1
 		fi
 	done
 else
 	cat "$NOTARIZE_APP_LOG" 1>&2
+	if [ "$REMOVE_PKG" = true ] ; then
+	  rm $BUNDLE_PKG
+	fi	
 	exit 1
 fi

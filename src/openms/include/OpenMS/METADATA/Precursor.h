@@ -83,9 +83,10 @@ public:
     ///Drift time unit
     enum DriftTimeUnit
     {
-      NONE,          ///< No unit
-      MILLISECOND,   ///< milliseconds
-      VSSC,          ///< volt-second per square centimeter
+      NONE,                        ///< No unit
+      MILLISECOND,                 ///< milliseconds
+      VSSC,                        ///< volt-second per square centimeter
+      FAIMS_COMPENSATION_VOLTAGE,  ///< compensation voltage
       SIZE_OF_DRIFTTIMEUNIT
     };
 

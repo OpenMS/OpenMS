@@ -587,7 +587,7 @@ namespace OpenMS
     // for its calculation of C/N-terminal modification mass and it uses
     // getMonoWeight(Residue::Internal) for each Residue. The Residue weight is
     // set when adding a modification using setModification_
-    if (specificity == ResidueModification::N_TERM)
+    if (specificity == ResidueModification::N_TERM || specificity == ResidueModification::PROTEIN_N_TERM)
     {
       String residue_name = "[" + mod + "]";
       String residue_id = ".n" + residue_name;
@@ -599,7 +599,7 @@ namespace OpenMS
         unique_ptr<ResidueModification> new_mod(new ResidueModification);
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
         new_mod->setFullName(residue_name); // display name
-        new_mod->setTermSpecificity(ResidueModification::N_TERM);
+        new_mod->setTermSpecificity(specificity);
 
         // set masses
         if (delta_mass)
@@ -624,7 +624,7 @@ namespace OpenMS
       }
     }
     else
-      if (specificity == ResidueModification::C_TERM)
+      if (specificity == ResidueModification::C_TERM || specificity == ResidueModification::PROTEIN_C_TERM)
       {
         String residue_name = "[" + mod + "]";
         String residue_id = ".c" + residue_name;
@@ -636,7 +636,7 @@ namespace OpenMS
           unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
           new_mod->setFullName(residue_name); // display name
-          new_mod->setTermSpecificity(ResidueModification::C_TERM);
+          new_mod->setTermSpecificity(specificity);
 
           // set masses
           if (delta_mass)

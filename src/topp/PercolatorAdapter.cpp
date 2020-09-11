@@ -291,6 +291,8 @@ protected:
     registerInputFile_("fasta", "<file>", "", "Provide the fasta file as the argument to this flag, which will be used for protein grouping based on an in-silico digest (only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy_pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
+    registerStringOption_("post_processing_tdc", "<value>", "true", "Use target-decoy competition to assign q-values and PEPs.", !is_required, is_advanced_option);
+    setValidStrings_("post_processing_tdc", ListUtils::create<String>("true,false"));
     registerFlag_("post_processing_tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
     registerFlag_("train_best_positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
@@ -1042,7 +1044,7 @@ protected:
       Int subset_max_train = getIntOption_("subset_max_train");
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick_validation")) arguments << "-x";
-      if (getFlag_("post_processing_tdc")) arguments << "-Y";
+      if (getStringOption_("post_processing_tdc") == "true") arguments << "-Y";
       if (getFlag_("train_best_positive")) arguments << "--train-best-positive";
       if (getFlag_("static")) arguments << "--static";
       Int nested_xval_bins = getIntOption_("nested_xval_bins");
@@ -1157,6 +1159,9 @@ protected:
         }
         else
         {
+          //TODO we should make a difference between peptide-level q-values and psm-level q-values!
+          // I am just not changing it right now, because a lot of tools currently depend on
+          // the score being exactly "q-value"
           it->setScoreType(scoreType);
         }
         it->setHigherScoreBetter(scoreType == "svm");
@@ -1308,7 +1313,7 @@ protected:
         search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
         search_parameters.setMetaValue("Percolator:decoy_pattern", getStringOption_("decoy_pattern"));
-        search_parameters.setMetaValue("Percolator:post_processing_tdc", getFlag_("post_processing_tdc"));
+        search_parameters.setMetaValue("Percolator:post_processing_tdc", getStringOption_("post_processing_tdc"));
         search_parameters.setMetaValue("Percolator:train_best_positive", getFlag_("train_best_positive"));
         
         it->setSearchParameters(search_parameters);

@@ -121,24 +121,12 @@ START_SECTION((Int getNumberOfProtIdsPeptideRule(Int min_peptides, std::map< Str
 }
 END_SECTION
 
-START_SECTION((void setSolver(LPWrapper::SOLVER solver)))
-{
-  ptr->setSolver(LPWrapper::SOLVER_GLPK);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_GLPK)
-#if COINOR_SOLVER == 1
-  ptr->setSolver(LPWrapper::SOLVER_COINOR);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_COINOR)
-#endif
-}
-END_SECTION
-
 START_SECTION((LPWrapper::SOLVER getSolver()))
 {
-  ptr->setSolver(LPWrapper::SOLVER_GLPK);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_GLPK)
 #if COINOR_SOLVER == 1
-  ptr->setSolver(LPWrapper::SOLVER_COINOR);
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_COINOR)
+  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_GLPK)
+#else
+  TEST_EQUAL(ptr->getSolver(), LPWrapper::SOLVER_GLPK)
 #endif
 }
 END_SECTION
