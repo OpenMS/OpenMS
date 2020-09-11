@@ -86,7 +86,10 @@ private:
     /// do we currently show data? 
     bool has_data_ = false;
 private slots:
-    void spectrumSearchText_(); ///< searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+   /// fill the search-combo-box with current column header names
+    void populateSearchBox_();
+    /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+    void spectrumSearchText_();
     /// allows to show/hide columns
     void spectrumBrowserHeaderContextMenu_(const QPoint &);
     void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
