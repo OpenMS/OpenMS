@@ -112,7 +112,6 @@ namespace OpenMS
     return outSpec;
   }
 
-
   void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
                                                      FLASHDeconvHelperStructs::Parameter &param)//, fstream &fsm, fstream &fsp)
   {
