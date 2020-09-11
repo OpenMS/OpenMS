@@ -61,7 +61,7 @@ namespace OpenMS
     //...
     return *this;
   }
-
+   
   int FLASHDeconvAlgorithm::getNominalMass(double &m)
   {
     return (int) (m * 0.999497 + .5);
@@ -69,7 +69,6 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int& specIndex, int& massIndex)
   {
-
     auto* spec = dspec.spec;
     int msLevel = spec->getMSLevel();
     if (msLevel == 1 || dspec.precursorPeakGroup == nullptr) {
