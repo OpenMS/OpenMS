@@ -79,7 +79,7 @@ namespace OpenMS
       }
   */
 
-  std::map<double, int> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
+  std::vector<double> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
   {
     int peakcntr = 150; //100 : 64, 50 : 38, 200 : 73
     static int cntr = 0;
@@ -98,7 +98,7 @@ namespace OpenMS
       intensities.push_back(sp.getIntensity());
       // filtered.push_back(Peak1D(sp.getMZ(), log10(sp.getIntensity())));
     }
-    std::map<double, int> scores;
+    std::vector<double> scores;
     if (intensities.size() == 0)
     {
       return scores;
@@ -171,19 +171,18 @@ namespace OpenMS
       int c = count < values.size() ? count : values.size();
       double score = std::accumulate(values.begin(), values.begin() + c, .0);
 
-      scores[score] = i;
+      scores[i] = score;
       delete[] vector;
     }
     if (!scores.empty())
     {
-      if (scores.rbegin()->second == 0)
+      double maxScore = *max_element(scores.begin(), scores.end());
+      if (maxScore == scores[0])
       {
         cntr++;
       }
-      std::cout << cntr << " " << scores.rbegin()->second << " " << scores.rbegin()->first << std::endl;
+      std::cout << cntr << std::endl;
     }
     return scores;
   }
-
-
 }

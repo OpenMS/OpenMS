@@ -108,7 +108,7 @@ protected:
                 << endl;
       if (scan > 100)
       {
-        break;
+        //break;
       }
     }
 

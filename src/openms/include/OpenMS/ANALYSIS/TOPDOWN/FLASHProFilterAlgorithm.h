@@ -66,7 +66,7 @@ namespace OpenMS
 
     ~FLASHProFilterAlgorithm();
 
-    std::map<double, int> getScores(MSSpectrum &decovSpec, double intThreshold = .0);
+    std::vector<double> getScores(MSSpectrum &decovSpec, double intThreshold = .0);
 
   protected:
     std::vector<FASTAFile::FASTAEntry> fastaEntry;
