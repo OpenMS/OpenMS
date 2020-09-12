@@ -36,6 +36,7 @@
 
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/InputFile.h>
 
 namespace OpenMS
 {
@@ -49,8 +50,6 @@ namespace OpenMS
 
       std::vector<InputFileRef> input_file_refs;
 
-      std::vector<String> primary_files; // path(s) to primary MS data
-
       DateTime date_time;
 
       // @TODO: add processing actions that are relevant for ID data
@@ -59,33 +58,30 @@ namespace OpenMS
       explicit DataProcessingStep(
         ProcessingSoftwareRef software_ref,
         const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const std::vector<String>& primary_files =
-        std::vector<String>(), const DateTime& date_time = DateTime::now(),
-        std::set<DataProcessing::ProcessingAction> actions =
+        std::vector<InputFileRef>(), const DateTime& date_time =
+        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
         std::set<DataProcessing::ProcessingAction>()):
         software_ref(software_ref), input_file_refs(input_file_refs),
-        primary_files(primary_files), date_time(date_time), actions(actions)
+        date_time(date_time), actions(actions)
       {
       }
 
       DataProcessingStep(const DataProcessingStep& other) = default;
 
-      // don't compare meta data (?):
+      // order by date/time first, don't compare meta data (?):
       bool operator<(const DataProcessingStep& other) const
       {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) <
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
+        return (std::tie(date_time, software_ref, input_file_refs, actions) <
+                std::tie(other.date_time, other.software_ref,
+                         other.input_file_refs, other.actions));
       }
 
       // don't compare meta data (?):
       bool operator==(const DataProcessingStep& other) const
       {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) ==
+        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
                 std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
+                         other.date_time, other.actions));
       }
     };
 

@@ -169,30 +169,30 @@ namespace OpenMS
   }
 
   // https://stackoverflow.com/questions/2536524/copy-directory-using-qt
-  bool File::copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option)
+  bool File::copyDirRecursively(const QString& from_dir, const QString& to_dir, File::CopyOptions option)
   {
     QDir source_dir(from_dir);
     QDir target_dir(to_dir);
 
     QString canonical_source_dir = source_dir.canonicalPath();
     QString canonical_target_dir = target_dir.canonicalPath();
-   
-    // check canonical path  
+
+    // check canonical path
     if (canonical_source_dir == canonical_target_dir)
     {
-      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;;  
+      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;
       return false;
     }
 
-    // make directory if not present 
+    // make directory if not present
     if (!target_dir.exists())
     {
       target_dir.mkpath(to_dir);
     }
-  
+
     // copy folder recurively
     QFileInfoList file_list = source_dir.entryInfoList();
-    for (const QFileInfo& entry : file_list)   
+    for (const QFileInfo& entry : file_list)
     {
       if (entry.fileName() == "." || entry.fileName() == "..")
       {
@@ -211,10 +211,10 @@ namespace OpenMS
         {
           switch (option)
             {
-              case CopyOptions::CANCEL: 
+              case CopyOptions::CANCEL:
                 return false;
-              case CopyOptions::SKIP: 
-                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl; 
+              case CopyOptions::SKIP:
+                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl;
                 continue;
               case CopyOptions::OVERWRITE:
                 target_dir.remove(entry.fileName());
@@ -495,7 +495,7 @@ namespace OpenMS
       if (path_checked) found_path_from = "bundle path (run time)";
     }
 #endif
-    
+
     // On Linux and Apple check relative from the executable
     if (!path_checked)
     {
@@ -735,14 +735,14 @@ namespace OpenMS
     if (File::exists(exec)) return exec;
 
 #if defined(__APPLE__)
-    // check if we are in one of the bundles (only built, not installed) 
+    // check if we are in one of the bundles (only built, not installed)
     exec = File::getExecutablePath() + "../../../" + toolName;
     if (File::exists(exec)) return exec;
 
     // check if we are in one of the bundles in an installed bundle (old bundles)
     exec = File::getExecutablePath() + "../../../TOPP/" + toolName;
     if (File::exists(exec)) return exec;
-    
+
     // check if we are in one of the bundles in an installed bundle (new bundles)
     exec = File::getExecutablePath() + "../../../bin/" + toolName;
     if (File::exists(exec)) return exec;
@@ -778,7 +778,7 @@ namespace OpenMS
   {
     for (Size i = 0; i < filenames_.size(); ++i)
     {
-      if (File::exists(filenames_[i]) && !File::remove(filenames_[i])) 
+      if (File::exists(filenames_[i]) && !File::remove(filenames_[i]))
       {
         std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
       }

@@ -809,9 +809,11 @@ protected:
     const vector<String>& primary_files,
     const IdentificationData::DBSearchParam& search_param)
   {
-    String input_file = test_mode_ ? File::basename(in_mzml) : in_mzml;
+    String input_name = test_mode_ ? File::basename(in_mzml) : in_mzml;
+    IdentificationData::InputFile input(input_name);
+    input.primary_files.insert(primary_files.begin(), primary_files.end());
     IdentificationData::InputFileRef file_ref =
-      id_data.registerInputFile(input_file);
+      id_data.registerInputFile(input);
     IdentificationData::ScoreType score("hyperscore", true);
     IdentificationData::ScoreTypeRef score_ref =
       id_data.registerScoreType(score);
@@ -829,8 +831,7 @@ protected:
       id_data.registerDBSearchParam(search_param);
     // @TODO: add suitable data processing action
     IdentificationData::DataProcessingStep step(
-      software_ref, vector<IdentificationData::InputFileRef>(1, file_ref),
-      primary_files);
+      software_ref, vector<IdentificationData::InputFileRef>(1, file_ref));
     IdentificationData::ProcessingStepRef step_ref =
       id_data.registerDataProcessingStep(step, search_ref);
     // reference this step in all following ID data items, if applicable:

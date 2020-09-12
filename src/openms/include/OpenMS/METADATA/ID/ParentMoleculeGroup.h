@@ -70,6 +70,13 @@ namespace OpenMS
     {
       String label; // @TODO: use "label" as a uniqueness constraint?
       ParentMoleculeGroups groups;
+
+      explicit ParentMoleculeGrouping(
+        const String& label = "",
+        const ParentMoleculeGroups& groups = ParentMoleculeGroups()):
+        label(label), groups(groups)
+      {
+      }
     };
 
     typedef std::vector<ParentMoleculeGrouping> ParentMoleculeGroupings;

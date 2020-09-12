@@ -42,7 +42,7 @@ cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 add_definitions(/DBOOST_ALL_NO_LIB)
 
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 
 # add all the tools
 set(UTILS_executables)
@@ -56,7 +56,7 @@ endforeach(i)
 
 # some regular UTILS tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL REQUIRED)
+  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL Sql REQUIRED)
   if (NOT Qt5Widgets_FOUND)
     message(STATUS "QtWidgets module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")

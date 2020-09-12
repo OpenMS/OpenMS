@@ -185,7 +185,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
-    
+
     if (ref_params_ != REF_NONE) // a valid ref. index OR file should be given
     {
       Size reference_index = getIntOption_("reference:index");

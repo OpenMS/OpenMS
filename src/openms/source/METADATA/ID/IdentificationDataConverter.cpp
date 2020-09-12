@@ -74,13 +74,20 @@ namespace OpenMS
 
       ID::DataProcessingStep step(software_ref);
       // ideally, this should give us the raw files:
-      prot.getPrimaryMSRunPath(step.primary_files, true);
+      vector<String> primary_files;
+      prot.getPrimaryMSRunPath(primary_files, true);
       // ... and this should give us mzML files:
       vector<String> spectrum_files;
       prot.getPrimaryMSRunPath(spectrum_files);
-      for (const String& path : spectrum_files)
+      // if there's the same number of each, hope they're in the same order:
+      bool match_files = (primary_files.size() == spectrum_files.size());
+      // @TODO: what to do with raw files if there's a different number?
+      for (Size i = 0; i < spectrum_files.size(); ++i)
       {
-        ID::InputFileRef file_ref = id_data.registerInputFile(path);
+        IdentificationData::InputFile input(spectrum_files[i]);
+        if (match_files) input.primary_files.insert(primary_files[i]);
+        IdentificationData::InputFileRef file_ref =
+          id_data.registerInputFile(input);
         step.input_file_refs.push_back(file_ref);
       }
       step.date_time = prot.getDateTime();
@@ -201,7 +208,8 @@ namespace OpenMS
       else
       {
         String file = "UNKNOWN_INPUT_FILE_" + id;
-        ID::InputFileRef file_ref = id_data.registerInputFile(file);
+        IdentificationData::InputFileRef file_ref =
+          id_data.registerInputFile(IdentificationData::InputFile(file));
         query.input_file_opt = file_ref;
       }
       query.rt = pep.getRT();
@@ -322,7 +330,8 @@ namespace OpenMS
         pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
-    const String& ppm_error_name = Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
+    const String& ppm_error_name =
+      Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
     for (const ID::MoleculeQueryMatch& query_match :
            id_data.getMoleculeQueryMatches())
@@ -347,6 +356,7 @@ namespace OpenMS
         parent_matches_ptr = &(oligo_ref->parent_matches);
       }
       hit.setCharge(query_match.charge);
+      // @TODO: is this needed? don't we copy over all meta values above?
       if (query_match.metaValueExists(ppm_error_name))
       {
         hit.setMetaValue(ppm_error_name,
@@ -380,6 +390,7 @@ namespace OpenMS
       // generate hits in different ID runs for different processing steps:
       for (ID::AppliedProcessingStep applied : query_match.steps_and_scores)
       {
+        // @TODO: allow peptide hits without scores?
         if (applied.scores.empty()) continue;
         PeptideHit hit_copy = hit;
         vector<pair<ID::ScoreTypeRef, double>> scores =
@@ -404,14 +415,17 @@ namespace OpenMS
       }
     }
 
-    set<boost::optional<ID::ProcessingStepRef>> steps;
+    // order steps by date, if available:
+    set<StepOpt, StepOptCompare> steps;
+
     for (const auto& psm : psm_data)
     {
       const ID::DataQuery& query = *psm.first.first;
       PeptideIdentification peptide;
       static_cast<MetaInfoInterface&>(peptide) = query;
-      peptide.setRT(query.rt);
-      peptide.setMZ(query.mz);
+      // set RT and m/z if they aren't missing (NaN):
+      if (query.rt == query.rt) peptide.setRT(query.rt);
+      if (query.mz == query.mz) peptide.setMZ(query.mz);
       peptide.setMetaValue("spectrum_reference", query.data_id);
       peptide.setHits(psm.second.first);
       const ID::ScoreType& score_type = *psm.second.second;
@@ -428,9 +442,11 @@ namespace OpenMS
       peptides.push_back(peptide);
       steps.insert(psm.first.second);
     }
+    // sort peptide IDs by RT and m/z to improve reproducibility:
+    sort(peptides.begin(), peptides.end(), PepIDCompare());
 
-    map<boost::optional<ID::ProcessingStepRef>,
-        pair<vector<ProteinHit>, ID::ScoreTypeRef>> prot_data;
+    map<StepOpt, pair<vector<ProteinHit>, IdentificationData::ScoreTypeRef>>
+      prot_data;
     for (const auto& parent : id_data.getParentMolecules())
     {
       bool right_type =
@@ -590,7 +606,7 @@ namespace OpenMS
          it != id_data.getInputFiles().end(); ++it)
     {
       MzTabMSRunMetaData run_meta;
-      run_meta.location.set(*it);
+      run_meta.location.set(it->name);
       meta.ms_run[counter] = run_meta;
       file_map[it] = counter;
       ++counter;
@@ -920,48 +936,15 @@ namespace OpenMS
   void IdentificationDataConverter::exportMSRunInformation_(
     ID::ProcessingStepRef step_ref, ProteinIdentification& protein)
   {
-    // are input files mzMLs?
-    // @TODO: what if there's a mix of mzMLs and other files?
-    bool mzml_inputs = false;
-    vector<String> mzml_files;
-    for (ID::InputFileRef input_ref : step_ref->input_file_refs)
+    for (IdentificationData::InputFileRef input_ref : step_ref->input_file_refs)
     {
-      FileTypes::Type type = FileHandler::getTypeByFileName(*input_ref);
-      if (type == FileTypes::MZML)
+      // @TODO: check if files are mzMLs?
+      protein.addPrimaryMSRunPath(input_ref->name);
+      for (const String& primary_file : input_ref->primary_files)
       {
-        mzml_inputs = true;
-        mzml_files.push_back(*input_ref);
-      }
-      else
-      {
-        mzml_inputs = false;
-        break;
+        protein.addPrimaryMSRunPath(primary_file, true);
       }
     }
-    if (mzml_inputs)
-    {
-      protein.setPrimaryMSRunPath(mzml_files);
-      // also store raw files (or equivalent):
-      protein.setPrimaryMSRunPath(step_ref->primary_files, true);
-      return;
-    }
-    // alternatively, are the primary files mzMLs?
-    bool mzml_primaries = false;
-    for (const String& file : step_ref->primary_files)
-    {
-      FileTypes::Type type = FileHandler::getTypeByFileName(file);
-      if (type == FileTypes::MZML)
-      {
-        mzml_primaries = true;
-      }
-      else
-      {
-        mzml_primaries = false;
-        break;
-      }
-    }
-    // store as (raw) primary files depending on file type:
-    protein.setPrimaryMSRunPath(step_ref->primary_files, !mzml_primaries);
   }
 
 } // end namespace OpenMS

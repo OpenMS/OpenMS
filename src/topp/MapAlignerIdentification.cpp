@@ -263,13 +263,13 @@ private:
     String formats = "featureXML,consensusXML,idXML";
     TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
-    registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
+    registerInputFile_("design", "<file>", "", "Input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const override
+  Param getSubsectionDefaults_(const String& section) const override
   {
     if (section == "algorithm")
     {
@@ -333,7 +333,8 @@ private:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file, false);
+        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file,
+                                                             false);
 
         // determine if design defines more than one fraction (note: fraction and run IDs are one-based)
         frac2files = ed.getFractionToMSFilesMapping();
@@ -360,7 +361,7 @@ private:
       if (frac2files.size() == 1) // group one fraction
       {
         performAlignment_(algorithm, feature_maps, transformations,
-          reference_index);
+                          reference_index);
         applyTransformations_(feature_maps, transformations);
       }
       else // group multiple fractions
@@ -388,10 +389,8 @@ private:
                                  fraction_transformations.end());
 
           Size f = 0;
-          for (size_t feature_map_index = 0;
-            feature_map_index != n_fractions;
-            ++feature_map_index,
-            ++f)
+          for (size_t feature_map_index = 0; feature_map_index != n_fractions;
+               ++feature_map_index, ++f)
           {
             feature_maps[feature_map_index].swap(fraction_maps[f]);
           }

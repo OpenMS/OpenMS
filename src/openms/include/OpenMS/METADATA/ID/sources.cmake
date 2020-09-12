@@ -12,6 +12,7 @@ IdentificationData.h
 IdentificationDataConverter.h
 IdentifiedCompound.h
 IdentifiedSequence.h
+InputFile.h
 MetaData.h
 MoleculeParentMatch.h
 MoleculeQueryMatch.h

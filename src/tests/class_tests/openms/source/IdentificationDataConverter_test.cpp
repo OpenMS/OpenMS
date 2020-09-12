@@ -107,10 +107,15 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   // TEST_EQUAL(proteins_in[0].getIdentifier(), proteins_out[0].getIdentifier() ) // identifiers are not equal
   // TEST_EQUAL(proteins_in[1].getIdentifier(), proteins_out[1].getIdentifier() ) // identifiers are not equal
 
-  TEST_EQUAL(proteins_in[0].getHits().size(), proteins_out[0].getHits().size() )
-  TEST_EQUAL(proteins_in[1].getHits().size(), proteins_out[1].getHits().size() )
-  TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true)
-  TEST_EQUAL(proteins_in[1].getHits() == proteins_out[1].getHits(), true)
+  TEST_EQUAL(proteins_in[0].getHits().size(), proteins_out[0].getHits().size());
+  TEST_EQUAL(proteins_in[1].getHits().size(), proteins_out[1].getHits().size());
+  TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true);
+  TEST_EQUAL(proteins_in[1].getHits() == proteins_out[1].getHits(), true);
+
+  TEST_EQUAL(proteins_in[0].getDateTime().get(),
+             proteins_out[0].getDateTime().get());
+  TEST_EQUAL(proteins_in[1].getDateTime().get(),
+             proteins_out[1].getDateTime().get());
 
   TEST_EQUAL(proteins_in[0].getSearchParameters() == proteins_out[0].getSearchParameters(), true)
   TEST_EQUAL(proteins_in[1].getSearchParameters() == proteins_out[1].getSearchParameters(), true)

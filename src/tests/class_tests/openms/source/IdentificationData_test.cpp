@@ -77,12 +77,12 @@ START_SECTION((const InputFiles& getInputFiles() const))
 }
 END_SECTION
 
-START_SECTION((InputFileRef registerInputFile(const String& file)))
+START_SECTION((InputFileRef registerInputFile(const InputFile& file)))
 {
-  String file = "test.mzML";
+  IdentificationData::InputFile file("test.mzML");
   file_ref = data.registerInputFile(file);
   TEST_EQUAL(data.getInputFiles().size(), 1);
-  TEST_STRING_EQUAL(*file_ref, file);
+  TEST_STRING_EQUAL(file_ref->name, file.name);
   // re-registering doesn't lead to redundant entries:
   data.registerInputFile(file);
   TEST_EQUAL(data.getInputFiles().size(), 1);
@@ -516,15 +516,6 @@ START_SECTION((void cleanup(bool require_query_match = true, bool require_identi
   // identified peptides without query matches are removed:
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-}
-END_SECTION
-
-START_SECTION((static bool isBetterScore(double first, double second, bool higher_better)))
-{
-  TEST_EQUAL(IdentificationData::isBetterScore(2.0, 1.0, true), true);
-  TEST_EQUAL(IdentificationData::isBetterScore(2.0, 1.0, false), false);
-  TEST_EQUAL(IdentificationData::isBetterScore(-2.0, 1.0, true), false);
-  TEST_EQUAL(IdentificationData::isBetterScore(-2.0, 1.0, false), true);
 }
 END_SECTION
 

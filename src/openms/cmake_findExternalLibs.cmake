@@ -156,9 +156,9 @@ endif()
 SET(QT_MIN_VERSION "5.5.0")
 
 # find qt
-## TODO Use the component variable during install time 
+## TODO Use the component variable during install time
 ## Why were many more QT modules linked? Removed for now until complaints.
-set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
 find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)
@@ -172,8 +172,9 @@ ENDIF()
 ##TODO check if we can integrate the next lines into the openms_add_library cmake macro
 add_definitions(${Qt5Core_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
+add_definitions(${Qt5Sql_DEFINITIONS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS} ${Qt5Sql_EXECUTABLE_COMPILE_FLAGS}")
 
 # see https://github.com/ethereum/solidity/issues/4124
 if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
