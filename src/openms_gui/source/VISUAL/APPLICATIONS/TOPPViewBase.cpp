@@ -130,6 +130,10 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
+  FileTypes::FileTypeList<11> supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
+                                               FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
+                                               FileTypes::DTA, FileTypes::DTA2D,
+                                               FileTypes::BZ2, FileTypes::GZ });
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
@@ -536,7 +540,7 @@ namespace OpenMS
     }
 
     // abort if file type unsupported
-    if (file_type == FileTypes::INI)
+    if (!supported_types.contains(file_type))
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported!");
       return;
@@ -642,12 +646,9 @@ namespace OpenMS
       }
       else
       {
-        FileTypes::Type type;
-        type = FileHandler::getType(filename);
         bool parsing_success = false;
-        if (type == FileTypes::MZML)
+        if (file_type == FileTypes::MZML)
         {
-
           // Load index only and check success (is it indexed?)
           MzMLFile f;
           Internal::IndexedMzMLHandler indexed_mzml_file_;
@@ -1585,9 +1586,6 @@ namespace OpenMS
     QMdiSubWindow* old_active = ws_.currentSubWindow();
     RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
 
-    String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz);;";
-    String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
-
     QString open_path = current_path_.toQString();
     if (path_overwrite != "")
     {
@@ -1596,7 +1594,7 @@ namespace OpenMS
     // we use the QT file dialog instead of using QFileDialog::Names(...)
     // On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,
     // which prevents us from doing GUI testing on it.
-    QFileDialog dialog(this, "Open file(s)", open_path, (filter_all + filter_single).toQString());
+    QFileDialog dialog(this, "Open file(s)", open_path, supported_types.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
     dialog.setFileMode(QFileDialog::ExistingFiles);
     if (dialog.exec())
     {
@@ -2560,7 +2558,7 @@ namespace OpenMS
         if (item != nullptr)
         {
           const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          Size index = (Size)(item->text(3).toInt());
+          Size index = (Size)(item->text(3).toInt());       // todo: wtf...
           const ExperimentType::SpectrumType spectrum = (*layer.getPeakData())[index];
           ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
           new_exp_sptr->addSpectrum(spectrum);
