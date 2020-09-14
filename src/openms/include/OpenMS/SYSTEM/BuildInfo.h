@@ -85,6 +85,23 @@ namespace OpenMS
         return os_version;
       }
 
+      /*
+        @brief Get Architecture of this binary (simply by looking at size of a pointer, i.e. size_t).
+      */
+      static String getBinaryArchitecture()
+      {
+        size_t bytes = sizeof(size_t);
+        switch (bytes)
+        {
+          case 4:
+            return OpenMS_ArchNames[ARCH_32BIT];
+          case 8:
+            return OpenMS_ArchNames[ARCH_64BIT];
+          default:
+            return OpenMS_ArchNames[ARCH_UNKNOWN];
+        }
+      }
+
       static OpenMSOSInfo getOSInfo()
       {
         OpenMSOSInfo info;
@@ -173,55 +190,41 @@ namespace OpenMS
     };
 
 
-
-    /*
-      @brief Get Architecture of this binary (simply by looking at size of a pointer, i.e. size_t).
-    */
-    static String getBinaryArchitecture()
+    struct OpenMSBuildInfo
     {
-      size_t bytes = sizeof(size_t);
-      switch (bytes)
+
+      /*
+        @brief Checks if OpenMP was enabled during build, based on the _OPENMP macro
+      */
+      static bool isOpenMPEnabled()
       {
-        case 4:
-          return OpenMS_ArchNames[ARCH_32BIT];
-        case 8:
-          return OpenMS_ArchNames[ARCH_64BIT];
-        default:
-          return OpenMS_ArchNames[ARCH_UNKNOWN];
+        #ifdef _OPENMP
+        return true;
+        #else
+        return false;
+        #endif
       }
-    }
 
-    /*
-      @brief Checks if OpenMP was enabled during build, based on the _OPENMP macro
-    */
-    static bool isOpenMPEnabled()
-    {
-      #ifdef _OPENMP
-      return true;
-      #else
-      return false;
-      #endif
-    }
+      /*
+        @brief Get the build type used during building the OpenMS library
+      */
+      static String getBuildType()
+      {
+        return OPENMS_BUILD_TYPE;
+      }
 
-    /*
-      @brief Get the build type used during building the OpenMS library
-    */
-    static String getBuildType()
-    {
-      return OPENMS_BUILD_TYPE;
-    }
-
-    /*
-      @brief Get the build type used during building the OpenMS library
-    */
-    static Size getOpenMPMaxNumThreads()
-    {
-      #ifdef _OPENMP
-      return omp_get_max_threads();
-      #else
-      return 1;
-      #endif
-    }
+      /*
+        @brief Get the build type used during building the OpenMS library
+      */
+      static Size getOpenMPMaxNumThreads()
+      {
+        #ifdef _OPENMP
+        return omp_get_max_threads();
+        #else
+        return 1;
+        #endif
+      }
+    };
 
   } // NS Internal
 } // NS OpenMS

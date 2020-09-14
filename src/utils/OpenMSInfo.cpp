@@ -71,10 +71,10 @@ int main(int /*argc*/, const char ** /*argv*/)
   cout << "==================" << "\n";
   cout << "Source path  : " << OPENMS_SOURCE_PATH << "\n";
   cout << "Binary path  : " << OPENMS_BINARY_PATH << "\n";
-  cout << "Binary arch  : " << Internal::getBinaryArchitecture() << "\n";
-  cout << "Build type   : " << Internal::getBuildType() << "\n";
+  cout << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << "\n";
+  cout << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << "\n";
   #ifdef _OPENMP
-  cout << "OpenMP       : " << "enabled (maxThreads = " << Internal::getOpenMPMaxNumThreads() << ")" << "\n";
+  cout << "OpenMP       : " << "enabled (maxThreads = " << Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads() << ")" << "\n";
   #else
   cout << "OpenMP       : " << "disabled" << "\n";
   #endif
