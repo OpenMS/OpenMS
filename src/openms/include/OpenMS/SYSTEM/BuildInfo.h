@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// \$Maintainer: Julianus Pfeuffer $
-// \$Authors: Julianus Pfeuffer $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -59,35 +59,36 @@ namespace OpenMS
 
     class OpenMSOSInfo
     {
-      OpenMS_OS os;
-      String os_version;
-      OpenMS_Architecture arch;
+      OpenMS_OS os_;
+      String os_version_;
+      OpenMS_Architecture arch_;
 
     public:
       OpenMSOSInfo() :
-          os(OS_UNKNOWN),
-          os_version("unknown"),
-          arch(ARCH_UNKNOWN)
+          os_(OS_UNKNOWN),
+          os_version_("unknown"),
+          arch_(ARCH_UNKNOWN)
       {}
 
+      /// @brief Get the current operating system (Windows, MacOS, Linux)
       String getOSAsString() const
       {
-        return OpenMS_OSNames[os];
+        return OpenMS_OSNames[os_];
       }
 
+      /// @brief Get the current architecture (32-bit or 64-bit)
       String getArchAsString() const
       {
-        return OpenMS_ArchNames[arch];
+        return OpenMS_ArchNames[arch_];
       }
 
+      /// @brief Get the OS version (e.g. 10.15 for macOS or 10 for Windows)
       String getOSVersionAsString() const
       {
-        return os_version;
+        return os_version_;
       }
 
-      /*
-        @brief Get Architecture of this binary (simply by looking at size of a pointer, i.e. size_t).
-      */
+      /// @brief Get Architecture of this binary (simply by looking at size of a pointer, i.e. size_t).
       static String getBinaryArchitecture()
       {
         size_t bytes = sizeof(size_t);
@@ -102,34 +103,32 @@ namespace OpenMS
         }
       }
 
+      /// @brief Constructs and returns an OpenMSOSInfo object
       static OpenMSOSInfo getOSInfo()
       {
         OpenMSOSInfo info;
         #if defined(WIN32)  // Windows
-        info.os = OS_WINDOWS;
-      info.arch = getArchOnWin();
-      info.os_version = getWinOSVersion();
+        info.os_ = OS_WINDOWS;
+        info.arch_ = getArchOnWin();
+        info.os_version_ = getWinOSVersion();
         #elif (defined(__MACH__) && defined(__APPLE__)) // MacOS
-        info.os = OS_MACOS;
+        info.os_ = OS_MACOS;
         #else //Linux
-        info.os = OS_LINUX;
+        info.os_ = OS_LINUX;
         #endif
         // check if we can use QSysInfo
         #if (defined(Q_OS_MACOS) || defined(Q_OS_UNIX))
-
-        info.os_version = QSysInfo::productVersion();
-
-      // identify architecture
-      if (QSysInfo::WordSize == 32)
-      {
-        info.arch = ARCH_32BIT;
-      }
-      else
-      {
-        info.arch = ARCH_64BIT;
-      }
+        info.os_version_ = QSysInfo::productVersion();
+        // identify architecture
+        if (QSysInfo::WordSize == 32)
+        {
+          info.arch_ = ARCH_32BIT;
+        }
+        else
+        {
+          info.arch_ = ARCH_64BIT;
+        }
         #endif
-
         return info;
       }
 
@@ -138,64 +137,62 @@ namespace OpenMS
       //********************
       #ifdef WIN32
       #include <windows.h>
-#include <stdio.h>
+      #include <stdio.h>
 
-    typedef BOOL (WINAPI * LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+      typedef BOOL (WINAPI * LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
 
-    LPFN_ISWOW64PROCESS fnIsWow64Process;
+      LPFN_ISWOW64PROCESS fnIsWow64Process;
 
-    OpenMS_Architecture getArchOnWin()
-    {
-#ifdef OPENMS_64BIT_ARCHITECTURE
-      return ARCH_64BIT;
-
-#else
-      BOOL bIsWow64 = FALSE;
-
-      //IsWow64Process is not available on all supported versions of Windows.
-      //Use GetModuleHandle to get a handle to the DLL that contains the function
-      //and GetProcAddress to get a pointer to the function if available.
-
-      fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
-        GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
-
-      if (NULL != fnIsWow64Process)
+      OpenMS_Architecture getArchOnWin()
       {
-        if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
-        {
-          return ARCH_UNKNOWN;
-        }
-      }
-      if (bIsWow64)
-      {
+        #ifdef OPENMS_64BIT_ARCHITECTURE
         return ARCH_64BIT;
+
+        #else
+        BOOL bIsWow64 = FALSE;
+
+        //IsWow64Process is not available on all supported versions of Windows.
+        //Use GetModuleHandle to get a handle to the DLL that contains the function
+        //and GetProcAddress to get a pointer to the function if available.
+
+        fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
+          GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+
+        if (NULL != fnIsWow64Process)
+        {
+          if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
+          {
+            return ARCH_UNKNOWN;
+          }
+        }
+        if (bIsWow64)
+        {
+          return ARCH_64BIT;
+        }
+        else
+        {
+          return ARCH_32BIT;
+        }
+        #endif
       }
-      else
+
+      String getWinOSVersion()
       {
-        return ARCH_32BIT;
+        OSVERSIONINFO osvi;
+        ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+        osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+        GetVersionEx(&osvi);
+        return String(osvi.dwMajorVersion) + "." + String(osvi.dwMinorVersion);
       }
-#endif
-    }
-
-    String getWinOSVersion()
-    {
-      OSVERSIONINFO osvi;
-      ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-      osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-      GetVersionEx(&osvi);
-      return String(osvi.dwMajorVersion) + "." + String(osvi.dwMinorVersion);
-    }
-
       #endif // WIN32 API functions
     };
 
 
+    /// @brief Struct with some static methods to get infos on the build configuration
     struct OpenMSBuildInfo
     {
 
-      /*
-        @brief Checks if OpenMP was enabled during build, based on the _OPENMP macro
-      */
+      /// @brief Checks if OpenMP was enabled during build, based on the _OPENMP macro
       static bool isOpenMPEnabled()
       {
         #ifdef _OPENMP
@@ -205,17 +202,15 @@ namespace OpenMS
         #endif
       }
 
-      /*
-        @brief Get the build type used during building the OpenMS library
-      */
+      /// @brief Get the build type used during building the OpenMS library
       static String getBuildType()
       {
         return OPENMS_BUILD_TYPE;
       }
 
-      /*
-        @brief Get the build type used during building the OpenMS library
-      */
+      /// @brief Get the maximum number of threads that OpenMP will use (including hyperthreads)
+      /// Note: This could also be limited by the OMP_NUM_THREADS environment variable
+      /// Returns 1 if OpenMP was disabled.
       static Size getOpenMPMaxNumThreads()
       {
         #ifdef _OPENMP
