@@ -184,8 +184,8 @@ set(CONFIGURED_OPENMS_DATA_PATH_H ${PROJECT_BINARY_DIR}/include/OpenMS/openms_da
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/openms_data_path.h.in ${CONFIGURED_OPENMS_DATA_PATH_H})
 
 #------------------------------------------------------------------------------
-# Modify build_config.h at build time
-set (CONFIGURED_BUILD_CONFIG_SCRIPT ${PROJECT_BINARY_DIR}/include/OpenMS/configure_build_type.cmake)
+# Generate build_config_$config.h at configure time
+# Modify the used build_config.h at build time
 set (CONFIGURED_BUILD_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/build_config_$<CONFIG>.h)
 set (CONFIGURED_BUILD_CONFIG_CURRENT_H ${PROJECT_BINARY_DIR}/include/OpenMS/build_config.h)
 
