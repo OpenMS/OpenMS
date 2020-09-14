@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
+#include <OpenMS/build_config.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -40,6 +41,10 @@
 
 #include <QSysInfo>
 #include <QDir>
+
+#ifdef _OPENMP
+  #include "omp.h"
+#endif
 
 #if defined(Q_WS_MAC)
   #include <CoreServices/CoreServices.h>
@@ -98,18 +103,13 @@ namespace OpenMS
       info.os_version = getWinOSVersion();
 #elif (defined(__MACH__) && defined(__APPLE__)) // MacOS
       info.os = OS_MACOS;
+#else //Linux
+      info.os = OS_LINUX;
+#endif
+       // check if we can use QSysInfo
+#if (defined(Q_OS_MACOS) || defined(Q_OS_UNIX))
 
-// check if we can use QSysInfo
-#if defined(Q_WS_MAC)
-
-      // query gestalt for detailed osx version information
-      // NOTE: Gestalt will be deprecated at some point in the future where we
-      //       have to look for a better solution
-      SInt32 majorVersion,minorVersion,bugFixVersion;
-      Gestalt(gestaltSystemVersionMajor, &majorVersion);
-      Gestalt(gestaltSystemVersionMinor, &minorVersion);
-      Gestalt(gestaltSystemVersionBugFix, &bugFixVersion);
-      info.os_version = String(majorVersion) + "." + String(minorVersion) + String(".") + String(bugFixVersion);
+      info.os_version = QSysInfo::productVersion();
 
       // identify architecture
       if (QSysInfo::WordSize == 32)
@@ -120,11 +120,6 @@ namespace OpenMS
       {
         info.arch = ARCH_64BIT;
       }
-#endif
-
-#else //Linux
-      info.os = OS_LINUX;
-      //TODO
 #endif
 
       return info;
@@ -229,6 +224,12 @@ int main(int /*argc*/, const char ** /*argv*/)
   cout << "Source path  : " << OPENMS_SOURCE_PATH << "\n";
   cout << "Binary path  : " << OPENMS_BINARY_PATH << "\n";
   cout << "Binary arch  : " << Internal::OpenMS_ArchNames[Internal::getBinaryArchitecture()] << "\n";
+  cout << "Build type   : " << OPENMS_BUILD_TYPE << "\n";
+  #ifdef _OPENMP
+  cout << "OpenMP       : " << "enabled (maxThreads = " << omp_get_max_threads() << ")" << "\n";
+  #else
+  cout << "OpenMP       : " << "disabled" << "\n";
+  #endif
   cout << "\n";
 
   OpenMS::Internal::OpenMSOSInfo info = OpenMS::Internal::getOSInfo();
