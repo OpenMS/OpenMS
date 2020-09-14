@@ -59,17 +59,17 @@ namespace OpenMS
 
     class OpenMSOSInfo
     {
+      OpenMS_OS os;
+      String os_version;
+      OpenMS_Architecture arch;
+
+    public:
       OpenMSOSInfo() :
           os(OS_UNKNOWN),
           os_version("unknown"),
           arch(ARCH_UNKNOWN)
       {}
 
-      OpenMS_OS os;
-      String os_version;
-      OpenMS_Architecture arch;
-
-    public:
       String getOSAsString() const
       {
         return OpenMS_OSNames[os];
