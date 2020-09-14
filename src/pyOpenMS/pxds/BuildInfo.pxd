@@ -17,21 +17,21 @@ cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal":
 
 cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::OpenMSOSInfo":
 
-    OpenMSOSInfo getOpenMSOSInfo()  # wrap-attach:OpenMSOSInfo
+    OpenMSOSInfo getOSInfo() nogil except + # wrap-attach:OpenMSOSInfo
 
-    String getOSAsString() # wrap-attach:OpenMSOSInfo
+    String getOSAsString() nogil except +
 
-    String getArchAsString() # wrap-attach:OpenMSOSInfo
+    String getArchAsString() nogil except +
 
-    String getOSVersionAsString() # wrap-attach:OpenMSOSInfo
+    String getOSVersionAsString() nogil except +
 
-    String getBinaryArchitecture() # wrap-attach:OpenMSOSInfo
+    String getBinaryArchitecture() nogil except + # wrap-attach:OpenMSOSInfo
 
 
 cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::OpenMSBuildInfo":
 
-    bool isOpenMPEnabled() # wrap-attach:OpenMSBuildInfo
+    bool isOpenMPEnabled() nogil except + # wrap-attach:OpenMSBuildInfo
 
-    String getBuildType() # wrap-attach:OpenMSBuildInfo
+    String getBuildType() nogil except + # wrap-attach:OpenMSBuildInfo
 
-    Size getOpenMPMaxNumThreads() # wrap-attach:OpenMSBuildInfo
+    Size getOpenMPMaxNumThreads() nogil except + # wrap-attach:OpenMSBuildInfo
