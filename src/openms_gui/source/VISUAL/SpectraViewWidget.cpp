@@ -416,16 +416,6 @@ namespace OpenMS
         this_selected_item = (int)cl.getPeakData()->getMetaValue("selected_chromatogram");
       }
 
-      spectra_treewidget_->setColumnCount(5);
-      spectra_treewidget_->setColumnWidth(0, 45);
-      spectra_treewidget_->setColumnWidth(1, 45);
-      spectra_treewidget_->setColumnWidth(2, 80);
-      spectra_treewidget_->setColumnWidth(3, 150);
-      spectra_treewidget_->setColumnWidth(4, 80);
-      spectra_treewidget_->setColumnWidth(5, 80);
-      spectra_treewidget_->setColumnWidth(6, 45);
-      spectra_treewidget_->setColumnWidth(7, 80);
-
       // create a different header list
       QStringList header_labels;
       header_labels.append(QString(" type "));
@@ -572,6 +562,10 @@ namespace OpenMS
     { // not enabled
       item->setFlags(Qt::NoItemFlags);
     }
+
+    // automatically set column width, depending on data
+    spectra_treewidget_->header()->setStretchLastSection(false);
+    spectra_treewidget_->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
   }
 
   void SpectraViewWidget::populateSearchBox_()
