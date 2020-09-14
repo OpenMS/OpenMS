@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <array>
