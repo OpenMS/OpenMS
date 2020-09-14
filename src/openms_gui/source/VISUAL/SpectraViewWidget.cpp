@@ -454,41 +454,21 @@ namespace OpenMS
 
       // try to retrieve the map from the cache if available
       // TODO: same precursor mass / different precursors are not supported! 
-      typedef std::set<Precursor, Precursor::MZLess> PCSetType;
-      std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
-      if (map_precursor_to_chrom_idx_cache_.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache_.end())
-      {
-        map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
-      }
-      else
-      {
-
-        // collect all precursor that fall into the mz rt window
-        PCSetType precursor_in_rt_mz_window;
+      bool was_cached = map_precursor_to_chrom_idx_cache_.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache_.end();
+      // create new cache or get the existing one
+      std::map<Precursor, std::vector<Size>, Precursor::MZLess>& map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
+      if (!was_cached)
+      { // create cache: collect all precursor that fall into the mz rt window
         for (std::vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
         {
-          precursor_in_rt_mz_window.insert(iter->getPrecursor());
+          map_precursor_to_chrom_idx[iter->getPrecursor()].push_back(iter - exp->getChromatograms().begin());
         }
-
-        // determine product chromatograms for each precursor
-        for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
-        {
-          for (std::vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
-          {
-            if (iter->getPrecursor() == *pit)
-            {
-              map_precursor_to_chrom_idx[*pit].push_back(iter - exp->getChromatograms().begin());
-            }
-          }
-        }
-
-        map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())] = map_precursor_to_chrom_idx;
       }
 
       if (!map_precursor_to_chrom_idx.empty())
       {
         int precursor_idx = 0;
-        for (std::map<Precursor, std::vector<Size>, Precursor::MZLess>::iterator mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
+        for (auto mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
           QString mz_string = QString::number(mit->first.getMZ());
