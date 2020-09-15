@@ -115,6 +115,13 @@ namespace OpenMS
                                        const int index,
                                        const bool multiple_select)
   {
+    // we do not want addLayer to trigger repaint, since we have not set the chromatogram data!
+    this->blockSignals(true);
+    RAIICleanup clean([&]()
+    {
+      this->blockSignals(false);
+    });
+
     // add chromatogram data as peak spectrum
     if (!addLayer(chrom_exp_sptr, ondisc_sptr, filename))
     {
