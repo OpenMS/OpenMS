@@ -146,7 +146,6 @@ namespace OpenMS
     }
 
     int spectrum_index = current->text(1).toInt();
-
     const QList<QVariant> & res = current->data(0, 0).toList();
     if (res.size() == 0)
     {
@@ -272,7 +271,6 @@ namespace OpenMS
 
     spectra_treewidget_->blockSignals(true);
     RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });
-    spectra_treewidget_->clear();
 
     QTreeWidgetItem* item = nullptr;
     QTreeWidgetItem* selected_item = nullptr;
@@ -284,6 +282,8 @@ namespace OpenMS
     // Branch if the current layer is a spectrum
     if (cl.type == LayerData::DT_PEAK  && !(cl.chromatogram_flag_set()))
     {
+      spectra_treewidget_->clear();
+
       std::vector<QTreeWidgetItem *> parent_stack;
       parent_stack.push_back(nullptr);
       bool fail = false;
@@ -400,11 +400,23 @@ namespace OpenMS
     // type or by the flag which is set).
     else if (cl.type == LayerData::DT_CHROMATOGRAM || cl.chromatogram_flag_set())
     {
-
+      LayerData::ConstExperimentSharedPtrType exp = (cl.chromatogram_flag_set()
+                                                     ? cl.getChromatogramData()
+                                                     : cl.getPeakData());
+      
+      std::cout << "View::updateEntries: " << last_peakmap_ << std::endl;
+      if (last_peakmap_ == cl.getChromatogramData().get())
+      { // underlying data did not change (which is ALWAYS the chromatograms, never peakdata!)
+        // --> Do not update (could be many 10k entries for sqMass data and the lag would be unbearable ...)
+        return;
+      }
+      
+      last_peakmap_ = exp.get();
+      spectra_treewidget_->clear();
+      // New data:
       // We need to redraw the whole Widget because the we have changed all the layers.
       // First we need to figure out which chromatogram was selected and
       // whether multiple ones are selected.
-
       bool multiple_select = false;
       int this_selected_item = -1;
       if (cl.getPeakData()->size() > 0 && cl.getPeakData()->metaValueExists("multiple_select"))
@@ -417,26 +429,10 @@ namespace OpenMS
       }
 
       // create a different header list
-      QStringList header_labels;
-      header_labels.append(QString(" type "));
-      header_labels.append(QString("index"));
-      header_labels.append(QString("m/z"));
-      header_labels.append(QString("Description"));
-      header_labels.append(QString("rt start"));
-      header_labels.append(QString("rt end"));
-      header_labels.append(QString("charge"));
-      header_labels.append(QString("chromatogram type"));
+      QStringList header_labels = QStringList() << " type " << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";
       spectra_treewidget_->setHeaderLabels(header_labels);
       spectra_treewidget_->setColumnCount(header_labels.size());
-
-      LayerData::ConstExperimentSharedPtrType exp;
-      exp = cl.getPeakData();
-
-      if (cl.chromatogram_flag_set())
-      {
-        exp = cl.getChromatogramData();
-      }
-
+           
       if (exp->getChromatograms().size() > 1)
       {
         more_than_one_spectrum = false;

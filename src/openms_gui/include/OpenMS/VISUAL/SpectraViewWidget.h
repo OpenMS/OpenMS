@@ -85,6 +85,10 @@ private:
 
     /// do we currently show data? 
     bool has_data_ = false;
+
+    /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
+    const PeakMap* last_peakmap_ = nullptr;
+
 private slots:
    /// fill the search-combo-box with current column header names
     void populateSearchBox_();

@@ -286,10 +286,8 @@ namespace OpenMS
       // fix legend and set layer name
       caption = fname + "[" + index + "]";
 
-      // add chromatogram data as peak spectrum
+      // add chromatogram data as peak spectrum and update other controls
       widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, false);
-      
-      tv_->updateBarsAndMenus();
     }
   }
 
@@ -330,7 +328,7 @@ namespace OpenMS
         widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, true);
       }
 
-      tv_->updateBarsAndMenus();
+      //tv_->updateBarsAndMenus(); // not needed, since addLayer will do that
     }
   }
 

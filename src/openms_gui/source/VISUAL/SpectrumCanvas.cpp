@@ -635,7 +635,7 @@ namespace OpenMS
     update();
   }
 
-  //this does not work anymore, probably due to Qt::StrongFocus :(
+  //this does not work anymore, probably due to Qt::StrongFocus :( -- todo: delete!
   void SpectrumCanvas::focusOutEvent(QFocusEvent * /*e*/)
   {
     // Alt/Shift pressed and focus lost => change back action mode
