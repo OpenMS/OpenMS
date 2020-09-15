@@ -52,11 +52,6 @@ namespace OpenMS
     enum OpenMS_Architecture {ARCH_UNKNOWN, ARCH_32BIT, ARCH_64BIT};
     std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
 
-    #if WIN32
-    OpenMS_Architecture getArchOnWin();
-    String getWinOSVersion();
-    #endif
-
     class OpenMSOSInfo
     {
       OpenMS_OS os_;
@@ -109,16 +104,15 @@ namespace OpenMS
         OpenMSOSInfo info;
         #if defined(WIN32)  // Windows
         info.os_ = OS_WINDOWS;
-        info.arch_ = getArchOnWin();
-        info.os_version_ = getWinOSVersion();
         #elif (defined(__MACH__) && defined(__APPLE__)) // MacOS
         info.os_ = OS_MACOS;
-        #else //Linux
+        #elif (defined(__unix__)) //Linux/FreeBSD TODO make a difference?
         info.os_ = OS_LINUX;
-        #endif
-        // check if we can use QSysInfo
-        #if (defined(Q_OS_MACOS) || defined(Q_OS_UNIX))
+        #endif // else stays unknown
+
+        // returns something meaningful for basically all important platforms
         info.os_version_ = QSysInfo::productVersion();
+
         // identify architecture
         if (QSysInfo::WordSize == 32)
         {
@@ -128,63 +122,9 @@ namespace OpenMS
         {
           info.arch_ = ARCH_64BIT;
         }
-        #endif
+
         return info;
       }
-
-      //********************
-      //  Windows specific API calls
-      //********************
-      #ifdef WIN32
-      #include <windows.h>
-      #include <stdio.h>
-
-      typedef BOOL (WINAPI * LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
-
-      LPFN_ISWOW64PROCESS fnIsWow64Process;
-
-      OpenMS_Architecture getArchOnWin()
-      {
-        #ifdef OPENMS_64BIT_ARCHITECTURE
-        return ARCH_64BIT;
-
-        #else
-        BOOL bIsWow64 = FALSE;
-
-        //IsWow64Process is not available on all supported versions of Windows.
-        //Use GetModuleHandle to get a handle to the DLL that contains the function
-        //and GetProcAddress to get a pointer to the function if available.
-
-        fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
-          GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
-
-        if (NULL != fnIsWow64Process)
-        {
-          if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
-          {
-            return ARCH_UNKNOWN;
-          }
-        }
-        if (bIsWow64)
-        {
-          return ARCH_64BIT;
-        }
-        else
-        {
-          return ARCH_32BIT;
-        }
-        #endif
-      }
-
-      String getWinOSVersion()
-      {
-        OSVERSIONINFO osvi;
-        ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-        osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-        GetVersionEx(&osvi);
-        return String(osvi.dwMajorVersion) + "." + String(osvi.dwMinorVersion);
-      }
-      #endif // WIN32 API functions
     };
 
 
