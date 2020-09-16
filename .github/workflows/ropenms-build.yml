@@ -1,0 +1,212 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+#
+# See https://github.com/r-lib/actions/tree/master/examples#readme for
+# additional example workflows available for the R community.
+
+name: ropenms-build
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+
+  build-macos:
+    runs-on: "macos-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        r-version: [4.0]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+    
+    # Custom action installs the latest miniconda version and create an environment to manage python dependencies.
+    - uses: conda-incubator/setup-miniconda@v2
+      name: Miniconda Installation
+      with:
+        miniconda-version: "latest"
+        python-version: 3.8
+        activate-environment: ropenms-bld
+        auto-activate-base: false
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        conda env list
+    
+    - name: Install pyopenms
+      run: |
+          # install latest version of pyopenms
+          pip install pyopenms
+          conda deactivate
+
+    # R installation
+    - uses: r-lib/actions/setup-r@v1
+      name: R Installation 
+      with:
+        r-version: ${{ matrix.r-version }}
+    - run : Rscript -e 'print("hello")'
+
+    - name: Install dependencies
+      run: |
+        install.packages(c("remotes","devtools"))
+        remotes::install_deps("OpenMS/src/ropenms",dependencies = TRUE)
+      shell: Rscript {0}
+
+    - name: Build and Check the R package
+      run: |
+        devtools::check(pkg="OpenMS/src/ropenms",document=TRUE,cran = FALSE,vignettes=FALSE,error_on = "error")
+        # binary=TRUE creates a platform specific binary package
+        # setting FALSE (default) produces a platform-agnostic bundled package (*.tar.gz).
+        devtools::build("OpenMS/src/ropenms",path="OpenMS/src",vignettes=FALSE)
+      shell: Rscript {0}
+  
+    - uses: actions/upload-artifact@v2
+      name: Upload Mac Artifact
+      with:
+        name: ropenms_mac
+        path: OpenMS/src/ropenms*.tar.gz
+  
+  build-win:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+
+    # Custom action installs the latest miniconda version and create an environment to manage python dependencies.
+    - uses: conda-incubator/setup-miniconda@v2
+      name: Miniconda Installation
+      with:
+        miniconda-version: "latest"
+        python-version: 3.7
+        activate-environment: ropenms-bld
+        auto-activate-base: false
+    
+    - name: Test Conda Install
+      run: |
+        conda env list
+
+    - name: Install pyopenms
+      run: |
+          # install latest version of pyopenms
+          pip install pyopenms
+          conda deactivate
+
+    # R installation
+    - uses: r-lib/actions/setup-r@v1
+      name: R Installation
+      with:
+        r-version: 'release'
+    
+    - name: Install dependencies
+      run: |
+        install.packages(c("remotes", "devtools"))
+        remotes::install_deps("OpenMS/src/ropenms",dependencies = TRUE)
+      shell: Rscript {0}
+    
+    - name: Build and Check the R package
+      run: |
+        # to run tests on the main architecture (x64) as by default in windows tests are run on both architectures(i386 and x64).
+        devtools::check(pkg="OpenMS/src/ropenms",document=TRUE,cran = FALSE,args="--no-multiarch",vignettes=FALSE,error_on = "error")
+        devtools::build("OpenMS/src/ropenms",path="OpenMS/src",vignettes=FALSE)
+      shell: Rscript {0}
+
+    - uses: actions/upload-artifact@v2
+      name: Upload Windows Artifact
+      with:
+        name: ropenms_win
+        path: OpenMS/src/ropenms*.tar.gz
+
+  build-lnx:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        r-version: [4.0]
+    
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+
+    # Custom action installs the latest miniconda version and create an environment to manage python dependencies.
+    - uses: conda-incubator/setup-miniconda@v2
+      name: Miniconda Installation
+      with:
+        miniconda-version: "latest"
+        python-version: 3.7
+        activate-environment: ropenms-bld
+        auto-activate-base: false
+
+    - name: Test Conda Install
+      run: |
+        conda env list
+
+    - name: Install pyopenms
+      run: |
+          # install latest version of pyopenms
+          pip install pyopenms
+          conda deactivate
+
+    # R installation
+    - uses: r-lib/actions/setup-r@v1
+      name: R Installation
+      with:
+        r-version: ${{ matrix.r-version }}
+
+    - name: Test Rscript
+      run : Rscript -e 'print("hello")'
+
+    - name: Install System Dependencies
+      run: |
+        sudo apt install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev
+
+    - name: Install R Dependencies
+      run: |
+        install.packages(c("remotes","devtools"))
+        remotes::install_deps("OpenMS/src/ropenms",dependencies = TRUE)
+      shell: Rscript {0}
+
+    - name: Build and Check the R package
+      run: |
+        reticulate::use_condaenv("ropenms-bld")
+        devtools::check(pkg="OpenMS/src/ropenms",document=TRUE,cran = FALSE,vignettes=FALSE,error_on = "error")
+        devtools::build("OpenMS/src/ropenms",path="OpenMS/src",vignettes=FALSE)
+      shell: Rscript {0}
+
+    - uses: actions/upload-artifact@v2
+      name: Upload Linux Artifact
+      with:
+        name: ropenms_lnx
+        path: OpenMS/src/ropenms*.tar.gz
+
+
+
+
+    
+
+    
+
+
+
+
+    
+
+
