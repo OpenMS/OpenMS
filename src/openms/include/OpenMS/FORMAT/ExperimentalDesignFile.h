@@ -43,7 +43,7 @@ namespace OpenMS
   class ExperimentalDesign;
   class TextFile; 
   /**
-  @brief Load an ExperimentalDesign from a TSV file.
+  @brief Load an experimental design from a TSV file. (see ExperimentalDesign for details on the supported format)
 
   @ingroup Format
   */
