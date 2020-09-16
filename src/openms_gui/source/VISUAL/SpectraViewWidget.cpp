@@ -33,15 +33,28 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <QtWidgets/QVBoxLayout>
+
+#include <OpenMS/CONCEPT/RAIICleanup.h>
+
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
-#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMenu>
+
 
 namespace OpenMS
 {
+
+  std::vector<int> listToVec(const QList<QVariant>& in)
+  {
+    std::vector<int> out;
+    for (Int i = 0; i != in.size(); ++i)
+    {
+      out.push_back(in[i].toInt());
+    }
+    return out;
+  }
+
   SpectraViewWidget::SpectraViewWidget(QWidget * parent) :
     QWidget(parent)
   {
@@ -78,38 +91,42 @@ namespace OpenMS
     spectra_treewidget_->setContextMenuPolicy(Qt::CustomContextMenu);
     spectra_treewidget_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(spectra_treewidget_, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *)));
-    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(spectrumDoubleClicked_(QTreeWidgetItem *)));
-    connect(spectra_treewidget_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumContextMenu_(const QPoint &)));
-    connect(spectra_treewidget_->header(), SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumBrowserHeaderContextMenu_(const QPoint &)));
+    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraViewWidget::spectrumSelectionChange_);
+    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraViewWidget::spectrumDoubleClicked_);
+    connect(spectra_treewidget_, &QTreeWidget::customContextMenuRequested, this, &SpectraViewWidget::spectrumContextMenu_);
+    connect(spectra_treewidget_->header(), &QHeaderView::customContextMenuRequested, this, &SpectraViewWidget::spectrumBrowserHeaderContextMenu_);
 
     spectra_widget_layout->addWidget(spectra_treewidget_);
 
     QHBoxLayout * tmp_hbox_layout = new QHBoxLayout();
 
-    spectra_search_box_ = new QLineEdit("<search text>", this);
+    spectra_search_box_ = new QLineEdit(this);
+    spectra_search_box_->setPlaceholderText("<search text>");
     spectra_search_box_->setWhatsThis("Search in a certain column. Hits are shown as you type. Press <Enter> to display the first hit.");
+    spectra_search_box_->setToolTip(spectra_search_box_->whatsThis());
 
     spectra_combo_box_ = new QComboBox(this);
     spectra_combo_box_->addItems(qsl);
     spectra_combo_box_->setWhatsThis("Sets the column in which to search.");
+    spectra_combo_box_->setToolTip(spectra_combo_box_->whatsThis());
+
 
     // search whenever text is typed (and highlight the hits)
-    connect(spectra_search_box_, SIGNAL(textEdited(const QString &)), this, SLOT(spectrumSearchText_()));
+    connect(spectra_search_box_, &QLineEdit::textEdited, this, &SpectraViewWidget::spectrumSearchText_);
     // .. show hit upon pressing Enter (internally we search again, since the user could have activated another layer with different selections after last search)
-    connect(spectra_search_box_, SIGNAL(returnPressed()), this, SLOT(searchAndShow_()));
+    connect(spectra_search_box_, &QLineEdit::returnPressed, this, &SpectraViewWidget::searchAndShow_);
 
     tmp_hbox_layout->addWidget(spectra_search_box_);
     tmp_hbox_layout->addWidget(spectra_combo_box_);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
   }
 
-  QTreeWidget * SpectraViewWidget::getTreeWidget()
+  QTreeWidget* SpectraViewWidget::getTreeWidget()
   {
     return spectra_treewidget_;
   }
 
-  QComboBox * SpectraViewWidget::getComboBox()
+  QComboBox* SpectraViewWidget::getComboBox()
   {
     return spectra_combo_box_;
   }
@@ -148,7 +165,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::spectrumSelectionChange_(QTreeWidgetItem * current, QTreeWidgetItem * previous)
+  void SpectraViewWidget::spectrumSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
   {
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
@@ -166,14 +183,8 @@ namespace OpenMS
       emit spectrumSelected(spectrum_index);
     }
     else
-    {
-      // open several chromatograms at once
-      std::vector<int> chrom_indices;
-      for (Int i = 0; i != res.size(); ++i)
-      {
-        chrom_indices.push_back(res[i].toInt());
-      }
-      emit spectrumSelected(chrom_indices);
+    { // open several chromatograms at once
+      emit spectrumSelected(listToVec(res));
     }
 
   }
@@ -199,101 +210,63 @@ namespace OpenMS
       emit spectrumDoubleClicked(spectrum_index);
     }
     else
-    {
-      // open several chromatograms at once
-      std::vector<int> chrom_indices;
-      for (Int i = 0; i != res.size(); ++i)
-      {
-        chrom_indices.push_back(res[i].toInt());
-      }
-      emit spectrumDoubleClicked(chrom_indices);
+    { // open several chromatograms at once
+      emit spectrumDoubleClicked(listToVec(res));
     }
 
   }
 
-  void SpectraViewWidget::spectrumContextMenu_(const QPoint & pos)
+  void SpectraViewWidget::spectrumContextMenu_(const QPoint& pos)
   {
-    QTreeWidgetItem * item = spectra_treewidget_->itemAt(pos);
+    QTreeWidgetItem* item = spectra_treewidget_->itemAt(pos);
     if (item)
     {
       //create menu
       int spectrum_index = item->text(1).toInt();
-      QMenu * context_menu = new QMenu(spectra_treewidget_);
-      context_menu->addAction("Show in 1D view");
-      context_menu->addAction("Meta data");
-      context_menu->addAction("Center here");
-
-      QAction * selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
-      if (selected != nullptr && selected->text() == "Show in 1D view")
+      QMenu context_menu(spectra_treewidget_);
+      context_menu.addAction("Show in 1D view", [&]()
       {
         std::vector<int> chrom_indices;
-        const QList<QVariant> & res = item->data(0, 0).toList();
+        const QList<QVariant>& res = item->data(0, 0).toList();
         if (res.size() == 0)
         {
           emit showSpectrumAs1D(spectrum_index);
         }
         else
-        {
-          // open several chromatograms at once
-          for (Int i = 0; i != res.size(); ++i)
-          {
-            chrom_indices.push_back(res[i].toInt());
-          }
-          emit showSpectrumAs1D(chrom_indices);
+        { // open several chromatograms at once
+          emit showSpectrumAs1D(listToVec(res));
         }
-      }
-      else if (selected != nullptr && selected->text() == "Meta data")
+      });
+      context_menu.addAction("Meta data", [&]() 
       {
         emit showSpectrumMetaData(spectrum_index);
-      }
-      /** TODO
-      else if (selected!=0 && selected->text()=="Center here")
-      {
-        emit centerHere(spectrum_index);
-      }
-      **/
-      delete (context_menu);
+      });
+      // todo: context_menu->addAction("Center here", [&]() {emit centerHere(spectrum_index); });
+
+      context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
     }
   }
 
-  void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint & pos)
+  void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint& pos)
   {
-    //create menu
-    QMenu * context_menu = new QMenu(spectra_treewidget_->header());
+    // allows to hide/show columns
+    QMenu context_menu(spectra_treewidget_->header());
+    const auto& header = spectra_treewidget_->headerItem();
 
-    QStringList header_labels;
-    header_labels.append(QString("MS level"));
-    header_labels.append(QString("index"));
-    header_labels.append(QString("RT"));
-    header_labels.append(QString("precursor m/z"));
-    header_labels.append(QString("dissociation"));
-    header_labels.append(QString("scan type"));
-    header_labels.append(QString("zoom"));
-    for (int i = 0; i < header_labels.size(); ++i)
+    for (int i = 0; i < header->columnCount(); ++i)
     {
-      QAction * tmp = new QAction(header_labels[i], context_menu);
-      tmp->setCheckable(true);
-      tmp->setChecked(!spectra_treewidget_->isColumnHidden(i));
-      context_menu->addAction(tmp);
+      auto action = context_menu.addAction(header->text(i), [i, this](){
+        spectra_treewidget_->setColumnHidden(i, !spectra_treewidget_->isColumnHidden(i));
+      });
+      action->setCheckable(true);
+      action->setChecked(!spectra_treewidget_->isColumnHidden(i));
     }
-
-    //(show and) execute menu
-    QAction * selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
-    if (selected != nullptr)
-    {
-      for (int i = 0; i < header_labels.size(); ++i)
-      {
-        if (selected->text() == header_labels[i])
-        {
-          selected->isChecked() ? spectra_treewidget_->setColumnHidden(i, false)
-          : spectra_treewidget_->setColumnHidden(i, true);
-        }
-      }
-    }
-    delete (context_menu);
+    
+    // show and execute menu
+    context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
   }
 
-  void SpectraViewWidget::updateEntries(const LayerData & cl)
+  void SpectraViewWidget::updateEntries(const LayerData& cl)
   {
     if (!spectra_treewidget_->isVisible() || spectra_treewidget_->signalsBlocked())
     {
@@ -301,12 +274,15 @@ namespace OpenMS
     }
 
     spectra_treewidget_->blockSignals(true);
+    RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });
     spectra_treewidget_->clear();
 
-    QTreeWidgetItem * item = nullptr;
-    QTreeWidgetItem * selected_item = nullptr;
-    QList<QTreeWidgetItem *> toplevel_items;
+    QTreeWidgetItem* item = nullptr;
+    QTreeWidgetItem* selected_item = nullptr;
+    QList<QTreeWidgetItem*> toplevel_items;
     bool more_than_one_spectrum = true;
+
+    has_data_ = true; // for now ...
 
     // Branch if the current layer is a spectrum
     if (cl.type == LayerData::DT_PEAK  && !(cl.chromatogram_flag_set()))
@@ -407,23 +383,7 @@ namespace OpenMS
           {
             const Precursor& current_pc = current_precursors[0];
             precursor_mz = current_pc.getMZ();
-            if (!current_pc.getActivationMethods().empty())
-            {
-              QString t;
-              for (std::set<Precursor::ActivationMethod>::const_iterator it = current_pc.getActivationMethods().begin(); it != current_pc.getActivationMethods().end(); ++it)
-              {
-                if (!t.isEmpty())
-                {
-                  t.append(",");
-                }
-                t.append(QString::fromStdString(current_pc.NamesOfActivationMethod[*(current_pc.getActivationMethods().begin())]));
-              }
-              item->setText(4, t);
-            }
-            else
-            {
-              item->setText(4, "-");
-            }
+            item->setText(4, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
           }
           item->setText(3, QString::number(precursor_mz));
         }
@@ -766,18 +726,20 @@ namespace OpenMS
       item->setText(3, QString::number(0));
       item->setFlags(nullptr);
       spectra_treewidget_->addTopLevelItem(item);
+      has_data_ = false;
     }
 
     if (more_than_one_spectrum && item != nullptr)
     {
       item->setFlags(nullptr);
     }
-
-    spectra_treewidget_->blockSignals(false);
   }
 
-  SpectraViewWidget::~SpectraViewWidget()
+  void SpectraViewWidget::clear()
   {
+    getTreeWidget()->clear();
+    getComboBox()->clear();
+    has_data_ = false;
   }
 
 }

@@ -210,6 +210,7 @@ namespace OpenMS
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, select_sql);
     sqlite3_step(stmt);
+    endProgress();
 
     Size progress = 0;
     startProgress(0, num_transitions, "reading PQP file");

@@ -47,7 +47,7 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
   {
     os << "--LayerData BEGIN--" << std::endl;
-    os << "name: " << rhs.name << std::endl;
+    os << "name: " << rhs.getName() << std::endl;
     os << "visible: " << rhs.visible << std::endl;
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
     os << "--LayerData END--" << std::endl;
@@ -126,7 +126,7 @@ namespace OpenMS
       else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
       {
         // copy user annotations to fragment annotation vector
-        Annotations1DContainer & las = getAnnotations(current_spectrum_);
+        const Annotations1DContainer & las = getAnnotations(current_spectrum_);
 
         // no annotations so we don't need to synchronize
         bool has_peak_annotation(false);
@@ -170,7 +170,7 @@ namespace OpenMS
   void LayerData::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
-    Annotations1DContainer & las = getCurrentAnnotations();
+    const Annotations1DContainer & las = getCurrentAnnotations();
 
     // initialize with an empty vector
     vector<PeptideHit::PeakAnnotation> fas;

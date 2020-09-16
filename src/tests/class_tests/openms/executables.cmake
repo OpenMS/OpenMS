@@ -52,6 +52,7 @@ set(datastructures_executables_list
   DefaultParamHandler_test
   DistanceMatrix_test
   FASTAContainer_test
+  FlagSet_test
   GridBasedCluster_test
   GridBasedClustering_test
   GridFeature_test

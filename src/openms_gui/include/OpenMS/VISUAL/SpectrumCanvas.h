@@ -89,10 +89,6 @@ namespace OpenMS
       - Measure mode
         - Activated using the SHIFT key
 
-      @improvement Add log mode (Hiwi)
-
-      @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
-
       @ingroup SpectrumWidgets
   */
   class OPENMS_GUI_DLLAPI SpectrumCanvas :
@@ -344,6 +340,15 @@ public:
     virtual void activateLayer(Size layer_index) = 0;
     ///removes the layer with index @p layer_index
     virtual void removeLayer(Size layer_index) = 0;
+
+    /// removes all layers by calling removeLayer() for all layer indices (from highest to lowest)
+    void removeLayers()
+    {
+      for (Size i = getLayerCount(); i > 0; --i)
+      {
+        removeLayer(i-1);
+      }
+    }
 
     /**
         @brief Add a peak data layer
@@ -929,7 +934,7 @@ protected:
     QRubberBand rubber_band_;
 
     /// External context menu extension
-    QMenu * context_add_;
+    QMenu* context_add_;
 
     /// Flag that determines if timing data is printed to the command line
     bool show_timing_;
