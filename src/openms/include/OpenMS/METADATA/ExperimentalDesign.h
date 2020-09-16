@@ -72,7 +72,8 @@ namespace OpenMS
 
     - Spectra_Filepath: a filename or path as string representation (e.g., SILAC_file.mzML)
 
-    The optional sample columns are typically MSstats_Condition and MSstats_BioReplicate.
+    For processing with MSstats, the optional sample columns are typically MSstats_Condition and MSstats_BioReplicate with an additonal MSstats_Mixture
+    column in the case of TMT labeling.
     They capture the experimental factors and conditions associated with a sample.
 
     - MSstats_Condition: a string that indicates the condition (e.g. control or 1000 mMol). Will be forwarded to MSstats and 
@@ -82,6 +83,10 @@ namespace OpenMS
                           E.g., if MSstats_Condition, Fraction_Group group, and Fraction number are the same - 
                           as in the case of biological or technical replication, 
                           one uses the MSstats_BioReplicate to make entries non-unique)
+                          
+    - MSstats_Mixture: (for TMT labeling only): a numeric identifier to indicate the mixture of samples labeled with different TMT reagents, which can be analyzed in
+                                             a single mass spectrometry experiment. E.g., same samples labeled with different TMT reagents have a different mixture identifier. 
+                                             Technical replicates need to have the same mixture identifer.
 
     For details on the MSstats columns please refer to the MSstats manual for details
     (https://www.bioconductor.org/packages/release/bioc/vignettes/MSstats/inst/doc/MSstats.html).
