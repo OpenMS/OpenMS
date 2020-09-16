@@ -105,7 +105,7 @@ namespace OpenMS
     SpectrumCanvas* cc = tv_->getActiveCanvas();
     Size layer_row = (cc == nullptr ? -1 : cc->getCurrentLayerIndex());
 
-    if (cc == nullptr || layer_row == -1)
+    if (cc == nullptr || layer_row == (Size)-1)
     {
       spectra_view_widget_->clear();
       id_view_widget_->clear();

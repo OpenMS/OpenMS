@@ -126,10 +126,10 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.contains(FileTypes::BZ2), true);
   TEST_EQUAL(list.contains(FileTypes::MZDATA), false);
 
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*);;")
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*);;")
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*);;")
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;")
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
 END_SECTION
 
 END_TEST

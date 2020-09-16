@@ -90,7 +90,7 @@ namespace OpenMS
 
       LayerData& getLayer(const Size index)
       {
-        if (index < 0 || index >= layers_.size())
+        if (index >= layers_.size())
         {
           throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
         }

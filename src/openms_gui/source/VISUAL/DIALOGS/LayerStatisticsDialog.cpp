@@ -46,9 +46,9 @@ namespace OpenMS
 
   LayerStatisticsDialog::LayerStatisticsDialog(SpectrumWidget * parent) :
     QDialog(parent),
-    ui_(new Ui::LayerStatisticsDialogTemplate),
     canvas_(parent->canvas()),
-    layer_data_(canvas_->getCurrentLayer())
+    layer_data_(canvas_->getCurrentLayer()),
+    ui_(new Ui::LayerStatisticsDialogTemplate)
   {
     ui_->setupUi(this);
     
