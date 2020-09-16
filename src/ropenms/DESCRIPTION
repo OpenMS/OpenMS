@@ -5,7 +5,7 @@ Version: 1.0.0
 Author: Shekhar Shukla
 Maintainer: Shekhar <nk.shekhar24@gmail.com>
 Description: This package provides access to the classes of pyopenms
-	 library(https://pyopenms.readthedocs.io/en/latest/#)
+	library(https://pyopenms.readthedocs.io/en/latest/#)
 Config/reticulate:
   list(
     packages = list(
@@ -15,11 +15,11 @@ Config/reticulate:
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.1.1
 Imports:
     R6,
     reticulate,
     purrr,
-    plotrix,
     collections
 Collate:
     'imports.R'
@@ -27,5 +27,4 @@ Collate:
 Roxygen: list(markdown = TRUE)
 Suggests:
     testthat
-RoxygenNote: 7.1.1
 

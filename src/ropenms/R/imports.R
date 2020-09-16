@@ -2,12 +2,10 @@
 #' @import R6
 #' @import purrr
 
-listDepth <- NULL
 Pymod <- NULL
 npy <- NULL
 py_builtin <- NULL
 r_to_py <- NULL
-
 
 .onLoad <- function(libname, pkgname) {
    reticulate::configure_environment(pkgname)
@@ -15,7 +13,6 @@ r_to_py <- NULL
    npy <<- reticulate::import("numpy", convert = F, delay_load = TRUE)
    r_to_py <<- reticulate::r_to_py
    py_builtin <<- reticulate::import_builtins(convert = F)
-   listDepth <<- plotrix::listDepth
 }
 
 # R6 class object conversion to underlying python object.
