@@ -68,7 +68,6 @@ namespace OpenMS
     zoom_stack_(),
     zoom_pos_(zoom_stack_.end()),
     update_buffer_(false),
-    current_layer_(0),
     spectrum_widget_(nullptr),
     percentage_factor_(1.0),
     snap_factors_(1, 1.0),
@@ -86,9 +85,6 @@ namespace OpenMS
 
     setMinimumSize(200, 200);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-
-    //reserve enough space to avoid copying layer data
-    layers_.reserve(10);
 
     //set common defaults for all canvases
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
@@ -128,7 +124,7 @@ namespace OpenMS
   void SpectrumCanvas::setFilters(const DataFilters& filters)
   {
     //set filters
-    layers_[current_layer_].filters = filters;
+    layers_.getCurrentLayer().filters = filters;
     //update the content
     update_buffer_ = true;
     update_(OPENMS_PRETTY_FUNCTION);
@@ -385,11 +381,6 @@ namespace OpenMS
     painter.restore();
   }
 
-  Size SpectrumCanvas::activeLayerIndex() const
-  {
-    return current_layer_;
-  }
-
   bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename)
   {
     LayerData new_layer;
@@ -417,15 +408,8 @@ namespace OpenMS
     {
       new_layer.type = LayerData::DT_PEAK;
     }
-
-    // insert after last layer of same type, 
-    // if there is no such layer after last layer of previous types, 
-    // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
-      { return l.type <= new_layer.type; });
-      
-    layers_.insert(it.base(), std::move(new_layer));
-
+    
+    layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
@@ -438,13 +422,7 @@ namespace OpenMS
     new_layer.getFeatureMap() = map;
     new_layer.type = LayerData::DT_FEATURE;
 
-    // insert after last layer of same type, 
-    // if there is no such layer after last layer of previous types, 
-    // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
-      { return l.type <= new_layer.type; });
-      
-    layers_.insert(it.base(), std::move(new_layer));
+    layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
@@ -457,13 +435,7 @@ namespace OpenMS
     new_layer.getConsensusMap() = map;
     new_layer.type = LayerData::DT_CONSENSUS;
 
-    // insert after last layer of same type, 
-    // if there is no such layer after last layer of previous types, 
-    // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
-      { return l.type <= new_layer.type; });
-      
-    layers_.insert(it.base(), std::move(new_layer));
+    layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
@@ -477,27 +449,19 @@ namespace OpenMS
     new_layer.peptides.swap(peptides);
     new_layer.type = LayerData::DT_IDENT;
 
-    // insert after last layer of same type, 
-    // if there is no such layer after last layer of previous types, 
-    // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
-      { return l.type <= new_layer.type; });
-      
-    layers_.insert(it.base(), std::move(new_layer));
+    layers_.addLayer(std::move(new_layer));
     return finishAdding_(); 
   }
 
   void SpectrumCanvas::popIncompleteLayer_(const QString& error_message)
   {
-    layers_.pop_back();
-    current_layer_ = layers_.size() - 1;
+    layers_.removeCurrentLayer();
     if (!error_message.isEmpty()) QMessageBox::critical(this, "Error", error_message);
   }
 
   void SpectrumCanvas::setLayerName(Size i, const String & name)
   {
-    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i, name) index overflow");
-    getLayer_(i).setName(name);
+    getLayer(i).setName(name);
     if (i == 0 && spectrum_widget_) 
     {
       spectrum_widget_->setWindowTitle(name.toQString());
@@ -506,14 +470,12 @@ namespace OpenMS
 
   String SpectrumCanvas::getLayerName(const Size i)
   {
-    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::getLayerName(i) index overflow");
-    return getLayer_(i).getName();
+    return getLayer(i).getName();
   }
 
   void SpectrumCanvas::changeVisibility(Size i, bool b)
   {
-    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i, b) index overflow");
-    LayerData & layer = getLayer_(i);
+    LayerData& layer = getLayer(i);
     if (layer.visible != b)
     {
       layer.visible = b;
@@ -524,8 +486,7 @@ namespace OpenMS
 
   void SpectrumCanvas::changeLayerFilterState(Size i, bool b)
   {
-    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
-    LayerData & layer = getLayer_(i);
+    LayerData & layer = getLayer(i);
     if (layer.filters.isActive() != b)
     {
       layer.filters.setActive(b);
@@ -884,26 +845,19 @@ namespace OpenMS
   void SpectrumCanvas::getVisibleIdentifications(vector<PeptideIdentification> &
                                                  peptides) const
   {
-    //clear output experiment
     peptides.clear();
 
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
     if (layer.type == LayerData::DT_IDENT)
     {
-      //Visible area
-      double min_rt = getVisibleArea().minPosition()[1];
-      double max_rt = getVisibleArea().maxPosition()[1];
-      double min_mz = getVisibleArea().minPosition()[0];
-      double max_mz = getVisibleArea().maxPosition()[0];
-      //copy features
+      // copy peptides, if visible
       for (vector<PeptideIdentification>::const_iterator it =
              layer.peptides.begin(); it != layer.peptides.end(); ++it)
       {
         double rt = it->getRT();
-        double mz = getIdentificationMZ_(current_layer_, *it);
+        double mz = getIdentificationMZ_(layers_.getCurrentLayerIndex(), *it);
         // TODO: if (layer.filters.passes(*it) && ...)
-        if ((rt >= min_rt) && (rt <= max_rt) &&
-            (mz >= min_mz) && (mz <= max_mz))
+        if (getVisibleArea().encloses(mz, rt))
         {
           peptides.push_back(*it);
         }
@@ -913,7 +867,7 @@ namespace OpenMS
 
   void SpectrumCanvas::showMetaData(bool modifiable, Int index)
   {
-    LayerData & layer = getCurrentLayer_();
+    LayerData& layer = getCurrentLayer();
 
     MetaDataBrowser dlg(modifiable, this);
     if (index == -1)
@@ -971,7 +925,7 @@ namespace OpenMS
     //if the meta data was modified, set the flag
     if (modifiable && dlg.exec())
     {
-      modificationStatus_(activeLayerIndex(), true);
+      modificationStatus_(getCurrentLayerIndex(), true);
     }
   }
 
@@ -995,7 +949,7 @@ namespace OpenMS
 
   void SpectrumCanvas::modificationStatus_(Size layer_index, bool modified)
   {
-    LayerData & layer = getLayer_(layer_index);
+    LayerData & layer = getLayer(layer_index);
     if (layer.modified != modified)
     {
       layer.modified = modified;
@@ -1004,7 +958,7 @@ namespace OpenMS
       cout << "emit: layerModificationChange" << endl;
       cout << "END " << OPENMS_PRETTY_FUNCTION << endl;
 #endif
-      emit layerModficationChange(activeLayerIndex(), modified);
+      emit layerModficationChange(getCurrentLayerIndex(), modified);
     }
   }
 

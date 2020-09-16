@@ -1337,7 +1337,7 @@ namespace OpenMS
   {
     if (getActiveCanvas())
     {
-      getActiveCanvas()->changeLayerFilterState(getActiveCanvas()->activeLayerIndex(), on);
+      getActiveCanvas()->changeLayerFilterState(getActiveCanvas()->getCurrentLayerIndex(), on);
     }
   }
 
@@ -2137,7 +2137,7 @@ namespace OpenMS
     {
       caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
     }
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
     updateMenu();
   }
@@ -2208,7 +2208,7 @@ namespace OpenMS
     {
       caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
     }
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
     updateMenu();
   }
@@ -2292,7 +2292,7 @@ namespace OpenMS
     {
       caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
     }
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
     updateMenu();
   }
@@ -2373,7 +2373,7 @@ namespace OpenMS
 
     // set layer name
     String caption = layer.getName() + CAPTION_3D_SUFFIX_;
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
 
     // set intensity mode (after spectrum has been added!)

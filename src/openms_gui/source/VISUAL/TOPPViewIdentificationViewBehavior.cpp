@@ -109,7 +109,7 @@ namespace OpenMS
       }
 
       String caption = layer.getName();
-      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+      w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
       tv_->showSpectrumWidgetInWindow(w, caption);
 
@@ -898,7 +898,7 @@ namespace OpenMS
     AASequence aa_sequence = ph.getSequence();
 
     // get measured spectrum indices and spectrum
-    Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
+    Size current_spectrum_layer_index = current_canvas->getCurrentLayerIndex();
     Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
 
     const Param& tv_params = tv_->getParameters();
@@ -964,7 +964,7 @@ namespace OpenMS
     tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
 
     // get layer index of new layer
-    Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
+    Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->getCurrentLayerIndex();
 
     // kind of a hack to check whether adding the layer was successful
     if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !spectrum.getStringDataArrays().empty())

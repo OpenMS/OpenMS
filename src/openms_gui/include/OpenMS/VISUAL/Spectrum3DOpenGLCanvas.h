@@ -46,6 +46,7 @@
 namespace OpenMS
 {
   class Spectrum3DCanvas;
+  class LayerData;
 
   /**
       @brief OpenGL Canvas for 3D-visualization of map data
@@ -145,18 +146,16 @@ protected:
     double scaledInversMZ_(double mz);
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
     double scaledIntensity_(float intensity, Size layer_index);
-
+    
     /// recalculates the dot gradient interpolation values.
-    void recalculateDotGradient_(Size layer);
+    void recalculateDotGradient_(LayerData& layer);
     ///calculate the ticks for the gridlines
     void calculateGridLines_();
 
-    /// normalize the angel
-    void normalizeAngle(int * angle);
+    /// normalize the angle by "angle % 360*16"
+    void normalizeAngle(int* angle);
     // set translation vector to 0
     void resetTranslation();
-    //document me
-    void timeMessure();
 
     /// stores the original rotation and zoom factor (e.g. before changing into zoom mode)
     void storeRotationAndZoom();

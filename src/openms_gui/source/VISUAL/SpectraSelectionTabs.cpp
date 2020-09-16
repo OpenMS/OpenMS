@@ -103,7 +103,7 @@ namespace OpenMS
     });
 
     SpectrumCanvas* cc = tv_->getActiveCanvas();
-    int layer_row = (cc == nullptr ? -1 : (int)cc->activeLayerIndex());
+    Size layer_row = (cc == nullptr ? -1 : cc->getCurrentLayerIndex());
 
     if (cc == nullptr || layer_row == -1)
     {

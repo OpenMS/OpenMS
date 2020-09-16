@@ -62,6 +62,110 @@ namespace OpenMS
 {
   class SpectrumWidget;
 
+  class LayerStack
+  {
+    public:
+      /// adds a new layer and makes it the current layer
+      void addLayer(LayerData&& new_layer)
+      {
+        // insert after last layer of same type, 
+        // if there is no such layer after last layer of previous types, 
+        // if there are no layers at all put at front
+        auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l)
+        { return l.type <= new_layer.type; });
+
+        auto where = layers_.insert(it.base(), std::move(new_layer));
+        // update to index we just inserted into
+        current_layer_ = where - layers_.begin();
+      }
+
+      const LayerData& getLayer(const Size index) const
+      {
+        if (index >= layers_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
+        }
+        return layers_[index];
+      }
+
+      LayerData& getLayer(const Size index)
+      {
+        if (index < 0 || index >= layers_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
+        }
+        return layers_[index];
+      }
+
+      const LayerData& getCurrentLayer() const
+      {
+        if (current_layer_ >= layers_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
+        }
+        return layers_[current_layer_];
+      }
+
+      LayerData& getCurrentLayer()
+      {
+        if (current_layer_ >= layers_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
+        }
+        return layers_[current_layer_];
+      }
+
+      void setCurrentLayer(Size index)
+      {
+        if (index >= layers_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
+        }
+        current_layer_ = index;
+      }
+
+
+      Size getCurrentLayerIndex() const
+      {
+        return current_layer_;
+      }
+      
+      bool empty() const
+      {
+        return layers_.empty();
+      }
+
+      Size getLayerCount() const
+      {
+        return layers_.size();
+      }
+
+      void removeLayer(Size layer_index)
+      {
+        if (layer_index >= layers_.size())
+        {
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, layer_index, layers_.size());
+        }
+        layers_.erase(layers_.begin() + layer_index);
+
+        // update current layer if it became invalid
+        if (current_layer_ >= getLayerCount())
+        {
+          current_layer_ = getLayerCount() - 1; // overflow is intentional
+        }
+      }
+
+      void removeCurrentLayer()
+      {
+        removeLayer(current_layer_);
+      }
+  
+  protected:
+      std::vector<LayerData> layers_;
+  private:
+      Size current_layer_ = -1;
+  };
+
   /**
       @brief Base class for visualization canvas classes
 
@@ -228,49 +332,49 @@ public:
     }
 
     /// returns the layer data with index @p index
-    inline const LayerData & getLayer(Size index) const
+    inline const LayerData& getLayer(Size index) const
     {
-      OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer(index) index overflow");
-      return layers_[index];
+      return layers_.getLayer(index);
+    }
+    /// returns the layer data with index @p index
+    inline LayerData& getLayer(Size index)
+    {
+      return layers_.getLayer(index);
     }
 
     /// returns the layer data of the active layer
-    inline const LayerData & getCurrentLayer() const
+    inline const LayerData& getCurrentLayer() const
     {
-      OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getCurrentLayer() index overflow");
-      return layers_[current_layer_];
+      return layers_.getCurrentLayer();
+    }
+    /// returns the layer data of the active layer
+    inline LayerData& getCurrentLayer()
+    {
+      return layers_.getCurrentLayer();
     }
 
     /// returns the index of the active layer
     inline Size getCurrentLayerIndex() const
     {
-      return current_layer_;
-    }
-
-    /// returns the layer data of the active layer
-    inline LayerData & getCurrentLayer()
-    {
-      OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getCurrentLayer() index overflow");
-      return layers_[current_layer_];
+      return layers_.getCurrentLayerIndex();
     }
 
     /// returns a layer flag of the current layer
     bool getLayerFlag(LayerData::Flags f) const
     {
-      return getLayerFlag(current_layer_, f);
+      return getLayerFlag(layers_.getCurrentLayerIndex(), f);
     }
 
     /// sets a layer flag of the current layer
     void setLayerFlag(LayerData::Flags f, bool value)
     {
-      setLayerFlag(current_layer_, f, value);
+      setLayerFlag(layers_.getCurrentLayerIndex(), f, value);
     }
 
     /// returns a layer flag of the layer @p layer
     bool getLayerFlag(Size layer, LayerData::Flags f) const
     {
-      OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::getLayerFlag() index overflow");
-      return layers_[layer].flags.test(f);
+      return layers_.getLayer(layer).flags.test(f);
     }
 
     /// sets a layer flag of the layer @p layer
@@ -279,9 +383,7 @@ public:
       //abort if there are no layers
       if (layers_.empty()) return;
 
-      OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::setLayerFlag() index overflow");
-
-      layers_[layer].flags.set(f, value);
+      layers_.getLayer(layer).flags.set(f, value);
       update_buffer_ = true;
       update();
     }
@@ -290,10 +392,7 @@ public:
     {
       //abort if there are no layers
       if (layers_.empty()) return;
-
-      OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::setLabel() index overflow");
-      layers_[current_layer_].label = label;
-
+      layers_.getCurrentLayer().label = label;
       update_buffer_ = true;
       update();
     }
@@ -331,11 +430,9 @@ public:
     /// Returns the number of layers
     inline Size getLayerCount() const
     {
-      return layers_.size();
+      return layers_.getLayerCount();
     }
 
-    /// Returns the index of the active layer
-    Size activeLayerIndex() const;
     ///change the active layer (the one that is used for selecting and so on)
     virtual void activateLayer(Size layer_index) = 0;
     ///removes the layer with index @p layer_index
@@ -400,69 +497,25 @@ public:
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
     {
-      if (getCurrentLayer().type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
-      {
-        return getCurrentLayer().getPeakData()->getMinInt();
-      }
-      else if (getCurrentLayer().type == LayerData::DT_FEATURE)
-      {
-        return getCurrentLayer().getFeatureMap()->getMinInt();
-      }
-      else
-      {
-        return getCurrentLayer().getConsensusMap()->getMinInt();
-      }
+      return layers_.getCurrentLayer().getMinIntensity();
     }
 
     /// Returns the maximum intensity of the active layer
     inline float getCurrentMaxIntensity() const
     {
-      if (getCurrentLayer().type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
-      {
-        return getCurrentLayer().getPeakData()->getMaxInt();
-      }
-      else if (getCurrentLayer().type == LayerData::DT_FEATURE)
-      {
-        return getCurrentLayer().getFeatureMap()->getMaxInt();
-      }
-      else
-      {
-        return getCurrentLayer().getConsensusMap()->getMaxInt();
-      }
+      return layers_.getCurrentLayer().getMaxIntensity();
     }
 
     /// Returns the minimum intensity of the layer with index @p index
     inline float getMinIntensity(Size index) const
     {
-      if (getLayer(index).type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
-      {
-        return getLayer(index).getPeakData()->getMinInt();
-      }
-      else if (getLayer(index).type == LayerData::DT_FEATURE)
-      {
-        return getLayer(index).getFeatureMap()->getMinInt();
-      }
-      else
-      {
-        return getLayer(index).getConsensusMap()->getMinInt();
-      }
+      return getLayer(index).getMinIntensity();
     }
 
     /// Returns the maximum intensity of the layer with index @p index
     inline float getMaxIntensity(Size index) const
     {
-      if (getLayer(index).type == LayerData::DT_PEAK || getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
-      {
-        return getLayer(index).getPeakData()->getMaxInt();
-      }
-      else if (getLayer(index).type == LayerData::DT_FEATURE)
-      {
-        return getLayer(index).getFeatureMap()->getMaxInt();
-      }
-      else
-      {
-        return getLayer(index).getConsensusMap()->getMaxInt();
-      }
+      return getLayer(index).getMaxIntensity();
     }
 
     /// Sets the @p name of layer @p i
@@ -472,9 +525,9 @@ public:
     String getLayerName(Size i);
 
     /// Sets the parameters of the current layer
-    inline void setCurrentLayerParameters(const Param & param)
+    inline void setCurrentLayerParameters(const Param& param)
     {
-      getCurrentLayer_().param = param;
+      getCurrentLayer().param = param;
       emit preferencesChange();
     }
 
@@ -677,19 +730,6 @@ protected:
     /// @param error_message Optional error message to show as messagebox
     void popIncompleteLayer_(const QString& error_message = "");
 
-    /// Returns the layer with index @p index
-    inline LayerData& getLayer_(Size index)
-    {
-      OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
-      return layers_[index];
-    }
-
-    /// Returns the currently active layer
-    inline LayerData& getCurrentLayer_()
-    {
-      return getLayer_(current_layer_);
-    }
-
     ///@name reimplemented QT events
     //@{
     void resizeEvent(QResizeEvent * e) override;
@@ -846,7 +886,7 @@ protected:
     IntensityModes intensity_mode_;
 
     /// Layer data
-    std::vector<LayerData> layers_;
+    LayerStack layers_;
 
     /// Stores the mapping of m/z
     bool mz_to_x_axis_;
@@ -903,9 +943,6 @@ protected:
 
     /// Whether to recalculate the data in the buffer when repainting
     bool update_buffer_;
-
-    /// Stores the index of the currently active layer.
-    Size current_layer_;
 
     /// Changes the size of the paint buffer to the currently required size
     void adjustBuffer_();

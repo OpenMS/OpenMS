@@ -185,6 +185,17 @@ public:
       annotations_1d.resize(1);
     }
 
+    /// no Copy-ctor (should not be needed)
+    LayerData(const LayerData& ld) = delete;
+    /// no assignment operator (should not be needed)
+    LayerData& operator=(const LayerData& ld) = delete;
+
+    /// move Ctor
+    LayerData(LayerData&& ld) = default;
+
+    /// move assignment
+    LayerData& operator=(LayerData&& ld) = default;
+
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
     {
@@ -393,6 +404,40 @@ public:
     (spectra, chromatograms, features etc).
     */
     void updateRanges();
+
+    /// Returns the minimum intensity of the internal data, depending on type
+    inline float getMinIntensity() const
+    {
+      if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+      {
+        return getPeakData()->getMinInt();
+      }
+      else if (type == LayerData::DT_FEATURE)
+      {
+        return getFeatureMap()->getMinInt();
+      }
+      else
+      {
+        return getConsensusMap()->getMinInt();
+      }
+    }
+
+    /// Returns the maximum intensity of the internal data, depending on type
+    inline float getMaxIntensity() const
+    {
+      if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+      {
+        return getPeakData()->getMaxInt();
+      }
+      else if (type == LayerData::DT_FEATURE)
+      {
+        return getFeatureMap()->getMaxInt();
+      }
+      else
+      {
+        return getConsensusMap()->getMaxInt();
+      }
+    }
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated

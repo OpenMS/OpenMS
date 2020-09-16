@@ -180,7 +180,7 @@ namespace OpenMS
 
     // basic behavior 2
     String caption = layer.getName();
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
     tv_->showSpectrumWidgetInWindow(w, caption);
     tv_->updateLayerBar();
@@ -225,7 +225,7 @@ namespace OpenMS
         {
           return;
         }
-        w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), chromatogram_caption);
+        w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), chromatogram_caption);
         w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
 
         w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
