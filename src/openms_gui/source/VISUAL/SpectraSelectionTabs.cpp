@@ -160,19 +160,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
     Spectrum2DWidget* widget_2d = tv_->getActive2DWidget();
 
-    if (widget_1d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_->showSpectrumAs1D(index);
-      }
-
-      if (id_view_widget_->isVisible())
-      {
-        idview_behaviour_->showSpectrumAs1D(index);
-      }
-    }
-    else if (widget_2d)
+    if (widget_1d || widget_2d)
     {
       if (spectra_view_widget_->isVisible())
       {
