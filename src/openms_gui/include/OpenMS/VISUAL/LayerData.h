@@ -406,38 +406,10 @@ public:
     void updateRanges();
 
     /// Returns the minimum intensity of the internal data, depending on type
-    inline float getMinIntensity() const
-    {
-      if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
-      {
-        return getPeakData()->getMinInt();
-      }
-      else if (type == LayerData::DT_FEATURE)
-      {
-        return getFeatureMap()->getMinInt();
-      }
-      else
-      {
-        return getConsensusMap()->getMinInt();
-      }
-    }
+    float getMinIntensity() const;
 
     /// Returns the maximum intensity of the internal data, depending on type
-    inline float getMaxIntensity() const
-    {
-      if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
-      {
-        return getPeakData()->getMaxInt();
-      }
-      else if (type == LayerData::DT_FEATURE)
-      {
-        return getFeatureMap()->getMaxInt();
-      }
-      else
-      {
-        return getConsensusMap()->getMaxInt();
-      }
-    }
+    float getMaxIntensity() const;
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
@@ -504,23 +476,9 @@ public:
     int peptide_hit_index;
 
     /// get name augmented with attributes, e.g. [flipped], or '*' if modified
-    String getDecoratedName() const
-    {
-      String n = name_;
-      if (flipped)
-      {
-        n += " [flipped]";
-      }
-      if (modified)
-      {
-        n += '*';
-      }
-      return n;
-    }
+    String getDecoratedName() const;
 
 private:
-
-
     /// Update current cached spectrum for easy retrieval
     void updateCache_();
 
@@ -547,7 +505,6 @@ private:
 
     /// Current cached spectrum
     ExperimentType::SpectrumType cached_spectrum_;
-
   };
 
   /// Print the contents to a stream.

@@ -1008,4 +1008,100 @@ namespace OpenMS
     }
   }
 
+
+  /// adds a new layer and makes it the current layer
+
+  void LayerStack::addLayer(LayerData&& new_layer)
+  {
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l)
+    { return l.type <= new_layer.type; });
+
+    auto where = layers_.insert(it.base(), std::move(new_layer));
+    // update to index we just inserted into
+    current_layer_ = where - layers_.begin();
+  }
+
+  const LayerData& LayerStack::getLayer(const Size index) const
+  {
+    if (index >= layers_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
+    }
+    return layers_[index];
+  }
+
+  LayerData& LayerStack::getLayer(const Size index)
+  {
+    if (index >= layers_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
+    }
+    return layers_[index];
+  }
+
+  const LayerData& LayerStack::getCurrentLayer() const
+  {
+    if (current_layer_ >= layers_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
+    }
+    return layers_[current_layer_];
+  }
+
+  LayerData& LayerStack::getCurrentLayer()
+  {
+    if (current_layer_ >= layers_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
+    }
+    return layers_[current_layer_];
+  }
+
+  void LayerStack::setCurrentLayer(Size index)
+  {
+    if (index >= layers_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
+    }
+    current_layer_ = index;
+  }
+
+  Size LayerStack::getCurrentLayerIndex() const
+  {
+    return current_layer_;
+  }
+
+  bool LayerStack::empty() const
+  {
+    return layers_.empty();
+  }
+
+  Size LayerStack::getLayerCount() const
+  {
+    return layers_.size();
+  }
+
+  void LayerStack::removeLayer(Size layer_index)
+  {
+    if (layer_index >= layers_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, layer_index, layers_.size());
+    }
+    layers_.erase(layers_.begin() + layer_index);
+
+    // update current layer if it became invalid
+    if (current_layer_ >= getLayerCount())
+    {
+      current_layer_ = getLayerCount() - 1; // overflow is intentional
+    }
+  }
+
+  void LayerStack::removeCurrentLayer()
+  {
+    removeLayer(current_layer_);
+  }
+
 } //namespace

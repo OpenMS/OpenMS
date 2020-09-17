@@ -62,103 +62,38 @@ namespace OpenMS
 {
   class SpectrumWidget;
 
+
+  /**
+    A class to manage a stack of layers as shown in the layer widget in TOPPView.
+    The order of layers is automatically determined based on LayerData::type (in short: peak data below, ID data on top).
+
+  */
   class LayerStack
   {
     public:
       /// adds a new layer and makes it the current layer
-      void addLayer(LayerData&& new_layer)
-      {
-        // insert after last layer of same type, 
-        // if there is no such layer after last layer of previous types, 
-        // if there are no layers at all put at front
-        auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l)
-        { return l.type <= new_layer.type; });
+      void addLayer(LayerData&& new_layer);
 
-        auto where = layers_.insert(it.base(), std::move(new_layer));
-        // update to index we just inserted into
-        current_layer_ = where - layers_.begin();
-      }
+      const LayerData& getLayer(const Size index) const;
 
-      const LayerData& getLayer(const Size index) const
-      {
-        if (index >= layers_.size())
-        {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
-        }
-        return layers_[index];
-      }
+      LayerData& getLayer(const Size index);
 
-      LayerData& getLayer(const Size index)
-      {
-        if (index >= layers_.size())
-        {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
-        }
-        return layers_[index];
-      }
+      const LayerData& getCurrentLayer() const;
 
-      const LayerData& getCurrentLayer() const
-      {
-        if (current_layer_ >= layers_.size())
-        {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
-        }
-        return layers_[current_layer_];
-      }
+      LayerData& getCurrentLayer();
 
-      LayerData& getCurrentLayer()
-      {
-        if (current_layer_ >= layers_.size())
-        {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, current_layer_, layers_.size());
-        }
-        return layers_[current_layer_];
-      }
-
-      void setCurrentLayer(Size index)
-      {
-        if (index >= layers_.size())
-        {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, layers_.size());
-        }
-        current_layer_ = index;
-      }
-
-
-      Size getCurrentLayerIndex() const
-      {
-        return current_layer_;
-      }
+      /// throws Exception::IndexOverflow unless @p index is smaller than getLayerCount()
+      void setCurrentLayer(Size index);
       
-      bool empty() const
-      {
-        return layers_.empty();
-      }
+      Size getCurrentLayerIndex() const;
+      
+      bool empty() const;
 
-      Size getLayerCount() const
-      {
-        return layers_.size();
-      }
+      Size getLayerCount() const;
 
-      void removeLayer(Size layer_index)
-      {
-        if (layer_index >= layers_.size())
-        {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, layer_index, layers_.size());
-        }
-        layers_.erase(layers_.begin() + layer_index);
+      void removeLayer(Size layer_index);
 
-        // update current layer if it became invalid
-        if (current_layer_ >= getLayerCount())
-        {
-          current_layer_ = getLayerCount() - 1; // overflow is intentional
-        }
-      }
-
-      void removeCurrentLayer()
-      {
-        removeLayer(current_layer_);
-      }
+      void removeCurrentLayer();
   
   protected:
       std::vector<LayerData> layers_;
