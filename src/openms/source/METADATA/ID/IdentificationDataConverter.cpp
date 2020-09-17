@@ -63,11 +63,11 @@ namespace OpenMS
       ID::ScoreType score_type(prot.getScoreType(), prot.isHigherScoreBetter());
       ID::ScoreTypeRef prot_score_ref = id_data.registerScoreType(score_type);
 
-      ID::DataProcessingSoftware software(prot.getSearchEngine(),
+      ID::ProcessingSoftware software(prot.getSearchEngine(),
                                           prot.getSearchEngineVersion());
       software.assigned_scores.push_back(prot_score_ref);
       ID::ProcessingSoftwareRef software_ref =
-        id_data.registerDataProcessingSoftware(software);
+        id_data.registerProcessingSoftware(software);
 
       ID::SearchParamRef search_ref =
         importDBSearchParameters_(prot.getSearchParameters(), id_data);
@@ -274,7 +274,7 @@ namespace OpenMS
         for (const PeptideHit::PepXMLAnalysisResult& ana_res :
                hit.getAnalysisResults())
         {
-          ID::DataProcessingSoftware software;
+          ID::ProcessingSoftware software;
           software.setName(ana_res.score_type); // e.g. "peptideprophet"
           ID::AppliedProcessingStep sub_applied;
           ID::ScoreType main_score;
@@ -294,7 +294,7 @@ namespace OpenMS
             sub_applied.scores[sub_score_ref] = sub_pair.second;
           }
           ID::ProcessingSoftwareRef software_ref =
-            id_data.registerDataProcessingSoftware(software);
+            id_data.registerProcessingSoftware(software);
           ID::DataProcessingStep sub_step(software_ref);
           if (query.input_file_opt)
           {
@@ -578,7 +578,7 @@ namespace OpenMS
   {
     MzTabMetaData meta;
     Size counter = 1;
-    for (const auto& software : id_data.getDataProcessingSoftwares())
+    for (const auto& software : id_data.getProcessingSoftwares())
     {
       MzTabSoftwareMetaData sw_meta;
       sw_meta.software.setName(software.getName());

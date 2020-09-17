@@ -99,10 +99,10 @@ namespace OpenMS
     using InputFiles = IdentificationDataInternal::InputFiles;
     using InputFileRef = IdentificationDataInternal::InputFileRef;
 
-    using DataProcessingSoftware =
-      IdentificationDataInternal::DataProcessingSoftware;
-    using DataProcessingSoftwares =
-      IdentificationDataInternal::DataProcessingSoftwares;
+    using ProcessingSoftware =
+      IdentificationDataInternal::ProcessingSoftware;
+    using ProcessingSoftwares =
+      IdentificationDataInternal::ProcessingSoftwares;
     using ProcessingSoftwareRef =
       IdentificationDataInternal::ProcessingSoftwareRef;
 
@@ -237,8 +237,8 @@ namespace OpenMS
 
       @return Reference to the registered software
     */
-    ProcessingSoftwareRef registerDataProcessingSoftware(
-      const DataProcessingSoftware& software);
+    ProcessingSoftwareRef registerProcessingSoftware(
+      const ProcessingSoftware& software);
 
     /*!
       @brief Register database search parameters
@@ -338,7 +338,7 @@ namespace OpenMS
     }
 
     /// Return the registered data processing software (immutable)
-    const DataProcessingSoftwares& getDataProcessingSoftwares() const
+    const ProcessingSoftwares& getProcessingSoftwares() const
     {
       return processing_softwares_;
     }
@@ -552,7 +552,7 @@ namespace OpenMS
 
     // containers:
     InputFiles input_files_;
-    DataProcessingSoftwares processing_softwares_;
+    ProcessingSoftwares processing_softwares_;
     DataProcessingSteps processing_steps_;
     DBSearchParams db_search_params_;
     // @TODO: store SearchParamRef inside ProcessingStep? (may not be required

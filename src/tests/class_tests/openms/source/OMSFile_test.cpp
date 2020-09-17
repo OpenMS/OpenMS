@@ -86,8 +86,8 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
 
   TEST_EQUAL(ids.getInputFiles().size(), out.getInputFiles().size());
   TEST_EQUAL(ids.getScoreTypes().size(), out.getScoreTypes().size());
-  TEST_EQUAL(ids.getDataProcessingSoftwares().size(),
-             out.getDataProcessingSoftwares().size());
+  TEST_EQUAL(ids.getProcessingSoftwares().size(),
+             out.getProcessingSoftwares().size());
   TEST_EQUAL(ids.getDBSearchParams().size(), out.getDBSearchParams().size());
   TEST_EQUAL(ids.getDataProcessingSteps().size(),
              out.getDataProcessingSteps().size());

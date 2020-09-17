@@ -1023,14 +1023,14 @@ protected:
     score = IdentificationData::ScoreType(qvalue, false);
     IdentificationData::ScoreTypeRef qvalue_ref =
       id_data.registerScoreType(score);
-    IdentificationData::DataProcessingSoftware software(toolName_(), version_);
+    IdentificationData::ProcessingSoftware software(toolName_(), version_);
     // in test mode just overwrite with a generic version:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
     software.assigned_scores.push_back(hyperscore_ref);
     software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
-      id_data.registerDataProcessingSoftware(software);
+      id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
     IdentificationData::DataProcessingStep step(software_ref, {file_ref});
     IdentificationData::ProcessingStepRef step_ref;

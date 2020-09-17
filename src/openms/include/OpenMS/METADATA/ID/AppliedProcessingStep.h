@@ -81,7 +81,7 @@ namespace OpenMS
       /*!
         @brief Return scores in order of priority (primary first).
 
-        The order is defined in the @p DataProcessingSoftware referenced by the processing step (if available).
+        The order is defined in the @p ProcessingSoftware referenced by the processing step (if available).
         Scores not listed there are included at the end of the output.
 
         @param primary_only Only return the primary score (ignoring any others)?

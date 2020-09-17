@@ -91,22 +91,22 @@ START_SECTION((InputFileRef registerInputFile(const InputFile& file)))
 }
 END_SECTION
 
-START_SECTION((const DataProcessingSoftwares& getDataProcessingSoftwares() const))
+START_SECTION((const ProcessingSoftwares& getProcessingSoftwares() const))
 {
-  TEST_EQUAL(data.getDataProcessingSoftwares().empty(), true);
+  TEST_EQUAL(data.getProcessingSoftwares().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((ProcessingSoftwareRef registerDataProcessingSoftware(const Software& software)))
+START_SECTION((ProcessingSoftwareRef registerProcessingSoftware(const Software& software)))
 {
-  IdentificationData::DataProcessingSoftware sw("Tool", "1.0");
-  sw_ref = data.registerDataProcessingSoftware(sw);
-  TEST_EQUAL(data.getDataProcessingSoftwares().size(), 1);
+  IdentificationData::ProcessingSoftware sw("Tool", "1.0");
+  sw_ref = data.registerProcessingSoftware(sw);
+  TEST_EQUAL(data.getProcessingSoftwares().size(), 1);
   TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile - same below
   // re-registering doesn't lead to redundant entries:
-  data.registerDataProcessingSoftware(sw);
-  TEST_EQUAL(data.getDataProcessingSoftwares().size(), 1);
+  data.registerProcessingSoftware(sw);
+  TEST_EQUAL(data.getProcessingSoftwares().size(), 1);
 }
 END_SECTION
 
@@ -578,9 +578,9 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   auto score_ref = id.registerScoreType(score);
 
   // register software (connected to score)
-  IdentificationData::DataProcessingSoftware sw("MySearchEngineTool", "1.0");
+  IdentificationData::ProcessingSoftware sw("MySearchEngineTool", "1.0");
   sw.assigned_scores.push_back(score_ref);
-  auto sw_ref = id.registerDataProcessingSoftware(sw);
+  auto sw_ref = id.registerProcessingSoftware(sw);
 
   // all supported search settings
   IdentificationData::DBSearchParam search_param;

@@ -101,7 +101,7 @@ namespace OpenMS
 
       void storeInputFiles();
 
-      void storeDataProcessingSoftwares();
+      void storeProcessingSoftwares();
 
       void storeDBSearchParams();
 
@@ -219,7 +219,7 @@ namespace OpenMS
 
       void loadInputFiles();
 
-      void loadDataProcessingSoftwares();
+      void loadProcessingSoftwares();
 
       void loadDBSearchParams();
 

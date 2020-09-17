@@ -5,7 +5,7 @@ set(directory include/OpenMS/METADATA/ID)
 set(sources_list_h
 AppliedProcessingStep.h
 DBSearchParam.h
-DataProcessingSoftware.h
+ProcessingSoftware.h
 DataProcessingStep.h
 InputItem.h
 IdentificationData.h

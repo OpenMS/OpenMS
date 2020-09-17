@@ -115,8 +115,8 @@ namespace OpenMS
 
 
   IdentificationData::ProcessingSoftwareRef
-  IdentificationData::registerDataProcessingSoftware(
-    const DataProcessingSoftware& software)
+  IdentificationData::registerProcessingSoftware(
+    const ProcessingSoftware& software)
   {
     if (!no_checks_)
     {
@@ -917,16 +917,16 @@ namespace OpenMS
     }
     // processing software:
     map<ProcessingSoftwareRef, ProcessingSoftwareRef> sw_refs;
-    for (ProcessingSoftwareRef other_ref = other.getDataProcessingSoftwares().begin();
-         other_ref != other.getDataProcessingSoftwares().end(); ++other_ref)
+    for (ProcessingSoftwareRef other_ref = other.getProcessingSoftwares().begin();
+         other_ref != other.getProcessingSoftwares().end(); ++other_ref)
     {
       // update internal references:
-      DataProcessingSoftware copy = *other_ref;
+      ProcessingSoftware copy = *other_ref;
       for (ScoreTypeRef& score_ref : copy.assigned_scores)
       {
         score_ref = score_refs[score_ref];
       }
-      sw_refs[other_ref] = registerDataProcessingSoftware(copy);
+      sw_refs[other_ref] = registerProcessingSoftware(copy);
     }
     // search params:
     map<SearchParamRef, SearchParamRef> param_refs;

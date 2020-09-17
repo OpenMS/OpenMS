@@ -506,13 +506,13 @@ private:
 
       // add data processing information:
       DateTime processing_time = DateTime::now(); // use same for each file
-      IdentificationData::DataProcessingSoftware sw(toolName_(), version_);
+      IdentificationData::ProcessingSoftware sw(toolName_(), version_);
       if (test_mode_) sw.setVersion("test");
       String reference_file = getStringOption_("reference:file");
       for (IdentificationData& id : id_data)
       {
         IdentificationData::ProcessingSoftwareRef sw_ref =
-          id.registerDataProcessingSoftware(sw);
+          id.registerProcessingSoftware(sw);
         IdentificationData::DataProcessingStep step(sw_ref);
         for (const String& input_file : input_files)
         {

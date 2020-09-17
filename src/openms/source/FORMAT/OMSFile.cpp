@@ -461,24 +461,24 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeDataProcessingSoftwares()
+  void OMSFile::OMSFileStore::storeProcessingSoftwares()
   {
-    if (id_data_.getDataProcessingSoftwares().empty()) return;
+    if (id_data_.getProcessingSoftwares().empty()) return;
 
-    createTable_("ID_DataProcessingSoftware",
+    createTable_("ID_ProcessingSoftware",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
                  "name TEXT NOT NULL, "               \
                  "version TEXT, "                     \
                  "UNIQUE (name, version)");
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_DataProcessingSoftware VALUES ("  \
+    query.prepare("INSERT INTO ID_ProcessingSoftware VALUES ("  \
                   ":id, "                                           \
                   ":name, "                                         \
                   ":version)");
     bool any_scores = false; // does any software have assigned scores stored?
-    for (const ID::DataProcessingSoftware& software :
-           id_data_.getDataProcessingSoftwares())
+    for (const ID::ProcessingSoftware& software :
+           id_data_.getProcessingSoftwares())
     {
       if (!software.assigned_scores.empty()) any_scores = true;
       query.bindValue(":id", Key(&software));
@@ -493,22 +493,22 @@ namespace OpenMS
     if (any_scores)
     {
       createTable_(
-        "ID_DataProcessingSoftware_AssignedScore",
+        "ID_ProcessingSoftware_AssignedScore",
         "software_id INTEGER NOT NULL, "                                \
         "score_type_id INTEGER NOT NULL, "                              \
         "score_type_order INTEGER NOT NULL, "                           \
         "UNIQUE (software_id, score_type_id), "                         \
         "UNIQUE (software_id, score_type_order), "                      \
-        "FOREIGN KEY (software_id) REFERENCES ID_DataProcessingSoftware (id), " \
+        "FOREIGN KEY (software_id) REFERENCES ID_ProcessingSoftware (id), " \
         "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)");
 
       query.prepare(
-        "INSERT INTO ID_DataProcessingSoftware_AssignedScore VALUES ("  \
+        "INSERT INTO ID_ProcessingSoftware_AssignedScore VALUES ("  \
         ":software_id, "                                                \
         ":score_type_id, "                                              \
         ":score_type_order)");
-      for (const ID::DataProcessingSoftware& software :
-             id_data_.getDataProcessingSoftwares())
+      for (const ID::ProcessingSoftware& software :
+             id_data_.getProcessingSoftwares())
       {
         query.bindValue(":software_id", Key(&software));
         Size counter = 0;
@@ -1290,7 +1290,7 @@ namespace OpenMS
     nextProgress();
     helper.storeScoreTypes();
     nextProgress();
-    helper.storeDataProcessingSoftwares();
+    helper.storeProcessingSoftwares();
     nextProgress();
     helper.storeDBSearchParams();
     nextProgress();
@@ -1415,32 +1415,32 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadDataProcessingSoftwares()
+  void OMSFile::OMSFileLoad::loadProcessingSoftwares()
   {
-    if (!tableExists_(db_name_, "ID_DataProcessingSoftware")) return;
+    if (!tableExists_(db_name_, "ID_ProcessingSoftware")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_DataProcessingSoftware"))
+    if (!query.exec("SELECT * FROM ID_ProcessingSoftware"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
     bool have_scores = tableExists_(db_name_,
-                                    "ID_DataProcessingSoftware_AssignedScore");
+                                    "ID_ProcessingSoftware_AssignedScore");
     QSqlQuery subquery(db);
     if (have_scores)
     {
       subquery.setForwardOnly(true);
       subquery.prepare("SELECT score_type_id "                         \
-                       "FROM ID_DataProcessingSoftware_AssignedScore " \
+                       "FROM ID_ProcessingSoftware_AssignedScore " \
                        "WHERE software_id = :id ORDER BY score_type_order ASC");
     }
     while (query.next())
     {
       Key id = query.value("id").toLongLong();
-      ID::DataProcessingSoftware software(query.value("name").toString(),
+      ID::ProcessingSoftware software(query.value("name").toString(),
                                           query.value("version").toString());
       if (have_scores)
       {
@@ -1457,7 +1457,7 @@ namespace OpenMS
         }
       }
       ID::ProcessingSoftwareRef ref =
-        id_data_.registerDataProcessingSoftware(software);
+        id_data_.registerProcessingSoftware(software);
       processing_software_refs_[id] = ref;
     }
   }
@@ -2153,7 +2153,7 @@ namespace OpenMS
     nextProgress();
     helper.loadScoreTypes();
     nextProgress();
-    helper.loadDataProcessingSoftwares();
+    helper.loadProcessingSoftwares();
     nextProgress();
     helper.loadDBSearchParams();
     nextProgress();

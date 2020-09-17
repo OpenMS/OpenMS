@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/ProcessingSoftware.h>
 #include <OpenMS/METADATA/ID/InputFile.h>
 
 namespace OpenMS
