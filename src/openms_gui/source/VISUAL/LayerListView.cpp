@@ -123,7 +123,7 @@ namespace OpenMS
       item->setCheckState(layer.visible ? Qt::Checked : Qt::Unchecked);
 
       // highlight active item
-      if (i == cc->activeLayerIndex())
+      if (i == cc->getCurrentLayerIndex())
       {
         this->setCurrentItem(item);
       }

@@ -35,20 +35,18 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
-
-#include <OpenMS/FORMAT/SqliteConnector.h>
-
-#include <sqlite3.h>
-#include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
+#include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/ZlibCompression.h>
 
 #include <QtCore/QFileInfo>
 
 // #include <type_traits> // for template arg detection
 #include <boost/type_traits.hpp>
+
+#include <sqlite3.h>
 
 #ifdef _OPENMP
 #include <omp.h>

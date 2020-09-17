@@ -54,6 +54,7 @@ SetCompressor /SOLID lzma
   !insertmacro ${_action} ".mzData" "TOPPView"
   !insertmacro ${_action} ".mzXML" "TOPPView"
   !insertmacro ${_action} ".mzML" "TOPPView"
+  !insertmacro ${_action} ".sqMass" "TOPPView"
   !insertmacro ${_action} ".dta" "TOPPView"
   !insertmacro ${_action} ".dta2D" "TOPPView"
   !insertmacro ${_action} ".cdf" "TOPPView"

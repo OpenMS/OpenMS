@@ -248,7 +248,7 @@ public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
-    void openFileDialog(const String& initial_directory = "");
+    void openFilesByDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
     void showGoToDialog();
     /// shows the preferences dialog
@@ -382,7 +382,7 @@ protected:
     /**
         @brief Shows a dialog where the user can select files
     */
-    QStringList getFileList_(const String& path_overwrite = "");
+    QStringList chooseFilesDialog_(const String& path_overwrite = "");
 
     ///@name dock widgets
     //@{

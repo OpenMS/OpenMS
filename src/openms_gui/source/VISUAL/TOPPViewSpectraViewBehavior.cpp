@@ -32,11 +32,13 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
+
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
@@ -178,7 +180,7 @@ namespace OpenMS
 
     // basic behavior 2
     String caption = layer.getName();
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
     tv_->showSpectrumWidgetInWindow(w, caption);
     tv_->updateLayerBar();
@@ -223,7 +225,7 @@ namespace OpenMS
         {
           return;
         }
-        w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), chromatogram_caption);
+        w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), chromatogram_caption);
         w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
 
         w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
@@ -286,10 +288,8 @@ namespace OpenMS
       // fix legend and set layer name
       caption = fname + "[" + index + "]";
 
-      // add chromatogram data as peak spectrum
+      // add chromatogram data as peak spectrum and update other controls
       widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, false);
-      
-      tv_->updateBarsAndMenus();
     }
   }
 
@@ -315,6 +315,11 @@ namespace OpenMS
 
       widget_1d->canvas()->removeLayers();
 
+      widget_1d->canvas()->blockSignals(true);
+      RAIICleanup clean([&]()
+      {
+        widget_1d->canvas()->blockSignals(false);
+      });
       String fname = layer.filename;
       for (const auto& index : indices)
       {
@@ -330,7 +335,7 @@ namespace OpenMS
         widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, true);
       }
 
-      tv_->updateBarsAndMenus();
+      tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
     }
   }
 

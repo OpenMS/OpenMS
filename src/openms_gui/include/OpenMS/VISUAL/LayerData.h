@@ -185,6 +185,17 @@ public:
       annotations_1d.resize(1);
     }
 
+    /// no Copy-ctor (should not be needed)
+    LayerData(const LayerData& ld) = delete;
+    /// no assignment operator (should not be needed)
+    LayerData& operator=(const LayerData& ld) = delete;
+
+    /// move Ctor
+    LayerData(LayerData&& ld) = default;
+
+    /// move assignment
+    LayerData& operator=(LayerData&& ld) = default;
+
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
     {
@@ -394,6 +405,12 @@ public:
     */
     void updateRanges();
 
+    /// Returns the minimum intensity of the internal data, depending on type
+    float getMinIntensity() const;
+
+    /// Returns the maximum intensity of the internal data, depending on type
+    float getMaxIntensity() const;
+
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
     void synchronizePeakAnnotations();
@@ -459,23 +476,9 @@ public:
     int peptide_hit_index;
 
     /// get name augmented with attributes, e.g. [flipped], or '*' if modified
-    String getDecoratedName() const
-    {
-      String n = name_;
-      if (flipped)
-      {
-        n += " [flipped]";
-      }
-      if (modified)
-      {
-        n += '*';
-      }
-      return n;
-    }
+    String getDecoratedName() const;
 
 private:
-
-
     /// Update current cached spectrum for easy retrieval
     void updateCache_();
 
@@ -502,7 +505,6 @@ private:
 
     /// Current cached spectrum
     ExperimentType::SpectrumType cached_spectrum_;
-
   };
 
   /// Print the contents to a stream.

@@ -153,7 +153,7 @@ namespace OpenMS
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL + Qt::Key_N);
-    file->addAction("&Open", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
+    file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL + Qt::Key_O);
     file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
     file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL + Qt::Key_I);
     file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
@@ -526,7 +526,7 @@ namespace OpenMS
     addTOPPASFile(file_name);
   }
 
-  void TOPPASBase::openFileDialog()
+  void TOPPASBase::openFilesByDialog()
   {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open workflow"), current_path_.toQString(), tr("TOPPAS pipelines (*.toppas)"));
 

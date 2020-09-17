@@ -69,6 +69,59 @@ namespace OpenMS
     cached_spectrum_.updateRanges();
   }
 
+  /// Returns the minimum intensity of the internal data, depending on type
+
+  float LayerData::getMinIntensity() const
+  {
+    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    {
+      return getPeakData()->getMinInt();
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      return getFeatureMap()->getMinInt();
+    }
+    else
+    {
+      return getConsensusMap()->getMinInt();
+    }
+  }
+
+  /// Returns the maximum intensity of the internal data, depending on type
+
+  float LayerData::getMaxIntensity() const
+  {
+    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    {
+      return getPeakData()->getMaxInt();
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      return getFeatureMap()->getMaxInt();
+    }
+    else
+    {
+      return getConsensusMap()->getMaxInt();
+    }
+  }
+
+
+  /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+
+   String LayerData::getDecoratedName() const
+   {
+    String n = name_;
+    if (flipped)
+    {
+      n += " [flipped]";
+    }
+    if (modified)
+    {
+      n += '*';
+    }
+    return n;
+  }
+
   void LayerData::updateCache_()
   {
     if (peaks->getNrSpectra() > current_spectrum_ && (*peaks)[current_spectrum_].size() > 0)

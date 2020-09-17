@@ -46,13 +46,12 @@ namespace OpenMS
 
   LayerStatisticsDialog::LayerStatisticsDialog(SpectrumWidget * parent) :
     QDialog(parent),
+    canvas_(parent->canvas()),
+    layer_data_(canvas_->getCurrentLayer()),
     ui_(new Ui::LayerStatisticsDialogTemplate)
   {
     ui_->setupUi(this);
-
-    canvas_ = parent->canvas();
-    layer_data_ = canvas_->getCurrentLayer();
-
+    
     if (layer_data_.type == LayerData::DT_PEAK)
     {
       computePeakStats_();
