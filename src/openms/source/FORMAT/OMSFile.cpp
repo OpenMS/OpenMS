@@ -1151,9 +1151,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeMoleculeQueryMatches()
+  void OMSFile::OMSFileStore::storeInputMatches()
   {
-    if (id_data_.getMoleculeQueryMatches().empty()) return;
+    if (id_data_.getInputMatches().empty()) return;
 
     String table_def =
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
@@ -1169,18 +1169,18 @@ namespace OpenMS
     {
       table_def += ", FOREIGN KEY (adduct_id) REFERENCES AdductInfo (id)";
     }
-    createTable_("ID_MoleculeQueryMatch", table_def);
+    createTable_("ID_InputMatch", table_def);
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_MoleculeQueryMatch VALUES ("  \
+    query.prepare("INSERT INTO ID_InputMatch VALUES ("  \
                   ":id, "                                       \
                   ":identified_molecule_id, "                   \
                   ":input_item_id, "                            \
                   ":adduct_id, "                                \
                   ":charge)");
     bool any_peak_annotations = false;
-    for (const ID::MoleculeQueryMatch& match :
-           id_data_.getMoleculeQueryMatches())
+    for (const ID::InputMatch& match :
+           id_data_.getInputMatches())
     {
       if (!match.peak_annotations.empty()) any_peak_annotations = true;
       query.bindValue(":id", Key(&match)); // use address as primary key
@@ -1220,24 +1220,24 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeScoredProcessingResults_(id_data_.getMoleculeQueryMatches(),
-                                  "ID_MoleculeQueryMatch");
+    storeScoredProcessingResults_(id_data_.getInputMatches(),
+                                  "ID_InputMatch");
 
     if (any_peak_annotations)
     {
       createTable_(
-        "ID_MoleculeQueryMatch_PeakAnnotation",
+        "ID_InputMatch_PeakAnnotation",
         "parent_id INTEGER NOT NULL, "                                  \
         "processing_step_id INTEGER, "                                  \
         "peak_annotation TEXT, "                                        \
         "peak_charge INTEGER, "                                         \
         "peak_mz REAL, "                                                \
         "peak_intensity REAL, "                                         \
-        "FOREIGN KEY (parent_id) REFERENCES ID_MoleculeQueryMatch (id), " \
+        "FOREIGN KEY (parent_id) REFERENCES ID_InputMatch (id), " \
         "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
 
       query.prepare(
-        "INSERT INTO ID_MoleculeQueryMatch_PeakAnnotation VALUES (" \
+        "INSERT INTO ID_InputMatch_PeakAnnotation VALUES (" \
         ":parent_id, "                                              \
         ":processing_step_id, "                                     \
         ":peak_annotation, "                                        \
@@ -1245,8 +1245,8 @@ namespace OpenMS
         ":peak_mz, "                                                \
         ":peak_intensity)");
 
-      for (const ID::MoleculeQueryMatch& match :
-             id_data_.getMoleculeQueryMatches())
+      for (const ID::InputMatch& match :
+             id_data_.getInputMatches())
       {
         if (match.peak_annotations.empty()) continue;
         query.bindValue(":parent_id", Key(&match));
@@ -1308,7 +1308,7 @@ namespace OpenMS
     nextProgress();
     helper.storeAdducts();
     nextProgress();
-    helper.storeMoleculeQueryMatches();
+    helper.storeInputMatches();
     endProgress();
     // @TODO: store molecule-query match groups
   }
@@ -2032,7 +2032,7 @@ namespace OpenMS
 
 
   void OMSFile::OMSFileLoad::handleQueryPeakAnnotation_(
-    QSqlQuery& query, ID::MoleculeQueryMatch& match, Key parent_id)
+    QSqlQuery& query, ID::InputMatch& match, Key parent_id)
   {
     query.bindValue(":id", parent_id);
     if (!query.exec())
@@ -2083,14 +2083,14 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadMoleculeQueryMatches()
+  void OMSFile::OMSFileLoad::loadInputMatches()
   {
-    if (!tableExists_(db_name_, "ID_MoleculeQueryMatch")) return;
+    if (!tableExists_(db_name_, "ID_InputMatch")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_MoleculeQueryMatch"))
+    if (!query.exec("SELECT * FROM ID_InputMatch"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -2098,19 +2098,19 @@ namespace OpenMS
     // @TODO: can we combine handling of meta info and applied processing steps?
     QSqlQuery subquery_info(db);
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_MoleculeQueryMatch");
+                                                "ID_InputMatch");
     QSqlQuery subquery_step(db);
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
-                                         "ID_MoleculeQueryMatch");
+                                         "ID_InputMatch");
     QSqlQuery subquery_ann(db);
     bool have_peak_annotations =
-      tableExists_(db_name_, "ID_MoleculeQueryMatch_PeakAnnotation");
+      tableExists_(db_name_, "ID_InputMatch_PeakAnnotation");
     if (have_peak_annotations)
     {
       subquery_ann.setForwardOnly(true);
       subquery_ann.prepare(
-        "SELECT * FROM ID_MoleculeQueryMatch_PeakAnnotation " \
+        "SELECT * FROM ID_InputMatch_PeakAnnotation " \
         "WHERE parent_id = :id");
     }
 
@@ -2119,7 +2119,7 @@ namespace OpenMS
       Key id = query.value("id").toLongLong();
       Key molecule_id = query.value("identified_molecule_id").toLongLong();
       Key query_id = query.value("input_item_id").toLongLong();
-      ID::MoleculeQueryMatch match(identified_molecule_vars_[molecule_id],
+      ID::InputMatch match(identified_molecule_vars_[molecule_id],
                                    input_item_refs_[query_id],
                                    query.value("charge").toInt());
       QVariant adduct_id = query.value("adduct_id"); // adduct is optional
@@ -2139,8 +2139,8 @@ namespace OpenMS
       {
         handleQueryPeakAnnotation_(subquery_ann, match, id);
       }
-      ID::QueryMatchRef ref = id_data_.registerMoleculeQueryMatch(match);
-      query_match_refs_[id] = ref;
+      ID::InputMatchRef ref = id_data_.registerInputMatch(match);
+      input_match_refs_[id] = ref;
     }
   }
 
@@ -2171,7 +2171,7 @@ namespace OpenMS
     nextProgress();
     helper.loadAdducts();
     nextProgress();
-    helper.loadMoleculeQueryMatches();
+    helper.loadInputMatches();
     endProgress();
     // @TODO: load parent molecule groups and molecule-query match groups
   }

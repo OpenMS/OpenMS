@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/MoleculeQueryMatch.h>
+#include <OpenMS/METADATA/ID/InputMatch.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -47,17 +47,17 @@ namespace OpenMS
 
       E.g. for cross-linking data or multiplexed spectra.
     */
-    struct QueryMatchGroup: public ScoredProcessingResult
+    struct InputMatchGroup: public ScoredProcessingResult
     {
-      std::set<QueryMatchRef> query_match_refs;
+      std::set<InputMatchRef> input_match_refs;
 
       bool allSameMolecule() const
       {
         // @TODO: return true or false for the empty set?
-        if (query_match_refs.size() <= 1) return true;
+        if (input_match_refs.size() <= 1) return true;
         const IdentifiedMolecule var =
-          (*query_match_refs.begin())->identified_molecule_var;
-        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
+          (*input_match_refs.begin())->identified_molecule_var;
+        for (auto it = ++input_match_refs.begin(); it != input_match_refs.end();
              ++it)
         {
           if (!((*it)->identified_molecule_var == var)) return false;
@@ -68,9 +68,9 @@ namespace OpenMS
       bool allSameQuery() const
       {
         // @TODO: return true or false for the empty set?
-        if (query_match_refs.size() <= 1) return true;
-        InputItemRef ref = (*query_match_refs.begin())->input_item_ref;
-        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
+        if (input_match_refs.size() <= 1) return true;
+        InputItemRef ref = (*input_match_refs.begin())->input_item_ref;
+        for (auto it = ++input_match_refs.begin(); it != input_match_refs.end();
              ++it)
         {
           if ((*it)->input_item_ref != ref) return false;
@@ -78,26 +78,26 @@ namespace OpenMS
         return true;
       }
 
-      bool operator==(const QueryMatchGroup rhs) const
+      bool operator==(const InputMatchGroup rhs) const
       {
-        return ((rhs.query_match_refs == query_match_refs) &&
+        return ((rhs.input_match_refs == input_match_refs) &&
                 (rhs.steps_and_scores == steps_and_scores));
       }
 
-      bool operator!=(const QueryMatchGroup& rhs) const
+      bool operator!=(const InputMatchGroup& rhs) const
       {
         return !operator==(rhs);
       }
     };
 
     typedef boost::multi_index_container<
-      QueryMatchGroup,
+      InputMatchGroup,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
-          boost::multi_index::member<QueryMatchGroup, std::set<QueryMatchRef>,
-                                     &QueryMatchGroup::query_match_refs>>>
-      > QueryMatchGroups;
-    typedef IteratorWrapper<QueryMatchGroups::iterator> MatchGroupRef;
+          boost::multi_index::member<InputMatchGroup, std::set<InputMatchRef>,
+                                     &InputMatchGroup::input_match_refs>>>
+      > InputMatchGroups;
+    typedef IteratorWrapper<InputMatchGroups::iterator> MatchGroupRef;
 
   }
 }

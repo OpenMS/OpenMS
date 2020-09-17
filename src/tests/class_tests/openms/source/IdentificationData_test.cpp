@@ -70,7 +70,7 @@ IdentificationData::IdentifiedPeptideRef peptide_ref;
 IdentificationData::IdentifiedOligoRef oligo_ref;
 IdentificationData::IdentifiedCompoundRef compound_ref;
 IdentificationData::AdductRef adduct_ref;
-IdentificationData::QueryMatchRef match_ref1, match_ref2, match_ref3;
+IdentificationData::InputMatchRef match_ref1, match_ref2, match_ref3;
 
 START_SECTION((const InputFiles& getInputFiles() const))
 {
@@ -389,62 +389,62 @@ START_SECTION((AdductRef registerAdduct(const AdductInfo& adduct)))
 }
 END_SECTION
 
-START_SECTION((const MoleculeQueryMatches& getMoleculeQueryMatches() const))
+START_SECTION((const InputMatches& getInputMatches() const))
 {
-  TEST_EQUAL(data.getMoleculeQueryMatches().empty(), true);
+  TEST_EQUAL(data.getInputMatches().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch& match)))
+START_SECTION((InputMatchRef registerInputMatch(const InputMatch& match)))
 {
   // match with a peptide:
-  IdentificationData::MoleculeQueryMatch match(peptide_ref, query_ref, 3);
-  match_ref1 = data.registerMoleculeQueryMatch(match);
-  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 1);
+  IdentificationData::InputMatch match(peptide_ref, query_ref, 3);
+  match_ref1 = data.registerInputMatch(match);
+  TEST_EQUAL(data.getInputMatches().size(), 1);
   TEST_EQUAL(*match_ref1 == match, true);
 
   // match with an oligo (+ adduct):
-  match = IdentificationData::MoleculeQueryMatch(oligo_ref, query_ref, 2,
+  match = IdentificationData::InputMatch(oligo_ref, query_ref, 2,
                                                  adduct_ref);
-  match_ref2 = data.registerMoleculeQueryMatch(match);
-  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 2);
+  match_ref2 = data.registerInputMatch(match);
+  TEST_EQUAL(data.getInputMatches().size(), 2);
   TEST_EQUAL(*match_ref2 == match, true);
   TEST_EQUAL((*match_ref2->adduct_opt)->getName(), "Na+");
 
   // match with a compound:
-  match = IdentificationData::MoleculeQueryMatch(compound_ref, query_ref, 1);
-  match_ref3 = data.registerMoleculeQueryMatch(match);
-  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 3);
+  match = IdentificationData::InputMatch(compound_ref, query_ref, 1);
+  match_ref3 = data.registerInputMatch(match);
+  TEST_EQUAL(data.getInputMatches().size(), 3);
   TEST_EQUAL(*match_ref3 == match, true);
 
   // re-registering doesn't lead to redundant entries:
-  data.registerMoleculeQueryMatch(match);
-  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 3);
+  data.registerInputMatch(match);
+  TEST_EQUAL(data.getInputMatches().size(), 3);
 }
 END_SECTION
 
-START_SECTION((const QueryMatchGroups& getQueryMatchGroups() const))
+START_SECTION((const InputMatchGroups& getInputMatchGroups() const))
 {
-  TEST_EQUAL(data.getQueryMatchGroups().empty(), true);
+  TEST_EQUAL(data.getInputMatchGroups().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((MatchGroupRef registerQueryMatchGroup(const QueryMatchGroup& group)))
+START_SECTION((MatchGroupRef registerInputMatchGroup(const InputMatchGroup& group)))
 {
-  IdentificationData::QueryMatchGroup group;
-  group.query_match_refs.insert(match_ref1);
-  group.query_match_refs.insert(match_ref2);
-  group.query_match_refs.insert(match_ref3);
+  IdentificationData::InputMatchGroup group;
+  group.input_match_refs.insert(match_ref1);
+  group.input_match_refs.insert(match_ref2);
+  group.input_match_refs.insert(match_ref3);
 
-  data.registerQueryMatchGroup(group);
-  TEST_EQUAL(data.getQueryMatchGroups().size(), 1);
-  TEST_EQUAL(*data.getQueryMatchGroups().begin() == group, true);
+  data.registerInputMatchGroup(group);
+  TEST_EQUAL(data.getInputMatchGroups().size(), 1);
+  TEST_EQUAL(*data.getInputMatchGroups().begin() == group, true);
 }
 END_SECTION
 
-START_SECTION((void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref, double value)))
+START_SECTION((void addScore(InputMatchRef match_ref, ScoreTypeRef score_ref, double value)))
 {
   TEST_EQUAL(match_ref1->steps_and_scores.empty(), true);
   data.addScore(match_ref1, score_ref, 100.0);
@@ -489,9 +489,9 @@ START_SECTION((void clearCurrentProcessingStep()))
 }
 END_SECTION
 
-START_SECTION((vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef score_ref) const))
+START_SECTION((vector<InputMatchRef> getBestMatchPerQuery(ScoreTypeRef score_ref) const))
 {
-  vector<IdentificationData::QueryMatchRef> result = data.getBestMatchPerQuery(score_ref);
+  vector<IdentificationData::InputMatchRef> result = data.getBestMatchPerQuery(score_ref);
   TEST_EQUAL(result.size(), 1);
   TEST_EQUAL(result[0] == match_ref2, true);
 }
@@ -522,7 +522,7 @@ START_SECTION((void calculateCoverages(bool check_molecule_length = false)))
 }
 END_SECTION
 
-START_SECTION((void cleanup(bool require_query_match = true, bool require_identified_sequence = true, bool require_parent_match = true, bool require_parent_group = false, bool require_match_group = false)))
+START_SECTION((void cleanup(bool require_input_match = true, bool require_identified_sequence = true, bool require_parent_match = true, bool require_parent_group = false, bool require_match_group = false)))
 {
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 4);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
@@ -618,9 +618,9 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   TEST_EQUAL(peptide_ref->parent_matches.size(), 0);
 
   // peptide-spectrum match
-  IdentificationData::MoleculeQueryMatch match(peptide_ref, query_ref); // both refs. are required
+  IdentificationData::InputMatch match(peptide_ref, query_ref); // both refs. are required
   match.addScore(score_ref, 123, step_ref);
-  id.registerMoleculeQueryMatch(match);
+  id.registerInputMatch(match);
 
   // some calculations, inference etc. could take place ...
   IdentificationData::ParentMolecule protein("protein_1"); // accession is required

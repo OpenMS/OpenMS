@@ -787,13 +787,13 @@ namespace OpenMS
     IdentificationData& id_data,
     IdentificationData::ScoreTypeRef score_ref)
   {
-    if (id_data.getMoleculeQueryMatches().size() <= 1) return; // nothing to do
+    if (id_data.getInputMatches().size() <= 1) return; // nothing to do
 
-    vector<IdentificationData::QueryMatchRef> best_matches =
+    vector<IdentificationData::InputMatchRef> best_matches =
       id_data.getBestMatchPerQuery(score_ref);
     auto best_match_it = best_matches.begin();
-    for (auto it = id_data.query_matches_.begin();
-         it != id_data.query_matches_.end(); )
+    for (auto it = id_data.input_matches_.begin();
+         it != id_data.input_matches_.end(); )
     {
       if (it == *best_match_it)
       {
@@ -802,7 +802,7 @@ namespace OpenMS
       }
       else
       {
-        it = id_data.query_matches_.erase(it);
+        it = id_data.input_matches_.erase(it);
       }
     }
 
@@ -810,12 +810,12 @@ namespace OpenMS
   }
 
 
-  void IDFilter::filterQueryMatchesByScore(
+  void IDFilter::filterInputMatchesByScore(
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
     id_data.removeFromSetIf_(
-      id_data.query_matches_, [&](IdentificationData::QueryMatchRef it) -> bool
+      id_data.input_matches_, [&](IdentificationData::InputMatchRef it) -> bool
       {
         pair<double, bool> score = it->getScore(score_ref);
         return !score.second || score_ref->isBetterScore(cutoff, score.first);

@@ -260,7 +260,7 @@ namespace OpenMS
         ID::IdentifiedPeptideRef peptide_ref =
           id_data.registerIdentifiedPeptide(peptide);
 
-        ID::MoleculeQueryMatch match(peptide_ref, query_ref);
+        ID::InputMatch match(peptide_ref, query_ref);
         match.charge = hit.getCharge();
         static_cast<MetaInfoInterface&>(match) = hit;
         if (!hit.getPeakAnnotations().empty())
@@ -308,7 +308,7 @@ namespace OpenMS
 
         // most recent step (with primary score) goes last:
         match.addProcessingStep(applied);
-        id_data.registerMoleculeQueryMatch(match);
+        id_data.registerInputMatch(match);
       }
     }
     progresslogger.endProgress();
@@ -329,14 +329,14 @@ namespace OpenMS
     const String& ppm_error_name =
       Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
-    for (const ID::MoleculeQueryMatch& query_match :
-           id_data.getMoleculeQueryMatches())
+    for (const ID::InputMatch& input_match :
+           id_data.getInputMatches())
     {
       PeptideHit hit;
-      static_cast<MetaInfoInterface&>(hit) = query_match;
+      static_cast<MetaInfoInterface&>(hit) = input_match;
       const ID::ParentMatches* parent_matches_ptr = nullptr;
       const ID::IdentifiedMolecule& molecule_var =
-        query_match.identified_molecule_var;
+        input_match.identified_molecule_var;
       if (molecule_var.getMoleculeType() == ID::MoleculeType::PROTEIN)
       {
         ID::IdentifiedPeptideRef peptide_ref =
@@ -359,16 +359,16 @@ namespace OpenMS
         hit.setMetaValue("label", compound_ref->identifier);
         hit.setMetaValue("molecule_type", "compound");
       }
-      hit.setCharge(query_match.charge);
-      if (query_match.adduct_opt)
+      hit.setCharge(input_match.charge);
+      if (input_match.adduct_opt)
       {
-        hit.setMetaValue("adduct", (*query_match.adduct_opt)->getName());
+        hit.setMetaValue("adduct", (*input_match.adduct_opt)->getName());
       }
       // @TODO: is this needed? don't we copy over all meta values above?
-      if (query_match.metaValueExists(ppm_error_name))
+      if (input_match.metaValueExists(ppm_error_name))
       {
         hit.setMetaValue(ppm_error_name,
-                         query_match.getMetaValue(ppm_error_name));
+                         input_match.getMetaValue(ppm_error_name));
       }
       if (parent_matches_ptr != nullptr)
       {
@@ -380,7 +380,7 @@ namespace OpenMS
       hit.setPeptideEvidences(evidences);
 
       // generate hits in different ID runs for different processing steps:
-      for (ID::AppliedProcessingStep applied : query_match.steps_and_scores)
+      for (ID::AppliedProcessingStep applied : input_match.steps_and_scores)
       {
         // @TODO: allow peptide hits without scores?
         if (applied.scores.empty()) continue;
@@ -395,12 +395,12 @@ namespace OpenMS
           hit_copy.setMetaValue(it->first->cv_term.getName(), it->second);
         }
         auto pos =
-          query_match.peak_annotations.find(applied.processing_step_opt);
-        if (pos != query_match.peak_annotations.end())
+          input_match.peak_annotations.find(applied.processing_step_opt);
+        if (pos != input_match.peak_annotations.end())
         {
           hit_copy.setPeakAnnotations(pos->second);
         }
-        auto key = make_pair(query_match.input_item_ref,
+        auto key = make_pair(input_match.input_item_ref,
                              applied.processing_step_opt);
         psm_data[key].first.push_back(hit_copy);
         psm_data[key].second = scores[0].first; // primary score type
@@ -655,17 +655,17 @@ namespace OpenMS
 
     MzTabPSMSectionRows psms;
     MzTabOSMSectionRows osms;
-    for (const auto& query_match : id_data.getMoleculeQueryMatches())
+    for (const auto& input_match : id_data.getInputMatches())
     {
       const ID::IdentifiedMolecule& molecule_var =
-        query_match.identified_molecule_var;
+        input_match.identified_molecule_var;
       // @TODO: what about small molecules?
       ID::MoleculeType molecule_type = molecule_var.getMoleculeType();
       if (molecule_type == ID::MoleculeType::PROTEIN)
       {
         const AASequence& seq = molecule_var.getIdentifiedPeptideRef()->sequence;
-        double calc_mass = seq.getMonoWeight(Residue::Full, query_match.charge);
-        exportQueryMatchToMzTab_(seq.toString(), query_match, calc_mass, psms,
+        double calc_mass = seq.getMonoWeight(Residue::Full, input_match.charge);
+        exportInputMatchToMzTab_(seq.toString(), input_match, calc_mass, psms,
                                  psm_scores, file_map);
         // "PSM_ID" field is set at the end, after sorting
       }
@@ -673,8 +673,8 @@ namespace OpenMS
       {
         const NASequence& seq = molecule_var.getIdentifiedOligoRef()->sequence;
         double calc_mass = seq.getMonoWeight(NASequence::Full,
-                                             query_match.charge);
-        exportQueryMatchToMzTab_(seq.toString(), query_match, calc_mass, osms,
+                                             input_match.charge);
+        exportInputMatchToMzTab_(seq.toString(), input_match, calc_mass, osms,
                                  osm_scores, file_map);
       }
     }

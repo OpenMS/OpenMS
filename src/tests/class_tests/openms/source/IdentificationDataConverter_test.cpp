@@ -276,7 +276,7 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
   TEST_EQUAL(ids.getIdentifiedPeptides().size(), 73950);
   // according to "grep" on the input file, there should be 335250 peptide hits
   // in total - maybe some duplicates?:
-  TEST_EQUAL(ids.getMoleculeQueryMatches().size(), 332778);
+  TEST_EQUAL(ids.getInputMatches().size(), 332778);
 
   TEST_EQUAL(ids.getParentMoleculeGroupings().size(), 2);
   TEST_EQUAL(ids.getParentMoleculeGroupings()[0].groups.size(), 10853);

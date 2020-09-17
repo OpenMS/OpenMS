@@ -784,18 +784,18 @@ protected:
 
         Int charge = hit.precursor_ref->charge;
         if ((charge > 0) && negative_mode) charge = -charge;
-        IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
+        IdentificationData::InputMatch match(oligo_ref, query_ref,
                                                      charge);
         match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
-        // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
+        // @TODO: add a field for this to "IdentificationData::InputMatch"?
         match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
         match.adduct_opt = hit.precursor_ref->adduct;
 #pragma omp critical (id_data_access)
-        id_data.registerMoleculeQueryMatch(match);
+        id_data.registerInputMatch(match);
       }
     }
     id_data.cleanup();
@@ -813,7 +813,7 @@ protected:
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);
     IdentificationData::ScoreTypeRef fdr_ref =
-    fdr.applyToQueryMatches(id_data, score_ref);
+    fdr.applyToInputMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
     if (remove_decoys) // remove references to decoys from shared oligos
     {
@@ -821,9 +821,9 @@ protected:
     }
     if (fdr_cutoff < 1.0)
     {
-      IDFilter::filterQueryMatchesByScore(id_data, fdr_ref, fdr_cutoff);
+      IDFilter::filterInputMatchesByScore(id_data, fdr_ref, fdr_cutoff);
       OPENMS_LOG_INFO << "Search hits after FDR filtering: "
-                      << id_data.getMoleculeQueryMatches().size()
+                      << id_data.getInputMatches().size()
                       << "\nIdentified spectra after FDR filtering: "
                       << id_data.getInputItems().size() << endl;
     }
@@ -837,8 +837,8 @@ protected:
     // mapping: charge -> list of precursors
     using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
     map<AdductedOligo, PrecursorsByCharge> rt_info;
-    for (const IdentificationData::MoleculeQueryMatch& match :
-           id_data.getMoleculeQueryMatches())
+    for (const IdentificationData::InputMatch& match :
+           id_data.getInputMatches())
     {
       const NASequence& seq =
         match.identified_molecule_var.getIdentifiedOligoRef()->sequence;

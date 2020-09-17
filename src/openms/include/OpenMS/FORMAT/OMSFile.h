@@ -119,7 +119,7 @@ namespace OpenMS
 
       void storeAdducts();
 
-      void storeMoleculeQueryMatches();
+      void storeInputMatches();
 
     private:
       void createTable_(const String& name, const String& definition,
@@ -237,7 +237,7 @@ namespace OpenMS
 
       void loadAdducts();
 
-      void loadMoleculeQueryMatches();
+      void loadInputMatches();
 
     private:
       static DataValue makeDataValue_(const QSqlQuery& query);
@@ -260,7 +260,7 @@ namespace OpenMS
         Key molecule_id);
 
       void handleQueryPeakAnnotation_(
-        QSqlQuery& query, IdentificationData::MoleculeQueryMatch& match,
+        QSqlQuery& query, IdentificationData::InputMatch& match,
         Key parent_id);
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
@@ -276,7 +276,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::InputItemRef> input_item_refs_;
       std::unordered_map<Key, IdentificationData::ParentMoleculeRef> parent_molecule_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
-      std::unordered_map<Key, IdentificationData::QueryMatchRef> query_match_refs_;
+      std::unordered_map<Key, IdentificationData::InputMatchRef> input_match_refs_;
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
     };
 

@@ -191,9 +191,9 @@ namespace OpenMS
 
     /// Export a molecule-query match (peptide- or oligonucleotide-spectrum match) to mzTab
     template <typename MzTabSectionRow>
-    static void exportQueryMatchToMzTab_(
+    static void exportInputMatchToMzTab_(
       const String& sequence,
-      const IdentificationData::MoleculeQueryMatch& match, double calc_mass,
+      const IdentificationData::InputMatch& match, double calc_mass,
       std::vector<MzTabSectionRow>& output,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map,
       std::map<IdentificationData::InputFileRef, Size>& file_map)

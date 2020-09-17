@@ -1356,7 +1356,7 @@ public:
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref);
 
-    static void filterQueryMatchesByScore(
+    static void filterInputMatchesByScore(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref, double cutoff);
 

@@ -380,8 +380,8 @@ namespace OpenMS
   }
 
 
-  IdentificationData::QueryMatchRef
-  IdentificationData::registerMoleculeQueryMatch(const MoleculeQueryMatch&
+  IdentificationData::InputMatchRef
+  IdentificationData::registerInputMatch(const InputMatch&
                                                  match)
   {
     if (!no_checks_)
@@ -432,18 +432,18 @@ namespace OpenMS
       }
     }
 
-    return insertIntoMultiIndex_(query_matches_, match, query_match_lookup_);
+    return insertIntoMultiIndex_(input_matches_, match, input_match_lookup_);
   }
 
 
   IdentificationData::MatchGroupRef
-  IdentificationData::registerQueryMatchGroup(const QueryMatchGroup& group)
+  IdentificationData::registerInputMatchGroup(const InputMatchGroup& group)
   {
     if (!no_checks_)
     {
-      for (const auto& ref : group.query_match_refs)
+      for (const auto& ref : group.input_match_refs)
       {
-        if (!isValidHashedReference_(ref, query_match_lookup_))
+        if (!isValidHashedReference_(ref, input_match_lookup_))
         {
           String msg = "invalid reference to a molecule-query match - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -452,11 +452,11 @@ namespace OpenMS
       }
     }
 
-    return insertIntoMultiIndex_(query_match_groups_, group);
+    return insertIntoMultiIndex_(input_match_groups_, group);
   }
 
 
-  void IdentificationData::addScore(QueryMatchRef match_ref,
+  void IdentificationData::addScore(InputMatchRef match_ref,
                                     ScoreTypeRef score_ref, double value)
   {
     if (!no_checks_ && !isValidReference_(score_ref, score_types_))
@@ -466,8 +466,8 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    ModifyMultiIndexAddScore<MoleculeQueryMatch> modifier(score_ref, value);
-    query_matches_.modify(match_ref, modifier);
+    ModifyMultiIndexAddScore<InputMatch> modifier(score_ref, value);
+    input_matches_.modify(match_ref, modifier);
   }
 
 
@@ -510,17 +510,17 @@ namespace OpenMS
   }
 
 
-  vector<IdentificationData::QueryMatchRef>
+  vector<IdentificationData::InputMatchRef>
   IdentificationData::getBestMatchPerQuery(ScoreTypeRef score_ref) const
   {
-    vector<QueryMatchRef> results;
+    vector<InputMatchRef> results;
     pair<double, bool> best_score = make_pair(0.0, false);
-    QueryMatchRef best_ref = query_matches_.end();
-    for (QueryMatchRef ref = query_matches_.begin();
-         ref != query_matches_.end(); ++ref)
+    InputMatchRef best_ref = input_matches_.end();
+    for (InputMatchRef ref = input_matches_.begin();
+         ref != input_matches_.end(); ++ref)
     {
       pair<double, bool> current_score = ref->getScore(score_ref);
-      if ((best_ref != query_matches_.end()) &&
+      if ((best_ref != input_matches_.end()) &&
           (ref->input_item_ref != best_ref->input_item_ref))
       {
         // finalize previous query:
@@ -635,7 +635,7 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::cleanup(bool require_query_match,
+  void IdentificationData::cleanup(bool require_input_match,
                                    bool require_identified_sequence,
                                    bool require_parent_match,
                                    bool require_parent_group,
@@ -711,7 +711,7 @@ namespace OpenMS
     {
       id_vars.insert(it);
     }
-    removeFromSetIf_(query_matches_, [&](MoleculeQueryMatches::iterator it)
+    removeFromSetIf_(input_matches_, [&](InputMatches::iterator it)
                      {
                        return !id_vars.count(it->identified_molecule_var);
                      });
@@ -719,27 +719,27 @@ namespace OpenMS
     // remove molecule-query matches based on query match groups:
     if (require_match_group)
     {
-      query_match_lookup_.clear(); // will become invalid anyway
-      for (const auto& group : query_match_groups_)
+      input_match_lookup_.clear(); // will become invalid anyway
+      for (const auto& group : input_match_groups_)
       {
-        for (const auto& ref : group.query_match_refs)
+        for (const auto& ref : group.input_match_refs)
         {
-          query_match_lookup_.insert(ref);
+          input_match_lookup_.insert(ref);
         }
       }
-      removeFromSetIfNotHashed_(query_matches_, query_match_lookup_);
+      removeFromSetIfNotHashed_(input_matches_, input_match_lookup_);
     }
     // update look-up table of query match addresses:
-    updateAddressLookup_(query_matches_, query_match_lookup_);
+    updateAddressLookup_(input_matches_, input_match_lookup_);
 
     // remove id'd molecules and data queries based on molecule-query matches:
-    if (require_query_match)
+    if (require_input_match)
     {
       input_item_lookup_.clear();
       identified_peptide_lookup_.clear();
       identified_compound_lookup_.clear();
       identified_oligo_lookup_.clear();
-      for (const auto& match : query_matches_)
+      for (const auto& match : input_matches_)
       {
         input_item_lookup_.insert(match.input_item_ref);
         const IdentifiedMolecule& molecule_var = match.identified_molecule_var;
@@ -830,23 +830,23 @@ namespace OpenMS
 
     // remove entries from query match groups based on molecule-query matches:
     warn = false;
-    for (auto group_it = query_match_groups_.begin();
-         group_it != query_match_groups_.end(); )
+    for (auto group_it = input_match_groups_.begin();
+         group_it != input_match_groups_.end(); )
     {
-      Size old_size = group_it->query_match_refs.size();
-      query_match_groups_.modify(
-        group_it, [&](QueryMatchGroup& group)
+      Size old_size = group_it->input_match_refs.size();
+      input_match_groups_.modify(
+        group_it, [&](InputMatchGroup& group)
         {
-          removeFromSetIfNotHashed_(group.query_match_refs,
-                                    query_match_lookup_);
+          removeFromSetIfNotHashed_(group.input_match_refs,
+                                    input_match_lookup_);
         });
-      if (group_it->query_match_refs.empty())
+      if (group_it->input_match_refs.empty())
       {
-        group_it = query_match_groups_.erase(group_it);
+        group_it = input_match_groups_.erase(group_it);
       }
       else
       {
-        if (group_it->query_match_refs.size() != old_size)
+        if (group_it->input_match_refs.size() != old_size)
         {
           warn = true;
         }
@@ -869,7 +869,7 @@ namespace OpenMS
             parent_molecule_groupings_.empty() &&
             identified_peptides_.empty() && identified_compounds_.empty() &&
             identified_oligos_.empty() && adducts_.empty() &&
-            query_matches_.empty() && query_match_groups_.empty());
+            input_matches_.empty() && input_match_groups_.empty());
   }
 
 
@@ -1034,9 +1034,9 @@ namespace OpenMS
       adduct_refs[other_ref] = registerAdduct(*other_ref);
     }
     // molecule-query matches:
-    map<QueryMatchRef, QueryMatchRef> match_refs;
-    for (QueryMatchRef other_ref = other.getMoleculeQueryMatches().begin();
-         other_ref != other.getMoleculeQueryMatches().end(); ++other_ref)
+    map<InputMatchRef, InputMatchRef> match_refs;
+    for (InputMatchRef other_ref = other.getInputMatches().begin();
+         other_ref != other.getInputMatches().end(); ++other_ref)
     {
       IdentifiedMolecule molecule_var;
       const IdentifiedMolecule& other_var = other_ref->identified_molecule_var;
@@ -1055,7 +1055,7 @@ namespace OpenMS
           break;
       }
       InputItemRef query_ref = query_refs[other_ref->input_item_ref];
-      MoleculeQueryMatch copy(molecule_var, query_ref, other_ref->charge);
+      InputMatch copy(molecule_var, query_ref, other_ref->charge);
       if (other_ref->adduct_opt)
       {
         copy.adduct_opt = adduct_refs[*other_ref->adduct_opt];
@@ -1070,7 +1070,7 @@ namespace OpenMS
         copy.peak_annotations[opt_ref] = pair.second;
       }
       mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
-      match_refs[other_ref] = registerMoleculeQueryMatch(copy);
+      match_refs[other_ref] = registerInputMatch(copy);
     }
     // parent molecule groupings:
     // @TODO: does this need to be more sophisticated?

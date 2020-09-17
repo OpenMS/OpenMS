@@ -16,10 +16,10 @@ IdentifiedSequence.h
 InputFile.h
 MetaData.h
 MoleculeParentMatch.h
-MoleculeQueryMatch.h
+InputMatch.h
 ParentMolecule.h
 ParentMoleculeGroup.h
-QueryMatchGroup.h
+InputMatchGroup.h
 ScoreType.h
 ScoredProcessingResult.h
 )

@@ -70,7 +70,7 @@ namespace OpenMS
     typedef boost::optional<AdductRef> AdductOpt;
 
     /// Representation of a search hit (e.g. peptide-spectrum match).
-    struct MoleculeQueryMatch: public ScoredProcessingResult
+    struct InputMatch: public ScoredProcessingResult
     {
       IdentifiedMolecule identified_molecule_var;
 
@@ -84,7 +84,7 @@ namespace OpenMS
       // data processing steps:
       PeakAnnotationSteps peak_annotations;
 
-      explicit MoleculeQueryMatch(
+      explicit InputMatch(
         IdentifiedMolecule identified_molecule_var,
         InputItemRef input_item_ref, Int charge = 0,
         const boost::optional<AdductRef>& adduct_opt = boost::none,
@@ -97,9 +97,9 @@ namespace OpenMS
       {
       }
 
-      MoleculeQueryMatch(const MoleculeQueryMatch&) = default;
+      InputMatch(const InputMatch&) = default;
 
-      MoleculeQueryMatch& operator+=(const MoleculeQueryMatch& other)
+      InputMatch& operator+=(const InputMatch& other)
       {
         ScoredProcessingResult::operator+=(other);
         if (charge == 0) charge = other.charge;
@@ -112,21 +112,21 @@ namespace OpenMS
 
     // all matches for the same data query should be consecutive!
     typedef boost::multi_index_container<
-      MoleculeQueryMatch,
+      InputMatch,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
           boost::multi_index::composite_key<
-            MoleculeQueryMatch,
-            boost::multi_index::member<MoleculeQueryMatch, InputItemRef,
-                                       &MoleculeQueryMatch::input_item_ref>,
+            InputMatch,
+            boost::multi_index::member<InputMatch, InputItemRef,
+                                       &InputMatch::input_item_ref>,
             boost::multi_index::member<
-              MoleculeQueryMatch, IdentifiedMolecule,
-              &MoleculeQueryMatch::identified_molecule_var>,
-            boost::multi_index::member<MoleculeQueryMatch, AdductOpt,
-                                       &MoleculeQueryMatch::adduct_opt>>>>
-      > MoleculeQueryMatches;
+              InputMatch, IdentifiedMolecule,
+              &InputMatch::identified_molecule_var>,
+            boost::multi_index::member<InputMatch, AdductOpt,
+                                       &InputMatch::adduct_opt>>>>
+      > InputMatches;
 
-    typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;
+    typedef IteratorWrapper<InputMatches::iterator> InputMatchRef;
 
   }
 }

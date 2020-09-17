@@ -42,10 +42,10 @@
 #include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
-#include <OpenMS/METADATA/ID/MoleculeQueryMatch.h>
+#include <OpenMS/METADATA/ID/InputMatch.h>
 #include <OpenMS/METADATA/ID/ParentMolecule.h>
 #include <OpenMS/METADATA/ID/ParentMoleculeGroup.h>
-#include <OpenMS/METADATA/ID/QueryMatchGroup.h>
+#include <OpenMS/METADATA/ID/InputMatchGroup.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 #include <OpenMS/FORMAT/MzTab.h>
 
@@ -71,7 +71,7 @@ namespace OpenMS
     <tr><td>InputItem <td>A search query (with identifier, RT, m/z), i.e. an MS2 spectrum or feature (for accurate mass search) <td>Identifier <td>MS2 spectrum <td>PeptideIdentification
     <tr><td>ParentMolecule <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
     <tr><td>IdentifiedPeptide/-Oligo/-Compound <td>An identified molecule of the respective type <td>Sequence (or identifier for a compound) <td>Peptide <td>PeptideHit
-    <tr><td>MoleculeQueryMatch <td>A match between a query (InputItem) and identified molecule (Identified...) <td>Combination of query and molecule references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
+    <tr><td>InputMatch <td>A match between a query (InputItem) and identified molecule (Identified...) <td>Combination of query and molecule references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
     </table>
 
     To populate an IdentificationData instance with data, "register..." functions are used.
@@ -160,15 +160,14 @@ namespace OpenMS
     using AdductRef = IdentificationDataInternal::AdductRef;
     using AdductOpt = IdentificationDataInternal::AdductOpt;
 
-    using MoleculeQueryMatch = IdentificationDataInternal::MoleculeQueryMatch;
-    using MoleculeQueryMatches =
-      IdentificationDataInternal::MoleculeQueryMatches;
-    using QueryMatchRef = IdentificationDataInternal::QueryMatchRef;
+    using InputMatch = IdentificationDataInternal::InputMatch;
+    using InputMatches = IdentificationDataInternal::InputMatches;
+    using InputMatchRef = IdentificationDataInternal::InputMatchRef;
 
     // @TODO: allow multiple sets of groups, like with parent molecules
     // ("ParentMoleculeGroupings")?
-    using QueryMatchGroup = IdentificationDataInternal::QueryMatchGroup;
-    using QueryMatchGroups = IdentificationDataInternal::QueryMatchGroups;
+    using InputMatchGroup = IdentificationDataInternal::InputMatchGroup;
+    using InputMatchGroups = IdentificationDataInternal::InputMatchGroups;
     using MatchGroupRef = IdentificationDataInternal::MatchGroupRef;
 
     using ParentMoleculeGroup = IdentificationDataInternal::ParentMoleculeGroup;
@@ -211,8 +210,8 @@ namespace OpenMS
       identified_peptides_(std::move(other.identified_peptides_)),
       identified_compounds_(std::move(other.identified_compounds_)),
       identified_oligos_(std::move(other.identified_oligos_)),
-      query_matches_(std::move(other.query_matches_)),
-      query_match_groups_(std::move(other.query_match_groups_)),
+      input_matches_(std::move(other.input_matches_)),
+      input_match_groups_(std::move(other.input_match_groups_)),
       current_step_ref_(std::move(other.current_step_ref_)),
       no_checks_(std::move(other.no_checks_)),
       // look-up tables:
@@ -221,7 +220,7 @@ namespace OpenMS
       identified_peptide_lookup_(std::move(other.identified_peptide_lookup_)),
       identified_compound_lookup_(std::move(other.identified_compound_lookup_)),
       identified_oligo_lookup_(std::move(other.identified_oligo_lookup_)),
-      query_match_lookup_(std::move(other.query_match_lookup_))
+      input_match_lookup_(std::move(other.input_match_lookup_))
     {
     }
 
@@ -322,14 +321,14 @@ namespace OpenMS
 
       @return Reference to the registered molecule-query match
     */
-    QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch& match);
+    InputMatchRef registerInputMatch(const InputMatch& match);
 
     /*!
       @brief Register a group of associated molecule-query matches
 
       @return Reference to the registered group of matches
     */
-    MatchGroupRef registerQueryMatchGroup(const QueryMatchGroup& group);
+    MatchGroupRef registerInputMatchGroup(const InputMatchGroup& group);
 
     /// Return the registered input files (immutable)
     const InputFiles& getInputFiles() const
@@ -410,19 +409,19 @@ namespace OpenMS
     }
 
     /// Return the registered molecule-query matches (immutable)
-    const MoleculeQueryMatches& getMoleculeQueryMatches() const
+    const InputMatches& getInputMatches() const
     {
-      return query_matches_;
+      return input_matches_;
     }
 
     /// Return the registered groups of molecule-query matches (immutable)
-    const QueryMatchGroups& getQueryMatchGroups() const
+    const InputMatchGroups& getInputMatchGroups() const
     {
-      return query_match_groups_;
+      return input_match_groups_;
     }
 
     /// Add a score to a molecule-query match (e.g. PSM)
-    void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref,
+    void addScore(InputMatchRef match_ref, ScoreTypeRef score_ref,
                   double value);
 
     /*!
@@ -445,7 +444,7 @@ namespace OpenMS
     void clearCurrentProcessingStep();
 
     /// Return the best match for each data query, according to a given score type
-    std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
+    std::vector<InputMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
     // @TODO: this currently doesn't take molecule type into account - should it?
 
@@ -464,13 +463,13 @@ namespace OpenMS
 
       Make sure there are no invalid references or "orphan" data entries.
 
-      @param require_query_match Remove identified molecules and data queries that aren't part of molecule-query matches?
+      @param require_input_match Remove identified molecules and data queries that aren't part of molecule-query matches?
       @param require_identified_sequence Remove parent molecules (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
       @param require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent molecule (protein/RNA)?
       @param require_parent_group Remove parent molecules that aren't part of parent molecule groups?
       @param require_match_group Remove molecule-query matches that aren't part of match groups?
     */
-    void cleanup(bool require_query_match = true,
+    void cleanup(bool require_input_match = true,
                  bool require_identified_sequence = true,
                  bool require_parent_match = true,
                  bool require_parent_group = false,
@@ -542,9 +541,9 @@ namespace OpenMS
     }
 
     /// Set a meta value on a stored molecule-query match
-    void setMetaValue(const QueryMatchRef ref, const String& key, const DataValue& value)
+    void setMetaValue(const InputMatchRef ref, const String& key, const DataValue& value)
     {
-      setMetaValue_(ref, key, value, query_matches_, query_match_lookup_);
+      setMetaValue_(ref, key, value, input_matches_, input_match_lookup_);
     }
     // @TODO: add overloads for other data types derived from MetaInfoInterface
 
@@ -566,8 +565,8 @@ namespace OpenMS
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;
     Adducts adducts_;
-    MoleculeQueryMatches query_matches_;
-    QueryMatchGroups query_match_groups_;
+    InputMatches input_matches_;
+    InputMatchGroups input_match_groups_;
 
     /// Reference to the current data processing step (see @ref setCurrentProcessingStep())
     ProcessingStepRef current_step_ref_;
@@ -586,7 +585,7 @@ namespace OpenMS
     AddressLookup identified_peptide_lookup_;
     AddressLookup identified_compound_lookup_;
     AddressLookup identified_oligo_lookup_;
-    AddressLookup query_match_lookup_;
+    AddressLookup input_match_lookup_;
 
     /// Helper function to check if all score types are valid
     void checkScoreTypes_(const std::map<ScoreTypeRef, double>& scores) const;
