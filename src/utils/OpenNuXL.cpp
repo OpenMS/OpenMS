@@ -129,7 +129,7 @@ using namespace boost::accumulators;
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
 #define CALCULATE_LONGEST_TAG
 //#define MODDS_ON_ABY_IONS_ONLY
-//#define SVM_RECALIBRATE
+#define SVM_RECALIBRATE 1
 //#define FILTER_RANKS 1
 //#define CALCULATE_NUCLEOTIDE_TAGS 1
 #define DONT_ACCUMULATE_PARTIAL_ION_SCORES 1
@@ -462,6 +462,8 @@ public:
   static constexpr Size IA_RANK_INDEX = 1;
   static constexpr Size IA_DENOVO_TAG_INDEX = 2;
 protected:
+  /// percolator feature set
+  StringList feature_set_;
 
   void registerOptionsAndFlags_() override
   {
@@ -2293,7 +2295,7 @@ static void scoreXLIons_(
 
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(spec, 
-                                         0.03,
+                                         0.01,
                                          false,
                                          1, 3, 
                                          false, 
@@ -2417,9 +2419,8 @@ static void scoreXLIons_(
       dist_file << mz << "\t" << peak_density.getBinIntensity(mz) << "\n";
     }
     dist_file.close();
-
-    MzMLFile().store("debug_filtering.mzML", exp); 
 #endif
+    if (debug_level_ > 10) MzMLFile().store("debug_filtering.mzML", exp); 
   }
 
   void filterTopNAnnotations_(vector<vector<AnnotatedHit>>& ahs, const Size top_hits)
@@ -3638,57 +3639,6 @@ static void scoreXLIons_(
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("peptide:enzyme"));
 
-    /* default features added in PercolatorAdapter:
-     * SpecId, ScanNr, ExpMass, CalcMass, mass, 
-     * peplen, charge#min..#max, enzN, enzC, enzInt, dm, absdm
-     */     
-    StringList feature_set;
-    feature_set
-       << "NuXL:mass_error_p"
-       << "NuXL:err"
-       << "NuXL:total_loss_score"
-       << "NuXL:modds"
-       << "NuXL:immonium_score"
-       << "NuXL:precursor_score"
-       << "NuXL:MIC"
-       << "NuXL:Morph"
-       << "NuXL:total_MIC"
-       << "NuXL:ladder_score"
-       << "NuXL:sequence_score"
-       << "NuXL:total_Morph"
-       << "NuXL:total_HS"
-       << "NuXL:tag_XLed"
-       << "NuXL:tag_unshifted"
-       << "NuXL:tag_shifted"
-       << "NuXL:aminoacid_max_tag"
-       << "NuXL:aminoacid_id_to_max_tag_ratio"
-       << "nr_candidates"
-       << "NuXL:explained_peak_fraction"
-       << "NuXL:QQ_TIC"
-       << "NuXL:QQ_EXPLAINED_FRACTION"
-       << "NuXL:wTop50";
-
-    feature_set
-       << "NuXL:marker_ions_score"
-       << "NuXL:partial_loss_score"
-       << "NuXL:pl_MIC"
-       << "NuXL:pl_err"
-       << "NuXL:pl_Morph"
-       << "NuXL:pl_modds"
-       << "NuXL:pl_pc_MIC"
-       << "NuXL:pl_im_MIC";
-
-    feature_set
-       << "NuXL:isPhospho" 
-       << "NuXL:isXL" 
-       << "NuXL:score"
-       << "isotope_error"
-       << "variable_modifications"
-       << "precursor_intensity_log10"
-       << "NuXL:NA_MASS_z0"
-       << "NuXL:NA_length"   
-       << "nucleotide_mass_tags";
-
 #ifdef OPENNUXL_SEPARATE_FEATURES
     for (auto & pi : peptide_ids)
     {
@@ -3697,7 +3647,7 @@ static void scoreXLIons_(
         if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
         {
           // fill XL related feature columns with zeros
-          for (const auto & s : feature_set)
+          for (const auto & s : feature_set_)
           {
             if (s.hasPrefix("NuXL")) ph.setMetaValue("XL_" + s, 0.0);
           }
@@ -3720,27 +3670,11 @@ static void scoreXLIons_(
     // we duplicated the feature set
     auto XL_columns = feature_set;
     for (const auto& s : feature_set) { if (s.hasPrefix("NuXL")) XL_columns.push_back("XL_" + s); }
-    feature_set = XL_columns;
+    feature_set_ = XL_columns;
 #endif
 
-#ifdef DANGEROUS_FEAUTURES
-    feature_set
-       << "CountSequenceIsTop"
-       << "CountSequenceCharges"
-       << "CountSequenceIsXL"
-       << "CountSequenceIsPeptide";
-#endif
-       
-    if (!purities.empty()) feature_set << "precursor_purity";
-
-    // one-hot encoding of cross-linked nucleotide
-    const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
-    for (const auto& c : can_cross_link) 
-    {
-      feature_set << String("NuXL:XL_" + String(c));
-    }
     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
-    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set_, ","));
 
     protein_ids[0].setSearchParameters(search_parameters);
   }
@@ -4356,6 +4290,7 @@ static void scoreXLIons_(
     bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
     bool pcrecalibration = find(filter.begin(), filter.end(), "pcrecalibration") != filter.end();
 
+
     if (pcrecalibration) 
     {
       MSExperiment e;
@@ -4426,8 +4361,8 @@ static void scoreXLIons_(
                        << "-train-best-positive" 
                        << "-score_type" << "q-value"
                        << "-post-processing-tdc"
-                       << "-weights" << weights_out.toQString();
-//                       << "-nested-xval-bins" << "3";
+                       << "-weights" << weights_out.toQString()
+                       << "-nested-xval-bins" << "3";
                        //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
                        
           TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
@@ -4666,7 +4601,7 @@ static void scoreXLIons_(
 
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
-    String can_cross_link = getStringOption_("RNPxl:can_cross_link");
+    const String& can_cross_link = getStringOption_("RNPxl:can_cross_link");
     for (const auto& c : can_cross_link) { can_xl_.insert(c); }
 
     StringList modifications = getStringList_("RNPxl:modifications");
@@ -4734,6 +4669,61 @@ static void scoreXLIons_(
         purities = PrecursorPurity::computePrecursorPurities(tmp_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
       }
     } // free spectra  
+
+    /////////////////////////////////////////////////////////////////////////
+    // define percolator feature set
+    /* default features added in PercolatorAdapter:
+     * SpecId, ScanNr, ExpMass, CalcMass, mass, 
+     * peplen, charge#min..#max, enzN, enzC, enzInt, dm, absdm
+     */     
+    feature_set_
+       << "NuXL:mass_error_p"
+       << "NuXL:err"
+       << "NuXL:total_loss_score"
+       << "NuXL:modds"
+       << "NuXL:immonium_score"
+       << "NuXL:precursor_score"
+       << "NuXL:MIC"
+       << "NuXL:Morph"
+       << "NuXL:total_MIC"
+       << "NuXL:ladder_score"
+       << "NuXL:sequence_score"
+       << "NuXL:total_Morph"
+       << "NuXL:total_HS"
+       << "NuXL:tag_XLed"
+       << "NuXL:tag_unshifted"
+       << "NuXL:tag_shifted"
+       << "NuXL:aminoacid_max_tag"
+       << "NuXL:aminoacid_id_to_max_tag_ratio"
+       << "nr_candidates"
+       << "NuXL:explained_peak_fraction"
+       << "NuXL:QQ_TIC"
+       << "NuXL:QQ_EXPLAINED_FRACTION"
+       << "NuXL:wTop50"
+
+       << "NuXL:marker_ions_score"
+       << "NuXL:partial_loss_score"
+       << "NuXL:pl_MIC"
+       << "NuXL:pl_err"
+       << "NuXL:pl_Morph"
+       << "NuXL:pl_modds"
+       << "NuXL:pl_pc_MIC"
+       << "NuXL:pl_im_MIC"
+
+       << "NuXL:isPhospho" 
+       << "NuXL:isXL" 
+       << "NuXL:score"
+       << "isotope_error"
+       << "variable_modifications"
+       << "precursor_intensity_log10"
+       << "NuXL:NA_MASS_z0"
+       << "NuXL:NA_length"   
+       << "nucleotide_mass_tags";
+
+    if (!purities.empty()) feature_set_ << "precursor_purity";
+
+    // one-hot encoding of cross-linked nucleotide
+    for (const auto& c : can_cross_link)  { feature_set_ << String("NuXL:XL_" + String(c)); }
 
     PeakFileOptions options;
     options.clearMSLevels();
@@ -5758,6 +5748,7 @@ static void scoreXLIons_(
       map<double, size_t> XL_t;
       map<double, size_t> XL_d;
 
+      // map scores to index (sorted)
       for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
          if (peptide_ids[index].getHits().empty()) continue;
@@ -5812,195 +5803,6 @@ static void scoreXLIons_(
         SimpleSVM::PredictorMap predictors;
         map<Size, Int> labels;
 
-/*                
-        StringList feature_set;
-        feature_set
-          << "NuXL:mass_error_p"
-          << "NuXL:err"
-          << "NuXL:total_loss_score"
-          << "NuXL:modds"
-          << "NuXL:immonium_score"
-          << "NuXL:precursor_score"
-          << "NuXL:MIC"
-          << "NuXL:Morph"
-          << "NuXL:total_MIC"
-          << "NuXL:ladder_score"
-          << "NuXL:sequence_score"
-          << "NuXL:total_Morph"
-          << "NuXL:total_HS"
-          << "NuXL:tag_XLed"
-          << "NuXL:tag_unshifted"
-          << "NuXL:tag_shifted"
-          << "NuXL:aminoacid_max_tag"
-          << "NuXL:aminoacid_id_to_max_tag_ratio"
-          << "nr_candidates"
-          << "NuXL:rank_product"
-          << "NuXL:wTop50"
-          << "NuXL:marker_ions_score"
-          << "NuXL:partial_loss_score"
-          << "NuXL:pl_MIC"
-          << "NuXL:pl_err"
-          << "NuXL:pl_Morph"
-          << "NuXL:pl_modds"
-          << "NuXL:pl_pc_MIC"
-          << "NuXL:pl_im_MIC"
-          << "NuXL:isPhospho" 
-          << "NuXL:isXL" 
-          << "NuXL:score"
-          << "isotope_error"
-          << "variable_modifications"
-          << "precursor_intensity_log10"
-          << "NuXL:NA_MASS_z0"
-          << "NuXL:NA_length"   
-          << "nucleotide_mass_tags";
-*/
-
-        // feature set that can be calculated on-line during scoring
-        StringList feature_set;
-        feature_set
-          << "NuXL:mass_error_p"
-          << "isotope_error"
-          << "NuXL:err"
-          << "NuXL:total_loss_score"
-          << "NuXL:immonium_score"
-          << "NuXL:precursor_score"
-          << "NuXL:MIC"
-          << "NuXL:Morph"
-          << "NuXL:modds"
-          << "NuXL:partial_loss_score"
-          << "NuXL:pl_MIC"
-          << "NuXL:pl_err"
-          << "NuXL:pl_Morph"
-          << "NuXL:pl_im_MIC"
-          << "NuXL:pl_modds"
-          << "NuXL:pl_pc_MIC"
-          << "NuXL:total_MIC"
-          << "NuXL:marker_ions_score"
-          << "NuXL:ladder_score"
-          << "NuXL:sequence_score"
-          << "NuXL:tag_XLed"
-          << "NuXL:tag_unshifted"
-          << "NuXL:tag_shifted"
-          << "NuXL:explained_peak_fraction"
-          << "NuXL:isXL" 
-          << "NuXL:wTop50";
-
-
-/*
- *
-Feature weights:
-NuXL:NA_MASS_z0 1.30088
-NuXL:NA_length  -1.40758
-NuXL:aminoacid_id_to_max_tag_ratio      0.92732
-NuXL:aminoacid_max_tag  -0.744218
-(NuXL:score      3.74526)
-(score   3.74526)
-NuXL:total_HS   3.90137
-NuXL:total_Morph        2.24353
-
-NuXL:err        0.118611
-NuXL:immonium_score     1.70748
-NuXL:modds      1.76435
-NuXL:isXL       -2.21505
-NuXL:ladder_score       2.02304
-NuXL:marker_ions_score  1.26403
-NuXL:mass_error_p       0.253748
-NuXL:partial_loss_score 0.587148
-NuXL:pl_modds   0.324605
-NuXL:pl_pc_MIC  0.176533
-NuXL:pl_im_MIC  -0.2534
-NuXL:pl_MIC     -0.177937
-NuXL:pl_Morph   -1.58991
-NuXL:pl_err     -0.0100689
-NuXL:total_loss_score   3.73413
-NuXL:MIC        0.564764
-NuXL:Morph      3.04116
-NuXL:sequence_score     -1.59204
-NuXL:tag_XLed   1.63176
-NuXL:tag_shifted        -0.176563
-NuXL:tag_unshifted      3.73061
-NuXL:total_MIC  0.575831
-NuXL:wTop50     -0.137687
-length  0.195985
-NuXL:precursor_score    -0.513751
-NuXL:rank_product       0.349211
-
-
-nr_candidates   0.453777
-nucleotide_mass_tags    0.00899349
-precursor_intensity_log10       -0.383641
-variable_modifications  -0.0944707
-
- * */
-
-/*
- * mean ppm error: 0.0569701 sd: 0.447449 5*sd: 2.23725
- * Peptide (target/decoy)   XL (target/decoy):
- * 3975    3011    9613    4045
- * Predictor 'isotope_error' is uninformative.
- * Training SVM on 12044 observations. Classes:
- * - '0': 6022 observations
- *   - '1': 6022 observations
- *   Running cross-validation to find optimal SVM parameters...
- *   Best cross-validation performance: 83.4772% correct
- *   Best SVM parameters: log2_C = 5, log2_gamma = 0
- *   Number of support vectors in the final model: 4252
- *   Feature weights:
- *   NuXL:MIC        0.00317232
- *   NuXL:Morph      -5.67908
- *   NuXL:err        0.0074405
- *   NuXL:immonium_score     3.87159
- *   NuXL:isXL       -2.8901
- *   NuXL:ladder_score       2.09632
- *   NuXL:marker_ions_score  2.53656
- *   NuXL:mass_error_p       0.189849
- *   NuXL:modds      9.42353
- *   NuXL:partial_loss_score 4.22367
- *   NuXL:pl_MIC     0.0770935
- *   NuXL:pl_Morph   -4.25703
- *   NuXL:pl_err     -0.059863
- *   NuXL:pl_im_MIC  -0.367491
- *   NuXL:pl_modds   2.29632
- *   NuXL:pl_pc_MIC  1.13888
- *   NuXL:precursor_score    -0.597915
- *   NuXL:rank_product       0.460718
- *   NuXL:sequence_score     -4.68762
- *   NuXL:tag_XLed   2.61103
- *   NuXL:tag_shifted        -0.10144
- *   NuXL:tag_unshifted      10.8324
- *   NuXL:total_MIC  0.836277
- *   NuXL:total_loss_score   34.8899
- *   NuXL:wTop50     -0.248061
- *   length  0.00656285
- *   Feature scaling:
- *   NuXL:MIC        0.00693372      0.798143
- *   NuXL:Morph      2.00693 50.6892
- *   NuXL:err        1.8356e-05      0.0286427
- *   NuXL:immonium_score     0       0.0684432
- *   NuXL:isXL       0       1
- *   NuXL:ladder_score       0.0381864       1.11803
- *   NuXL:marker_ions_score  0       0.12167
- *   NuXL:mass_error_p       0.6439  1
- *   NuXL:modds      3.37613e-07     22.9923
- *   NuXL:partial_loss_score 0       38.5117
- *   NuXL:pl_MIC     0       0.352322
- *   NuXL:pl_Morph   0       20.2243
- *   NuXL:pl_err     0.000214374     0.02
- *   NuXL:pl_im_MIC  0       0.115692
- *   NuXL:pl_modds   0       7.26252
- *   NuXL:pl_pc_MIC  0       0.33534
- *   NuXL:precursor_score    0       0.299693
- *   NuXL:rank_product       1       149.905
- *   NuXL:sequence_score     0.0218818       1.11803
- *   NuXL:tag_XLed   0       21
- *   NuXL:tag_shifted        0       17
- *   NuXL:tag_unshifted      1       33
- *   NuXL:total_MIC  0.0100453       0.844876
- *   NuXL:total_loss_score   0.106861        119.842
- *   NuXL:wTop50     2       229
- *   length  6       48
- */
-
         // copy all scores in predictors ("score" + all from feature_set). 
         // Only add labels for balanced training set
         size_t current_row(0);
@@ -6014,7 +5816,7 @@ variable_modifications  -0.0944707
              double score = ph.getScore();
              // predictors["score"].push_back(score);
              predictors["length"].push_back(ph.getSequence().size());
-             for (auto & f : feature_set)
+             for (auto & f : feature_set_)
              {
                double value = ph.getMetaValue(f);
                predictors[f].push_back(value);
