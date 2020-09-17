@@ -216,10 +216,10 @@ namespace OpenMS
     bool store_original_rt)
   {
     // update RTs in-place:
-    for (IdentificationData::DataQueryRef it = id_data.data_queries_.begin();
-         it != id_data.data_queries_.end(); ++it)
+    for (IdentificationData::InputItemRef it = id_data.input_items_.begin();
+         it != id_data.input_items_.end(); ++it)
     {
-      id_data.data_queries_.modify(it, [&](IdentificationData::DataQuery& query)
+      id_data.input_items_.modify(it, [&](IdentificationData::InputItem& query)
                                    {
                                      if (store_original_rt)
                                      {

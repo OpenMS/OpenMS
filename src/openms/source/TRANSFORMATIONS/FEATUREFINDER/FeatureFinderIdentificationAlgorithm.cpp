@@ -433,8 +433,8 @@ namespace OpenMS
       for (ID::QueryMatchRef ref = id_data.getMoleculeQueryMatches().begin();
            ref != id_data.getMoleculeQueryMatches().end(); ++ref)
       {
-        double rt = ref->data_query_ref->rt;
-        double mz = ref->data_query_ref->mz;
+        double rt = ref->input_item_ref->rt;
+        double mz = ref->input_item_ref->mz;
 
         // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
         double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * mz : mz_window_;
@@ -458,8 +458,8 @@ namespace OpenMS
         const Feature& seed = seeds[feature_index];
         ++seeds_added; // count from 1
         String id = String(seed.getUniqueId());
-        ID::DataQuery query(id, file_ref, seed.getRT(), seed.getMZ());
-        ID::DataQueryRef query_ref = id_data.registerDataQuery(query);
+        ID::InputItem query(id, file_ref, seed.getRT(), seed.getMZ());
+        ID::InputItemRef query_ref = id_data.registerInputItem(query);
 
         // represent seeds as compounds - no need to fake a peptide sequence:
         ID::IdentifiedCompound compound("SEED:" + String(seeds_added));
@@ -773,7 +773,7 @@ namespace OpenMS
         }
         // find m/z from a "data query" that we generated for the seed:
         ID::QueryMatchRef match_ref = target_it->second.hits_by_charge.begin()->second.first.begin()->second;
-        ID::DataQueryRef query_ref = match_ref->data_query_ref;
+        ID::InputItemRef query_ref = match_ref->input_item_ref;
         target.theoretical_mass = (query_ref->mz - Constants::PROTON_MASS_U) * match_ref->charge;
         // @TODO: add support for RNA "averagine" option
         iso_dist = iso_gen.estimateFromPeptideWeight(target.theoretical_mass);
@@ -1002,7 +1002,7 @@ namespace OpenMS
             ID::QueryMatchRef ref = rt_pair.second;
             String adduct;
             if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
-            auto key = make_tuple(ref->data_query_ref->rt, ref->data_query_ref->mz,
+            auto key = make_tuple(ref->input_item_ref->rt, ref->input_item_ref->mz,
                                   ref->identified_molecule_var.toString(), adduct);
             pep_id_keys.insert(key);
           }
@@ -1169,7 +1169,7 @@ namespace OpenMS
         {
           String adduct;
           if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
-          auto key = make_tuple(ref->data_query_ref->rt, ref->data_query_ref->mz,
+          auto key = make_tuple(ref->input_item_ref->rt, ref->input_item_ref->mz,
                                 ref->identified_molecule_var.toString(), adduct);
           pep_id_keys.insert(key);
         }
@@ -1188,7 +1188,7 @@ namespace OpenMS
       if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
       if (!assigned_ids.count(ref))
       {
-        auto key = make_tuple(ref->data_query_ref->rt, ref->data_query_ref->mz,
+        auto key = make_tuple(ref->input_item_ref->rt, ref->input_item_ref->mz,
                               ref->identified_molecule_var.toString(), adduct);
         pep_id_keys.insert(key);
       }
@@ -1285,7 +1285,7 @@ namespace OpenMS
       pos = target_map_.emplace(target_id, data).first;
     }
 
-    double rt = ref->data_query_ref->rt;
+    double rt = ref->input_item_ref->rt;
     if (!external)
     {
       OPENMS_LOG_DEBUG << "Adding " << target_id << " " << ref->charge << " " << rt << endl;

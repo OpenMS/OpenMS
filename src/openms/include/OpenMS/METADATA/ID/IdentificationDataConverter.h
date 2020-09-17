@@ -203,7 +203,7 @@ namespace OpenMS
       xsm.sequence.set(sequence);
       exportStepsAndScoresToMzTab_(match.steps_and_scores, xsm.search_engine,
                                    xsm.search_engine_score, score_map);
-      const IdentificationData::DataQuery& query = *match.data_query_ref;
+      const IdentificationData::InputItem& query = *match.input_item_ref;
       std::vector<MzTabDouble> rts(1);
       rts[0].set(query.rt);
       xsm.retention_time.set(rts);

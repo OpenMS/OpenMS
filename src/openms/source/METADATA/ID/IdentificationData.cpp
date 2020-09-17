@@ -213,8 +213,8 @@ namespace OpenMS
   }
 
 
-  IdentificationData::DataQueryRef
-  IdentificationData::registerDataQuery(const DataQuery& query)
+  IdentificationData::InputItemRef
+  IdentificationData::registerInputItem(const InputItem& query)
   {
     // reference to spectrum or feature is required:
     if (!no_checks_ && query.data_id.empty())
@@ -232,20 +232,20 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    // can't use "insertIntoMultiIndex_" because DataQuery doesn't have the
+    // can't use "insertIntoMultiIndex_" because InputItem doesn't have the
     // "steps_and_scores" member (from ScoredProcessingResult)
-    auto result = data_queries_.insert(query);
+    auto result = input_items_.insert(query);
     if (!result.second) // existing element - merge in new information
     {
-      data_queries_.modify(result.first, [&query](DataQuery& existing)
+      input_items_.modify(result.first, [&query](InputItem& existing)
                            {
                              existing += query;
                            });
     }
 
-    data_query_lookup_.insert(uintptr_t(&(*result.first)));
+    input_item_lookup_.insert(uintptr_t(&(*result.first)));
 
-    // @TODO: add processing step (currently not supported by DataQuery)
+    // @TODO: add processing step (currently not supported by InputItem)
     return result.first;
   }
 
@@ -417,7 +417,7 @@ namespace OpenMS
         }
       }
 
-      if (!isValidHashedReference_(match.data_query_ref, data_query_lookup_))
+      if (!isValidHashedReference_(match.input_item_ref, input_item_lookup_))
       {
         String msg = "invalid reference to a data query - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -521,7 +521,7 @@ namespace OpenMS
     {
       pair<double, bool> current_score = ref->getScore(score_ref);
       if ((best_ref != query_matches_.end()) &&
-          (ref->data_query_ref != best_ref->data_query_ref))
+          (ref->input_item_ref != best_ref->input_item_ref))
       {
         // finalize previous query:
         if (best_score.second) results.push_back(best_ref);
@@ -735,13 +735,13 @@ namespace OpenMS
     // remove id'd molecules and data queries based on molecule-query matches:
     if (require_query_match)
     {
-      data_query_lookup_.clear();
+      input_item_lookup_.clear();
       identified_peptide_lookup_.clear();
       identified_compound_lookup_.clear();
       identified_oligo_lookup_.clear();
       for (const auto& match : query_matches_)
       {
-        data_query_lookup_.insert(match.data_query_ref);
+        input_item_lookup_.insert(match.input_item_ref);
         const IdentifiedMolecule& molecule_var = match.identified_molecule_var;
         switch (molecule_var.getMoleculeType())
         {
@@ -758,7 +758,7 @@ namespace OpenMS
             break;
         }
       }
-      removeFromSetIfNotHashed_(data_queries_, data_query_lookup_);
+      removeFromSetIfNotHashed_(input_items_, input_item_lookup_);
       removeFromSetIfNotHashed_(identified_peptides_,
                                 identified_peptide_lookup_);
       removeFromSetIfNotHashed_(identified_compounds_,
@@ -766,7 +766,7 @@ namespace OpenMS
       removeFromSetIfNotHashed_(identified_oligos_, identified_oligo_lookup_);
     }
     // update look-up tables of addresses:
-    updateAddressLookup_(data_queries_, data_query_lookup_);
+    updateAddressLookup_(input_items_, input_item_lookup_);
     updateAddressLookup_(identified_peptides_, identified_peptide_lookup_);
     updateAddressLookup_(identified_compounds_, identified_compound_lookup_);
     updateAddressLookup_(identified_oligos_, identified_oligo_lookup_);
@@ -865,7 +865,7 @@ namespace OpenMS
     return (input_files_.empty() && processing_softwares_.empty() &&
             processing_steps_.empty() && db_search_params_.empty() &&
             db_search_steps_.empty() && score_types_.empty() &&
-            data_queries_.empty() && parent_molecules_.empty() &&
+            input_items_.empty() && parent_molecules_.empty() &&
             parent_molecule_groupings_.empty() &&
             identified_peptides_.empty() && identified_compounds_.empty() &&
             identified_oligos_.empty() && adducts_.empty() &&
@@ -957,17 +957,17 @@ namespace OpenMS
       db_search_steps_[step_ref] = param_ref;
     }
     // data queries:
-    map<DataQueryRef, DataQueryRef> query_refs;
-    for (DataQueryRef other_ref = other.getDataQueries().begin();
-         other_ref != other.getDataQueries().end(); ++other_ref)
+    map<InputItemRef, InputItemRef> query_refs;
+    for (InputItemRef other_ref = other.getInputItems().begin();
+         other_ref != other.getInputItems().end(); ++other_ref)
     {
       // update internal references:
-      DataQuery copy = *other_ref;
+      InputItem copy = *other_ref;
       if (copy.input_file_opt)
       {
         copy.input_file_opt = file_refs[*copy.input_file_opt];
       }
-      query_refs[other_ref] = registerDataQuery(copy);
+      query_refs[other_ref] = registerInputItem(copy);
     }
     // parent molecules:
     map<ParentMoleculeRef, ParentMoleculeRef> parent_refs;
@@ -1054,7 +1054,7 @@ namespace OpenMS
         default: // avoid compiler warning
           break;
       }
-      DataQueryRef query_ref = query_refs[other_ref->data_query_ref];
+      InputItemRef query_ref = query_refs[other_ref->input_item_ref];
       MoleculeQueryMatch copy(molecule_var, query_ref, other_ref->charge);
       if (other_ref->adduct_opt)
       {

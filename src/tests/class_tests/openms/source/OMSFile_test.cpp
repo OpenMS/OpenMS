@@ -91,7 +91,7 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(ids.getDBSearchParams().size(), out.getDBSearchParams().size());
   TEST_EQUAL(ids.getDataProcessingSteps().size(),
              out.getDataProcessingSteps().size());
-  TEST_EQUAL(ids.getDataQueries().size(), out.getDataQueries().size());
+  TEST_EQUAL(ids.getInputItems().size(), out.getInputItems().size());
   TEST_EQUAL(ids.getParentMolecules().size(),
              out.getParentMolecules().size());
   TEST_EQUAL(ids.getParentMoleculeGroupings().size(),
@@ -118,8 +118,8 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   // check PSM with adduct:
   TEST_EQUAL(adduct_it != out.getMoleculeQueryMatches().end(), true);
   ABORT_IF(adduct_it == out.getMoleculeQueryMatches().end());
-  TEST_EQUAL(adduct_it->data_query_ref->data_id,
-             ids.getMoleculeQueryMatches().begin()->data_query_ref->data_id);
+  TEST_EQUAL(adduct_it->input_item_ref->data_id,
+             ids.getMoleculeQueryMatches().begin()->input_item_ref->data_id);
   TEST_EQUAL(adduct_it->identified_molecule_var.toString(),
              ids.getMoleculeQueryMatches().begin()->identified_molecule_var.toString());
   TEST_EQUAL((*adduct_it->adduct_opt)->getName(), "Cl-");

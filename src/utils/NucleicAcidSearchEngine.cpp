@@ -753,15 +753,15 @@ protected:
       if (annotated_hits[scan_index].empty()) continue;
 
       const MSSpectrum& spectrum = exp[scan_index];
-      IdentificationData::DataQuery query(spectrum.getNativeID(), file_ref,
+      IdentificationData::InputItem query(spectrum.getNativeID(), file_ref,
                                           spectrum.getRT(),
                                           spectrum.getPrecursors()[0].getMZ());
       query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
       query.setMetaValue("precursor_intensity",
                          spectrum.getPrecursors()[0].getIntensity());
-      IdentificationData::DataQueryRef query_ref;
+      IdentificationData::InputItemRef query_ref;
 #pragma omp critical (id_data_access)
-      query_ref = id_data.registerDataQuery(query);
+      query_ref = id_data.registerInputItem(query);
 
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
@@ -825,7 +825,7 @@ protected:
       OPENMS_LOG_INFO << "Search hits after FDR filtering: "
                       << id_data.getMoleculeQueryMatches().size()
                       << "\nIdentified spectra after FDR filtering: "
-                      << id_data.getDataQueries().size() << endl;
+                      << id_data.getInputItems().size() << endl;
     }
   }
 
@@ -843,9 +843,9 @@ protected:
       const NASequence& seq =
         match.identified_molecule_var.getIdentifiedOligoRef()->sequence;
       auto key = make_pair(seq, match.adduct_opt);
-      double rt = match.data_query_ref->rt;
+      double rt = match.input_item_ref->rt;
       double prec_int =
-        match.data_query_ref->getMetaValue("precursor_intensity");
+        match.input_item_ref->getMetaValue("precursor_intensity");
       rt_info[key][match.charge].push_back(make_pair(prec_int, rt));
     }
 
@@ -1389,7 +1389,7 @@ protected:
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
     progresslogger.endProgress();
-    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getDataQueries().size()
+    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getInputItems().size()
                     << endl;
 
     // FDR:

@@ -697,11 +697,11 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeDataQueries()
+  void OMSFile::OMSFileStore::storeInputItems()
   {
-    if (id_data_.getDataQueries().empty()) return;
+    if (id_data_.getInputItems().empty()) return;
 
-    createTable_("ID_DataQuery",
+    createTable_("ID_InputItem",
                  "id INTEGER PRIMARY KEY NOT NULL, "                    \
                  "data_id TEXT NOT NULL, "                              \
                  "input_file_id INTEGER, "                              \
@@ -711,35 +711,35 @@ namespace OpenMS
                  "FOREIGN KEY (input_file_id) REFERENCES ID_InputFile (id)");
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_DataQuery VALUES (" \
+    query.prepare("INSERT INTO ID_InputItem VALUES (" \
                   ":id, "                             \
                   ":data_id, "                        \
                   ":input_file_id, "                  \
                   ":rt, "                             \
                   ":mz)");
-    for (const ID::DataQuery& data_query : id_data_.getDataQueries())
+    for (const ID::InputItem& input_item : id_data_.getInputItems())
     {
-      query.bindValue(":id", Key(&data_query)); // use address as primary key
-      query.bindValue(":data_id", data_query.data_id.toQString());
-      if (data_query.input_file_opt)
+      query.bindValue(":id", Key(&input_item)); // use address as primary key
+      query.bindValue(":data_id", input_item.data_id.toQString());
+      if (input_item.input_file_opt)
       {
-        query.bindValue(":input_file_id", Key(&(**data_query.input_file_opt)));
+        query.bindValue(":input_file_id", Key(&(**input_item.input_file_opt)));
       }
       else
       {
         query.bindValue(":input_file_id", QVariant(QVariant::String)); // NULL
       }
-      if (data_query.rt == data_query.rt)
+      if (input_item.rt == input_item.rt)
       {
-        query.bindValue(":rt", data_query.rt);
+        query.bindValue(":rt", input_item.rt);
       }
       else // NaN
       {
         query.bindValue(":rt", QVariant(QVariant::Double)); // NULL
       }
-      if (data_query.mz == data_query.mz)
+      if (input_item.mz == input_item.mz)
       {
-        query.bindValue(":mz", data_query.mz);
+        query.bindValue(":mz", input_item.mz);
       }
       else // NaN
       {
@@ -751,7 +751,7 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeMetaInfos_(id_data_.getDataQueries(), "ID_DataQuery");
+    storeMetaInfos_(id_data_.getInputItems(), "ID_InputItem");
   }
 
 
@@ -1158,11 +1158,11 @@ namespace OpenMS
     String table_def =
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "identified_molecule_id INTEGER NOT NULL, "                       \
-      "data_query_id INTEGER NOT NULL, "                                \
+      "input_item_id INTEGER NOT NULL, "                                \
       "adduct_id INTEGER, "                                             \
       "charge INTEGER, "                                                \
       "FOREIGN KEY (identified_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
-      "FOREIGN KEY (data_query_id) REFERENCES ID_DataQuery (id)";
+      "FOREIGN KEY (input_item_id) REFERENCES ID_InputItem (id)";
     // add foreign key constraint if the adduct table exists (having the
     // constraint without the table would cause an error on data insertion):
     if (tableExists_(db_name_, "AdductInfo"))
@@ -1175,7 +1175,7 @@ namespace OpenMS
     query.prepare("INSERT INTO ID_MoleculeQueryMatch VALUES ("  \
                   ":id, "                                       \
                   ":identified_molecule_id, "                   \
-                  ":data_query_id, "                            \
+                  ":input_item_id, "                            \
                   ":adduct_id, "                                \
                   ":charge)");
     bool any_peak_annotations = false;
@@ -1204,7 +1204,7 @@ namespace OpenMS
                                          "invalid molecule type");
       }
       query.bindValue(":identified_molecule_id", molecule_id);
-      query.bindValue(":data_query_id", Key(&(*match.data_query_ref)));
+      query.bindValue(":input_item_id", Key(&(*match.input_item_ref)));
       if (match.adduct_opt)
       {
         query.bindValue(":adduct_id", Key(&(**match.adduct_opt)));
@@ -1296,7 +1296,7 @@ namespace OpenMS
     nextProgress();
     helper.storeDataProcessingSteps();
     nextProgress();
-    helper.storeDataQueries();
+    helper.storeInputItems();
     nextProgress();
     helper.storeParentMolecules();
     nextProgress();
@@ -1696,39 +1696,39 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadDataQueries()
+  void OMSFile::OMSFileLoad::loadInputItems()
   {
-    if (!tableExists_(db_name_, "ID_DataQuery")) return;
+    if (!tableExists_(db_name_, "ID_InputItem")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_DataQuery"))
+    if (!query.exec("SELECT * FROM ID_InputItem"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
     QSqlQuery subquery_info(db);
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_DataQuery");
+                                                "ID_InputItem");
 
     while (query.next())
     {
-      ID::DataQuery data_query(query.value("data_id").toString());
+      ID::InputItem input_item(query.value("data_id").toString());
       QVariant input_file_id = query.value("input_file_id");
       if (!input_file_id.isNull())
       {
-        data_query.input_file_opt =
+        input_item.input_file_opt =
           input_file_refs_[input_file_id.toLongLong()];
       }
       QVariant rt = query.value("rt");
-      if (!rt.isNull()) data_query.rt = rt.toDouble();
+      if (!rt.isNull()) input_item.rt = rt.toDouble();
       QVariant mz = query.value("mz");
-      if (!mz.isNull()) data_query.mz = mz.toDouble();
+      if (!mz.isNull()) input_item.mz = mz.toDouble();
       Key id = query.value("id").toLongLong();
-      if (have_meta_info) handleQueryMetaInfo_(subquery_info, data_query, id);
-      ID::DataQueryRef ref = id_data_.registerDataQuery(data_query);
-      data_query_refs_[id] = ref;
+      if (have_meta_info) handleQueryMetaInfo_(subquery_info, input_item, id);
+      ID::InputItemRef ref = id_data_.registerInputItem(input_item);
+      input_item_refs_[id] = ref;
     }
   }
 
@@ -2118,9 +2118,9 @@ namespace OpenMS
     {
       Key id = query.value("id").toLongLong();
       Key molecule_id = query.value("identified_molecule_id").toLongLong();
-      Key query_id = query.value("data_query_id").toLongLong();
+      Key query_id = query.value("input_item_id").toLongLong();
       ID::MoleculeQueryMatch match(identified_molecule_vars_[molecule_id],
-                                   data_query_refs_[query_id],
+                                   input_item_refs_[query_id],
                                    query.value("charge").toInt());
       QVariant adduct_id = query.value("adduct_id"); // adduct is optional
       if (!adduct_id.isNull())
@@ -2159,7 +2159,7 @@ namespace OpenMS
     nextProgress();
     helper.loadDataProcessingSteps();
     nextProgress();
-    helper.loadDataQueries();
+    helper.loadInputItems();
     nextProgress();
     helper.loadParentMolecules();
     nextProgress();

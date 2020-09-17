@@ -64,7 +64,7 @@ IdentificationData::ProcessingSoftwareRef sw_ref;
 IdentificationData::SearchParamRef param_ref;
 IdentificationData::ProcessingStepRef step_ref;
 IdentificationData::ScoreTypeRef score_ref;
-IdentificationData::DataQueryRef query_ref;
+IdentificationData::InputItemRef query_ref;
 IdentificationData::ParentMoleculeRef protein_ref, rna_ref;
 IdentificationData::IdentifiedPeptideRef peptide_ref;
 IdentificationData::IdentifiedOligoRef oligo_ref;
@@ -193,22 +193,22 @@ START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
 }
 END_SECTION
 
-START_SECTION((const DataQueries& getDataQueries() const))
+START_SECTION((const InputItems& getInputItems() const))
 {
-  TEST_EQUAL(data.getDataQueries().empty(), true);
+  TEST_EQUAL(data.getInputItems().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((DataQueryRef registerDataQuery(const DataQuery& query)))
+START_SECTION((InputItemRef registerInputItem(const InputItem& query)))
 {
-  IdentificationData::DataQuery query("spectrum_1", file_ref, 100.0, 1000.0);
-  query_ref = data.registerDataQuery(query);
-  TEST_EQUAL(data.getDataQueries().size(), 1);
+  IdentificationData::InputItem query("spectrum_1", file_ref, 100.0, 1000.0);
+  query_ref = data.registerInputItem(query);
+  TEST_EQUAL(data.getInputItems().size(), 1);
   TEST_EQUAL(*query_ref == query, true);
   // re-registering doesn't lead to redundant entries:
-  data.registerDataQuery(query);
-  TEST_EQUAL(data.getDataQueries().size(), 1);
+  data.registerInputItem(query);
+  TEST_EQUAL(data.getInputItems().size(), 1);
 }
 END_SECTION
 
@@ -609,8 +609,8 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   id.setCurrentProcessingStep(step_ref);
 
   // register spectrum
-  IdentificationData::DataQuery query("spectrum_1", file_ref, 100.0, 1000.0);
-  auto query_ref = id.registerDataQuery(query);
+  IdentificationData::InputItem query("spectrum_1", file_ref, 100.0, 1000.0);
+  auto query_ref = id.registerInputItem(query);
 
   // peptide without protein reference (yet)
   IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("TESTPEPTIDR")); // seq. is required

@@ -198,7 +198,7 @@ namespace OpenMS
       progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step[id];
-      ID::DataQuery query(""); // fill in "data_id" later
+      ID::InputItem query(""); // fill in "data_id" later
       if (!step_ref->input_file_refs.empty())
       {
         // @TODO: what if there's more than one input file?
@@ -232,7 +232,7 @@ namespace OpenMS
           ++unknown_query_counter;
         }
       }
-      ID::DataQueryRef query_ref = id_data.registerDataQuery(query);
+      ID::InputItemRef query_ref = id_data.registerInputItem(query);
 
       ID::ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter());
       ID::ScoreTypeRef score_ref = id_data.registerScoreType(score_type);
@@ -319,10 +319,10 @@ namespace OpenMS
     const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
     vector<PeptideIdentification>& peptides)
   {
-    // "DataQuery" roughly corresponds to "PeptideIdentification",
+    // "InputItem" roughly corresponds to "PeptideIdentification",
     // "DataProcessingStep" roughly corresponds to "ProteinIdentification";
     // score type is stored in "PeptideIdent.", not "PeptideHit":
-    map<pair<ID::DataQueryRef, boost::optional<ID::ProcessingStepRef>>,
+    map<pair<ID::InputItemRef, boost::optional<ID::ProcessingStepRef>>,
         pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
@@ -400,7 +400,7 @@ namespace OpenMS
         {
           hit_copy.setPeakAnnotations(pos->second);
         }
-        auto key = make_pair(query_match.data_query_ref,
+        auto key = make_pair(query_match.input_item_ref,
                              applied.processing_step_opt);
         psm_data[key].first.push_back(hit_copy);
         psm_data[key].second = scores[0].first; // primary score type
@@ -412,7 +412,7 @@ namespace OpenMS
 
     for (const auto& psm : psm_data)
     {
-      const ID::DataQuery& query = *psm.first.first;
+      const ID::InputItem& query = *psm.first.first;
       PeptideIdentification peptide;
       static_cast<MetaInfoInterface&>(peptide) = query;
       // set RT and m/z if they aren't missing (NaN):

@@ -107,7 +107,7 @@ namespace OpenMS
 
       void storeDataProcessingSteps();
 
-      void storeDataQueries();
+      void storeInputItems();
 
       void storeParentMolecules();
 
@@ -225,7 +225,7 @@ namespace OpenMS
 
       void loadDataProcessingSteps();
 
-      void loadDataQueries();
+      void loadInputItems();
 
       void loadParentMolecules();
 
@@ -273,7 +273,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
-      std::unordered_map<Key, IdentificationData::DataQueryRef> data_query_refs_;
+      std::unordered_map<Key, IdentificationData::InputItemRef> input_item_refs_;
       std::unordered_map<Key, IdentificationData::ParentMoleculeRef> parent_molecule_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
       std::unordered_map<Key, IdentificationData::QueryMatchRef> query_match_refs_;

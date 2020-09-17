@@ -198,7 +198,7 @@ namespace OpenMS
         {
           molecule += "+[" + (*hit->adduct_opt)->getName() + "]";
         }
-        rt_data[molecule].push_back(hit->data_query_ref->rt);
+        rt_data[molecule].push_back(hit->input_item_ref->rt);
       }
     }
     return false;

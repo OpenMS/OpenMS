@@ -69,11 +69,11 @@ namespace OpenMS
       {
         // @TODO: return true or false for the empty set?
         if (query_match_refs.size() <= 1) return true;
-        DataQueryRef ref = (*query_match_refs.begin())->data_query_ref;
+        InputItemRef ref = (*query_match_refs.begin())->input_item_ref;
         for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
              ++it)
         {
-          if ((*it)->data_query_ref != ref) return false;
+          if ((*it)->input_item_ref != ref) return false;
         }
         return true;
       }

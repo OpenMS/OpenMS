@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/DataQuery.h>
+#include <OpenMS/METADATA/ID/InputItem.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
@@ -74,7 +74,7 @@ namespace OpenMS
     {
       IdentifiedMolecule identified_molecule_var;
 
-      DataQueryRef data_query_ref;
+      InputItemRef input_item_ref;
 
       Int charge;
 
@@ -86,13 +86,13 @@ namespace OpenMS
 
       explicit MoleculeQueryMatch(
         IdentifiedMolecule identified_molecule_var,
-        DataQueryRef data_query_ref, Int charge = 0,
+        InputItemRef input_item_ref, Int charge = 0,
         const boost::optional<AdductRef>& adduct_opt = boost::none,
         const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
         const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
         ScoredProcessingResult(steps_and_scores),
         identified_molecule_var(identified_molecule_var),
-        data_query_ref(data_query_ref), charge(charge), adduct_opt(adduct_opt),
+        input_item_ref(input_item_ref), charge(charge), adduct_opt(adduct_opt),
         peak_annotations(peak_annotations)
       {
       }
@@ -117,8 +117,8 @@ namespace OpenMS
         boost::multi_index::ordered_unique<
           boost::multi_index::composite_key<
             MoleculeQueryMatch,
-            boost::multi_index::member<MoleculeQueryMatch, DataQueryRef,
-                                       &MoleculeQueryMatch::data_query_ref>,
+            boost::multi_index::member<MoleculeQueryMatch, InputItemRef,
+                                       &MoleculeQueryMatch::input_item_ref>,
             boost::multi_index::member<
               MoleculeQueryMatch, IdentifiedMolecule,
               &MoleculeQueryMatch::identified_molecule_var>,

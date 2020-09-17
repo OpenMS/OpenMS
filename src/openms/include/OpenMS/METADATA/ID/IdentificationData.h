@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/DataProcessingStep.h>
-#include <OpenMS/METADATA/ID/DataQuery.h>
+#include <OpenMS/METADATA/ID/InputItem.h>
 #include <OpenMS/METADATA/ID/DBSearchParam.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
@@ -68,10 +68,10 @@ namespace OpenMS
     <table>
     <tr><th>Class <th>Represents <th>Key <th>Proteomics example <th>Corresponding legacy class
     <tr><td>DataProcessingStep <td>Information about a data processing step that was applied (e.g. input files, software used, parameters) <td>Combined information <td>Mascot search <td>ProteinIdentification
-    <tr><td>DataQuery <td>A search query (with identifier, RT, m/z), i.e. an MS2 spectrum or feature (for accurate mass search) <td>Identifier <td>MS2 spectrum <td>PeptideIdentification
+    <tr><td>InputItem <td>A search query (with identifier, RT, m/z), i.e. an MS2 spectrum or feature (for accurate mass search) <td>Identifier <td>MS2 spectrum <td>PeptideIdentification
     <tr><td>ParentMolecule <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
     <tr><td>IdentifiedPeptide/-Oligo/-Compound <td>An identified molecule of the respective type <td>Sequence (or identifier for a compound) <td>Peptide <td>PeptideHit
-    <tr><td>MoleculeQueryMatch <td>A match between a query (DataQuery) and identified molecule (Identified...) <td>Combination of query and molecule references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
+    <tr><td>MoleculeQueryMatch <td>A match between a query (InputItem) and identified molecule (Identified...) <td>Combination of query and molecule references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
     </table>
 
     To populate an IdentificationData instance with data, "register..." functions are used.
@@ -127,9 +127,9 @@ namespace OpenMS
     using AppliedProcessingSteps =
       IdentificationDataInternal::AppliedProcessingSteps;
 
-    using DataQuery = IdentificationDataInternal::DataQuery;
-    using DataQueries = IdentificationDataInternal::DataQueries;
-    using DataQueryRef = IdentificationDataInternal::DataQueryRef;
+    using InputItem = IdentificationDataInternal::InputItem;
+    using InputItems = IdentificationDataInternal::InputItems;
+    using InputItemRef = IdentificationDataInternal::InputItemRef;
 
     using ParentMolecule = IdentificationDataInternal::ParentMolecule;
     using ParentMolecules = IdentificationDataInternal::ParentMolecules;
@@ -205,7 +205,7 @@ namespace OpenMS
       db_search_params_(std::move(other.db_search_params_)),
       db_search_steps_(std::move(other.db_search_steps_)),
       score_types_(std::move(other.score_types_)),
-      data_queries_(std::move(other.data_queries_)),
+      input_items_(std::move(other.input_items_)),
       parent_molecules_(std::move(other.parent_molecules_)),
       parent_molecule_groupings_(std::move(other.parent_molecule_groupings_)),
       identified_peptides_(std::move(other.identified_peptides_)),
@@ -216,7 +216,7 @@ namespace OpenMS
       current_step_ref_(std::move(other.current_step_ref_)),
       no_checks_(std::move(other.no_checks_)),
       // look-up tables:
-      data_query_lookup_(std::move(other.data_query_lookup_)),
+      input_item_lookup_(std::move(other.input_item_lookup_)),
       parent_molecule_lookup_(std::move(other.parent_molecule_lookup_)),
       identified_peptide_lookup_(std::move(other.identified_peptide_lookup_)),
       identified_compound_lookup_(std::move(other.identified_compound_lookup_)),
@@ -275,7 +275,7 @@ namespace OpenMS
 
       @return Reference to the registered data query
     */
-    DataQueryRef registerDataQuery(const DataQuery& query);
+    InputItemRef registerInputItem(const InputItem& query);
 
     /*!
       @brief Register a parent molecule (e.g. protein or intact RNA)
@@ -368,9 +368,9 @@ namespace OpenMS
     }
 
     /// Return the registered data queries (immutable)
-    const DataQueries& getDataQueries() const
+    const InputItems& getInputItems() const
     {
-      return data_queries_;
+      return input_items_;
     }
 
     /// Return the registered parent molecules (immutable)
@@ -559,7 +559,7 @@ namespace OpenMS
     // for many processing steps)
     DBSearchSteps db_search_steps_;
     ScoreTypes score_types_;
-    DataQueries data_queries_;
+    InputItems input_items_;
     ParentMolecules parent_molecules_;
     ParentMoleculeGroupings parent_molecule_groupings_;
     IdentifiedPeptides identified_peptides_;
@@ -580,7 +580,7 @@ namespace OpenMS
     bool no_checks_;
 
     // look-up tables for fast checking of reference validity:
-    AddressLookup data_query_lookup_;
+    AddressLookup input_item_lookup_;
     AddressLookup parent_molecule_lookup_;
     // @TODO: just use one "identified_molecule_lookup_" for all molecule types?
     AddressLookup identified_peptide_lookup_;

@@ -7,7 +7,7 @@ AppliedProcessingStep.h
 DBSearchParam.h
 DataProcessingSoftware.h
 DataProcessingStep.h
-DataQuery.h
+InputItem.h
 IdentificationData.h
 IdentificationDataConverter.h
 IdentifiedCompound.h

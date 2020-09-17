@@ -47,9 +47,9 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /*!
-      @brief Representation of a search query, e.g. spectrum or feature.
+      @brief Representation of an input data item, e.g. spectrum or feature.
     */
-    struct DataQuery: public MetaInfoInterface
+    struct InputItem: public MetaInfoInterface
     {
       /// Spectrum or feature ID (from the file referenced by @t input_file_opt)
       String data_id;
@@ -61,7 +61,7 @@ namespace OpenMS
       double rt, mz; //< Position
 
       /// Constructor
-      explicit DataQuery(
+      explicit InputItem(
         const String& data_id,
         boost::optional<InputFileRef> input_file_opt = boost::none,
         double rt = std::numeric_limits<double>::quiet_NaN(),
@@ -71,7 +71,7 @@ namespace OpenMS
       }
 
       /// Merge in data from another object
-      DataQuery& operator+=(const DataQuery& other)
+      InputItem& operator+=(const InputItem& other)
       {
         // merge meta info - existing entries may be overwritten:
         std::vector<UInt> keys;
@@ -84,24 +84,21 @@ namespace OpenMS
         mz = other.mz;
         return *this;
       }
-
-      // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
-      // if yes, should it be stored here or together with the input file?
     };
 
     // combination of input file and data ID must be unique:
     typedef boost::multi_index_container<
-      DataQuery,
+      InputItem,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
           boost::multi_index::composite_key<
-            DataQuery,
-            boost::multi_index::member<DataQuery, boost::optional<InputFileRef>,
-                                       &DataQuery::input_file_opt>,
-            boost::multi_index::member<DataQuery, String,
-                                       &DataQuery::data_id>>>>
-      > DataQueries;
-    typedef IteratorWrapper<DataQueries::iterator> DataQueryRef;
+            InputItem,
+            boost::multi_index::member<InputItem, boost::optional<InputFileRef>,
+                                       &InputItem::input_file_opt>,
+            boost::multi_index::member<InputItem, String,
+                                       &InputItem::data_id>>>>
+      > InputItems;
+    typedef IteratorWrapper<InputItems::iterator> InputItemRef;
 
   }
 }
