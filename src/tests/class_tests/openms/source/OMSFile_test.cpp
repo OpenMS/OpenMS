@@ -89,8 +89,8 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(ids.getProcessingSoftwares().size(),
              out.getProcessingSoftwares().size());
   TEST_EQUAL(ids.getDBSearchParams().size(), out.getDBSearchParams().size());
-  TEST_EQUAL(ids.getDataProcessingSteps().size(),
-             out.getDataProcessingSteps().size());
+  TEST_EQUAL(ids.getProcessingSteps().size(),
+             out.getProcessingSteps().size());
   TEST_EQUAL(ids.getInputItems().size(), out.getInputItems().size());
   TEST_EQUAL(ids.getParentMolecules().size(),
              out.getParentMolecules().size());

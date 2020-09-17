@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/DataProcessingStep.h>
+#include <OpenMS/METADATA/ID/ProcessingStep.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
 #include <boost/range/adaptor/reversed.hpp>

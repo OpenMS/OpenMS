@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/DataProcessingStep.h>
+#include <OpenMS/METADATA/ID/ProcessingStep.h>
 #include <OpenMS/METADATA/ID/InputItem.h>
 #include <OpenMS/METADATA/ID/DBSearchParam.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
@@ -67,7 +67,7 @@ namespace OpenMS
     The following important subordinate classes are provided to represent different types of data:
     <table>
     <tr><th>Class <th>Represents <th>Key <th>Proteomics example <th>Corresponding legacy class
-    <tr><td>DataProcessingStep <td>Information about a data processing step that was applied (e.g. input files, software used, parameters) <td>Combined information <td>Mascot search <td>ProteinIdentification
+    <tr><td>ProcessingStep <td>Information about a data processing step that was applied (e.g. input files, software used, parameters) <td>Combined information <td>Mascot search <td>ProteinIdentification
     <tr><td>InputItem <td>A search query (with identifier, RT, m/z), i.e. an MS2 spectrum or feature (for accurate mass search) <td>Identifier <td>MS2 spectrum <td>PeptideIdentification
     <tr><td>ParentMolecule <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
     <tr><td>IdentifiedPeptide/-Oligo/-Compound <td>An identified molecule of the respective type <td>Sequence (or identifier for a compound) <td>Peptide <td>PeptideHit
@@ -106,8 +106,8 @@ namespace OpenMS
     using ProcessingSoftwareRef =
       IdentificationDataInternal::ProcessingSoftwareRef;
 
-    using DataProcessingStep = IdentificationDataInternal::DataProcessingStep;
-    using DataProcessingSteps = IdentificationDataInternal::DataProcessingSteps;
+    using ProcessingStep = IdentificationDataInternal::ProcessingStep;
+    using ProcessingSteps = IdentificationDataInternal::ProcessingSteps;
     using ProcessingStepRef = IdentificationDataInternal::ProcessingStepRef;
 
     using DBSearchParam = IdentificationDataInternal::DBSearchParam;
@@ -252,7 +252,7 @@ namespace OpenMS
 
       @return Reference to the registered processing step
     */
-    ProcessingStepRef registerDataProcessingStep(const DataProcessingStep&
+    ProcessingStepRef registerProcessingStep(const ProcessingStep&
                                                  step);
 
     /*!
@@ -260,8 +260,8 @@ namespace OpenMS
 
       @return Reference to the registered processing step
     */
-    ProcessingStepRef registerDataProcessingStep(
-      const DataProcessingStep& step, SearchParamRef search_ref);
+    ProcessingStepRef registerProcessingStep(
+      const ProcessingStep& step, SearchParamRef search_ref);
 
     /*!
       @brief Register a score type
@@ -344,7 +344,7 @@ namespace OpenMS
     }
 
     /// Return the registered data processing steps (immutable)
-    const DataProcessingSteps& getDataProcessingSteps() const
+    const ProcessingSteps& getProcessingSteps() const
     {
       return processing_steps_;
     }
@@ -553,7 +553,7 @@ namespace OpenMS
     // containers:
     InputFiles input_files_;
     ProcessingSoftwares processing_softwares_;
-    DataProcessingSteps processing_steps_;
+    ProcessingSteps processing_steps_;
     DBSearchParams db_search_params_;
     // @TODO: store SearchParamRef inside ProcessingStep? (may not be required
     // for many processing steps)

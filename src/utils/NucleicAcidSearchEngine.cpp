@@ -1032,7 +1032,7 @@ protected:
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
-    IdentificationData::DataProcessingStep step(software_ref, {file_ref});
+    IdentificationData::ProcessingStep step(software_ref, {file_ref});
     IdentificationData::ProcessingStepRef step_ref;
 
     // get digested sequences:
@@ -1046,7 +1046,7 @@ protected:
         RNaseDB::getInstance()->getEnzyme(enzyme_name);
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
-      step_ref = id_data.registerDataProcessingStep(step, search_ref);
+      step_ref = id_data.registerProcessingStep(step, search_ref);
       // reference this step in all following ID data items, if applicable:
       id_data.setCurrentProcessingStep(step_ref);
 
@@ -1086,7 +1086,7 @@ protected:
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
-      step_ref = id_data.registerDataProcessingStep(step, search_ref);
+      step_ref = id_data.registerProcessingStep(step, search_ref);
       // reference this step in all following ID data items:
       id_data.setCurrentProcessingStep(step_ref);
     }

@@ -6,7 +6,7 @@ set(sources_list_h
 AppliedProcessingStep.h
 DBSearchParam.h
 ProcessingSoftware.h
-DataProcessingStep.h
+ProcessingStep.h
 InputItem.h
 IdentificationData.h
 IdentificationDataConverter.h

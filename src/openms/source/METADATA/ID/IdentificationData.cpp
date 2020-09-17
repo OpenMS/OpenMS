@@ -143,16 +143,16 @@ namespace OpenMS
 
 
   IdentificationData::ProcessingStepRef
-  IdentificationData::registerDataProcessingStep(
-    const DataProcessingStep& step)
+  IdentificationData::registerProcessingStep(
+    const ProcessingStep& step)
   {
-    return registerDataProcessingStep(step, db_search_params_.end());
+    return registerProcessingStep(step, db_search_params_.end());
   }
 
 
   IdentificationData::ProcessingStepRef
-  IdentificationData::registerDataProcessingStep(
-    const DataProcessingStep& step, SearchParamRef search_ref)
+  IdentificationData::registerProcessingStep(
+    const ProcessingStep& step, SearchParamRef search_ref)
   {
     if (!no_checks_)
     {
@@ -937,17 +937,17 @@ namespace OpenMS
     }
     // processing steps:
     map<ProcessingStepRef, ProcessingStepRef> step_refs;
-    for (ProcessingStepRef other_ref = other.getDataProcessingSteps().begin();
-         other_ref != other.getDataProcessingSteps().end(); ++other_ref)
+    for (ProcessingStepRef other_ref = other.getProcessingSteps().begin();
+         other_ref != other.getProcessingSteps().end(); ++other_ref)
     {
       // update internal references:
-      DataProcessingStep copy = *other_ref;
+      ProcessingStep copy = *other_ref;
       copy.software_ref = sw_refs[copy.software_ref];
       for (InputFileRef& file_ref : copy.input_file_refs)
       {
         file_ref = file_refs[file_ref];
       }
-      step_refs[other_ref] = registerDataProcessingStep(copy);
+      step_refs[other_ref] = registerProcessingStep(copy);
     }
     // search steps:
     for (const auto& pair : other.getDBSearchSteps())

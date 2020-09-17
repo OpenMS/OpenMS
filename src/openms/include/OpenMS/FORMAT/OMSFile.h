@@ -105,7 +105,7 @@ namespace OpenMS
 
       void storeDBSearchParams();
 
-      void storeDataProcessingSteps();
+      void storeProcessingSteps();
 
       void storeInputItems();
 
@@ -223,7 +223,7 @@ namespace OpenMS
 
       void loadDBSearchParams();
 
-      void loadDataProcessingSteps();
+      void loadProcessingSteps();
 
       void loadInputItems();
 

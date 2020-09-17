@@ -407,8 +407,8 @@ namespace OpenMS
       id_data.registerProcessingSoftware(software);
     ID::InputFile input(seeds.getLoadedFilePath());
     ID::InputFileRef file_ref = id_data.registerInputFile(input);
-    ID::DataProcessingStep step(sw_ref, {file_ref});
-    ID::ProcessingStepRef step_ref = id_data.registerDataProcessingStep(step);
+    ID::ProcessingStep step(sw_ref, {file_ref});
+    ID::ProcessingStepRef step_ref = id_data.registerProcessingStep(step);
     id_data.setCurrentProcessingStep(step_ref);
 
     Size seeds_added(0);

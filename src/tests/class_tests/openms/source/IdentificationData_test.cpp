@@ -132,44 +132,44 @@ START_SECTION((SearchParamRef registerDBSearchParam(const DBSearchParam& param))
 }
 END_SECTION
 
-START_SECTION((const DataProcessingSteps& getDataProcessingSteps() const))
+START_SECTION((const ProcessingSteps& getProcessingSteps() const))
 {
-  TEST_EQUAL(data.getDataProcessingSteps().empty(), true);
+  TEST_EQUAL(data.getProcessingSteps().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessingStep& step)))
+START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& step)))
 {
   vector<IdentificationData::InputFileRef> file_refs(1, file_ref);
-  IdentificationData::DataProcessingStep step(sw_ref, file_refs);
-  step_ref = data.registerDataProcessingStep(step);
-  TEST_EQUAL(data.getDataProcessingSteps().size(), 1);
+  IdentificationData::ProcessingStep step(sw_ref, file_refs);
+  step_ref = data.registerProcessingStep(step);
+  TEST_EQUAL(data.getProcessingSteps().size(), 1);
   TEST_EQUAL(*step_ref == step, true);
   // re-registering doesn't lead to redundant entries:
-  data.registerDataProcessingStep(step);
-  TEST_EQUAL(data.getDataProcessingSteps().size(), 1);
+  data.registerProcessingStep(step);
+  TEST_EQUAL(data.getProcessingSteps().size(), 1);
 }
 END_SECTION
 
-START_SECTION((const DataProcessingSteps& getDBSearchSteps() const))
+START_SECTION((const ProcessingSteps& getDBSearchSteps() const))
 {
   TEST_EQUAL(data.getDBSearchSteps().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessingStep& step, SearchParamRef search_ref)))
+START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& step, SearchParamRef search_ref)))
 {
-  IdentificationData::DataProcessingStep step(sw_ref);
-  step_ref = data.registerDataProcessingStep(step, param_ref);
-  TEST_EQUAL(data.getDataProcessingSteps().size(), 2);
+  IdentificationData::ProcessingStep step(sw_ref);
+  step_ref = data.registerProcessingStep(step, param_ref);
+  TEST_EQUAL(data.getProcessingSteps().size(), 2);
   TEST_EQUAL(*step_ref == step, true);
   TEST_EQUAL(data.getDBSearchSteps().size(), 1);
   TEST_EQUAL(data.getDBSearchSteps().at(step_ref), param_ref);
   // re-registering doesn't lead to redundant entries:
-  data.registerDataProcessingStep(step, param_ref);
-  TEST_EQUAL(data.getDataProcessingSteps().size(), 2);
+  data.registerProcessingStep(step, param_ref);
+  TEST_EQUAL(data.getProcessingSteps().size(), 2);
   TEST_EQUAL(data.getDBSearchSteps().size(), 1);
 }
 END_SECTION
@@ -463,7 +463,7 @@ END_SECTION
 
 START_SECTION((ProcessingStepRef getCurrentProcessingStep()))
 {
-  TEST_EQUAL(data.getCurrentProcessingStep() == data.getDataProcessingSteps().end(), true);
+  TEST_EQUAL(data.getCurrentProcessingStep() == data.getProcessingSteps().end(), true);
   // tested further below
 }
 END_SECTION
@@ -485,7 +485,7 @@ END_SECTION
 START_SECTION((void clearCurrentProcessingStep()))
 {
   data.clearCurrentProcessingStep();
-  TEST_EQUAL(data.getCurrentProcessingStep() == data.getDataProcessingSteps().end(), true);
+  TEST_EQUAL(data.getCurrentProcessingStep() == data.getProcessingSteps().end(), true);
 }
 END_SECTION
 
@@ -602,9 +602,9 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   auto search_param_ref = id.registerDBSearchParam(search_param);
 
   // file has been processed by software
-  IdentificationData::DataProcessingStep step(sw_ref);
+  IdentificationData::ProcessingStep step(sw_ref);
   step.input_file_refs.push_back(file_ref);
-  auto step_ref = id.registerDataProcessingStep(step, search_param_ref);
+  auto step_ref = id.registerProcessingStep(step, search_param_ref);
   // all further data comes from this processing step
   id.setCurrentProcessingStep(step_ref);
 

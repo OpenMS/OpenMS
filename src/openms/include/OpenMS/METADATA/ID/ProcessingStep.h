@@ -44,7 +44,7 @@ namespace OpenMS
   {
     /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
     */
-    struct DataProcessingStep: public MetaInfoInterface
+    struct ProcessingStep: public MetaInfoInterface
     {
       ProcessingSoftwareRef software_ref;
 
@@ -55,7 +55,7 @@ namespace OpenMS
       // @TODO: add processing actions that are relevant for ID data
       std::set<DataProcessing::ProcessingAction> actions;
 
-      explicit DataProcessingStep(
+      explicit ProcessingStep(
         ProcessingSoftwareRef software_ref,
         const std::vector<InputFileRef>& input_file_refs =
         std::vector<InputFileRef>(), const DateTime& date_time =
@@ -66,10 +66,10 @@ namespace OpenMS
       {
       }
 
-      DataProcessingStep(const DataProcessingStep& other) = default;
+      ProcessingStep(const ProcessingStep& other) = default;
 
       // order by date/time first, don't compare meta data (?):
-      bool operator<(const DataProcessingStep& other) const
+      bool operator<(const ProcessingStep& other) const
       {
         return (std::tie(date_time, software_ref, input_file_refs, actions) <
                 std::tie(other.date_time, other.software_ref,
@@ -77,7 +77,7 @@ namespace OpenMS
       }
 
       // don't compare meta data (?):
-      bool operator==(const DataProcessingStep& other) const
+      bool operator==(const ProcessingStep& other) const
       {
         return (std::tie(software_ref, input_file_refs, date_time, actions) ==
                 std::tie(other.software_ref, other.input_file_refs,
@@ -85,8 +85,8 @@ namespace OpenMS
       }
     };
 
-    typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
+    typedef std::set<ProcessingStep> ProcessingSteps;
+    typedef IteratorWrapper<ProcessingSteps::iterator> ProcessingStepRef;
 
   }
 }

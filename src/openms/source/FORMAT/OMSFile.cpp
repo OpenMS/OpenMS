@@ -345,7 +345,7 @@ namespace OpenMS
       "UNIQUE (parent_id, processing_step_id, score_type_id), "         \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_table + " (id), "  \
       "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id), "      \
-      "FOREIGN KEY (processing_step_id) REFERENCES ID_DataProcessingStep (id)");
+      "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
     // @TODO: add constraint that "processing_step_id" and "score_type_id"
     // can't both be NULL
     // @TODO: add constraint that "processing_step_order" must match "..._id"?
@@ -616,12 +616,12 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeDataProcessingSteps()
+  void OMSFile::OMSFileStore::storeProcessingSteps()
   {
-    if (id_data_.getDataProcessingSteps().empty()) return;
+    if (id_data_.getProcessingSteps().empty()) return;
 
     createTable_(
-      "ID_DataProcessingStep",
+      "ID_ProcessingStep",
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "software_id INTEGER NOT NULL, "                                  \
       "date_time TEXT, "                                                \
@@ -632,7 +632,7 @@ namespace OpenMS
     // @TODO: store (optional) search param reference in a separate table?
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_DataProcessingStep VALUES ("  \
+    query.prepare("INSERT INTO ID_ProcessingStep VALUES ("  \
                   ":id, "                                       \
                   ":software_id, "                              \
                   ":date_time, "                                \
@@ -640,10 +640,10 @@ namespace OpenMS
     bool any_input_files = false;
     // use iterator here because we need one to look up the DB search params:
     for (ID::ProcessingStepRef step_ref =
-           id_data_.getDataProcessingSteps().begin(); step_ref !=
-           id_data_.getDataProcessingSteps().end(); ++step_ref)
+           id_data_.getProcessingSteps().begin(); step_ref !=
+           id_data_.getProcessingSteps().end(); ++step_ref)
     {
-      const ID::DataProcessingStep& step = *step_ref;
+      const ID::ProcessingStep& step = *step_ref;
       if (!step.input_file_refs.empty()) any_input_files = true;
       query.bindValue(":id", Key(&step));
       query.bindValue(":software_id", Key(&(*step.software_ref)));
@@ -666,19 +666,19 @@ namespace OpenMS
     if (any_input_files)
     {
       createTable_(
-        "ID_DataProcessingStep_InputFile",
+        "ID_ProcessingStep_InputFile",
         "processing_step_id INTEGER NOT NULL, "                         \
         "input_file_id INTEGER NOT NULL, "                              \
-        "FOREIGN KEY (processing_step_id) REFERENCES ID_DataProcessingStep (id), " \
+        "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id), " \
         "FOREIGN KEY (input_file_id) REFERENCES ID_InputFile (id), "      \
         "UNIQUE (processing_step_id, input_file_id)");
 
-      query.prepare("INSERT INTO ID_DataProcessingStep_InputFile VALUES (" \
+      query.prepare("INSERT INTO ID_ProcessingStep_InputFile VALUES (" \
                     ":processing_step_id, "                             \
                     ":input_file_id)");
 
-      for (const ID::DataProcessingStep& step :
-             id_data_.getDataProcessingSteps())
+      for (const ID::ProcessingStep& step :
+             id_data_.getProcessingSteps())
       {
         query.bindValue(":processing_step_id", Key(&step));
         for (ID::InputFileRef input_file_ref : step.input_file_refs)
@@ -692,8 +692,8 @@ namespace OpenMS
         }
       }
     }
-    storeMetaInfos_(id_data_.getDataProcessingSteps(),
-                    "ID_DataProcessingStep");
+    storeMetaInfos_(id_data_.getProcessingSteps(),
+                    "ID_ProcessingStep");
   }
 
 
@@ -1234,7 +1234,7 @@ namespace OpenMS
         "peak_mz REAL, "                                                \
         "peak_intensity REAL, "                                         \
         "FOREIGN KEY (parent_id) REFERENCES ID_MoleculeQueryMatch (id), " \
-        "FOREIGN KEY (processing_step_id) REFERENCES ID_DataProcessingStep (id)");
+        "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
 
       query.prepare(
         "INSERT INTO ID_MoleculeQueryMatch_PeakAnnotation VALUES (" \
@@ -1294,7 +1294,7 @@ namespace OpenMS
     nextProgress();
     helper.storeDBSearchParams();
     nextProgress();
-    helper.storeDataProcessingSteps();
+    helper.storeProcessingSteps();
     nextProgress();
     helper.storeInputItems();
     nextProgress();
@@ -1628,36 +1628,36 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadDataProcessingSteps()
+  void OMSFile::OMSFileLoad::loadProcessingSteps()
   {
-    if (!tableExists_(db_name_, "ID_DataProcessingStep")) return;
+    if (!tableExists_(db_name_, "ID_ProcessingStep")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_DataProcessingStep"))
+    if (!query.exec("SELECT * FROM ID_ProcessingStep"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
     QSqlQuery subquery_file(db);
     bool have_input_files = tableExists_(db_name_,
-                                         "ID_DataProcessingStep_InputFile");
+                                         "ID_ProcessingStep_InputFile");
     if (have_input_files)
     {
       subquery_file.setForwardOnly(true);
       subquery_file.prepare("SELECT input_file_id "                 \
-                            "FROM ID_DataProcessingStep_InputFile " \
+                            "FROM ID_ProcessingStep_InputFile " \
                             "WHERE processing_step_id = :id");
     }
     QSqlQuery subquery_info(db);
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                              "ID_DataProcessingStep");
+                                              "ID_ProcessingStep");
     while (query.next())
     {
       Key id = query.value("id").toLongLong();
       Key software_id = query.value("software_id").toLongLong();
-      ID::DataProcessingStep step(processing_software_refs_[software_id]);
+      ID::ProcessingStep step(processing_software_refs_[software_id]);
       String date_time = query.value("date_time").toString();
       if (!date_time.empty()) step.date_time.set(date_time);
       if (have_input_files)
@@ -1683,13 +1683,13 @@ namespace OpenMS
       QVariant opt_search_param_id = query.value("search_param_id");
       if (opt_search_param_id.isNull()) // no DB search params available
       {
-        ref = id_data_.registerDataProcessingStep(step);
+        ref = id_data_.registerProcessingStep(step);
       }
       else
       {
         ID::SearchParamRef search_param_ref =
           search_param_refs_[opt_search_param_id.toLongLong()];
-        ref = id_data_.registerDataProcessingStep(step, search_param_ref);
+        ref = id_data_.registerProcessingStep(step, search_param_ref);
       }
       processing_step_refs_[id] = ref;
     }
@@ -2157,7 +2157,7 @@ namespace OpenMS
     nextProgress();
     helper.loadDBSearchParams();
     nextProgress();
-    helper.loadDataProcessingSteps();
+    helper.loadProcessingSteps();
     nextProgress();
     helper.loadInputItems();
     nextProgress();

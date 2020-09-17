@@ -72,7 +72,7 @@ namespace OpenMS
       ID::SearchParamRef search_ref =
         importDBSearchParameters_(prot.getSearchParameters(), id_data);
 
-      ID::DataProcessingStep step(software_ref);
+      ID::ProcessingStep step(software_ref);
       // ideally, this should give us the raw files:
       vector<String> primary_files;
       prot.getPrimaryMSRunPath(primary_files, true);
@@ -91,7 +91,7 @@ namespace OpenMS
       }
       step.date_time = prot.getDateTime();
       ID::ProcessingStepRef step_ref =
-        id_data.registerDataProcessingStep(step, search_ref);
+        id_data.registerProcessingStep(step, search_ref);
       id_to_step[prot.getIdentifier()] = step_ref;
       id_data.setCurrentProcessingStep(step_ref);
 
@@ -295,13 +295,13 @@ namespace OpenMS
           }
           ID::ProcessingSoftwareRef software_ref =
             id_data.registerProcessingSoftware(software);
-          ID::DataProcessingStep sub_step(software_ref);
+          ID::ProcessingStep sub_step(software_ref);
           if (query.input_file_opt)
           {
             sub_step.input_file_refs.push_back(*query.input_file_opt);
           }
           ID::ProcessingStepRef sub_step_ref =
-            id_data.registerDataProcessingStep(sub_step);
+            id_data.registerProcessingStep(sub_step);
           sub_applied.processing_step_opt = sub_step_ref;
           match.addProcessingStep(sub_applied);
         }
@@ -320,7 +320,7 @@ namespace OpenMS
     vector<PeptideIdentification>& peptides)
   {
     // "InputItem" roughly corresponds to "PeptideIdentification",
-    // "DataProcessingStep" roughly corresponds to "ProteinIdentification";
+    // "ProcessingStep" roughly corresponds to "ProteinIdentification";
     // score type is stored in "PeptideIdent.", not "PeptideHit":
     map<pair<ID::InputItemRef, boost::optional<ID::ProcessingStepRef>>,
         pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;

@@ -513,7 +513,7 @@ private:
       {
         IdentificationData::ProcessingSoftwareRef sw_ref =
           id.registerProcessingSoftware(sw);
-        IdentificationData::DataProcessingStep step(sw_ref);
+        IdentificationData::ProcessingStep step(sw_ref);
         for (const String& input_file : input_files)
         {
           IdentificationData::InputFileRef ref =
@@ -528,7 +528,7 @@ private:
         }
         step.date_time = processing_time;
         step.actions.insert(DataProcessing::ALIGNMENT);
-        id.registerDataProcessingStep(step);
+        id.registerProcessingStep(step);
       }
 
       performAlignment_(algorithm, id_data, transformations, reference_index);
