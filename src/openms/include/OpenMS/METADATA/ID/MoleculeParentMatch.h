@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
+#include <OpenMS/METADATA/ID/ParentSequence.h>
 
 namespace OpenMS
 {
@@ -97,7 +97,7 @@ namespace OpenMS
     };
 
     /// mapping: parent molecule -> match information
-    typedef std::map<ParentMoleculeRef,
+    typedef std::map<ParentSequenceRef,
                      std::set<MoleculeParentMatch>> ParentMatches;
 
   }

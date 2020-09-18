@@ -43,8 +43,8 @@
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
 #include <OpenMS/METADATA/ID/InputMatch.h>
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
-#include <OpenMS/METADATA/ID/ParentMoleculeGroup.h>
+#include <OpenMS/METADATA/ID/ParentSequence.h>
+#include <OpenMS/METADATA/ID/ParentGroup.h>
 #include <OpenMS/METADATA/ID/InputMatchGroup.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -69,14 +69,14 @@ namespace OpenMS
     <tr><th>Class <th>Represents <th>Key <th>Proteomics example <th>Corresponding legacy class
     <tr><td>ProcessingStep <td>Information about a data processing step that was applied (e.g. input files, software used, parameters) <td>Combined information <td>Mascot search <td>ProteinIdentification
     <tr><td>InputItem <td>A search query (with identifier, RT, m/z), i.e. an MS2 spectrum or feature (for accurate mass search) <td>Identifier <td>MS2 spectrum <td>PeptideIdentification
-    <tr><td>ParentMolecule <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
+    <tr><td>ParentSequence <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
     <tr><td>IdentifiedPeptide/-Oligo/-Compound <td>An identified molecule of the respective type <td>Sequence (or identifier for a compound) <td>Peptide <td>PeptideHit
     <tr><td>InputMatch <td>A match between a query (InputItem) and identified molecule (Identified...) <td>Combination of query and molecule references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
     </table>
 
     To populate an IdentificationData instance with data, "register..." functions are used.
     These functions return "references" (implemented as iterators) that can be used to refer to stored data items and thus form connections.
-    For example, a protein can be stored using registerParentMolecule, which returns a corresponding reference.
+    For example, a protein can be stored using registerParentSequence, which returns a corresponding reference.
     This reference can be used to build an IdentifiedPeptide object that references the protein.
     An identified peptide referencing a protein can only be registered if that protein has been registered already, to ensure data consistency.
     Given the identified peptide, information about the associated protein can be retrieved efficiently by simply dereferencing the reference.
@@ -131,9 +131,9 @@ namespace OpenMS
     using InputItems = IdentificationDataInternal::InputItems;
     using InputItemRef = IdentificationDataInternal::InputItemRef;
 
-    using ParentMolecule = IdentificationDataInternal::ParentMolecule;
-    using ParentMolecules = IdentificationDataInternal::ParentMolecules;
-    using ParentMoleculeRef = IdentificationDataInternal::ParentMoleculeRef;
+    using ParentSequence = IdentificationDataInternal::ParentSequence;
+    using ParentSequences = IdentificationDataInternal::ParentSequences;
+    using ParentSequenceRef = IdentificationDataInternal::ParentSequenceRef;
 
     using MoleculeParentMatch = IdentificationDataInternal::MoleculeParentMatch;
     using ParentMatches = IdentificationDataInternal::ParentMatches;
@@ -165,19 +165,19 @@ namespace OpenMS
     using InputMatchRef = IdentificationDataInternal::InputMatchRef;
 
     // @TODO: allow multiple sets of groups, like with parent molecules
-    // ("ParentMoleculeGroupings")?
+    // ("ParentGroupings")?
     using InputMatchGroup = IdentificationDataInternal::InputMatchGroup;
     using InputMatchGroups = IdentificationDataInternal::InputMatchGroups;
     using MatchGroupRef = IdentificationDataInternal::MatchGroupRef;
 
-    using ParentMoleculeGroup = IdentificationDataInternal::ParentMoleculeGroup;
-    using ParentMoleculeGroups =
-      IdentificationDataInternal::ParentMoleculeGroups;
+    using ParentGroup = IdentificationDataInternal::ParentGroup;
+    using ParentGroups =
+      IdentificationDataInternal::ParentGroups;
     using ParentGroupRef = IdentificationDataInternal::ParentGroupRef;
-    using ParentMoleculeGrouping =
-      IdentificationDataInternal::ParentMoleculeGrouping;
-    using ParentMoleculeGroupings =
-      IdentificationDataInternal::ParentMoleculeGroupings;
+    using ParentGrouping =
+      IdentificationDataInternal::ParentGrouping;
+    using ParentGroupings =
+      IdentificationDataInternal::ParentGroupings;
 
     using AddressLookup = boost::unordered_set<uintptr_t>;
 
@@ -205,8 +205,8 @@ namespace OpenMS
       db_search_steps_(std::move(other.db_search_steps_)),
       score_types_(std::move(other.score_types_)),
       input_items_(std::move(other.input_items_)),
-      parent_molecules_(std::move(other.parent_molecules_)),
-      parent_molecule_groupings_(std::move(other.parent_molecule_groupings_)),
+      parents_(std::move(other.parents_)),
+      parent_groupings_(std::move(other.parent_groupings_)),
       identified_peptides_(std::move(other.identified_peptides_)),
       identified_compounds_(std::move(other.identified_compounds_)),
       identified_oligos_(std::move(other.identified_oligos_)),
@@ -216,7 +216,7 @@ namespace OpenMS
       no_checks_(std::move(other.no_checks_)),
       // look-up tables:
       input_item_lookup_(std::move(other.input_item_lookup_)),
-      parent_molecule_lookup_(std::move(other.parent_molecule_lookup_)),
+      parent_lookup_(std::move(other.parent_lookup_)),
       identified_peptide_lookup_(std::move(other.identified_peptide_lookup_)),
       identified_compound_lookup_(std::move(other.identified_compound_lookup_)),
       identified_oligo_lookup_(std::move(other.identified_oligo_lookup_)),
@@ -281,10 +281,10 @@ namespace OpenMS
 
       @return Reference to the registered parent molecule
     */
-    ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent);
+    ParentSequenceRef registerParentSequence(const ParentSequence& parent);
 
     /// Register a grouping of parent molecules (e.g. protein inference result)
-    void registerParentMoleculeGrouping(const ParentMoleculeGrouping& grouping);
+    void registerParentGrouping(const ParentGrouping& grouping);
 
     /*!
       @brief Register an identified peptide
@@ -373,15 +373,15 @@ namespace OpenMS
     }
 
     /// Return the registered parent molecules (immutable)
-    const ParentMolecules& getParentMolecules() const
+    const ParentSequences& getParentSequences() const
     {
-      return parent_molecules_;
+      return parents_;
     }
 
     /// Return the registered parent molecule groupings (immutable)
-    const ParentMoleculeGroupings& getParentMoleculeGroupings() const
+    const ParentGroupings& getParentGroupings() const
     {
-      return parent_molecule_groupings_;
+      return parent_groupings_;
     }
 
     /// Return the registered identified peptides (immutable)
@@ -559,8 +559,8 @@ namespace OpenMS
     DBSearchSteps db_search_steps_;
     ScoreTypes score_types_;
     InputItems input_items_;
-    ParentMolecules parent_molecules_;
-    ParentMoleculeGroupings parent_molecule_groupings_;
+    ParentSequences parents_;
+    ParentGroupings parent_groupings_;
     IdentifiedPeptides identified_peptides_;
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;
@@ -580,7 +580,7 @@ namespace OpenMS
 
     // look-up tables for fast checking of reference validity:
     AddressLookup input_item_lookup_;
-    AddressLookup parent_molecule_lookup_;
+    AddressLookup parent_lookup_;
     // @TODO: just use one "identified_molecule_lookup_" for all molecule types?
     AddressLookup identified_peptide_lookup_;
     AddressLookup identified_compound_lookup_;

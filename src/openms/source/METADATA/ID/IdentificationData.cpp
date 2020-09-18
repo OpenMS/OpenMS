@@ -76,7 +76,7 @@ namespace OpenMS
   {
     for (const auto& pair : matches)
     {
-      if (!isValidHashedReference_(pair.first, parent_molecule_lookup_))
+      if (!isValidHashedReference_(pair.first, parent_lookup_))
       {
         String msg = "invalid reference to a parent molecule - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -305,8 +305,8 @@ namespace OpenMS
   }
 
 
-  IdentificationData::ParentMoleculeRef
-  IdentificationData::registerParentMolecule(const ParentMolecule& parent)
+  IdentificationData::ParentSequenceRef
+  IdentificationData::registerParentSequence(const ParentSequence& parent)
   {
     if (!no_checks_)
     {
@@ -324,13 +324,13 @@ namespace OpenMS
       }
     }
 
-    return insertIntoMultiIndex_(parent_molecules_, parent,
-                                 parent_molecule_lookup_);
+    return insertIntoMultiIndex_(parents_, parent,
+                                 parent_lookup_);
   }
 
 
-  void IdentificationData::registerParentMoleculeGrouping(
-    const ParentMoleculeGrouping& grouping)
+  void IdentificationData::registerParentGrouping(
+    const ParentGrouping& grouping)
   {
     if (!no_checks_)
     {
@@ -340,9 +340,9 @@ namespace OpenMS
       {
         checkScoreTypes_(group.scores);
 
-        for (const auto& ref : group.parent_molecule_refs)
+        for (const auto& ref : group.parent_refs)
         {
-          if (!isValidHashedReference_(ref, parent_molecule_lookup_))
+          if (!isValidHashedReference_(ref, parent_lookup_))
           {
             String msg = "invalid reference to a parent molecule - register that first";
             throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -352,14 +352,14 @@ namespace OpenMS
       }
     }
 
-    parent_molecule_groupings_.push_back(grouping);
+    parent_groupings_.push_back(grouping);
 
     // add the current processing step?
     if ((current_step_ref_ != processing_steps_.end()) &&
         (grouping.steps_and_scores.get<1>().find(current_step_ref_) ==
          grouping.steps_and_scores.get<1>().end()))
     {
-      parent_molecule_groupings_.back().steps_and_scores.push_back(
+      parent_groupings_.back().steps_and_scores.push_back(
         IdentificationDataInternal::AppliedProcessingStep(current_step_ref_));
     }
   }
@@ -554,7 +554,7 @@ namespace OpenMS
       double coverage = 0.0;
       vector<pair<Size, Size>> fragments;
     };
-    map<ParentMoleculeRef, ParentData> parent_info;
+    map<ParentSequenceRef, ParentData> parent_info;
 
     // go through all peptides:
     for (const auto& molecule : identified_peptides_)
@@ -622,12 +622,12 @@ namespace OpenMS
                               double(pair.second.length));
     }
     // set coverage:
-    for (ParentMoleculeRef ref = parent_molecules_.begin();
-         ref != parent_molecules_.end(); ++ref)
+    for (ParentSequenceRef ref = parents_.begin();
+         ref != parents_.end(); ++ref)
     {
       auto pos = parent_info.find(ref);
       double coverage = (pos == parent_info.end()) ? 0.0 : pos->second.coverage;
-      parent_molecules_.modify(ref, [coverage](ParentMolecule& parent)
+      parents_.modify(ref, [coverage](ParentSequence& parent)
                                {
                                  parent.coverage = coverage;
                                });
@@ -648,33 +648,33 @@ namespace OpenMS
     // remove parent molecules based on parent groups:
     if (require_parent_group)
     {
-      parent_molecule_lookup_.clear(); // will become invalid anyway
-      for (const auto& grouping: parent_molecule_groupings_)
+      parent_lookup_.clear(); // will become invalid anyway
+      for (const auto& grouping: parent_groupings_)
       {
         for (const auto& group : grouping.groups)
         {
-          for (const auto& ref : group.parent_molecule_refs)
+          for (const auto& ref : group.parent_refs)
           {
-            parent_molecule_lookup_.insert(ref);
+            parent_lookup_.insert(ref);
           }
         }
       }
-      removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
+      removeFromSetIfNotHashed_(parents_, parent_lookup_);
     }
     // update look-up table of parent molecule addresses (in case parent
     // molecules were removed):
-    updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
+    updateAddressLookup_(parents_, parent_lookup_);
 
     // remove parent matches based on parent molecules:
     ModifyMultiIndexRemoveParentMatches<IdentifiedPeptide>
-      pep_modifier(parent_molecule_lookup_);
+      pep_modifier(parent_lookup_);
     for (auto it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
     {
       identified_peptides_.modify(it, pep_modifier);
     }
     ModifyMultiIndexRemoveParentMatches<IdentifiedOligo>
-      oli_modifier(parent_molecule_lookup_);
+      oli_modifier(parent_lookup_);
     for (auto it = identified_oligos_.begin();
          it != identified_oligos_.end(); ++it)
     {
@@ -774,47 +774,47 @@ namespace OpenMS
     // remove parent molecules based on identified molecules:
     if (require_identified_sequence)
     {
-      parent_molecule_lookup_.clear(); // will become invalid anyway
+      parent_lookup_.clear(); // will become invalid anyway
       for (const auto& peptide : identified_peptides_)
       {
         for (const auto& parent_pair : peptide.parent_matches)
         {
-          parent_molecule_lookup_.insert(parent_pair.first);
+          parent_lookup_.insert(parent_pair.first);
         }
       }
       for (const auto& oligo : identified_oligos_)
       {
         for (const auto& parent_pair : oligo.parent_matches)
         {
-          parent_molecule_lookup_.insert(parent_pair.first);
+          parent_lookup_.insert(parent_pair.first);
         }
       }
-      removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
+      removeFromSetIfNotHashed_(parents_, parent_lookup_);
       // update look-up table of parent molecule addresses (again):
-      updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
+      updateAddressLookup_(parents_, parent_lookup_);
     }
 
     // remove entries from parent molecule groups based on parent molecules:
     bool warn = false;
-    for (auto& grouping : parent_molecule_groupings_)
+    for (auto& grouping : parent_groupings_)
     {
       for (auto group_it = grouping.groups.begin();
            group_it != grouping.groups.end(); )
       {
-        Size old_size = group_it->parent_molecule_refs.size();
+        Size old_size = group_it->parent_refs.size();
         grouping.groups.modify(
-          group_it, [&](ParentMoleculeGroup& group)
+          group_it, [&](ParentGroup& group)
           {
-            removeFromSetIfNotHashed_(group.parent_molecule_refs,
-                                      parent_molecule_lookup_);
+            removeFromSetIfNotHashed_(group.parent_refs,
+                                      parent_lookup_);
           });
-        if (group_it->parent_molecule_refs.empty())
+        if (group_it->parent_refs.empty())
         {
           group_it = grouping.groups.erase(group_it);
         }
         else
         {
-          if (group_it->parent_molecule_refs.size() != old_size)
+          if (group_it->parent_refs.size() != old_size)
           {
             warn = true;
           }
@@ -865,8 +865,8 @@ namespace OpenMS
     return (input_files_.empty() && processing_softwares_.empty() &&
             processing_steps_.empty() && db_search_params_.empty() &&
             db_search_steps_.empty() && score_types_.empty() &&
-            input_items_.empty() && parent_molecules_.empty() &&
-            parent_molecule_groupings_.empty() &&
+            input_items_.empty() && parents_.empty() &&
+            parent_groupings_.empty() &&
             identified_peptides_.empty() && identified_compounds_.empty() &&
             identified_oligos_.empty() && adducts_.empty() &&
             input_matches_.empty() && input_match_groups_.empty());
@@ -970,17 +970,17 @@ namespace OpenMS
       query_refs[other_ref] = registerInputItem(copy);
     }
     // parent molecules:
-    map<ParentMoleculeRef, ParentMoleculeRef> parent_refs;
-    for (ParentMoleculeRef other_ref = other.getParentMolecules().begin();
-         other_ref != other.getParentMolecules().end(); ++other_ref)
+    map<ParentSequenceRef, ParentSequenceRef> parent_refs;
+    for (ParentSequenceRef other_ref = other.getParentSequences().begin();
+         other_ref != other.getParentSequences().end(); ++other_ref)
     {
       // don't copy processing steps and scores yet:
-      ParentMolecule copy(other_ref->accession, other_ref->molecule_type,
+      ParentSequence copy(other_ref->accession, other_ref->molecule_type,
                           other_ref->sequence, other_ref->description,
                           other_ref->coverage, other_ref->is_decoy);
       // now copy precessing steps and scores while updating references:
       mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
-      parent_refs[other_ref] = registerParentMolecule(copy);
+      parent_refs[other_ref] = registerParentSequence(copy);
     }
     // identified peptides:
     map<IdentifiedPeptideRef, IdentifiedPeptideRef> peptide_refs;
@@ -993,7 +993,7 @@ namespace OpenMS
       mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
       for (const auto& pair : other_ref->parent_matches)
       {
-        ParentMoleculeRef parent_ref = parent_refs[pair.first];
+        ParentSequenceRef parent_ref = parent_refs[pair.first];
         copy.parent_matches[parent_ref] = pair.second;
       }
       // @TODO: with C++17, 'map::extract' offers a better way to update keys
@@ -1010,7 +1010,7 @@ namespace OpenMS
       mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
       for (const auto& pair : other_ref->parent_matches)
       {
-        ParentMoleculeRef parent_ref = parent_refs[pair.first];
+        ParentSequenceRef parent_ref = parent_refs[pair.first];
         copy.parent_matches[parent_ref] = pair.second;
       }
      // @TODO: with C++17, 'map::extract' offers a better way to update keys
@@ -1074,26 +1074,26 @@ namespace OpenMS
     }
     // parent molecule groupings:
     // @TODO: does this need to be more sophisticated?
-    for (const ParentMoleculeGrouping& grouping :
-           other.parent_molecule_groupings_)
+    for (const ParentGrouping& grouping :
+           other.parent_groupings_)
     {
-      ParentMoleculeGrouping copy(grouping.label);
+      ParentGrouping copy(grouping.label);
       mergeScoredProcessingResults_(copy, grouping, step_refs, score_refs);
-      for (const ParentMoleculeGroup& group : grouping.groups)
+      for (const ParentGroup& group : grouping.groups)
       {
-        ParentMoleculeGroup group_copy;
+        ParentGroup group_copy;
         for (const auto& pair : group.scores)
         {
           ScoreTypeRef score_ref = score_refs[pair.first];
           group_copy.scores[score_ref] = pair.second;
         }
-        for (ParentMoleculeRef parent_ref : group.parent_molecule_refs)
+        for (ParentSequenceRef parent_ref : group.parent_refs)
         {
-          group_copy.parent_molecule_refs.insert(parent_refs[parent_ref]);
+          group_copy.parent_refs.insert(parent_refs[parent_ref]);
         }
         copy.groups.insert(group_copy);
       }
-      registerParentMoleculeGrouping(copy);
+      registerParentGrouping(copy);
     }
     no_checks_ = false;
 

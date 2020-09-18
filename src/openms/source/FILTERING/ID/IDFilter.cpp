@@ -827,15 +827,15 @@ namespace OpenMS
 
   void IDFilter::removeDecoys(IdentificationData& id_data)
   {
-    Size n_parents = id_data.getParentMolecules().size();
+    Size n_parents = id_data.getParentSequences().size();
     id_data.removeFromSetIf_(
-      id_data.parent_molecules_,
-      [&](IdentificationData::ParentMoleculeRef it) -> bool
+      id_data.parents_,
+      [&](IdentificationData::ParentSequenceRef it) -> bool
       {
         return it->is_decoy;
       });
 
-    if (id_data.getParentMolecules().size() < n_parents) id_data.cleanup();
+    if (id_data.getParentSequences().size() < n_parents) id_data.cleanup();
   }
 
 } // namespace OpenMS

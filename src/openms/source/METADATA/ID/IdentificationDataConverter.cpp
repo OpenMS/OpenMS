@@ -108,7 +108,7 @@ namespace OpenMS
       {
         ++hits_counter;
         sublogger.setProgress(hits_counter);
-        ID::ParentMolecule parent(hit.getAccession());
+        ID::ParentSequence parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
         // coverage comes in percents, -1 for missing; we want 0 to 1:
@@ -117,7 +117,7 @@ namespace OpenMS
         ID::AppliedProcessingStep applied(step_ref);
         applied.scores[prot_score_ref] = hit.getScore();
         parent.steps_and_scores.push_back(applied);
-        id_data.registerParentMolecule(parent);
+        id_data.registerParentSequence(parent);
       }
       sublogger.endProgress();
 
@@ -132,24 +132,24 @@ namespace OpenMS
         ID::ScoreType score("probability", true);
         ID::ScoreTypeRef score_ref = id_data.registerScoreType(score);
 
-        ID::ParentMoleculeGrouping grouping;
+        ID::ParentGrouping grouping;
         grouping.label = "indistinguishable proteins";
 
         for (const auto& group : prot.getIndistinguishableProteins())
         {
           ++groups_counter;
           sublogger.setProgress(groups_counter);
-          ID::ParentMoleculeGroup new_group;
+          ID::ParentGroup new_group;
           new_group.scores[score_ref] = group.probability;
           for (const String& acc : group.accessions)
           {
-            ID::ParentMolecule parent(acc);
-            ID::ParentMoleculeRef ref = id_data.registerParentMolecule(parent);
-            new_group.parent_molecule_refs.insert(ref);
+            ID::ParentSequence parent(acc);
+            ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
+            new_group.parent_refs.insert(ref);
           }
           grouping.groups.insert(new_group);
         }
-        id_data.registerParentMoleculeGrouping(grouping);
+        id_data.registerParentGrouping(grouping);
         sublogger.endProgress();
       }
       // other protein groups:
@@ -162,24 +162,24 @@ namespace OpenMS
         ID::ScoreType score("probability", true);
         ID::ScoreTypeRef score_ref = id_data.registerScoreType(score);
 
-        ID::ParentMoleculeGrouping grouping;
+        ID::ParentGrouping grouping;
         grouping.label = "protein groups";
 
         for (const auto& group : prot.getProteinGroups())
         {
           ++groups_counter;
           sublogger.setProgress(groups_counter);
-          ID::ParentMoleculeGroup new_group;
+          ID::ParentGroup new_group;
           new_group.scores[score_ref] = group.probability;
           for (const String& acc : group.accessions)
           {
-            ID::ParentMolecule parent(acc);
-            ID::ParentMoleculeRef ref = id_data.registerParentMolecule(parent);
-            new_group.parent_molecule_refs.insert(ref);
+            ID::ParentSequence parent(acc);
+            ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
+            new_group.parent_refs.insert(ref);
           }
           grouping.groups.insert(new_group);
         }
-        id_data.registerParentMoleculeGrouping(grouping);
+        id_data.registerParentGrouping(grouping);
         sublogger.endProgress();
       }
 
@@ -247,11 +247,11 @@ namespace OpenMS
         {
           const String& accession = evidence.getProteinAccession();
           if (accession.empty()) continue;
-          ID::ParentMolecule parent(accession);
+          ID::ParentSequence parent(accession);
           parent.addProcessingStep(step_ref);
           // this will merge information if the protein already exists:
-          ID::ParentMoleculeRef parent_ref =
-            id_data.registerParentMolecule(parent);
+          ID::ParentSequenceRef parent_ref =
+            id_data.registerParentSequence(parent);
           ID::MoleculeParentMatch match(evidence.getStart(), evidence.getEnd(),
                                         evidence.getAABefore(),
                                         evidence.getAAAfter());
@@ -438,7 +438,7 @@ namespace OpenMS
     sort(peptides.begin(), peptides.end(), PepIDCompare());
 
     map<StepOpt, pair<vector<ProteinHit>, ID::ScoreTypeRef>> prot_data;
-    for (const auto& parent : id_data.getParentMolecules())
+    for (const auto& parent : id_data.getParentSequences())
     {
       ProteinHit hit;
       hit.setAccession(parent.accession);
@@ -534,7 +534,7 @@ namespace OpenMS
       }
 
       // protein groups:
-      for (const auto& grouping : id_data.getParentMoleculeGroupings())
+      for (const auto& grouping : id_data.getParentGroupings())
       {
         // do these protein groups belong to the current search run?
         if (grouping.getStepsAndScoresByStep().find(step_ref_opt) !=
@@ -548,7 +548,7 @@ namespace OpenMS
               // @TODO: what if there are several scores?
               new_group.probability = group.scores.begin()->second;
             }
-            for (const auto& parent_ref : group.parent_molecule_refs)
+            for (const auto& parent_ref : group.parent_refs)
             {
               new_group.accessions.push_back(parent_ref->accession);
             }
@@ -628,15 +628,15 @@ namespace OpenMS
 
     MzTabProteinSectionRows proteins;
     MzTabNucleicAcidSectionRows nucleic_acids;
-    for (const auto& parent : id_data.getParentMolecules())
+    for (const auto& parent : id_data.getParentSequences())
     {
       if (parent.molecule_type == ID::MoleculeType::PROTEIN)
       {
-        exportParentMoleculeToMzTab_(parent, proteins, protein_scores);
+        exportParentSequenceToMzTab_(parent, proteins, protein_scores);
       }
       else if (parent.molecule_type == ID::MoleculeType::RNA)
       {
-        exportParentMoleculeToMzTab_(parent, nucleic_acids,
+        exportParentSequenceToMzTab_(parent, nucleic_acids,
                                      nucleic_acid_scores);
       }
     }
@@ -726,14 +726,14 @@ namespace OpenMS
   {
     for (const FASTAFile::FASTAEntry& entry : fasta)
     {
-      ID::ParentMolecule parent(entry.identifier, type, entry.sequence,
+      ID::ParentSequence parent(entry.identifier, type, entry.sequence,
                                 entry.description);
       if (!decoy_pattern.empty() &&
           entry.identifier.hasSubstring(decoy_pattern))
       {
         parent.is_decoy = true;
       }
-      id_data.registerParentMolecule(parent);
+      id_data.registerParentSequence(parent);
     }
   }
 
@@ -743,7 +743,7 @@ namespace OpenMS
   {
     for (const auto& pair : parent_matches)
     {
-      ID::ParentMoleculeRef parent_ref = pair.first;
+      ID::ParentSequenceRef parent_ref = pair.first;
       for (const ID::MoleculeParentMatch& parent_match : pair.second)
       {
         PeptideEvidence evidence;

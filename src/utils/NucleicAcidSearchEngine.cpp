@@ -1090,14 +1090,14 @@ protected:
       // reference this step in all following ID data items:
       id_data.setCurrentProcessingStep(step_ref);
     }
-    Size n_nucleic_acids = id_data.getParentMolecules().size();
+    Size n_nucleic_acids = id_data.getParentSequences().size();
 
     if (!decoy_pattern.empty())
     {
       bool no_decoys = none_of(
-        id_data.getParentMolecules().begin(),
-        id_data.getParentMolecules().end(),
-        [](const IdentificationData::ParentMolecule& p){ return p.is_decoy; });
+        id_data.getParentSequences().begin(),
+        id_data.getParentSequences().end(),
+        [](const IdentificationData::ParentSequence& p){ return p.is_decoy; });
       if (no_decoys)
       {
         OPENMS_LOG_ERROR << "Error: 'fdr:decoy_pattern' is set, but no decoy sequences were found" << endl;
@@ -1423,14 +1423,14 @@ protected:
       {
         // RNA seqs. were imported from a previous search run - need to "tag"
         // them with the current processing step so they get exported properly:
-        for (IdentificationData::ParentMoleculeRef ref =
-               id_data.getParentMolecules().begin(); ref !=
-               id_data.getParentMolecules().end(); ++ref)
+        for (IdentificationData::ParentSequenceRef ref =
+               id_data.getParentSequences().begin(); ref !=
+               id_data.getParentSequences().end(); ++ref)
         {
           // @TODO: find a way to avoid the copying (modify in place?):
-          IdentificationData::ParentMolecule copy = *ref;
+          IdentificationData::ParentSequence copy = *ref;
           copy.addProcessingStep(id_data.getCurrentProcessingStep());
-          id_data.registerParentMolecule(copy);
+          id_data.registerParentSequence(copy);
         }
       }
       vector<ProteinIdentification> proteins;

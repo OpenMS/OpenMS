@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
+#include <OpenMS/METADATA/ID/ParentSequence.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -47,39 +47,39 @@ namespace OpenMS
     /** @brief: Group of ambiguously identified parent molecules (e.g. protein group)
     */
     // @TODO: derive from MetaInfoInterface?
-    struct ParentMoleculeGroup
+    struct ParentGroup
     {
       std::map<ScoreTypeRef, double> scores;
       // @TODO: does this need a "leader" or some such?
-      std::set<ParentMoleculeRef> parent_molecule_refs;
+      std::set<ParentSequenceRef> parent_refs;
     };
 
     typedef boost::multi_index_container<
-      ParentMoleculeGroup,
+      ParentGroup,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
         boost::multi_index::member<
-          ParentMoleculeGroup, std::set<ParentMoleculeRef>,
-          &ParentMoleculeGroup::parent_molecule_refs>>>
-      > ParentMoleculeGroups;
-    typedef IteratorWrapper<ParentMoleculeGroups::iterator> ParentGroupRef;
+          ParentGroup, std::set<ParentSequenceRef>,
+          &ParentGroup::parent_refs>>>
+      > ParentGroups;
+    typedef IteratorWrapper<ParentGroups::iterator> ParentGroupRef;
 
     /** @brief Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
     */
-    struct ParentMoleculeGrouping: public ScoredProcessingResult
+    struct ParentGrouping: public ScoredProcessingResult
     {
       String label; // @TODO: use "label" as a uniqueness constraint?
-      ParentMoleculeGroups groups;
+      ParentGroups groups;
 
-      explicit ParentMoleculeGrouping(
+      explicit ParentGrouping(
         const String& label = "",
-        const ParentMoleculeGroups& groups = ParentMoleculeGroups()):
+        const ParentGroups& groups = ParentGroups()):
         label(label), groups(groups)
       {
       }
     };
 
-    typedef std::vector<ParentMoleculeGrouping> ParentMoleculeGroupings;
+    typedef std::vector<ParentGrouping> ParentGroupings;
 
   }
 }

@@ -153,7 +153,7 @@ START_SECTION((void importSequences(IdentificationData&, const vector<FASTAFile:
   FASTAFile::load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta);
   IdentificationData ids;
   IdentificationDataConverter::importSequences(ids, fasta);
-  TEST_EQUAL(ids.getParentMolecules().size(), 5);
+  TEST_EQUAL(ids.getParentSequences().size(), 5);
 }
 END_SECTION
 
@@ -231,8 +231,8 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
 
   // RNA data, oligonucleotide that matches several times in the same RNA:
   IdentificationData rna_ids;
-  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "AUCGAUCG");
-  IdentificationData::ParentMoleculeRef ref = rna_ids.registerParentMolecule(rna);
+  IdentificationData::ParentSequence rna("test", IdentificationData::MoleculeType::RNA, "AUCGAUCG");
+  IdentificationData::ParentSequenceRef ref = rna_ids.registerParentSequence(rna);
   IdentificationData::IdentifiedOligo oli(NASequence::fromString("AUCG"));
   IdentificationData::MoleculeParentMatch match1(0, 3), match2(4, 7);
   oli.parent_matches[ref].insert(match1);
@@ -269,7 +269,7 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
   STATUS(mem_usage.delta("IdentificationData"));
 
-  TEST_EQUAL(ids.getParentMolecules().size(), 11098);
+  TEST_EQUAL(ids.getParentSequences().size(), 11098);
   // problem: input data comes from multiple files, spectra with matching names
   // in different files get merged together -> lower number of data queries:
   TEST_EQUAL(ids.getInputItems().size(), 55522);
@@ -278,9 +278,9 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
   // in total - maybe some duplicates?:
   TEST_EQUAL(ids.getInputMatches().size(), 332778);
 
-  TEST_EQUAL(ids.getParentMoleculeGroupings().size(), 2);
-  TEST_EQUAL(ids.getParentMoleculeGroupings()[0].groups.size(), 10853);
-  TEST_EQUAL(ids.getParentMoleculeGroupings()[1].groups.size(), 9092);
+  TEST_EQUAL(ids.getParentGroupings().size(), 2);
+  TEST_EQUAL(ids.getParentGroupings()[0].groups.size(), 10853);
+  TEST_EQUAL(ids.getParentGroupings()[1].groups.size(), 9092);
 }
 END_SECTION
 */

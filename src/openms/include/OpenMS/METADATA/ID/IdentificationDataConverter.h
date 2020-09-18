@@ -133,8 +133,8 @@ namespace OpenMS
 
     /// Export a parent molecule (protein or nucleic acid) to mzTab
     template <typename MzTabSectionRow>
-    static void exportParentMoleculeToMzTab_(
-      const IdentificationData::ParentMolecule& parent,
+    static void exportParentSequenceToMzTab_(
+      const IdentificationData::ParentSequence& parent,
       std::vector<MzTabSectionRow>& output,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map)
     {

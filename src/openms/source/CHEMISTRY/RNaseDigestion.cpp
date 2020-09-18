@@ -161,9 +161,9 @@ namespace OpenMS
   void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
                               Size max_length) const
   {
-    for (IdentificationData::ParentMoleculeRef parent_ref =
-           id_data.getParentMolecules().begin(); parent_ref !=
-           id_data.getParentMolecules().end(); ++parent_ref)
+    for (IdentificationData::ParentSequenceRef parent_ref =
+           id_data.getParentSequences().begin(); parent_ref !=
+           id_data.getParentSequences().end(); ++parent_ref)
     {
       if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
       {

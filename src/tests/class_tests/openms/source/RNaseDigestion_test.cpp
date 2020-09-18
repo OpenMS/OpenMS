@@ -151,8 +151,8 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
                 Size max_length = 0) const))
 {
   IdentificationData id_data;
-  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
-  id_data.registerParentMolecule(rna);
+  IdentificationData::ParentSequence rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
+  id_data.registerParentSequence(rna);
 
   RNaseDigestion rd;
   rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
@@ -163,7 +163,7 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   /// multiple occurrences of the same oligo:
   IdentificationData id_data2;
   rna.sequence = "ACUGACUGG";
-  id_data2.registerParentMolecule(rna);
+  id_data2.registerParentSequence(rna);
 
   rd.digest(id_data2, 2);
 

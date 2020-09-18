@@ -65,7 +65,7 @@ IdentificationData::SearchParamRef param_ref;
 IdentificationData::ProcessingStepRef step_ref;
 IdentificationData::ScoreTypeRef score_ref;
 IdentificationData::InputItemRef query_ref;
-IdentificationData::ParentMoleculeRef protein_ref, rna_ref;
+IdentificationData::ParentSequenceRef protein_ref, rna_ref;
 IdentificationData::IdentifiedPeptideRef peptide_ref;
 IdentificationData::IdentifiedOligoRef oligo_ref;
 IdentificationData::IdentifiedCompoundRef compound_ref;
@@ -212,57 +212,57 @@ START_SECTION((InputItemRef registerInputItem(const InputItem& query)))
 }
 END_SECTION
 
-START_SECTION((const ParentMolecules& getParentMolecules() const))
+START_SECTION((const ParentSequences& getParentSequences() const))
 {
-  TEST_EQUAL(data.getParentMolecules().empty(), true);
+  TEST_EQUAL(data.getParentSequences().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent)))
+START_SECTION((ParentSequenceRef registerParentSequence(const ParentSequence& parent)))
 {
-  IdentificationData::ParentMolecule protein("");
+  IdentificationData::ParentSequence protein("");
   // can't register a parent molecule without accession:
   TEST_EXCEPTION(Exception::IllegalArgument,
-                 data.registerParentMolecule(protein));
-  TEST_EQUAL(data.getParentMolecules().empty(), true);
+                 data.registerParentSequence(protein));
+  TEST_EQUAL(data.getParentSequences().empty(), true);
 
   protein.accession = "protein_1";
   protein.sequence = "TESTPEPTIDEAAA";
-  protein_ref = data.registerParentMolecule(protein);
-  TEST_EQUAL(data.getParentMolecules().size(), 1);
+  protein_ref = data.registerParentSequence(protein);
+  TEST_EQUAL(data.getParentSequences().size(), 1);
   TEST_EQUAL(*protein_ref == protein, true);
 
-  IdentificationData::ParentMolecule rna("rna_1",
+  IdentificationData::ParentSequence rna("rna_1",
                                          IdentificationData::MoleculeType::RNA);
-  rna_ref = data.registerParentMolecule(rna);
-  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  rna_ref = data.registerParentSequence(rna);
+  TEST_EQUAL(data.getParentSequences().size(), 2);
   TEST_EQUAL(*rna_ref == rna, true);
   // re-registering doesn't lead to redundant entries:
-  data.registerParentMolecule(rna);
-  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  data.registerParentSequence(rna);
+  TEST_EQUAL(data.getParentSequences().size(), 2);
 }
 END_SECTION
 
-START_SECTION((const ParentMoleculeGroupings& getParentMoleculeGroupings() const))
+START_SECTION((const ParentGroupings& getParentGroupings() const))
 {
-  TEST_EQUAL(data.getParentMoleculeGroupings().empty(), true);
+  TEST_EQUAL(data.getParentGroupings().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((void registerParentMoleculeGrouping(const ParentMoleculeGrouping& grouping)))
+START_SECTION((void registerParentGrouping(const ParentGrouping& grouping)))
 {
-  IdentificationData::ParentMoleculeGroup group;
-  group.parent_molecule_refs.insert(protein_ref);
-  group.parent_molecule_refs.insert(rna_ref);
-  IdentificationData::ParentMoleculeGrouping grouping;
+  IdentificationData::ParentGroup group;
+  group.parent_refs.insert(protein_ref);
+  group.parent_refs.insert(rna_ref);
+  IdentificationData::ParentGrouping grouping;
   grouping.label = "test_grouping";
   grouping.groups.insert(group);
-  data.registerParentMoleculeGrouping(grouping);
-  TEST_EQUAL(data.getParentMoleculeGroupings().size(), 1);
-  TEST_EQUAL(data.getParentMoleculeGroupings()[0].groups.size(), 1);
-  TEST_EQUAL(data.getParentMoleculeGroupings()[0].groups.begin()->parent_molecule_refs.size(), 2);
+  data.registerParentGrouping(grouping);
+  TEST_EQUAL(data.getParentGroupings().size(), 1);
+  TEST_EQUAL(data.getParentGroupings()[0].groups.size(), 1);
+  TEST_EQUAL(data.getParentGroupings()[0].groups.begin()->parent_refs.size(), 2);
 }
 END_SECTION
 
@@ -541,18 +541,18 @@ START_SECTION((ProcessingStepRef merge(const IdentificationData& other)))
 {
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  TEST_EQUAL(data.getParentSequences().size(), 2);
   data.merge(data); // self-merge shouldn't change anything
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  TEST_EQUAL(data.getParentSequences().size(), 2);
   IdentificationData other;
   IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("MASSSPEC"));
   other.registerIdentifiedPeptide(peptide);
   data.merge(other);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  TEST_EQUAL(data.getParentSequences().size(), 2);
 }
 END_SECTION
 
@@ -561,7 +561,7 @@ START_SECTION((IdentificationData(const IdentificationData& other)))
   IdentificationData copy(data);
   TEST_EQUAL(copy.getIdentifiedPeptides().size(), 2);
   TEST_EQUAL(copy.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(copy.getParentMolecules().size(), 2);
+  TEST_EQUAL(copy.getParentSequences().size(), 2);
 }
 END_SECTION
 
@@ -623,10 +623,10 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   id.registerInputMatch(match);
 
   // some calculations, inference etc. could take place ...
-  IdentificationData::ParentMolecule protein("protein_1"); // accession is required
+  IdentificationData::ParentSequence protein("protein_1"); // accession is required
   protein.sequence = "PRTTESTPEPTIDRPRT";
   protein.description = "Human Random Protein 1";
-  auto protein_ref = id.registerParentMolecule(protein);
+  auto protein_ref = id.registerParentSequence(protein);
 
   // add reference to parent (protein) and update peptide
   IdentificationData::IdentifiedPeptide augmented_pep = *peptide_ref;

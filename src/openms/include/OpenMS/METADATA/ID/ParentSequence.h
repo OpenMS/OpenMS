@@ -44,9 +44,9 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Representation of a parent molecule that is identified only indirectly (e.g. a protein).
+    /** @brief Representation of a parent sequence that is identified only indirectly (e.g. a protein).
     */
-    struct ParentMolecule: public ScoredProcessingResult
+    struct ParentSequence: public ScoredProcessingResult
     {
       String accession;
 
@@ -62,7 +62,7 @@ namespace OpenMS
 
       bool is_decoy;
 
-      explicit ParentMolecule(
+      explicit ParentSequence(
         const String& accession,
         MoleculeType molecule_type = MoleculeType::PROTEIN,
         const String& sequence = "", const String& description = "",
@@ -75,9 +75,9 @@ namespace OpenMS
       {
       }
 
-      ParentMolecule(const ParentMolecule&) = default;
+      ParentSequence(const ParentSequence&) = default;
 
-      ParentMolecule& operator+=(const ParentMolecule& other)
+      ParentSequence& operator+=(const ParentSequence& other)
       {
         ScoredProcessingResult::operator+=(other);
         if (sequence.empty()) sequence = other.sequence;
@@ -89,15 +89,15 @@ namespace OpenMS
       }
     };
 
-    // parent molecules indexed by their accessions:
+    // parent sequences indexed by their accessions:
     // @TODO: allow querying/iterating over proteins and RNAs separately
     typedef boost::multi_index_container<
-      ParentMolecule,
+      ParentSequence,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentMolecule, String, &ParentMolecule::accession>>>
-      > ParentMolecules;
-    typedef IteratorWrapper<ParentMolecules::iterator> ParentMoleculeRef;
+          ParentSequence, String, &ParentSequence::accession>>>
+      > ParentSequences;
+    typedef IteratorWrapper<ParentSequences::iterator> ParentSequenceRef;
 
   }
 }

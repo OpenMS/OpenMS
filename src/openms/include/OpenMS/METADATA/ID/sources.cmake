@@ -17,8 +17,8 @@ InputFile.h
 MetaData.h
 MoleculeParentMatch.h
 InputMatch.h
-ParentMolecule.h
-ParentMoleculeGroup.h
+ParentSequence.h
+ParentGroup.h
 InputMatchGroup.h
 ScoreType.h
 ScoredProcessingResult.h
