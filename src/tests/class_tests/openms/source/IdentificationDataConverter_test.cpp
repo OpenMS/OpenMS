@@ -278,9 +278,9 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
   // in total - maybe some duplicates?:
   TEST_EQUAL(ids.getInputMatches().size(), 332778);
 
-  TEST_EQUAL(ids.getParentGroupings().size(), 2);
-  TEST_EQUAL(ids.getParentGroupings()[0].groups.size(), 10853);
-  TEST_EQUAL(ids.getParentGroupings()[1].groups.size(), 9092);
+  TEST_EQUAL(ids.getParentGroupSets().size(), 2);
+  TEST_EQUAL(ids.getParentGroupSets()[0].groups.size(), 10853);
+  TEST_EQUAL(ids.getParentGroupSets()[1].groups.size(), 9092);
 }
 END_SECTION
 */

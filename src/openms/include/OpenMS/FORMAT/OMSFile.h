@@ -111,7 +111,7 @@ namespace OpenMS
 
       void storeParentSequences();
 
-      void storeParentGroupings();
+      void storeParentGroupSets();
 
       void storeIdentifiedCompounds();
 
@@ -229,7 +229,7 @@ namespace OpenMS
 
       void loadParentSequences();
 
-      void loadParentGroupings();
+      void loadParentGroupSets();
 
       void loadIdentifiedCompounds();
 

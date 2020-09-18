@@ -801,11 +801,11 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeParentGroupings()
+  void OMSFile::OMSFileStore::storeParentGroupSets()
   {
-    if (id_data_.getParentGroupings().empty()) return;
+    if (id_data_.getParentGroupSets().empty()) return;
 
-    createTable_("ID_ParentGrouping",
+    createTable_("ID_ParentGroupSet",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
                  "label TEXT, "                       \
                  "grouping_order INTEGER NOT NULL");
@@ -817,7 +817,7 @@ namespace OpenMS
       "score_type_id INTEGER, "                                         \
       "score REAL, "                                                    \
       "UNIQUE (id, score_type_id), "                                    \
-      "FOREIGN KEY (grouping_id) REFERENCES ID_ParentGrouping (id)");
+      "FOREIGN KEY (grouping_id) REFERENCES ID_ParentGroupSet (id)");
 
     createTable_(
       "ID_ParentGroup_ParentSequence",
@@ -829,7 +829,7 @@ namespace OpenMS
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query_grouping(db);
-    query_grouping.prepare("INSERT INTO ID_ParentGrouping VALUES (" \
+    query_grouping.prepare("INSERT INTO ID_ParentGroupSet VALUES (" \
                            ":id, "                                      \
                            ":label, "                                   \
                            ":grouping_order)");
@@ -848,8 +848,8 @@ namespace OpenMS
       ":parent_id)");
 
     Size counter = 0;
-    for (const ID::ParentGrouping& grouping :
-           id_data_.getParentGroupings())
+    for (const ID::ParentGroupSet& grouping :
+           id_data_.getParentGroupSets())
     {
       Key grouping_id = Key(&grouping);
       query_grouping.bindValue(":id", grouping_id);
@@ -903,8 +903,8 @@ namespace OpenMS
       }
     }
 
-    storeScoredProcessingResults_(id_data_.getParentGroupings(),
-                                  "ID_ParentGrouping");
+    storeScoredProcessingResults_(id_data_.getParentGroupSets(),
+                                  "ID_ParentGroupSet");
   }
 
 
@@ -1300,7 +1300,7 @@ namespace OpenMS
     nextProgress();
     helper.storeParentSequences();
     nextProgress();
-    helper.storeParentGroupings();
+    helper.storeParentGroupSets();
     nextProgress();
     helper.storeIdentifiedCompounds();
     nextProgress();
@@ -1778,14 +1778,14 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadParentGroupings()
+  void OMSFile::OMSFileLoad::loadParentGroupSets()
   {
-    if (!tableExists_(db_name_, "ID_ParentGrouping")) return;
+    if (!tableExists_(db_name_, "ID_ParentGroupSet")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ParentGrouping "  \
+    if (!query.exec("SELECT * FROM ID_ParentGroupSet "  \
                     "ORDER BY grouping_order ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1794,11 +1794,11 @@ namespace OpenMS
     // @TODO: can we combine handling of meta info and applied processing steps?
     QSqlQuery subquery_info(db);
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_ParentGrouping");
+                                                "ID_ParentGroupSet");
     QSqlQuery subquery_step(db);
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
-                                         "ID_ParentGrouping");
+                                         "ID_ParentGroupSet");
 
     QSqlQuery subquery_group(db);
     subquery_group.setForwardOnly(true);
@@ -1813,7 +1813,7 @@ namespace OpenMS
 
     while (query.next())
     {
-      ID::ParentGrouping grouping(query.value("label").toString());
+      ID::ParentGroupSet grouping(query.value("label").toString());
       Key grouping_id = query.value("id").toLongLong();
       if (have_meta_info)
       {
@@ -1866,7 +1866,7 @@ namespace OpenMS
         grouping.groups.insert(pair.second);
       }
 
-      id_data_.registerParentGrouping(grouping);
+      id_data_.registerParentGroupSet(grouping);
     }
   }
 
@@ -2163,7 +2163,7 @@ namespace OpenMS
     nextProgress();
     helper.loadParentSequences();
     nextProgress();
-    helper.loadParentGroupings();
+    helper.loadParentGroupSets();
     nextProgress();
     helper.loadIdentifiedCompounds();
     nextProgress();

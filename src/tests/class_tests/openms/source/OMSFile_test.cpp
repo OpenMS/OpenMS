@@ -94,8 +94,8 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(ids.getInputItems().size(), out.getInputItems().size());
   TEST_EQUAL(ids.getParentSequences().size(),
              out.getParentSequences().size());
-  TEST_EQUAL(ids.getParentGroupings().size(),
-             out.getParentGroupings().size());
+  TEST_EQUAL(ids.getParentGroupSets().size(),
+             out.getParentGroupSets().size());
   TEST_EQUAL(ids.getIdentifiedPeptides().size(),
              out.getIdentifiedPeptides().size());
   TEST_EQUAL(ids.getIdentifiedOligos().size(),

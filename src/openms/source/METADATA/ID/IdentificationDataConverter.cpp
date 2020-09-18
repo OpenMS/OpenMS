@@ -132,7 +132,7 @@ namespace OpenMS
         ID::ScoreType score("probability", true);
         ID::ScoreTypeRef score_ref = id_data.registerScoreType(score);
 
-        ID::ParentGrouping grouping;
+        ID::ParentGroupSet grouping;
         grouping.label = "indistinguishable proteins";
 
         for (const auto& group : prot.getIndistinguishableProteins())
@@ -149,7 +149,7 @@ namespace OpenMS
           }
           grouping.groups.insert(new_group);
         }
-        id_data.registerParentGrouping(grouping);
+        id_data.registerParentGroupSet(grouping);
         sublogger.endProgress();
       }
       // other protein groups:
@@ -162,7 +162,7 @@ namespace OpenMS
         ID::ScoreType score("probability", true);
         ID::ScoreTypeRef score_ref = id_data.registerScoreType(score);
 
-        ID::ParentGrouping grouping;
+        ID::ParentGroupSet grouping;
         grouping.label = "protein groups";
 
         for (const auto& group : prot.getProteinGroups())
@@ -179,7 +179,7 @@ namespace OpenMS
           }
           grouping.groups.insert(new_group);
         }
-        id_data.registerParentGrouping(grouping);
+        id_data.registerParentGroupSet(grouping);
         sublogger.endProgress();
       }
 
@@ -534,7 +534,7 @@ namespace OpenMS
       }
 
       // protein groups:
-      for (const auto& grouping : id_data.getParentGroupings())
+      for (const auto& grouping : id_data.getParentGroupSets())
       {
         // do these protein groups belong to the current search run?
         if (grouping.getStepsAndScoresByStep().find(step_ref_opt) !=

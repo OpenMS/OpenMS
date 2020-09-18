@@ -66,12 +66,12 @@ namespace OpenMS
 
     /** @brief Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
     */
-    struct ParentGrouping: public ScoredProcessingResult
+    struct ParentGroupSet: public ScoredProcessingResult
     {
       String label; // @TODO: use "label" as a uniqueness constraint?
       ParentGroups groups;
 
-      explicit ParentGrouping(
+      explicit ParentGroupSet(
         const String& label = "",
         const ParentGroups& groups = ParentGroups()):
         label(label), groups(groups)
@@ -79,7 +79,7 @@ namespace OpenMS
       }
     };
 
-    typedef std::vector<ParentGrouping> ParentGroupings;
+    typedef std::vector<ParentGroupSet> ParentGroupSets;
 
   }
 }

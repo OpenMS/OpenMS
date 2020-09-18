@@ -244,25 +244,25 @@ START_SECTION((ParentSequenceRef registerParentSequence(const ParentSequence& pa
 }
 END_SECTION
 
-START_SECTION((const ParentGroupings& getParentGroupings() const))
+START_SECTION((const ParentGroupSets& getParentGroupSets() const))
 {
-  TEST_EQUAL(data.getParentGroupings().empty(), true);
+  TEST_EQUAL(data.getParentGroupSets().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((void registerParentGrouping(const ParentGrouping& grouping)))
+START_SECTION((void registerParentGroupSet(const ParentGroupSet& groups)))
 {
   IdentificationData::ParentGroup group;
   group.parent_refs.insert(protein_ref);
   group.parent_refs.insert(rna_ref);
-  IdentificationData::ParentGrouping grouping;
-  grouping.label = "test_grouping";
-  grouping.groups.insert(group);
-  data.registerParentGrouping(grouping);
-  TEST_EQUAL(data.getParentGroupings().size(), 1);
-  TEST_EQUAL(data.getParentGroupings()[0].groups.size(), 1);
-  TEST_EQUAL(data.getParentGroupings()[0].groups.begin()->parent_refs.size(), 2);
+  IdentificationData::ParentGroupSet groups;
+  groups.label = "test_grouping";
+  groups.groups.insert(group);
+  data.registerParentGroupSet(groups);
+  TEST_EQUAL(data.getParentGroupSets().size(), 1);
+  TEST_EQUAL(data.getParentGroupSets()[0].groups.size(), 1);
+  TEST_EQUAL(data.getParentGroupSets()[0].groups.begin()->parent_refs.size(), 2);
 }
 END_SECTION
 

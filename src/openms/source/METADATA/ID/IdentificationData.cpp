@@ -329,14 +329,13 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::registerParentGrouping(
-    const ParentGrouping& grouping)
+  void IdentificationData::registerParentGroupSet(const ParentGroupSet& groups)
   {
     if (!no_checks_)
     {
-      checkAppliedProcessingSteps_(grouping.steps_and_scores);
+      checkAppliedProcessingSteps_(groups.steps_and_scores);
 
-      for (const auto& group : grouping.groups)
+      for (const auto& group : groups.groups)
       {
         checkScoreTypes_(group.scores);
 
@@ -346,20 +345,20 @@ namespace OpenMS
           {
             String msg = "invalid reference to a parent molecule - register that first";
             throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                           OPENMS_PRETTY_FUNCTION, msg);
+                                             OPENMS_PRETTY_FUNCTION, msg);
           }
         }
       }
     }
 
-    parent_groupings_.push_back(grouping);
+    parent_groups_.push_back(groups);
 
     // add the current processing step?
     if ((current_step_ref_ != processing_steps_.end()) &&
-        (grouping.steps_and_scores.get<1>().find(current_step_ref_) ==
-         grouping.steps_and_scores.get<1>().end()))
+        (groups.steps_and_scores.get<1>().find(current_step_ref_) ==
+         groups.steps_and_scores.get<1>().end()))
     {
-      parent_groupings_.back().steps_and_scores.push_back(
+      parent_groups_.back().steps_and_scores.push_back(
         IdentificationDataInternal::AppliedProcessingStep(current_step_ref_));
     }
   }
@@ -649,9 +648,9 @@ namespace OpenMS
     if (require_parent_group)
     {
       parent_lookup_.clear(); // will become invalid anyway
-      for (const auto& grouping: parent_groupings_)
+      for (const auto& groups: parent_groups_)
       {
-        for (const auto& group : grouping.groups)
+        for (const auto& group : groups.groups)
         {
           for (const auto& ref : group.parent_refs)
           {
@@ -796,21 +795,19 @@ namespace OpenMS
 
     // remove entries from parent molecule groups based on parent molecules:
     bool warn = false;
-    for (auto& grouping : parent_groupings_)
+    for (auto& groups : parent_groups_)
     {
-      for (auto group_it = grouping.groups.begin();
-           group_it != grouping.groups.end(); )
+      for (auto group_it = groups.groups.begin();
+           group_it != groups.groups.end(); )
       {
         Size old_size = group_it->parent_refs.size();
-        grouping.groups.modify(
-          group_it, [&](ParentGroup& group)
-          {
-            removeFromSetIfNotHashed_(group.parent_refs,
-                                      parent_lookup_);
-          });
+        groups.groups.modify(group_it, [&](ParentGroup& group)
+        {
+          removeFromSetIfNotHashed_(group.parent_refs, parent_lookup_);
+        });
         if (group_it->parent_refs.empty())
         {
-          group_it = grouping.groups.erase(group_it);
+          group_it = groups.groups.erase(group_it);
         }
         else
         {
@@ -834,12 +831,10 @@ namespace OpenMS
          group_it != input_match_groups_.end(); )
     {
       Size old_size = group_it->input_match_refs.size();
-      input_match_groups_.modify(
-        group_it, [&](InputMatchGroup& group)
-        {
-          removeFromSetIfNotHashed_(group.input_match_refs,
-                                    input_match_lookup_);
-        });
+      input_match_groups_.modify(group_it, [&](InputMatchGroup& group)
+      {
+        removeFromSetIfNotHashed_(group.input_match_refs, input_match_lookup_);
+      });
       if (group_it->input_match_refs.empty())
       {
         group_it = input_match_groups_.erase(group_it);
@@ -866,7 +861,7 @@ namespace OpenMS
             processing_steps_.empty() && db_search_params_.empty() &&
             db_search_steps_.empty() && score_types_.empty() &&
             input_items_.empty() && parents_.empty() &&
-            parent_groupings_.empty() &&
+            parent_groups_.empty() &&
             identified_peptides_.empty() && identified_compounds_.empty() &&
             identified_oligos_.empty() && adducts_.empty() &&
             input_matches_.empty() && input_match_groups_.empty());
@@ -1072,14 +1067,13 @@ namespace OpenMS
       mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
       match_refs[other_ref] = registerInputMatch(copy);
     }
-    // parent molecule groupings:
+    // parent molecule groups:
     // @TODO: does this need to be more sophisticated?
-    for (const ParentGrouping& grouping :
-           other.parent_groupings_)
+    for (const ParentGroupSet& groups : other.parent_groups_)
     {
-      ParentGrouping copy(grouping.label);
-      mergeScoredProcessingResults_(copy, grouping, step_refs, score_refs);
-      for (const ParentGroup& group : grouping.groups)
+      ParentGroupSet copy(groups.label);
+      mergeScoredProcessingResults_(copy, groups, step_refs, score_refs);
+      for (const ParentGroup& group : groups.groups)
       {
         ParentGroup group_copy;
         for (const auto& pair : group.scores)
@@ -1093,7 +1087,7 @@ namespace OpenMS
         }
         copy.groups.insert(group_copy);
       }
-      registerParentGrouping(copy);
+      registerParentGroupSet(copy);
     }
     no_checks_ = false;
 

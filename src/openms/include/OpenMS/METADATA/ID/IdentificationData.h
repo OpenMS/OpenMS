@@ -165,7 +165,7 @@ namespace OpenMS
     using InputMatchRef = IdentificationDataInternal::InputMatchRef;
 
     // @TODO: allow multiple sets of groups, like with parent molecules
-    // ("ParentGroupings")?
+    // ("ParentGroupSets")?
     using InputMatchGroup = IdentificationDataInternal::InputMatchGroup;
     using InputMatchGroups = IdentificationDataInternal::InputMatchGroups;
     using MatchGroupRef = IdentificationDataInternal::MatchGroupRef;
@@ -174,10 +174,10 @@ namespace OpenMS
     using ParentGroups =
       IdentificationDataInternal::ParentGroups;
     using ParentGroupRef = IdentificationDataInternal::ParentGroupRef;
-    using ParentGrouping =
-      IdentificationDataInternal::ParentGrouping;
-    using ParentGroupings =
-      IdentificationDataInternal::ParentGroupings;
+    using ParentGroupSet =
+      IdentificationDataInternal::ParentGroupSet;
+    using ParentGroupSets =
+      IdentificationDataInternal::ParentGroupSets;
 
     using AddressLookup = boost::unordered_set<uintptr_t>;
 
@@ -206,7 +206,7 @@ namespace OpenMS
       score_types_(std::move(other.score_types_)),
       input_items_(std::move(other.input_items_)),
       parents_(std::move(other.parents_)),
-      parent_groupings_(std::move(other.parent_groupings_)),
+      parent_groups_(std::move(other.parent_groups_)),
       identified_peptides_(std::move(other.identified_peptides_)),
       identified_compounds_(std::move(other.identified_compounds_)),
       identified_oligos_(std::move(other.identified_oligos_)),
@@ -284,7 +284,7 @@ namespace OpenMS
     ParentSequenceRef registerParentSequence(const ParentSequence& parent);
 
     /// Register a grouping of parent molecules (e.g. protein inference result)
-    void registerParentGrouping(const ParentGrouping& grouping);
+    void registerParentGroupSet(const ParentGroupSet& groups);
 
     /*!
       @brief Register an identified peptide
@@ -379,9 +379,9 @@ namespace OpenMS
     }
 
     /// Return the registered parent molecule groupings (immutable)
-    const ParentGroupings& getParentGroupings() const
+    const ParentGroupSets& getParentGroupSets() const
     {
-      return parent_groupings_;
+      return parent_groups_;
     }
 
     /// Return the registered identified peptides (immutable)
@@ -560,7 +560,7 @@ namespace OpenMS
     ScoreTypes score_types_;
     InputItems input_items_;
     ParentSequences parents_;
-    ParentGroupings parent_groupings_;
+    ParentGroupSets parent_groups_;
     IdentifiedPeptides identified_peptides_;
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;
