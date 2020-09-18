@@ -234,7 +234,7 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   IdentificationData::ParentSequence rna("test", IdentificationData::MoleculeType::RNA, "AUCGAUCG");
   IdentificationData::ParentSequenceRef ref = rna_ids.registerParentSequence(rna);
   IdentificationData::IdentifiedOligo oli(NASequence::fromString("AUCG"));
-  IdentificationData::MoleculeParentMatch match1(0, 3), match2(4, 7);
+  IdentificationData::ParentMatch match1(0, 3), match2(4, 7);
   oli.parent_matches[ref].insert(match1);
   oli.parent_matches[ref].insert(match2);
   rna_ids.registerIdentifiedOligo(oli);

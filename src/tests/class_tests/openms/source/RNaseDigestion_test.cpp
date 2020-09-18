@@ -173,7 +173,7 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   TEST_EQUAL(ref->parent_matches.size(), 1);
   ABORT_IF(ref->parent_matches.empty());
   // oligo sequence matches in two locations:
-  const set<IdentificationData::MoleculeParentMatch>& matches =
+  const set<IdentificationData::ParentMatch>& matches =
     ref->parent_matches.begin()->second;
   TEST_EQUAL(matches.size(), 2);
   ABORT_IF(matches.size() < 2);

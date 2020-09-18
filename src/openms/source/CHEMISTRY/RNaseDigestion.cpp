@@ -187,12 +187,12 @@ namespace OpenMS
         }
         IdentificationData::IdentifiedOligo oligo(fragment);
         Size end_pos = pos.first + pos.second; // past-the-end position!
-        IdentificationData::MoleculeParentMatch match(pos.first, end_pos - 1);
+        IdentificationData::ParentMatch match(pos.first, end_pos - 1);
         match.left_neighbor = (pos.first > 0) ? rna[pos.first - 1]->getCode() :
-          IdentificationData::MoleculeParentMatch::LEFT_TERMINUS;
+          IdentificationData::ParentMatch::LEFT_TERMINUS;
         match.right_neighbor = (end_pos < rna.size()) ?
           rna[end_pos]->getCode() :
-          IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS;
+          IdentificationData::ParentMatch::RIGHT_TERMINUS;
         oligo.parent_matches[parent_ref].insert(match);
         id_data.registerIdentifiedOligo(oligo);
       }

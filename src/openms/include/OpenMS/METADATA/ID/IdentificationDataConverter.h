@@ -70,7 +70,7 @@ namespace OpenMS
                                 IdentificationData::MoleculeType::PROTEIN,
                                 const String& decoy_pattern = "");
 
-    /// Convert molecule-parent matches to peptide evidences
+    /// Convert parent matches to peptide evidences
     static void exportParentMatches(
       const IdentificationData::ParentMatches& parent_matches, PeptideHit& hit);
 
@@ -178,7 +178,7 @@ namespace OpenMS
         for (const auto& match_pair : identified.parent_matches)
         {
           row.accession.set(match_pair.first->accession);
-          for (const IdentificationData::MoleculeParentMatch& match :
+          for (const IdentificationData::ParentMatch& match :
                  match_pair.second)
           {
             MzTabSectionRow copy = row;
@@ -251,12 +251,12 @@ namespace OpenMS
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     static void addMzTabMoleculeParentContext_(
-      const IdentificationData::MoleculeParentMatch& match,
+      const IdentificationData::ParentMatch& match,
       MzTabOligonucleotideSectionRow& row);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     static void addMzTabMoleculeParentContext_(
-      const IdentificationData::MoleculeParentMatch& match,
+      const IdentificationData::ParentMatch& match,
       MzTabPeptideSectionRow& row);
 
     /// Helper function to import DB search parameters from legacy format

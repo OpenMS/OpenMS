@@ -15,7 +15,7 @@ IdentifiedMolecule.h
 IdentifiedSequence.h
 InputFile.h
 MetaData.h
-MoleculeParentMatch.h
+ParentMatch.h
 InputMatch.h
 ParentSequence.h
 ParentGroup.h

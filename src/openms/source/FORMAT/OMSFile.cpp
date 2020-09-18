@@ -1036,26 +1036,26 @@ namespace OpenMS
 
     if (any_parent_matches)
     {
-      createTableMoleculeParentMatches_();
+      createTableParentMatches_();
       for (const ID::IdentifiedPeptide& peptide :
              id_data_.getIdentifiedPeptides())
       {
         if (peptide.parent_matches.empty()) continue;
-        storeMoleculeParentMatches_(peptide.parent_matches, Key(&peptide));
+        storeParentMatches_(peptide.parent_matches, Key(&peptide));
       }
       for (const ID::IdentifiedOligo& oligo : id_data_.getIdentifiedOligos())
       {
         if (oligo.parent_matches.empty()) continue;
-        storeMoleculeParentMatches_(oligo.parent_matches, Key(&oligo));
+        storeParentMatches_(oligo.parent_matches, Key(&oligo));
       }
     }
   }
 
 
-  void OMSFile::OMSFileStore::createTableMoleculeParentMatches_()
+  void OMSFile::OMSFileStore::createTableParentMatches_()
   {
     createTable_(
-      "ID_MoleculeParentMatch",
+      "ID_ParentMatch",
       "molecule_id INTEGER NOT NULL, "                                  \
       "parent_id INTEGER NOT NULL, "                                    \
       "start_pos NUMERIC, "                                             \
@@ -1068,12 +1068,12 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeMoleculeParentMatches_(
+  void OMSFile::OMSFileStore::storeParentMatches_(
     const ID::ParentMatches& matches, Key molecule_id)
   {
-    // this assumes the "ID_MoleculeParentMatch" table exists already!
+    // this assumes the "ID_ParentMatch" table exists already!
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_MoleculeParentMatch VALUES (" \
+    query.prepare("INSERT INTO ID_ParentMatch VALUES (" \
                   ":molecule_id, "                              \
                   ":parent_id, "                                \
                   ":start_pos, "                                \
@@ -1087,7 +1087,7 @@ namespace OpenMS
       query.bindValue(":parent_id", Key(&(*pair.first)));
       for (const auto& match : pair.second)
       {
-        if (match.start_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+        if (match.start_pos != ID::ParentMatch::UNKNOWN_POSITION)
         {
           query.bindValue(":start_pos", uint(match.start_pos));
         }
@@ -1095,7 +1095,7 @@ namespace OpenMS
         {
           query.bindValue(":start_pos", QVariant(QVariant::Int));
         }
-        if (match.end_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+        if (match.end_pos != ID::ParentMatch::UNKNOWN_POSITION)
         {
           query.bindValue(":end_pos", uint(match.end_pos));
         }
@@ -1933,7 +1933,7 @@ namespace OpenMS
     {
       ID::ParentSequenceRef ref =
         parent_refs_[query.value("parent_id").toLongLong()];
-      ID::MoleculeParentMatch match;
+      ID::ParentMatch match;
       QVariant start_pos = query.value("start_pos");
       QVariant end_pos = query.value("end_pos");
       if (!start_pos.isNull()) match.start_pos = start_pos.toInt();
@@ -1964,11 +1964,11 @@ namespace OpenMS
                                          "ID_IdentifiedMolecule");
     QSqlQuery subquery_parent(db);
     bool have_parent_matches = tableExists_(db_name_,
-                                            "ID_MoleculeParentMatch");
+                                            "ID_ParentMatch");
     if (have_parent_matches)
     {
       subquery_parent.setForwardOnly(true);
-      subquery_parent.prepare("SELECT * FROM ID_MoleculeParentMatch " \
+      subquery_parent.prepare("SELECT * FROM ID_ParentMatch " \
                               "WHERE molecule_id = :id");
     }
 

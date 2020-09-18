@@ -148,9 +148,9 @@ namespace OpenMS
 
       void createTableIdentifiedMolecule_();
 
-      void createTableMoleculeParentMatches_();
+      void createTableParentMatches_();
 
-      void storeMoleculeParentMatches_(
+      void storeParentMatches_(
         const IdentificationData::ParentMatches& matches, Key molecule_id);
 
       template<class MetaInfoInterfaceContainer>

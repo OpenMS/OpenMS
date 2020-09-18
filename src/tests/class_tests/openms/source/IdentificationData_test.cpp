@@ -290,7 +290,7 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPe
   // peptide with protein reference:
   peptide.sequence = AASequence::fromString("PEPTIDE");
   peptide.parent_matches[protein_ref].insert(IdentificationData::
-                                             MoleculeParentMatch(4, 10));
+                                             ParentMatch(4, 10));
   peptide_ref = data.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
   TEST_EQUAL(*peptide_ref == peptide, true);
@@ -515,7 +515,7 @@ START_SECTION((void calculateCoverages(bool check_molecule_length = false)))
   IdentificationData::IdentifiedPeptide peptide(AASequence::
                                                 fromString("TESTPEP"));
   peptide.parent_matches[protein_ref].insert(IdentificationData::
-                                             MoleculeParentMatch(0, 6));
+                                             ParentMatch(0, 6));
   data.registerIdentifiedPeptide(peptide);
   data.calculateCoverages();
   TEST_REAL_SIMILAR(protein_ref->coverage, 11.0/14.0);
@@ -631,7 +631,7 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   // add reference to parent (protein) and update peptide
   IdentificationData::IdentifiedPeptide augmented_pep = *peptide_ref;
   // @TODO: wrap this in a convenience function (like "match.addScore" above)
-  augmented_pep.parent_matches[protein_ref].insert(IdentificationData::MoleculeParentMatch(3, 13));
+  augmented_pep.parent_matches[protein_ref].insert(IdentificationData::ParentMatch(3, 13));
   id.registerIdentifiedPeptide(augmented_pep); // protein reference will be added
   // peptide_ref should still be valid and now contain link to protein
   TEST_EQUAL(peptide_ref->sequence, augmented_pep.sequence);

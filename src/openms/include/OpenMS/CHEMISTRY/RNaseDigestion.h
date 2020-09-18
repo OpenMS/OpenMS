@@ -69,7 +69,7 @@ namespace OpenMS
     /**
        @brief Performs the enzymatic digestion of all RNA parent sequences in @p IdentificationData
 
-       Digestion products are stored as IdentifiedOligos with corresponding MoleculeParentMatch annotations.
+       Digestion products are stored as IdentifiedOligos with corresponding ParentMatch annotations.
        Only fragments of appropriate length (between @p min_length and @p max_length) are included.
     */
     void digest(IdentificationData& id_data, Size min_length = 0,

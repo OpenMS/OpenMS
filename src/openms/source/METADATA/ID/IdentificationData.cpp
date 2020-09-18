@@ -546,7 +546,7 @@ namespace OpenMS
 
   void IdentificationData::calculateCoverages(bool check_molecule_length)
   {
-    // aggregate molecule-parent matches by parent:
+    // aggregate parent matches by parent:
     struct ParentData
     {
       Size length = 0;

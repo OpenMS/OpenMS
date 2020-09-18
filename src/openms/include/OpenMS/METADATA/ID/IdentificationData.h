@@ -41,7 +41,7 @@
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
 #include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
-#include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
+#include <OpenMS/METADATA/ID/ParentMatch.h>
 #include <OpenMS/METADATA/ID/InputMatch.h>
 #include <OpenMS/METADATA/ID/ParentSequence.h>
 #include <OpenMS/METADATA/ID/ParentGroup.h>
@@ -135,7 +135,7 @@ namespace OpenMS
     using ParentSequences = IdentificationDataInternal::ParentSequences;
     using ParentSequenceRef = IdentificationDataInternal::ParentSequenceRef;
 
-    using MoleculeParentMatch = IdentificationDataInternal::MoleculeParentMatch;
+    using ParentMatch = IdentificationDataInternal::ParentMatch;
     using ParentMatches = IdentificationDataInternal::ParentMatches;
 
     using IdentifiedPeptide = IdentificationDataInternal::IdentifiedPeptide;

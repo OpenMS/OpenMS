@@ -252,7 +252,7 @@ namespace OpenMS
           // this will merge information if the protein already exists:
           ID::ParentSequenceRef parent_ref =
             id_data.registerParentSequence(parent);
-          ID::MoleculeParentMatch match(evidence.getStart(), evidence.getEnd(),
+          ID::ParentMatch match(evidence.getStart(), evidence.getEnd(),
                                         evidence.getAABefore(),
                                         evidence.getAAAfter());
           peptide.parent_matches[parent_ref].insert(match);
@@ -744,7 +744,7 @@ namespace OpenMS
     for (const auto& pair : parent_matches)
     {
       ID::ParentSequenceRef parent_ref = pair.first;
-      for (const ID::MoleculeParentMatch& parent_match : pair.second)
+      for (const ID::ParentMatch& parent_match : pair.second)
       {
         PeptideEvidence evidence;
         evidence.setProteinAccession(parent_ref->accession);
@@ -826,31 +826,31 @@ namespace OpenMS
 
 
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
-    const ID::MoleculeParentMatch& match, MzTabOligonucleotideSectionRow& row)
+    const ID::ParentMatch& match, MzTabOligonucleotideSectionRow& row)
   {
-    if (match.left_neighbor == String(ID::MoleculeParentMatch::LEFT_TERMINUS))
+    if (match.left_neighbor == String(ID::ParentMatch::LEFT_TERMINUS))
     {
       row.pre.set("-");
     }
     else if (match.left_neighbor !=
-             String(ID::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
+             String(ID::ParentMatch::UNKNOWN_NEIGHBOR))
     {
       row.pre.set(match.left_neighbor);
     }
-    if (match.right_neighbor == String(ID::MoleculeParentMatch::RIGHT_TERMINUS))
+    if (match.right_neighbor == String(ID::ParentMatch::RIGHT_TERMINUS))
     {
       row.post.set("-");
     }
     else if (match.right_neighbor !=
-             String(ID::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
+             String(ID::ParentMatch::UNKNOWN_NEIGHBOR))
     {
       row.post.set(match.right_neighbor);
     }
-    if (match.start_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+    if (match.start_pos != ID::ParentMatch::UNKNOWN_POSITION)
     {
       row.start.set(match.start_pos + 1);
     }
-    if (match.end_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+    if (match.end_pos != ID::ParentMatch::UNKNOWN_POSITION)
     {
       row.end.set(match.end_pos + 1);
     }
@@ -858,7 +858,7 @@ namespace OpenMS
 
 
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
-    const ID::MoleculeParentMatch& /* match */,
+    const ID::ParentMatch& /* match */,
     MzTabPeptideSectionRow& /* row */)
   {
     // nothing to do here
