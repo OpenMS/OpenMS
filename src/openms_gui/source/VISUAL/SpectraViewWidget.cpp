@@ -404,7 +404,7 @@ namespace OpenMS
                                                      ? cl.getChromatogramData()
                                                      : cl.getPeakData());
       
-      if (last_peakmap_ == cl.getChromatogramData().get())
+      if (last_peakmap_ == exp.get())
       { // underlying data did not change (which is ALWAYS the chromatograms, never peakdata!)
         // --> Do not update (could be many 10k entries for sqMass data and the lag would be unbearable ...)
         return;

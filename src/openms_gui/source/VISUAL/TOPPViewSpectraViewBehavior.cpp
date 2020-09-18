@@ -123,12 +123,11 @@ namespace OpenMS
       w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
-      if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
+      if (!w->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, layer.filename, caption, exp_sptr, index, false))
       {
         return;
       }
-      w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-      w->canvas()->activateSpectrum(0);
+      w->canvas()->activateSpectrum(index);
     }
     else if (layer.type == LayerData::DT_PEAK)
     {
@@ -174,8 +173,6 @@ namespace OpenMS
       visible_area.setMinY(tmp_x1);
       visible_area.setMaxY(tmp_x2);
       w->canvas()->setVisibleArea(visible_area);
-
-      w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
     }
 
     // basic behavior 2

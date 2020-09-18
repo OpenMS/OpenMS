@@ -380,7 +380,7 @@ namespace OpenMS
     
     typedef std::vector<Args> ArgLoop;
 
-    /// Allows running and executable with arguments
+    /// Allows running an executable with arguments
     /// Multiple execution in a loop is supported by the ArgLoop argument
     /// e.g. running 'ls -la .' and 'ls -la ..'
     /// uses Command("ls", QStringList() << "-la" << "%1", ArgLoop{ Args {QStringList() << "." << "..", 1 } })

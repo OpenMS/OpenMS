@@ -188,6 +188,7 @@ namespace OpenMS
     if (layers_.empty())
       return PeakIndex();
 
+    const auto center = widgetToData_(pos);
     //Constructing the area corrects swapped mapping of RT and m/z
     AreaType area(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5)));
 
@@ -255,33 +256,27 @@ namespace OpenMS
     {
       const LayerData & layer = getCurrentLayer();
 
-      PeakMap exp;
-      exp = *layer.getPeakData();
+      const PeakMap& exp = *layer.getPeakData();
       float mz_origin = 0.0;
+      auto rt_area = area; // check overlap with chrom's RT
 
-      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      int count {-1};
+      for (const auto& chrom : exp.getChromatograms())
       {
-        if (iter->empty()) {continue;} // ensure that empty chromatograms are not examined (iter->front = segfault)
-        MSChromatogram::ConstIterator cit = iter->begin();
+        ++count;
+        if (chrom.empty()) {continue;} // ensure that empty chromatograms are not examined (iter->front = segfault)
 
-        // for (MSChromatogram::ConstIterator cit = iter->begin(); cit != iter->end(); ++cit)
-        // {
-        //   cout << "Chrom Values RT/INT: " << cit->getRT() << "/" << " " << cit->getIntensity() << endl;
-        //  }
+        mz_origin = chrom.getPrecursor().getMZ();
 
-        if (mz_origin != iter->getPrecursor().getMZ())
+        // check m/z first
+        if (mz_origin >= area.minPosition()[0] &&
+            mz_origin <= area.maxPosition()[0])
         {
-          mz_origin = iter->getPrecursor().getMZ();
-        }
-
-        for (int i = int(iter->front().getRT()); i <= int(iter->back().getRT()); i++)
-        {
-          if (i >= area.minPosition()[1] &&
-              i <= area.maxPosition()[1] &&
-              mz_origin >= area.minPosition()[0] &&
-              mz_origin <= area.maxPosition()[0])
+          rt_area.setMinY(chrom.front().getRT());
+          rt_area.setMaxY(chrom.back().getRT());
+          if (rt_area.encloses(center))
           {
-            return PeakIndex(iter - exp.getChromatograms().begin(), cit - iter->begin());
+            return PeakIndex(count, chrom.findNearest(center.getY()));
           }
         }
       }
@@ -477,32 +472,20 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_CHROMATOGRAM) // chromatograms
     {
-      const PeakMap exp = *layer.getPeakData();
+      const PeakMap& exp = *layer.getPeakData();
       //TODO CHROM implement layer filters
-      //TODO CHROM implement faster painting
 
       // paint chromatogram rt start and end as line
       float mz_origin = 0;
-      float min_rt = 0;
-      float max_rt = 0;
 
-      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      QPoint posi;
+      QPoint posi2;
+      for (const auto& chrom : exp.getChromatograms())
       {
-        if (mz_origin != iter->getPrecursor().getMZ())
-        {
-          mz_origin = iter->getPrecursor().getMZ();
-          if (!iter->empty())
-          {
-            min_rt = iter->front().getRT();
-            max_rt = iter->back().getRT();
-          }
-        }
-
-        QPoint posi;
-        QPoint posi2;
-
-        dataToWidget_(iter->getPrecursor().getMZ(), min_rt, posi);
-        dataToWidget_(iter->getPrecursor().getMZ(), max_rt, posi2);
+        if (chrom.empty()) continue;
+        mz_origin = chrom.getPrecursor().getMZ();
+        dataToWidget_(mz_origin, chrom.front().getRT(), posi);
+        dataToWidget_(mz_origin, chrom.back().getRT(), posi2);
 
         painter.drawLine(posi.x(), posi.y(), posi2.x(), posi2.y());
       }
@@ -1762,13 +1745,8 @@ namespace OpenMS
     case LayerData::DT_CHROMATOGRAM:
     {
       const LayerData & layer = getCurrentLayer();
-
-      PeakMap exp;
-      exp = *layer.getPeakData();
-
-      vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin();
+      vector<MSChromatogram >::const_iterator iter = layer.getPeakData()->getChromatograms().begin();
       iter += peak.spectrum;
-
       mz = iter->getPrecursor().getMZ();
       rt = iter->front().getRT();
     }
