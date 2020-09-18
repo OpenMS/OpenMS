@@ -487,6 +487,30 @@ namespace OpenMS
     return protein_identifications_;
   }
 
+  /// Non-mutable access to the protein quantification unit
+  const CVTerm& ConsensusMap::getProteinLevelQuantificationUnit() const
+  {
+    return protein_level_quantification_unit_;
+  }
+
+  /// Non-mutable access to the peptide quantification unit
+  const CVTerm& ConsensusMap::getPeptideLevelQuantificationUnit() const
+  {
+    return peptide_level_quantification_unit_;
+  }
+
+  /// set the protein quantification method
+  void ConsensusMap::setProteinLevelQuantificationUnit(const CVTerm& cv)
+  {
+    protein_level_quantification_unit_ = cv;
+  }
+
+  /// set the peptide quantification method
+  void ConsensusMap::setPeptideLevelQuantificationUnit(const CVTerm& cv)
+  {
+    peptide_level_quantification_unit_ = cv;
+  }
+
   /// sets the protein identifications
   void ConsensusMap::setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
   {

@@ -234,6 +234,18 @@ public:
     /// Mutable access to the experiment type
     OPENMS_DLLAPI void setExperimentType(const String& experiment_type);
 
+    /// Non-mutable access to the protein quantification unit
+    OPENMS_DLLAPI const CVTerm& getProteinLevelQuantificationUnit() const;
+
+    /// Non-mutable access to the peptide quantification unit
+    OPENMS_DLLAPI const CVTerm& getPeptideLevelQuantificationUnit() const;
+
+    /// set the protein quantification unit
+    OPENMS_DLLAPI void setProteinLevelQuantificationUnit(const CVTerm& cv);
+
+    /// set the peptide quantification unit
+    OPENMS_DLLAPI void setPeptideLevelQuantificationUnit(const CVTerm& cv);
+
     /**
       @name Sorting.
 
@@ -392,6 +404,10 @@ protected:
 
     /// type of experiment (label-free, labeled_MS1, labeled_MS2)
     String experiment_type_ = "label-free";
+
+    /// unit of quantification (e.g., feature abundances, spectral counts)
+    CVTerm protein_level_quantification_unit_;
+    CVTerm peptide_level_quantification_unit_;
 
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;

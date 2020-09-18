@@ -40,6 +40,7 @@
 #include <OpenMS/FORMAT/MSstatsFile.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
@@ -1876,6 +1877,17 @@ protected:
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
 
+    if (getStringOption_("quantification_method") == "feature_intensity")
+    {
+      consensus.setProteinLevelQuantificationUnit(CVTerm("MS:1002021", "label-free protein level quantitation", "PSI-MS"));
+      consensus.setPeptideLevelQuantificationUnit(CVTerm("MS:1002020", "label-free peptide level quantitation", "PSI-MS"));
+    }
+    else if (getStringOption_("quantification_method") == "spectral_counting")
+    {
+      consensus.setProteinLevelQuantificationUnit(CVTerm("MS:1002016", "spectral count protein level quantitation", "PSI-MS"));
+      consensus.setPeptideLevelQuantificationUnit(CVTerm("MS:1002015", "spectral count peptide level quantitation", "PSI-MS"));
+    }
+
     MzTab m = MzTab::exportConsensusMapToMzTab(
       consensus, 
       String("null"),
@@ -1883,6 +1895,7 @@ protected:
       report_unidentified_features, 
       report_unmapped,
       "Export from ProteomicsLFQ workflow in OpenMS.");
+    
     MzTabFile().store(out, m);
 
     if (!out_msstats.empty())
