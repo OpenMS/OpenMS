@@ -67,7 +67,7 @@ namespace OpenMS
                 Size min_length = 0, Size max_length = 0) const;
 
     /**
-       @brief Performs the enzymatic digestion of all RNA parent molecules in @p IdentificationData
+       @brief Performs the enzymatic digestion of all RNA parent sequences in @p IdentificationData
 
        Digestion products are stored as IdentifiedOligos with corresponding MoleculeParentMatch annotations.
        Only fragments of appropriate length (between @p min_length and @p max_length) are included.

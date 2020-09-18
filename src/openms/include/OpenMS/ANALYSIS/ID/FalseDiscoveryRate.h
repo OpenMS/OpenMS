@@ -164,7 +164,7 @@ public:
     double rocN(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff = 50) const;
 
     /**
-       @brief Calculate FDR on the level of molecule-query matches (e.g. peptide-spectrum matches) for "general" identification data
+       @brief Calculate FDR on the level of input matches (e.g. peptide-spectrum matches) for "general" identification data
 
        @param id_data Identification data
        @param score_key Key of the score to use for FDR calculation

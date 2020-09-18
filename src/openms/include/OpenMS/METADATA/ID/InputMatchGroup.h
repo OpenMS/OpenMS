@@ -43,7 +43,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief: Group of related (co-identified) molecule-query matches
+    /** @brief: Group of related (co-identified) input matches
 
       E.g. for cross-linking data or multiplexed spectra.
     */

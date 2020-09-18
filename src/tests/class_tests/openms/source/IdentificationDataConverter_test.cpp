@@ -271,7 +271,7 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
 
   TEST_EQUAL(ids.getParentSequences().size(), 11098);
   // problem: input data comes from multiple files, spectra with matching names
-  // in different files get merged together -> lower number of data queries:
+  // in different files get merged together -> lower number of input items:
   TEST_EQUAL(ids.getInputItems().size(), 55522);
   TEST_EQUAL(ids.getIdentifiedPeptides().size(), 73950);
   // according to "grep" on the input file, there should be 335250 peptide hits

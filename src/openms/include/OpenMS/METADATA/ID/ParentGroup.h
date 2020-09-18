@@ -44,7 +44,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief: Group of ambiguously identified parent molecules (e.g. protein group)
+    /** @brief: Group of ambiguously identified parent sequences (e.g. protein group)
     */
     // @TODO: derive from MetaInfoInterface?
     struct ParentGroup
@@ -64,7 +64,7 @@ namespace OpenMS
       > ParentGroups;
     typedef IteratorWrapper<ParentGroups::iterator> ParentGroupRef;
 
-    /** @brief Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
+    /** @brief Set of groups of ambiguously identified parent sequences (e.g. results of running a protein inference algorithm)
     */
     struct ParentGroupSet: public ScoredProcessingResult
     {

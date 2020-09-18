@@ -63,7 +63,7 @@ namespace OpenMS
     /// Export to mzTab format
     static MzTab exportMzTab(const IdentificationData& id_data);
 
-    /// Import FASTA sequences as parent molecules
+    /// Import FASTA sequences as parent sequences
     static void importSequences(IdentificationData& id_data,
                                 const std::vector<FASTAFile::FASTAEntry>& fasta,
                                 IdentificationData::MoleculeType type =
@@ -131,7 +131,7 @@ namespace OpenMS
       }
     };
 
-    /// Export a parent molecule (protein or nucleic acid) to mzTab
+    /// Export a parent sequence (protein or nucleic acid) to mzTab
     template <typename MzTabSectionRow>
     static void exportParentSequenceToMzTab_(
       const IdentificationData::ParentSequence& parent,
@@ -189,7 +189,7 @@ namespace OpenMS
       }
     }
 
-    /// Export a molecule-query match (peptide- or oligonucleotide-spectrum match) to mzTab
+    /// Export an input match (peptide- or oligonucleotide-spectrum match) to mzTab
     template <typename MzTabSectionRow>
     static void exportInputMatchToMzTab_(
       const String& sequence,

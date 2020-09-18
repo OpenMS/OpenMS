@@ -78,13 +78,13 @@ namespace OpenMS
     {
       if (!isValidHashedReference_(pair.first, parent_lookup_))
       {
-        String msg = "invalid reference to a parent molecule - register that first";
+        String msg = "invalid reference to a parent sequence - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
       if (pair.first->molecule_type != expected_type)
       {
-        String msg = "unexpected molecule type for parent molecule";
+        String msg = "unexpected molecule type for parent sequence";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -219,7 +219,7 @@ namespace OpenMS
     // reference to spectrum or feature is required:
     if (!no_checks_ && query.data_id.empty())
     {
-      String msg = "missing identifier in data query";
+      String msg = "missing identifier in input item";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -312,13 +312,13 @@ namespace OpenMS
     {
       if (parent.accession.empty())
       {
-        String msg = "missing accession for parent molecule";
+        String msg = "missing accession for parent sequence";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
       if ((parent.coverage < 0.0) || (parent.coverage > 1.0))
       {
-        String msg = "parent molecule coverage must be between 0 and 1";
+        String msg = "parent sequence coverage must be between 0 and 1";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -343,7 +343,7 @@ namespace OpenMS
         {
           if (!isValidHashedReference_(ref, parent_lookup_))
           {
-            String msg = "invalid reference to a parent molecule - register that first";
+            String msg = "invalid reference to a parent sequence - register that first";
             throw Exception::IllegalArgument(__FILE__, __LINE__,
                                              OPENMS_PRETTY_FUNCTION, msg);
           }
@@ -418,7 +418,7 @@ namespace OpenMS
 
       if (!isValidHashedReference_(match.input_item_ref, input_item_lookup_))
       {
-        String msg = "invalid reference to a data query - register that first";
+        String msg = "invalid reference to a input item - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -444,7 +444,7 @@ namespace OpenMS
       {
         if (!isValidHashedReference_(ref, input_match_lookup_))
         {
-          String msg = "invalid reference to a molecule-query match - register that first";
+          String msg = "invalid reference to an input match - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
@@ -563,7 +563,7 @@ namespace OpenMS
       for (const auto& pair : molecule.parent_matches)
       {
         auto pos = parent_info.find(pair.first);
-        if (pos == parent_info.end()) // new parent molecule
+        if (pos == parent_info.end()) // new parent sequence
         {
           ParentData pd;
           pd.length = AASequence::fromString(pair.first->sequence).size();
@@ -589,7 +589,7 @@ namespace OpenMS
       for (const auto& pair : molecule.parent_matches)
       {
         auto pos = parent_info.find(pair.first);
-        if (pos == parent_info.end()) // new parent molecule
+        if (pos == parent_info.end()) // new parent sequence
         {
           ParentData pd;
           pd.length = NASequence::fromString(pair.first->sequence).size();
@@ -642,9 +642,9 @@ namespace OpenMS
   {
     // we expect that only "primary results" (stored in classes derived from
     // "ScoredProcessingResult") will be directly removed (by filters) - not
-    // meta data (incl. data queries, score types, processing steps etc.)
+    // meta data (incl. input items, score types, processing steps etc.)
 
-    // remove parent molecules based on parent groups:
+    // remove parent sequences based on parent groups:
     if (require_parent_group)
     {
       parent_lookup_.clear(); // will become invalid anyway
@@ -660,11 +660,11 @@ namespace OpenMS
       }
       removeFromSetIfNotHashed_(parents_, parent_lookup_);
     }
-    // update look-up table of parent molecule addresses (in case parent
+    // update look-up table of parent sequence addresses (in case parent
     // molecules were removed):
     updateAddressLookup_(parents_, parent_lookup_);
 
-    // remove parent matches based on parent molecules:
+    // remove parent matches based on parent sequences:
     ModifyMultiIndexRemoveParentMatches<IdentifiedPeptide>
       pep_modifier(parent_lookup_);
     for (auto it = identified_peptides_.begin();
@@ -693,7 +693,7 @@ namespace OpenMS
                        });
     }
 
-    // remove molecule-query matches based on identified molecules:
+    // remove input matches based on identified molecules:
     set<IdentifiedMolecule> id_vars;
     for (IdentifiedPeptideRef it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
@@ -715,7 +715,7 @@ namespace OpenMS
                        return !id_vars.count(it->identified_molecule_var);
                      });
 
-    // remove molecule-query matches based on query match groups:
+    // remove input matches based on input match groups:
     if (require_match_group)
     {
       input_match_lookup_.clear(); // will become invalid anyway
@@ -728,10 +728,10 @@ namespace OpenMS
       }
       removeFromSetIfNotHashed_(input_matches_, input_match_lookup_);
     }
-    // update look-up table of query match addresses:
+    // update look-up table of input match addresses:
     updateAddressLookup_(input_matches_, input_match_lookup_);
 
-    // remove id'd molecules and data queries based on molecule-query matches:
+    // remove id'd molecules and input items based on input matches:
     if (require_input_match)
     {
       input_item_lookup_.clear();
@@ -770,7 +770,7 @@ namespace OpenMS
     updateAddressLookup_(identified_compounds_, identified_compound_lookup_);
     updateAddressLookup_(identified_oligos_, identified_oligo_lookup_);
 
-    // remove parent molecules based on identified molecules:
+    // remove parent sequences based on identified molecules:
     if (require_identified_sequence)
     {
       parent_lookup_.clear(); // will become invalid anyway
@@ -789,11 +789,11 @@ namespace OpenMS
         }
       }
       removeFromSetIfNotHashed_(parents_, parent_lookup_);
-      // update look-up table of parent molecule addresses (again):
+      // update look-up table of parent sequence addresses (again):
       updateAddressLookup_(parents_, parent_lookup_);
     }
 
-    // remove entries from parent molecule groups based on parent molecules:
+    // remove entries from parent sequence groups based on parent sequences:
     bool warn = false;
     for (auto& groups : parent_groups_)
     {
@@ -822,10 +822,10 @@ namespace OpenMS
     }
     if (warn)
     {
-      OPENMS_LOG_WARN << "Warning: filtering removed elements from parent molecule groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from parent sequence groups - associated scores may not be valid any more" << endl;
     }
 
-    // remove entries from query match groups based on molecule-query matches:
+    // remove entries from input match groups based on input matches:
     warn = false;
     for (auto group_it = input_match_groups_.begin();
          group_it != input_match_groups_.end(); )
@@ -850,7 +850,7 @@ namespace OpenMS
     }
     if (warn)
     {
-      OPENMS_LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from input match groups - associated scores may not be valid any more" << endl;
     }
   }
 
@@ -951,7 +951,7 @@ namespace OpenMS
       SearchParamRef param_ref = param_refs[pair.second];
       db_search_steps_[step_ref] = param_ref;
     }
-    // data queries:
+    // input items:
     map<InputItemRef, InputItemRef> query_refs;
     for (InputItemRef other_ref = other.getInputItems().begin();
          other_ref != other.getInputItems().end(); ++other_ref)
@@ -964,7 +964,7 @@ namespace OpenMS
       }
       query_refs[other_ref] = registerInputItem(copy);
     }
-    // parent molecules:
+    // parent sequences:
     map<ParentSequenceRef, ParentSequenceRef> parent_refs;
     for (ParentSequenceRef other_ref = other.getParentSequences().begin();
          other_ref != other.getParentSequences().end(); ++other_ref)
@@ -1028,7 +1028,7 @@ namespace OpenMS
     {
       adduct_refs[other_ref] = registerAdduct(*other_ref);
     }
-    // molecule-query matches:
+    // input matches:
     map<InputMatchRef, InputMatchRef> match_refs;
     for (InputMatchRef other_ref = other.getInputMatches().begin();
          other_ref != other.getInputMatches().end(); ++other_ref)
@@ -1067,7 +1067,7 @@ namespace OpenMS
       mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
       match_refs[other_ref] = registerInputMatch(copy);
     }
-    // parent molecule groups:
+    // parent sequence groups:
     // @TODO: does this need to be more sophisticated?
     for (const ParentGroupSet& groups : other.parent_groups_)
     {

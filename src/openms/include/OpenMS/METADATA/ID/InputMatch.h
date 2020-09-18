@@ -110,7 +110,7 @@ namespace OpenMS
       }
     };
 
-    // all matches for the same data query should be consecutive!
+    // all matches for the same input item should be consecutive!
     typedef boost::multi_index_container<
       InputMatch,
       boost::multi_index::indexed_by<

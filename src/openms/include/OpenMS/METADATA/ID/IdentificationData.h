@@ -164,7 +164,7 @@ namespace OpenMS
     using InputMatches = IdentificationDataInternal::InputMatches;
     using InputMatchRef = IdentificationDataInternal::InputMatchRef;
 
-    // @TODO: allow multiple sets of groups, like with parent molecules
+    // @TODO: allow multiple sets of groups, like with parent sequences
     // ("ParentGroupSets")?
     using InputMatchGroup = IdentificationDataInternal::InputMatchGroup;
     using InputMatchGroups = IdentificationDataInternal::InputMatchGroups;
@@ -270,20 +270,20 @@ namespace OpenMS
     ScoreTypeRef registerScoreType(const ScoreType& score);
 
     /*!
-      @brief Register a data query (e.g. MS2 spectrum or feature)
+      @brief Register an input item (e.g. MS2 spectrum or feature)
 
-      @return Reference to the registered data query
+      @return Reference to the registered input item
     */
     InputItemRef registerInputItem(const InputItem& query);
 
     /*!
-      @brief Register a parent molecule (e.g. protein or intact RNA)
+      @brief Register a parent sequence (e.g. protein or intact RNA)
 
-      @return Reference to the registered parent molecule
+      @return Reference to the registered parent sequence
     */
     ParentSequenceRef registerParentSequence(const ParentSequence& parent);
 
-    /// Register a grouping of parent molecules (e.g. protein inference result)
+    /// Register a grouping of parent sequences (e.g. protein inference result)
     void registerParentGroupSet(const ParentGroupSet& groups);
 
     /*!
@@ -317,14 +317,14 @@ namespace OpenMS
     AdductRef registerAdduct(const AdductInfo& adduct);
 
     /*!
-      @brief Register a molecule-query match (e.g. peptide-spectrum match)
+      @brief Register an input match (e.g. peptide-spectrum match)
 
-      @return Reference to the registered molecule-query match
+      @return Reference to the registered input match
     */
     InputMatchRef registerInputMatch(const InputMatch& match);
 
     /*!
-      @brief Register a group of associated molecule-query matches
+      @brief Register a group of associated input matches
 
       @return Reference to the registered group of matches
     */
@@ -366,19 +366,19 @@ namespace OpenMS
       return score_types_;
     }
 
-    /// Return the registered data queries (immutable)
+    /// Return the registered input items (immutable)
     const InputItems& getInputItems() const
     {
       return input_items_;
     }
 
-    /// Return the registered parent molecules (immutable)
+    /// Return the registered parent sequences (immutable)
     const ParentSequences& getParentSequences() const
     {
       return parents_;
     }
 
-    /// Return the registered parent molecule groupings (immutable)
+    /// Return the registered parent sequence groupings (immutable)
     const ParentGroupSets& getParentGroupSets() const
     {
       return parent_groups_;
@@ -408,19 +408,19 @@ namespace OpenMS
       return adducts_;
     }
 
-    /// Return the registered molecule-query matches (immutable)
+    /// Return the registered input matches (immutable)
     const InputMatches& getInputMatches() const
     {
       return input_matches_;
     }
 
-    /// Return the registered groups of molecule-query matches (immutable)
+    /// Return the registered groups of input matches (immutable)
     const InputMatchGroups& getInputMatchGroups() const
     {
       return input_match_groups_;
     }
 
-    /// Add a score to a molecule-query match (e.g. PSM)
+    /// Add a score to an input match (e.g. PSM)
     void addScore(InputMatchRef match_ref, ScoreTypeRef score_ref,
                   double value);
 
@@ -443,7 +443,7 @@ namespace OpenMS
     /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
-    /// Return the best match for each data query, according to a given score type
+    /// Return the best match for each input item, according to a given score type
     std::vector<InputMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
     // @TODO: this currently doesn't take molecule type into account - should it?
@@ -455,7 +455,7 @@ namespace OpenMS
     */
     ScoreTypeRef findScoreType(const String& score_name) const;
 
-    /// Calculate sequence coverages of parent molecules
+    /// Calculate sequence coverages of parent sequences
     void calculateCoverages(bool check_molecule_length = false);
 
     /*!
@@ -463,11 +463,11 @@ namespace OpenMS
 
       Make sure there are no invalid references or "orphan" data entries.
 
-      @param require_input_match Remove identified molecules and data queries that aren't part of molecule-query matches?
-      @param require_identified_sequence Remove parent molecules (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
-      @param require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent molecule (protein/RNA)?
-      @param require_parent_group Remove parent molecules that aren't part of parent molecule groups?
-      @param require_match_group Remove molecule-query matches that aren't part of match groups?
+      @param require_input_match Remove identified molecules and input items that aren't part of input matches?
+      @param require_identified_sequence Remove parent sequences (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
+      @param require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent sequence (protein/RNA)?
+      @param require_parent_group Remove parent sequences that aren't part of parent sequence groups?
+      @param require_match_group Remove input matches that aren't part of match groups?
     */
     void cleanup(bool require_input_match = true,
                  bool require_identified_sequence = true,
@@ -488,7 +488,7 @@ namespace OpenMS
     ProcessingStepRef merge(const IdentificationData& other);
 
     /*!
-      Pick a score type for operations (e.g. filtering) on a container of scored processing results (e.g. molecule-query matches, identified peptides, ...).
+      Pick a score type for operations (e.g. filtering) on a container of scored processing results (e.g. input matches, identified peptides, ...).
 
       If @p all_elements is false, only the first element with a score will be considered (which is sufficient if all elements were processed in the same way).
       If @p all_elements is true, the score type supported by the highest number of elements will be chosen.
@@ -540,7 +540,7 @@ namespace OpenMS
       return pos->first;
     }
 
-    /// Set a meta value on a stored molecule-query match
+    /// Set a meta value on a stored input match
     void setMetaValue(const InputMatchRef ref, const String& key, const DataValue& value)
     {
       setMetaValue_(ref, key, value, input_matches_, input_match_lookup_);

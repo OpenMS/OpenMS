@@ -429,7 +429,7 @@ namespace OpenMS
 
       // check if there's already a target that is close in RT and MZ;
       // if so, don't add seed
-      // @TODO: this checks every (best) molecule-query match for every seed; can we be more efficient?
+      // @TODO: this checks every (best) input match for every seed; can we be more efficient?
       for (ID::InputMatchRef ref = id_data.getInputMatches().begin();
            ref != id_data.getInputMatches().end(); ++ref)
       {
@@ -771,7 +771,7 @@ namespace OpenMS
             << "Warning: no chemical formula given for compound '" << target_id
             << "'; estimating isotopic distribution based on peptide averagine" << endl;
         }
-        // find m/z from a "data query" that we generated for the seed:
+        // find m/z from an "input item" that we generated for the seed:
         ID::InputMatchRef match_ref = target_it->second.hits_by_charge.begin()->second.first.begin()->second;
         ID::InputItemRef query_ref = match_ref->input_item_ref;
         target.theoretical_mass = (query_ref->mz - Constants::PROTON_MASS_U) * match_ref->charge;

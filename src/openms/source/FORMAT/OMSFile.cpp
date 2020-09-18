@@ -913,7 +913,7 @@ namespace OpenMS
     if (!tableExists_(db_name_, "ID_MoleculeType")) createTableMoleculeType_();
 
     // use one table for all types of identified molecules to allow foreign key
-    // references from the molecule-query match table:
+    // references from the input match table:
     createTable_(
       "ID_IdentifiedMolecule",
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
@@ -1310,7 +1310,7 @@ namespace OpenMS
     nextProgress();
     helper.storeInputMatches();
     endProgress();
-    // @TODO: store molecule-query match groups
+    // @TODO: store input match groups
   }
 
 
@@ -1848,7 +1848,7 @@ namespace OpenMS
             subquery_group.value("score").toDouble();
         }
       }
-      // get parent molecules in each group:
+      // get parent sequences in each group:
       for (auto& pair : groups_map)
       {
         subquery_parent.bindValue(":id", pair.first);
@@ -2173,7 +2173,7 @@ namespace OpenMS
     nextProgress();
     helper.loadInputMatches();
     endProgress();
-    // @TODO: load parent molecule groups and molecule-query match groups
+    // @TODO: load parent sequence groups and input match groups
   }
 
 }

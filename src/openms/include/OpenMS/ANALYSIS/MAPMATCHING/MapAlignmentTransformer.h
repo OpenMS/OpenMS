@@ -78,7 +78,7 @@ namespace OpenMS
       std::vector<PeptideIdentification>& pep_ids,
       const TransformationDescription& trafo, bool store_original_rt = false);
 
-    /// Applies the given transformation to data queries in IdentificationData
+    /// Applies the given transformation to input items in IdentificationData
     static void transformRetentionTimes(IdentificationData& id_data,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);

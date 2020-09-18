@@ -222,7 +222,7 @@ END_SECTION
 START_SECTION((ParentSequenceRef registerParentSequence(const ParentSequence& parent)))
 {
   IdentificationData::ParentSequence protein("");
-  // can't register a parent molecule without accession:
+  // can't register a parent sequence without accession:
   TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerParentSequence(protein));
   TEST_EQUAL(data.getParentSequences().empty(), true);
@@ -531,7 +531,7 @@ START_SECTION((void cleanup(bool require_input_match = true, bool require_identi
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 3);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
   data.cleanup();
-  // identified peptides without query matches are removed:
+  // identified peptides without input matches are removed:
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
 }
