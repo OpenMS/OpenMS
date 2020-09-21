@@ -398,7 +398,7 @@ if(NOT PY_NUM_THREADS)
   set(PY_NUM_THREADS 1)
 endif()
 if(NOT PY_NUM_MODULES)
-  set(PY_NUM_MODULES 8)
+  set(PY_NUM_MODULES 1)
 endif()
 
 # set data variable nightly builds use repository last change date
