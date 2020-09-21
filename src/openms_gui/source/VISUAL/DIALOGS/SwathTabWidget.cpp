@@ -77,7 +77,7 @@ namespace OpenMS
 
     String getOSWExe()
     {
-      return File::getExecutablePath() + "OpenSwathWorkflow";
+      return File::findSiblingTOPPExecutable("OpenSwathWorkflow");
     }
 
     QString getDefaultOutDir()
