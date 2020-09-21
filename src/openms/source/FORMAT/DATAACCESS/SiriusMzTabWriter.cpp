@@ -45,7 +45,8 @@ using namespace std;
 
 int SiriusMzTabWriter::extract_scan_index(const String &path)
 {
-  return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
+  boost::regex regexp_ind("--(?<SCAN>\\d+)--");
+  return SpectrumLookup::extractScanNumber(path, regexp_ind, false);;
 }
 
 void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
@@ -117,7 +118,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         int scan_index = SiriusMzTabWriter::extract_scan_index(str);
 
         // extract scan_number from string
-        boost::regex regexp("-(?<SCAN>\\d+)-");
+        boost::regex regexp("-(?<SCAN>\\d+)--");
         int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
 
         // extract feature_id from string
