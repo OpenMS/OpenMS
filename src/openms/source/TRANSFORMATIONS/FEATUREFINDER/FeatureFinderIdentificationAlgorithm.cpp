@@ -169,9 +169,14 @@ namespace OpenMS
   }
 
 
-  void FeatureFinderIdentificationAlgorithm::run(FeatureMap& features,
-                                                 IdentificationData& id_data,
-                                                 IdentificationData& id_data_ext)
+  void FeatureFinderIdentificationAlgorithm::run(
+    FeatureMap& features,
+    IdentificationData& id_data,
+    IdentificationData& id_data_ext,
+    vector<PeptideIdentification> peptides,
+    vector<ProteinIdentification> proteins,
+    const vector<PeptideIdentification>& peptides_ext,
+    const vector<ProteinIdentification>& proteins_ext)
   {
     target_map_.clear();
     pep_id_lookup_.clear();
@@ -357,11 +362,11 @@ namespace OpenMS
 
     ms_data_.reset(); // not needed anymore, free up the memory
 
-    // convert IDs to legacy format for inclusion in output feature map:
-    vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
-    // @TODO: if input to FFId is idXML, can we avoid this conversion?
-    IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
+    if (peptides.empty())
+    {
+      // convert IDs to legacy format for inclusion in output feature map:
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
+    }
     features.getProteinIdentifications().insert(features.getProteinIdentifications().end(),
                                                 proteins.begin(), proteins.end());
     // generate look-up table to map from new (InputMatch) to old (PeptideIdent.):
@@ -376,11 +381,24 @@ namespace OpenMS
     }
     // complete feature annotation:
     annotateFeatures_(features);
-    // @TODO: if input to FFId is idXML, can we avoid this conversion?
-    IdentificationDataConverter::exportIDs(id_data_ext,
-                                           features.getProteinIdentifications(),
-                                           features.getUnassignedPeptideIdentifications());
-
+    if (with_external_ids)
+    {
+      if (peptides_ext.empty())
+      {
+        IdentificationDataConverter::exportIDs(
+          id_data_ext, features.getProteinIdentifications(),
+          features.getUnassignedPeptideIdentifications());
+      }
+      else
+      {
+        features.getProteinIdentifications().insert(
+          features.getProteinIdentifications().end(),
+          proteins_ext.begin(), proteins_ext.end());
+        features.getUnassignedPeptideIdentifications().insert(
+          features.getUnassignedPeptideIdentifications().begin(),
+          peptides_ext.begin(), peptides_ext.end());
+      }
+    }
     // sort everything:
     sort(features.getUnassignedPeptideIdentifications().begin(),
          features.getUnassignedPeptideIdentifications().end(),

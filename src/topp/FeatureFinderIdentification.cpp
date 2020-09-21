@@ -193,9 +193,9 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", {"mzML"});
-    registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
+    registerInputFile_("id", "<file>", "", "Input file: Identifications (e.g. peptides) derived directly from 'in'");
     setValidFormats_("id", {"idXML", "oms"});
-    registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
+    registerInputFile_("id_ext", "<file>", "", "Input file: 'External' identifications (e.g. from aligned runs). Same file type as 'id' required.", false);
     setValidFormats_("id_ext", {"idXML", "oms"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
     setValidFormats_("out", {"featureXML"});
@@ -205,8 +205,9 @@ protected:
     setValidFormats_("chrom_out", {"mzML"});
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     setValidFormats_("candidates_out", {"featureXML"});
-    registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
-    setValidFormats_("candidates_in", {"featureXML"});
+    // @TODO: re-enable candidate input once IdentificationData is integrated into FeatureMap
+    // registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
+    // setValidFormats_("candidates_in", {"featureXML"});
 
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
@@ -216,30 +217,11 @@ protected:
   }
 
 
-  void loadIDData_(const String& filename, IdentificationData& id_data)
-  {
-    FileTypes::Type type = FileHandler::getType(filename);
-    if (type == FileTypes::OMS)
-    {
-      OMSFile(log_type_).load(filename, id_data);
-    }
-    else // idXML input
-    {
-      vector<PeptideIdentification> peptides;
-      vector<ProteinIdentification> proteins;
-      IdXMLFile().load(filename, proteins, peptides);
-      IdentificationDataConverter::importIDs(id_data, proteins, peptides);
-    }
-  }
-
-
   ExitCodes main_(int, const char**) override
   {
     FeatureMap features;
 
-    //-------------------------------------------------------------
-    // parameter handling
-    //-------------------------------------------------------------
+    // parameter handling:
     String out = getStringOption_("out");
     String candidates_out = getStringOption_("candidates_out");
 
@@ -249,7 +231,7 @@ protected:
     ffid_algo.getProgressLogger().setLogType(log_type_);
     ffid_algo.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
 
-    if (candidates_in.empty())
+    // if (candidates_in.empty())
     {
       String in = getStringOption_("in");
       String id = getStringOption_("id");
@@ -257,32 +239,47 @@ protected:
       String lib_out = getStringOption_("lib_out");
       String chrom_out = getStringOption_("chrom_out");
 
-      //-------------------------------------------------------------
-      // load input
-      //-------------------------------------------------------------
+      FileTypes::Type id_type = FileHandler::getType(id);
+      if (!id_ext.empty() && (FileHandler::getType(id_ext) != id_type))
+      {
+        OPENMS_LOG_ERROR << "Error: Different file types for 'id' and 'id_ext' are not supported." << endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+
+      // load input:
       OPENMS_LOG_INFO << "Loading input data..." << endl;
       MzMLFile mzml;
       mzml.setLogType(log_type_);
       mzml.getOptions().addMSLevel(1);
       mzml.load(in, ffid_algo.getMSData());
 
-      // annotate mzML file
+      // annotate mzML file:
       features.setPrimaryMSRunPath({in}, ffid_algo.getMSData());
 
+      // load IDs:
       IdentificationData id_data, id_data_ext;
-      // "internal" IDs:
-      loadIDData_(id, id_data);
-      // "external" IDs:
-      if (!id_ext.empty())
+      vector<PeptideIdentification> peptides, peptides_ext;
+      vector<ProteinIdentification> proteins, proteins_ext;
+      if (id_type == FileTypes::OMS)
       {
-        loadIDData_(id_ext, id_data_ext);
+        OMSFile(log_type_).load(id, id_data);
+        if (!id_ext.empty()) OMSFile(log_type_).load(id_ext, id_data_ext);
+      }
+      else // idXML input
+      {
+        IdXMLFile().load(id, proteins, peptides);
+        IdentificationDataConverter::importIDs(id_data, proteins, peptides);
+        if (!id_ext.empty())
+        {
+          IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+          IdentificationDataConverter::importIDs(id_data_ext, proteins_ext,
+                                                 peptides_ext);
+        }
       }
 
-      //-------------------------------------------------------------
-      // run feature detection
-      //-------------------------------------------------------------
-
-      ffid_algo.run(features, id_data, id_data_ext);
+      // run feature detection:
+      ffid_algo.run(features, id_data, id_data_ext, peptides, proteins,
+                    peptides_ext, proteins_ext);
 
       // write auxiliary output:
       bool keep_chromatograms = !chrom_out.empty();
@@ -306,17 +303,17 @@ protected:
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }
-    else
-    {
-      //-------------------------------------------------------------
-      // load feature candidates
-      //-------------------------------------------------------------
-      OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
-      FeatureXMLFile().load(candidates_in, features);
-      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
-               << endl;
-      // ffid_algo.runOnCandidates(features);
-    }
+    // else
+    // {
+    //   //-------------------------------------------------------------
+    //   // load feature candidates
+    //   //-------------------------------------------------------------
+    //   OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
+    //   FeatureXMLFile().load(candidates_in, features);
+    //   OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
+    //            << endl;
+    //   // ffid_algo.runOnCandidates(features);
+    // }
 
     //-------------------------------------------------------------
     // write output

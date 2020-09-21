@@ -60,12 +60,26 @@ public:
   /// default constructor
   FeatureFinderIdentificationAlgorithm();
 
-  /// Main method for actual FeatureFinder
-  /// External IDs (@p id_data_ext) may be empty, in which case no machine learning or FDR estimation will be performed.
-  void run(
-    FeatureMap& features,
-    IdentificationData& id_data,
-    IdentificationData& id_data_ext);
+  /**
+     @brief Run feature detection
+
+     @param features Output feature map
+     @param id_data Primary ("internal") identifications as targets for feature detection
+     @param id_data_ext Additional ("external") identifications as targets for feature detection
+     @param peptides Internal IDs in legacy format (to avoid conversion for output)
+     @param proteins Internal IDs in legacy format (to avoid conversion for output)
+     @param peptides_ext External IDs in legacy format (to avoid conversion for output)
+     @param proteins_ext External IDs in legacy format (to avoid conversion for output)
+
+     External IDs (@p id_data_ext) may be empty, in which case no machine learning or FDR estimation will be performed.
+  */
+  void run(FeatureMap& features,
+           IdentificationData& id_data,
+           IdentificationData& id_data_ext,
+           std::vector<PeptideIdentification> peptides = std::vector<PeptideIdentification>(),
+           std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>(),
+           const std::vector<PeptideIdentification>& peptides_ext = std::vector<PeptideIdentification>(),
+           const std::vector<ProteinIdentification>& proteins_ext = std::vector<ProteinIdentification>());
 
   /// Convert seeds to an IdentificationData representation
   void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
