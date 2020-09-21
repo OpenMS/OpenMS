@@ -255,8 +255,8 @@ namespace OpenMS
 
           String query_id = "_" + String(feature_id) +
                             String("-" + String(scan_number) + "-") +
-                            String(des_wo_space) +
-                            String(ind);
+                            String("-" + String(ind) + "--") +
+                            String(des_wo_space);
 
           if (writecompound)
           {
@@ -563,6 +563,7 @@ namespace OpenMS
         // if multiple PeptideHits / identifications occur - use all for SIRIUS
         v_description.clear();
         v_sumformula.clear();
+        // descriptions is "[null]" if AccurateMassSearch was run with "keep unidentified masses"
         if (!feature->getPeptideIdentifications().empty() && !feature->getPeptideIdentifications()[0].getHits().empty())
         {
           adducts.clear();
@@ -571,18 +572,33 @@ namespace OpenMS
           {
            String adduct;
            description = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description");
+           if (description == "[null]")
+           {
+             description = "[UNKNOWN]";
+           }
            sumformula = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula");
+           if (sumformula.empty())
+           {
+             sumformula = "UNKNOWN";
+           }
            adduct = feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications");
+           if (adduct != "null")
+           {
+             // change format of adduct information M+H;1+ -> [M+H]1+
+             String adduct_prefix = adduct.prefix(';').trim();
+             String adduct_suffix = adduct.suffix(';').trim();
+             adduct = "[" + adduct_prefix + "]" + adduct_suffix;
+           }
+           else
+           {
+            adduct = "";
+           }
 
            // change format of description [name] to name
            description.erase(remove_if(begin(description),
                                        end(description),
                                        [](char c) { return c == '[' || c == ']'; }), end(description));
 
-           // change format of adduct information M+H;1+ -> [M+H]1+
-           String adduct_prefix = adduct.prefix(';').trim();
-           String adduct_suffix = adduct.suffix(';').trim();
-           adduct = "[" + adduct_prefix + "]" + adduct_suffix;
            adducts.insert(adducts.begin(), adduct);
            v_description.push_back(description);
            v_sumformula.push_back(sumformula);
