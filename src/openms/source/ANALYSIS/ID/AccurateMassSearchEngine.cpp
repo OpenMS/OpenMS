@@ -343,6 +343,9 @@ namespace OpenMS
     defaults_.setValue("mzTab:exportIsotopeIntensities", "false", "[featureXML input only] Export column with available isotope trace intensities (opt_global_MTint)");
     defaults_.setValidStrings("mzTab:exportIsotopeIntensities", {"false", "true"});
 
+    defaults_.setValue("id_format", "legacy", "Use legacy (ProteinID/PeptideID based storage of metabolomics data) or novel ID datastructure (ID).");
+    defaults_.setValidStrings("id_format", {"legacy", "ID"});
+
     defaultsToParam_();
   }
 
@@ -576,6 +579,37 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
+    if (!legacyID_) // TODO: richtige werte eintragen
+    {
+      IdentificationData& id = fmap.getIdentificationData(); 
+      IdentificationData::InputFile file("file://ROOT/FOLDER/SPECTRA.mzML"); // TODO from primary MS run in featuremmap
+      InputFileRef file_ref = id.registerInputFile(file);
+
+      // register a score type 
+      IdentificationData::ScoreType score("AccurateMassSearchScore", false);
+      ScoreTypeRef score_ref = id.registerScoreType(score);
+
+      // register software (connected to score)
+      IdentificationData::DataProcessingSoftware sw("AccurateMassSearch", "1.0"); // TODO: version
+      sw.assigned_scores.push_back(score_ref);
+      auto sw_ref = id.registerDataProcessingSoftware(sw);
+
+      // all supported search settings
+      IdentificationData::DBSearchParam search_param;
+      search_param.database = "file://ROOT/FOLDER/DATABASE.fasta"; // TODO:
+      search_param.database_version = "nextprot1234"; // TODO:
+      search_param.precursor_mass_tolerance = 8.0;
+      search_param.precursor_tolerance_ppm = true;
+      auto search_param_ref = id.registerDBSearchParam(search_param);
+
+      // file has been processed by software
+      IdentificationData::DataProcessingStep step(sw_ref);
+      step.input_file_refs.push_back(file_ref);
+      auto step_ref = id.registerDataProcessingStep(step, search_param_ref);
+      // all further data comes from this processing step
+      id.setCurrentProcessingStep(step_ref);
+    }
+    
     String ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
@@ -592,7 +626,7 @@ namespace OpenMS
       // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
       queryByFeature(fmap[i], i, ion_mode_internal, query_results);
 
-      if (query_results.size() == 0) continue; // cannot happen if a 'not-found' dummy was added
+      if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
 
       bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
@@ -623,13 +657,24 @@ namespace OpenMS
 
       // String feat_label(fmap[i].getMetaValue(3));
       overall_results.push_back(query_results);
-      annotate_(query_results, fmap[i]);
+      if (legacyID_)
+      {
+        annotate_(query_results, fmap[i]);
+      }
+      else
+      {
+        addMatchesToID_(query_results, file_ref, mass_error_ppm_score_ref, mass_error_Da_score_ref, step_ref, applied_ps, fmap[i])
+      }       
     }
-    // add dummy protein identification which is required to keep peptidehits alive during store()
-    fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
-    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
-    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
-    fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
+
+    if (legacyID_)
+    {
+      // add dummy protein identification which is required to keep peptidehits alive during store()
+      fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
+      fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
+      fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
+      fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
+    }
 
     if (fmap.empty())
     {
@@ -643,6 +688,79 @@ namespace OpenMS
     exportMzTab_(overall_results, 1, mztab_out);
 
     return;
+  }
+
+  void AccurateMassSearchEngine::addMatchesToID_(
+    const std::vector<AccurateMassSearchResult>& amr, 
+    const InputFileRef& file_ref, 
+    const ScoreTypeRef& mass_error_ppm_score_ref,
+    const ScoreTypeRef& mass_error_Da_score_ref, 
+    const ProcessingStepRef& step_ref, 
+    BaseFeature& f) const
+  {     
+    // register feature as search item associated with input file 
+    IdentificationData::InputItem item(String(f.getUniqueId()), file_ref, f.getRT(), f.getMZ());
+    auto item_ref = id.registerInputItem(item);
+    f.getInputItemRefs().insert(item_ref); // connect ID data with feature
+    
+    for (const AccurateMassSearchResult& r : amr)
+    {
+      for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
+      { // mapping ok?
+        if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
+        }        
+        // get name from index 0 (2nd column in structMapping file)
+        HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(r.getMatchingHMDBids()[i]);
+        if  (entry == hmdb_properties_mapping_.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+        }
+
+        // register compound
+        const String& name = entry->second[0];
+        const String& smiles = entry->second[1];
+        const String& inchi_key = entry->second[2];
+        IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i], r.getFormulaString(), name, smiles, inchi_key); // TODO: what about applied processing step
+        auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
+
+        // compound-feature match
+        IdentificationData::InputMatch match(compound_ref, item_ref, r.getCharge()); // match of compound to feature
+        match.addScore(mass_error_Da_score_ref, r.getObservedMZ() - r.getCalculatedMZ(), step_ref);
+        match.addScore(mass_error_ppm_score_ref, r.getMZErrorPPM(), step_ref);
+
+        String adduct = r.getFoundAdduct(); // M+Na;1+
+        if (!adduct.empty() || adduct != "null")
+        {
+          String adduct_prefix = adduct.prefix(';').trim();
+          String adduct_suffix = adduct.suffix(';').trim();
+          std::size_t found = adduct_prefix.find_first_of("+-");
+          String formula = "";
+          if (found != std::string::npos)
+          {
+            formula = String(adduct_prefix.begin() + found, adduct_prefix.end()); // including + and - for mass calculation!
+          }        
+          String adduct_name = "[" + adduct_prefix + "]" + adduct_suffix;
+
+          int sign = 1;
+          if (adduct_suffix.back() == '+')
+          {
+            sign = 1;
+            adduct_suffix.pop_back();
+          }
+          else (adduct_suffix.back() == '-')
+          {
+            sign = -1;
+            adduct_suffix.pop_back();
+          }
+          AdductInfo adduct(adduct_name, EmpiricalFormula(formula), sign * adduct_suffix.toInt());
+          adduct_ref = data.registerAdduct(adduct);
+          match.adduct_opt = adduct_ref;
+        }
+        id.registerInputMatch(match);
+      }
+    }
   }
 
   void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
@@ -1069,6 +1187,8 @@ namespace OpenMS
     keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query
     is_initialized_ = false;
+
+    legacy_ = (String)param_.getValue("id_format") == "legacy";
   }
 
 /// private methods

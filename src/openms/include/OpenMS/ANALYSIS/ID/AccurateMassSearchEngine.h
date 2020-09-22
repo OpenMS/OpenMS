@@ -291,6 +291,14 @@ private:
     /// add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
+    void addMatchesToID_(
+      const std::vector<AccurateMassSearchResult>& amr, 
+      const InputFileRef& file_ref, 
+      const ScoreTypeRef& mass_error_ppm_score_ref,
+      const ScoreTypeRef& mass_error_Da_score_ref, 
+      const ProcessingStepRef& step_ref, 
+      BaseFeature& f) const;
+
     /// For two vectors of identical length, compute the cosine of the angle between them.
     /// Since we look at the angle, scaling of the vectors does not change the result (when ignoring numerical instability).
     double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
@@ -336,6 +344,8 @@ private:
     HMDBPropsMapping hmdb_properties_mapping_;
 
     bool is_initialized_; ///< true if init_() was called without any subsequent param changes
+
+    bool legacyID_ = true;
 
     /// parameter stuff
     double mass_error_value_;

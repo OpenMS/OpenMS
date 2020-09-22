@@ -101,7 +101,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
-    setValidFormats_("out_annotation", {"featureXML", "consensusXML"});
+    setValidFormats_("out_annotation", {"featureXML", "consensusXML", "oms"});
 
     // move some params from algorithm section to top level (to support input file functionality)
     Param p = AccurateMassSearchEngine().getDefaults();
@@ -146,6 +146,11 @@ protected:
     ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
     ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
 
+    if (file_ann.hasSuffix() == "oms")
+    {
+      ams_param.setValue("id_format", "ID"); // enable novel ID data structure
+    }
+
     writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
 
     // mzTAB output data structure
@@ -173,9 +178,14 @@ protected:
       //-------------------------------------------------------------
       // annotate output with data processing info
       //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-      if (!file_ann.empty())
+      if (file_ann.hasSuffix() == "featureXML")
       {
         FeatureXMLFile().store(file_ann, ms_feat_map);
+      }
+      else if (file_ann.hasSuffix() == "oms")
+      {      
+        // TODO: support feature data in oms file
+        OMSFile().store(file_ann, ms_feat_map.getIdentificationData());
       }
     }
     else if (filetype == FileTypes::CONSENSUSXML)
