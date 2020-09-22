@@ -53,6 +53,7 @@ namespace OpenMS
 {
   ResidueDB::ResidueDB()
   {
+    cout << "Loading residue database from file." << endl;
     readResiduesFromFile_("CHEMISTRY/Residues.xml");
     buildResidueNames_();
   }

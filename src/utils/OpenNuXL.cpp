@@ -4331,7 +4331,13 @@ static void scoreXLIons_(
       p.setValue("precursor:isotopes", IntList{0, 1});
       p.setValue("decoys", generate_decoys ? "true" : "false");
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
-      p.setValue("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
+      p.setValue("annotate:PSM", 
+        StringList{
+          Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
+          Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
+          Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
+          Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION
+        });
       sse.setParameters(p);
       cout << "Running autotune..." << endl;
       sse.search(in_mzml, in_db, prot_ids, pep_ids);      

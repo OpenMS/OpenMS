@@ -134,7 +134,13 @@ namespace OpenMS
     defaults_.setValidStrings("decoys", {"true","false"} );
 
     defaults_.setValue("annotate:PSM", StringList{}, "Annotations added to each PSM.");
-    defaults_.setValidStrings("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
+    defaults_.setValidStrings("annotate:PSM", 
+      StringList{
+        Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, 
+        Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
+        Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
+        Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
+    );
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -272,10 +278,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotated_hits.shrink_to_fit();
     }
 
-
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
     bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
-
+    bool annotation_prefix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION) != annotate_psm_.end();
+    bool annotation_suffix_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION) != annotate_psm_.end();
+//    double annotation_mean_error = 
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -339,6 +346,17 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             double ppm_difference = Math::getPPM(mz, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
+
+          if (annotation_prefix_fraction)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION, ah.prefix_fraction);
+          }
+
+          if (annotation_suffix_fraction)
+          {
+            ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+          }
+          
           // store PSM
           phs.push_back(ph);
         }
@@ -385,10 +403,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
 
-    // for post-processing
+    // add additional percolator features or post-processing
     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
     StringList feature_set{"score"};
     if (annotation_fragment_error_ppm) feature_set.push_back(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+    if (annotation_prefix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
+    if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
     protein_ids[0].setSearchParameters(search_parameters);
@@ -599,7 +619,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             const Size& scan_index = low_it->second;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
             // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
-            const double& score = HyperScore::compute(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+            HyperScore::PSMDetail detail;
+            const double& score = HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum, detail);
 
             if (score == 0) { continue; } // no hit?
 
@@ -608,6 +629,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.sequence = c;
             ah.peptide_mod_index = mod_pep_idx;
             ah.score = score;
+            ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
+            ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
+            ah.mean_error = detail.mean_error;
 
 #ifdef _OPENMP
             omp_set_lock(&(annotated_hits_lock[scan_index]));

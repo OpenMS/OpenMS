@@ -74,6 +74,9 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       StringView sequence;
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       double score = 0; ///< main score
+      double prefix_fraction = 0; ///< fraction of annotated b-ions
+      double suffix_fraction = 0; ///< fraction of annotated y-ions
+      double mean_error = 0.0; ///< mean absolute fragment mass error
       std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {

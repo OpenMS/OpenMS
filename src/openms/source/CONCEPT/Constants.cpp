@@ -172,6 +172,12 @@ namespace OpenMS
       // User parameter name for precursor mz error in ppm
       const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
 
+      // User parameter name for the fraction of prefix ions that have been matched 
+      const std::string MATCHED_PREFIX_IONS_FRACTION = "matched_prefix_ions_fraction";
+
+      // User parameter name for the fraction of suffix ions that have been matched 
+      const std::string MATCHED_SUFFIX_IONS_FRACTION = "matched_suffix_ions_fraction";
+
       // User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
       const std::string SPECTRUM_REFERENCE = "spectrum_reference";
 

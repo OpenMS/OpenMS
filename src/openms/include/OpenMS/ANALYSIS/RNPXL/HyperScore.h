@@ -66,6 +66,24 @@ struct OPENMS_DLLAPI HyperScore
                         bool fragment_mass_tolerance_unit_ppm, 
                         const PeakSpectrum& exp_spectrum, 
                         const PeakSpectrum& theo_spectrum);
+
+  /** @brief compute the (ln transformed) X!Tandem HyperScore 
+   *  overload that returns some additional information on the match
+   */
+  struct PSMDetail
+  {
+    size_t matched_b_ions = 0;
+    size_t matched_y_ions = 0;
+    double mean_error = 0.0;
+  };
+
+  static double computeWithDetail(double fragment_mass_tolerance, 
+                        bool fragment_mass_tolerance_unit_ppm, 
+                        const PeakSpectrum& exp_spectrum, 
+                        const PeakSpectrum& theo_spectrum,
+                        PSMDetail& d
+                       );
+
   /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
