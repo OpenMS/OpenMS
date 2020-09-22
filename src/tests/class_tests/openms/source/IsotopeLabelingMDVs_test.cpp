@@ -39,7 +39,6 @@
 
 using namespace OpenMS;
 
-
 class IsotopeLabelingMDVs_test : public IsotopeLabelingMDVs
 {
   public :
@@ -51,12 +50,10 @@ class IsotopeLabelingMDVs_test : public IsotopeLabelingMDVs
     }
 };
 
-
 START_TEST(IsotopeLabelingMDVs, "$Id$")
 
 IsotopeLabelingMDVs* ptr          = nullptr;
 IsotopeLabelingMDVs* nullPointer  = nullptr;
-
 
 START_SECTION((IsotopeLabelingMDVs()))
   ptr = new IsotopeLabelingMDVs();
@@ -66,7 +63,6 @@ END_SECTION
 START_SECTION((~IsotopeLabelingMDVs()))
   delete ptr;
 END_SECTION
-
 
 START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
                                               Feature& measured_feature,
@@ -89,7 +85,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
 
   std::vector<Peak2D::IntensityType> L2_norm_max {1.00e+00, 1.967e-03, 2.259e-02, 2.693e-03, 9.927e-04};
   std::vector<Peak2D::IntensityType> L2_norm_sum {9.7252e-01, 1.9134e-03, 2.1978e-02, 2.6191e-03, 9.655e-04};
-  
 
   // Lactate1 & Lactate2 - peak_apex_int - norm_max
   OpenMS::Feature               lactate_1_normmax;
@@ -134,7 +129,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
     TEST_REAL_SIMILAR(lactate_2_normalized_normmax.getSubordinates().at(i).getIntensity(), L2_norm_max.at(i));
   }
 
-
   // Lactate1 & Lactate2 - peak_apex_int - norm_sum
   OpenMS::Feature               lactate_1_normsum;
   OpenMS::Feature               lactate_1_normalized_normsum;
@@ -157,7 +151,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
     TEST_REAL_SIMILAR(lactate_1_normalized_normsum.getSubordinates().at(i).getIntensity(), L1_norm_sum.at(i));
   }
 
-
   OpenMS::Feature lactate_2_normsum; OpenMS::Feature lactate_2_normalized_normsum;
   std::vector<OpenMS::Feature> L2_subordinates_normsum;
 
@@ -168,7 +161,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
     sub.setMetaValue("native_id", "Lactate2_"+std::to_string(219+i));
     sub.setMetaValue("peak_apex_int", L2_peak_apex_int[i]);
     L2_subordinates_normsum.push_back(sub);
-    
   }
   lactate_2_normsum.setSubordinates(L2_subordinates_normsum);
 
@@ -180,7 +172,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
 
 END_SECTION
-
 
 START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
                                               FeatureMap& measured_feature,
@@ -248,7 +239,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
     TEST_REAL_SIMILAR(lactate_2_normalized_normmax.getSubordinates().at(i).getIntensity(), L2_norm_max.at(i));
   }
 
-
   // Lactate1 & Lactate2 - peak_apex_int - norm_sum
   OpenMS::Feature               lactate_1_normsum;
   OpenMS::Feature               lactate_1_normalized_normsum;
@@ -281,7 +271,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
     sub.setMetaValue("native_id", "Lactate2_"+std::to_string(219+i));
     sub.setMetaValue("peak_apex_int", L2_peak_apex_int[i]);
     L2_subordinates_normsum.push_back(sub);
-    
   }
   lactate_2_normsum.setSubordinates(L2_subordinates_normsum);
 
@@ -338,7 +327,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
 
 END_SECTION
 
-
 START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
                                               Feature& normalized_feature,
                                               Feature& corrected_feature,
@@ -354,7 +342,6 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
   // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
   // Wahl et al, P.263, Table I"
   std::vector<std::vector<double>>                  correction_matrix_tBDMS {
-
     {0.8213, 0.1053, 0.0734, 0.0000},
     {0.8420, 0.0963, 0.0617, 0.0000},
     {0.8466, 0.0957, 0.0343, 0.0233},
@@ -388,7 +375,6 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
 
 END_SECTION
 
-
 START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
                                               FeatureMap& normalized_feature,
                                               FeatureMap& corrected_feature,
@@ -406,7 +392,6 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
   // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
   // Wahl et al, P.263, Table I"
   std::vector<std::vector<double>>                  correction_matrix_tBDMS {
-
     {0.8213, 0.1053, 0.0734, 0.0000},
     {0.8420, 0.0963, 0.0617, 0.0000},
     {0.8466, 0.0957, 0.0343, 0.0233},
@@ -458,7 +443,6 @@ START_SECTION(( void inverseMatrix_(
   // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
   // Wahl et al, P.263, Table I"
   std::vector<std::vector<double>>                  correction_matrix_tBDMS {
-
     {0.8213, 0.1053, 0.0734, 0.0000},
     {0.8420, 0.0963, 0.0617, 0.0000},
     {0.8466, 0.0957, 0.0343, 0.0233},
@@ -556,7 +540,6 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurities(
   std::string                     L1_U_13C_glucose            = "U-13C_glucose_experiment";
 
   std::vector<OpenMS::Feature>    L1_subordinates_normmax;
-
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
   for (uint16_t i = 0; i < L1_norm_max.size(); ++i)
@@ -616,7 +599,6 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
   std::vector<double>             fad_C27H32N9O15P2_EPI_measured_48       {0.638, 0.355, 0.1, 0.0, 0.0, 0.0};
   std::vector<double>             Average_accuracy_groundtruth            {0.02388, 0.0345}; // [accoa_13, fad_48]
 
-
   std::vector<OpenMS::Feature>    L1_subordinates_normmax;
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
@@ -637,7 +619,6 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
   TEST_REAL_SIMILAR( lactate_1_with_accuracy_info.getMetaValue("average_accuracy"), Average_accuracy_groundtruth[1] );
 
 END_SECTION
-
 
 START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
                                               FeatureMap& normalized_featureMap,
@@ -667,7 +648,6 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
   std::vector<double>             fad_C27H32N9O15P2_EPI_theoretical_48    {0.695, 0.233,  0.059,  0.011,  0.002, 0.0};
   std::vector<double>             fad_C27H32N9O15P2_EPI_measured_48       {0.638, 0.355, 0.1, 0.0, 0.0, 0.0};
   std::vector<double>             Average_accuracy_groundtruth            {0.02388, 0.0345}; // [accoa_13, fad_48]
-
 
   std::vector<OpenMS::Feature>    L1_subordinates_normmax;
   
@@ -701,6 +681,5 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
   }
 
 END_SECTION
-
 
 END_TEST
