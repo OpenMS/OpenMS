@@ -43,64 +43,7 @@ namespace OpenMS
   class ExperimentalDesign;
   class TextFile; 
   /**
-  @brief Provides means to load an ExperimentalDesign from a TSV file.
-
-     1) Mandatory section with file-level information of the experimental design.
-          Required to process fractionated data and multiplexed data.
-
-          File Section format:
-
-          Single header line
-            Fraction_Group:           Index used to group fractions and source files.
-                                      Note: For label-free this has same cardinality as sample.
-                                      For multiplexed experiments, these might differ as multiple samples can be measured in single files
-            Fraction:                    1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
-            Spectra_Filepath:         Path to mzML files
-            Label:                    Label in MS file:
-                                        label-free: always 1
-                                        TMT6Plex: 1..6
-                                        SILAC with light and heavy: 1..2
-            Sample:                   Index of sample measured in the specified label X, in fraction Y of fraction group Z
-
-	Fraction_Group	Fraction	Spectra_Filepath	Label		Sample
-	1	1		SPECTRAFILE_F1_TR1.mzML	1		1
-	1	2		SPECTRAFILE_F2_TR1.mzML	1		1
-	1	3		SPECTRAFILE_F3_TR1.mzML	1		1
-	1	1		SPECTRAFILE_F1_TR1.mzML	2		2
-	1	2		SPECTRAFILE_F2_TR1.mzML	2		2
-	1	3		SPECTRAFILE_F3_TR1.mzML	2		2
-	1	1		SPECTRAFILE_F1_TR1.mzML	3		3
-	1	2		SPECTRAFILE_F2_TR1.mzML	3		3
-	1	3		SPECTRAFILE_F3_TR1.mzML	3		3
-	1	1		SPECTRAFILE_F1_TR1.mzML	4		4
-	1	2		SPECTRAFILE_F2_TR1.mzML	4		4
-	1	3		SPECTRAFILE_F3_TR1.mzML	4		4
-	2	1		SPECTRAFILE_F1_TR2.mzML	1		5
-	2	2		SPECTRAFILE_F2_TR2.mzML	1		5
-	2	3		SPECTRAFILE_F3_TR2.mzML	1		5
-	2	1		SPECTRAFILE_F1_TR2.mzML	2		6
-	2	2		SPECTRAFILE_F2_TR2.mzML	2		6
-	2	3		SPECTRAFILE_F3_TR2.mzML	2		6
-	2	1		SPECTRAFILE_F1_TR2.mzML	3		7
-	2	2		SPECTRAFILE_F2_TR2.mzML	3		7
-	2	3		SPECTRAFILE_F3_TR2.mzML	3		7
-	2	1		SPECTRAFILE_F1_TR2.mzML	4		8
-	2	2		SPECTRAFILE_F2_TR2.mzML	4		8
-	2	3		SPECTRAFILE_F3_TR2.mzML	4		8
-
-        2) Mandatory section with sample information of the experimental design.
-           One Column must be 'Sample', other columns
-           are unspecified and can contain arbitrary factors
-
-	Sample	Some_Condition1	Some_Condition2
-	1	1	1
-	2	2	1
-	3	3	1
-	4	4	1
-	5	1	2
-	6	2	2
-	7	3	2
-	8	4	2
+  @brief Load an experimental design from a TSV file. (see ExperimentalDesign for details on the supported format)
 
   @ingroup Format
   */
