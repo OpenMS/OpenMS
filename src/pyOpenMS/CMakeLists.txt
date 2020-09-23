@@ -392,13 +392,12 @@ endif()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
-#  for now -- note that you need change __init__.py if you change the number of
-#  modules...
+#  for now
 if(NOT PY_NUM_THREADS)
   set(PY_NUM_THREADS 1)
 endif()
 if(NOT PY_NUM_MODULES)
-  set(PY_NUM_MODULES 1)
+  set(PY_NUM_MODULES 8)
 endif()
 
 # set data variable nightly builds use repository last change date
