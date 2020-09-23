@@ -136,8 +136,15 @@ for modname in mnames:
                 allDecl_mapping[modname]["addons"].append(a)
                 is_added[k] = True
 
+        # In the special case PY_NUM_MODULES==1 we need to mark ADD_TO_ALL_OTHER as is_added,
+        # so it doesn't get added to pyopenms_1.pxd
+        if PY_NUM_MODULES=='1':
+            if os.path.basename(a) == "ADD_TO_ALL_OTHER" + ".pyx":
+                is_added[k] = True
+                
         if is_added[k]:
             continue
+
 
         # Also match by class name (sometimes one pxd contains multiple classes
         # and the addon is named after one of them)
