@@ -25,3 +25,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
       void init(libcpp_vector[double] x, libcpp_vector[double] y)
 
       double eval(double x)
+      
