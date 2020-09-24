@@ -296,6 +296,8 @@ public slots:
     void showCursorStatusInvert(double mz, double rt);
     /// Apply TOPP tool
     void showTOPPDialog();
+    /// Annotates current layer with ID data from AccurateMassSearch
+    void annotateWithAMS();
     /// Annotates current layer with ID data
     void annotateWithID();
     /// Shows the theoretical spectrum generation dialog
@@ -375,10 +377,6 @@ protected:
     /// Initializes the default parameters on TOPPView construction.
     void initializeDefaultParameters_();
 
-    /// add annotations from an AccurateMassSearch to an MS1 spectrum
-    /// @return true on success, otherwise false
-    bool annotateMS1FromMassFingerprinting_(const FeatureMap& identifications);
-     
     /**
         @brief Shows a dialog where the user can select files
     */

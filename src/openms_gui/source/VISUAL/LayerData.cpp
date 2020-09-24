@@ -34,9 +34,17 @@
 
 #include <OpenMS/VISUAL/LayerData.h>
 
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/LogWindow.h>
 
-#include <iostream>
+//#include <iostream>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -132,6 +140,35 @@ namespace OpenMS
     {
       cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
     }
+  }
+
+  bool LayerData::annotate(const vector<PeptideIdentification>& identifications,
+    const vector<ProteinIdentification>& protein_identifications)
+  {
+    IDMapper mapper;
+    if (this->type == LayerData::DT_PEAK)
+    {
+      Param p = mapper.getDefaults();
+      p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+      p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+      p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+      mapper.setParameters(p);
+      mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      mapper.annotate(*getFeatureMap(), identifications, protein_identifications);
+    }
+    else if (type == LayerData::DT_CONSENSUS)
+    {
+      mapper.annotate(*getConsensusMap(), identifications, protein_identifications);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
   }
 
   const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
@@ -372,6 +409,88 @@ namespace OpenMS
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
+  }
+
+  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text)
+    : supported_types_(supported_types),
+      file_dialog_text_(file_dialog_text)
+  {
+  }
+
+  bool LayerAnnotatorBase::annotate(LayerData& layer, LogWindow* const log, const String& current_path) const
+  {
+    // warn if hidden layer => wrong layer selected...
+    if (!layer.visible)
+    {
+      log->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
+      return false;
+    }
+
+    // load id data
+    QString fname = QFileDialog::getOpenFileName(nullptr,
+                                                 file_dialog_text_.toQString(),
+                                                 current_path.toQString(),
+                                                 supported_types_.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
+    if (fname.isEmpty()) return false;
+
+    FileTypes::Type type = FileHandler::getType(fname);
+
+    if (!supported_types_.contains(type))
+    {
+      QMessageBox::warning(nullptr, "Error", QString("Unsupported file type. No annotation performed."));
+      return false;
+    }
+
+    bool success = annotateWorker_(layer, fname, log);
+    
+    if (success) log->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+
+    return success;
+  }
+
+  bool LayerAnnotatorPeptideID::annotateWorker_(LayerData& layer, const String& filename, LogWindow* const log) const
+  {
+    FileTypes::Type type = FileHandler::getType(filename);
+    vector<PeptideIdentification> identifications;
+    vector<ProteinIdentification> protein_identifications;
+    String document_id;
+    if (type == FileTypes::MZIDENTML) MzIdentMLFile().load(filename, protein_identifications, identifications);
+    else IdXMLFile().load(filename, protein_identifications, identifications, document_id);
+
+    layer.annotate(identifications, protein_identifications);
+    return true;
+  }
+
+  bool LayerAnnotatorAMS::annotateWorker_(LayerData& layer, const String& filename, LogWindow* const log) const
+  {
+    FeatureMap fm;
+    FeatureXMLFile().load(filename, fm);
+
+    // last protein ID must be from AccurateMassSearch (it gets appended there)
+    String engine = "no protein identification section found";
+    if (fm.getProteinIdentifications().size() > 0)
+    {
+      engine = fm.getProteinIdentifications().back().getSearchEngine();
+      if (engine == "AccurateMassSearch")
+      {
+        if (layer.type != LayerData::DT_PEAK)
+        {
+          QMessageBox::warning(nullptr, "Error", "Layer type is not DT_PEAK!");
+          return false;
+        }
+        IDMapper im;
+        Param p = im.getParameters();
+        p.setValue("rt_tolerance", 30.0);
+        im.setParameters(p);
+        log->appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
+        im.annotate((*layer.getPeakDataMuteable()), fm, true, true);
+
+        return true;
+      }
+    }
+
+    QMessageBox::warning(nullptr, "Error", (String("FeatureXML is currently only supported for files generated by the AccurateMassSearch tool (got '") + engine + "', expected 'AccurateMassSearch'.").toQString());
+    return false;
   }
 
 } //Namespace
