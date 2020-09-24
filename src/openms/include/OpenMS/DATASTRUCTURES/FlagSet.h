@@ -212,6 +212,12 @@ namespace OpenMS
       return ((*this | required) == *this);
     }
 
+    /// checks if any bit is set
+    bool empty() const
+    {
+      return value_ == 0;
+    }
+
     /// internal representation (mostly for illustrative purposes)
     UInt64 value() const
     {

@@ -347,6 +347,16 @@ START_SECTION(bool isSuperSetOf(const ENUM & required) const)
   TEST_EQUAL(red_or_green_or_blue.isSuperSetOf(e_green), true)
 }
 END_SECTION
+
+START_SECTION(bool empty() const)
+  FST empty;
+  TEST_EQUAL(empty.empty(), true)
+  FST red(e_red);
+  TEST_EQUAL(red.empty(), false)
+  FST red_or_green = (FST(e_red) + e_green);
+  TEST_EQUAL(red_or_green.empty(), false)
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

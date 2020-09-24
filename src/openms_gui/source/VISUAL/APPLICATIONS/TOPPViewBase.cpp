@@ -130,10 +130,13 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
-  FileTypes::FileTypeList<11> supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
-                                               FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
-                                               FileTypes::DTA, FileTypes::DTA2D,
-                                               FileTypes::BZ2, FileTypes::GZ });
+
+  /// supported types which can be opened with File-->Open
+  const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
+                                                  FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
+                                                  FileTypes::DTA, FileTypes::DTA2D,
+                                                  FileTypes::BZ2, FileTypes::GZ });
+
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
