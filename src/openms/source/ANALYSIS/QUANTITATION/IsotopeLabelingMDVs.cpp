@@ -45,9 +45,9 @@ namespace OpenMS
   }
   
   void IsotopeLabelingMDVs::isotopicCorrection(
-    Feature& normalized_feature,
+    const Feature& normalized_feature,
     Feature& corrected_feature,
-    std::vector<std::vector<double>> correction_matrix)
+    const std::vector<std::vector<double>> correction_matrix)
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
@@ -55,7 +55,18 @@ namespace OpenMS
     std::vector<std::vector<double>> correction_matrix_inversed(correction_matrix_n, std::vector<double>(correction_matrix_n,0));
     
     // 1- correction matrix inversion
-    inverseMatrix_(correction_matrix, correction_matrix_inversed);
+    Eigen::MatrixXd correction_matrix_eigen(correction_matrix.size(), correction_matrix[0].size());
+    for (uint i = 0; i < correction_matrix.size(); i++){
+      for (uint j = 0; j < correction_matrix[0].size(); j++){
+        correction_matrix_eigen(i,j) = correction_matrix[i][j];
+      }
+    }
+    Eigen::MatrixXd correction_matrix_eigen_inversed = correction_matrix_eigen.inverse();
+    for (int i = 0; i < correction_matrix_eigen_inversed.rows(); i++){
+      for (int j = 0; j < correction_matrix_eigen_inversed.cols(); j++){
+        correction_matrix_inversed[i][j] = correction_matrix_eigen_inversed(i,j);
+      }
+    }
     
     // 2- element-wise expansion with MDV_observed
     std::vector<Feature> normalized_feature_subordinates = normalized_feature.getSubordinates();
@@ -76,17 +87,20 @@ namespace OpenMS
     }
   }
 
-  void IsotopeLabelingMDVs::isotopicCorrections(FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap, std::vector<std::vector<double>> correction_matrix)
+  void IsotopeLabelingMDVs::isotopicCorrections(
+    const FeatureMap& normalized_featureMap,
+    FeatureMap& corrected_featureMap,
+    const std::vector<std::vector<double>> correction_matrix)
   {
-    for (FeatureMap::Iterator feature_it = normalized_featureMap.begin(); feature_it != normalized_featureMap.end(); feature_it++){
+    for (const Feature& feature : normalized_featureMap) {
       Feature corrected_feature;
-      isotopicCorrection( *feature_it, corrected_feature, correction_matrix);
+      isotopicCorrection( feature, corrected_feature, correction_matrix);
       corrected_featureMap.push_back(corrected_feature);
     }
   }
 
   void IsotopeLabelingMDVs::calculateIsotopicPurity(
-    Feature& normalized_featuremap,
+    const Feature& normalized_featuremap,
     Feature& featuremap_with_isotopic_purity,
     std::vector<double>& experiment_data,
     std::string& isotopic_purity_name)
@@ -96,38 +110,37 @@ namespace OpenMS
     double experiment_data_peak = 0.0;
     if ( !experiment_data.empty() )
     {
-      std::vector<double>::iterator max_it  = std::max_element(experiment_data.begin(), experiment_data.end());
-      uint64_t experiment_data_peak_idx     = std::distance(experiment_data.begin(), max_it);
-      experiment_data_peak                  = experiment_data[experiment_data_peak_idx];
+      std::vector<double>::iterator max_it = std::max_element(experiment_data.begin(), experiment_data.end());
+      uint64_t experiment_data_peak_idx = std::distance(experiment_data.begin(), max_it);
+      experiment_data_peak = experiment_data[experiment_data_peak_idx];
       
       if ( experiment_data_peak_idx >= 1 && experiment_data_peak != 0.0)
       {
-        double previous_experiment_data_peak  = experiment_data[experiment_data_peak_idx - 1];
-        double isotopic_purity                = experiment_data_peak_idx / (experiment_data_peak_idx + ( previous_experiment_data_peak / experiment_data_peak));
+        double previous_experiment_data_peak = experiment_data[experiment_data_peak_idx - 1];
+        double isotopic_purity = experiment_data_peak_idx / (experiment_data_peak_idx + ( previous_experiment_data_peak / experiment_data_peak));
         featuremap_with_isotopic_purity.setMetaValue(isotopic_purity_name, isotopic_purity);
       }
     }
   }
 
   void IsotopeLabelingMDVs::calculateIsotopicPurities(
-    FeatureMap& normalized_featureMap,
+    const FeatureMap& normalized_featureMap,
     FeatureMap& featureMap_with_isotopic_purity,
     std::vector<double>& experiment_data,
     std::string& isotopic_purity_name)
-  { 
-    for (FeatureMap::Iterator feature_it = normalized_featureMap.begin(); feature_it != normalized_featureMap.end(); feature_it++){
+  {
+    for (const Feature& feature : normalized_featureMap){
       Feature feature_with_isotopic_purity;
-      calculateIsotopicPurity( *feature_it, feature_with_isotopic_purity, experiment_data, isotopic_purity_name);
+      calculateIsotopicPurity( feature, feature_with_isotopic_purity, experiment_data, isotopic_purity_name);
       featureMap_with_isotopic_purity.push_back(feature_with_isotopic_purity);
     }
   }
-
   
   void IsotopeLabelingMDVs::calculateMDVAccuracy(
-    Feature& normalized_feature,
+    const Feature& normalized_feature,
     Feature& feature_with_accuracy_info,
-    std::vector<double>& fragment_isotopomer_measured,
-    std::vector<double>& fragment_isotopomer_theoretical)
+    const std::vector<double>& fragment_isotopomer_measured,
+    const std::vector<double>& fragment_isotopomer_theoretical)
   {
     feature_with_accuracy_info = normalized_feature;
     
@@ -159,22 +172,21 @@ namespace OpenMS
     feature_with_accuracy_info.setMetaValue("average_accuracy", diff_mean);
   }
 
-
   void IsotopeLabelingMDVs::calculateMDVAccuracies(
-    FeatureMap& normalized_featureMap,
+    const FeatureMap& normalized_featureMap,
     FeatureMap& featureMap_with_accuracy_info,
-    std::vector<double>& fragment_isotopomer_measured,
-    std::vector<double>& fragment_isotopomer_theoretical)
+    const std::vector<double>& fragment_isotopomer_measured,
+    const std::vector<double>& fragment_isotopomer_theoretical)
   {
-    for (FeatureMap::Iterator feature_it = normalized_featureMap.begin(); feature_it != normalized_featureMap.end(); feature_it++){
+    for (const Feature& feature : normalized_featureMap) {
       Feature feature_with_accuracy_info;
-      calculateMDVAccuracy(*feature_it, feature_with_accuracy_info, fragment_isotopomer_measured, fragment_isotopomer_theoretical);
+      calculateMDVAccuracy(feature, feature_with_accuracy_info, fragment_isotopomer_measured, fragment_isotopomer_theoretical);
       featureMap_with_accuracy_info.push_back(feature_with_accuracy_info);
     }
   }
 
   void IsotopeLabelingMDVs::calculateMDV(
-    Feature& measured_feature,
+    const Feature& measured_feature,
     Feature& normalized_feature,
     const String& mass_intensity_type,
     const String& feature_name)
@@ -258,84 +270,13 @@ namespace OpenMS
   }
 
   void IsotopeLabelingMDVs::calculateMDVs(
-    FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
+    const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
     const String& mass_intensity_type, const String& feature_name)
   {
-    for (FeatureMap::Iterator feature_it = measured_featureMap.begin(); feature_it != measured_featureMap.end(); feature_it++){
+    for (const Feature& feature : measured_featureMap) {
       Feature normalized_feature;
-      calculateMDV(*feature_it, normalized_feature, mass_intensity_type, feature_name);
+      calculateMDV(feature, normalized_feature, mass_intensity_type, feature_name);
       normalized_featureMap.push_back(normalized_feature);
-    }
-  }
-
-  template<typename T>
-  void IsotopeLabelingMDVs::inverseMatrix_(
-    std::vector<std::vector<T>>& correction_matrix,
-    std::vector<std::vector<T>>& correction_matrix_inversed)
-  {
-    uint16_t correction_matrix_n = correction_matrix.size() == correction_matrix[0].size() ? correction_matrix.size() : 0;
-
-    // 1- get the inverse
-    double **CM_temp, **CM_inv;
-    double temp;
-    int i, j, k;
-
-    CM_temp = (double **)malloc(correction_matrix_n * sizeof(double *));
-    for(i = 0; i<correction_matrix_n; ++i)
-    {
-      CM_temp[i] = (double *)malloc(correction_matrix_n * sizeof(double));
-    }
-
-    CM_inv=(double **)malloc(correction_matrix_n * sizeof(double *));
-    for(i = 0; i<correction_matrix_n; ++i)
-    {
-      CM_inv[i] = (double *)malloc(correction_matrix_n * sizeof(double));
-    }
-
-    for(i = 0; i < correction_matrix_n; ++i) {
-      for(j = 0; j < correction_matrix_n; ++j) {
-        CM_temp[i][j] = correction_matrix[i][j];
-      }
-    }
-
-    // initialize as identity matrix
-    for(i = 0; i < correction_matrix_n; ++i) {
-      for(j = 0; j < correction_matrix_n; ++j) {
-        if(i == j)
-          CM_inv[i][j]=1;
-        else
-          CM_inv[i][j]=0;
-      }
-    }
-    
-    // inversion routine
-    for(k = 0; k < correction_matrix_n; ++k)
-    {
-      temp = CM_temp[k][k];
-     
-      for(j = 0; j < correction_matrix_n; ++j)
-      {
-        CM_temp[k][j] /= temp;
-        CM_inv[k][j]  /= temp;
-      }
-      for(i = 0; i < correction_matrix_n; ++i)
-      {
-        temp = CM_temp[i][k];
-        for(j = 0; j < correction_matrix_n; ++j)
-        {
-          if(i == k)
-            break;
-          CM_temp[i][j] -= CM_temp[k][j] * temp;
-          CM_inv[i][j]  -= CM_inv[k][j] * temp;
-        }
-      }
-    }
-    
-    for(i = 0; i < correction_matrix_n; ++i)
-    {
-      for(j = 0; j < correction_matrix_n; ++j){
-        correction_matrix_inversed[i][j] = CM_inv[i][j];
-      }
     }
   }
   

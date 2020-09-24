@@ -47,6 +47,7 @@
  #include <cmath>
  #include <numeric>
  #include <algorithm>
+#include <Eigen/Dense>
 
 namespace OpenMS
 {
@@ -81,8 +82,8 @@ namespace OpenMS
       @param[out] corrected_feature Feature with corrected values for each component.
     */
     void isotopicCorrection(
-      Feature& normalized_feature, Feature& corrected_feature,
-      std::vector<std::vector<double>> correction_matrix);
+      const Feature& normalized_feature, Feature& corrected_feature,
+      const std::vector<std::vector<double>> correction_matrix);
     
     /**
       @brief This function performs an isotopic correction to account for unlabeled abundances coming from
@@ -97,8 +98,8 @@ namespace OpenMS
       @param[out] corrected_featuremap FeatureMap with corrected values for each component.
     */
     void isotopicCorrections(
-      FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap,
-      std::vector<std::vector<double>> correction_matrix);
+      const FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap,
+      const std::vector<std::vector<double>> correction_matrix);
 
     /**
       @brief This function calculates the isotopic purity of the MDV using the following formula:
@@ -113,7 +114,7 @@ namespace OpenMS
       @param[out] feature_with_isotopic_purity Feature with the calculated isotopic purity for the component group.
     */
     void calculateIsotopicPurity(
-      Feature& normalized_feature, Feature& feature_with_isotopic_purity,
+      const Feature& normalized_feature, Feature& feature_with_isotopic_purity,
       std::vector<double>& experiment_data, std::string& isotopic_purity_name);
     
     /**
@@ -129,7 +130,7 @@ namespace OpenMS
       @param[out] featureMap_with_isotopic_purity FeatureMap with the calculated isotopic purity for the component group.
     */
     void calculateIsotopicPurities(
-      FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_isotopic_purity,
+      const FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_isotopic_purity,
       std::vector<double>& experiment_data, std::string& isotopic_purity_name);
 
     /**
@@ -142,8 +143,8 @@ namespace OpenMS
       @param[out] feature_with_accuracy_info Feature with the component group accuracy and accuracy for the error for each component.
     */
     void calculateMDVAccuracy(
-      Feature& normalized_feature, Feature& feature_with_accuracy_info,
-      std::vector<double>& fragment_isotopomer_measured, std::vector<double>& fragment_isotopomer_theoretical);
+      const Feature& normalized_feature, Feature& feature_with_accuracy_info,
+      const std::vector<double>& fragment_isotopomer_measured, const std::vector<double>& fragment_isotopomer_theoretical);
     
     /**
        @brief This function calculates the accuracy of the MDVs as compared to the theoretical MDVs (only for 12C quality control experiments)
@@ -155,8 +156,8 @@ namespace OpenMS
        @param[out] featuremap_with_accuracy_info FeatureMap with the component group accuracy and accuracy for the error for each component.
     */
     void calculateMDVAccuracies(
-      FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_accuracy_info,
-      std::vector<double>& fragment_isotopomer_measured, std::vector<double>& fragment_isotopomer_theoretical);
+      const FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_accuracy_info,
+      const std::vector<double>& fragment_isotopomer_measured, const std::vector<double>& fragment_isotopomer_theoretical);
  
     /**
       @brief This function calculates the mass distribution vector (MDV)
@@ -169,7 +170,7 @@ namespace OpenMS
       @param[out]  normalized_feature Feature with normalized values for each component.
     */
     void calculateMDV(
-      Feature& measured_feature, Feature& normalized_feature,
+      const Feature& measured_feature, Feature& normalized_feature,
       const String& mass_intensity_type, const String& feature_name);
     
     /**
@@ -183,19 +184,8 @@ namespace OpenMS
       @param[out]  normalized_featuremap FeatureMap with normalized values for each component.
     */
     void calculateMDVs(
-      FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
+      const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
       const String& mass_intensity_type, const String& feature_name);
-    
-    
-  protected:
-    /**
-      @brief This function performs an efficient matrix inversion
-    
-      @param[in]   correction_matrix Correction matrix of size nxn
-      @param[out]  correction_matrix_inversed Correction matrix inversed of size nxn
-    */
-    template<typename T>
-    void inverseMatrix_(std::vector<std::vector<T>>& correction_matrix, std::vector<std::vector<T>>& correction_matrix_inversed);
      
   };
 

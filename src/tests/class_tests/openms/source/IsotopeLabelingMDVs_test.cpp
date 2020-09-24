@@ -39,17 +39,6 @@
 
 using namespace OpenMS;
 
-class IsotopeLabelingMDVs_test : public IsotopeLabelingMDVs
-{
-  public :
-  
-  void inverseMatrix_(std::vector<std::vector<double>>& correction_matrix,
-                      std::vector<std::vector<double>>& correction_matrix_inversed)
-    {
-      IsotopeLabelingMDVs::inverseMatrix_(correction_matrix, correction_matrix_inversed);
-    }
-};
-
 START_TEST(IsotopeLabelingMDVs, "$Id$")
 
 IsotopeLabelingMDVs* ptr          = nullptr;
@@ -65,7 +54,7 @@ START_SECTION((~IsotopeLabelingMDVs()))
 END_SECTION
 
 START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
-                                              Feature& measured_feature,
+                                              const Feature& measured_feature,
                                               Feature& normalized_featuremap,
                                               const String& mass_intensity_type,
                                               const String& feature_name) ))
@@ -174,7 +163,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
 END_SECTION
 
 START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
-                                              FeatureMap& measured_feature,
+                                              const FeatureMap& measured_feature,
                                               FeatureMap& normalized_featuremap,
                                               const String& mass_intensity_type,
                                               const String& feature_name) ))
@@ -328,9 +317,9 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
 END_SECTION
 
 START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
-                                              Feature& normalized_feature,
+                                              const Feature& normalized_feature,
                                               Feature& corrected_feature,
-                                              std::vector<std::vector<double>> correction_matrix) ))
+                                              const std::vector<std::vector<double>> correction_matrix) ))
 
   // case 1: validating matrix inverse (separately tested)
   // case 2: validating corrected results (corrected peak_apex_int)
@@ -376,12 +365,11 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
 END_SECTION
 
 START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
-                                              FeatureMap& normalized_feature,
+                                              const FeatureMap& normalized_feature,
                                               FeatureMap& corrected_feature,
-                                              std::vector<std::vector<double>> correction_matrix) ))
+                                              const std::vector<std::vector<double>> correction_matrix) ))
 
-  // case 1: validating matrix inverse (separately tested)
-  // case 2: validating corrected results (corrected peak_apex_int)
+  // case 1: validating corrected results (corrected peak_apex_int)
 
   IsotopeLabelingMDVs                               isotopelabelingmdvs;
   OpenMS::Feature                                   lactate_1_normalized;
@@ -434,44 +422,11 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
 END_SECTION
 
 
-START_SECTION(( void inverseMatrix_(
-                          std::vector<std::vector<double>>& correction_matrix,
-                          std::vector<std::vector<double>>& correction_matrix_inversed) ))
-
-  IsotopeLabelingMDVs_test                          isotopelabelingmdvs;
-  std::vector<std::vector<double>>                  correction_matrix_inversed(4, std::vector<double>(4, 0));
-  // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
-  // Wahl et al, P.263, Table I"
-  std::vector<std::vector<double>>                  correction_matrix_tBDMS {
-    {0.8213, 0.1053, 0.0734, 0.0000},
-    {0.8420, 0.0963, 0.0617, 0.0000},
-    {0.8466, 0.0957, 0.0343, 0.0233},
-    {0.8484, 0.0954, 0.0337, 0.0225}
-  };
-
-  isotopelabelingmdvs.inverseMatrix_(correction_matrix_tBDMS, correction_matrix_inversed);
-  double corrected_value;
-
-  for (size_t i = 0; i < correction_matrix_tBDMS.size(); ++i) {
-    for (size_t j = 0; j < correction_matrix_tBDMS[0].size(); ++j) {
-      corrected_value = 0.0;
-      if (i == j) {
-        for (size_t k = 0; k < correction_matrix_tBDMS.size(); ++k) {
-          corrected_value += correction_matrix_tBDMS[i][k] * correction_matrix_inversed[k][j];
-        }
-        TEST_REAL_SIMILAR(corrected_value, 1.0);
-      }
-    }
-  }
-
-END_SECTION
-
-
 START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurity(
-                                              Feature& normalized_featuremap,
+                                              const Feature& normalized_featuremap,
                                               Feature& featuremap_with_isotopic_purity,
-                                              std::vector<double>& experiment_data,
-                                              std::string& isotopic_purity_name) ))
+                                              const std::vector<double>& experiment_data,
+                                              const std::string& isotopic_purity_name) ))
 
   // case 1: calculating isotopic purity on 1_2_13C, U_13C sample experiment data
 
@@ -514,10 +469,10 @@ END_SECTION
 
 
 START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurities(
-                                              Feature& normalized_featuremap,
-                                              Feature& featuremap_with_isotopic_purity,
+                                              const Feature& normalized_featuremap,
+                                              const Feature& featuremap_with_isotopic_purity,
                                               std::vector<double>& experiment_data,
-                                              std::string& isotopic_purity_name) ))
+                                              const std::string& isotopic_purity_name) ))
 
   // case 1: calculating isotopic purity on 1_2_13C, U_13C sample experiment data
 
@@ -573,10 +528,10 @@ END_SECTION
 
 
 START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
-                                              Feature& normalized_feature,
+                                              const Feature& normalized_feature,
                                               Feature& feature_with_accuracy_info,
-                                              std::vector<double>& fragment_isotopomer_measured,
-                                              std::vector<double>& fragment_isotopomer_theoretical) ))
+                                              const std::vector<double>& fragment_isotopomer_measured,
+                                              const std::vector<double>& fragment_isotopomer_theoretical) ))
 
   // case 1: calculating accuracy given theoretical and measured values
 
@@ -621,10 +576,10 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
 END_SECTION
 
 START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
-                                              FeatureMap& normalized_featureMap,
+                                              const FeatureMap& normalized_featureMap,
                                               FeatureMap& featureMap_with_accuracy_info,
-                                              std::vector<double>& fragment_isotopomer_measured,
-                                              std::vector<double>& fragment_isotopomer_theoretical) ))
+                                              const std::vector<double>& fragment_isotopomer_measured,
+                                              const std::vector<double>& fragment_isotopomer_theoretical) ))
 
   // case 1: calculating accuracy given theoretical and measured values
 
