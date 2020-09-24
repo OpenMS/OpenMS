@@ -392,8 +392,7 @@ endif()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
-#  for now -- note that you need change __init__.py if you change the number of
-#  modules...
+#  for now
 if(NOT PY_NUM_THREADS)
   set(PY_NUM_THREADS 1)
 endif()
@@ -599,6 +598,7 @@ set(pyopenms_unittest_testfiles
   test_TraML.py
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
+  test_AcquisitionInfo.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder
