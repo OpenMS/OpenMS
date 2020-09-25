@@ -102,7 +102,8 @@ namespace OpenMS
       auto py_pyprophet = (PythonModuleRequirement*)ui->py_pyprophet;
       py_pyprophet->setRequiredModules( { "pyprophet", "msproteomicstoolslib" });
       py_pyprophet->setFreeText("In order to run PyProphet and TRIC after OpenSWATH, the above modules need to be installed\n" \
-                                "Once they are available, the 'PyProphet and TRIC' tab will become active and configurable.");
+                                "Once they are available, the 'PyProphet and TRIC' tab will become active and configurable.\n" \
+                                "To install the modules, visit the <a href=\"http://www.openswath.org\">openswath.org homepage</a> and follow the installation instructions.");
       py_pyprophet->setTitle("External: PyProphet and TRIC tools");
       connect(py_selector, &PythonSelector::valueChanged, py_pyprophet, &PythonModuleRequirement::validate);
         

@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <array>
 #include <map>
 
 namespace OpenMS
@@ -61,22 +62,39 @@ namespace OpenMS
   class OPENMS_DLLAPI OSWFile
   {
 public:
-    /// Default constructor
-    OSWFile();
+  
+    enum class OSWLevel
+    {
+      MS1,
+      MS2,
+      TRANSITION,
+      SIZE_OF_OSWLEVEL
+    };
+    static const std::array<std::string, (Size)OSWLevel::SIZE_OF_OSWLEVEL> names_of_oswlevel;
 
-    /// Destructor
-    virtual ~OSWFile();
+    struct PercolatorFeature
+    {
+      PercolatorFeature(double score, double qvalue, double pep)
+       : score(score), qvalue(qvalue), posterior_error_prob(pep)
+       {}
+      PercolatorFeature(const PercolatorFeature& rhs) = default;
+      
+      double score;
+      double qvalue;
+      double posterior_error_prob;
+    };
 
     /**
       @brief Reads an OSW SQLite file and returns the data on MS1-, MS2- or transition-level
-      as stringstream TXT input for PercolatorAdapter.
+             as ostream (e.g. stringstream or ofstream).
     */
-    void read(const std::string& in_osw, const std::string& osw_level, std::stringstream& pin_output, const double& ipf_max_peakgroup_pep, const double& ipf_max_transition_isotope_overlap, const double& ipf_min_transition_sn);
+    static void readToPIN(const std::string& in_osw, const OSWFile::OSWLevel osw_level, std::ostream& pin_output,
+                          const double ipf_max_peakgroup_pep, const double ipf_max_transition_isotope_overlap, const double ipf_min_transition_sn);
 
     /**
     @brief Updates an OpenSWATH OSW SQLite files with the MS1-, MS2- or transition-level results of Percolator.
     */
-    void write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features);
+    static void writeFromPercolator(const std::string& in_osw, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
 
   };
 

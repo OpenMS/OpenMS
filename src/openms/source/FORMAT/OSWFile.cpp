@@ -46,20 +46,14 @@ namespace OpenMS
   namespace Sql = Internal::SqliteHelper;
   using namespace std;
 
-  OSWFile::OSWFile()
-  {
-  }
+  const std::array<std::string, (Size)OSWFile::OSWLevel::SIZE_OF_OSWLEVEL> OSWFile::names_of_oswlevel = { "ms1", "ms2", "transition" };
 
-  OSWFile::~OSWFile()
-  {
-  }
-
-  void OSWFile::read(const std::string& in_osw,
-                     const std::string& osw_level,
-                     std::stringstream& pin_output,
-                     const double& ipf_max_peakgroup_pep,
-                     const double& ipf_max_transition_isotope_overlap,
-                     const double& ipf_min_transition_sn)
+  void OSWFile::readToPIN(const std::string& in_osw,
+                     const OSWLevel osw_level,
+                     std::ostream& pin_output,
+                     const double ipf_max_peakgroup_pep,
+                     const double ipf_max_transition_isotope_overlap,
+                     const double ipf_min_transition_sn)
   {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -67,7 +61,7 @@ namespace OpenMS
       // Open database
       SqliteConnector conn(in_osw);
 
-      if (osw_level == "ms1")
+      if (osw_level == OSWLevel::MS1)
       {
         select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID " \
                       "FROM FEATURE_MS1 "\
@@ -77,7 +71,7 @@ namespace OpenMS
                       "INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON "\
                         "PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
       }
-      else if (osw_level == "transition")
+      else if (osw_level == OSWLevel::TRANSITION)
       {
         select_sql = "SELECT TRANSITION.DECOY AS DECOY, FEATURE_TRANSITION.*, "\
                         "RUN_ID || '_' || FEATURE_TRANSITION.FEATURE_ID || '_' || PRECURSOR_ID || '_' || TRANSITION_ID AS GROUP_ID, "\
@@ -186,7 +180,7 @@ namespace OpenMS
 
       if (k==0)
       {
-        if (osw_level == "transition")
+        if (osw_level == OSWLevel::TRANSITION)
         {
           throw Exception::Precondition(__FILE__, __LINE__, __FUNCTION__,
               OpenMS::String("PercolatorAdapter needs to be applied on MS1 & MS2 levels before conducting transition-level scoring."));
@@ -199,14 +193,14 @@ namespace OpenMS
 
     }
 
-    void OSWFile::write(const std::string& in_osw,
-                        const std::string& osw_level,
-                        const std::map< std::string, std::vector<double> >& features)
+    void OSWFile::writeFromPercolator(const std::string& in_osw,
+                        const OSWFile::OSWLevel osw_level,
+                        const std::map< std::string, PercolatorFeature >& features)
     {
       std::string table;
       std::string create_sql;
 
-      if (osw_level == "ms1")
+      if (osw_level == OSWLevel::MS1)
       {
         table = "SCORE_MS1";
         create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
@@ -217,7 +211,7 @@ namespace OpenMS
                       "PEP DOUBLE NOT NULL);";
 
       }
-      else if (osw_level == "transition")
+      else if (osw_level == OSWLevel::TRANSITION)
       {
         table = "SCORE_TRANSITION";
         create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
@@ -244,26 +238,23 @@ namespace OpenMS
       for (auto const &feat : features)
       {
         std::stringstream insert_sql;
-        if (osw_level == "transition") {
-          std::vector<OpenMS::String> ids;
-          OpenMS::String(feat.first).split("_", ids);
-          insert_sql << "INSERT INTO " << table;
+        insert_sql << "INSERT INTO " << table;
+        if (osw_level == OSWLevel::TRANSITION)
+        {
+          std::vector<String> ids;
+          String(feat.first).split("_", ids);
           insert_sql << " (FEATURE_ID, TRANSITION_ID, SCORE, QVALUE, PEP) VALUES (";
           insert_sql <<  ids[0] << ",";
           insert_sql <<  ids[1] << ",";
-          insert_sql <<  feat.second[0] << ",";
-          insert_sql <<  feat.second[1] << ",";
-          insert_sql <<  feat.second[2] << "); ";
         }
         else
         {
-          insert_sql << "INSERT INTO " << table;
           insert_sql << " (FEATURE_ID, SCORE, QVALUE, PEP) VALUES (";
           insert_sql <<  feat.first << ",";
-          insert_sql <<  feat.second[0] << ",";
-          insert_sql <<  feat.second[1] << ",";
-          insert_sql <<  feat.second[2] << "); ";
         }
+        insert_sql << feat.second.score << ",";
+        insert_sql << feat.second.qvalue << ",";
+        insert_sql << feat.second.posterior_error_prob << "); ";
 
         insert_sqls.push_back(insert_sql.str());
       }

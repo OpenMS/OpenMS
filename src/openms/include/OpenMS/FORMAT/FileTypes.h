@@ -35,10 +35,9 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <array>
+#include <vector>
 
 namespace OpenMS
 {
@@ -127,63 +126,25 @@ namespace OpenMS
       BOTH        ///< combine COMPACT and ONE_BY_ONE
     };
     /**
-      @brief holds a known array of file types, e.g. as a way to specify supported input formats
+      @brief holds a vector of known file types, e.g. as a way to specify supported input formats
 
-      The array can be exported in Qt's file dialog format.
-
+      The vector can be exported in Qt's file dialog format.
     */
-    template<size_t N>
-    struct FileTypeList
+    class OPENMS_DLLAPI FileTypeList
     {
-      FileTypeList(const std::array<Type, N> types)
-        : type_list(types)
-      {
-      }
+    public:
+      FileTypeList(const std::vector<Type>& types);
 
       /// check if @p type is contained in this array
-      bool contains(const Type& type)
-      {
-        for (const auto& t : type_list)
-        {
-          if (t == type) return true;
-        }
-        return false;
-      }
+      bool contains(const Type& type) const;
 
       /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
       /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
       /// @param style Create a combined filter, or single filters, or both
       /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
-      String toFileDialogFilter(const Filter style, bool add_all_filter)
-      {
-        String out;
-        if (style == Filter::COMPACT || style == Filter::BOTH)
-        {
-          StringList items;
-          for (const auto& t : type_list)
-          {
-            items.push_back("*." + FileTypes::typeToName(t));
-          }
-          out += "all readable files (" + ListUtils::concatenate(items, " ") + ");;";
-        }
-        if (style == Filter::ONE_BY_ONE || style == Filter::BOTH)
-        {
-          StringList items;
-          for (const auto& t : type_list)
-          {
-            items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ");;");
-          }
-          out += ListUtils::concatenate(items, "");
-        }
-        if (add_all_filter) out += "all files (*);;";
-
-        // remove the last ";;", since this will be interpreted as ' (*)' by Qt
-        out = out.chop(2);
-        
-        return out;
-      }
-
-      std::array<Type, N> type_list;
+      String toFileDialogFilter(const Filter style, bool add_all_filter) const;
+    private:
+      std::vector<Type> type_list_;
     };
 
     /// Returns the name/extension of the type.

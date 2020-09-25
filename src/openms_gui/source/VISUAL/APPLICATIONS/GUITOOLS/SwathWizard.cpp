@@ -101,7 +101,7 @@
       TRIC -> tsv_aligned_matrix;
 
       topp_tv [ label = "TOPPView", group=4]
-      tsv -> topp_tv;
+      osw_inter -> topp_tv;
       sqMass -> topp_tv;
     }
   @enddot

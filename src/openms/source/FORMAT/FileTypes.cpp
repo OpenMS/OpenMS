@@ -35,13 +35,14 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <array>
 
 namespace OpenMS
 {
 
-  static FileTypes::FileTypeList<1> test_type_list({ FileTypes::MZML });
+  static FileTypes::FileTypeList test_type_list({ FileTypes::MZML });
   /// connect the type to some other information
   /// We could also use paired arrays, but this way, its less likely to have mismatches if a new type is added
   struct TypeNameBinding
@@ -119,7 +120,55 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XML, "xml", "any XML file")  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
-  
+  FileTypes::FileTypeList::FileTypeList(const std::vector<Type>& types)
+    : type_list_(types)
+  {
+  }
+
+  /// check if @p type is contained in this array
+  bool FileTypes::FileTypeList::contains(const Type& type) const
+  {
+    for (const auto& t : type_list_)
+    {
+      if (t == type) return true;
+    }
+    return false;
+  }
+
+  /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
+  /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
+  /// @param style Create a combined filter, or single filters, or both
+  /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
+  String FileTypes::FileTypeList::toFileDialogFilter(const Filter style, bool add_all_filter) const
+  {
+    String out;
+    if (style == Filter::COMPACT || style == Filter::BOTH)
+    {
+      StringList items;
+      for (const auto& t : type_list_)
+      {
+        items.push_back("*." + FileTypes::typeToName(t));
+      }
+      out += "all readable files (" + ListUtils::concatenate(items, " ") + ");;";
+    }
+    if (style == Filter::ONE_BY_ONE || style == Filter::BOTH)
+    {
+      StringList items;
+      for (const auto& t : type_list_)
+      {
+        items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ");;");
+      }
+      out += ListUtils::concatenate(items, "");
+    }
+    if (add_all_filter) out += "all files (*);;";
+
+    // remove the last ";;", since this will be interpreted as ' (*)' by Qt
+    out = out.chop(2);
+
+    return out;
+  }
+
+
   String FileTypes::typeToName(FileTypes::Type type)
   {
     for (const auto& t_info : type_with_annotation__)

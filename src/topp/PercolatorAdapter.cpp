@@ -36,6 +36,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -44,7 +46,6 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
 #include <QtCore/qfile.h>
 
@@ -259,7 +260,10 @@ protected:
     );
     registerFlag_("peptide_level_fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein_level_fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy_pattern to set the Fasta file and decoy pattern.");
-    registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
+    
+    registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: the data level selected for scoring.", !is_required);
+    setValidStrings_("osw_level", StringList(&OSWFile::names_of_oswlevel[0], &OSWFile::names_of_oswlevel[(int)OSWFile::OSWLevel::SIZE_OF_OSWLEVEL]));
+    
     registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
     setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
 
@@ -785,7 +789,7 @@ protected:
     const StringList in_decoy = getStringList_("in_decoy");
     OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
     const String in_osw = getStringOption_("in_osw");
-    const String osw_level = getStringOption_("osw_level");
+    const OSWFile::OSWLevel osw_level = (OSWFile::OSWLevel)Helpers::indexOf(OSWFile::names_of_oswlevel, getStringOption_("osw_level"));
 
     //output file names and types
     String out = getStringOption_("out");
@@ -992,11 +996,8 @@ protected:
     else
     {
       OPENMS_LOG_DEBUG << "Writing percolator input file." << endl;
-      TextFile txt;  
-      std::stringstream pin_output;
-      OSWFile().read(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
-      txt << pin_output.str();
-      txt.store(pin_file);
+      std::ofstream pin_output(pin_file);
+      OSWFile::readToPIN(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
     }
 
     QStringList arguments;
@@ -1331,15 +1332,14 @@ protected:
     }
     else
     {
-      std::map< std::string, std::vector<double> > features;
+      std::map< std::string, OSWFile::PercolatorFeature > features;
       for (auto const &feat : pep_map)
       {
-
-        features[feat.second.PSMId].push_back(feat.second.score);
-        features[feat.second.PSMId].push_back(feat.second.qvalue);
-        features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
+        features.emplace(std::piecewise_construct,
+                         std::forward_as_tuple(feat.second.PSMId),
+                         std::forward_as_tuple(feat.second.score, feat.second.qvalue, feat.second.posterior_error_prob));
       }
-      OSWFile().write(out, osw_level, features);
+      OSWFile::writeFromPercolator(out, osw_level, features);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");

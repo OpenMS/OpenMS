@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Andreas Bertsch, Stephan Aiche $
+// $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -121,7 +121,7 @@ START_SECTION((static Type nameToType(const String& name)))
 END_SECTION
 
 START_SECTION([EXTRA] FileTypes::FileTypeList)
-  FileTypes::FileTypeList<2> list({ FileTypes::MZML, FileTypes::BZ2 });
+  FileTypes::FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
   TEST_EQUAL(list.contains(FileTypes::MZML), true);
   TEST_EQUAL(list.contains(FileTypes::BZ2), true);
   TEST_EQUAL(list.contains(FileTypes::MZDATA), false);
