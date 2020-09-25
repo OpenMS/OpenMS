@@ -34,13 +34,14 @@
 
 #include <OpenMS/VISUAL/LayerData.h>
 
+#include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h> // for AMS annotation
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/LogWindow.h>
+
 
 //#include <iostream>
 #include <QtWidgets/QFileDialog>
@@ -417,12 +418,12 @@ namespace OpenMS
   {
   }
 
-  bool LayerAnnotatorBase::annotate(LayerData& layer, LogWindow* const log, const String& current_path) const
+  bool LayerAnnotatorBase::annotate(LayerData& layer, LogWindow& log, const String& current_path) const
   {
     // warn if hidden layer => wrong layer selected...
     if (!layer.visible)
     {
-      log->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
+      log.appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
       return false;
     }
 
@@ -443,25 +444,31 @@ namespace OpenMS
 
     bool success = annotateWorker_(layer, fname, log);
     
-    if (success) log->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+    if (success) log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
 
     return success;
   }
 
-  bool LayerAnnotatorPeptideID::annotateWorker_(LayerData& layer, const String& filename, LogWindow* const log) const
+  bool LayerAnnotatorPeptideID::annotateWorker_(LayerData& layer, const String& filename, LogWindow& /*log*/) const
   {
     FileTypes::Type type = FileHandler::getType(filename);
     vector<PeptideIdentification> identifications;
     vector<ProteinIdentification> protein_identifications;
-    String document_id;
-    if (type == FileTypes::MZIDENTML) MzIdentMLFile().load(filename, protein_identifications, identifications);
-    else IdXMLFile().load(filename, protein_identifications, identifications, document_id);
+    if (type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(filename, protein_identifications, identifications);
+    }
+    else
+    {
+      String document_id;
+      IdXMLFile().load(filename, protein_identifications, identifications, document_id);
+    }
 
     layer.annotate(identifications, protein_identifications);
     return true;
   }
 
-  bool LayerAnnotatorAMS::annotateWorker_(LayerData& layer, const String& filename, LogWindow* const log) const
+  bool LayerAnnotatorAMS::annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const
   {
     FeatureMap fm;
     FeatureXMLFile().load(filename, fm);
@@ -471,7 +478,7 @@ namespace OpenMS
     if (fm.getProteinIdentifications().size() > 0)
     {
       engine = fm.getProteinIdentifications().back().getSearchEngine();
-      if (engine == "AccurateMassSearch")
+      if (engine == AccurateMassSearchEngine::search_engine_identifier)
       {
         if (layer.type != LayerData::DT_PEAK)
         {
@@ -482,7 +489,7 @@ namespace OpenMS
         Param p = im.getParameters();
         p.setValue("rt_tolerance", 30.0);
         im.setParameters(p);
-        log->appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
+        log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
         im.annotate((*layer.getPeakDataMuteable()), fm, true, true);
 
         return true;

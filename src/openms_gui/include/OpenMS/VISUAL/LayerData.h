@@ -45,6 +45,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
@@ -517,8 +518,6 @@ private:
     ExperimentType::SpectrumType cached_spectrum_;
   };
 
-  class LogWindow;
-
   /// A base class to annotate layers of specific types with (identification) data
   class LayerAnnotatorBase
   {
@@ -535,12 +534,12 @@ private:
       /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
       /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
       /// as implemented by the derived classes
-      bool annotate(LayerData& layer, LogWindow* const log, const String& current_path) const;
+      bool annotate(LayerData& layer, LogWindow& log, const String& current_path) const;
 
     protected:
       /// abstract virtual worker function to annotate a layer using content from the @p filename
       /// returns true on success
-      virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow* const log) const = 0;
+      virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const = 0;
       
       const FileTypes::FileTypeList supported_types_;
       const String file_dialog_text_;
@@ -560,7 +559,7 @@ private:
   protected:
     /// loads the ID data from @p filename and calls Layer::annotate.
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow* const log) const;
+    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
   };
 
   /// Annotate a layer with AccurateMassSearch results (from an AMS-featureXML file).
@@ -577,7 +576,7 @@ private:
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow* const log) const;
+    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
   };
 
   /// Print the contents to a stream.
