@@ -7,7 +7,9 @@ from String cimport *
 cdef extern from "<OpenMS/FORMAT/OSWFile.h>" namespace "OpenMS":
     
     cdef cppclass OSWFile "OpenMS::OSWFile":
-
+        OSWFile() nogil except +
+        OSWFile(OSWFile) nogil except + #wrap-ignore
+        
         # Cannot wrap libcpp_ostream
         # void readToPIN(const libcpp_string & in_osw,
         #          const int osw_level,
