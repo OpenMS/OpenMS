@@ -902,16 +902,14 @@ namespace OpenMS
       transition_group.setTransitionGroupID(id);
       double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
 
-      // 1. Go through all transitions, for each transition get chromatogram
-      // and the chromatogram and the assay to the MRMTransitionGroup
-      int detection_assay_it = -1; // store index for the last detection transition
-      for (Size i = 0; i < assay_it->second.size(); i++)
+      // 1. Go through all transitions, for each transition get
+      // the chromatogram and the assay to the MRMTransitionGroup
+      const TransitionType* detection_assay_it = nullptr; // store last detecting transition
+      for (const TransitionType* transition : assay_it->second)
       {
-        const TransitionType* transition = assay_it->second[i];
-
         if (transition->isDetectingTransition())
         {
-          detection_assay_it = i;
+          detection_assay_it = transition;
         }
 
         // continue if we only have MS1 (we wont have any chromatograms for
@@ -932,13 +930,13 @@ namespace OpenMS
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
           double rt_max = de_normalized_experimental_rt + rt_extraction_window;
           double rt_min = de_normalized_experimental_rt - rt_extraction_window;
-          auto new_end = std::remove_if(chromatogram.begin(), chromatogram.end(),
-                                        [rt_min, rt_max](const ChromatogramPeak& chr)
-                                        { return chr.getRT() > rt_max  || chr.getRT() < rt_min; });
-          chromatogram.erase(new_end, chromatogram.end());
+          chromatogram.erase(std::remove_if(chromatogram.begin(), chromatogram.end(),
+                                            [rt_min, rt_max](const ChromatogramPeak& chr)
+                                            { return chr.getRT() > rt_max || chr.getRT() < rt_min; })
+                             , chromatogram.end());
         }
 
-        // Now add the transition and the chromatogram to the MRMTransitionGroup
+        // Add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
         transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
       }
@@ -964,7 +962,7 @@ namespace OpenMS
       featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
 
       // Ensure that a detection transition is used to derive features for output
-      if (detection_assay_it < 0 && output.size() > 0)
+      if (detection_assay_it == nullptr && output.size() > 0)
       {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Error, did not find any detection transition for feature " + id );
@@ -974,16 +972,14 @@ namespace OpenMS
       if (tsv_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
-        const TransitionType* transition = assay_it->second[detection_assay_it];
-        to_tsv_output.push_back(tsv_writer.prepareLine(pep, transition, output, id));
+        to_tsv_output.push_back(tsv_writer.prepareLine(pep, detection_assay_it, output, id));
       }
 
       // 6. Add to the output osw if given
       if (osw_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
-        const TransitionType* transition = assay_it->second[detection_assay_it];
-        to_osw_output.push_back(osw_writer.prepareLine(pep, transition, output, id));
+        to_osw_output.push_back(osw_writer.prepareLine(pep, detection_assay_it, output, id));
       }
     }
 
