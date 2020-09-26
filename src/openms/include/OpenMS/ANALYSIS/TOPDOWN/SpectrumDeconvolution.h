@@ -86,7 +86,6 @@ namespace OpenMS
                            UInt msLevel);
 
     Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
-                           std::vector<boost::dynamic_bitset<>> &mzMassEdges,
                            float *massIntensities,
                            long &binStart, long &binEnd,
                            unsigned int &msLevel
@@ -99,8 +98,7 @@ namespace OpenMS
                           unsigned int &msLevel
     );
 
-    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(std::vector<boost::dynamic_bitset<>> &mzMassEdges,
-                                                                float *massIntensitites,
+    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites,
                                                                 float *mzIntensities,
                                                                 double &mzMinValue,
                                                                 unsigned int &msLevel);
