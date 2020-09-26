@@ -86,6 +86,7 @@ namespace OpenMS
                            UInt msLevel);
 
     Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
+                           std::vector<boost::dynamic_bitset<>> &mzMassEdges,
                            float *massIntensities,
                            long &binStart, long &binEnd,
                            unsigned int &msLevel
@@ -98,14 +99,18 @@ namespace OpenMS
                           unsigned int &msLevel
     );
 
-    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities, double& mzMinValue, unsigned int &msLevel);
+    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(std::vector<boost::dynamic_bitset<>> &mzMassEdges,
+                                                                float *massIntensitites,
+                                                                float *mzIntensities,
+                                                                double &mzMinValue,
+                                                                unsigned int &msLevel);
 
     void getCandidatePeakGroups(double &mzBinMinValue,
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
                                 Byte **chargeRanges,
                                 FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                unsigned int& msLevel
+                                unsigned int &msLevel
     );
 
     void setFilters();

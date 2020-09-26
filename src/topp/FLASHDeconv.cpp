@@ -394,6 +394,9 @@ protected:
       auto ms1Cntr = 0;
       auto ms2Cntr = .0; // for debug...
       param.currentMaxMSLevel = 0;
+      specIndex = 1;
+      massIndex = 1;
+      featureIndex = 1;
 
       for (auto &it : map)
       {
@@ -517,12 +520,15 @@ protected:
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         ++scanNumber;
+
         if (it->empty())
         {
           continue;
         }
 
         auto msLevel = it->getMSLevel();
+        //if(msLevel ==2 && scanNumber != 171) continue; // TODO
+
         if (msLevel > param.currentMaxMSLevel)
         {
           continue;

@@ -108,6 +108,16 @@ namespace OpenMS
       auto p = Peak1D(pg.monoisotopicMass, pg.intensity); //TODO
       outSpec.push_back(p);
     }
+    if (precursorPeakGroup != nullptr)
+    {
+      std::vector<Precursor> precursors;
+      Precursor precursor;
+      precursor.setCharge(precursorPeakGroup->maxQScoreCharge);
+      precursor.setMZ(precursorPeakGroup->monoisotopicMass);
+      precursor.setIntensity(precursorPeakGroup->intensity);
+      precursors.push_back(precursor);
+      outSpec.setPrecursors(precursors);
+    }
 
     return outSpec;
   }
@@ -154,8 +164,8 @@ namespace OpenMS
       //
 
       fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.scanNumber << "\t"
-         << std::to_string(spec->getRT())<< "\t"
-         << pg.peaks.size() << "\t"
+         << std::to_string(spec->getRT()) << "\t"
+         << peakGroups.size() << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
          << minCharge << "\t" << maxCharge << "\t"
          << pg.peaks.size() << "\t";
