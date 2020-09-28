@@ -47,19 +47,16 @@
  #include <cmath>
  #include <numeric>
  #include <algorithm>
-#include <Eigen/Dense>
+ #include <Eigen/Dense>
 
 namespace OpenMS
 {
-
   /**
     @brief IsotopeLabelingMDVs is a class to support and analyze isotopic labeling experiments
             (i.e. MDVs : Mass Distribution Vectors, also known as Mass Isotopomer Distribution (MID))
-    
   */
   class OPENMS_DLLAPI IsotopeLabelingMDVs 
   {
-
   public:
     //@{
     /// Constructor

@@ -76,10 +76,9 @@ namespace OpenMS
       MDV_observed.push_back(it->getMetaValue("peak_apex_int"));
     }
     
-    double corrected_value;
     corrected_feature = normalized_feature;
     for (size_t i = 0; i < correction_matrix_inversed.size(); ++i) {
-      corrected_value = 0.0;
+      double corrected_value = 0.0;
       for (size_t j = 0; j < correction_matrix_inversed[0].size(); ++j) {
         corrected_value += correction_matrix_inversed[i][j] * MDV_observed[j];
       }
@@ -107,9 +106,9 @@ namespace OpenMS
   {
     featuremap_with_isotopic_purity = normalized_featuremap;
     
-    double experiment_data_peak = 0.0;
     if ( !experiment_data.empty() )
     {
+      double experiment_data_peak = 0.0;
       std::vector<double>::iterator max_it = std::max_element(experiment_data.begin(), experiment_data.end());
       uint64_t experiment_data_peak_idx = std::distance(experiment_data.begin(), max_it);
       experiment_data_peak = experiment_data[experiment_data_peak_idx];
