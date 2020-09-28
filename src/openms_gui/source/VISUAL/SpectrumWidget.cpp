@@ -224,6 +224,8 @@ namespace OpenMS
   void SpectrumWidget::saveAsImage()
   {
     QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Images (*.bmp *.png *.jpg *.gif)");
+    QString old_stylesheet = this->styleSheet();
+    // Make the whole widget (including the usually natively styled AxisWidgets) white
     this->setStyleSheet("background: white");
     bool x_visible = x_scrollbar_->isVisible();
     bool y_visible = y_scrollbar_->isVisible();
@@ -233,7 +235,7 @@ namespace OpenMS
     x_scrollbar_->setVisible(x_visible);
     y_scrollbar_->setVisible(y_visible);
     pixmap.save(file_name);
-    this->setStyleSheet("");
+    this->setStyleSheet(old_stylesheet);
   }
 
   void SpectrumWidget::updateAxes()

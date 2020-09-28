@@ -225,6 +225,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent * event) override;
     void dragMoveEvent(QDragMoveEvent * event) override;
     void dropEvent(QDropEvent * event) override;
+    /// make our subclassed QWidget listen to things like stylesheet changes
     void paintEvent(QPaintEvent * /*event*/) override;
     //@}
 
