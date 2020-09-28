@@ -225,6 +225,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent * event) override;
     void dragMoveEvent(QDragMoveEvent * event) override;
     void dropEvent(QDropEvent * event) override;
+    void paintEvent(QPaintEvent * /*event*/) override;
     //@}
 
     /// Pointer to the canvas widget
@@ -239,6 +240,8 @@ protected:
     QScrollBar * x_scrollbar_;
     /// Vertical scrollbar
     QScrollBar * y_scrollbar_;
+
+
   };
 }
 

@@ -1891,7 +1891,7 @@ namespace OpenMS
   {
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorAMS annotator;
-    assert(log != nullptr);
+    assert(log_ != nullptr);
     if (!annotator.annotate(layer, *log_, current_path_))
     {
       return;
@@ -1903,7 +1903,7 @@ namespace OpenMS
   { // this should only be callable if current layer's type is one of PEAK, FEATURE, CONSENSUS
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorPeptideID annotator;
-    assert(log != nullptr);
+    assert(log_ != nullptr);
     if (!annotator.annotate(layer, *log_, current_path_))
     {
       return;

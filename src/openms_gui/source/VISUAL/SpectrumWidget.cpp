@@ -224,6 +224,7 @@ namespace OpenMS
   void SpectrumWidget::saveAsImage()
   {
     QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Images (*.bmp *.png *.jpg *.gif)");
+    this->setStyleSheet("background: white");
     bool x_visible = x_scrollbar_->isVisible();
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();
@@ -232,6 +233,7 @@ namespace OpenMS
     x_scrollbar_->setVisible(x_visible);
     y_scrollbar_->setVisible(y_visible);
     pixmap.save(file_name);
+    this->setStyleSheet("");
   }
 
   void SpectrumWidget::updateAxes()
@@ -352,6 +354,14 @@ namespace OpenMS
   {
     emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), this->getWindowId());
     event->acceptProposedAction();
+  }
+
+  void SpectrumWidget::paintEvent(QPaintEvent * /*event*/)
+  {
+    QStyleOption opt;
+    opt.init(this);
+    QPainter p(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
   }
 
 } //namespace OpenMS
