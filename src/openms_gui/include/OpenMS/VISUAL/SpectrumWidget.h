@@ -240,8 +240,6 @@ protected:
     QScrollBar * x_scrollbar_;
     /// Vertical scrollbar
     QScrollBar * y_scrollbar_;
-
-
   };
 }
 
