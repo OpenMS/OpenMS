@@ -363,6 +363,7 @@ namespace OpenMS
     QStyleOption opt;
     opt.init(this);
     QPainter p(this);
+    // apply style options and draw the widget using current stylesheets
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
   }
 
