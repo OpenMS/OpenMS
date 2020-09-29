@@ -35,6 +35,8 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <assert.h>
 
 using namespace OpenMS;
@@ -270,10 +272,10 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
     TEST_REAL_SIMILAR(lactate_2_normalized_normsum.getSubordinates().at(i).getIntensity(), L2_norm_sum.at(i));
   }
 
-  OpenMS::FeatureMap            lactate_normmax;
-  OpenMS::FeatureMap            lactate_normsum;
-  OpenMS::FeatureMap            lactate_normalized_normmax;
-  OpenMS::FeatureMap            lactate_normalized_normsum;
+  OpenMS::FeatureMap  lactate_normmax;
+  OpenMS::FeatureMap  lactate_normsum;
+  OpenMS::FeatureMap  lactate_normalized_normmax;
+  OpenMS::FeatureMap  lactate_normalized_normsum;
 
   lactate_normmax.push_back(lactate_1_normmax);
   lactate_normmax.push_back(lactate_2_normmax);
@@ -324,13 +326,13 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
   // case 1: validating matrix inverse (separately tested)
   // case 2: validating corrected results (corrected peak_apex_int)
 
-  IsotopeLabelingMDVs                               isotopelabelingmdvs;
-  OpenMS::Feature                                   lactate_1_normalized;
-  OpenMS::Feature                                   lactate_1_corrected;
-  std::vector<std::vector<double>>                  correction_matrix_inversed(4, std::vector<double>(4,0));
+  IsotopeLabelingMDVs                   isotopelabelingmdvs;
+  OpenMS::Feature                       lactate_1_normalized;
+  OpenMS::Feature                       lactate_1_corrected;
+  std::vector<std::vector<double>>      correction_matrix_inversed(4, std::vector<double>(4,0));
   // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
   // Wahl et al, P.263, Table I"
-  std::vector<std::vector<double>>                  correction_matrix_tBDMS {
+  std::vector<std::vector<double>>      correction_matrix_tBDMS {
     {0.8213, 0.1053, 0.0734, 0.0000},
     {0.8420, 0.0963, 0.0617, 0.0000},
     {0.8466, 0.0957, 0.0343, 0.0233},
@@ -339,10 +341,10 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
 
   // L1_norm_max, L1_peak_apex_int From CHO_190316_Flux.xlsx provided by Douglas McCloskey
   // L1_corrected self calculated
-  std::vector<double>                               L1_norm_max       {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
-  std::vector<double>                               L1_corrected      {-12.7699, 140.7289, -45.3788, -47.2081};
-  std::vector<Peak2D::IntensityType>                L1_peak_apex_int  {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
-  std::vector<OpenMS::Feature>                      L1_subordinates_normmax;
+  std::vector<double>                   L1_norm_max       {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>                   L1_corrected      {-12.7699, 140.7289, -45.3788, -47.2081};
+  std::vector<Peak2D::IntensityType>    L1_peak_apex_int  {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
+  std::vector<OpenMS::Feature>          L1_subordinates_normmax;
 
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
@@ -371,15 +373,15 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
 
   // case 1: validating corrected results (corrected peak_apex_int)
 
-  IsotopeLabelingMDVs                               isotopelabelingmdvs;
-  OpenMS::Feature                                   lactate_1_normalized;
-  OpenMS::Feature                                   lactate_1_corrected;
-  OpenMS::FeatureMap                                lactate_1_featureMap;
-  OpenMS::FeatureMap                                lactate_1_corrected_featureMap;
-  std::vector<std::vector<double>>                  correction_matrix_inversed(4, std::vector<double>(4,0));
+  IsotopeLabelingMDVs                   isotopelabelingmdvs;
+  OpenMS::Feature                       lactate_1_normalized;
+  OpenMS::Feature                       lactate_1_corrected;
+  OpenMS::FeatureMap                    lactate_1_featureMap;
+  OpenMS::FeatureMap                    lactate_1_corrected_featureMap;
+  std::vector<std::vector<double>>      correction_matrix_inversed(4, std::vector<double>(4,0));
   // Correction Matrix extracted from "TOOLS FOR MASS ISOTOPOMER DATA EVALUATION IN 13C FLUX ANALYSIS,
   // Wahl et al, P.263, Table I"
-  std::vector<std::vector<double>>                  correction_matrix_tBDMS {
+  std::vector<std::vector<double>>      correction_matrix_tBDMS {
     {0.8213, 0.1053, 0.0734, 0.0000},
     {0.8420, 0.0963, 0.0617, 0.0000},
     {0.8466, 0.0957, 0.0343, 0.0233},
@@ -388,10 +390,10 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
 
   // L1_norm_max, L1_peak_apex_int From CHO_190316_Flux.xlsx provided by Douglas McCloskey
   // L1_corrected self calculated
-  std::vector<double>                               L1_norm_max       {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
-  std::vector<double>                               L1_corrected      {-12.7699, 140.7289, -45.3788, -47.2081};
-  std::vector<Peak2D::IntensityType>                L1_peak_apex_int  {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
-  std::vector<OpenMS::Feature>                      L1_subordinates_normmax;
+  std::vector<double>                   L1_norm_max       {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>                   L1_corrected      {-12.7699, 140.7289, -45.3788, -47.2081};
+  std::vector<Peak2D::IntensityType>    L1_peak_apex_int  {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
+  std::vector<OpenMS::Feature>          L1_subordinates_normmax;
 
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
@@ -430,23 +432,23 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurity(
 
   // case 1: calculating isotopic purity on 1_2_13C, U_13C sample experiment data
 
-  IsotopeLabelingMDVs             isotopelabelingmdvs;
-  OpenMS::Feature                 lactate_1_normalized;
-  OpenMS::Feature                 lactate_1_with_isotopic_purity;
+  IsotopeLabelingMDVs           isotopelabelingmdvs;
+  OpenMS::Feature               lactate_1_normalized;
+  OpenMS::Feature               lactate_1_with_isotopic_purity;
   
   // L1_norm_max From CHO_190316_Flux.xlsx provided by Douglas McCloskey
   // L1_1_2_13C_glucose_experiment, L1_U_13C_glucose_experiment & L1_isotopic_purity_ground_truth
   // from "High-resolution 13C metabolic flux analysis",Long et al, doi:10.1038/s41596-019-0204-0,
   // P.2869, Box 4
-  std::vector<double>             L1_norm_max                     {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
-  std::vector<double>             L1_1_2_13C_glucose_experiment   {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
-  std::vector<double>             L1_U_13C_glucose_experiment     {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
-  std::vector<double>             L1_isotopic_purity_ground_truth {99.6469, 99.2517};  // [1_2_13C, U_13C]
+  std::vector<double>           L1_norm_max                     {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>           L1_1_2_13C_glucose_experiment   {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
+  std::vector<double>           L1_U_13C_glucose_experiment     {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
+  std::vector<double>           L1_isotopic_purity_ground_truth {99.6469, 99.2517};  // [1_2_13C, U_13C]
 
-  std::string                     L1_1_2_13C_glucose          = "1_2-13C_glucose_experiment";
-  std::string                     L1_U_13C_glucose            = "U-13C_glucose_experiment";
+  std::string                   L1_1_2_13C_glucose = "1_2-13C_glucose_experiment";
+  std::string                   L1_U_13C_glucose = "U-13C_glucose_experiment";
 
-  std::vector<OpenMS::Feature>    L1_subordinates_normmax;
+  std::vector<OpenMS::Feature>  L1_subordinates_normmax;
 
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
@@ -476,25 +478,25 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurities(
 
   // case 1: calculating isotopic purity on 1_2_13C, U_13C sample experiment data
 
-  IsotopeLabelingMDVs             isotopelabelingmdvs;
-  OpenMS::Feature                 lactate_1_normalized;
-  OpenMS::Feature                 lactate_1_with_isotopic_purity;
-  OpenMS::FeatureMap              lactate_1_featureMap;
-  OpenMS::FeatureMap              lactate_1_with_isotopic_purity_featureMap;
+  IsotopeLabelingMDVs           isotopelabelingmdvs;
+  OpenMS::Feature               lactate_1_normalized;
+  OpenMS::Feature               lactate_1_with_isotopic_purity;
+  OpenMS::FeatureMap            lactate_1_featureMap;
+  OpenMS::FeatureMap            lactate_1_with_isotopic_purity_featureMap;
   
   // L1_norm_max From CHO_190316_Flux.xlsx provided by Douglas McCloskey
   // L1_1_2_13C_glucose_experiment, L1_U_13C_glucose_experiment & L1_isotopic_purity_ground_truth
   // from "High-resolution 13C metabolic flux analysis",Long et al, doi:10.1038/s41596-019-0204-0,
   // P.2869, Box 4
-  std::vector<double>             L1_norm_max                     {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
-  std::vector<double>             L1_1_2_13C_glucose_experiment   {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
-  std::vector<double>             L1_U_13C_glucose_experiment     {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
-  std::vector<double>             L1_isotopic_purity_ground_truth {99.6469, 99.2517};  // [1_2_13C, U_13C]
+  std::vector<double>           L1_norm_max                     {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>           L1_1_2_13C_glucose_experiment   {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
+  std::vector<double>           L1_U_13C_glucose_experiment     {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
+  std::vector<double>           L1_isotopic_purity_ground_truth {99.6469, 99.2517};  // [1_2_13C, U_13C]
 
-  std::string                     L1_1_2_13C_glucose          = "1_2-13C_glucose_experiment";
-  std::string                     L1_U_13C_glucose            = "U-13C_glucose_experiment";
+  std::string                   L1_1_2_13C_glucose = "1_2-13C_glucose_experiment";
+  std::string                   L1_U_13C_glucose = "U-13C_glucose_experiment";
 
-  std::vector<OpenMS::Feature>    L1_subordinates_normmax;
+  std::vector<OpenMS::Feature>  L1_subordinates_normmax;
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
   for (uint16_t i = 0; i < L1_norm_max.size(); ++i)
@@ -535,26 +537,37 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
 
   // case 1: calculating accuracy given theoretical and measured values
 
-  IsotopeLabelingMDVs             isotopelabelingmdvs;
-  OpenMS::Feature                 lactate_1_normalized;
-  OpenMS::Feature                 lactate_1_with_accuracy_info;
+  IsotopeLabelingMDVs           isotopelabelingmdvs;
+  OpenMS::Feature               lactate_1_normalized;
+  OpenMS::Feature               lactate_1_with_accuracy_info;
   
   // L1_norm_max From CHO_190316_Flux.xlsx provided by Douglas McCloskey
-  // accoa_C23H37N7O17P3S_MRM_theoretical_13, accoa_C23H37N7O17P3S_MRM_measured_13,
-  // fad_C27H32N9O15P2_EPI_theoretical_48 & fad_C27H32N9O15P2_EPI_measured_48 are extracted from
+  // accoa_C23H37N7O17P3S_MRM_measured_13 & fad_C27H32N9O15P2_EPI_measured_48 are extracted from
   // "MID Max: LC–MS/MS Method for Measuring the Precursor and Product Mass Isotopomer Distributions
   // of Metabolic Intermediates and Cofactors for Metabolic Flux Analysis Applications, McCloskey et al",
   // DOI: 10.1021/acs.analchem.5b03887, Supporting Information: Table S-2
-  std::vector<double>             L1_norm_max                             {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>           L1_norm_max                             {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
 
-  std::vector<double>             accoa_C23H37N7O17P3S_MRM_theoretical_13 {0.69, 0.202, 0.084, 0.019, 0.004, 0.001};
-  std::vector<double>             accoa_C23H37N7O17P3S_MRM_measured_13    {0.627, 0.253, 0.096, 0.02, 0.004, 0.001};
+  std::vector<double>           accoa_C23H37N7O17P3S_MRM_theoretical_13 ;
+  std::vector<double>           fad_C27H32N9O15P2_EPI_theoretical_48    ;
 
-  std::vector<double>             fad_C27H32N9O15P2_EPI_theoretical_48    {0.695, 0.233,  0.059,  0.011,  0.002, 0.0};
-  std::vector<double>             fad_C27H32N9O15P2_EPI_measured_48       {0.638, 0.355, 0.1, 0.0, 0.0, 0.0};
-  std::vector<double>             Average_accuracy_groundtruth            {0.02388, 0.0345}; // [accoa_13, fad_48]
+  std::vector<double>           accoa_C23H37N7O17P3S_MRM_measured_13    {0.627, 0.253, 0.096, 0.02, 0.004, 0.001};
+  std::vector<double>           fad_C27H32N9O15P2_EPI_measured_48       {0.638, 0.355, 0.1, 0.0, 0.0, 0.0};
+  std::vector<double>           Average_accuracy_groundtruth            {0.02374, 0.03451}; // [accoa_13, fad_48]
 
-  std::vector<OpenMS::Feature>    L1_subordinates_normmax;
+  std::vector<OpenMS::Feature>  L1_subordinates_normmax;
+
+  IsotopeDistribution accoa_C23H37N7O17P3S_MRM_theoretical_iso(EmpiricalFormula("C23H37N7O17P3S").getIsotopeDistribution(CoarseIsotopePatternGenerator(6)));
+  for (IsotopeDistribution::ConstIterator it = accoa_C23H37N7O17P3S_MRM_theoretical_iso.begin(); it != accoa_C23H37N7O17P3S_MRM_theoretical_iso.end(); ++it)
+  {
+    accoa_C23H37N7O17P3S_MRM_theoretical_13.push_back( it->getIntensity() );
+  }
+
+  IsotopeDistribution fad_C27H32N9O15P2_EPI_theoretical_iso(EmpiricalFormula("C27H32N9O15P2").getIsotopeDistribution(CoarseIsotopePatternGenerator(6)));
+  for (IsotopeDistribution::ConstIterator it = fad_C27H32N9O15P2_EPI_theoretical_iso.begin(); it != fad_C27H32N9O15P2_EPI_theoretical_iso.end(); ++it)
+  {
+    fad_C27H32N9O15P2_EPI_theoretical_48.push_back( it->getIntensity() );
+  }
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
   for (uint16_t i = 0; i < L1_norm_max.size(); ++i)
@@ -583,28 +596,39 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
 
   // case 1: calculating accuracy given theoretical and measured values
 
-  IsotopeLabelingMDVs             isotopelabelingmdvs;
-  OpenMS::Feature                 lactate_1_normalized;
-  OpenMS::Feature                 lactate_1_with_accuracy_info;
-  OpenMS::FeatureMap              lactate_1_featureMap;
-  OpenMS::FeatureMap              lactate_1_with_accuracy_info_featureMap;
+  IsotopeLabelingMDVs           isotopelabelingmdvs;
+  OpenMS::Feature               lactate_1_normalized;
+  OpenMS::Feature               lactate_1_with_accuracy_info;
+  OpenMS::FeatureMap            lactate_1_featureMap;
+  OpenMS::FeatureMap            lactate_1_with_accuracy_info_featureMap;
   
   // L1_norm_max From CHO_190316_Flux.xlsx provided by Douglas McCloskey
-  // accoa_C23H37N7O17P3S_MRM_theoretical_13, accoa_C23H37N7O17P3S_MRM_measured_13,
-  // fad_C27H32N9O15P2_EPI_theoretical_48 & fad_C27H32N9O15P2_EPI_measured_48 are extracted from
+  // accoa_C23H37N7O17P3S_MRM_measured_13 & fad_C27H32N9O15P2_EPI_measured_48 are extracted from
   // "MID Max: LC–MS/MS Method for Measuring the Precursor and Product Mass Isotopomer Distributions
   // of Metabolic Intermediates and Cofactors for Metabolic Flux Analysis Applications, McCloskey et al",
   // DOI: 10.1021/acs.analchem.5b03887, Supporting Information: Table S-2
-  std::vector<double>             L1_norm_max                             {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>           L1_norm_max                             {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
 
-  std::vector<double>             accoa_C23H37N7O17P3S_MRM_theoretical_13 {0.69, 0.202, 0.084, 0.019, 0.004, 0.001};
-  std::vector<double>             accoa_C23H37N7O17P3S_MRM_measured_13    {0.627, 0.253, 0.096, 0.02, 0.004, 0.001};
+  std::vector<double>           accoa_C23H37N7O17P3S_MRM_theoretical_13 ;
+  std::vector<double>           fad_C27H32N9O15P2_EPI_theoretical_48    ;
 
-  std::vector<double>             fad_C27H32N9O15P2_EPI_theoretical_48    {0.695, 0.233,  0.059,  0.011,  0.002, 0.0};
-  std::vector<double>             fad_C27H32N9O15P2_EPI_measured_48       {0.638, 0.355, 0.1, 0.0, 0.0, 0.0};
-  std::vector<double>             Average_accuracy_groundtruth            {0.02388, 0.0345}; // [accoa_13, fad_48]
+  std::vector<double>           accoa_C23H37N7O17P3S_MRM_measured_13    {0.627, 0.253, 0.096, 0.02, 0.004, 0.001};
+  std::vector<double>           fad_C27H32N9O15P2_EPI_measured_48       {0.638, 0.355, 0.1, 0.0, 0.0, 0.0};
+  std::vector<double>           Average_accuracy_groundtruth            {0.02374, 0.03451}; // [accoa_13, fad_48]
 
-  std::vector<OpenMS::Feature>    L1_subordinates_normmax;
+  std::vector<OpenMS::Feature>  L1_subordinates_normmax;
+
+  IsotopeDistribution accoa_C23H37N7O17P3S_MRM_theoretical_iso(EmpiricalFormula("C23H37N7O17P3S").getIsotopeDistribution(CoarseIsotopePatternGenerator(6)));
+  for (IsotopeDistribution::ConstIterator it = accoa_C23H37N7O17P3S_MRM_theoretical_iso.begin(); it != accoa_C23H37N7O17P3S_MRM_theoretical_iso.end(); ++it)
+  {
+    accoa_C23H37N7O17P3S_MRM_theoretical_13.push_back( it->getIntensity() );
+  }
+
+  IsotopeDistribution fad_C27H32N9O15P2_EPI_theoretical_iso(EmpiricalFormula("C27H32N9O15P2").getIsotopeDistribution(CoarseIsotopePatternGenerator(6)));
+  for (IsotopeDistribution::ConstIterator it = fad_C27H32N9O15P2_EPI_theoretical_iso.begin(); it != fad_C27H32N9O15P2_EPI_theoretical_iso.end(); ++it)
+  {
+    fad_C27H32N9O15P2_EPI_theoretical_48.push_back( it->getIntensity() );
+  }
   
   lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
   for (uint16_t i = 0; i < L1_norm_max.size(); ++i)
