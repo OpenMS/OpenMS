@@ -114,16 +114,10 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         int scan_index = SiriusMzTabWriter::extract_scan_index(str);
     
         // extract scan_number from string
-        boost::regex regexp("-(?<SCAN>\\d+)-");
-        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
+        int scan_number = SiriusMzTabWriter::extract_scan_number(str);
 
         // extract feature_id from string
-        boost::smatch match;
-        String feature_id;
-        boost::regex regexp_feature("_(?<SCAN>\\d+)-");
-        bool found = boost::regex_search(str, match, regexp_feature);
-        if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
-        String unassigned = "null";
+        String feature_id = SiriusMzTabWriter::extract_feautre_id(str);
 
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)
@@ -149,15 +143,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         csi_id.native_id = ext_nid;
         csi_id.scan_index = scan_index;
         csi_id.scan_number = scan_number;
-        // check if results were assigned to a feature
-        if (feature_id != "id_0")
-        {
-          csi_id.feature_id = feature_id;
-        }
-        else
-        {
-          csi_id.feature_id = unassigned;
-        }
+        csi_id.feature_id = feature_id;
         csi_result.identifications.push_back(csi_id);
 
         // write metadata to mzTab file
