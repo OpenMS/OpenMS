@@ -29,12 +29,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
-// $Authors: George Rosenberger $
+// $Authors: George Rosenberger, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -88,13 +89,16 @@ public:
       @brief Reads an OSW SQLite file and returns the data on MS1-, MS2- or transition-level
              as ostream (e.g. stringstream or ofstream).
     */
-    static void readToPIN(const std::string& in_osw, const OSWFile::OSWLevel osw_level, std::ostream& pin_output,
+    static void readToPIN(const std::string& filename, const OSWFile::OSWLevel osw_level, std::ostream& pin_output,
                           const double ipf_max_peakgroup_pep, const double ipf_max_transition_isotope_overlap, const double ipf_min_transition_sn);
 
     /**
-    @brief Updates an OpenSWATH OSW SQLite files with the MS1-, MS2- or transition-level results of Percolator.
+    @brief Updates an OpenSWATH OSW SQLite file with the MS1-, MS2- or transition-level results of Percolator.
     */
     static void writeFromPercolator(const std::string& in_osw, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
+
+    /// read data from an SQLLite OSW file @p filename into @p swath_result
+    static void read(const String& filename, OSWData& swath_result);
 
   };
 

@@ -936,9 +936,9 @@ namespace OpenMS
                              , chromatogram.end());
         }
 
-        // Add the transition and the chromatogram to the MRMTransitionGroup
-        transition_group.addTransition(*transition, transition->getNativeID());
-        transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+        // Add the transition and the chromatogram to the MRMTransitionGroup; both have identical nativeIDs!
+        transition_group.addTransition(*transition);
+        transition_group.addChromatogram(chromatogram);
       }
 
       // currently .tsv, .osw and .featureXML are mutually exclusive
@@ -952,8 +952,7 @@ namespace OpenMS
         String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
         if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
         {
-          MSChromatogram chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
-          transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
+          transition_group.addPrecursorChromatogram( ms1_chromatograms[ms1_chromatogram_map[prec_id]] );
         }
       }
 
@@ -978,8 +977,11 @@ namespace OpenMS
       // 6. Add to the output osw if given
       if (osw_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
-        const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
-        to_osw_output.push_back(osw_writer.prepareLine(pep, detection_assay_it, output, id));
+        const OpenSwath::LightCompound pep;
+        to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
+                                                       nullptr, // not used currently: detection_assay_it,
+                                                       output,
+                                                       id));
       }
     }
 

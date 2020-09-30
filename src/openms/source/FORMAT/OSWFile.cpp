@@ -35,11 +35,14 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <sqlite3.h>
 
 #include <cstring> // for strcmp
 #include <sstream>
+
+#include <iostream> // remove
 
 namespace OpenMS
 {
@@ -268,6 +271,202 @@ namespace OpenMS
         conn.executeStatement(insert_sqls[i]);
       }
       conn.executeStatement("END TRANSACTION");
+    }
+
+    void OSWFile::read(const String& filename, OSWData& swath_result)
+    {
+      swath_result.clear();
+
+      // Open database
+      SqliteConnector conn(filename);
+      Sql::SqlState rc;
+      Size count = Sql::countTableRows(conn, "RUN");
+      if (count != 1)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Database '" + filename + "' contains more than one RUN. This is currently not supported!");
+      }
+
+      // Grab transitions first
+      // We do this separately, because the full sql query below will show transitions in duplicates, because many features might use the same XIC at different positions
+      const StringList colnames_tr = { "ID", "PRODUCT_MZ", "TYPE", "DECOY", "ANNOTATION" };
+      enum COLIDs
+      {
+        ID,
+        PRODUCT_MZ,
+        TYPE,
+        DECOY,
+        ANNOTATION
+      };
+
+      String select_transitions = "SELECT " + ListUtils::concatenate(colnames_tr, ",") +" FROM TRANSITION ORDER BY ID;";
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, select_transitions);
+      rc = Sql::nextRow(stmt);
+      while (rc == Sql::SqlState::ROW)
+      {
+        OSWTransition tr(Sql::extractString(stmt, COLIDs::ANNOTATION),
+                         Sql::extractInt(stmt, COLIDs::ID),
+                         Sql::extractFloat(stmt, COLIDs::PRODUCT_MZ),
+                         Sql::extractChar(stmt, COLIDs::TYPE),
+                         Sql::extractInt(stmt, COLIDs::DECOY));
+        swath_result.addTransition(std::move(tr));
+        rc = Sql::nextRow(stmt);
+      }
+      sqlite3_finalize(stmt);
+
+      // check of SCORE_MS2 table is available (for OSW files which underwent pyProphet)
+      // set q_value to -1 if missing
+      bool has_SCORE_MS2 = Sql::countTableRows(conn, "SCORE_MS2") > 0;
+      String MS2_select = (has_SCORE_MS2 ? "SCORE_MS2.QVALUE as qvalue" : "-1 as qvalue");
+      String MS2_join = (has_SCORE_MS2 ? "inner join(select * from SCORE_MS2) as SCORE_MS2 on SCORE_MS2.FEATURE_ID = FEATURE.ID" : "");
+
+      // assemble the protein-PeptidePrecursor-Feature hierachy
+      String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession, PROTEIN.DECOY as decoy, \
+                                  PEPTIDE.MODIFIED_SEQUENCE as modified_sequence,\
+                                  PRECURSOR.ID as prec_id, PRECURSOR.PRECURSOR_MZ as pc_mz, PRECURSOR.CHARGE as pc_charge,\
+                                  FEATURE.ID as feat_id, FEATURE.EXP_RT as rt_expected, FEATURE.DELTA_RT as rt_delta, FEATURE.LEFT_WIDTH as rt_left_width, FEATURE.RIGHT_WIDTH as rt_right_width,\
+                                  FeatTrMap.TRANSITION_ID as tr_id," +
+                                  MS2_select + "\
+        from PROTEIN\
+        inner join(select* FROM PEPTIDE_PROTEIN_MAPPING) as PepProtMap on PepProtMap.PROTEIN_ID = PROTEIN.ID\
+        inner join(select ID, MODIFIED_SEQUENCE FROM PEPTIDE) as PEPTIDE on PEPTIDE.ID = PepProtMap.PEPTIDE_ID\
+        inner join(select * FROM PRECURSOR_PEPTIDE_MAPPING) as PrePepMap on PrePepMap.PEPTIDE_ID = PEPTIDE.ID\
+        inner join(select * from PRECURSOR) as PRECURSOR on PRECURSOR.ID = PrePepMap.PRECURSOR_ID\
+        inner join(select * from FEATURE) as FEATURE on FEATURE.PRECURSOR_ID = PRECURSOR.ID\
+        inner join(select * from FEATURE_TRANSITION) as FeatTrMap on FeatTrMap.FEATURE_ID = FEATURE.ID " +
+        MS2_join + "\
+        order by prot_id, prec_id, feat_id, qvalue, tr_id";
+
+      std::cout << select_sql << "\n\n";
+
+      conn.prepareStatement(&stmt, select_sql);
+      enum CBIG
+      { // indices of respective columns in the query above
+        I_PROTID,
+        I_ACCESSION,
+        I_DECOY,
+        I_MODSEQ,
+        I_PRECID,
+        I_PRECMZ,
+        I_PRECQ,
+        I_FEATID,
+        I_EXPRT,
+        I_DELTART,
+        I_RTLEFT,
+        I_RTRIGHT,
+        I_TRID,
+        I_QVALUE,
+        SIZE_OF_CBIG
+      };
+      rc = Sql::nextRow(stmt);
+      if (sqlite3_column_count(stmt) != SIZE_OF_CBIG)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Query was changed! Please report this bug!");
+      }
+      
+      if (rc == Sql::SqlState::DONE)
+      { // no data
+        return;
+      }
+
+      // Layers of information. Whenever the id changes, we know a new item has begun
+      // ... PROTEIN
+      int prot_id_old{ Sql::extractInt(stmt, I_PROTID) }, prot_id_new;
+      String accession_old = Sql::extractString(stmt, I_ACCESSION), accession_new;
+      std::vector<OSWPeptidePrecursor> precursors;
+      auto check_add_protein = [&]()
+      {
+        if (prot_id_old != prot_id_new)
+        {
+          swath_result.addProtein(OSWProtein(accession_old, precursors));
+          prot_id_old = prot_id_new;
+          accession_old = accession_new;
+          precursors.clear();
+        }
+      };
+      // ... PRECURSOR
+      int prec_id_old{ Sql::extractInt(stmt, I_PRECID) }, prec_id_new;
+      String seq_old{ Sql::extractString(stmt, I_MODSEQ) }, seq_new;
+      short chargePC_old{ (short)Sql::extractInt(stmt, I_PRECQ) }, chargePC_new;
+      bool decoy_old{ Sql::extractBool(stmt, I_DECOY) }, decoy_new;
+      float precmz_old{ Sql::extractFloat(stmt, I_PRECMZ) }, precmz_new;
+      std::vector<OSWPeakGroup> features;
+      auto check_add_pc = [&]()
+      {
+        if (prec_id_old != prec_id_new)
+        {
+          precursors.push_back(OSWPeptidePrecursor(seq_old, chargePC_old, decoy_old, precmz_old, features));
+          prec_id_old = prec_id_new;
+          seq_old = seq_new;
+          chargePC_old = chargePC_new;
+          decoy_old = decoy_new;
+          precmz_old = precmz_new;
+          features.clear();
+          return true;
+        }
+        return false;
+      };
+      // ... FEATURE
+      Int64 feat_id_old{ Sql::extractInt64(stmt, I_FEATID) }, feat_id_new; // in SQL, feature_id is a 63-bit integer... parsing it would be expensive. So we just use the string.
+      float rt_exp_old{ Sql::extractFloat(stmt, I_EXPRT) }, rt_exp_new;
+      float rt_lw_old{ Sql::extractFloat(stmt, I_RTLEFT) }, rt_lw_new;
+      float rt_rw_old{ Sql::extractFloat(stmt, I_RTRIGHT) }, rt_rw_new;
+      float rt_delta_old{ Sql::extractFloat(stmt, I_DELTART) }, rt_delta_new;
+      float qvalue_old{ Sql::extractFloat(stmt, I_QVALUE) }, qvalue_new;
+      std::vector<UInt32> transition_ids;
+      auto check_add_feat = [&]()
+      {
+        if (feat_id_old != feat_id_new)
+        {
+          features.push_back(OSWPeakGroup(rt_exp_old, rt_lw_old, rt_rw_old, rt_delta_old, transition_ids, qvalue_old));
+          feat_id_old = feat_id_new;
+          rt_exp_old = rt_exp_new;
+          rt_lw_old = rt_lw_new;
+          rt_rw_old = rt_rw_new;
+          rt_delta_old = rt_delta_new;
+          qvalue_old = qvalue_new;
+          transition_ids.clear();
+          return true;
+        }
+        return false;
+      };
+
+      // protein loop
+      while (rc == Sql::SqlState::ROW)
+      {
+        prot_id_new = Sql::extractInt(stmt, I_PROTID);
+        accession_new = Sql::extractString(stmt, I_ACCESSION);
+        decoy_new = Sql::extractBool(stmt, I_DECOY);
+        // precursor loop (peptide with charge)
+        while (rc == Sql::SqlState::ROW)
+        {
+          prec_id_new = Sql::extractInt(stmt, I_PRECID);
+          seq_new = Sql::extractString(stmt, I_MODSEQ);
+          chargePC_new = Sql::extractInt(stmt, I_PRECQ);
+          precmz_new = Sql::extractFloat(stmt, I_PRECMZ);
+          // feature loop
+          while (rc == Sql::SqlState::ROW)
+          {
+            feat_id_new = Sql::extractInt64(stmt, I_FEATID);
+            transition_ids.push_back(Sql::extractInt(stmt, I_TRID));
+            rt_exp_new = Sql::extractFloat(stmt, I_EXPRT);
+            rt_lw_new = Sql::extractFloat(stmt, I_RTLEFT);
+            rt_rw_new = Sql::extractFloat(stmt, I_RTRIGHT);
+            rt_delta_new = Sql::extractFloat(stmt, I_DELTART);
+            qvalue_new = Sql::extractFloat(stmt, I_QVALUE);
+            if (check_add_feat()) break; // feature ended --> check if precursor ended as well.
+            rc = Sql::nextRow(stmt); // next row
+          }
+          if (check_add_pc()) break; // PC ended --> check if protein ended as well.
+          rc = Sql::nextRow(stmt); // next row
+        }
+        check_add_protein();
+        rc = Sql::nextRow(stmt); // next row
+      }
+      check_add_feat();    // add last feature
+      check_add_pc();      // add last precursor
+      check_add_protein(); // add last protein
+      sqlite3_finalize(stmt);
     }
 
 } // namespace OpenMS

@@ -906,8 +906,8 @@ namespace OpenMS
       ///////////////////////////////////////////////////////////////////////////
       // add the peptide hit information to the feature
       ///////////////////////////////////////////////////////////////////////////
-      PeptideIdentification pep_id_ = PeptideIdentification();
-      PeptideHit pep_hit_ = PeptideHit();
+      PeptideIdentification pep_id_;
+      PeptideHit pep_hit_;
 
       if (pep->getChargeState() != 0)
       {
@@ -1136,8 +1136,8 @@ namespace OpenMS
 
       // Now add the transition and the chromatogram to the group
       MRMTransitionGroupType& transition_group = transition_group_map[transition->getPeptideRef()];
-      transition_group.addTransition(*transition, transition->getNativeID());
-      transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+      transition_group.addTransition(*transition);
+      transition_group.addChromatogram(chromatogram);
 
       setProgress(++progress);
     }
@@ -1146,7 +1146,7 @@ namespace OpenMS
     // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
-      if (!trgroup_it->second.isInternallyConsistent() || trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size())
+      if (!trgroup_it->second.isInternallyConsistent())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
                                          trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \

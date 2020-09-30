@@ -113,7 +113,6 @@ public:
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
-      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       std::vector<MSChromatogram > picked_chroms;
       std::vector<MSChromatogram > smoothed_chroms;
@@ -226,7 +225,6 @@ public:
                                 const int peak_idx)
     {
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
-      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
@@ -414,7 +412,7 @@ public:
           if (!transition_group.getTransitions()[k].isDetectingTransition())
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "When using non-censensus peak picker, all transitions need to be detecting transitions.");
+                "When using non-consensus peak picker, all transitions need to be detecting transitions.");
           }
           local_left = left_edges[k];
           local_right = right_edges[k];

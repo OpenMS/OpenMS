@@ -38,9 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
-#include <sstream>
-
 // forward declarations
 struct sqlite3;
 struct sqlite3_stmt;
@@ -59,7 +56,7 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    SqliteConnector();
+    SqliteConnector() = delete;
 
     explicit SqliteConnector(const String& filename)
     {
@@ -106,19 +103,6 @@ public:
     bool columnExists(const String& tablename, const String& colname)
     {
       return columnExists(db_, tablename, colname);
-    }
-
-    /**
-      @brief Executes a given SQL statement (insert statement)
-
-      This is useful for writing a single row of data
-
-      @p statement The SQL statement
-
-    */
-    void executeStatement(const std::stringstream& statement)
-    {
-      executeStatement(db_, statement);
     }
 
     /**
@@ -270,7 +254,7 @@ protected:
     void openDatabase(const String& filename);
 
 protected:
-    sqlite3 *db_;
+    sqlite3 *db_ = nullptr;
 
   };
 
@@ -278,6 +262,25 @@ protected:
   {
     namespace SqliteHelper
     {
+      /// Counts the number of entries in SQL table @p table_name
+      /// @throws Exception::SqlOperationFailed if table is unknown
+      Size countTableRows(SqliteConnector& conn, const String& table_name);
+
+      enum class SqlState
+      {
+        ROW,
+        DONE,
+        ERROR ///< includes SQLITE_BUSY, SQLITE_ERROR, SQLITE_MISUSE
+      };
+
+      /**
+         @brief retrieves the next row from a prepared statement
+ 
+         @return one of SqlState::ROW or SqlState::DONE
+         @throws Exception::SqlOperationFailed if state would be SqlState::ERROR
+      */
+      SqlState nextRow(sqlite3_stmt* stmt);
+
 
       /**
         @brief Extracts a specific value from an SQL column
@@ -311,6 +314,7 @@ protected:
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
       template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<Int64>(Int64* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
       template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
@@ -319,6 +323,19 @@ protected:
       /// Special case where an integer should be stored in a String field
       bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
 
+      /** @defgroup sqlThrowingGetters Functions for getting values from sql-select statements
+          
+          All these function throw Exception::SqlOperationFailed if the given position is of the wrong type.
+       @{
+       */
+      double extractDouble(sqlite3_stmt* stmt, int pos);
+      float extractFloat(sqlite3_stmt* stmt, int pos); ///< convenience function; note: in SQL there is no float, just double. So this might be narrowing.
+      int extractInt(sqlite3_stmt* stmt, int pos);
+      Int64 extractInt64(sqlite3_stmt* stmt, int pos);
+      String extractString(sqlite3_stmt* stmt, int pos);
+      char extractChar(sqlite3_stmt* stmt, int pos);
+      bool extractBool(sqlite3_stmt* stmt, int pos);
+      /** @} */ // end of sqlThrowingGetters
     }
   }
 
