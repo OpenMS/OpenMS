@@ -434,7 +434,7 @@ jobs:
             ls -la wheels/
 
     - name: Publish package to nightly PyPI
-      if: ! contains(github.ref, "Release")
+      if: "!contains(github.ref, 'Release')"
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
@@ -442,7 +442,7 @@ jobs:
         packages_dir: ${{ github.workspace }}/wheels
         
     - name: Publish package to PyPI
-      if: contains(github.ref, "Release")
+      if: "contains(github.ref, 'Release')"
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
