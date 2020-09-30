@@ -106,7 +106,7 @@ END_SECTION
 
 BOOST_AUTO_TEST_CASE(double_SpectralAngle_test)
 {
-#if 0
+/*
   # example python code of two reference implementations
   # see https://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python/13849249#13849249
   
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(double_SpectralAngle_test)
       b = spectral_angle(v1, v2)
       if a != b:
           print(f'Failed:\n\tv1 = {v1}\n\tv2 = {v2}\n\ta = {a}\n\tb = {b}\n\ta - b = {a - b}')
-#endif
+*/
   
   static constexpr double pi{3.141592653589793};
   static constexpr double piOver2{0.5 * pi};
