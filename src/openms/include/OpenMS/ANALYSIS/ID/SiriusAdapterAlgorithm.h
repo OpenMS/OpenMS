@@ -74,6 +74,14 @@ namespace OpenMS
       };
 
       /**
+      @brief Comparison function using the extracted scan_index from the sirius workspace file path
+
+      @return bool
+
+      */
+      static bool extractAndCompareScanIndexLess(const String& i, const String& j);
+
+      /**
       @brief Preprocessing needed for SIRIUS
 
       @return FeatureToMS2Indices

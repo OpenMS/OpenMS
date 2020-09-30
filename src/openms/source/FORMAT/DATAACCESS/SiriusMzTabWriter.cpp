@@ -43,19 +43,19 @@
 using namespace OpenMS;
 using namespace std;
 
-int SiriusMzTabWriter::extract_scan_index(const String& path)
+int SiriusMzTabWriter::extractScanIndex(const String& path)
 {
   boost::regex regexp_ind("--(?<SCAN>\\d+)--");
   return SpectrumLookup::extractScanNumber(path, regexp_ind, false);
 }
 
-int SiriusMzTabWriter::extract_scan_number(const String& path)
+int SiriusMzTabWriter::extractScanNumber(const String& path)
 {
   boost::regex regexp("-(?<SCAN>\\d+)--");
   return SpectrumLookup::extractScanNumber(path, regexp, false);
 }
 
-String SiriusMzTabWriter::extract_feautre_id(const String& path)
+String SiriusMzTabWriter::extractFeatureId(const String& path)
 {
   boost::smatch match;
   String feature_id;
@@ -138,13 +138,13 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
-        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
+        int scan_index = SiriusMzTabWriter::extractScanIndex(str);
 
         // extract scan_number from string
-        int scan_number = SiriusMzTabWriter::extract_scan_number(str);
+        int scan_number = SiriusMzTabWriter::extractScanNumber(str);
 
         // extract feature_id from string
-        String feature_id = SiriusMzTabWriter::extract_feautre_id(str);
+        String feature_id = SiriusMzTabWriter::extractFeatureId(str);
 
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)

@@ -183,11 +183,6 @@ protected:
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);  
   }
 
-  static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
-  {
-    return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
-  }
-
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -418,7 +413,7 @@ protected:
                                                              sirius_algo);
   
         // sort vector path list
-        std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
+        std::sort(subdirs.begin(), subdirs.end(), SiriusAdapterAlgorithm::extractAndCompareScanIndexLess);
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
         // get Sirius FragmentAnnotation from subdirs

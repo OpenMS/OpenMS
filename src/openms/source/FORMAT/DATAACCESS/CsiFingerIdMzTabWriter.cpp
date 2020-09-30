@@ -111,13 +111,13 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
 
         // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
-        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
+        int scan_index = SiriusMzTabWriter::extractScanIndex(str);
     
         // extract scan_number from string
-        int scan_number = SiriusMzTabWriter::extract_scan_number(str);
+        int scan_number = SiriusMzTabWriter::extractScanNumber(str);
 
         // extract feature_id from string
-        String feature_id = SiriusMzTabWriter::extract_feautre_id(str);
+        String feature_id = SiriusMzTabWriter::extractFeatureId(str);
 
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)

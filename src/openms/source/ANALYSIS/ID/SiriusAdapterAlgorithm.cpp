@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -182,6 +183,11 @@ namespace OpenMS
     const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpMsFile() const
     {
       return tmp_ms_file_;
+    }
+
+    bool SiriusAdapterAlgorithm::extractAndCompareScanIndexLess(const String& i, const String& j)
+    {
+      return (SiriusMzTabWriter::extractScanIndex(i) < SiriusMzTabWriter::extractScanIndex(j));
     }
     
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
