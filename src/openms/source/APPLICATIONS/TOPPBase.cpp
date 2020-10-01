@@ -2192,11 +2192,11 @@ namespace OpenMS
   {
     if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
     {
-      return String("http://www.openms.de/doxygen/release/") + VersionInfo::getVersion() +´"/html/TOPP_" + tool_name_ + ".html";
+      return String("http://www.openms.de/doxygen/release/") + VersionInfo::getVersion() + "/html/TOPP_" + tool_name_ + ".html";
     }
     else if (ToolHandler::getUtilList().count(tool_name_))
     {
-      return String("http://www.openms.de/doxygen/release/") + VersionInfo::getVersion() +´"/html/UTILS_" + tool_name_ + ".html";
+      return String("http://www.openms.de/doxygen/release/") + VersionInfo::getVersion() + "/html/UTILS_" + tool_name_ + ".html";
     }
     else
     {
