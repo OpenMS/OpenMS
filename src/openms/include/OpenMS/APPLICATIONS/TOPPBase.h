@@ -371,6 +371,7 @@ private:
     */
     String getSubsection_(const String& name) const;
 
+    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
     String getDocumentationURL() const;
 
     /// Returns the default parameters
