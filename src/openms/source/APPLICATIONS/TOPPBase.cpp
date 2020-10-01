@@ -2190,19 +2190,16 @@ namespace OpenMS
 
   String TOPPBase::getDocumentationURL() const
   {
-    if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
+    VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
+    String toolprefix = official_ ? "TOPP_" : "UTILS_";
+    if (ver.pre_release_identifier.empty())
     {
-      return String("http://www.openms.de/doxygen/release/") + VersionInfo::getVersion() + "/html/TOPP_" + tool_name_ + ".html";
-    }
-    else if (ToolHandler::getUtilList().count(tool_name_))
-    {
-      return String("http://www.openms.de/doxygen/release/") + VersionInfo::getVersion() + "/html/UTILS_" + tool_name_ + ".html";
+      String release_version = ver.version_major + "." + ver.version_minor + "." + ver.version_patch;
+      return String("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ prefix + tool_name_ + ".html";
     }
     else
     {
-      // TODO: Fix tests first
-      // throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A tool either needs to be an official tool or registered as util (TOPP tool not registered)");
-      return "";
+      return String("http://www.openms.de/doxygen/nightly/html/") + prefix + tool_name_ + ".html";
     }
   }
 
