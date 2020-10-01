@@ -2192,6 +2192,8 @@ namespace OpenMS
   {
     VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
     String toolprefix = official_ ? "TOPP_" : "UTILS_";
+    // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
+    // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
     if (ver.pre_release_identifier.empty())
     {
       String release_version = ver.version_major + "." + ver.version_minor + "." + ver.version_patch;
