@@ -782,6 +782,34 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::keepNBestSpectra(std::vector<PeptideIdentification>& spectra, Size n)
+  {
+    for (PeptideIdentification& s : spectra) { s.sort(); }
+
+    // there might be less spectra identified then n -> adapt
+    n = std::min(n, spectra.size());    
+    std::partial_sort(spectra.begin(), spectra.begin() + n, spectra.end(),
+      [] (const PeptideIdentification& l, const PeptideIdentification& r) 
+      {
+        if (r.getScoreType() != l.getScoreType())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
+        }
+
+        if (r.getHits().empty()) return true; // right has no hit? -> left is better
+        if (l.getHits().empty()) return false; // left has no hit but right has a hit? -> right is better
+
+        const bool higher_better = l.isHigherScoreBetter();
+        const double l_score = l.getHits()[0].getScore();
+        const double r_score = r.getHits()[0].getScore();
+      
+        // both have hits? better score of best PSM is better
+        if (higher_better) return l_score > r_score;
+ 
+        return l_score < r_score;
+      });
+    spectra.resize(n);
+  }
 
   void IDFilter::keepBestMatchPerQuery(
     IdentificationData& id_data,
