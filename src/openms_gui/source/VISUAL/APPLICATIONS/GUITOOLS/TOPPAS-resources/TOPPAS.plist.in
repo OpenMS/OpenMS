@@ -54,5 +54,9 @@
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
     <key>NSRequiresAquaSystemAppearance</key>
     <string>true</string>  
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSHighResolutionCapable</key>
+    <string>True</string>
 </dict>
 </plist>
