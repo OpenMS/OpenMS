@@ -179,6 +179,11 @@ jobs:
               lnknm=$(basename "${f%/*}" ".framework")
               ln -s $f $lnknm
             done
+            for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
+            do
+              install_name_tool -id $f $f
+            done
+            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
           mkdir bld
           pushd bld
@@ -254,8 +259,8 @@ jobs:
 
     - name: Build on manylinux2014 
       run: |
-            # fixes some issues with empty pxd files
-            rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
+            ## Do not load shared objects from root folder oft he package at import. Auditwheel handles dependencies.
+            patch -p0 $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyopenms/__init__.py < $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/dist-scripts/manylinux.patch
 
             # install Python deps
             for PYBIN in /opt/python/cp3*; do
@@ -399,7 +404,9 @@ jobs:
           pip install $CURRENT_WHL
 
           python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"
-
+          ## at least test the import
+          ## TODO run test suite?
+          python -c "import pyopenms"
           conda deactivate
 
           # clean up
