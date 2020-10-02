@@ -228,14 +228,13 @@ namespace OpenMS
         return res;
       }
 
-      /**
-      @brief retrieves the next row from a prepared statement
-
-      @return one of SqlState::ROW or SqlState::DONE
-      @throws Exception::SqlOperationFailed if state would be SqlState::ERROR
-      */
-      SqlState nextRow(sqlite3_stmt* stmt)
+      SqlState nextRow(sqlite3_stmt* stmt, SqlState current)
       {
+        if (current != SqlState::ROW)
+        { // querying a new row after the last invocation gave 'DONE' might loop around
+          // to the first entry and give an infinite loop!!!
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation requested on DONE/ERROR state. This should never happen. Please file a bug report!");
+        }
         int rc = sqlite3_step(stmt);
         if (rc == SQLITE_ROW)
         {

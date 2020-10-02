@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 ///////////////////////////
 
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -113,20 +115,43 @@ INNER JOIN (SELECT PEPTIDE_ID as PID, PROTEIN_ID as POD FROM PEPTIDE_PROTEIN_MAP
 START_SECTION(static void read(const std::string& filename, OSWData& swath_result))
 	
 	OSWData res;
-	OSWFile::read(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"), res);
+	/*StopWatch s;
+	s.start();
+	OSWFile::read("c:\\Users\\bielow\\SwathWizardOut\\olgas_K121026_001_SW_Wayne_R1_d00_copy.osw", res);
+	std::cout << s.toString() <<std::endl;
+	exit(1);
+	*/
 
-	TEST_EQUAL(res.protCount(), 2);
-	TEST_EQUAL(res.transitionCount(), 700);
+	OSWFile::read(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"), res); 
+	TEST_EQUAL(res.getProteins().size(), 2);
+	TEST_EQUAL(res.transitionCount(), 140);
 
-	OSWProtein prot = *res.protBegin();
-	TEST_EQUAL(prot.accession_, "1/P00167ups|CYB5_HUMAN_UPS");
-	OSWPeptidePrecursor prec = *prot.peptides_.begin();
-	TEST_EQUAL(prec.charge_, 2);
-	TEST_EQUAL(prec.decoy_, false);
-	TEST_REAL_SIMILAR(prec.precursor_mz_, 1103.4676);
-	TEST_EQUAL(prec.seq_, "EQAGGDATENFEDVGHSTDAR");
-
-
+	const OSWProtein& prot = *res.getProteins().begin();
+	TEST_EQUAL(prot.getAccession(), "1/P00167ups|CYB5_HUMAN_UPS");
+	const OSWPeptidePrecursor& prec = *prot.getPeptidePrecursors().begin();
+	TEST_EQUAL(prec.getCharge(), 2);
+	TEST_EQUAL(prec.isDecoy(), false);
+	TEST_REAL_SIMILAR(prec.getPCMz(), 1103.4676);
+	TEST_EQUAL(prec.getSequence(), "EQAGGDATENFEDVGHSTDAR");
+	TEST_EQUAL(prec.getFeatures().size(), 5);
+	const std::vector<UInt32> tr{ 236830, 236831, 236832, 236833, 236834};
+	const auto& trd = prec.getFeatures().back().getTransitionIDs();
+	TEST_EQUAL(trd == tr, true);
+	// check last transition
+	const OSWProtein& prot_last = res.getProteins().back();
+	TEST_EQUAL(prot_last.getPeptidePrecursors().back().getFeatures().back().getTransitionIDs().back(), 99);
+	
+	// all features should have 5 transitions
+	for (const auto& prot : res.getProteins())
+	{
+		for (const auto& pc : prot.getPeptidePrecursors())
+		{
+			for (const auto& feat : pc.getFeatures())
+			{
+				TEST_EQUAL(feat.getTransitionIDs().size(), 5);
+			}
+		}
+	}
 			
 END_SECTION			
 

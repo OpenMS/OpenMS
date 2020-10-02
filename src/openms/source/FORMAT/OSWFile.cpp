@@ -41,8 +41,7 @@
 
 #include <cstring> // for strcmp
 #include <sstream>
-
-#include <iostream> // remove
+#include <utility> // for std::move
 
 namespace OpenMS
 {
@@ -298,6 +297,9 @@ namespace OpenMS
         ANNOTATION
       };
 
+      // does not make the query below any faster...
+      //conn.executeStatement("ANALYZE");
+
       String select_transitions = "SELECT " + ListUtils::concatenate(colnames_tr, ",") +" FROM TRANSITION ORDER BY ID;";
       sqlite3_stmt* stmt;
       conn.prepareStatement(&stmt, select_transitions);
@@ -321,10 +323,11 @@ namespace OpenMS
       String MS2_join = (has_SCORE_MS2 ? "inner join(select * from SCORE_MS2) as SCORE_MS2 on SCORE_MS2.FEATURE_ID = FEATURE.ID" : "");
 
       // assemble the protein-PeptidePrecursor-Feature hierachy
+      // note: when changing the query, make sure to keep the indices in CBIG in sync!!!
       String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession, PROTEIN.DECOY as decoy, \
                                   PEPTIDE.MODIFIED_SEQUENCE as modified_sequence,\
                                   PRECURSOR.ID as prec_id, PRECURSOR.PRECURSOR_MZ as pc_mz, PRECURSOR.CHARGE as pc_charge,\
-                                  FEATURE.ID as feat_id, FEATURE.EXP_RT as rt_expected, FEATURE.DELTA_RT as rt_delta, FEATURE.LEFT_WIDTH as rt_left_width, FEATURE.RIGHT_WIDTH as rt_right_width,\
+                                  FEATURE.ID as feat_id, FEATURE.EXP_RT as rt_experimental, FEATURE.DELTA_RT as rt_delta, FEATURE.LEFT_WIDTH as rt_left_width, FEATURE.RIGHT_WIDTH as rt_right_width,\
                                   FeatTrMap.TRANSITION_ID as tr_id," +
                                   MS2_select + "\
         from PROTEIN\
@@ -337,7 +340,10 @@ namespace OpenMS
         MS2_join + "\
         order by prot_id, prec_id, feat_id, qvalue, tr_id";
 
-      std::cout << select_sql << "\n\n";
+
+        //from   (select* from PROTEIN  where ID = 2248) as PROTEIN
+        //  do not use name -- its as slow as full query
+
 
       conn.prepareStatement(&stmt, select_sql);
       enum CBIG
@@ -374,11 +380,13 @@ namespace OpenMS
       int prot_id_old{ Sql::extractInt(stmt, I_PROTID) }, prot_id_new;
       String accession_old = Sql::extractString(stmt, I_ACCESSION), accession_new;
       std::vector<OSWPeptidePrecursor> precursors;
-      auto check_add_protein = [&]()
+      OSWPeptidePrecursor new_pc;
+      auto check_add_protein = [&](bool add_force = false)
       {
-        if (prot_id_old != prot_id_new)
+        precursors.push_back(new_pc); // the last PC already belonged to the old protein
+        if (prot_id_old != prot_id_new || add_force)
         {
-          swath_result.addProtein(OSWProtein(accession_old, precursors));
+          swath_result.addProtein(OSWProtein(accession_old, std::move(precursors)));
           prot_id_old = prot_id_new;
           accession_old = accession_new;
           precursors.clear();
@@ -391,20 +399,23 @@ namespace OpenMS
       bool decoy_old{ Sql::extractBool(stmt, I_DECOY) }, decoy_new;
       float precmz_old{ Sql::extractFloat(stmt, I_PRECMZ) }, precmz_new;
       std::vector<OSWPeakGroup> features;
-      auto check_add_pc = [&]()
+      OSWPeakGroup new_feature;
+      auto check_add_pc = [&](bool add_force = false)
       {
-        if (prec_id_old != prec_id_new)
+        bool ret = false;
+        features.push_back(std::move(new_feature)); // the last feature belonged to the old PC
+        if (prec_id_old != prec_id_new || add_force)
         {
-          precursors.push_back(OSWPeptidePrecursor(seq_old, chargePC_old, decoy_old, precmz_old, features));
+          new_pc = std::move(OSWPeptidePrecursor(seq_old, chargePC_old, decoy_old, precmz_old, std::move(features)));
           prec_id_old = prec_id_new;
           seq_old = seq_new;
           chargePC_old = chargePC_new;
           decoy_old = decoy_new;
           precmz_old = precmz_new;
           features.clear();
-          return true;
+          ret = true;
         }
-        return false;
+        return ret;
       };
       // ... FEATURE
       Int64 feat_id_old{ Sql::extractInt64(stmt, I_FEATID) }, feat_id_new; // in SQL, feature_id is a 63-bit integer... parsing it would be expensive. So we just use the string.
@@ -414,11 +425,13 @@ namespace OpenMS
       float rt_delta_old{ Sql::extractFloat(stmt, I_DELTART) }, rt_delta_new;
       float qvalue_old{ Sql::extractFloat(stmt, I_QVALUE) }, qvalue_new;
       std::vector<UInt32> transition_ids;
-      auto check_add_feat = [&]()
+      UInt32 new_transition;
+      auto check_add_feat = [&](bool add_force = false)
       {
-        if (feat_id_old != feat_id_new)
+        bool ret = false;
+        if (feat_id_old != feat_id_new || add_force)
         {
-          features.push_back(OSWPeakGroup(rt_exp_old, rt_lw_old, rt_rw_old, rt_delta_old, transition_ids, qvalue_old));
+          new_feature = std::move(OSWPeakGroup(rt_exp_old, rt_lw_old, rt_rw_old, rt_delta_old, std::move(transition_ids), qvalue_old));
           feat_id_old = feat_id_new;
           rt_exp_old = rt_exp_new;
           rt_lw_old = rt_lw_new;
@@ -426,46 +439,56 @@ namespace OpenMS
           rt_delta_old = rt_delta_new;
           qvalue_old = qvalue_new;
           transition_ids.clear();
-          return true;
+          ret = true;
         }
-        return false;
+        else
+        { // if we enter the above block, we will parse the same sql row in the next iteration, so only add the tr-ID if its not a new block
+          transition_ids.push_back(new_transition); // the current transition belongs to the current feature...
+        }
+        return ret;
       };
 
-      // protein loop
-      while (rc == Sql::SqlState::ROW)
+      // immediately invoked lambda (to break nested loops)
+      [&]()
       {
-        prot_id_new = Sql::extractInt(stmt, I_PROTID);
-        accession_new = Sql::extractString(stmt, I_ACCESSION);
-        decoy_new = Sql::extractBool(stmt, I_DECOY);
-        // precursor loop (peptide with charge)
+        // protein loop
         while (rc == Sql::SqlState::ROW)
         {
-          prec_id_new = Sql::extractInt(stmt, I_PRECID);
-          seq_new = Sql::extractString(stmt, I_MODSEQ);
-          chargePC_new = Sql::extractInt(stmt, I_PRECQ);
-          precmz_new = Sql::extractFloat(stmt, I_PRECMZ);
-          // feature loop
+          // precursor loop (peptide with charge)
           while (rc == Sql::SqlState::ROW)
           {
-            feat_id_new = Sql::extractInt64(stmt, I_FEATID);
-            transition_ids.push_back(Sql::extractInt(stmt, I_TRID));
-            rt_exp_new = Sql::extractFloat(stmt, I_EXPRT);
-            rt_lw_new = Sql::extractFloat(stmt, I_RTLEFT);
-            rt_rw_new = Sql::extractFloat(stmt, I_RTRIGHT);
-            rt_delta_new = Sql::extractFloat(stmt, I_DELTART);
-            qvalue_new = Sql::extractFloat(stmt, I_QVALUE);
-            if (check_add_feat()) break; // feature ended --> check if precursor ended as well.
-            rc = Sql::nextRow(stmt); // next row
+            // feature loop
+            while (rc == Sql::SqlState::ROW)
+            {
+              feat_id_new = Sql::extractInt64(stmt, I_FEATID);
+              new_transition = Sql::extractInt(stmt, I_TRID);
+              rt_exp_new = Sql::extractFloat(stmt, I_EXPRT);
+              rt_lw_new = Sql::extractFloat(stmt, I_RTLEFT);
+              rt_rw_new = Sql::extractFloat(stmt, I_RTRIGHT);
+              rt_delta_new = Sql::extractFloat(stmt, I_DELTART);
+              qvalue_new = Sql::extractFloat(stmt, I_QVALUE);
+              if (check_add_feat()) break; // new feature just started?--> check if new PC started as well.
+              rc = Sql::nextRow(stmt, rc); // next row
+            }
+            if (rc != Sql::SqlState::ROW){
+              return; // we are beyond last row; new feature is not yet made, but will be after the lambda
+            }
+            prec_id_new = Sql::extractInt(stmt, I_PRECID);
+            seq_new = Sql::extractString(stmt, I_MODSEQ);
+            chargePC_new = Sql::extractInt(stmt, I_PRECQ);
+            precmz_new = Sql::extractFloat(stmt, I_PRECMZ);
+            if (check_add_pc()) break; // new PC just started?--> check if if new protein started as well.
           }
-          if (check_add_pc()) break; // PC ended --> check if protein ended as well.
-          rc = Sql::nextRow(stmt); // next row
+          prot_id_new = Sql::extractInt(stmt, I_PROTID);
+          accession_new = Sql::extractString(stmt, I_ACCESSION);
+          decoy_new = Sql::extractBool(stmt, I_DECOY);
+          check_add_protein(); // no boolean return required. There is no parent; we loop until reaching last sql row
         }
-        check_add_protein();
-        rc = Sql::nextRow(stmt); // next row
-      }
-      check_add_feat();    // add last feature
-      check_add_pc();      // add last precursor
-      check_add_protein(); // add last protein
+      }(); // end of lambda
+
+      check_add_feat(true);    // add last feature
+      check_add_pc(true);      // add last precursor
+      check_add_protein(true); // add last protein
       sqlite3_finalize(stmt);
     }
 

@@ -274,12 +274,18 @@ protected:
       };
 
       /**
-         @brief retrieves the next row from a prepared statement
- 
-         @return one of SqlState::ROW or SqlState::DONE
-         @throws Exception::SqlOperationFailed if state would be SqlState::ERROR
+        @brief retrieves the next row from a prepared statement
+
+        If you receive 'SqlState::DONE', do NOT query nextRow() again,
+        because you might enter an infinite loop!
+        To avoid oversights, you can pass the old return value into the function again
+        and get an Exception which will tell you that there is buggy code!
+
+        @param current Return value of the previous call to this function.
+        @return one of SqlState::ROW or SqlState::DONE
+        @throws Exception::SqlOperationFailed if state would be SqlState::ERROR
       */
-      SqlState nextRow(sqlite3_stmt* stmt);
+      SqlState nextRow(sqlite3_stmt* stmt, SqlState current = SqlState::ROW);
 
 
       /**

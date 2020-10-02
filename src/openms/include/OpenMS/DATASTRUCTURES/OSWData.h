@@ -41,39 +41,41 @@
 
 namespace OpenMS
 {
+    /// high-level meta data of a transition
     struct OSWTransition
     {
       public:
-        OSWTransition(const String& annotation, const UInt32 id , const float product_mz, const char type, const bool is_decoy)
-          : annotation_(annotation),
-            id_(id),
-            product_mz_(product_mz),
-            type_(type),
-            is_decoy_(is_decoy)
-        {}
-
+        /// default c'tor
+        OSWTransition() = default;
+        /// custom c'tor which fills all the members with data; all members are read-only
+        OSWTransition(const String& annotation, const UInt32 id, const float product_mz, const char type, const bool is_decoy);
         OSWTransition(const OSWTransition& rhs) = default;
         OSWTransition& operator=(const OSWTransition& rhs) = default;
         OSWTransition(OSWTransition&& rhs) = default;
         OSWTransition& operator=(OSWTransition&& rhs) = default;
         ~OSWTransition() = default;
 
+        /// e.g. y5/-0.002
         const String& getAnnotation() const
         {
           return annotation_;
         }
+        /// ID as used in OSWPeakGroup::transition_ids
         UInt32 getID() const
         {
           return id_;
         }
+        /// observed product m/z value
         float getProductMZ() const
         {
           return product_mz_;
         }
+        /// b, y
         char getType() const
         {
           return type_;
         }
+        /// is this a decoy transition (from a decoy protein/peptide)
         bool isDecoy() const
         {
           return is_decoy_;
@@ -81,61 +83,170 @@ namespace OpenMS
 
       private:
         String annotation_; ///< e.g. y5/-0.002
-        UInt32 id_;         /// ID as used in OSWPeakGroup::transition_ids
-        float product_mz_;
+        UInt32 id_;         ///< ID as used in OSWPeakGroup::transition_ids
+        float product_mz_;  ///< observed product m/z value
         char type_;         ///< b, y,
-        bool is_decoy_;
+        bool is_decoy_;     ///< is this a decoy transition (from a decoy protein/peptide)
     };
 
-    struct OSWPeakGroup // Feature == group of transtions in certain RT range
+    /**
+      A peak group (also called feature) is defined on a small RT range (leftWidth to rightWidth) in a group of extracted transitions (chromatograms).
+      The same transitions can be used to defined multiple (usually non-overlapping in RT) peak groups, of which usually only one is correct (lowest q-value).
+    */
+    class OSWPeakGroup 
     {
-      OSWPeakGroup(const float rt_experimental, const float rt_left_width, const float rt_right_width, const float rt_delta, const std::vector<UInt32>& transition_ids, const float q_value = -1)
-        : rt_experimental_(rt_experimental),
-          rt_left_width_(rt_left_width),
-          rt_right_width_(rt_right_width),
-          rt_delta_(rt_delta),
-          q_value_(q_value),
-          transition_ids_(transition_ids)
-      {
-      }
-      float rt_experimental_;   ///< rt apex of this feature in seconds (averaged across all transitions)
-      float rt_left_width_;     ///< rt start in seconds
-      float rt_right_width_;    ///< rt end in seconds
-      float rt_delta_;          ///< rt offset from expected distance
-      float q_value_ = -1;      ///< optional Q-value from pyProphet; equals -1 if not set;
-      std::vector<UInt32> transition_ids_; /// many features will point to the same transition (but at different RT);
+      public:
+        /// return value of getQValue() if .osw file did not undergo pyProphet
+        static constexpr float QVALUE_MISSING = -1;
+
+        /// just a dummy feature to allow for acceptor output values etc
+        OSWPeakGroup() = default;
+        /// custom c'tor which fills all the members with data; all members are read-only
+        OSWPeakGroup(const float rt_experimental, const float rt_left_width, const float rt_right_width, const float rt_delta, std::vector<UInt32>&& transition_ids, const float q_value = -1);
+        /// Copy c'tor
+        OSWPeakGroup(const OSWPeakGroup& rhs) = default;
+        /// move c'tor
+        OSWPeakGroup(OSWPeakGroup&& rhs) = default;
+        /// move assignment
+        OSWPeakGroup& operator=(OSWPeakGroup&& rhs) = default;
+
+        /// observed RT apex position in seconds of the feature
+        const float getRTExperimental() const
+        {
+          return rt_experimental_;
+        }
+        /// RT position in seconds of the left border
+        const float getRTLeftWidth() const
+        {
+          return rt_left_width_;
+        }
+        /// RT position in seconds of the right border
+        const float getRTRightWidth() const
+        {
+          return rt_right_width_;
+        }
+        /// RT difference in seconds to the expected RT
+        const float getRTDelta() const
+        {
+          return rt_delta_;
+        }
+        /// this might return QVALUE_MISSING if q-value is not annotated in the OSW file
+        const float getQValue() const
+        {
+          return q_value_;
+        }
+        /// get the transition ids (can be mapped to the chromatogram XICs in sqMass data)
+        const std::vector<UInt32>& getTransitionIDs() const
+        {
+          return transition_ids_;
+        }
+
+      private:
+        float rt_experimental_{ 0 }; ///< rt apex of this feature in seconds (averaged across all transitions)
+        float rt_left_width_{ 0 };   ///< rt start in seconds
+        float rt_right_width_{ 0 };  ///< rt end in seconds
+        float rt_delta_{ 0 };        ///< rt offset from expected distance
+        float q_value_{ -1 };        ///< optional Q-value from pyProphet; equals -1 if not set;
+        std::vector<UInt32> transition_ids_; /// many features will point to the same transition (but at different RT);
     };
 
-    struct OSWPeptidePrecursor
+    /**
+      @brief A peptide with a charge state
+
+      An OSWProtein has one or more OSWPeptidePrecursor's.
+
+      The OSWPeptidePrecursor contains multiple candidate features (peak groups) of type OSWPeakGroup, only one of which is usually true.
+
+    */
+    class OSWPeptidePrecursor
     {
+      public:
+        /// just a dummy feature to allow for acceptor output values etc
+        OSWPeptidePrecursor() = default;
+        /// custom c'tor which fills all the members with data; all members are read-only
+        OSWPeptidePrecursor(const String& seq, const short charge, const bool decoy, const float precursor_mz, std::vector<OSWPeakGroup>&& features);
+        /// Copy c'tor
+        OSWPeptidePrecursor(const OSWPeptidePrecursor& rhs) = default;
+        /// move c'tor
+        OSWPeptidePrecursor(OSWPeptidePrecursor&& rhs) = default;
+        /// move assignment operator
+        OSWPeptidePrecursor& operator=(OSWPeptidePrecursor&& rhs) = default;
 
-      OSWPeptidePrecursor(const String& seq, const short charge, const bool decoy, const float precursor_mz, const std::vector<OSWPeakGroup>& features)
-        : seq_(seq_),
-          charge_(charge),
-          decoy_(decoy),
-          precursor_mz_(precursor_mz),
-          features_(features)
-      {
-      }
+        /// the peptide sequence (incl. mods)
+        const String& getSequence() const
+        {
+          return seq_;
+        }
+        /// precursor charge
+        const short getCharge() const
+        {
+          return charge_;
+        }
+        /// is this a decoy feature (from a decoy protein)
+        const bool isDecoy() const
+        {
+          return decoy_;
+        }
+        /// m/z of this charged peptide
+        const float getPCMz() const
+        {
+          return precursor_mz_;
+        }
+        /// candidate explanations
+        const std::vector<OSWPeakGroup>& getFeatures() const
+        {
+          return features_;
+        }
 
-      String seq_;
-      short charge_;
-      bool decoy_;
-      float precursor_mz_;
-      std::vector<OSWPeakGroup> features_;
+      private:
+        String seq_;
+        short charge_{0};
+        bool decoy_{false};
+        float precursor_mz_{0};
+        std::vector<OSWPeakGroup> features_;
     };
 
-    struct OSWProtein
+    /**
+      @brief A Protein is the highest entity and contains one or more peptides which were found/traced.
+
+    */
+    class OSWProtein
     {
-      OSWProtein(const String& accession, const std::vector<OSWPeptidePrecursor>& peptides)
-        : accession_(accession),
-          peptides_(peptides)
-      {}
+      public:
+        /// just a dummy feature to allow for acceptor output values etc
+        OSWProtein() = default;
+        /// custom c'tor which fills all the members with data; all members are read-only
+        OSWProtein(const String& accession, std::vector<OSWPeptidePrecursor>&& peptides);
+        /// Copy c'tor
+        OSWProtein(const OSWProtein& rhs) = default;
+        /// move c'tor
+        OSWProtein(OSWProtein&& rhs) = default;
+        /// move assignment operator
+        OSWProtein& operator=(OSWProtein&& rhs) = default;
 
-      String accession_;
-      std::vector<OSWPeptidePrecursor> peptides_;
+        const String& getAccession() const
+        {
+          return accession_;
+        }
+
+        const std::vector<OSWPeptidePrecursor>& getPeptidePrecursors() const
+        {
+          return peptides_;
+        }
+
+      private:
+        String accession_;
+        std::vector<OSWPeptidePrecursor> peptides_;
     };
 
+
+    /**
+      @brief Holds all or partial information from an OSW file
+
+      First, fill in all transitions and only then add proteins (which reference transitions via their transition-ids deep down).
+      References will be checked and enforced (exception otherwise -- see addProtein()).
+
+    */
     class OSWData
     {
       public:
@@ -150,38 +261,11 @@ namespace OpenMS
         /// The transitions references internally are checked to make sure
         /// they are valid. 
         /// @throws Exception::Precondition() if transition IDs are unknown
-        void addProtein(OSWProtein&& prot)
-        {
-          // check if transitions are known
-          for (const auto& pc : prot.peptides_)
-          {
-            for (const auto& f : pc.features_)
-            {
-              for (const auto& tr : f.transition_ids_)
-              {
-                if (transitions_.find(tr) == transitions_.end())
-                {
-                  throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with ID " + String(tr) + " was referenced in Protein/Precursor/Feature but is not known!");
-                }
-              }
-            }
-          }
-          proteins_.push_back(std::move(prot));
-        }
+        void addProtein(OSWProtein&& prot);
 
-        std::vector<OSWProtein>::const_iterator protBegin() const
+        const std::vector<OSWProtein>& getProteins() const
         {
-          return proteins_.cbegin();
-        }
-
-        std::vector<OSWProtein>::const_iterator protEnd() const
-        {
-          return proteins_.cend();
-        }
-
-        Size protCount() const
-        {
-          return proteins_.size();
+          return proteins_;
         }
 
         Size transitionCount() const
@@ -194,22 +278,13 @@ namespace OpenMS
           return transitions_.at(id);
         }
         
-        std::map<UInt32, OSWTransition>::const_iterator transitionsBegin() const
+        const std::map<UInt32, OSWTransition>& getTransitions() const
         {
-          return transitions_.cbegin();
-        }
-
-        std::map<UInt32, OSWTransition>::const_iterator transitionsEnd() const
-        {
-          return transitions_.cend();
+          return transitions_;
         }
 
         /// forget all data
-        void clear()
-        {
-          transitions_.clear();
-          proteins_.clear();
-        }
+        void clear();
 
       private:
 

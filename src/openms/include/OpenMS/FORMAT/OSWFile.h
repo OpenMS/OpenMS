@@ -47,6 +47,8 @@ namespace OpenMS
   /**
     @brief This class serves for reading in and writing OpenSWATH OSW files.
 
+    See OpenSwathOSWWriter for more functionality.
+
     The reader and writer returns data in a format suitable for PercolatorAdapter.
     OSW files have a flexible data structure. They contain all peptide query
     parameters of TraML/PQP files with the detected and quantified features of
