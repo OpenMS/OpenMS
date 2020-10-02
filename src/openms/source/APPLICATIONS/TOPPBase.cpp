@@ -2191,17 +2191,17 @@ namespace OpenMS
   String TOPPBase::getDocumentationURL() const
   {
     VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
-    String toolprefix = official_ ? "TOPP_" : "UTILS_";
+    String tool_prefix = official_ ? "TOPP_" : "UTILS_";
     // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
     // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
     if (ver.pre_release_identifier.empty())
     {
-      String release_version = ver.version_major + "." + ver.version_minor + "." + ver.version_patch;
-      return String("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ prefix + tool_name_ + ".html";
+      String release_version = String(ver.version_major) + "." + String(ver.version_minor) + "." + String(ver.version_patch);
+      return String("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ tool_prefix + tool_name_ + ".html";
     }
     else
     {
-      return String("http://www.openms.de/doxygen/nightly/html/") + prefix + tool_name_ + ".html";
+      return String("http://www.openms.de/doxygen/nightly/html/") + tool_prefix + tool_name_ + ".html";
     }
   }
 
