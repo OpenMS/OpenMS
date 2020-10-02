@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except +
         void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except +
 
-        void keepNBestSpectra(libcpp_vector[PeptideIdentification>]& peptides, Size n) nogil except +
+        void keepNBestSpectra(libcpp_vector[PeptideIdentification]& peptides, Size n) nogil except +
 
         void keepNBestHits(libcpp_vector[PeptideIdentification]& ids, Size n) nogil except +
         void keepNBestHits(libcpp_vector[ProteinIdentification]& ids, Size n) nogil except +
