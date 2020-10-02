@@ -1156,7 +1156,8 @@ public:
                                  all_peptides);
     }
 
-    /// Filter identifications by "N best" spectra. If a spectrum has a better PSM (PeptideHit) than another it is considered better.
+    /// Filter identifications by "N best" PepitdeIdentification objects (better PId means better PeptideHit than other).
+    /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
     static void keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n);
 
     /// Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum

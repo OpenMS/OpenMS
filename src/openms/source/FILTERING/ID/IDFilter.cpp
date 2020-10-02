@@ -782,20 +782,31 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::keepNBestSpectra(std::vector<PeptideIdentification>& spectra, Size n)
+  void IDFilter::keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n)
   {
-    for (PeptideIdentification& s : spectra) { s.sort(); }
-
-    // there might be less spectra identified then n -> adapt
-    n = std::min(n, spectra.size());    
-    std::partial_sort(spectra.begin(), spectra.begin() + n, spectra.end(),
-      [] (const PeptideIdentification& l, const PeptideIdentification& r) 
+    String score_type;
+    for (PeptideIdentification& p : peptides) 
+    { 
+      p.sort();
+      if (score_type.empty()) 
       {
-        if (r.getScoreType() != l.getScoreType())
+        score_type = p.getScoreType();
+      }
+      else
+      {
+        if (p.getScoreType() != score_type)
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
         }
+      }                
+    }
 
+    // there might be less spectra identified then n -> adapt
+    n = std::min(n, peptides.size());
+
+    auto has_better_peptidehit = 
+      [] (const PeptideIdentification& l, const PeptideIdentification& r) 
+      {
         if (r.getHits().empty()) return true; // right has no hit? -> left is better
         if (l.getHits().empty()) return false; // left has no hit but right has a hit? -> right is better
 
@@ -807,8 +818,10 @@ namespace OpenMS
         if (higher_better) return l_score > r_score;
  
         return l_score < r_score;
-      });
-    spectra.resize(n);
+      };
+
+    std::partial_sort(peptides.begin(), peptides.begin() + n, peptides.end(), has_better_peptidehit);
+    peptides.resize(n);
   }
 
   void IDFilter::keepBestMatchPerQuery(
