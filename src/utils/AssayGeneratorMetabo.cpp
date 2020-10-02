@@ -412,13 +412,14 @@ protected:
                                                              out_csifingerid,
                                                              sirius_algo);
   
-        // sort vector path list
-        std::sort(subdirs.begin(), subdirs.end(), SiriusAdapterAlgorithm::extractAndCompareScanIndexLess);
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
+        // sort vector path list
+        std::vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
+
         // get Sirius FragmentAnnotation from subdirs
         vector<MSSpectrum> annotated_spectra;
-        for (const auto& subdir : subdirs)
+        for (const auto& subdir : sorted_subdirs)
         {
           MSSpectrum annotated_spectrum;
           SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir, 
@@ -426,7 +427,6 @@ protected:
                                                                            use_exact_mass);
           annotated_spectra.push_back(std::move(annotated_spectrum));
         }
-
 
         // should the sirius workspace be retained
         if (!sirius_workspace_directory.empty())

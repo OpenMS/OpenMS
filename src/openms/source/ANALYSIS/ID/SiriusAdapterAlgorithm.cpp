@@ -185,11 +185,30 @@ namespace OpenMS
       return tmp_ms_file_;
     }
 
-    bool SiriusAdapterAlgorithm::extractAndCompareScanIndexLess(const String& i, const String& j)
+    std::vector<String> SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(const std::vector<String>& siriusworkspacepaths)
     {
-      return (SiriusMzTabWriter::extractScanIndex(i) < SiriusMzTabWriter::extractScanIndex(j));
+      std::vector<String> sorted_siriusworkspacepaths;
+      std::vector<SiriusAdapterAlgorithm::SiriusWorkspaceIndex> indices;
+
+      for (size_t i = 0; i < siriusworkspacepaths.size(); i++)
+      {
+        SiriusAdapterAlgorithm::SiriusWorkspaceIndex wsi;
+        wsi.array_index = i;
+        wsi.scan_index = SiriusMzTabWriter::extractScanIndex(siriusworkspacepaths[i]);
+        indices.emplace_back(wsi);
+      }
+
+      std::sort(indices.begin(), indices.end(), [](const SiriusAdapterAlgorithm::SiriusWorkspaceIndex& i, const SiriusAdapterAlgorithm::SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
+
+      std::vector<String> sorted_subdirs;
+      for (const auto& index : indices)
+      {
+        sorted_siriusworkspacepaths.emplace_back(siriusworkspacepaths[index.array_index]);
+      }
+
+      return sorted_siriusworkspacepaths;
     }
-    
+
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      std::vector<FeatureMap>& v_fp,
