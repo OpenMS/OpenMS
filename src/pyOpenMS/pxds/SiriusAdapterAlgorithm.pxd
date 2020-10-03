@@ -20,6 +20,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         Int getCandidates() nogil except +
         Int getTopNHits() nogil except +
 
+        libcpp_vector[String] sortSiriusWorkspacePathsByScanIndex(libcpp_vector[String]&& subdirs);
+
         void preprocessingSirius(String featureinfo,
                                  MSExperiment& spectra,                
                                  libcpp_vector[FeatureMap]& v_fp,

@@ -240,7 +240,7 @@ protected:
     //-------------------------------------------------------------
 
     // sort vector path list
-    vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
+    vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::move(subdirs));
 
     // convert sirius_output to mztab and store file
     int candidates = sirius_algo.getCandidates();

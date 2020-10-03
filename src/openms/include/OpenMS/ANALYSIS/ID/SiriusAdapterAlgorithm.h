@@ -49,15 +49,8 @@ namespace OpenMS
       /// default constructor
       SiriusAdapterAlgorithm();
 
-      struct OPENMS_DLLAPI SiriusWorkspaceIndex
-      {
-      public:
-        int array_index;
-        int scan_index;
-      };
-
       /// Struct for temporary folder structure
-      struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
+      class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
       public:
 
@@ -86,7 +79,7 @@ namespace OpenMS
       @return Vector of sorted sirius workspace paths based on the scan_index
 
       */
-      static std::vector<String> sortSiriusWorkspacePathsByScanIndex(const std::vector<String>& siriusworkspacepaths);
+      static std::vector<String> sortSiriusWorkspacePathsByScanIndex(std::vector<String>&& subdirs);
 
       /**
       @brief Preprocessing needed for SIRIUS

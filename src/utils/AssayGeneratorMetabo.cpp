@@ -415,7 +415,7 @@ protected:
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
         // sort vector path list
-        std::vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
+        std::vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::move(subdirs));
 
         // get Sirius FragmentAnnotation from subdirs
         vector<MSSpectrum> annotated_spectra;

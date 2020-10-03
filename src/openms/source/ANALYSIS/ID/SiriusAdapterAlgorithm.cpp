@@ -185,28 +185,34 @@ namespace OpenMS
       return tmp_ms_file_;
     }
 
-    std::vector<String> SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(const std::vector<String>& siriusworkspacepaths)
+    class OPENMS_DLLAPI SiriusWorkspaceIndex
     {
-      std::vector<String> sorted_siriusworkspacepaths;
-      std::vector<SiriusAdapterAlgorithm::SiriusWorkspaceIndex> indices;
+    public:
+      int array_index, scan_index;
 
-      for (size_t i = 0; i < siriusworkspacepaths.size(); i++)
+      SiriusWorkspaceIndex(int array_index, int scan_index) : array_index {array_index}, scan_index {scan_index} {}
+    };
+
+    std::vector<String> SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::vector<String>&& subdirs)
+    {
+      std::vector<String> sorted_subdirs;
+      std::vector<SiriusWorkspaceIndex> indices;
+
+      for (size_t i = 0; i < subdirs.size(); i++)
       {
-        SiriusAdapterAlgorithm::SiriusWorkspaceIndex wsi;
-        wsi.array_index = i;
-        wsi.scan_index = SiriusMzTabWriter::extractScanIndex(siriusworkspacepaths[i]);
-        indices.emplace_back(wsi);
+        indices.emplace_back(i, SiriusMzTabWriter::extractScanIndex(subdirs[i]));
       }
 
-      std::sort(indices.begin(), indices.end(), [](const SiriusAdapterAlgorithm::SiriusWorkspaceIndex& i, const SiriusAdapterAlgorithm::SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
+      std::sort(indices.begin(),
+                indices.end(),
+                [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
 
-      std::vector<String> sorted_subdirs;
       for (const auto& index : indices)
       {
-        sorted_siriusworkspacepaths.emplace_back(siriusworkspacepaths[index.array_index]);
+        sorted_subdirs.emplace_back(subdirs[index.array_index]);
       }
 
-      return sorted_siriusworkspacepaths;
+      return sorted_subdirs;
     }
 
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
