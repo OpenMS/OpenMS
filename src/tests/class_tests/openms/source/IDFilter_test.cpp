@@ -981,7 +981,7 @@ START_SECTION((static void keepNBestSpectra(std::vector<PeptideIdentification>& 
   cout << peptides[0].getHits()[0].getSequence().toString() << endl;
   cout << peptides[1].getHits()[0].getSequence().toString() << endl;
 
-  IDFilter::keepNBestSpectra(peptides, 2); // keep best to spectra (those with best hits)
+  IDFilter::keepNBestSpectra(peptides, 2); // keep best two spectra (those with best hits)
 
   TEST_EQUAL(peptides.size(), 2);
 
@@ -1040,4 +1040,3 @@ END_SECTION
 END_TEST
 
 #pragma clang diagnostic pop
-
