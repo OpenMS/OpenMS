@@ -1156,6 +1156,10 @@ public:
                                  all_peptides);
     }
 
+    /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
+    /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
+    static void keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n);
+
     /// Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
     template <class MapType>
     static void keepNBestPeptideHits(MapType& map, Size n)
@@ -1366,4 +1370,3 @@ public:
   };
 
 } // namespace OpenMS
-
