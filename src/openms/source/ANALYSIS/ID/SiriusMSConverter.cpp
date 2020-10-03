@@ -287,7 +287,6 @@ namespace OpenMS
               cmpinfo.ionization = adducts[k];
             }
 
-            // first
             if (v_sumformula[k] != "UNKNOWN")
             {
               os << ">formula " << v_sumformula[k] << "\n";
@@ -395,10 +394,11 @@ namespace OpenMS
           {
             os << ">collision" << " " << collision << "\n";
           }
-          os << "##nid " << native_id<< endl;
-          // "mid" annotation for multiple possible identifications (description_native_id_k)
+          os << "##nid " << native_id << endl;
+          // "mid" annotation for multiple possible identifications (native_id_k)
           // fragment mapping will be done using the mid
-          String mid = cmpinfo.des + "_" + native_id + "_" + k;
+          // String mid = cmpinfo.des + "_" + native_id + "_" + k;
+          String mid = native_id + "_" + k;
           os << "##mid " << mid << endl;
           os << "##scan " << ind << endl;
           os << "##specref " << "ms_run[1]:" << native_id << endl;

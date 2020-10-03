@@ -2,7 +2,7 @@
 >parentmass 292.121752827683
 >charge 1
 >rt 410.145000000000
-##fmz 292.121752827683
+##fmz 292.121752827682997
 ##fid 13442776035824190606
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]

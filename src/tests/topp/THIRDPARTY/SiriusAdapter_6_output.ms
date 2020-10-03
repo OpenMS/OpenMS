@@ -2,7 +2,7 @@
 >parentmass 398.092212485532
 >charge -1
 >rt 657.849900000000
-##fmz 398.092212485532
+##fmz 398.092212485532002
 ##fid 7231120865591443173
 ##des UNKNOWN
 ##specref_format [MS, MS:1000768, Thermo nativeID format]
