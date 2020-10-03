@@ -1156,7 +1156,7 @@ public:
                                  all_peptides);
     }
 
-    /// Filter identifications by "N best" PepitdeIdentification objects (better PId means better PeptideHit than other).
+    /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
     /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
     static void keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n);
 
@@ -1370,4 +1370,3 @@ public:
   };
 
 } // namespace OpenMS
-
