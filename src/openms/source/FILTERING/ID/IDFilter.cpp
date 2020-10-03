@@ -801,7 +801,7 @@ namespace OpenMS
       }                
     }
 
-    // there might be less spectra identified then n -> adapt
+    // there might be less spectra identified than n -> adapt
     n = std::min(n, peptides.size());
 
     auto has_better_peptidehit = 
