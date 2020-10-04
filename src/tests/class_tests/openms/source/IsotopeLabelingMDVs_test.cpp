@@ -357,8 +357,13 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
   }
   lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
 
-  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, correction_matrix_tBDMS);
+  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, correction_matrix_tBDMS, "");
+  for(size_t i = 0; i < lactate_1_corrected.getSubordinates().size(); ++i)
+  {
+    TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getIntensity(), L1_corrected[i]);
+  }
 
+  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, {}, "TBDMS");
   for(size_t i = 0; i < lactate_1_corrected.getSubordinates().size(); ++i)
   {
     TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getIntensity(), L1_corrected[i]);
@@ -411,8 +416,18 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
     lactate_1_featureMap.push_back(lactate_1_normalized);
   }
 
-  isotopelabelingmdvs.isotopicCorrections(lactate_1_featureMap, lactate_1_corrected_featureMap, correction_matrix_tBDMS);
+  isotopelabelingmdvs.isotopicCorrections(lactate_1_featureMap, lactate_1_corrected_featureMap, correction_matrix_tBDMS, "");
+  for(uint8_t i = 0; i < lactate_1_corrected_featureMap.size(); ++i)
+  {
+    for(uint8_t j = 0; j < lactate_1_corrected.getSubordinates().size(); ++j)
+    {
+      TEST_REAL_SIMILAR(lactate_1_corrected_featureMap.at(i).getSubordinates().at(j).getIntensity(), L1_corrected[j]);
+    }
+  }
 
+  lactate_1_corrected_featureMap.clear();
+
+  isotopelabelingmdvs.isotopicCorrections(lactate_1_featureMap, lactate_1_corrected_featureMap, {}, "TBDMS");
   for(uint8_t i = 0; i < lactate_1_corrected_featureMap.size(); ++i)
   {
     for(uint8_t j = 0; j < lactate_1_corrected.getSubordinates().size(); ++j)

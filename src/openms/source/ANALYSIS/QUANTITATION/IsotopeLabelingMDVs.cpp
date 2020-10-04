@@ -36,29 +36,47 @@
 
 namespace OpenMS
 {
-  IsotopeLabelingMDVs::IsotopeLabelingMDVs()
+  IsotopeLabelingMDVs::IsotopeLabelingMDVs() :
+    DefaultParamHandler("IsotopeLabelingMDVs")
   {
   }
 
   IsotopeLabelingMDVs::~IsotopeLabelingMDVs()
   {
   }
+
+  void IsotopeLabelingMDVs::updateMembers_()
+  {
+  }
   
   void IsotopeLabelingMDVs::isotopicCorrection(
     const Feature& normalized_feature,
     Feature& corrected_feature,
-    const std::vector<std::vector<double>> correction_matrix)
+    const std::vector<std::vector<double>> correction_matrix,
+    const std::string correction_matrix_agent)
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
-    uint16_t correction_matrix_n = correction_matrix.size();
+    std::vector<std::vector<double>> selected_correction_matrix;
+    auto correction_matrix_search = correction_matrices_.find(correction_matrix_agent);
+    
+    if (!correction_matrix_agent.empty() && correction_matrix_search != correction_matrices_.end())
+    {
+      selected_correction_matrix = correction_matrix_search->second ;
+    }
+    else
+    {
+      selected_correction_matrix = correction_matrix;
+    }
+    
+    uint16_t correction_matrix_n = selected_correction_matrix.size();
     std::vector<std::vector<double>> correction_matrix_inversed(correction_matrix_n, std::vector<double>(correction_matrix_n,0));
     
     // 1- correction matrix inversion
-    Eigen::MatrixXd correction_matrix_eigen(correction_matrix.size(), correction_matrix[0].size());
-    for (uint i = 0; i < correction_matrix.size(); i++){
-      for (uint j = 0; j < correction_matrix[0].size(); j++){
-        correction_matrix_eigen(i,j) = correction_matrix[i][j];
+    Eigen::MatrixXd correction_matrix_eigen(selected_correction_matrix.size(), selected_correction_matrix[0].size());
+    for (uint i = 0; i < selected_correction_matrix.size(); i++){
+      for (uint j = 0; j < selected_correction_matrix[0].size(); j++){
+        correction_matrix_eigen(i,j) = selected_correction_matrix[i][j];
       }
     }
     Eigen::MatrixXd correction_matrix_eigen_inversed = correction_matrix_eigen.inverse();
@@ -89,11 +107,12 @@ namespace OpenMS
   void IsotopeLabelingMDVs::isotopicCorrections(
     const FeatureMap& normalized_featureMap,
     FeatureMap& corrected_featureMap,
-    const std::vector<std::vector<double>> correction_matrix)
+    const std::vector<std::vector<double>> correction_matrix,
+    const std::string correction_matrix_agent)
   {
     for (const Feature& feature : normalized_featureMap) {
       Feature corrected_feature;
-      isotopicCorrection( feature, corrected_feature, correction_matrix);
+      isotopicCorrection( feature, corrected_feature, correction_matrix, correction_matrix_agent);
       corrected_featureMap.push_back(corrected_feature);
     }
   }
@@ -278,5 +297,18 @@ namespace OpenMS
       normalized_featureMap.push_back(normalized_feature);
     }
   }
+
+  const std::unordered_map<std::string, std::vector<std::vector<double>> > IsotopeLabelingMDVs::correction_matrices_ =
+  std::unordered_map<std::string, std::vector<std::vector<double>> >
+  {
+    std::unordered_map<std::string, std::vector<std::vector<double>> >
+    {
+      { "TBDMS", {{0.8213, 0.1053, 0.0734, 0.0000},
+                  {0.8420, 0.0963, 0.0617, 0.0000},
+                  {0.8466, 0.0957, 0.0343, 0.0233},
+                  {0.8484, 0.0954, 0.0337, 0.0225}}
+      }
+    }
+  };
   
 } // namespace

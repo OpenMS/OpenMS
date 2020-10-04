@@ -37,6 +37,7 @@
 #include <OpenMS/config.h>
 
 //Kernal classes
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -45,6 +46,7 @@
  #include <vector>
  #include <string>
  #include <cmath>
+ #include <unordered_map>
  #include <numeric>
  #include <algorithm>
  #include <Eigen/Dense>
@@ -55,7 +57,8 @@ namespace OpenMS
     @brief IsotopeLabelingMDVs is a class to support and analyze isotopic labeling experiments
             (i.e. MDVs : Mass Distribution Vectors, also known as Mass Isotopomer Distribution (MID))
   */
-  class OPENMS_DLLAPI IsotopeLabelingMDVs 
+  class OPENMS_DLLAPI IsotopeLabelingMDVs :
+    public DefaultParamHandler
   {
   public:
     //@{
@@ -76,11 +79,13 @@ namespace OpenMS
       @param[in]  normalized_feature Feature with normalized values for each component and unlabeled chemical formula for each component group.
       @param[in]  correction_matrix  Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
+      @param[in]  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
+      only "TBDMS" is supported for now.
       @param[out] corrected_feature Feature with corrected values for each component.
     */
     void isotopicCorrection(
       const Feature& normalized_feature, Feature& corrected_feature,
-      const std::vector<std::vector<double>> correction_matrix);
+      const std::vector<std::vector<double>> correction_matrix, const std::string correction_matrix_agent);
     
     /**
       @brief This function performs an isotopic correction to account for unlabeled abundances coming from
@@ -92,11 +97,13 @@ namespace OpenMS
       @param[in]  normalized_featuremap FeatureMap with normalized values for each component and unlabeled chemical formula for each component group.
       @param[in]  correction_matrix Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of
       naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent.
+      @param[in]  correction_matrix_agent name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied,
+      only "TBDMS" is supported for now.
       @param[out] corrected_featuremap FeatureMap with corrected values for each component.
     */
     void isotopicCorrections(
       const FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap,
-      const std::vector<std::vector<double>> correction_matrix);
+      const std::vector<std::vector<double>> correction_matrix, const std::string correction_matrix_agent);
 
     /**
       @brief This function calculates the isotopic purity of the MDV using the following formula:
@@ -183,6 +190,14 @@ namespace OpenMS
     void calculateMDVs(
       const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
       const String& mass_intensity_type, const String& feature_name);
+    
+  protected:
+    /// Synchronize members with param class
+    void updateMembers_() override;
+    
+  private:
+    /// Correction Matrices for various derivatization agents
+    static const std::unordered_map<std::string, std::vector<std::vector<double>> > correction_matrices_;
      
   };
 
