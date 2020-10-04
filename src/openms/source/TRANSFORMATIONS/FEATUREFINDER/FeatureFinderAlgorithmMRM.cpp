@@ -168,7 +168,7 @@ namespace OpenMS
         continue;
       }
       sne.setParameters(sne_param);
-      sne.init(chromatogram.begin(), chromatogram.end());
+      sne.init(chromatogram);
 
       if (write_debuginfo)
       {
@@ -176,17 +176,17 @@ namespace OpenMS
       }
 
       PeakSpectrum::FloatDataArray signal_to_noise;
-      for (PeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
+      for (Size i = 0; i < chromatogram.size(); ++i)
       {
-        double sn(sne.getSignalToNoise(sit));
+        double sn(sne.getSignalToNoise(i));
         signal_to_noise.push_back(sn);
         if (write_debuginfo)
         {
-          std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
+          std::cerr << chromatogram[i].getMZ() << " " << chromatogram[i].getIntensity() << " " << sn << std::endl;
         }
         if (min_signal_to_noise_ratio == 0 || sn > min_signal_to_noise_ratio)
         {
-          sn_chrom.push_back(*sit);
+          sn_chrom.push_back(chromatogram[i]);
         }
       }
       chromatogram.getFloatDataArrays().push_back(signal_to_noise);

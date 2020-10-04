@@ -126,7 +126,7 @@ protected:
     /// The canvas of the layer
     SpectrumCanvas * canvas_;
     /// The LayerData object we compute statistics about
-    LayerData layer_data_;
+    const LayerData& layer_data_;
     /// Minimum intensity value
     double min_intensity_;
     /// Maximum intensity value

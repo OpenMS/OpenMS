@@ -271,7 +271,7 @@ START_TEST(FragmentMassError, "$Id$")
   START_SECTION(QCBase::Status requires() const override)
   {
     QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
-    TEST_EQUAL(stat, frag_ma_err.requires())
+    TEST_EQUAL(frag_ma_err.requires() == stat, true)
   }
   END_SECTION
 

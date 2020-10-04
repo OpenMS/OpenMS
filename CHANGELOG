@@ -10,6 +10,65 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 2.6                                        ----
+------------------------------------------------------------------------------------------
+
+We now create nightly pyopenms wheels (https://pypi.org/project/pyopenms-nightly/) and conda packages (https://anaconda.org/OpenMS/)
+
+Adapters/Third-party support:
+- LuciphorAdapter now stores which modifications were used for localization (#4771) and localization scores are reported in mzTab #4772 
+- Added Percolator3.0 support, fixed ConsensusID reading from wrong (Percolator-overwritten) meta data (#4829), and adapted the Regex parsing of XTandem Percolator output files #4849 
+- Added options introduced in new MSGF versions #4713 
+- Updated IsoSpec fine structure isotopic calculator sources to v 2.1.0 #4733 
+- Updated other third-party tools
+
+What's new:
+- Introduced a Wizard for Swath data (#4647 #4706 #4758 #4769 #4773 #4837), which also reports summary statistics about Swath TargetedExperiments #4788 #4790
+- UTIL StaticModification: Applies a set of modifications to all PeptideIDs in an idXML file (UTIL)
+- TOPP DatabaseSuitability: Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra. #4791 #4781 #4814
+- Added support for QC of labeled experiments (iTRAQ/TMT)
+- Added automated QC computations for MRM (#4637)
+- Adapted consensusXML and mzTab to support protein groups (#4630)
+- Consensus/IDMerger: Introduced use of merge idx to ensure keeping track of primaryRuns
+- Epifany: Added calculation of protein group FDR, ID filtering for protein group scores (#4802) and support for inference on not just individual samples but also consensusXML files
+- FeatureFinderCentroided/FeatureFinderAlgorithmPicked: Improved runtime performance #4652 #4701 
+- FeatureFinderIdentification: Improved SLIM-labeling experiment support
+- FileConverter: Improved runtime performance when producing mzML output #4750
+- FeatureLinkerQT: Introduced Fibonacci heaps for large runtime optimization (#4721) and fixed related preconditions/segfaults #4756 #4760 #4778 
+- IDFilter: added support for consensusXMLs #4798 #4799
+- MapAlignerIdentification: New option to use an "identity" transformation when data is too sparse to determine alignment model #4628
+- MzTabExporter: changed to only export one main score, and to derive nativeIDs from data (#4767). Now ensures that all output rows contain the same number of columns #4801 
+- MzTabExporter on LFQ consensusXMLs produces 100% PRIDE validated mzTabs now
+- ProteomicsLFQ: Added spectral counting as quantification method (#4726). Introduced performance improvements for AASequence and string parsing, especially for modified sequences. Various further improvements (e.g. #4669)
+- SimpleSearchEngine (multithreaded), TheoreticalSpectrumGenerator, MSSpectrum: Runtime optimization #4709
+- Further introduction of more file streaming to address possible memory consumption issues #4682 #4694
+
+Further fixes:
+- We now limit double precision to 17 digits during file writes #4636 
+- Ensure that CometAdapter always writes indexed mzML fixes for CometAdapter (#4653), fixed the writing of terminal modifications with specific origin in Comet (#4742), the writing of protein terminal mods in Comet and MSGF adapter #4710, and the Comet pepXML modification parsing #4755 
+- Removed secondary search engine settings duplication in mzTab MTD section. #4720 
+- Improved XTandem output protein parsing #4789 to fix Issue #4770
+- Increased (partial) support for parsing mzid with nonstandard, non-CV-term scores, fixes #4859
+- Fixes to NucleicAcidSearchEngine mzTab output #4692
+- ConsensusID now passes spectrum reference meta values along #4703
+- Fix to LFQ requantification #4633
+- Improved MapAlignerTreeGuided memory usage (#4704) and fixed segfault when featureXML contains no IDs #4665 
+- TOPPAS fixes #4780 
+
+Various:
+- OMMSAAdapter now writes out native ids and spectrum references #4852 
+- FileInfo: Report more charge distribution and MS2 activation-method information for Raw files #4836 
+- Added sum formula output in RNAMassCalculator #4677 
+- Added automatic OpenMS tool reporting of peak memory usage #4712 
+- Some extra tools documentation outputs #4822 #4823
+- Extended mapping of filetypes and mimetypes for knime output formats documentation #4839
+- RTEvaluation: fixed output formats #4533 
+- Some further clarifications, standardization/consolidation of outputs formats/consistency
+- Continued fixes/improvement of documentation
+- Removed deprecated version of PeakPickerHiRes (LowMemPeakPickerHiResRandomAccess and LowMemPeakPickerHiRes). Their functionality can be accessed through options of PeakPickerHiRes
+
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 2.5                                        ----
 ------------------------------------------------------------------------------------------
 

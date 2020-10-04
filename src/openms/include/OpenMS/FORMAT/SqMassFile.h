@@ -48,6 +48,10 @@ namespace OpenMS
     to disk using a SQLite database and store them in sqMass format. This
     allows users to access, select and filter spectra and chromatograms
     on-demand even in a large collection of data.
+
+    Spectra and chromatograms with precursor information will additionally load/store the metavalue
+    'peptide_sequence' from the first precursor (if any).
+
   */
   class OPENMS_DLLAPI SqMassFile
   {

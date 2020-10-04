@@ -76,6 +76,8 @@ namespace OpenMS
       traml_id = "TRAML_ID";
     }
 
+    startProgress(0, 1, "reading PQP file (SQL warmup)");
+
     // Open database
     SqliteConnector conn(filename);
     db = conn.getDB();
@@ -208,6 +210,7 @@ namespace OpenMS
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, select_sql);
     sqlite3_step(stmt);
+    endProgress();
 
     Size progress = 0;
     startProgress(0, num_transitions, "reading PQP file");

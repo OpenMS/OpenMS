@@ -34,9 +34,18 @@
 
 #include <OpenMS/VISUAL/LayerData.h>
 
+#include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h> // for AMS annotation
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
-#include <iostream>
+
+//#include <iostream>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -47,7 +56,7 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
   {
     os << "--LayerData BEGIN--" << std::endl;
-    os << "name: " << rhs.name << std::endl;
+    os << "name: " << rhs.getName() << std::endl;
     os << "visible: " << rhs.visible << std::endl;
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
     os << "--LayerData END--" << std::endl;
@@ -69,6 +78,59 @@ namespace OpenMS
     cached_spectrum_.updateRanges();
   }
 
+  /// Returns the minimum intensity of the internal data, depending on type
+
+  float LayerData::getMinIntensity() const
+  {
+    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    {
+      return getPeakData()->getMinInt();
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      return getFeatureMap()->getMinInt();
+    }
+    else
+    {
+      return getConsensusMap()->getMinInt();
+    }
+  }
+
+  /// Returns the maximum intensity of the internal data, depending on type
+
+  float LayerData::getMaxIntensity() const
+  {
+    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    {
+      return getPeakData()->getMaxInt();
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      return getFeatureMap()->getMaxInt();
+    }
+    else
+    {
+      return getConsensusMap()->getMaxInt();
+    }
+  }
+
+
+  /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+
+   String LayerData::getDecoratedName() const
+   {
+    String n = name_;
+    if (flipped)
+    {
+      n += " [flipped]";
+    }
+    if (modified)
+    {
+      n += '*';
+    }
+    return n;
+  }
+
   void LayerData::updateCache_()
   {
     if (peaks->getNrSpectra() > current_spectrum_ && (*peaks)[current_spectrum_].size() > 0)
@@ -79,6 +141,35 @@ namespace OpenMS
     {
       cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
     }
+  }
+
+  bool LayerData::annotate(const vector<PeptideIdentification>& identifications,
+    const vector<ProteinIdentification>& protein_identifications)
+  {
+    IDMapper mapper;
+    if (this->type == LayerData::DT_PEAK)
+    {
+      Param p = mapper.getDefaults();
+      p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+      p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+      p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+      mapper.setParameters(p);
+      mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      mapper.annotate(*getFeatureMap(), identifications, protein_identifications);
+    }
+    else if (type == LayerData::DT_CONSENSUS)
+    {
+      mapper.annotate(*getConsensusMap(), identifications, protein_identifications);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
   }
 
   const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
@@ -126,7 +217,7 @@ namespace OpenMS
       else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
       {
         // copy user annotations to fragment annotation vector
-        Annotations1DContainer & las = getAnnotations(current_spectrum_);
+        const Annotations1DContainer & las = getAnnotations(current_spectrum_);
 
         // no annotations so we don't need to synchronize
         bool has_peak_annotation(false);
@@ -170,7 +261,7 @@ namespace OpenMS
   void LayerData::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
-    Annotations1DContainer & las = getCurrentAnnotations();
+    const Annotations1DContainer & las = getCurrentAnnotations();
 
     // initialize with an empty vector
     vector<PeptideHit::PeakAnnotation> fas;
@@ -319,6 +410,94 @@ namespace OpenMS
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
+  }
+
+  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text)
+    : supported_types_(supported_types),
+      file_dialog_text_(file_dialog_text)
+  {
+  }
+
+  bool LayerAnnotatorBase::annotate(LayerData& layer, LogWindow& log, const String& current_path) const
+  {
+    // warn if hidden layer => wrong layer selected...
+    if (!layer.visible)
+    {
+      log.appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
+      return false;
+    }
+
+    // load id data
+    QString fname = QFileDialog::getOpenFileName(nullptr,
+                                                 file_dialog_text_.toQString(),
+                                                 current_path.toQString(),
+                                                 supported_types_.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
+    if (fname.isEmpty()) return false;
+
+    FileTypes::Type type = FileHandler::getType(fname);
+
+    if (!supported_types_.contains(type))
+    {
+      QMessageBox::warning(nullptr, "Error", QString("Unsupported file type. No annotation performed."));
+      return false;
+    }
+
+    bool success = annotateWorker_(layer, fname, log);
+    
+    if (success) log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+
+    return success;
+  }
+
+  bool LayerAnnotatorPeptideID::annotateWorker_(LayerData& layer, const String& filename, LogWindow& /*log*/) const
+  {
+    FileTypes::Type type = FileHandler::getType(filename);
+    vector<PeptideIdentification> identifications;
+    vector<ProteinIdentification> protein_identifications;
+    if (type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(filename, protein_identifications, identifications);
+    }
+    else
+    {
+      String document_id;
+      IdXMLFile().load(filename, protein_identifications, identifications, document_id);
+    }
+
+    layer.annotate(identifications, protein_identifications);
+    return true;
+  }
+
+  bool LayerAnnotatorAMS::annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const
+  {
+    FeatureMap fm;
+    FeatureXMLFile().load(filename, fm);
+
+    // last protein ID must be from AccurateMassSearch (it gets appended there)
+    String engine = "no protein identification section found";
+    if (fm.getProteinIdentifications().size() > 0)
+    {
+      engine = fm.getProteinIdentifications().back().getSearchEngine();
+      if (engine == AccurateMassSearchEngine::search_engine_identifier)
+      {
+        if (layer.type != LayerData::DT_PEAK)
+        {
+          QMessageBox::warning(nullptr, "Error", "Layer type is not DT_PEAK!");
+          return false;
+        }
+        IDMapper im;
+        Param p = im.getParameters();
+        p.setValue("rt_tolerance", 30.0);
+        im.setParameters(p);
+        log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
+        im.annotate((*layer.getPeakDataMuteable()), fm, true, true);
+
+        return true;
+      }
+    }
+
+    QMessageBox::warning(nullptr, "Error", (String("FeatureXML is currently only supported for files generated by the AccurateMassSearch tool (got '") + engine + "', expected 'AccurateMassSearch'.").toQString());
+    return false;
   }
 
 } //Namespace

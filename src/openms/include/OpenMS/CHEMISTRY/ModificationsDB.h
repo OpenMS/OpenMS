@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
+#include <memory>  // unique_ptr
 #include <unordered_map>
 
 namespace OpenMS
@@ -142,13 +143,16 @@ public:
     const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Returns true if the modification exists
-    bool has(String modification) const;
+    bool has(const String& modification) const;
 
     /**
        @brief Add a new modification to ModificationsDB.
-       Will skip adding if modification already exists (based on its fullID)
+       If the modification already exists (based on its fullID) it is not added.
+       The function returns a pointer to the modification in the ModificationDB (which can be differ from input if mod was already present).
+
+       @param new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
-    void addModification(ResidueModification * new_mod);
+    const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
@@ -167,6 +171,7 @@ public:
        If @p term_spec is set, only modifications with matching term specificity are considered.
     */
     void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
 
     /** @brief Returns the best matching modification for the given delta mass and residue

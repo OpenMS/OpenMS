@@ -32,21 +32,25 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
+
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
-#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <QtWidgets/QMessageBox>
@@ -59,8 +63,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase* parent) :
-    tv_(parent)
+  TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
+    tv_(parent),
+    spec_id_view_(spec_id_view)
   {
   }
 
@@ -103,8 +108,8 @@ namespace OpenMS
         w->canvas()->setVisibleArea(a);
       }
 
-      String caption = layer.name;
-      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+      String caption = layer.getName();
+      w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
       tv_->showSpectrumWidgetInWindow(w, caption);
 
@@ -151,7 +156,7 @@ namespace OpenMS
         }
       }
 
-      tv_->updateLayerBar();
+      tv_->updateLayerBar(); // todo replace
       tv_->updateViewBar();
       tv_->updateFilterBar();
       tv_->updateMenu();
@@ -893,7 +898,7 @@ namespace OpenMS
     AASequence aa_sequence = ph.getSequence();
 
     // get measured spectrum indices and spectrum
-    Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
+    Size current_spectrum_layer_index = current_canvas->getCurrentLayerIndex();
     Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
 
     const Param& tv_params = tv_->getParameters();
@@ -952,13 +957,14 @@ namespace OpenMS
     vector<PeptideIdentification> p_dummy;
 
     // Block update events for identification widget
-    tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
+    spec_id_view_->ignore_update = true;
+    RAIICleanup cleanup([&](){spec_id_view_->ignore_update = false; });
 
-    String layer_caption = aa_sequence.toString().toQString() + QString(" (identification view)");
+    String layer_caption = aa_sequence.toString() + " (identification view)";
     tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
 
     // get layer index of new layer
-    Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
+    Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->getCurrentLayerIndex();
 
     // kind of a hack to check whether adding the layer was successful
     if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !spectrum.getStringDataArrays().empty())
@@ -1069,7 +1075,6 @@ namespace OpenMS
       }
 
       tv_->updateLayerBar();
-      tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
     }
   }
 
@@ -1237,7 +1242,8 @@ namespace OpenMS
     }
 
     // Block update events for identification widget
-    tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
+    spec_id_view_->ignore_update = true;
+    RAIICleanup cleanup([&]() {spec_id_view_->ignore_update = false; });
 
     // zoom visible area to real data range:
     DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
@@ -1249,7 +1255,6 @@ namespace OpenMS
     tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
     tv_->updateLayerBar();
-    tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
   }
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()

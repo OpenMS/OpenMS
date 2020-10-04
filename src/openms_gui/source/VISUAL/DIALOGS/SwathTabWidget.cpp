@@ -41,6 +41,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
@@ -49,6 +50,7 @@
 #include <QProgressDialog>
 #include <QSignalBlocker>
 
+#include <algorithm>
 
 using namespace std;
 
@@ -56,9 +58,26 @@ namespace OpenMS
 {
   namespace Internal
   {
+
+    GUILock::GUILock(SwathTabWidget* stw)
+      : 
+      stw_(stw),
+      old_(stw->currentWidget()),
+      was_enabled_(stw->isEnabled())
+    {
+      stw->setCurrentWidget(stw->ui->tab_log);
+      stw->setEnabled(false);
+    }
+
+    GUILock::~GUILock()
+    {
+      stw_->setCurrentWidget(old_);
+      stw_->setEnabled(was_enabled_);
+    }
+
     String getOSWExe()
     {
-      return File::getExecutablePath() + "OpenSwathWorkflow";
+      return File::findSiblingTOPPExecutable("OpenSwathWorkflow");
     }
 
     QString getDefaultOutDir()
@@ -75,14 +94,17 @@ namespace OpenMS
             [&](const String& out) {writeLog_(out.toQString());})
     {
       ui->setupUi(this);
-        
+
+      writeLog_(QString("Welcome to the Wizard!"), Qt::darkGreen, true);
+
       auto py_selector = (PythonSelector*)ui->py_selector;
 
       auto py_pyprophet = (PythonModuleRequirement*)ui->py_pyprophet;
       py_pyprophet->setRequiredModules( { "pyprophet", "msproteomicstoolslib" });
       py_pyprophet->setFreeText("In order to run PyProphet and TRIC after OpenSWATH, the above modules need to be installed\n" \
-                                "Once they are available, the 'pyProphet and TRIC' tab will become active and configurable.");
-      py_pyprophet->setTitle("External: PyProphet & TRIC tools");
+                                "Once they are available, the 'PyProphet and TRIC' tab will become active and configurable.\n" \
+                                "To install the modules, visit the <a href=\"http://www.openswath.org\">openswath.org homepage</a> and follow the installation instructions.");
+      py_pyprophet->setTitle("External: PyProphet and TRIC tools");
       connect(py_selector, &PythonSelector::valueChanged, py_pyprophet, &PythonModuleRequirement::validate);
         
       // call once to update py_pyprophet canvas 
@@ -94,7 +116,7 @@ namespace OpenMS
         
       // create a default INI of OpenSwathWorkflow
       String tmp_file = File::getTemporaryFile();
-      if (ep_.run(this, getOSWExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), true, true) != ExternalProcess::RETURNSTATE::SUCCESS)
+      if (ep_.run(this, getOSWExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         exit(1);
       }
@@ -114,6 +136,11 @@ namespace OpenMS
       connect(ui->input_iRT, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
       connect(ui->input_tr, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
       connect(ui->input_swath_windows, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
+      
+      // update information on assay libraries
+      connect(ui->input_iRT, &InputFile::updatedFile, ui->input_iRT_stats, &SwathLibraryStats::updateFromFile);
+      connect(ui->input_tr, &InputFile::updatedFile, ui->input_tr_stats, &SwathLibraryStats::updateFromFile);
+
 
       // if out_dir (user defined output directory for OSW results) changes ...
       connect(ui->out_dir, &OutputDirectory::directoryChanged, this, &SwathTabWidget::checkPyProphetInput_);
@@ -133,6 +160,11 @@ namespace OpenMS
       return FileHandler::swapExtension(File::basename(infile), FileTypes::OSW);
     }
 
+    String infileToChrom(const String& infile)
+    {
+      return FileHandler::swapExtension(File::basename(infile), FileTypes::SQMASS);
+    }
+
     StringList SwathTabWidget::getMzMLInputFiles() const
     {
       return ui->input_mzMLs->getFilenames();
@@ -141,6 +173,8 @@ namespace OpenMS
     void SwathTabWidget::on_run_swath_clicked()
     {
       if (!checkOSWInputReady_()) return;
+      
+      GUILock lock(this); // forbid user interaction
 
       updateSwathParamFromWidgets_();
       Param tmp_param;
@@ -148,21 +182,24 @@ namespace OpenMS
       String tmp_ini = File::getTemporaryFile();
       ParamXMLFile().store(tmp_ini, tmp_param);
       StringList in_mzMLs = getMzMLInputFiles();
-      writeLog_(QString("Starting OpenSwathWorkflow with %1 mzML file(s)").arg(in_mzMLs.size()), true);
+      writeLog_(QString("Starting OpenSwathWorkflow with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
       
-      QProgressDialog progress("Running OpenSwath", "Abort ...", 0, in_mzMLs.size(), this);
+      QProgressDialog progress("Running OpenSwath", "Abort ...", 0, (int)in_mzMLs.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
       progress.setMinimumDuration(0); // show immediately
       progress.setValue(0);
       int step = 0;
 
-      writeLog_(QString("running OpenSwathWorkflow (%1 files total): ").arg(in_mzMLs.size()), true);
+      writeLog_(QString("Running OpenSwathWorkflow (%1 files total): ").arg(in_mzMLs.size()), Qt::darkGreen, true);
       for (const auto& mzML : in_mzMLs)
       {
         auto r = ep_.run(this, 
                          getOSWExe().toQString(), 
-                         QStringList() << "-ini" << tmp_ini.toQString() << "-in" << mzML.toQString() << "-out_osw" << getCurrentOutDir_() + "/" + infileToOSW(mzML).toQString(),
-                         true,
+                         QStringList() << "-ini" << tmp_ini.toQString() 
+                                       << "-in" << mzML.toQString()
+                                       << "-out_osw" << getCurrentOutDir_() + "/" + infileToOSW(mzML).toQString()
+                                       << "-out_chrom" << getCurrentOutDir_() + "/" + infileToChrom(mzML).toQString(),
+                         "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;
         if (progress.wasCanceled()) break;
@@ -225,7 +262,7 @@ namespace OpenMS
       if (!swath_windows.empty()) tmp.setValue("swath_windows_file", swath_windows);
       // do not set '-out_osw' because we might have multiple -in's and have to iterate manually
 
-      // update; do NOT write directly to swath_param_, because 'setValue(name, value)' will loose the description and the tags, i.e. input-file etc. We need this information though!
+      // call update(); do NOT write directly to swath_param_ using 'setValue(name, value)' because that will loose the description and the tags, i.e. input-file etc. We need this information though!
       swath_param_.update(tmp, false, false, true, true, OpenMS_Log_warn);
     }
 
@@ -274,15 +311,29 @@ namespace OpenMS
       }
       ui->input_py_pqps->clear();
       ui->input_py_pqps->setHtml(text);
+
+      ui->lbl_pyOutDir->setText("Results can be found in '" + getCurrentOutDir_() + 
+                                "'. If pyProphet ran, there will be PDF files with model statistics and TRIC will "
+                                "generate TSV files (tric_aligned.tsv and tric_aligned_matrix.tsv) for downstream processing.");
     }
 
-    void SwathTabWidget::writeLog_(const QString& text, bool new_section)
+    void SwathTabWidget::writeLog_(const QString& text, const QColor& color, bool new_section)
     {
+      QColor tc = ui->log_text->textColor();
       if (new_section)
       {
+        ui->log_text->setTextColor(Qt::darkBlue);
         ui->log_text->append(QString(10, '#').append(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).append(QString(10, '#')).append("\n"));
+        ui->log_text->setTextColor(tc);
       }
+
+      ui->log_text->setTextColor(color);
       ui->log_text->append(text);
+      ui->log_text->setTextColor(tc); // restore old color
+    }
+    void SwathTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
+    {
+      writeLog_(text.toQString(), color, new_section);
     }
     
     bool SwathTabWidget::checkOSWInputReady_()
@@ -321,87 +372,159 @@ namespace OpenMS
       ui->input_swath_windows->setCWD(new_cwd);
     }
 
+    /// custom arguments to allow for looping calls
+    struct Args
+    {
+      QStringList loop_arg; ///< list of arguments to insert; one for every loop
+      size_t insert_pos;       ///< where to insert in the target argument list (index is 0-based)
+    };
+    
+    typedef std::vector<Args> ArgLoop;
+
+    /// Allows running an executable with arguments
+    /// Multiple execution in a loop is supported by the ArgLoop argument
+    /// e.g. running 'ls -la .' and 'ls -la ..'
+    /// uses Command("ls", QStringList() << "-la" << "%1", ArgLoop{ Args {QStringList() << "." << "..", 1 } })
+    /// All lists in loop[i].loop_arg should have the same size (i.e. same number of loops)
+    struct Command
+    {
+      String exe;
+      QStringList args;
+      ArgLoop loop;
+
+      Command(const String& e, const QStringList& a, const ArgLoop& l) :
+        exe(e),
+        args(a),
+        loop(l) {}
+
+      /// how many loops can we make according to the ArgLoop provided?
+      /// if ArgLoop is empty, we just do a single invokation
+      size_t getLoopCount() const
+      {
+        if (loop.empty()) return 1;
+        size_t common_size = loop[0].loop_arg.size();
+        for (const auto& l : loop)
+        {
+          if (l.loop_arg.size() != (int)common_size) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Not all loop arguments support the same number of loops!");
+          if ((int)l.insert_pos >= args.size()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Loop argument wants to insert after end of template arguments!");
+        }
+        return common_size;
+      }
+      /// for a given loop, return the substituted arguments
+      /// @p loop_number of 0 is always valid, i.e. no loop args, just use the unmodified args provided
+      QStringList getArgs(const int loop_number) const
+      {
+        if (loop_number >= (int)getLoopCount())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. The loop number you requested is too high!");
+        }
+        if (loop.empty()) return args; // no looping available
+
+        QStringList arg_l = args;
+        for (const auto& largs : loop) // replace all args for the current round
+        {
+          arg_l[largs.insert_pos] = args[largs.insert_pos].arg(largs.loop_arg[loop_number]);
+        }
+        return arg_l;
+      }
+    };
+
+    bool SwathTabWidget::findPythonScript_(const String& path_to_python_exe, String& script_name)
+    {
+      String path = File::path(path_to_python_exe);
+      String script_backup = script_name;
+      script_name = path + "/Scripts/" + script_backup; // Windows uses the Script subdirectory
+      if (File::readable(script_name)) return true;
+      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
+      script_name = path + "/" + script_backup;
+      if (File::readable(script_name)) return true;
+      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
+      return false;
+    }
+
     void SwathTabWidget::on_btn_runPyProphet_clicked()
     {
       if (!ui->py_pyprophet->isReady())
       {
-        QMessageBox::warning(NULL, "Error", "Could not find all requirements for 'pyprophet & tric' (see 'Config' tab). Install modules via 'pip install <modulename>' and make sure it's available in $PATH");
+        QMessageBox::warning(this, "Error", "Could not find all requirements for 'pyprophet & tric' (see 'Config' tab). Install modules via 'pip install <modulename>' and make sure it's available in $PATH");
         return;
       }
+      GUILock lock(this); // forbid user interaction
 
       auto inputs = getPyProphetInputFiles();
+      if (inputs.empty())
+      {
+        QMessageBox::warning(this, "Error", "Provide at least one input file for pyProphet and TRIC in the 'LC-MS files' tab.");
+        return;
+      }
       QStringList osws;
       QStringList osws_orig;
+      QStringList osws_reduced;
+      QStringList tsvs;
       for (const auto& file : inputs)
       {
         if (file.second == false)
         {
-          QMessageBox::warning(NULL, "Error", String("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it").toQString());
+          QMessageBox::warning(this, "Error", String("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it").toQString());
           return;
         }
         osws_orig << file.first.toQString();
         osws << (FileHandler::stripExtension(file.first) + "_copy.osw").toQString();
+        osws_reduced << (FileHandler::stripExtension(file.first) + "_copy.oswr").toQString();
+        tsvs << (FileHandler::swapExtension(file.first, FileTypes::TSV)).toQString();
       }
       // check presence of template
       QString library = ui->input_tr->getFilename();
       if (library.isEmpty())
       {
-        QMessageBox::warning(NULL, "Error", String("The assay library is not specified. Please go to the 'database' tab and specify it.").toQString());
+        QMessageBox::warning(this, "Error", String("The assay library is not specified. Please go to the 'database' tab and specify it.").toQString());
         return;
       }
-      QString pp = "pyprophet";
+#ifdef OPENMS_WINDOWSPLATFORM
+      String pp = "pyprophet.exe"; // we need the full path for findPythonScript_
+#else
+      String pp = "pyprophet";
+#endif
+      if (!findPythonScript_(ui->py_selector->getLastPython(), pp)) // searches Script in Python installation
+      {
+        QMessageBox::warning(this, "Error", String("Could not find 'pyprophet' in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
+        return;
+      }
       // list of calls to make: exe, args, [optional] list of args to append one-by-one in a loop
-      std::vector<std::tuple<QString, QStringList, QStringList>> calls;
+      std::vector<Command> calls;
       // merge all osws ...
-      calls.emplace_back(pp, QStringList() << "merge" << "--template=" + library << "--out=model.osw" << osws, QStringList());
-      // to build a common model --> creates merged_ms1ms2_report.pdf
-      calls.emplace_back(pp, QStringList() << "score" << "--in=model.osw" << "--level=ms1ms2", QStringList());
-      // apply in loop
-      calls.emplace_back(pp, QStringList() << "score" << "--apply_weights=model.osw" << "--level=ms1ms2" << "--in", osws);
+      calls.emplace_back(pp, QStringList() << "merge" << "--template=" + library << "--out=model.osw" << osws, ArgLoop{});
+      // to build/learn a common model --> creates merged_ms1ms2_report.pdf
+      calls.emplace_back(pp, QStringList() << "score" << "--in=model.osw" << "--level=ms1ms2", ArgLoop{});
+      // apply model in loop
+      calls.emplace_back(pp, QStringList() << "score" << "--apply_weights=model.osw" << "--level=ms1ms2" << "--in" << "%1", ArgLoop{ Args{osws, 4} });
+      // reduce (required to avoid https://github.com/PyProphet/pyprophet/issues/85)
+      calls.emplace_back(pp, QStringList() << "reduce" << "--in" << "%1" << "--out" << "%1", ArgLoop{ Args{osws, 2}, Args{osws_reduced, 4} });
       // merge again for peptide and protein error rate control
-      calls.emplace_back(pp, QStringList() << "merge" << "--template=model.osw" << "--out=model_global.osw" << osws, QStringList());
-      calls.emplace_back(pp, QStringList() << "peptide" << "--in=model_global.osw" << "--context=global", QStringList());
-      calls.emplace_back(pp, QStringList() << "protein" << "--in=model_global.osw" << "--context=global", QStringList());
+      calls.emplace_back(pp, QStringList() << "merge" << "--template=model.osw" << "--out=model_global.osw" << osws_reduced, ArgLoop{});
+      calls.emplace_back(pp, QStringList() << "peptide" << "--in=model_global.osw" << "--context=global", ArgLoop{});
+      calls.emplace_back(pp, QStringList() << "protein" << "--in=model_global.osw" << "--context=global", ArgLoop{});
       // backpropagate in loop
-      calls.emplace_back(pp, QStringList() << "backpropagate" << "--apply_scores=model_global.osw" << "--in", osws);
+      calls.emplace_back(pp, QStringList() << "backpropagate" << "--apply_scores=model_global.osw" << "--in" << "%1", ArgLoop{ Args{osws, 3} });
       // prepare for TRIC
       calls.emplace_back(pp, QStringList() << "export" << "--format=legacy_merged" << "--max_global_peptide_qvalue=0.01" << "--max_global_protein_qvalue=0.01" 
-                                            << "--out=tric.tsv" << "--in" << osws, QStringList());
-      calls.emplace_back("feature_alignment.py", QStringList() << "--in" << "tric.tsv" 
-                                            << "--out" << "aligned.tsv" << "--out_matrix" << "aligned_matrix.tsv" 
-                                            << "--method" << "best_overall" << "--realign_method LocalMST" << "--max_rt_diff 90" 
-                                            << "--fdr_cutoff 0.01" << "--max_fdr_quality 0.05", QStringList());
+                                            << "--in=%1" << "--out=%1", ArgLoop{ Args{osws, 4}, Args{tsvs, 5} });
+      String feature_alignment_py = "feature_alignment.py";
+      if (!findPythonScript_(ui->py_selector->getLastPython(), feature_alignment_py)) // searches Script in Python installation
+      {
+        QMessageBox::warning(this, "Error", String("Could not find 'feature_alignment.py' from the msproteomicstool package in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
+        return;
+      }
+      calls.emplace_back(ui->py_selector->getLastPython(), QStringList() << feature_alignment_py.toQString() << "--in" << tsvs
+                                            << "--out" << "tric_aligned.tsv" << "--out_matrix" << "tric_aligned_matrix.tsv" 
+                                            << "--method" << "LocalMST" << "--realign_method" << "lowess" << "--max_rt_diff" << "90" 
+                                            << "--fdr_cutoff" << QString::number(ui->tric_FDR_threshold->value()) 
+                                            << "--alignment_score" << QString::number(ui->tric_RTmax->value()), ArgLoop{});
         
-      QProgressDialog progress("Running pyprophet and TRIC", "Abort ...", 0, calls.size(), this);
+      QProgressDialog progress("Running pyprophet and TRIC", "Abort ...", 0, (int)calls.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
       progress.setMinimumDuration(0); // show immediately
       progress.setValue(0);
-      // pyprophet merge --template=library.pqp --out=merged.osw osw*.osw
-      // pyprophet score --in=model.osw --level=ms1ms2
-      // --> creates merged_ms1ms2_report.pdf
-
-      // apply:
-      //loop
-      //pyprophet score --in osw*.osw --apply_weights=model.osw --level=ms1ms2
-
-      // merge again for peptide and protein error rate control
-      //pyprophet merge --template=model.osw --out=model_global.osw osw*.osw
-      //pyprophet peptide --in=model_global.osw --context=global
-      //pyprophet protein --in=model_global.osw --context=global
-
-      // loop:
-      //pyprophet backpropagate --in=osw*.osw --apply_scores=model_global.osw
-      //loop
-      //pyprophet export --in=osw*.osw --out=legacy.tsv --max_global_peptide_qvalue=0.01 --max_global_protein_qvalue=0.01
-
-      // TRIC requires 'msproteomicstools' pip
-      // in C:\WinPython\3.7\python-3.7.0.amd64\Scripts\ (should be in PATH)
-      /*feature_alignment.py --in file1_input.csv file2_input.csv file3_input.csv
-              --out aligned.csv
-              --out_matrix {output.matrix}
-              --method best_overall --realign_method LocalMST --max_rt_diff 90
-              --fdr_cutoff 0.01 --max_fdr_quality 0.05
-      */
 
       // first - copy all original osw files, since augmenting them once with model information will lead to crashes when doing a second run on them
       for (int i = 0; i < osws_orig.size(); ++i)
@@ -411,31 +534,32 @@ namespace OpenMS
       }
 
       int step = 0;
-        
       for (const auto& call : calls)
       { 
-        const QString& exe = std::get<0>(call);
-        const QStringList& args = std::get<1>(call);
-        const QStringList& loop = std::get<2>(call);
-        ExternalProcess::RETURNSTATE returnstate;
-        if (loop.empty()) returnstate = ep_.run(this, exe, args, true, true);
+        // this might just be one loop... depending on the call...
+        for (size_t i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
+        {
+          auto returnstate = ep_.run(this, call.exe.toQString(), call.getArgs(i_loop), getCurrentOutDir_(), true);
+          if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
+          {
+            QMessageBox::warning(this, "Error", String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details").toQString());
+            return;
+          }
+          if (progress.wasCanceled())
+          {
+            return;
+          }
+        }
 
-        for (const auto& file : loop)
-        {
-          returnstate = ep_.run(this, exe, QStringList(args) << file, true, true);
-          if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS) break;
-        }
         progress.setValue(++step);
-        if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
-        {
-          QMessageBox::warning(NULL, "Error", String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details").toQString());
-          break;
-        }
-        if (progress.wasCanceled())
-          break;
       }
       
       progress.close();
+    }
+
+    void SwathTabWidget::on_btn_pyresults_clicked()
+    {
+      GUIHelpers::openFolder(getCurrentOutDir_());
     }
 
   }   //namespace Internal

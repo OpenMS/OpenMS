@@ -86,7 +86,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (any xml file)");
-    setValidFormats_("in", ListUtils::create<String>("analysisXML,mzML,TraML,mzid,mzData,xml"));
+    setValidFormats_("in", ListUtils::create<String>("analysisXML,mzML,traML,mzid,mzData,xml"));
 
     registerInputFile_("mapping_file", "<file>", "", "Mapping file which is used to semantically validate the given XML file against this mapping file (see 'share/OpenMS/MAPPING' for templates).");
     setValidFormats_("mapping_file", ListUtils::create<String>("xml"));

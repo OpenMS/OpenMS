@@ -116,11 +116,6 @@ private:
 
 protected:
 
-  static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
-  {
-    return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
-  }
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("executable", "<executable>", 
@@ -240,13 +235,13 @@ protected:
     //-------------------------------------------------------------
 
     // sort vector path list
-    std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
+    vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::move(subdirs));
 
     // convert sirius_output to mztab and store file
     const int candidates = algorithm.getNumberOfSiriusCandidates();
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, in, candidates, sirius_result);
+    SiriusMzTabWriter::read(sorted_subdirs, in, candidates, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
     // convert sirius_output to mztab and store file
@@ -255,7 +250,7 @@ protected:
       int top_n_hits = algorithm.getNumberOfCSIFingerIDCandidates();
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
+      CsiFingerIdMzTabWriter::read(sorted_subdirs, in, top_n_hits, csi_result);
       csifile.store(out_csifingerid, csi_result);
     }
 

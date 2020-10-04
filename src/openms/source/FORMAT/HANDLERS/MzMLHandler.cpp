@@ -1644,6 +1644,14 @@ namespace OpenMS
           //No member => meta data
           spec_.setMetaValue("peak list raw scans", termValue);
         }
+        else if (accession == "MS:1001581") //FAIMS compensation voltage
+        {
+          // According to the PSI-MS ontology this term should be stored below the "scan" and not "spectrum" parent.
+          // Some pwiz version put this term on the "spectrum" level so we also read it here.
+          //TODO CV term is wrongly annotated without an xref data type -> cast to double
+          spec_.setDriftTime(value.toDouble());
+          spec_.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+        }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
         {
@@ -1741,7 +1749,7 @@ namespace OpenMS
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
           }
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815") //ion mobility drift time
+        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581") //ion mobility drift time or FAIM compensation voltage
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -1762,7 +1770,11 @@ namespace OpenMS
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;
+            unit = MSSpectrum::DriftTimeUnit::VSSC;          
+          }
+          else if (accession == "MS:1001581")
+          {
+            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
           }
 
           if (in_spectrum_list_)
@@ -2081,7 +2093,7 @@ namespace OpenMS
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
         }
-        else if (accession == "MS:1002476" || accession == "MS:1002815") //ion mobility drift time
+        else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581") //ion mobility drift time or FAIMS compensation voltage
         {
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) or of the spectrum itself.
@@ -2101,6 +2113,10 @@ namespace OpenMS
           else if (accession == "MS:1002815")
           {
             unit = MSSpectrum::DriftTimeUnit::VSSC;
+          }
+          else if (accession == "MS:1001581")
+          {
+            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
 
           spec_.setDriftTime(value.toDouble());
@@ -3798,11 +3814,14 @@ namespace OpenMS
       //selected ion list (optional)
       //--------------------------------------------------------------------------------------------
       //
+
       if (options_.getForceTPPCompatability() ||
           precursor.getCharge() != 0 ||
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
-          precursor.getPossibleChargeStates().size() > 0)
+          precursor.getDriftTimeUnit() == Precursor::FAIMS_COMPENSATION_VOLTAGE ||
+          precursor.getPossibleChargeStates().size() > 0 ||
+          precursor.getMZ() > 0.0)
       {
         // precursor m/z may come from "isolation window":
         mz = precursor.getMetaValue("selected ion m/z",
@@ -3822,6 +3841,7 @@ namespace OpenMS
         {
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
         }
+
         if (precursor.getDriftTime() >= 0.0)
         {
             if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::MILLISECOND)
@@ -5119,8 +5139,13 @@ namespace OpenMS
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
-          // if drift time was never set, don't report it
-          if (spec.getDriftTime() >= 0.0)
+
+          if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
+                << "\" unitAccession=\"UO:000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
+          }          
+          else if (spec.getDriftTime() >= 0.0) // if drift time was never set, don't report it
           {
             if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
             {

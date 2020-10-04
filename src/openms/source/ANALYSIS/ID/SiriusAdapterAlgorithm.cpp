@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -557,7 +558,37 @@ namespace OpenMS
     {
       return tmp_ms_file_;
     }
-    
+
+    class OPENMS_DLLAPI SiriusWorkspaceIndex
+    {
+    public:
+      int array_index, scan_index;
+
+      SiriusWorkspaceIndex(int array_index, int scan_index) : array_index {array_index}, scan_index {scan_index} {}
+    };
+
+    std::vector<String> SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::vector<String>&& subdirs)
+    {
+      std::vector<String> sorted_subdirs;
+      std::vector<SiriusWorkspaceIndex> indices;
+
+      for (size_t i = 0; i < subdirs.size(); i++)
+      {
+        indices.emplace_back(i, SiriusMzTabWriter::extractScanIndex(subdirs[i]));
+      }
+
+      std::sort(indices.begin(),
+                indices.end(),
+                [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
+
+      for (const auto& index : indices)
+      {
+        sorted_subdirs.emplace_back(subdirs[index.array_index]);
+      }
+
+      return sorted_subdirs;
+    }
+
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      std::vector<FeatureMap>& v_fp,

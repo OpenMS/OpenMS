@@ -126,41 +126,44 @@ namespace OpenMS
     String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row,
         const Size n_best_search_engine_scores,
         const std::vector<String>& optional_columns,
-        const MzTabMetaData& meta) const;
+        const MzTabMetaData& meta,
+        size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabProteinSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
+    String generateMzTabSectionRow_(const MzTabProteinSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabPeptideSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
+    String generateMzTabSectionRow_(const MzTabPeptideSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabPSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns) const;
+    String generateMzTabPSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabPSMSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
+    String generateMzTabSectionRow_(const MzTabPSMSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
+    String generateMzTabSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabNucleicAcidHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_scores, const std::vector<String>& optional_columns) const;
+    String generateMzTabNucleicAcidHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_scores, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabNucleicAcidSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
+    String generateMzTabSectionRow_(const MzTabNucleicAcidSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabOligonucleotideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, const std::vector<String>& optional_columns) const;
+    String generateMzTabOligonucleotideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabOligonucleotideSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
+    String generateMzTabSectionRow_(const MzTabOligonucleotideSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    String generateMzTabOSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns) const;
+    String generateMzTabOSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns, size_t& n_columns) const;
 
-    String generateMzTabSectionRow_(const MzTabOSMSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
+    String generateMzTabSectionRow_(const MzTabOSMSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta, size_t& n_columns) const;
 
-    /// Generate an mzTab section comprising multiple rows of the same type
-    template <typename SectionRow> void generateMzTabSection_(const std::vector<SectionRow>& rows, const std::vector<String>& optional_columns, const MzTabMetaData& meta, StringList& output) const
+    /// Generate an mzTab section comprising multiple rows of the same type and perform sanity check
+    template <typename SectionRow> void generateMzTabSection_(const std::vector<SectionRow>& rows, const std::vector<String>& optional_columns, const MzTabMetaData& meta, StringList& output, size_t n_header_columns) const
     {
       output.reserve(output.size() + rows.size() + 1);
       for (const auto& row : rows)
       {
-        output.push_back(generateMzTabSectionRow_(row, optional_columns, meta));
+        size_t n_section_columns = 0;
+        output.push_back(generateMzTabSectionRow_(row, optional_columns, meta, n_section_columns));
+        if (n_header_columns != n_section_columns)  throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header and content differs in columns. Please report this bug to the OpenMS developers.");
       }
     }
 

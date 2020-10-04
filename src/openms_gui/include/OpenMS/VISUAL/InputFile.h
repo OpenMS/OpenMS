@@ -85,6 +85,9 @@ namespace OpenMS
   signals:
     /// emitted when a new file is added (by drag'n'drop or 'Browse' button)
     void updatedCWD(QString new_cwd);
+    /// emitted when a new file is added (by drag'n'drop or 'Browse' button)
+    void updatedFile(QString new_path);
+
   public slots:
 
     /// Lets the user select the file via a file dialog

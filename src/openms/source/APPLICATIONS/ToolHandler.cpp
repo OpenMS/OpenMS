@@ -53,6 +53,7 @@ namespace OpenMS
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", "Identification");
     tools_map["CruxAdapter"] = Internal::ToolDescription("CruxAdapter", "Identification");
+    tools_map["DatabaseSuitability"] = Internal::ToolDescription("DatabaseSuitability", "Quality Control");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
@@ -134,7 +135,6 @@ namespace OpenMS
     tools_map["RTModel"] = Internal::ToolDescription("RTModel", "Peptide property prediction");
     tools_map["RTPredict"] = Internal::ToolDescription("RTPredict", "Peptide property prediction");
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", "Quantitation");
-    //tools_map["SequestAdapter"] = Internal::ToolDescription("SequestAdapter", "Identification");
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Identification");
     tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", "Identification");
     tools_map["SpectraFilterMarkerMower"] = Internal::ToolDescription("SpectraFilterMarkerMower", "Identification");
@@ -249,6 +249,7 @@ namespace OpenMS
     util_map["SpectraSTSearchAdapter"] = Internal::ToolDescription("SpectraSTSearchAdapter", util_category);
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
     util_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", util_category);
+    util_map["StaticModification"] = Internal::ToolDescription("StaticModification", util_category);
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
     util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);
     util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);

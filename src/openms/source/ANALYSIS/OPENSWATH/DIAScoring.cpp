@@ -189,7 +189,7 @@ namespace OpenMS
       // value. Otherwise calculate the difference in ppm.
       if (!signalFound)
       {
-        ppm_score = dia_extract_window_ / precursor_mz * 1000000;
+        ppm_score = (right - left) / precursor_mz * 1000000;
         return false;
       }
       else

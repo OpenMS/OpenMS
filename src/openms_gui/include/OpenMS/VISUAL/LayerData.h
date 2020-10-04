@@ -37,12 +37,15 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
@@ -54,6 +57,7 @@
 
 namespace OpenMS
 {
+
   /**
   @brief Class that stores the data for one layer
 
@@ -82,7 +86,7 @@ namespace OpenMS
 
   @ingroup SpectrumWidgets
   */
-  class LayerData
+  class OPENMS_GUI_DLLAPI LayerData
   {
 public:
     /** @name Type definitions */
@@ -161,7 +165,7 @@ public:
       visible(true),
       flipped(false),
       type(DT_UNKNOWN),
-      name(),
+      name_(),
       filename(),
       peptides(),
       param(),
@@ -184,6 +188,17 @@ public:
     {
       annotations_1d.resize(1);
     }
+
+    /// no Copy-ctor (should not be needed)
+    LayerData(const LayerData& ld) = delete;
+    /// no assignment operator (should not be needed)
+    LayerData& operator=(const LayerData& ld) = delete;
+
+    /// move Ctor
+    LayerData(LayerData&& ld) = default;
+
+    /// move assignment
+    LayerData& operator=(LayerData&& ld) = default;
 
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
@@ -216,7 +231,7 @@ public:
     spectra may have zero size and contain only meta data since peak data is
     cached on disk.
 
-    @note Do *not* use this function to access the current spectrum for the 1D view
+    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
     */
     const ConstExperimentSharedPtrType getPeakData() const;
 
@@ -227,7 +242,7 @@ public:
     spectra may have zero size and contain only meta data since peak data is
     cached on disk.
 
-    @note Do *not* use this function to access the current spectrum for the 1D view
+    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
     */
     const ExperimentSharedPtrType & getPeakDataMuteable() {return peaks;}
 
@@ -263,6 +278,13 @@ public:
     {
       return chromatograms;
     }
+
+    /// add peptide identifications to the layer
+    /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
+    /// Will return false otherwise.
+    bool annotate(const std::vector<PeptideIdentification>& identifications,
+                  const std::vector<ProteinIdentification>& protein_identifications);
+
 
     /// Returns a const reference to the annotations of the current spectrum (1D view)
     const Annotations1DContainer & getCurrentAnnotations() const
@@ -394,6 +416,12 @@ public:
     */
     void updateRanges();
 
+    /// Returns the minimum intensity of the internal data, depending on type
+    float getMinIntensity() const;
+
+    /// Returns the maximum intensity of the internal data, depending on type
+    float getMaxIntensity() const;
+
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
     void synchronizePeakAnnotations();
@@ -410,8 +438,19 @@ public:
     /// data type (peak or feature data)
     DataType type;
 
+    private:
     /// layer name
-    String name;
+    String name_;
+
+    public:
+      const String& getName() const
+      {
+        return name_;
+      }
+      void setName(const String& new_name)
+      {
+        name_ = new_name;
+      }
 
     /// file name of the file the data comes from (if available)
     String filename;
@@ -447,8 +486,10 @@ public:
     int peptide_id_index;
     int peptide_hit_index;
 
-private:
+    /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+    String getDecoratedName() const;
 
+private:
     /// Update current cached spectrum for easy retrieval
     void updateCache_();
 
@@ -475,11 +516,71 @@ private:
 
     /// Current cached spectrum
     ExperimentType::SpectrumType cached_spectrum_;
+  };
 
+  /// A base class to annotate layers of specific types with (identification) data
+  class LayerAnnotatorBase
+  {
+    public:
+      /**
+        @brief C'tor with params
+        
+        @param supported_types Which identification data types are allowed to be opened by the user in annotate()
+        @param file_dialog_text The header text of the file dialog shown to the user
+      **/
+      LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text);
+      
+      /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
+      /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
+      /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
+      /// as implemented by the derived classes
+      bool annotate(LayerData& layer, LogWindow& log, const String& current_path) const;
+
+    protected:
+      /// abstract virtual worker function to annotate a layer using content from the @p filename
+      /// returns true on success
+      virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const = 0;
+      
+      const FileTypes::FileTypeList supported_types_;
+      const String file_dialog_text_;
+  };
+
+  /// Annotate a layer with PeptideIdentifications using Layer::annotate(pepIDs, protIDs).
+  /// The ID data is loaded from a file selected by the user via a file-dialog.
+  class LayerAnnotatorPeptideID
+    : public LayerAnnotatorBase
+  {
+    public:
+      LayerAnnotatorPeptideID()
+       : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::IDXML, FileTypes::MZIDENTML },
+                            "Select peptide identification data")
+      {}
+
+  protected:
+    /// loads the ID data from @p filename and calls Layer::annotate.
+    /// Always returns true (unless an exception is thrown from internal sub-functions)
+    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+  };
+
+  /// Annotate a layer with AccurateMassSearch results (from an AMS-featureXML file).
+  /// The featuremap is loaded from a file selected by the user via a file-dialog.
+  class LayerAnnotatorAMS
+    : public LayerAnnotatorBase
+  {
+  public:
+    LayerAnnotatorAMS()
+      : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::FEATUREXML },
+                           "Select AccurateMassSearch's featureXML file")
+    {}
+
+  protected:
+    /// loads the featuremap from @p filename and calls Layer::annotate.
+    /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
+    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
   };
 
   /// Print the contents to a stream.
-  OPENMS_GUI_DLLAPI std::ostream & operator<<(std::ostream & os, const LayerData & rhs);
+  OPENMS_GUI_DLLAPI std::ostream& operator<<(std::ostream & os, const LayerData & rhs);
 
 } //namespace
 

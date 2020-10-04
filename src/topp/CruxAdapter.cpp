@@ -32,6 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -159,10 +160,10 @@ protected:
     registerStringOption_("custom_enzyme", "<enzyme description>", "", "Specify rules for in silico digestion of protein sequences. Overrides the enzyme option. Two lists of residues are given enclosed in square brackets or curly braces and separated by a |. The first list contains residues required/prohibited before the cleavage site and the second list is residues after the cleavage site.  ", false, true);
     registerStringOption_("decoy_prefix", "<decoy_prefix>", "decoy_", "Specifies the prefix of the protein names that indicate a decoy", false, true);
 
-    registerStringOption_("decoy-format", "<choice>", "shuffle", "Decoy generation method either by reversing the sequence or shuffling it.", false, false);
-    setValidStrings_("decoy-format", ListUtils::create<String>("none,shuffle,peptide-reverse,protein-reverse"));
-    registerStringOption_("keep-terminal-aminos", "<choice>", "NC", "Whether to keep N and C terminal in place or also shuffled / reversed.", false, false);
-    setValidStrings_("keep-terminal-aminos", ListUtils::create<String>("N,C,NC,none"));
+    registerStringOption_("decoy_format", "<choice>", "shuffle", "Decoy generation method either by reversing the sequence or shuffling it.", false, false);
+    setValidStrings_("decoy_format", ListUtils::create<String>("none,shuffle,peptide-reverse,protein-reverse"));
+    registerStringOption_("keep_terminal_aminos", "<choice>", "NC", "Whether to keep N and C terminal in place or also shuffled / reversed.", false, false);
+    setValidStrings_("keep_terminal_aminos", ListUtils::create<String>("N,C,NC,none"));
 
     //Modifications
     registerStringOption_("cterm_modifications", "<mods>", "", "Specifies C-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of C-terminal modification sequences of the form: X+21.9819 Default = <empty>.", false, false);
@@ -269,8 +270,8 @@ protected:
       String params = "--overwrite T --peptide-list T --num-threads " + String(getIntOption_("threads"));
       params += " --missed-cleavages " + String(getIntOption_("allowed_missed_cleavages"));
       params += " --digestion " + getStringOption_("digestion");
-      params += " --decoy-format " + getStringOption_("decoy-format");
-      params += " --keep-terminal-aminos " + getStringOption_("keep-terminal-aminos");
+      params += " --decoy-format " + getStringOption_("decoy_format");
+      params += " --keep-terminal-aminos " + getStringOption_("keep_terminal_aminos");
       if (!getStringOption_("enzyme").empty()) params += " --enzyme " + getStringOption_("enzyme");
       if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
       if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
@@ -462,6 +463,12 @@ protected:
         protID.setSearchEngine("tide-search");
         protID.setSearchParameters(sp);
       }
+    }
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);

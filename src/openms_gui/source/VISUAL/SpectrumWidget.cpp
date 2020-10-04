@@ -112,7 +112,6 @@ namespace OpenMS
 
   SpectrumWidget::~SpectrumWidget()
   {
-    emit aboutToBeDestroyed(window_id_);
   }
 
   void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
@@ -322,7 +321,7 @@ namespace OpenMS
       const LayerData& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
-        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.name +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
+        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
         if (result == QMessageBox::Ok)
         {
           canvas()->activateLayer(l);
@@ -351,20 +350,8 @@ namespace OpenMS
 
   void SpectrumWidget::dropEvent(QDropEvent* event)
   {
-    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), window_id_);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), this->getWindowId());
     event->acceptProposedAction();
-  }
-
-  // from interface EnhancedTabBarInterface
-  Int SpectrumWidget::getWindowId()
-  {
-    return window_id_;
-  }
-
-  // from interface EnhancedTabBarInterface
-  void SpectrumWidget::setWindowId(Int window_id)
-  {
-    window_id_ = window_id;
   }
 
 } //namespace OpenMS

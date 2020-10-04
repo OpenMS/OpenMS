@@ -54,6 +54,19 @@ namespace OpenMS
   {
   }
 
+  DigestionEnzymeProtein::DigestionEnzymeProtein(const DigestionEnzyme& d) :
+      DigestionEnzyme(d),
+      n_term_gain_(""),
+      c_term_gain_(""),
+      psi_id_(""),
+      xtandem_id_(""),
+      comet_id_(-1),
+      crux_id_(""),
+      msgf_id_(-1),
+      omssa_id_(-1)
+  {
+  }
+
   DigestionEnzymeProtein::DigestionEnzymeProtein(const String& name,
                                                  const String& cleavage_regex,
                                                  const std::set<String>& synonyms,

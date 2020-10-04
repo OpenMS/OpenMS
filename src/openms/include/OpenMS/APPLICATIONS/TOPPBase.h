@@ -191,6 +191,15 @@ public:
     */
     static void setMaxNumberOfThreads(int num_threads);
 
+    /**
+      @brief Returns the prefix used to identify the tool
+    
+      This prefix is later found in the INI file for a TOPP tool.
+      f.e.: "FileConverter:1:"
+
+    */
+    String getToolPrefix() const;
+
 private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
@@ -821,8 +830,12 @@ protected:
 
     ///@name External processes (TODO consider creating another AdapterBase class)
     //@{
-    /// Runs an external process via QProcess and reports its status in the logs
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
     ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
+
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
+    /// Additionally returns the process' stdout and stderr
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir = "") const;
     //@}
 
     /**

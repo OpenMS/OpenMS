@@ -77,7 +77,7 @@ START_SECTION((virtual ~SignalToNoiseEstimatorMedian()))
 END_SECTION
 
 
-START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
+START_SECTION([EXTRA](virtual void init(const Container& c)))
 
   MSSpectrum raw_data;
   MSSpectrum::const_iterator it;
@@ -91,14 +91,14 @@ START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const Peak
 	p.setValue("noise_for_empty_window", 2.0);
 	p.setValue("min_required_elements", 10);
 	sne.setParameters(p);
-  sne.init(raw_data.begin(),raw_data.end());
+  sne.init(raw_data);
 
   MSSpectrum stn_data;
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimatorMedian_test.out"), stn_data);
   int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {
-    TEST_REAL_SIMILAR (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
+    TEST_REAL_SIMILAR (stn_data[i].getIntensity(), sne.getSignalToNoise(i));
         
     
     //Peak1D peak = (*it);

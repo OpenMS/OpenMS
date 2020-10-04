@@ -93,11 +93,8 @@ using namespace OpenMS;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathDecoyGenerator.cli
-
-  <B>The algorithm parameters for the Analyzer filter are:</B>
+  <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_OpenSwathDecoyGenerator.html
-
-
 */
 
 // TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
@@ -130,7 +127,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
-    registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
+    registerStringOption_("method", "<type>", "shuffle", "Decoy generation method", false);
     setValidStrings_("method", ListUtils::create<String>(String("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);

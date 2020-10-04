@@ -94,8 +94,8 @@ namespace OpenMS
       int getNumberOfCSIFingerIDCandidates() const { return fingerid.getValue("candidates"); }
 
 
-    /// Struct for temporary folder structure
-      struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
+      /// Struct for temporary folder structure
+      class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
       public:
 
@@ -126,6 +126,14 @@ namespace OpenMS
       @param executable Path to the potential executable
       */
       static String determineSiriusExecutable(String& executable);
+
+      /**
+      @brief Sort function using the extracted scan_index from the sirius workspace file path
+
+      @return Vector of sorted sirius workspace paths based on the scan_index
+
+      */
+      static std::vector<String> sortSiriusWorkspacePathsByScanIndex(std::vector<String>&& subdirs);
 
       /**
       @brief Preprocessing needed for SIRIUS

@@ -37,19 +37,14 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
+
 #include <QTabWidget>
 
 #include <vector>
 #include <utility> // for std::pair
-#include <functional> // for std::function
-
-#include <QMessageBox>
-#include <QProcess>
-
-#include <QCoreApplication>
 
 namespace Ui
 {
@@ -62,121 +57,24 @@ namespace OpenMS
   class OutputDirectory;
   class ParamEditor;
 
+
   namespace Internal
   {
+    class SwathTabWidget;
 
     /**
-      @brief A wrapper around QProcess to conveniently start an external program and forward its outputs
-
-      Use the custom Ctor to provide callback functions for stdout/stderr output or set them via setCallbacks().
-
-      Running an external program blocks the caller, so do not use this in a main GUI thread
-      (unless you have some other means to tell the user that no interaction is possible at the moment).
-
+      @brief RAII class to switch to certain TabWidget, disable the GUI and go back to the orignal Tab when this class is destroyed
     */
-    // TODO: this will replace TOPPBase::runExternalProgram_(), but in a separate PR
-    class ExternalProcess
-      : public QObject
+    class GUILock
     {
-      Q_OBJECT
+      public:
+      GUILock(SwathTabWidget* stw);
 
-    public:
-      enum class RETURNSTATE
-      {
-        SUCCESS,  ///< everything went smoothly (exit-code = 0)
-        NONZERO_EXIT, /// ran, but returned with an exit-code other than 0
-        CRASH, ///< ran, but crashed (segfault etc)
-        FAILED_TO_START ///< executable not found or not enough access rights for user
-      };
-
-      /// default Ctor; callbacks for stdout/stderr are empty
-      ExternalProcess()
-      : ExternalProcess([&](const String& /*out*/) {}, [&](const String& /*out*/) {}) // call other Ctor to connect signals!
-      {
-      }
-
-      ExternalProcess(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
-        : qp_(new QProcess),
-          callbackStdOut_(callbackStdOut),
-          callbackStdErr_(callbackStdErr)
-      {
-        connect(qp_, &QProcess::readyReadStandardOutput, this, &ExternalProcess::processStdOut_);
-        connect(qp_, &QProcess::readyReadStandardError, this, &ExternalProcess::processStdErr_);
-      }
-
-      ~ExternalProcess()
-      {
-        delete qp_;
-      }
-      
-      /// re-wire the callbacks used using run()
-      void setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
-      {
-        callbackStdOut_ = callbackStdOut;
-        callbackStdErr_ = callbackStdErr;
-      }
-
-      /**
-        @brief Runs a program and calls the callback functions from time to time if output from the external program is available.
-
-        @param parent Optional parent widget, used to show QMesssageBoxes (see @p verbose_GUI)
-        @param exe The program to call (can contain spaces in path, no problem)
-        @param args A list of extra arguments (can be empty)
-        @param verbose Report the call issued and errors to the callbacks you provided
-        @param verbose_GUI Show QMessageBoxes with errors should they occur
-      */
-      RETURNSTATE run(QWidget* parent, const QString& exe, const QStringList& args, bool verbose, bool verbose_GUI)
-      {
-        String error_msg;
-        if (verbose)  callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
-        
-        qp_->start(exe, args);
-        if (!(qp_->waitForStarted()))
-        {
-          error_msg = "Process '" + exe + "' failed to start. Does it exist? Is it executable?";
-          if (verbose) callbackStdErr_(error_msg + '\n');
-          if (verbose_GUI) QMessageBox::critical(parent, "Error", error_msg.toQString());
-          return RETURNSTATE::FAILED_TO_START;
-        }
-        while (qp_->state() == QProcess::Running)
-        {
-          QCoreApplication::processEvents();
-          qp_->waitForReadyRead();
-          processStdOut_();
-          processStdErr_();
-        }
-        if (verbose) callbackStdOut_("Exit code: " + String(qp_->exitCode()));
-
-        bool any_failure = qp_->exitStatus() != QProcess::NormalExit || qp_->exitCode() != 0;
-        if (any_failure)
-        {
-          error_msg = "Process '" + exe + "' did not finish successfully. Please check the log.";
-          if (verbose) callbackStdErr_(error_msg + '\n');
-          if (verbose_GUI) QMessageBox::critical(parent, "Error", error_msg.toQString());
-          if (qp_->exitCode() !=0) return RETURNSTATE::NONZERO_EXIT;
-          else return RETURNSTATE::CRASH;
-        }
-        return RETURNSTATE::SUCCESS;
-      }
-
-    private slots:
-      void processStdOut_()
-      {
-        String s(QString(qp_->readAllStandardOutput()));
-        //std::cout << s << "\n";
-        callbackStdOut_(s);
-      }
-      void processStdErr_()
-      {
-        String s(QString(qp_->readAllStandardError()));
-        //std::cout << s << "\n";
-        callbackStdErr_(s);
-      }
-
-    private:
-      QProcess* qp_; ///< pointer to avoid including the QProcess header here (it's huge)
-      std::function<void(const String&)> callbackStdOut_;
-      std::function<void(const String&)> callbackStdErr_;
+      ~GUILock();
+      private:
+        SwathTabWidget* stw_;
+        QWidget* old_;
+        bool was_enabled_;
     };
 
     /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
@@ -185,6 +83,8 @@ namespace OpenMS
       Q_OBJECT
 
     public:
+      friend class GUILock;
+
       explicit SwathTabWidget(QWidget *parent = nullptr);
       ~SwathTabWidget();
 
@@ -196,15 +96,23 @@ namespace OpenMS
       /// update the current working directory for all file input fields
       void broadcastNewCWD_(const QString& new_cwd);
 
+
       void on_btn_runPyProphet_clicked();
 
+      void on_btn_pyresults_clicked();
+
     private:
+      /// find the path of a Script, given the location of python(.exe). E.g. pyprophet.exe or feature_alignment.py
+      /// Returns true on success, with the full path in @p script_name
+      bool findPythonScript_(const String& path_to_python_exe, String& script_name);
+
       /// collect all parameters throughout the Wizard's controls and update 'swath_param_'
       void updateSwathParamFromWidgets_();
 
       /// update Widgets given a param object
       void updateWidgetsfromSwathParam_();
 
+      /// where to write OSW output and pyProphet output
       QString getCurrentOutDir_() const;
 
       /// translate the current list of input mzMLs and the current output directory of OSW to a list of expected OSW output files == pyProphet input files
@@ -220,7 +128,9 @@ namespace OpenMS
       /// append text to the log tab
       /// @param text The text to write
       /// @param new_section Start a new block with a date and time
-      void writeLog_(const QString& text, bool new_section = false);
+      void writeLog_(const QString& text, const QColor& color = "#000000", bool new_section = false);
+      /// @brief convenient overload for String
+      void writeLog_(const String& text, const QColor& color = "#000000", bool new_section = false);
 
       /// Ensure all input widgets are filled with data by the user to run OpenSwathWorkflow
       /// If anything is missing: show a Messagebox and return false.
@@ -231,7 +141,7 @@ namespace OpenMS
       Param swath_param_wizard_; ///< small selection of important parameters which the user can directly change in the Wizard
 
       StringList osw_result_files_; ///< list of .osw files produced by OSW which are currently available
-      ExternalProcess ep_; ///< to run external programs and pipe their output into our log
+      ExternalProcessMBox ep_; ///< to run external programs and pipe their output into our log
     };
 
   }

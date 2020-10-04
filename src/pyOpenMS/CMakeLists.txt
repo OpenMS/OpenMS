@@ -599,6 +599,7 @@ set(pyopenms_unittest_testfiles
   test_TraML.py
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
+  test_AcquisitionInfo.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder

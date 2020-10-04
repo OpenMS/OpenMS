@@ -5,1520 +5,1520 @@
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Acetyl (K)" />
 	</SearchParameters>
-	<IdentificationRun date="2018-04-02T23:28:48" search_engine="Novor" search_engine_version="v1.06.0634 (stable)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-06-03T01:57:35" search_engine="Novor" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 		</ProteinIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="747.3779" RT="3600.1" >
-			<PeptideHit score="30.4" sequence="ALGEMQAWSSLPFNGNAYRK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2239.0844"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="747.377899999999954" RT="3600.099999999999909" >
+			<PeptideHit score="30.399999999999999" sequence="ALGEMQAWSSLPFNGNAYRK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2239.084400000000187"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0275"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.3"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 38-34-14-46-21-45-32-79-64-63-14-1-33-16-5-7-8-3-13-49"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4771"/>
+			<UserParam type="int" name="scan_index" value="4771"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="563.6935" RT="3600.7" >
-			<PeptideHit score="32.7" sequence="KELLTKSKAHVLPPK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1688.0349"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="563.693499999999972" RT="3600.699999999999818" >
+			<PeptideHit score="32.700000000000003" sequence="KELLTKSKAHVLPPK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1688.034900000000107"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0239"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="14.1"/>
 				<UserParam type="string" name="aaScore" value=" 62-57-61-45-36-9-6-1-18-58-1-11-6-11-80"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4772"/>
+			<UserParam type="int" name="scan_index" value="4772"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="596.002" RT="3601.1" >
-			<PeptideHit score="30.4" sequence="EGKKVKGGDSDGLALLAK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1784.9996"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="596.001999999999953" RT="3601.099999999999909" >
+			<PeptideHit score="30.399999999999999" sequence="EGKKVKGGDSDGLALLAK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1784.9996000000001"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0154"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-8.6"/>
 				<UserParam type="string" name="aaScore" value=" 49-1-5-60-17-1-45-11-50-53-25-34-44-45-15-14-19-52"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4773"/>
+			<UserParam type="int" name="scan_index" value="4773"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="606.6655" RT="3602.2" >
-			<PeptideHit score="40.3" sequence="FKNAWHTPKDK(Acetyl)LYK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9624"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="606.665499999999952" RT="3602.199999999999818" >
+			<PeptideHit score="40.299999999999997" sequence="FKNAWHTPKDK(Acetyl)LYK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.962399999999889"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0121"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="6.7"/>
 				<UserParam type="string" name="aaScore" value=" 66-55-1-12-55-50-49-23-10-9-29-39-73-62"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4775"/>
+			<UserParam type="int" name="scan_index" value="4775"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="574.3142" RT="3602.6" >
-			<PeptideHit score="30" sequence="MAFRVGVAGFGALTPGK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1719.913"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0078"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="574.314200000000028" RT="3602.599999999999909" >
+			<PeptideHit score="30.0" sequence="MAFRVGVAGFGALTPGK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1719.913000000000011"/>
+				<UserParam type="float" name="err(data-denovo)" value="7.8e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="4.5"/>
 				<UserParam type="string" name="aaScore" value=" 51-10-10-4-1-57-31-42-23-47-80-29-31-31-28-13-48"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4776"/>
+			<UserParam type="int" name="scan_index" value="4776"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="677.3514" RT="3602.9" >
-			<PeptideHit score="74.6" sequence="NPDLSPYVSPHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1352.6725"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="677.351400000000012" RT="3602.900000000000091" >
+			<PeptideHit score="74.599999999999994" sequence="NPDLSPYVSPHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1352.6724999999999"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0157"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.6"/>
 				<UserParam type="string" name="aaScore" value=" 25-1-16-99-99-99-90-89-94-97-97-90"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4777"/>
+			<UserParam type="int" name="scan_index" value="4777"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="843.7641" RT="3603.2" >
-			<PeptideHit score="36.1" sequence="TK(Acetyl)AFLKAVDLWTLDHEEFAPR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2528.3064"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="843.764099999999985" RT="3603.199999999999818" >
+			<PeptideHit score="36.100000000000001" sequence="TK(Acetyl)AFLKAVDLWTLDHEEFAPR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2528.30639999999994"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0359"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 13-34-28-29-65-84-58-18-38-15-23-1-18-14-17-21-38-79-86-48-51"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4778"/>
+			<UserParam type="int" name="scan_index" value="4778"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="798.3909" RT="3603.6" >
-			<PeptideHit score="65.8" sequence="TLVLFPSSDSQC(Carbamidomethyl)NK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1594.7661"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0011"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="798.390899999999988" RT="3603.599999999999909" >
+			<PeptideHit score="65.799999999999997" sequence="TLVLFPSSDSQC(Carbamidomethyl)NK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1594.766100000000051"/>
+				<UserParam type="float" name="err(data-denovo)" value="1.1e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="0.7"/>
 				<UserParam type="string" name="aaScore" value=" 59-51-46-98-99-93-97-94-88-59-33-32-33-68"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4779"/>
+			<UserParam type="int" name="scan_index" value="4779"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="512.2811" RT="3604.7" >
-			<PeptideHit score="23.9" sequence="RANHPMFAGPPVLK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1533.8238"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0023"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="512.281100000000038" RT="3604.699999999999818" >
+			<PeptideHit score="23.899999999999999" sequence="RANHPMFAGPPVLK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1533.823799999999892"/>
+				<UserParam type="float" name="err(data-denovo)" value="-2.3e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-1.5"/>
 				<UserParam type="string" name="aaScore" value=" 16-1-10-29-30-21-16-26-17-1-17-48-27-73"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4781"/>
+			<UserParam type="int" name="scan_index" value="4781"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="656.3505" RT="3605" >
-			<PeptideHit score="36.4" sequence="C(Carbamidomethyl)SHSMLAKKPGKGPEK(Acetyl)K(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1966.0128"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="656.350500000000011" RT="3605.0" >
+			<PeptideHit score="36.399999999999999" sequence="C(Carbamidomethyl)SHSMLAKKPGKGPEK(Acetyl)K(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1966.01279999999997"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0169"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.6"/>
 				<UserParam type="string" name="aaScore" value=" 30-26-25-37-25-4-40-1-19-14-55-1-2-66-85-77-81"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4782"/>
+			<UserParam type="int" name="scan_index" value="4782"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="541.2907" RT="3605.5" >
-			<PeptideHit score="31.4" sequence="EANSSAPKRGTAPAHK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1620.8332"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="541.290700000000015" RT="3605.5" >
+			<PeptideHit score="31.399999999999999" sequence="EANSSAPKRGTAPAHK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1620.833200000000034"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0171"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.5"/>
 				<UserParam type="string" name="aaScore" value=" 72-52-66-33-19-1-9-23-10-13-20-14-3-46-44-58"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4783"/>
+			<UserParam type="int" name="scan_index" value="4783"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="473.2089" RT="3605.9" >
-			<PeptideHit score="28.3" sequence="EC(Carbamidomethyl)PDAPTR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="944.4022"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0011"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="473.208900000000028" RT="3605.900000000000091" >
+			<PeptideHit score="28.300000000000001" sequence="EC(Carbamidomethyl)PDAPTR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="944.402199999999993"/>
+				<UserParam type="float" name="err(data-denovo)" value="1.0e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.1"/>
 				<UserParam type="string" name="aaScore" value=" 40-1-1-21-26-84-13-50"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4784"/>
+			<UserParam type="int" name="scan_index" value="4784"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="568.9822" RT="3606.4" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="568.982200000000034" RT="3606.400000000000091" >
 			<PeptideHit score="45.5" sequence="TTRAK(Acetyl)STLVSVDGSLK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1703.9418"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1703.941800000000058"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0171"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.0"/>
 				<UserParam type="string" name="aaScore" value=" 51-33-8-4-38-38-74-62-59-60-43-2-15-66-85-90"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4785"/>
+			<UserParam type="int" name="scan_index" value="4785"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="606.666" RT="3607.3" >
-			<PeptideHit score="27.4" sequence="SNKMDHAAVLPATLPPR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9618"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="606.666000000000054" RT="3607.300000000000182" >
+			<PeptideHit score="27.399999999999999" sequence="SNKMDHAAVLPATLPPR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.961800000000039"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0144"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7.9"/>
 				<UserParam type="string" name="aaScore" value=" 32-33-60-27-3-1-30-26-45-45-21-10-20-15-40-14-43"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4787"/>
+			<UserParam type="int" name="scan_index" value="4787"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="909.4968" RT="3607.6" >
-			<PeptideHit score="55" sequence="SNKMLPMFPGRFKHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9593"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="909.496800000000007" RT="3607.599999999999909" >
+			<PeptideHit score="55.0" sequence="SNKMLPMFPGRFKHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.959299999999985"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0197"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 19-18-49-85-77-97-81-51-22-2-47-86-44-53-56"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4788"/>
+			<UserParam type="int" name="scan_index" value="4788"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="860.9692" RT="3607.9" >
-			<PeptideHit score="58.2" sequence="LMSELPLK(Acetyl)PPELAAK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1719.9481"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="860.969200000000001" RT="3607.900000000000091" >
+			<PeptideHit score="58.200000000000003" sequence="LMSELPLK(Acetyl)PPELAAK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1719.948100000000068"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0243"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.1"/>
 				<UserParam type="string" name="aaScore" value=" 94-25-55-57-93-95-91-45-60-29-36-54-69-47-51"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4789"/>
+			<UserParam type="int" name="scan_index" value="4789"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="1004.4909" RT="3608.4" >
-			<PeptideHit score="62.1" sequence="GHFGVVLFPSQEDPVDHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="2006.985"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="1004.490900000000011" RT="3608.400000000000091" >
+			<PeptideHit score="62.100000000000001" sequence="GHFGVVLFPSQEDPVDHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="2006.9849999999999"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0178"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-8.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-8.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 12-8-55-55-76-81-96-96-98-86-86-66-43-14-39-66-62-65"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4790"/>
+			<UserParam type="int" name="scan_index" value="4790"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="767.9188" RT="3608.8" >
-			<PeptideHit score="38.6" sequence="KFNAPLAYGELAAK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1533.8191"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0038"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="767.918800000000033" RT="3608.800000000000182" >
+			<PeptideHit score="38.600000000000001" sequence="KFNAPLAYGELAAK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1533.819099999999935"/>
+				<UserParam type="float" name="err(data-denovo)" value="3.8e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.5"/>
 				<UserParam type="string" name="aaScore" value=" 55-68-68-70-18-14-26-31-11-72-29-32-23-13"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4791"/>
+			<UserParam type="int" name="scan_index" value="4791"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="590.6653" RT="3609.9" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="590.665300000000002" RT="3609.900000000000091" >
 			<PeptideHit score="34.5" sequence="FTVMKNVKTSMAATLK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1768.9579"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0163"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.2"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1768.957900000000109"/>
+				<UserParam type="float" name="err(data-denovo)" value="0.0162"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 67-30-43-49-9-8-51-46-58-6-8-11-31-13-17-89"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4793"/>
+			<UserParam type="int" name="scan_index" value="4793"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="514.7361" RT="3610.4" >
-			<PeptideHit score="21.6" sequence="TK(Acetyl)SSAUPVK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1027.4453"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="514.736099999999965" RT="3610.400000000000091" >
+			<PeptideHit score="21.600000000000001" sequence="TK(Acetyl)SSAUPVK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1027.445300000000088"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0123"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.0"/>
 				<UserParam type="string" name="aaScore" value=" 49-41-45-17-5-5-7-6-20"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4794"/>
+			<UserParam type="int" name="scan_index" value="4794"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="623.6598" RT="3610.7" >
-			<PeptideHit score="29" sequence="MFKHDAK(Acetyl)RAHPTYPK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1867.9516"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.006"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="623.659800000000018" RT="3610.699999999999818" >
+			<PeptideHit score="29.0" sequence="MFKHDAK(Acetyl)RAHPTYPK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1867.951600000000099"/>
+				<UserParam type="float" name="err(data-denovo)" value="6.0e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="3.2"/>
 				<UserParam type="string" name="aaScore" value=" 39-18-28-31-40-39-3-14-1-1-1-59-70-45-55"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4795"/>
+			<UserParam type="int" name="scan_index" value="4795"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="611.996" RT="3611.1" >
-			<PeptideHit score="20.2" sequence="EHAC(Carbamidomethyl)SLSVKVKKYDK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1832.9455"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="611.995999999999981" RT="3611.099999999999909" >
+			<PeptideHit score="20.199999999999999" sequence="EHAC(Carbamidomethyl)SLSVKVKKYDK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1832.945500000000038"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0208"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.3"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 51-8-2-8-1-16-17-17-25-22-15-13-29-41-32"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4796"/>
+			<UserParam type="int" name="scan_index" value="4796"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="426.7327" RT="3611.6" >
-			<PeptideHit score="29.9" sequence="MSFLNLK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="851.4575"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0067"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="426.732700000000023" RT="3611.599999999999909" >
+			<PeptideHit score="29.899999999999999" sequence="MSFLNLK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="851.457499999999982"/>
+				<UserParam type="float" name="err(data-denovo)" value="-6.7e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-7.8"/>
 				<UserParam type="string" name="aaScore" value=" 68-21-33-40-11-19-16"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4797"/>
+			<UserParam type="int" name="scan_index" value="4797"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="514.3113" RT="3612.7" >
-			<PeptideHit score="32.2" sequence="FALLLEPPK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1026.6114"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0034"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="514.31129999999996" RT="3612.699999999999818" >
+			<PeptideHit score="32.200000000000003" sequence="FALLLEPPK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1026.611400000000003"/>
+				<UserParam type="float" name="err(data-denovo)" value="-3.4e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-3.3"/>
 				<UserParam type="string" name="aaScore" value=" 29-48-90-76-11-1-1-3-40"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4799"/>
+			<UserParam type="int" name="scan_index" value="4799"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="706.0472" RT="3613.2" >
-			<PeptideHit score="27.9" sequence="KQWYRK(Acetyl)LANTPEPWTR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2115.1014"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="706.047199999999975" RT="3613.199999999999818" >
+			<PeptideHit score="27.899999999999999" sequence="KQWYRK(Acetyl)LANTPEPWTR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2115.101400000000012"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0183"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.6"/>
 				<UserParam type="string" name="aaScore" value=" 26-11-62-30-23-62-33-25-7-16-1-15-6-19-41-39"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4800"/>
+			<UserParam type="int" name="scan_index" value="4800"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="669.9943" RT="3613.8" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="669.994299999999953" RT="3613.800000000000182" >
 			<PeptideHit score="15.9" sequence="NVQQAC(Carbamidomethyl)SSMKMTDLPKK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2006.9588"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0024"/>
+				<UserParam type="float" name="pepMass(denovo)" value="2006.95880000000011"/>
+				<UserParam type="float" name="err(data-denovo)" value="2.4e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.2"/>
 				<UserParam type="string" name="aaScore" value=" 22-11-31-1-1-30-4-3-3-15-2-1-19-1-1-19-71"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4801"/>
+			<UserParam type="int" name="scan_index" value="4801"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="522.7515" RT="3614.3" >
-			<PeptideHit score="39.7" sequence="EC(Carbamidomethyl)SPTPLAK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1043.4957"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0074"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-7"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="522.751499999999965" RT="3614.300000000000182" >
+			<PeptideHit score="39.700000000000003" sequence="EC(Carbamidomethyl)SPTPLAK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1043.495699999999943"/>
+				<UserParam type="float" name="err(data-denovo)" value="-7.4e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-7.1"/>
 				<UserParam type="string" name="aaScore" value=" 29-40-91-3-1-1-33-45-93"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4802"/>
+			<UserParam type="int" name="scan_index" value="4802"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="711.3792" RT="3614.8" >
-			<PeptideHit score="22.9" sequence="NPMHGVKGPHQK(Acetyl)SAPLHVR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2131.1221"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0065"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="711.379199999999969" RT="3614.800000000000182" >
+			<PeptideHit score="22.899999999999999" sequence="NPMHGVKGPHQK(Acetyl)SAPLHVR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2131.122100000000046"/>
+				<UserParam type="float" name="err(data-denovo)" value="-6.5e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-3.1"/>
 				<UserParam type="string" name="aaScore" value=" 21-2-23-19-19-11-2-1-1-22-21-12-33-65-36-59-28-30-42"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4803"/>
+			<UserParam type="int" name="scan_index" value="4803"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="852.4595" RT="3616" >
-			<PeptideHit score="48.4" sequence="DFAAALPLRDLASDTK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1702.889"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="852.459500000000048" RT="3616.0" >
+			<PeptideHit score="48.399999999999999" sequence="DFAAALPLRDLASDTK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1702.888999999999896"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0154"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.0"/>
 				<UserParam type="string" name="aaScore" value=" 41-15-1-2-68-74-69-75-46-20-71-83-60-47-56-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4805"/>
+			<UserParam type="int" name="scan_index" value="4805"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="600.9915" RT="3616.5" >
-			<PeptideHit score="30" sequence="MKAQDYVPTLAPPLEK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1799.9492"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0034"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="600.991499999999974" RT="3616.5" >
+			<PeptideHit score="30.0" sequence="MKAQDYVPTLAPPLEK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1799.949200000000019"/>
+				<UserParam type="float" name="err(data-denovo)" value="3.4e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.9"/>
 				<UserParam type="string" name="aaScore" value=" 28-42-35-25-3-12-31-59-82-35-21-1-1-16-45-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4806"/>
+			<UserParam type="int" name="scan_index" value="4806"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="954.4971" RT="3617.1" >
-			<PeptideHit score="22.1" sequence="LWVKSC(Carbamidomethyl)DK(Acetyl)NSGVKDTRAAQLHFMK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2860.4476"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="954.497100000000046" RT="3617.099999999999909" >
+			<PeptideHit score="22.100000000000001" sequence="LWVKSC(Carbamidomethyl)DK(Acetyl)NSGVKDTRAAQLHFMK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2860.447599999999966"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0217"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7.6"/>
 				<UserParam type="string" name="aaScore" value=" 39-41-9-2-15-59-11-6-1-2-2-15-10-40-18-25-6-5-28-57-45-8-11-41"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4807"/>
+			<UserParam type="int" name="scan_index" value="4807"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="445.7399" RT="3617.7" >
-			<PeptideHit score="37.9" sequence="NQFNVVK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="889.4658"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0005"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="445.739899999999977" RT="3617.699999999999818" >
+			<PeptideHit score="37.899999999999999" sequence="NQFNVVK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="889.465799999999945"/>
+				<UserParam type="float" name="err(data-denovo)" value="-5.0e-04"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-0.6"/>
 				<UserParam type="string" name="aaScore" value=" 50-35-20-35-2-2-95"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4808"/>
+			<UserParam type="int" name="scan_index" value="4808"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="481.2707" RT="3618.2" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="481.270699999999977" RT="3618.199999999999818" >
 			<PeptideHit score="20.5" sequence="LALPSSNEMVPKR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1440.7759"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1440.775900000000092"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0143"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.9"/>
 				<UserParam type="string" name="aaScore" value=" 28-45-58-3-2-23-1-3-21-4-9-18-49"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4809"/>
+			<UserParam type="int" name="scan_index" value="4809"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="575.9888" RT="3619.2" >
-			<PeptideHit score="42.4" sequence="LPKTLPQC(Carbamidomethyl)MRLSPGK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1724.943"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0015"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="575.988799999999969" RT="3619.199999999999818" >
+			<PeptideHit score="42.399999999999999" sequence="LPKTLPQC(Carbamidomethyl)MRLSPGK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1724.942999999999984"/>
+				<UserParam type="float" name="err(data-denovo)" value="1.5e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="0.9"/>
 				<UserParam type="string" name="aaScore" value=" 88-22-94-97-83-42-52-34-9-31-1-1-1-21-51"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4811"/>
+			<UserParam type="int" name="scan_index" value="4811"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="630.352" RT="3619.5" >
-			<PeptideHit score="49.3" sequence="SNQFPLLTAVK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1258.6921"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0027"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="630.351999999999975" RT="3619.5" >
+			<PeptideHit score="49.299999999999997" sequence="SNQFPLLTAVK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1258.692099999999982"/>
+				<UserParam type="float" name="err(data-denovo)" value="-2.7e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-2.2"/>
 				<UserParam type="string" name="aaScore" value=" 42-25-81-96-30-23-24-75-35-14-67"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4812"/>
+			<UserParam type="int" name="scan_index" value="4812"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="451.2628" RT="3620" >
-			<PeptideHit score="12.7" sequence="KPLMRSK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="900.5215"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="451.262900000000002" RT="3620.0" >
+			<PeptideHit score="12.699999999999999" sequence="KPLMRSK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="900.521499999999946"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0104"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11.5"/>
 				<UserParam type="string" name="aaScore" value=" 26-1-19-1-6-1-29"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4813"/>
+			<UserParam type="int" name="scan_index" value="4813"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="1212.3284" RT="3620.5" >
-			<PeptideHit score="9" sequence="LGHGVVVPKNRYK(Acetyl)VLDNMTSAVGRNAGVHNYVK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="3633.9314"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="1212.328400000000102" RT="3620.5" >
+			<PeptideHit score="9.0" sequence="LGHGVVVPKNRYK(Acetyl)VLDNMTSAVGRNAGVHNYVK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="3633.93139999999994"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0318"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 34-14-7-1-1-1-1-1-11-26-3-2-11-6-4-6-12-1-1-1-1-6-1-4-26-1-1-5-3-1-7-8-84"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4814"/>
+			<UserParam type="int" name="scan_index" value="4814"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="456.2698" RT="3621.1" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="456.269799999999975" RT="3621.099999999999909" >
 			<PeptideHit score="14.1" sequence="FWKRFK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="910.5177"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0074"/>
+				<UserParam type="float" name="pepMass(denovo)" value="910.517699999999991"/>
+				<UserParam type="float" name="err(data-denovo)" value="7.4e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.1"/>
 				<UserParam type="string" name="aaScore" value=" 25-29-1-1-1-29"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4815"/>
+			<UserParam type="int" name="scan_index" value="4815"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="587.2981" RT="3622.2" >
-			<PeptideHit score="23.1" sequence="MAHAPVHWPK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1172.5913"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0097"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-8.2"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="587.298099999999977" RT="3622.199999999999818" >
+			<PeptideHit score="23.100000000000001" sequence="MAHAPVHWPK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1172.591300000000047"/>
+				<UserParam type="float" name="err(data-denovo)" value="-9.700000000000001e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-8.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 38-4-1-13-12-42-9-22-43-48"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4817"/>
+			<UserParam type="int" name="scan_index" value="4817"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="863.4856" RT="3622.7" >
-			<PeptideHit score="53.6" sequence="HAKLKLSATNTDGSLK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1724.9421"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="863.485599999999977" RT="3622.699999999999818" >
+			<PeptideHit score="53.600000000000001" sequence="HAKLKLSATNTDGSLK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1724.942099999999982"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0145"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.4"/>
 				<UserParam type="string" name="aaScore" value=" 38-7-22-85-97-59-85-64-51-42-41-54-33-13-56-80"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4818"/>
+			<UserParam type="int" name="scan_index" value="4818"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="1212.6606" RT="3623.3" >
-			<PeptideHit score="14" sequence="AGGAPRK(Acetyl)YFFGYMALYLKANKVPATPAGHLLTK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="3634.9487"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0115"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="1212.660599999999931" RT="3623.300000000000182" >
+			<PeptideHit score="14.0" sequence="AGGAPRK(Acetyl)YFFGYMALYLKANKVPATPAGHLLTK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="3634.948699999999917"/>
+				<UserParam type="float" name="err(data-denovo)" value="0.0114"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="3.1"/>
 				<UserParam type="string" name="aaScore" value=" 32-15-17-12-1-2-1-20-27-1-1-45-3-2-8-8-44-18-1-42-17-3-37-5-1-6-9-4-3-7-2-10-41"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4819"/>
+			<UserParam type="int" name="scan_index" value="4819"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="584.6584" RT="3623.8" >
-			<PeptideHit score="24.8" sequence="TK(Acetyl)LSGVLFGAPVGNPPR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1750.973"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="584.658400000000029" RT="3623.800000000000182" >
+			<PeptideHit score="24.800000000000001" sequence="TK(Acetyl)LSGVLFGAPVGNPPR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1750.972999999999956"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0197"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 24-10-16-15-1-49-19-36-17-51-6-8-1-52-1-30-60"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4820"/>
+			<UserParam type="int" name="scan_index" value="4820"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="949.4857" RT="3624.3" >
-			<PeptideHit score="16.7" sequence="LTPEHDVHVRANAGK(Acetyl)GVYTAQNK(Acetyl)EK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2845.4471"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="949.485699999999952" RT="3624.300000000000182" >
+			<PeptideHit score="16.699999999999999" sequence="LTPEHDVHVRANAGK(Acetyl)GVYTAQNK(Acetyl)EK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2845.447099999999864"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0118"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-4.1"/>
 				<UserParam type="string" name="aaScore" value=" 31-13-3-44-24-54-43-1-6-24-33-7-15-12-2-1-28-12-1-2-7-3-7-11-41"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4821"/>
+			<UserParam type="int" name="scan_index" value="4821"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="600.9907" RT="3625.5" >
-			<PeptideHit score="27.8" sequence="LPMADHGNPTLPVPTLK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1799.9604"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="600.990699999999947" RT="3625.5" >
+			<PeptideHit score="27.800000000000001" sequence="LPMADHGNPTLPVPTLK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1799.960399999999936"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0101"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5.6"/>
 				<UserParam type="string" name="aaScore" value=" 66-19-1-6-8-3-6-9-14-52-25-13-55-10-47-70-64"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4823"/>
+			<UserParam type="int" name="scan_index" value="4823"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="852.9724" RT="3626" >
-			<PeptideHit score="48.8" sequence="TDLFLLTTELPNLSK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1703.9346"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0043"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="852.972399999999993" RT="3626.0" >
+			<PeptideHit score="48.799999999999997" sequence="TDLFLLTTELPNLSK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1703.934600000000046"/>
+				<UserParam type="float" name="err(data-denovo)" value="-4.3e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-2.5"/>
 				<UserParam type="string" name="aaScore" value=" 44-60-61-87-26-1-31-64-58-1-1-70-73-64-79"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4824"/>
+			<UserParam type="int" name="scan_index" value="4824"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="435.7595" RT="3626.4" >
-			<PeptideHit score="21.4" sequence="TKLPFHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="869.5123"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0078"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="435.759500000000003" RT="3626.400000000000091" >
+			<PeptideHit score="21.399999999999999" sequence="TKLPFHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="869.512299999999982"/>
+				<UserParam type="float" name="err(data-denovo)" value="-7.8e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9.0"/>
 				<UserParam type="string" name="aaScore" value=" 4-1-6-4-2-38-91"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4825"/>
+			<UserParam type="int" name="scan_index" value="4825"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="442.7489" RT="3626.9" >
-			<PeptideHit score="40.2" sequence="LPNYLHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="883.4916"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0083"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="442.748899999999992" RT="3626.900000000000091" >
+			<PeptideHit score="40.200000000000003" sequence="LPNYLHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="883.491599999999949"/>
+				<UserParam type="float" name="err(data-denovo)" value="-8.300000000000001e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9.4"/>
 				<UserParam type="string" name="aaScore" value=" 99-78-13-4-33-52-26"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4826"/>
+			<UserParam type="int" name="scan_index" value="4826"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="767.3979" RT="3627.4" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="767.39790000000005" RT="3627.400000000000091" >
 			<PeptideHit score="28.5" sequence="FPEGSVPASREDALK(Acetyl)GVFVPR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2299.1961"/>
+				<UserParam type="float" name="pepMass(denovo)" value="2299.196100000000115"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0242"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.5"/>
 				<UserParam type="string" name="aaScore" value=" 28-19-26-44-41-26-47-11-22-11-34-51-3-1-18-58-63-45-6-6-52"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4827"/>
+			<UserParam type="int" name="scan_index" value="4827"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="606.6666" RT="3628.6" >
-			<PeptideHit score="40.6" sequence="EAKVNELTPVGGPAGPGPK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9683"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0097"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="5.3"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="606.666600000000017" RT="3628.599999999999909" >
+			<PeptideHit score="40.600000000000001" sequence="EAKVNELTPVGGPAGPGPK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.968299999999999"/>
+				<UserParam type="float" name="err(data-denovo)" value="9.700000000000001e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="5.4"/>
 				<UserParam type="string" name="aaScore" value=" 77-67-46-47-53-59-68-47-55-27-26-32-8-21-20-5-13-7-47"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4829"/>
+			<UserParam type="int" name="scan_index" value="4829"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="584.6581" RT="3628.9" >
-			<PeptideHit score="30.3" sequence="LHKELVSHGSPVSPHK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1750.9479"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0046"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="584.65809999999999" RT="3628.900000000000091" >
+			<PeptideHit score="30.300000000000001" sequence="LHKELVSHGSPVSPHK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1750.947899999999891"/>
+				<UserParam type="float" name="err(data-denovo)" value="4.6e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.6"/>
 				<UserParam type="string" name="aaScore" value=" 29-5-13-6-10-30-78-58-27-24-13-23-22-32-51-72"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4830"/>
+			<UserParam type="int" name="scan_index" value="4830"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="853.968" RT="3629.3" >
-			<PeptideHit score="58.7" sequence="MSLTWLVKVTSNEAK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1705.9073"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="853.967999999999961" RT="3629.300000000000182" >
+			<PeptideHit score="58.700000000000003" sequence="MSLTWLVKVTSNEAK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1705.907300000000078"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0142"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.3"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 71-79-74-26-60-91-61-26-34-91-68-71-40-22-68"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4831"/>
+			<UserParam type="int" name="scan_index" value="4831"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="427.2468" RT="3629.8" >
-			<PeptideHit score="22.9" sequence="LDEVHLK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="852.4705"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0085"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="427.246800000000007" RT="3629.800000000000182" >
+			<PeptideHit score="22.899999999999999" sequence="LDEVHLK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="852.470500000000015"/>
+				<UserParam type="float" name="err(data-denovo)" value="8.5e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.9"/>
 				<UserParam type="string" name="aaScore" value=" 99-27-5-23-1-1-16"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4832"/>
+			<UserParam type="int" name="scan_index" value="4832"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="939.9688" RT="3630.3" >
-			<PeptideHit score="48.6" sequence="LVHSC(Carbamidomethyl)LFTYFLVDHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1877.9498"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="939.968799999999988" RT="3630.300000000000182" >
+			<PeptideHit score="48.600000000000001" sequence="LVHSC(Carbamidomethyl)LFTYFLVDHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1877.949800000000096"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0268"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 55-59-30-1-1-99-99-78-65-58-90-41-15-13-33"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4833"/>
+			<UserParam type="int" name="scan_index" value="4833"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="684.376" RT="3631.5" >
-			<PeptideHit score="41.3" sequence="KRLPNMSTVHGK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1366.7503"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="684.375999999999976" RT="3631.5" >
+			<PeptideHit score="41.299999999999997" sequence="KRLPNMSTVHGK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1366.750299999999925"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0129"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9.5"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9.4"/>
 				<UserParam type="string" name="aaScore" value=" 5-16-98-19-18-25-48-36-26-90-80-61"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4835"/>
+			<UserParam type="int" name="scan_index" value="4835"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="412.7661" RT="3632" >
-			<PeptideHit score="18.3" sequence="PLLLVNR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="823.528"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="412.766099999999995" RT="3632.0" >
+			<PeptideHit score="18.300000000000001" sequence="PLLLVNR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="823.52800000000002"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0104"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-12.6"/>
 				<UserParam type="string" name="aaScore" value=" 41-4-1-1-3-19-52"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4836"/>
+			<UserParam type="int" name="scan_index" value="4836"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="925.4749" RT="3632.5" >
-			<PeptideHit score="29.4" sequence="EPATAFDKPPLGVKRSGDGTDMSELR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2773.3705"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="925.474900000000048" RT="3632.5" >
+			<PeptideHit score="29.399999999999999" sequence="EPATAFDKPPLGVKRSGDGTDMSELR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2773.370499999999993"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0322"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.6"/>
 				<UserParam type="string" name="aaScore" value=" 10-2-1-7-16-45-44-19-68-83-48-15-5-13-3-6-9-1-48-53-78-41-14-0-18-94"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4837"/>
+			<UserParam type="int" name="scan_index" value="4837"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="816.1158" RT="3633.1" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="816.115800000000036" RT="3633.099999999999909" >
 			<PeptideHit score="16.5" sequence="LLALFAGTHGVTNGYGNMK(Acetyl)LAKK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2445.3202"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0053"/>
+				<UserParam type="float" name="pepMass(denovo)" value="2445.320200000000114"/>
+				<UserParam type="float" name="err(data-denovo)" value="5.3e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.2"/>
 				<UserParam type="string" name="aaScore" value=" 61-1-1-15-21-6-15-6-1-12-6-1-14-1-20-9-5-30-23-27-8-20-50"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4838"/>
+			<UserParam type="int" name="scan_index" value="4838"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="538.6467" RT="3633.7" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="538.64670000000001" RT="3633.699999999999818" >
 			<PeptideHit score="10.1" sequence="KVSPLGSHVPVASHAK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1612.9049"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1612.904899999999998"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0134"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.3"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 21-1-1-18-1-1-27-11-1-1-10-17-1-1-29-29"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4839"/>
+			<UserParam type="int" name="scan_index" value="4839"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="601.6628" RT="3634.8" >
-			<PeptideHit score="38.1" sequence="LFPPQPSAPTLAYC(Carbamidomethyl)LK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1801.9437"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="601.662799999999947" RT="3634.800000000000182" >
+			<PeptideHit score="38.100000000000001" sequence="LFPPQPSAPTLAYC(Carbamidomethyl)LK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1801.943700000000035"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.023"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 99-48-25-3-20-36-13-29-37-55-7-1-47-50-50-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4841"/>
+			<UserParam type="int" name="scan_index" value="4841"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="626.9783" RT="3635.2" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="626.97829999999999" RT="3635.199999999999818" >
 			<PeptideHit score="10.5" sequence="DFUAPLGSPKGFLPVHK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1877.8943"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1877.89429999999993"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0189"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.0"/>
 				<UserParam type="string" name="aaScore" value=" 23-12-1-1-14-31-2-1-16-13-1-1-17-25-1-3-23"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4842"/>
+			<UserParam type="int" name="scan_index" value="4842"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="617.3508" RT="3635.8" >
-			<PeptideHit score="25" sequence="LLYVVAGVTYNNGNKPK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1849.0098"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="617.350800000000049" RT="3635.800000000000182" >
+			<PeptideHit score="25.0" sequence="LLYVVAGVTYNNGNKPK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1849.009800000000041"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0207"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 68-7-15-2-1-18-9-38-35-17-7-46-1-3-66-40-39"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4843"/>
+			<UserParam type="int" name="scan_index" value="4843"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="876.4805" RT="3636.3" >
-			<PeptideHit score="50" sequence="RTKFNC(Carbamidomethyl)LPAPVSPHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1750.9301"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="876.480500000000006" RT="3636.300000000000182" >
+			<PeptideHit score="50.0" sequence="RTKFNC(Carbamidomethyl)LPAPVSPHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1750.930100000000039"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0163"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.3"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 34-7-24-99-74-95-54-20-22-64-29-63-62-22-54"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4844"/>
+			<UserParam type="int" name="scan_index" value="4844"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="430.2119" RT="3636.9" >
-			<PeptideHit score="26.9" sequence="SSDSAAPPK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="858.4083"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.001"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="430.211900000000014" RT="3636.900000000000091" >
+			<PeptideHit score="26.899999999999999" sequence="SSDSAAPPK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="858.408300000000054"/>
+				<UserParam type="float" name="err(data-denovo)" value="1.0e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.2"/>
 				<UserParam type="string" name="aaScore" value=" 11-2-16-87-22-7-14-7-66"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4845"/>
+			<UserParam type="int" name="scan_index" value="4845"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="606.667" RT="3638" >
-			<PeptideHit score="40.1" sequence="EAKMLPNTPGLPSRHK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9618"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="606.66700000000003" RT="3638.0" >
+			<PeptideHit score="40.100000000000001" sequence="EAKMLPNTPGLPSRHK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.961800000000039"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0174"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.5"/>
 				<UserParam type="string" name="aaScore" value=" 68-34-34-6-15-33-64-89-64-41-2-1-20-23-49-86"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4847"/>
+			<UserParam type="int" name="scan_index" value="4847"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="576.6606" RT="3638.2" >
-			<PeptideHit score="35.2" sequence="LVQTPPAAATAKHLGPR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1726.9842"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="576.660600000000045" RT="3638.199999999999818" >
+			<PeptideHit score="35.200000000000003" sequence="LVQTPPAAATAKHLGPR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1726.984200000000101"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0241"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.9"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.0"/>
 				<UserParam type="string" name="aaScore" value=" 44-47-55-32-5-41-30-37-32-64-66-41-42-2-1-3-42"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4848"/>
+			<UserParam type="int" name="scan_index" value="4848"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="772.02" RT="3638.7" >
-			<PeptideHit score="41.9" sequence="LMMRKQTDKGMC(Carbamidomethyl)SSPEATSR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2313.0698"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="772.019999999999982" RT="3638.699999999999818" >
+			<PeptideHit score="41.899999999999999" sequence="LMMRKQTDKGMC(Carbamidomethyl)SSPEATSR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2313.069800000000214"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0317"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.7"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 99-70-96-99-51-36-19-29-39-2-17-14-1-40-10-60-6-35-27-28"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4849"/>
+			<UserParam type="int" name="scan_index" value="4849"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="611.2923" RT="3639.1" >
-			<PeptideHit score="39.4" sequence="TKFYFTHEMC(Carbamidomethyl)GAK(Acetyl)K(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1830.8433"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="611.292299999999955" RT="3639.099999999999909" >
+			<PeptideHit score="39.399999999999999" sequence="TKFYFTHEMC(Carbamidomethyl)GAK(Acetyl)K(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1830.843299999999999"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0118"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="6.4"/>
 				<UserParam type="string" name="aaScore" value=" 30-50-99-89-84-71-1-2-25-6-1-22-22-26"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4850"/>
+			<UserParam type="int" name="scan_index" value="4850"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="892.8027" RT="3639.6" >
-			<PeptideHit score="21.7" sequence="LPRVHDAAVVPAGTHPLFLESYMR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2675.4006"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="892.802699999999959" RT="3639.599999999999909" >
+			<PeptideHit score="21.699999999999999" sequence="LPRVHDAAVVPAGTHPLFLESYMR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2675.40059999999994"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0144"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5.4"/>
 				<UserParam type="string" name="aaScore" value=" 31-2-11-12-44-70-1-2-16-1-28-48-55-5-5-46-3-19-12-39-50-10-9-33"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4851"/>
+			<UserParam type="int" name="scan_index" value="4851"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="507.6396" RT="3640.7" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="507.639599999999973" RT="3640.699999999999818" >
 			<PeptideHit score="20.5" sequence="VLLTQARLATPPAK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1519.9086"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1519.908599999999979"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0117"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-7.7"/>
 				<UserParam type="string" name="aaScore" value=" 41-58-61-11-5-25-1-11-49-1-7-12-1-22"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4853"/>
+			<UserParam type="int" name="scan_index" value="4853"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="916.437" RT="3641.3" >
-			<PeptideHit score="85.8" sequence="DNFYFTGVKDLNDQR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1830.8537"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0057"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="916.437000000000012" RT="3641.300000000000182" >
+			<PeptideHit score="85.799999999999997" sequence="DNFYFTGVKDLNDQR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1830.85369999999989"/>
+				<UserParam type="float" name="err(data-denovo)" value="5.7e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="3.1"/>
 				<UserParam type="string" name="aaScore" value=" 93-16-46-90-92-98-99-99-92-97-98-99-95-92-99"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4854"/>
+			<UserParam type="int" name="scan_index" value="4854"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="852.9721" RT="3641.8" >
-			<PeptideHit score="63.3" sequence="LSEFLPLTK(Acetyl)MGGNKK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1703.928"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0016"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="852.972099999999955" RT="3641.800000000000182" >
+			<PeptideHit score="63.299999999999997" sequence="LSEFLPLTK(Acetyl)MGGNKK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1703.928000000000111"/>
+				<UserParam type="float" name="err(data-denovo)" value="1.6e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.0"/>
 				<UserParam type="string" name="aaScore" value=" 99-73-70-84-73-65-92-95-93-7-5-77-6-16-78"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4855"/>
+			<UserParam type="int" name="scan_index" value="4855"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="559.3076" RT="3642.4" >
-			<PeptideHit score="30.1" sequence="VVHAALGGVTAWHMVK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1674.9028"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.002"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="559.307599999999979" RT="3642.400000000000091" >
+			<PeptideHit score="30.100000000000001" sequence="VVHAALGGVTAWHMVK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1674.90280000000007"/>
+				<UserParam type="float" name="err(data-denovo)" value="-2.0e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-1.2"/>
 				<UserParam type="string" name="aaScore" value=" 22-6-33-15-7-54-28-17-17-42-30-69-31-1-8-56"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4856"/>
+			<UserParam type="int" name="scan_index" value="4856"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="647.84" RT="3642.9" >
-			<PeptideHit score="41.4" sequence="EC(Carbamidomethyl)SLANAVFRK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1293.65"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="647.840000000000032" RT="3642.900000000000091" >
+			<PeptideHit score="41.399999999999999" sequence="EC(Carbamidomethyl)SLANAVFRK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1293.650000000000091"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0154"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.9"/>
 				<UserParam type="string" name="aaScore" value=" 30-31-80-59-80-89-94-1-2-28-30"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4857"/>
+			<UserParam type="int" name="scan_index" value="4857"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="606.6669" RT="3644.1" >
-			<PeptideHit score="53.2" sequence="NSKMLPLTPGRPHELK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9982"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="606.666900000000055" RT="3644.099999999999909" >
+			<PeptideHit score="53.200000000000003" sequence="NSKMLPLTPGRPHELK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.998199999999997"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0194"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.7"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 16-26-66-79-39-7-61-70-72-45-64-52-41-45-64-89"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4859"/>
+			<UserParam type="int" name="scan_index" value="4859"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="939.969" RT="3644.4" >
-			<PeptideHit score="68.7" sequence="PDWVVLFPSSDSKHHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1877.9424"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="939.969000000000051" RT="3644.400000000000091" >
+			<PeptideHit score="68.700000000000003" sequence="PDWVVLFPSSDSKHHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1877.942399999999907"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.019"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.1"/>
 				<UserParam type="string" name="aaScore" value=" 23-38-79-89-98-99-99-98-46-56-99-61-50-79-54-25"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4860"/>
+			<UserParam type="int" name="scan_index" value="4860"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="600.9907" RT="3644.7" >
-			<PeptideHit score="27.9" sequence="LSKDPLLTPGNLC(Carbamidomethyl)MNK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1799.9274"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="600.990699999999947" RT="3644.699999999999818" >
+			<PeptideHit score="27.899999999999999" sequence="LSKDPLLTPGNLC(Carbamidomethyl)MNK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1799.927400000000034"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0228"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.6"/>
 				<UserParam type="string" name="aaScore" value=" 88-21-16-13-20-17-56-68-15-1-18-11-26-7-17-50"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4861"/>
+			<UserParam type="int" name="scan_index" value="4861"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="590.6818" RT="3645.1" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="590.681799999999953" RT="3645.099999999999909" >
 			<PeptideHit score="32.5" sequence="LPPGGRPANPPDVVKKK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1769.0312"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0077"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1769.031199999999899"/>
+				<UserParam type="float" name="err(data-denovo)" value="-7.7e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-4.4"/>
 				<UserParam type="string" name="aaScore" value=" 38-7-4-2-40-1-1-45-32-32-10-17-60-65-43-52-99"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4862"/>
+			<UserParam type="int" name="scan_index" value="4862"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="405.2667" RT="3645.5" >
-			<PeptideHit score="18.2" sequence="LLHVSLK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="808.5171"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0017"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="405.266700000000014" RT="3645.5" >
+			<PeptideHit score="18.199999999999999" sequence="LLHVSLK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="808.517100000000028"/>
+				<UserParam type="float" name="err(data-denovo)" value="1.7e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.1"/>
 				<UserParam type="string" name="aaScore" value=" 72-4-1-3-4-7-38"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4863"/>
+			<UserParam type="int" name="scan_index" value="4863"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="568.9825" RT="3646.6" >
-			<PeptideHit score="37.2" sequence="KSNFTGSVFWKLYK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1703.9035"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="568.982499999999959" RT="3646.599999999999909" >
+			<PeptideHit score="37.200000000000003" sequence="KSNFTGSVFWKLYK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1703.903499999999895"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0221"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.9"/>
 				<UserParam type="string" name="aaScore" value=" 49-2-12-10-16-1-19-56-18-74-29-40-59-87"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4865"/>
+			<UserParam type="int" name="scan_index" value="4865"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="601.6672" RT="3646.9" >
-			<PeptideHit score="32.4" sequence="LWWAVLTMLMPKADK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1801.9623"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="601.66719999999998" RT="3646.900000000000091" >
+			<PeptideHit score="32.399999999999999" sequence="LWWAVLTMLMPKADK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1801.962299999999914"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0176"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.7"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 94-55-11-8-6-52-37-3-37-59-46-1-1-35-32"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4866"/>
+			<UserParam type="int" name="scan_index" value="4866"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="454.687" RT="3647.3" >
-			<PeptideHit score="36.2" sequence="APGDC(Carbamidomethyl)C(Carbamidomethyl)TK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="907.3528"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0066"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="454.687000000000012" RT="3647.300000000000182" >
+			<PeptideHit score="36.200000000000003" sequence="APGDC(Carbamidomethyl)C(Carbamidomethyl)TK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="907.352800000000002"/>
+				<UserParam type="float" name="err(data-denovo)" value="6.6e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7.2"/>
 				<UserParam type="string" name="aaScore" value=" 19-1-32-50-43-20-28-85"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4867"/>
+			<UserParam type="int" name="scan_index" value="4867"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="595.9954" RT="3647.8" >
-			<PeptideHit score="29.2" sequence="AYSNLPPAALGVTSK(Acetyl)VR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1784.9785"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.014"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="595.995400000000018" RT="3647.800000000000182" >
+			<PeptideHit score="29.199999999999999" sequence="AYSNLPPAALGVTSK(Acetyl)VR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1784.97849999999994"/>
+				<UserParam type="float" name="err(data-denovo)" value="-0.0141"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-7.9"/>
 				<UserParam type="string" name="aaScore" value=" 34-26-38-44-43-35-7-6-31-8-23-1-10-48-62-35-29"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4868"/>
+			<UserParam type="int" name="scan_index" value="4868"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="514.9532" RT="3648.4" >
-			<PeptideHit score="37" sequence="K(Acetyl)LKESGTTLMKHK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1541.8599"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="514.953200000000038" RT="3648.400000000000091" >
+			<PeptideHit score="37.0" sequence="K(Acetyl)LKESGTTLMKHK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1541.859899999999925"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0222"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.4"/>
 				<UserParam type="string" name="aaScore" value=" 28-3-18-13-17-72-68-83-49-74-8-24-61"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4869"/>
+			<UserParam type="int" name="scan_index" value="4869"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="909.4966" RT="3649.4" >
-			<PeptideHit score="49.4" sequence="LSEMLPLTMMNLLRR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9726"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0062"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="909.496599999999944" RT="3649.400000000000091" >
+			<PeptideHit score="49.399999999999999" sequence="LSEMLPLTMMNLLRR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.972600000000057"/>
+				<UserParam type="float" name="err(data-denovo)" value="6.2e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="3.4"/>
 				<UserParam type="string" name="aaScore" value=" 91-20-71-76-43-61-48-72-19-2-49-69-54-43-40"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4871"/>
+			<UserParam type="int" name="scan_index" value="4871"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="601.3371" RT="3649.7" >
-			<PeptideHit score="29.9" sequence="EFLAKTPKDTLPAKDK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1800.9986"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0091"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="601.337099999999964" RT="3649.699999999999818" >
+			<PeptideHit score="29.899999999999999" sequence="EFLAKTPKDTLPAKDK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1800.998599999999897"/>
+				<UserParam type="float" name="err(data-denovo)" value="-9.1e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5.0"/>
 				<UserParam type="string" name="aaScore" value=" 64-9-5-4-52-8-49-16-37-33-16-73-27-31-10-47"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4872"/>
+			<UserParam type="int" name="scan_index" value="4872"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="560.3161" RT="3650" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="560.316100000000006" RT="3650.0" >
 			<PeptideHit score="43.5" sequence="KLSSTSDFQNALLVR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1677.905"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1677.904999999999973"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0215"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 8-29-1-1-30-28-68-6-50-76-70-81-91-47-66"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4873"/>
+			<UserParam type="int" name="scan_index" value="4873"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="773.9504" RT="3650.4" >
-			<PeptideHit score="59.4" sequence="MKGTKKLAATASSPR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1545.8661"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="773.950399999999945" RT="3650.400000000000091" >
+			<PeptideHit score="59.399999999999999" sequence="MKGTKKLAATASSPR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1545.86609999999996"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0202"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.1"/>
 				<UserParam type="string" name="aaScore" value=" 79-67-76-95-90-55-45-76-83-92-33-1-1-11-70"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4874"/>
+			<UserParam type="int" name="scan_index" value="4874"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="525.3196" RT="3650.8" >
-			<PeptideHit score="19.9" sequence="SPLNRVVHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1048.6142"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="525.319600000000037" RT="3650.800000000000182" >
+			<PeptideHit score="19.899999999999999" sequence="SPLNRVVHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1048.614199999999983"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0104"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.9"/>
 				<UserParam type="string" name="aaScore" value=" 4-1-40-33-3-2-18-36-38"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4875"/>
+			<UserParam type="int" name="scan_index" value="4875"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="939.9683" RT="3652" >
-			<PeptideHit score="64.2" sequence="VLADVVLFPSSDSTMQK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1877.9445"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="939.968299999999999" RT="3652.0" >
+			<PeptideHit score="64.200000000000003" sequence="VLADVVLFPSSDSTMQK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1877.944500000000062"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0225"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-12"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-12.0"/>
 				<UserParam type="string" name="aaScore" value=" 63-69-72-91-76-98-99-99-99-91-82-46-46-1-19-34-38"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4877"/>
+			<UserParam type="int" name="scan_index" value="4877"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="901.4997" RT="3652.3" >
-			<PeptideHit score="51.8" sequence="SLEFLPLSGSTPLLAEK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1800.9873"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0025"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="901.499699999999962" RT="3652.300000000000182" >
+			<PeptideHit score="51.799999999999997" sequence="SLEFLPLSGSTPLLAEK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1800.987300000000005"/>
+				<UserParam type="float" name="err(data-denovo)" value="-2.5e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-1.4"/>
 				<UserParam type="string" name="aaScore" value=" 39-51-61-71-76-73-86-1-1-23-31-39-78-64-53-49-41"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4878"/>
+			<UserParam type="int" name="scan_index" value="4878"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="639.0134" RT="3652.8" >
-			<PeptideHit score="21.4" sequence="EKESRGSNLSGLRGTPGK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1913.9919"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="639.013400000000047" RT="3652.800000000000182" >
+			<PeptideHit score="21.399999999999999" sequence="EKESRGSNLSGLRGTPGK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1913.991899999999987"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0264"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 82-17-6-10-24-3-3-3-43-48-13-2-2-8-4-3-22-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4879"/>
+			<UserParam type="int" name="scan_index" value="4879"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="503.2805" RT="3653.2" >
-			<PeptideHit score="26.7" sequence="KDFK(Acetyl)KMGPMKQK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1506.8051"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="503.280500000000018" RT="3653.199999999999818" >
+			<PeptideHit score="26.699999999999999" sequence="KDFK(Acetyl)KMGPMKQK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1506.805100000000039"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0146"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.6"/>
 				<UserParam type="string" name="aaScore" value=" 32-1-6-18-70-54-26-28-26-15-7-46"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4880"/>
+			<UserParam type="int" name="scan_index" value="4880"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="577.6555" RT="3653.7" >
-			<PeptideHit score="25.9" sequence="KFPLGHSMPLHPLEK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1729.9338"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="577.655499999999961" RT="3653.699999999999818" >
+			<PeptideHit score="25.899999999999999" sequence="KFPLGHSMPLHPLEK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1729.933800000000019"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0109"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="6.3"/>
 				<UserParam type="string" name="aaScore" value=" 52-24-30-16-23-29-87-1-27-11-3-29-31-7-47"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4881"/>
+			<UserParam type="int" name="scan_index" value="4881"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="606.6663" RT="3654.7" >
-			<PeptideHit score="34.8" sequence="EAERLANTPPNGAKPPR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9544"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="606.666299999999978" RT="3654.699999999999818" >
+			<PeptideHit score="34.799999999999997" sequence="EAERLANTPPNGAKPPR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.954400000000078"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0227"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.5"/>
 				<UserParam type="string" name="aaScore" value=" 78-73-35-1-1-34-31-59-35-29-31-6-8-16-31-68-59"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4883"/>
+			<UserParam type="int" name="scan_index" value="4883"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="535.9578" RT="3654.9" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="535.95780000000002" RT="3654.900000000000091" >
 			<PeptideHit score="46.5" sequence="LDFLNSEALMALLR" charge="3" >
 				<UserParam type="float" name="pepMass(denovo)" value="1604.8596"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.008"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5"/>
+				<UserParam type="float" name="err(data-denovo)" value="-8.0e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5.0"/>
 				<UserParam type="string" name="aaScore" value=" 55-52-74-56-60-30-47-44-53-49-9-3-9-79"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4884"/>
+			<UserParam type="int" name="scan_index" value="4884"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="912.9533" RT="3655.3" >
-			<PeptideHit score="48.2" sequence="MMTLLQFTDLPHSYK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1823.895"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0029"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="912.953300000000013" RT="3655.300000000000182" >
+			<PeptideHit score="48.200000000000003" sequence="MMTLLQFTDLPHSYK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1823.894999999999982"/>
+				<UserParam type="float" name="err(data-denovo)" value="-2.9e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-1.6"/>
 				<UserParam type="string" name="aaScore" value=" 19-22-65-82-90-59-32-42-61-85-80-68-5-12-33"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4885"/>
+			<UserParam type="int" name="scan_index" value="4885"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="574.9578" RT="3655.7" >
-			<PeptideHit score="31.4" sequence="MLSVMVATSYGPPELK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1721.8732"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="574.95780000000002" RT="3655.699999999999818" >
+			<PeptideHit score="31.399999999999999" sequence="MLSVMVATSYGPPELK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1721.873199999999997"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0218"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-12.6"/>
 				<UserParam type="string" name="aaScore" value=" 25-84-99-47-17-11-16-20-4-14-1-1-60-22-34-51"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4886"/>
+			<UserParam type="int" name="scan_index" value="4886"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="635.6768" RT="3656.1" >
-			<PeptideHit score="31.1" sequence="LLNLPNGAAPC(Carbamidomethyl)NAPNAK(Acetyl)K" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1903.9938"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="635.676799999999957" RT="3656.099999999999909" >
+			<PeptideHit score="31.100000000000001" sequence="LLNLPNGAAPC(Carbamidomethyl)NAPNAK(Acetyl)K" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1903.993799999999965"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0146"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7.7"/>
 				<UserParam type="string" name="aaScore" value=" 55-27-7-24-11-2-66-1-1-1-60-70-29-16-48-37-33-53"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4887"/>
+			<UserParam type="int" name="scan_index" value="4887"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="616.3317" RT="3657.2" >
-			<PeptideHit score="33.3" sequence="MFNVSGTVLGRDRAPVK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1845.9883"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="616.331699999999955" RT="3657.199999999999818" >
+			<PeptideHit score="33.299999999999997" sequence="MFNVSGTVLGRDRAPVK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1845.988299999999981"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.015"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-8.1"/>
 				<UserParam type="string" name="aaScore" value=" 61-59-60-39-21-2-28-29-29-48-36-24-2-18-15-12-64"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4889"/>
+			<UserParam type="int" name="scan_index" value="4889"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="861.923" RT="3657.7" >
-			<PeptideHit score="55.8" sequence="MLSVYPSPC(Carbamidomethyl)LQDANK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1721.8117"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="861.923000000000002" RT="3657.699999999999818" >
+			<PeptideHit score="55.799999999999997" sequence="MLSVYPSPC(Carbamidomethyl)LQDANK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1721.811699999999974"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0197"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.4"/>
 				<UserParam type="string" name="aaScore" value=" 47-49-39-45-56-44-99-65-56-64-64-70-86-40-37"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4890"/>
+			<UserParam type="int" name="scan_index" value="4890"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="557.6527" RT="3658.2" >
-			<PeptideHit score="35" sequence="KATVAKALSHGMVTTR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1669.9298"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0065"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="557.652699999999982" RT="3658.199999999999818" >
+			<PeptideHit score="35.0" sequence="KATVAKALSHGMVTTR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1669.929799999999887"/>
+				<UserParam type="float" name="err(data-denovo)" value="6.5e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="3.9"/>
 				<UserParam type="string" name="aaScore" value=" 33-22-32-54-67-20-7-19-39-55-35-21-19-25-55-58"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4891"/>
+			<UserParam type="int" name="scan_index" value="4891"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="869.9163" RT="3658.6" >
-			<PeptideHit score="48.1" sequence="WYATSLTDLPQC(Carbamidomethyl)NK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1737.8032"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="869.916299999999978" RT="3658.599999999999909" >
+			<PeptideHit score="48.100000000000001" sequence="WYATSLTDLPQC(Carbamidomethyl)NK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1737.803200000000061"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0149"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.5"/>
 				<UserParam type="string" name="aaScore" value=" 38-45-22-64-57-82-56-73-97-38-32-4-4-76"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4892"/>
+			<UserParam type="int" name="scan_index" value="4892"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="754.4194" RT="3659.2" >
-			<PeptideHit score="59.1" sequence="QLDGFKFAPASKAK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1506.8195"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0047"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="754.419399999999996" RT="3659.199999999999818" >
+			<PeptideHit score="59.100000000000001" sequence="QLDGFKFAPASKAK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1506.819500000000062"/>
+				<UserParam type="float" name="err(data-denovo)" value="4.7e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="3.1"/>
 				<UserParam type="string" name="aaScore" value=" 43-44-95-81-86-60-46-40-82-39-51-26-44-89"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4893"/>
+			<UserParam type="int" name="scan_index" value="4893"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="630.3521" RT="3660.3" >
-			<PeptideHit score="65.1" sequence="SNQFLPLTALR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1258.7034"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="630.35209999999995" RT="3660.300000000000182" >
+			<PeptideHit score="65.099999999999994" sequence="SNQFLPLTALR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1258.703400000000102"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0138"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11.0"/>
 				<UserParam type="string" name="aaScore" value=" 37-81-94-75-61-65-86-85-90-27-31"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4895"/>
+			<UserParam type="int" name="scan_index" value="4895"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="803.4349" RT="3660.5" >
-			<PeptideHit score="58.8" sequence="VYLLKAVDTNLDGGK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1604.8774"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0221"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.7"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="803.434899999999971" RT="3660.5" >
+			<PeptideHit score="58.799999999999997" sequence="VYLLKAVDTNLDGGK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1604.87740000000008"/>
+				<UserParam type="float" name="err(data-denovo)" value="-0.022"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 8-12-57-63-79-99-98-94-84-83-66-73-5-7-42"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4896"/>
+			<UserParam type="int" name="scan_index" value="4896"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="592.6044" RT="3660.8" >
-			<PeptideHit score="18.4" sequence="EPVDATQSQNPAADYK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1774.801"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0097"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="592.604400000000055" RT="3660.800000000000182" >
+			<PeptideHit score="18.399999999999999" sequence="EPVDATQSQNPAADYK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1774.800999999999931"/>
+				<UserParam type="float" name="err(data-denovo)" value="-9.700000000000001e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5.5"/>
 				<UserParam type="string" name="aaScore" value=" 25-2-5-7-2-5-27-1-27-18-16-2-1-23-33-53"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4897"/>
+			<UserParam type="int" name="scan_index" value="4897"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="539.9727" RT="3661.4" >
-			<PeptideHit score="27" sequence="MKMVEVNTGLAALLK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1616.8994"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0032"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-2"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="539.972700000000032" RT="3661.400000000000091" >
+			<PeptideHit score="27.0" sequence="MKMVEVNTGLAALLK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1616.899400000000014"/>
+				<UserParam type="float" name="err(data-denovo)" value="-3.2e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-2.0"/>
 				<UserParam type="string" name="aaScore" value=" 14-41-20-15-3-15-41-46-35-1-1-1-35-65-65"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4898"/>
+			<UserParam type="int" name="scan_index" value="4898"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="639.3493" RT="3661.9" >
-			<PeptideHit score="18.9" sequence="MKADKTEGKK(Acetyl)HFAAALK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1915.035"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0089"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="639.349299999999971" RT="3661.900000000000091" >
+			<PeptideHit score="18.899999999999999" sequence="MKADKTEGKK(Acetyl)HFAAALK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1915.035000000000082"/>
+				<UserParam type="float" name="err(data-denovo)" value="-8.9e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-4.6"/>
 				<UserParam type="string" name="aaScore" value=" 30-6-7-1-7-20-33-2-1-5-44-1-6-23-13-56-62"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4899"/>
+			<UserParam type="int" name="scan_index" value="4899"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="588.3273" RT="3663.1" >
-			<PeptideHit score="32.2" sequence="NAVTKSTVVEK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1174.6558"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="588.327300000000037" RT="3663.099999999999909" >
+			<PeptideHit score="32.200000000000003" sequence="NAVTKSTVVEK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1174.655799999999999"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0158"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.4"/>
 				<UserParam type="string" name="aaScore" value=" 65-54-35-1-3-35-18-1-65-42-45"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4901"/>
+			<UserParam type="int" name="scan_index" value="4901"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="658.8647" RT="3663.6" >
-			<PeptideHit score="63.3" sequence="LPVKTAESSQSK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1315.6983"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="658.864699999999971" RT="3663.599999999999909" >
+			<PeptideHit score="63.299999999999997" sequence="LPVKTAESSQSK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1315.698300000000018"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0165"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.5"/>
 				<UserParam type="string" name="aaScore" value=" 99-81-46-68-83-71-35-66-25-40-56-85"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4902"/>
+			<UserParam type="int" name="scan_index" value="4902"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="451.7717" RT="3664.1" >
-			<PeptideHit score="37.4" sequence="LPELVFGK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="901.5273"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0015"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="451.77170000000001" RT="3664.099999999999909" >
+			<PeptideHit score="37.399999999999999" sequence="LPELVFGK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="901.527299999999968"/>
+				<UserParam type="float" name="err(data-denovo)" value="1.5e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.6"/>
 				<UserParam type="string" name="aaScore" value=" 99-82-63-11-7-3-1-29"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4903"/>
+			<UserParam type="int" name="scan_index" value="4903"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="595.9957" RT="3664.6" >
-			<PeptideHit score="32.1" sequence="LK(Acetyl)C(Carbamidomethyl)KVTLVRAMC(Carbamidomethyl)HK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1784.9576"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0078"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="595.995700000000056" RT="3664.599999999999909" >
+			<PeptideHit score="32.100000000000001" sequence="LK(Acetyl)C(Carbamidomethyl)KVTLVRAMC(Carbamidomethyl)HK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1784.957599999999957"/>
+				<UserParam type="float" name="err(data-denovo)" value="7.8e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="4.4"/>
 				<UserParam type="string" name="aaScore" value=" 69-9-2-9-23-50-42-10-8-19-13-61-82-66"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4904"/>
+			<UserParam type="int" name="scan_index" value="4904"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="512.7811" RT="3665.1" >
-			<PeptideHit score="32.9" sequence="LFAAFSPSGK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1023.5389"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0088"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="512.781100000000038" RT="3665.099999999999909" >
+			<PeptideHit score="32.899999999999999" sequence="LFAAFSPSGK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1023.538900000000012"/>
+				<UserParam type="float" name="err(data-denovo)" value="8.800000000000001e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.6"/>
 				<UserParam type="string" name="aaScore" value=" 88-1-1-1-1-3-3-80-83-88"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4905"/>
+			<UserParam type="int" name="scan_index" value="4905"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="606.665" RT="3666.3" >
-			<PeptideHit score="40.6" sequence="EAEMGVSVFTLKNKHK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9506"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="606.664999999999964" RT="3666.300000000000182" >
+			<PeptideHit score="40.600000000000001" sequence="EAEMGVSVFTLKNKHK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.950599999999895"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0227"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.5"/>
 				<UserParam type="string" name="aaScore" value=" 72-49-48-83-11-44-1-1-41-77-19-3-2-18-62-89"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4907"/>
+			<UserParam type="int" name="scan_index" value="4907"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="752.3519" RT="3666.6" >
-			<PeptideHit score="39.4" sequence="YQETAAHDTMQLRGYSEVR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2254.0437"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0097"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="752.351900000000001" RT="3666.599999999999909" >
+			<PeptideHit score="39.399999999999999" sequence="YQETAAHDTMQLRGYSEVR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2254.043700000000172"/>
+				<UserParam type="float" name="err(data-denovo)" value="-9.700000000000001e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-4.3"/>
 				<UserParam type="string" name="aaScore" value=" 22-16-79-93-18-3-3-70-59-58-71-26-27-17-21-16-11-38-84"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4908"/>
+			<UserParam type="int" name="scan_index" value="4908"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="451.2625" RT="3667" >
-			<PeptideHit score="20.4" sequence="SRTSALPK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="900.5029"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0075"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.3"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="451.262499999999989" RT="3667.0" >
+			<PeptideHit score="20.399999999999999" sequence="SRTSALPK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="900.502899999999954"/>
+				<UserParam type="float" name="err(data-denovo)" value="7.5e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 4-1-9-80-1-1-23-46"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4909"/>
+			<UserParam type="int" name="scan_index" value="4909"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="696.3837" RT="3667.4" >
-			<PeptideHit score="31.1" sequence="LTENGSC(Carbamidomethyl)LSKVLQLSAPAAK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2086.1092"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="696.383699999999976" RT="3667.400000000000091" >
+			<PeptideHit score="31.100000000000001" sequence="LTENGSC(Carbamidomethyl)LSKVLQLSAPAAK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2086.109199999999873"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0201"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.6"/>
 				<UserParam type="string" name="aaScore" value=" 22-22-19-8-2-17-23-51-35-41-87-93-22-20-28-4-2-8-41-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4910"/>
+			<UserParam type="int" name="scan_index" value="4910"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="968.4511" RT="3668" >
-			<PeptideHit score="53.6" sequence="ALPPSEQNTEVNRRUR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1934.8825"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0051"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="968.451099999999997" RT="3668.0" >
+			<PeptideHit score="53.600000000000001" sequence="ALPPSEQNTEVNRRUR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1934.882499999999936"/>
+				<UserParam type="float" name="err(data-denovo)" value="5.100000000000001e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.6"/>
 				<UserParam type="string" name="aaScore" value=" 27-25-1-0-54-39-95-91-60-99-78-67-95-48-27-36"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4911"/>
+			<UserParam type="int" name="scan_index" value="4911"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="577.6537" RT="3669.1" >
-			<PeptideHit score="12.3" sequence="TFSHPKAKEFVLGAAK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1729.9515"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="577.653800000000047" RT="3669.099999999999909" >
+			<PeptideHit score="12.300000000000001" sequence="TFSHPKAKEFVLGAAK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1729.951499999999896"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0121"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-7"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-7.0"/>
 				<UserParam type="string" name="aaScore" value=" 20-45-36-2-1-9-1-2-23-2-2-9-1-8-6-23"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4913"/>
+			<UserParam type="int" name="scan_index" value="4913"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="700.7124" RT="3669.5" >
-			<PeptideHit score="25.7" sequence="WAATVPLGEPGLSGKPTKYK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2099.1415"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0261"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="700.712400000000002" RT="3669.5" >
+			<PeptideHit score="25.699999999999999" sequence="WAATVPLGEPGLSGKPTKYK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2099.141500000000178"/>
+				<UserParam type="float" name="err(data-denovo)" value="-0.0262"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-12.4"/>
 				<UserParam type="string" name="aaScore" value=" 16-11-37-46-26-6-36-57-52-3-12-55-50-1-1-1-35-35-20-26"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4914"/>
+			<UserParam type="int" name="scan_index" value="4914"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="566.3295" RT="3670" >
-			<PeptideHit score="27.6" sequence="VMKVHHGVPK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1130.6383"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0061"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="566.329500000000053" RT="3670.0" >
+			<PeptideHit score="27.600000000000001" sequence="VMKVHHGVPK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1130.638300000000072"/>
+				<UserParam type="float" name="err(data-denovo)" value="6.100000000000001e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="5.4"/>
 				<UserParam type="string" name="aaScore" value=" 75-79-21-13-16-9-9-4-1-39"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4915"/>
+			<UserParam type="int" name="scan_index" value="4915"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="614.8501" RT="3670.6" >
-			<PeptideHit score="63.1" sequence="LPVQTSRYHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1227.6724"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="614.850099999999998" RT="3670.599999999999909" >
+			<PeptideHit score="63.100000000000001" sequence="LPVQTSRYHK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1227.672399999999925"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0132"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 99-60-57-90-94-67-32-36-50-75"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4916"/>
+			<UserParam type="int" name="scan_index" value="4916"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="592.85" RT="3671.1" >
-			<PeptideHit score="42.3" sequence="FLGKPVDPALK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1183.6965"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="592.850000000000023" RT="3671.099999999999909" >
+			<PeptideHit score="42.299999999999997" sequence="FLGKPVDPALK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1183.696500000000015"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0111"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9.4"/>
 				<UserParam type="string" name="aaScore" value=" 82-23-7-40-32-38-34-13-41-68-55"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4917"/>
+			<UserParam type="int" name="scan_index" value="4917"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="833.4083" RT="3672.2" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="833.408300000000054" RT="3672.199999999999818" >
 			<PeptideHit score="51.5" sequence="GLYAK(Acetyl)MTDLPSTGGGR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1664.8192"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1664.81919999999991"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0172"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.3"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 47-50-42-43-50-96-87-93-68-17-12-62-43-10-7-42"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4919"/>
+			<UserParam type="int" name="scan_index" value="4919"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="1128.0287" RT="3672.8" >
-			<PeptideHit score="53.7" sequence="SSDRSAVYLKMTDLHMNMR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="2254.0657"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0229"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="1128.028700000000072" RT="3672.800000000000182" >
+			<PeptideHit score="53.700000000000003" sequence="SSDRSAVYLKMTDLHMNMR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="2254.065700000000106"/>
+				<UserParam type="float" name="err(data-denovo)" value="-0.0228"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.1"/>
 				<UserParam type="string" name="aaScore" value=" 8-8-22-30-62-88-93-96-86-79-92-82-94-86-25-23-21-6-37"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4920"/>
+			<UserParam type="int" name="scan_index" value="4920"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="457.2538" RT="3673.3" >
-			<PeptideHit score="25.3" sequence="FTTGFRGK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="912.4818"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="457.253899999999987" RT="3673.300000000000182" >
+			<PeptideHit score="25.300000000000001" sequence="FTTGFRGK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="912.481800000000021"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0114"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.5"/>
 				<UserParam type="string" name="aaScore" value=" 35-1-1-1-4-14-40-99"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4921"/>
+			<UserParam type="int" name="scan_index" value="4921"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="635.0154" RT="3673.9" >
-			<PeptideHit score="23.6" sequence="LSKTKYPGFPPPGFNPR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1902.0152"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0091"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="635.0154" RT="3673.900000000000091" >
+			<PeptideHit score="23.600000000000001" sequence="LSKTKYPGFPPPGFNPR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1902.01520000000005"/>
+				<UserParam type="float" name="err(data-denovo)" value="9.1e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="4.8"/>
 				<UserParam type="string" name="aaScore" value=" 36-1-5-1-5-43-31-29-23-23-23-1-3-69-22-9-43"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4922"/>
+			<UserParam type="int" name="scan_index" value="4922"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="483.2921" RT="3674.4" >
-			<PeptideHit score="16.9" sequence="GFTKTKRK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="964.5818"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="483.292100000000005" RT="3674.400000000000091" >
+			<PeptideHit score="16.899999999999999" sequence="GFTKTKRK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="964.581800000000044"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0121"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-12.5"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-12.6"/>
 				<UserParam type="string" name="aaScore" value=" 38-1-1-1-1-26-38-38"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4923"/>
+			<UserParam type="int" name="scan_index" value="4923"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="752.3524" RT="3675.6" >
-			<PeptideHit score="39.4" sequence="KYEHQDDTMQLYGAATGGNR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2254.0073"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0279"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="752.352399999999989" RT="3675.599999999999909" >
+			<PeptideHit score="39.399999999999999" sequence="KYEHQDDTMQLYGAATGGNR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2254.007300000000214"/>
+				<UserParam type="float" name="err(data-denovo)" value="0.028"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.4"/>
 				<UserParam type="string" name="aaScore" value=" 22-13-96-43-52-42-93-48-94-44-2-24-1-4-4-6-5-7-16-84"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4925"/>
+			<UserParam type="int" name="scan_index" value="4925"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="614.8498" RT="3675.9" >
-			<PeptideHit score="55.9" sequence="LPVKTWGWNK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1227.6764"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0086"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="614.849799999999959" RT="3675.900000000000091" >
+			<PeptideHit score="55.899999999999999" sequence="LPVKTWGWNK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1227.676400000000058"/>
+				<UserParam type="float" name="err(data-denovo)" value="8.6e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7.0"/>
 				<UserParam type="string" name="aaScore" value=" 99-84-70-74-95-33-52-7-28-71"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4926"/>
+			<UserParam type="int" name="scan_index" value="4926"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="469.7873" RT="3676.4" >
-			<PeptideHit score="10.2" sequence="VALTKGPPR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="937.5709"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="469.787300000000016" RT="3676.400000000000091" >
+			<PeptideHit score="10.199999999999999" sequence="VALTKGPPR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="937.570900000000052"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0109"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11.6"/>
 				<UserParam type="string" name="aaScore" value=" 46-1-1-1-1-1-23-9-12"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4927"/>
+			<UserParam type="int" name="scan_index" value="4927"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="626.9775" RT="3676.9" >
-			<PeptideHit score="33.7" sequence="VLHAKSDSSPFTMMVTK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1877.9379"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="626.977499999999964" RT="3676.900000000000091" >
+			<PeptideHit score="33.700000000000003" sequence="VLHAKSDSSPFTMMVTK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1877.9378999999999"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0273"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-14.5"/>
 				<UserParam type="string" name="aaScore" value=" 18-36-41-8-18-17-33-52-35-53-89-47-1-2-10-44-58"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4928"/>
+			<UserParam type="int" name="scan_index" value="4928"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="1044.0704" RT="3677.5" >
-			<PeptideHit score="47.2" sequence="TLEKESPLVKSQLLMTGGR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="2086.1456"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="1044.070400000000063" RT="3677.5" >
+			<PeptideHit score="47.200000000000003" sequence="TLEKESPLVKSQLLMTGGR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="2086.145599999999831"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0193"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-9.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 21-21-73-66-72-73-41-39-39-50-74-59-77-37-40-22-12-43-29"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4929"/>
+			<UserParam type="int" name="scan_index" value="4929"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="506.9495" RT="3678.7" >
-			<PeptideHit score="20.1" sequence="RPVAUPKNKGKVR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1517.8057"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="506.949500000000001" RT="3678.699999999999818" >
+			<PeptideHit score="20.100000000000001" sequence="RPVAUPKNKGKVR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1517.805699999999888"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0209"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 5-1-11-28-44-32-31-8-5-5-13-39-32"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4931"/>
+			<UserParam type="int" name="scan_index" value="4931"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="577.6551" RT="3679.2" >
-			<PeptideHit score="21.3" sequence="EFLVAATTEVALGGPKK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1729.9614"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="577.655099999999948" RT="3679.199999999999818" >
+			<PeptideHit score="21.300000000000001" sequence="EFLVAATTEVALGGPKK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1729.961399999999912"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.018"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-10.4"/>
 				<UserParam type="string" name="aaScore" value=" 64-11-29-39-2-42-1-14-32-4-1-10-15-15-20-4-46"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4932"/>
+			<UserParam type="int" name="scan_index" value="4932"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="448.7507" RT="3679.8" >
-			<PeptideHit score="34.2" sequence="TTKAYQGK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="895.4763"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="448.750699999999995" RT="3679.800000000000182" >
+			<PeptideHit score="34.200000000000003" sequence="TTKAYQGK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="895.476300000000038"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0105"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.7"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.6"/>
 				<UserParam type="string" name="aaScore" value=" 44-10-20-20-16-53-77-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4933"/>
+			<UserParam type="int" name="scan_index" value="4933"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="640.3464" RT="3680.3" >
-			<PeptideHit score="21.7" sequence="NSVPAFNFAAARVDK(Acetyl)AAK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1918.0061"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="640.346400000000017" RT="3680.300000000000182" >
+			<PeptideHit score="21.699999999999999" sequence="NSVPAFNFAAARVDK(Acetyl)AAK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1918.00610000000006"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0112"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="5.8"/>
 				<UserParam type="string" name="aaScore" value=" 20-1-17-21-10-1-1-5-2-19-21-33-63-65-30-16-7-47"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4934"/>
+			<UserParam type="int" name="scan_index" value="4934"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="595.9943" RT="3680.9" >
-			<PeptideHit score="46.9" sequence="LPC(Carbamidomethyl)LLAAYTLLPPSTR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1784.9859"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="595.994299999999953" RT="3680.900000000000091" >
+			<PeptideHit score="46.899999999999999" sequence="LPC(Carbamidomethyl)LLAAYTLLPPSTR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1784.985899999999901"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0247"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-13.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 69-16-47-52-1-1-22-77-83-68-69-41-4-4-67-73"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4935"/>
+			<UserParam type="int" name="scan_index" value="4935"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="630.3516" RT="3682.1" >
-			<PeptideHit score="49.2" sequence="SNKFLVTEPPK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1258.6921"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0036"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="630.351599999999962" RT="3682.099999999999909" >
+			<PeptideHit score="49.200000000000003" sequence="SNKFLVTEPPK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1258.692099999999982"/>
+				<UserParam type="float" name="err(data-denovo)" value="-3.6e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-2.8"/>
 				<UserParam type="string" name="aaScore" value=" 23-21-51-89-84-81-66-31-5-10-63"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4937"/>
+			<UserParam type="int" name="scan_index" value="4937"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="466.6046" RT="3682.4" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="466.604600000000005" RT="3682.400000000000091" >
 			<PeptideHit score="18.5" sequence="KVASMAAPGVLSPK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1396.7748"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1396.774799999999914"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.017"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.1"/>
 				<UserParam type="string" name="aaScore" value=" 18-21-21-26-23-19-32-1-6-2-13-1-59-20"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4938"/>
+			<UserParam type="int" name="scan_index" value="4938"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="595.6532" RT="3682.9" >
-			<PeptideHit score="30.4" sequence="LLGC(Carbamidomethyl)KQSNTLEPAEPK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1783.9138"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="595.65319999999997" RT="3682.900000000000091" >
+			<PeptideHit score="30.399999999999999" sequence="LLGC(Carbamidomethyl)KQSNTLEPAEPK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1783.913800000000038"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0239"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.4"/>
 				<UserParam type="string" name="aaScore" value=" 61-1-2-14-19-10-2-36-47-51-74-49-7-5-41-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4939"/>
+			<UserParam type="int" name="scan_index" value="4939"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="864.4437" RT="3683.5" >
-			<PeptideHit score="62.9" sequence="NGFSLELDKSKC(Carbamidomethyl)TTK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1726.856"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="864.443700000000035" RT="3683.5" >
+			<PeptideHit score="62.899999999999999" sequence="NGFSLELDKSKC(Carbamidomethyl)TTK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1726.855999999999995"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0168"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.7"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 27-16-43-68-89-89-99-93-89-98-94-2-6-57-80"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4940"/>
+			<UserParam type="int" name="scan_index" value="4940"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="544.3124" RT="3684" >
-			<PeptideHit score="61" sequence="LPVAGGSFK(Acetyl)K(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1086.6073"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.003"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="544.312400000000025" RT="3684.0" >
+			<PeptideHit score="61.0" sequence="LPVAGGSFK(Acetyl)K(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1086.607299999999896"/>
+				<UserParam type="float" name="err(data-denovo)" value="3.0e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.7"/>
 				<UserParam type="string" name="aaScore" value=" 98-94-98-97-48-57-5-42-12-85"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4941"/>
+			<UserParam type="int" name="scan_index" value="4941"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="759.921" RT="3685.2" >
-			<PeptideHit score="43.9" sequence="KVLYMPWAASGAPK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1517.8065"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="759.921000000000049" RT="3685.199999999999818" >
+			<PeptideHit score="43.899999999999999" sequence="KVLYMPWAASGAPK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1517.806499999999915"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0209"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.8"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.800000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 62-57-29-57-67-53-58-5-29-48-1-2-2-68"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4943"/>
+			<UserParam type="int" name="scan_index" value="4943"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="635.3516" RT="3685.7" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="635.351599999999962" RT="3685.699999999999818" >
 			<PeptideHit score="27.5" sequence="MAEC(Carbamidomethyl)VVKALQAPFKLAK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1903.0423"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0095"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1903.042300000000068"/>
+				<UserParam type="float" name="err(data-denovo)" value="-9.5e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-5.0"/>
 				<UserParam type="string" name="aaScore" value=" 69-40-50-19-19-5-31-7-61-27-12-11-1-17-29-10-47"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4944"/>
+			<UserParam type="int" name="scan_index" value="4944"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="1202.3431" RT="3686.3" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="1202.34310000000005" RT="3686.300000000000182" >
 			<PeptideHit score="11.1" sequence="VMHKPRGTHLC(Carbamidomethyl)QKKALRKPAPGSMLARNFFK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="3603.9694"/>
+				<UserParam type="float" name="pepMass(denovo)" value="3603.969399999999951"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0382"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.6"/>
 				<UserParam type="string" name="aaScore" value=" 22-8-2-9-13-2-2-6-1-29-21-15-12-2-1-1-22-25-7-15-38-4-3-1-5-31-1-1-10-19-31"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4945"/>
+			<UserParam type="int" name="scan_index" value="4945"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="880.4279" RT="3686.9" >
-			<PeptideHit score="38.3" sequence="SNUDLVPTKHLDVPR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1758.8168"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="880.427900000000022" RT="3686.900000000000091" >
+			<PeptideHit score="38.299999999999997" sequence="SNUDLVPTKHLDVPR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1758.816800000000058"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0244"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="13.9"/>
 				<UserParam type="string" name="aaScore" value=" 13-30-55-55-59-55-21-8-4-31-14-19-44-91-68"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4946"/>
+			<UserParam type="int" name="scan_index" value="4946"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="708.3821" RT="3687.4" >
-			<PeptideHit score="31.8" sequence="TGVMLNLVHVLK(Acetyl)SGNEAEK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2122.1092"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="708.382100000000037" RT="3687.400000000000091" >
+			<PeptideHit score="31.800000000000001" sequence="TGVMLNLVHVLK(Acetyl)SGNEAEK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2122.109199999999873"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0154"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7.2"/>
 				<UserParam type="string" name="aaScore" value=" 32-2-3-29-63-61-22-5-8-55-38-37-14-10-50-24-8-32-66"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4947"/>
+			<UserParam type="int" name="scan_index" value="4947"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="630.3464" RT="3688.6" >
-			<PeptideHit score="33.7" sequence="EAPYLADAQVPLATFLK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1887.9982"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="630.346400000000017" RT="3688.599999999999909" >
+			<PeptideHit score="33.700000000000003" sequence="EAPYLADAQVPLATFLK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1887.998199999999997"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0193"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 74-49-11-34-70-38-54-27-37-9-27-47-18-7-4-10-48"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4949"/>
+			<UserParam type="int" name="scan_index" value="4949"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="752.3521" RT="3689" >
-			<PeptideHit score="40.7" sequence="C(Carbamidomethyl)MEVPANNTMKNMVMVMVR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2254.0223"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="752.35209999999995" RT="3689.0" >
+			<PeptideHit score="40.700000000000003" sequence="C(Carbamidomethyl)MEVPANNTMKNMVMVMVR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2254.022300000000087"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.012"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="5.3"/>
 				<UserParam type="string" name="aaScore" value=" 9-22-96-12-5-16-58-95-69-51-84-21-17-17-1-34-48-53-61"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4950"/>
+			<UserParam type="int" name="scan_index" value="4950"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="699.4047" RT="3689.5" >
-			<PeptideHit score="91.1" sequence="LPVKTLSAAAEQK(Acetyl)" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1396.7926"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0023"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.7"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="699.404700000000048" RT="3689.5" >
+			<PeptideHit score="91.099999999999994" sequence="LPVKTLSAAAEQK(Acetyl)" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1396.792599999999993"/>
+				<UserParam type="float" name="err(data-denovo)" value="2.3e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="1.6"/>
 				<UserParam type="string" name="aaScore" value=" 99-82-92-85-91-99-98-87-94-45-97-99-99"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4951"/>
+			<UserParam type="int" name="scan_index" value="4951"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="738.3929" RT="3689.9" >
-			<PeptideHit score="63.3" sequence="WLSSTDSPRLWK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1474.7569"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0144"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.7"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="738.392900000000054" RT="3689.900000000000091" >
+			<PeptideHit score="63.299999999999997" sequence="WLSSTDSPRLWK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1474.756900000000087"/>
+				<UserParam type="float" name="err(data-denovo)" value="0.0143"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.699999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 75-73-62-61-15-43-88-73-54-37-80-89"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4952"/>
+			<UserParam type="int" name="scan_index" value="4952"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="905.4433" RT="3690.5" >
-			<PeptideHit score="54.8" sequence="QYELKMTDLPGSTNGR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1808.8727"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0007"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="905.443300000000022" RT="3690.5" >
+			<PeptideHit score="54.799999999999997" sequence="QYELKMTDLPGSTNGR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1808.872699999999895"/>
+				<UserParam type="float" name="err(data-denovo)" value="-7.0e-04"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-0.4"/>
 				<UserParam type="string" name="aaScore" value=" 24-39-99-74-58-71-76-80-88-96-3-47-30-5-15-45"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4953"/>
+			<UserParam type="int" name="scan_index" value="4953"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="601.3344" RT="3691.6" >
-			<PeptideHit score="29.9" sequence="EAEFPLLTTLPWKSK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1800.9662"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="601.33439999999996" RT="3691.599999999999909" >
+			<PeptideHit score="29.899999999999999" sequence="EAEFPLLTTLPWKSK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1800.966200000000072"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.015"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.3"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.300000000000001"/>
 				<UserParam type="string" name="aaScore" value=" 66-24-45-35-23-22-31-22-23-69-1-9-1-21-51"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4955"/>
+			<UserParam type="int" name="scan_index" value="4955"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="549.6387" RT="3691.9" >
-			<PeptideHit score="24.9" sequence="YDPVLAVRGPKFDK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1645.8828"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="549.638699999999972" RT="3691.900000000000091" >
+			<PeptideHit score="24.899999999999999" sequence="YDPVLAVRGPKFDK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1645.882800000000088"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0116"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="7.0"/>
 				<UserParam type="string" name="aaScore" value=" 41-35-27-2-29-23-41-48-5-25-18-1-3-34"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4956"/>
+			<UserParam type="int" name="scan_index" value="4956"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="830.441" RT="3692.3" >
-			<PeptideHit score="54.9" sequence="GSDEKNTGVSAPKELK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1658.8475"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="830.441000000000031" RT="3692.300000000000182" >
+			<PeptideHit score="54.899999999999999" sequence="GSDEKNTGVSAPKELK" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1658.847500000000082"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0199"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="12.0"/>
 				<UserParam type="string" name="aaScore" value=" 34-8-24-41-52-77-73-37-25-40-15-13-87-91-99-99"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4957"/>
+			<UserParam type="int" name="scan_index" value="4957"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="909.4962" RT="3692.6" >
-			<PeptideHit score="46.3" sequence="EAEMLPLTHRVPLVGR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1816.9982"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="909.496200000000044" RT="3692.599999999999909" >
+			<PeptideHit score="46.299999999999997" sequence="EAEMLPLTHRVPLVGR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1816.998199999999997"/>
 				<UserParam type="float" name="err(data-denovo)" value="-0.0204"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-11.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 38-20-39-33-62-23-88-67-70-26-2-1-70-61-78-65"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4958"/>
+			<UserParam type="int" name="scan_index" value="4958"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="640.3484" RT="3693.2" >
-			<PeptideHit score="32.6" sequence="FEYSFVLFTVLNKSPK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1918.024"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0007"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="640.34839999999997" RT="3693.199999999999818" >
+			<PeptideHit score="32.600000000000001" sequence="FEYSFVLFTVLNKSPK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1918.023999999999887"/>
+				<UserParam type="float" name="err(data-denovo)" value="-7.0e-04"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-0.4"/>
 				<UserParam type="string" name="aaScore" value=" 50-18-45-38-58-1-7-11-14-26-23-17-35-70-53-57"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4959"/>
+			<UserParam type="int" name="scan_index" value="4959"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="901.4993" RT="3694.2" >
-			<PeptideHit score="47.7" sequence="VTEFLPPFATRVPATR" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1800.9887"/>
-				<UserParam type="float" name="err(data-denovo)" value="-0.0045"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="901.499299999999948" RT="3694.199999999999818" >
+			<PeptideHit score="47.700000000000003" sequence="VTEFLPPFATRVPATR" charge="2" >
+				<UserParam type="float" name="pepMass(denovo)" value="1800.988700000000108"/>
+				<UserParam type="float" name="err(data-denovo)" value="-4.5e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="-2.5"/>
 				<UserParam type="string" name="aaScore" value=" 55-37-53-92-86-57-33-45-25-75-53-2-1-46-43-39"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4961"/>
+			<UserParam type="int" name="scan_index" value="4961"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="534.9678" RT="3694.5" >
-			<PeptideHit score="26.4" sequence="NYLVPNKNVFPAAR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1601.8678"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0139"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="534.967800000000011" RT="3694.5" >
+			<PeptideHit score="26.399999999999999" sequence="NYLVPNKNVFPAAR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1601.867799999999988"/>
+				<UserParam type="float" name="err(data-denovo)" value="0.0138"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="8.6"/>
 				<UserParam type="string" name="aaScore" value=" 34-26-47-20-6-61-22-24-3-18-29-14-7-44"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4962"/>
+			<UserParam type="int" name="scan_index" value="4962"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="553.9631" RT="3694.9" >
-			<PeptideHit score="55.6" sequence="MKEKNGMVC(Carbamidomethyl)PPKLK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1658.867"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0004"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="553.963100000000054" RT="3695.0" >
+			<PeptideHit score="55.600000000000001" sequence="MKEKNGMVC(Carbamidomethyl)PPKLK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1658.866999999999962"/>
+				<UserParam type="float" name="err(data-denovo)" value="4.0e-04"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="0.2"/>
 				<UserParam type="string" name="aaScore" value=" 7-41-58-66-71-19-23-64-46-64-61-67-94-99"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4963"/>
+			<UserParam type="int" name="scan_index" value="4963"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="577.6556" RT="3695.4" >
-			<PeptideHit score="27.3" sequence="VNEELLSLFFPTPPK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1729.9291"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="577.65560000000005" RT="3695.400000000000091" >
+			<PeptideHit score="27.300000000000001" sequence="VNEELLSLFFPTPPK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1729.929100000000062"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.016"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.2"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="9.199999999999999"/>
 				<UserParam type="string" name="aaScore" value=" 15-14-30-23-4-1-19-56-30-42-92-13-10-18-47"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4964"/>
+			<UserParam type="int" name="scan_index" value="4964"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="939.9702" RT="3695.9" >
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="939.970199999999977" RT="3695.900000000000091" >
 			<PeptideHit score="56.5" sequence="DPADVVLFPSSDSPPAHK" charge="2" >
-				<UserParam type="float" name="pepMass(denovo)" value="1877.9159"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0099"/>
+				<UserParam type="float" name="pepMass(denovo)" value="1877.915899999999965"/>
+				<UserParam type="float" name="err(data-denovo)" value="9.9e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="5.3"/>
 				<UserParam type="string" name="aaScore" value=" 21-42-77-66-88-99-99-99-89-21-55-65-54-3-23-27-50-25"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4965"/>
+			<UserParam type="int" name="scan_index" value="4965"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="639.0123" RT="3697.1" >
-			<PeptideHit score="40.9" sequence="SPVTHFTLSLFAREPGR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1914.0112"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0038"/>
-				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="639.012299999999982" RT="3697.099999999999909" >
+			<PeptideHit score="40.899999999999999" sequence="SPVTHFTLSLFAREPGR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1914.011199999999917"/>
+				<UserParam type="float" name="err(data-denovo)" value="3.8e-03"/>
+				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.0"/>
 				<UserParam type="string" name="aaScore" value=" 36-8-17-51-46-50-54-80-62-50-90-26-10-6-32-28-41"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4967"/>
+			<UserParam type="int" name="scan_index" value="4967"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="700.716" RT="3697.4" >
-			<PeptideHit score="25.7" sequence="VTLFRGTDKEPNPQAEKK(Acetyl)" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2099.1011"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="700.716000000000008" RT="3697.400000000000091" >
+			<PeptideHit score="25.699999999999999" sequence="VTLFRGTDKEPNPQAEKK(Acetyl)" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2099.10109999999986"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0251"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="11.9"/>
 				<UserParam type="string" name="aaScore" value=" 32-3-1-3-18-8-15-16-55-54-2-29-13-28-32-47-33-52"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4968"/>
+			<UserParam type="int" name="scan_index" value="4968"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="500.953" RT="3698" >
-			<PeptideHit score="30.4" sequence="VAELGGSAKPTTTLR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1499.8308"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0064"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="500.952999999999975" RT="3698.0" >
+			<PeptideHit score="30.399999999999999" sequence="VAELGGSAKPTTTLR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1499.830799999999954"/>
+				<UserParam type="float" name="err(data-denovo)" value="6.4e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="4.3"/>
 				<UserParam type="string" name="aaScore" value=" 95-64-68-55-14-1-4-5-9-1-10-1-17-31-50"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4969"/>
+			<UserParam type="int" name="scan_index" value="4969"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="625.0135" RT="3698.6" >
-			<PeptideHit score="28.6" sequence="SLTK(Acetyl)LHLDSTKPYAEK" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="1871.9993"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="625.013599999999997" RT="3698.599999999999909" >
+			<PeptideHit score="28.600000000000001" sequence="SLTK(Acetyl)LHLDSTKPYAEK" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="1871.999299999999948"/>
 				<UserParam type="float" name="err(data-denovo)" value="0.0195"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="10.4"/>
 				<UserParam type="string" name="aaScore" value=" 33-24-30-23-18-46-19-3-34-13-37-14-32-46-26-66"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4970"/>
+			<UserParam type="int" name="scan_index" value="4970"/>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0" MZ="671.0408" RT="3699.1" >
-			<PeptideHit score="36.2" sequence="FVDYAYAKLWGRRPLR" charge="3" >
-				<UserParam type="float" name="pepMass(denovo)" value="2010.0952"/>
-				<UserParam type="float" name="err(data-denovo)" value="0.0053"/>
+		<PeptideIdentification score_type="novorscore" higher_score_better="true" significance_threshold="0.0" MZ="671.04079999999999" RT="3699.099999999999909" >
+			<PeptideHit score="36.200000000000003" sequence="FVDYAYAKLWGRRPLR" charge="3" >
+				<UserParam type="float" name="pepMass(denovo)" value="2010.095199999999977"/>
+				<UserParam type="float" name="err(data-denovo)" value="5.3e-03"/>
 				<UserParam type="float" name="ppm(1e6*err/(mz*z))" value="2.6"/>
 				<UserParam type="string" name="aaScore" value=" 22-12-67-86-62-31-20-49-75-24-6-16-18-2-16-59"/>
 			</PeptideHit>
-			<UserParam type="float" name="scan_index" value="4971"/>
+			<UserParam type="int" name="scan_index" value="4971"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

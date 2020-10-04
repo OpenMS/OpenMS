@@ -26,6 +26,7 @@ set(qc_executables_list
   PeptideMass_test
   QCBase_test
   RTAlignment_test
+  DBSuitability_test
   TIC_test
 )
 
@@ -51,6 +52,7 @@ set(datastructures_executables_list
   DefaultParamHandler_test
   DistanceMatrix_test
   FASTAContainer_test
+  FlagSet_test
   GridBasedCluster_test
   GridBasedClustering_test
   GridFeature_test
@@ -125,6 +127,7 @@ set(metadata_executables_list
 )
 
 set(system_executables_list
+  ExternalProcess_test
   File_test
   FileWatcher_test
   JavaInfo_test

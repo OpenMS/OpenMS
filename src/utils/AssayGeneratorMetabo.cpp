@@ -190,11 +190,6 @@ protected:
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
 
-  static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
-  {
-    return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
-  }
-
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -448,13 +443,14 @@ protected:
             out_csifingerid,
             decoy_generation);
   
-        // sort vector path list
-        std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
+
+                // sort vector path list
+        std::vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::move(subdirs));
   
         // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
         // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
-        vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, use_exact_mass);
+        vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sorted_subdirs, use_exact_mass);
 
         // should the sirius workspace be retained
         if (!sirius_workspace_directory.empty())
