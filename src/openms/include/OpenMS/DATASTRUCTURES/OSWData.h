@@ -182,17 +182,17 @@ namespace OpenMS
           return seq_;
         }
         /// precursor charge
-        const short getCharge() const
+        short getCharge() const
         {
           return charge_;
         }
         /// is this a decoy feature (from a decoy protein)
-        const bool isDecoy() const
+        bool isDecoy() const
         {
           return decoy_;
         }
         /// m/z of this charged peptide
-        const float getPCMz() const
+        float getPCMz() const
         {
           return precursor_mz_;
         }
