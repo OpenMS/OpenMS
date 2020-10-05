@@ -936,9 +936,9 @@ namespace OpenMS
                              , chromatogram.end());
         }
 
-        // Add the transition and the chromatogram to the MRMTransitionGroup; both have identical nativeIDs!
-        transition_group.addTransition(*transition);
-        transition_group.addChromatogram(chromatogram);
+        // Add the transition and the chromatogram to the MRMTransitionGroup
+        transition_group.addTransition(*transition, transition->getNativeID());
+        transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
       }
 
       // currently .tsv, .osw and .featureXML are mutually exclusive
@@ -952,7 +952,8 @@ namespace OpenMS
         String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
         if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
         {
-          transition_group.addPrecursorChromatogram( ms1_chromatograms[ms1_chromatogram_map[prec_id]] );
+          MSChromatogram chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
+          transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
         }
       }
 

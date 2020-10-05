@@ -1136,8 +1136,8 @@ namespace OpenMS
 
       // Now add the transition and the chromatogram to the group
       MRMTransitionGroupType& transition_group = transition_group_map[transition->getPeptideRef()];
-      transition_group.addTransition(*transition);
-      transition_group.addChromatogram(chromatogram);
+      transition_group.addTransition(*transition, transition->getNativeID());
+      transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
 
       setProgress(++progress);
     }
