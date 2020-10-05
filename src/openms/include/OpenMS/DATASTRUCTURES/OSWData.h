@@ -101,37 +101,41 @@ namespace OpenMS
 
         /// just a dummy feature to allow for acceptor output values etc
         OSWPeakGroup() = default;
+        
         /// custom c'tor which fills all the members with data; all members are read-only
         OSWPeakGroup(const float rt_experimental, const float rt_left_width, const float rt_right_width, const float rt_delta, std::vector<UInt32>&& transition_ids, const float q_value = -1);
+        
         /// Copy c'tor
         OSWPeakGroup(const OSWPeakGroup& rhs) = default;
+        
         /// move c'tor
         OSWPeakGroup(OSWPeakGroup&& rhs) = default;
+        
         /// move assignment
         OSWPeakGroup& operator=(OSWPeakGroup&& rhs) = default;
 
         /// observed RT apex position in seconds of the feature
-        const float getRTExperimental() const
+        float getRTExperimental() const
         {
           return rt_experimental_;
         }
         /// RT position in seconds of the left border
-        const float getRTLeftWidth() const
+        float getRTLeftWidth() const
         {
           return rt_left_width_;
         }
         /// RT position in seconds of the right border
-        const float getRTRightWidth() const
+        float getRTRightWidth() const
         {
           return rt_right_width_;
         }
         /// RT difference in seconds to the expected RT
-        const float getRTDelta() const
+        float getRTDelta() const
         {
           return rt_delta_;
         }
         /// this might return QVALUE_MISSING if q-value is not annotated in the OSW file
-        const float getQValue() const
+        float getQValue() const
         {
           return q_value_;
         }
