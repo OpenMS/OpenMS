@@ -157,8 +157,8 @@ public:
     //@}
 
 protected:
-    /// sets the residues from given file
-    void setResidues_(const String& filename);
+    /// sets the residues from given an existing map
+    void setResidues_();
 
     /** @name Private Constructors
     */
@@ -178,13 +178,13 @@ protected:
     //@}
 
     /**
-       @brief reads residues from the given file
+       @brief reads residues from the given an existing map
 
-       @throw Exception::ParseError if the file cannot be parsed
+       @throw Exception::ParseError if the existing map cannot be parsed
     */
-    void readResiduesFromFile_(const String& filename);
+    void readResiduesFromMap_();
 
-    /// parses a residue, given the key/value pairs from i.e. an XML file
+    /// parses a residue, given the key/value pairs from i.e. an existing map
     Residue* parseResidue_(Map<String, String>& values);
 
     /// deletes all sub-instances of the stored data like modifications and residues
