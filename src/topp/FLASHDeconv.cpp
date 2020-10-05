@@ -42,6 +42,7 @@
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 //#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 using namespace OpenMS;
@@ -73,7 +74,17 @@ public:
                false)
   {
   }
+  /*Kyowon,
 
+  scan_1_1 is a single MS1 scan which doesn't give any deconvolution results
+  upon running the version of FLASHDeconv that we have.
+   We single scan modes for our targeted-mode features within MASH Explorer,
+   which can be either an MS1 or MS2 scan.
+
+  scan_107_134 is a set of scan which there are 2 MS2 scans and a set of MS1 scans.
+
+  Thanks,
+  Sean*/
 protected:
   //typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
   typedef FLASHDeconvHelperStructs::Parameter Parameter;
@@ -104,7 +115,7 @@ protected:
 
     registerDoubleList_("min_isotope_cosine",
                         "<ms1_isotope_cos ms2_isotpe_cos, ...>",
-                        {.75, .75},
+                        {.75, .85},
                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... "
                         "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
                         false,
@@ -158,7 +169,7 @@ protected:
     registerIntOption_("topfd_out",
                        "",
                        0,
-                       "if set, deconvoluted masses (for MS2 spectra) are reported in topfd output format ([prefix]_FD_ms2.msalign)",
+                       "if set, deconvoluted masses are reported in topfd output format ([prefiX]_FD_msX.msalign, per MS level X)",
                        false,
                        true);
     registerIntOption_("mzml_out",
@@ -291,7 +302,7 @@ protected:
     int featureIndex = 1;
 
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
-    fstream featureOut, promexOut, topfdOut;
+    fstream featureOut, promexOut, topfdOut_MS1, topfdOut_MS2;
     String mzmlOut;
     auto specOut = new fstream[param.maxMSLevel];
     //auto mzmlOut = new fstream[param.maxMSLevel];
@@ -350,7 +361,8 @@ protected:
 
       if (param.topfdOut)
       {
-        topfdOut.open(outfilePath + "_FD_ms2.msalign", fstream::out);
+        topfdOut_MS1.open(outfilePath + "_FD_ms1.msalign", fstream::out);
+        topfdOut_MS2.open(outfilePath + "_FD_ms2.msalign", fstream::out);
         //writeTopFDHeader(topfdOut);
       }
     }
@@ -493,7 +505,8 @@ protected:
 
         if (param.topfdOut)
         {
-          topfdOut.open(outfilePath + outfileName + "_FD_ms2.msalign", fstream::out);
+          topfdOut_MS1.open(outfilePath + outfileName + "_FD_ms1.msalign", fstream::out);
+          topfdOut_MS2.open(outfilePath + outfileName + "_FD_ms2.msalign", fstream::out);
         }
       }
 
@@ -516,18 +529,24 @@ protected:
       auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
       MSExperiment exp;
+
+
+      //SpectrumLookup sl;
+      //sl.readSpectra(map);
+
       auto fd = FLASHDeconvAlgorithm(avgine, param);
       for (auto it = map.begin(); it != map.end(); ++it)
       {
-        ++scanNumber;
-
+        scanNumber = SpectrumLookup::extractScanNumber(it->getNativeID(),
+                                                       map.getSourceFiles()[0].getNativeIDTypeAccession());
+        //std::cout<<scanNumber<< " " << map.getSourceFiles()[0].getNativeIDTypeAccession()<<std::endl;
         if (it->empty())
         {
           continue;
         }
 
         auto msLevel = it->getMSLevel();
-//        if(msLevel ==2 && scanNumber != 171) continue; // TODO
+        //        if(msLevel ==2 && scanNumber != 171) continue; // TODO
 
         if (msLevel > param.currentMaxMSLevel)
         {
@@ -579,7 +598,7 @@ protected:
 
         if (param.topfdOut)
         {
-          deconvolutedSpectrum.writeTopFD(topfdOut, specIndex - 1);
+          deconvolutedSpectrum.writeTopFD(msLevel == 1 ? topfdOut_MS1 : topfdOut_MS2, specIndex - 1);
         }
 
         deconvolutedSpectrum.clearPeakGroupsChargeInfo();
@@ -655,7 +674,8 @@ protected:
 
         if (param.topfdOut)
         {
-          topfdOut.close();
+          topfdOut_MS1.close();
+          topfdOut_MS2.close();
         }
 
         //fsm.close();
@@ -799,7 +819,8 @@ protected:
 
       if (param.topfdOut)
       {
-        topfdOut.close();
+        topfdOut_MS1.close();
+        topfdOut_MS2.close();
       }
     }
     return EXECUTION_OK;
