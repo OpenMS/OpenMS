@@ -160,55 +160,50 @@ namespace OpenMS
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
-        if (sqlite3_column_type(stmt, pos) == SQLITE_FLOAT)
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = sqlite3_column_double(stmt, pos);
           return true;
         }
-        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "temp");
         return false;
       }
 
       template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
-        if (sqlite3_column_type(stmt, pos) == SQLITE_INTEGER)
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = sqlite3_column_int(stmt, pos);
           return true;
         }
-        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "temp");
         return false;
       }
       template <> bool extractValue<Int64>(Int64* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
-        if (sqlite3_column_type(stmt, pos) == SQLITE_INTEGER)
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = sqlite3_column_int64(stmt, pos);
           return true;
         }
-        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "temp");
         return false;
       }
 
       template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
-        if (sqlite3_column_type(stmt, pos) == SQLITE_TEXT)
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
           return true;
         }
-        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "temp");
         return false;
       }
 
       template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
-        if (sqlite3_column_type(stmt, pos) == SQLITE_TEXT)
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
           *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
           return true;
         }
-        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "temp");
 
         return false;
       }

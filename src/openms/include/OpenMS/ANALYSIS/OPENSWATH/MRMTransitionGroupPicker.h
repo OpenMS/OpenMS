@@ -113,6 +113,7 @@ public:
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
+      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       std::vector<MSChromatogram > picked_chroms;
       std::vector<MSChromatogram > smoothed_chroms;
@@ -225,6 +226,7 @@ public:
                                 const int peak_idx)
     {
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
+      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
