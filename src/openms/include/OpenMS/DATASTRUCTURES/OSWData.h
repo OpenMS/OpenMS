@@ -330,16 +330,14 @@ namespace OpenMS
         void clearProteins();
 
       protected:
-
         /// All transition references are checked against transitions_ to make sure
         /// they are valid.
         /// @throws Exception::Precondition() if transition IDs within protein are unknown
         void checkTransitions_(const OSWProtein& prot) const;
 
       private:
-
-      std::map<UInt32, OSWTransition> transitions_;
-      std::vector<OSWProtein> proteins_;
+        std::map<UInt32, OSWTransition> transitions_;
+        std::vector<OSWProtein> proteins_;
     };
     
 

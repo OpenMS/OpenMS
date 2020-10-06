@@ -271,7 +271,7 @@ namespace OpenMS
       conn.executeStatement("END TRANSACTION");
     }
 
-    inline OSWFile::OSWFile(const String& filename)
+    OSWFile::OSWFile(const String& filename)
       : filename_(filename),
       conn_(filename)
     {
@@ -315,7 +315,7 @@ namespace OpenMS
     @throws Exception::InvalidValue if the ID is unknown
     */
 
-    inline void OSWFile::readProtein(OSWData& swath_result, const Size index)
+    void OSWFile::readProtein(OSWData& swath_result, const Size index)
     {
       if (!swath_result.getProteins()[index].getPeptidePrecursors().empty())
       { // already populated
@@ -399,7 +399,7 @@ namespace OpenMS
       }
 
       // ... FEATURE
-      Int64 feat_id; // in SQL, feature_id is a 63-bit integer... parsing it would be expensive. So we just use the string.
+      Int64 feat_id; // in SQL, feature_id is a 63-bit integer...
       float rt_exp;
       float rt_lw;
       float rt_rw;
@@ -423,7 +423,6 @@ namespace OpenMS
         rt_delta = new_line.rt_delta;
         qvalue = new_line.qvalue;
       }
-
     };
 
     void initLine(LineState& current, sqlite3_stmt* stmt)
