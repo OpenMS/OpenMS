@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <map>
 #include <vector>
@@ -42,7 +43,7 @@
 namespace OpenMS
 {
     /// high-level meta data of a transition
-    struct OSWTransition
+    struct OPENMS_DLLAPI OSWTransition
     {
       public:
         /// default c'tor
@@ -93,7 +94,7 @@ namespace OpenMS
       A peak group (also called feature) is defined on a small RT range (leftWidth to rightWidth) in a group of extracted transitions (chromatograms).
       The same transitions can be used to defined multiple (usually non-overlapping in RT) peak groups, of which usually only one is correct (lowest q-value).
     */
-    class OSWPeakGroup 
+    class OPENMS_DLLAPI OSWPeakGroup
     {
       public:
         /// return value of getQValue() if .osw file did not undergo pyProphet
@@ -108,6 +109,9 @@ namespace OpenMS
         /// Copy c'tor
         OSWPeakGroup(const OSWPeakGroup& rhs) = default;
         
+        /// copy assignment
+        OSWPeakGroup& operator=(const OSWPeakGroup& rhs) = default;
+
         /// move c'tor
         OSWPeakGroup(OSWPeakGroup&& rhs) = default;
         
@@ -162,7 +166,7 @@ namespace OpenMS
       The OSWPeptidePrecursor contains multiple candidate features (peak groups) of type OSWPeakGroup, only one of which is usually true.
 
     */
-    class OSWPeptidePrecursor
+    class OPENMS_DLLAPI OSWPeptidePrecursor
     {
       public:
         /// just a dummy feature to allow for acceptor output values etc
@@ -171,6 +175,8 @@ namespace OpenMS
         OSWPeptidePrecursor(const String& seq, const short charge, const bool decoy, const float precursor_mz, std::vector<OSWPeakGroup>&& features);
         /// Copy c'tor
         OSWPeptidePrecursor(const OSWPeptidePrecursor& rhs) = default;
+        /// assignment operator
+        OSWPeptidePrecursor& operator=(const OSWPeptidePrecursor& rhs) = default;
         /// move c'tor
         OSWPeptidePrecursor(OSWPeptidePrecursor&& rhs) = default;
         /// move assignment operator
@@ -214,15 +220,17 @@ namespace OpenMS
       @brief A Protein is the highest entity and contains one or more peptides which were found/traced.
 
     */
-    class OSWProtein
+    class OPENMS_DLLAPI OSWProtein
     {
       public:
         /// just a dummy feature to allow for acceptor output values etc
         OSWProtein() = default;
         /// custom c'tor which fills all the members with data; all members are read-only
-        OSWProtein(const String& accession, std::vector<OSWPeptidePrecursor>&& peptides);
+        OSWProtein(const String& accession, const Size id, std::vector<OSWPeptidePrecursor>&& peptides);
         /// Copy c'tor
         OSWProtein(const OSWProtein& rhs) = default;
+        /// assignment operator
+        OSWProtein& operator=(const OSWProtein& rhs) = default;
         /// move c'tor
         OSWProtein(OSWProtein&& rhs) = default;
         /// move assignment operator
@@ -233,6 +241,11 @@ namespace OpenMS
           return accession_;
         }
 
+        Size getID() const
+        {
+          return id_;
+        }
+
         const std::vector<OSWPeptidePrecursor>& getPeptidePrecursors() const
         {
           return peptides_;
@@ -240,6 +253,7 @@ namespace OpenMS
 
       private:
         String accession_;
+        Size id_;
         std::vector<OSWPeptidePrecursor> peptides_;
     };
 
@@ -251,7 +265,7 @@ namespace OpenMS
       References will be checked and enforced (exception otherwise -- see addProtein()).
 
     */
-    class OSWData
+    class OPENMS_DLLAPI OSWData
     {
       public:
 
@@ -262,15 +276,37 @@ namespace OpenMS
         }
 
         /// Adds a protein, which has all its subcomponents already populated
-        /// The transitions references internally are checked to make sure
-        /// they are valid. 
-        /// @throws Exception::Precondition() if transition IDs are unknown
+        /// All transition references internally are checked to make sure
+        /// they are valid.
+        /// You can add stub proteins, by omitting their peptide references.
+        /// @throws Exception::Precondition() if transition IDs within protein are unknown
         void addProtein(OSWProtein&& prot);
 
+        /// constant accessor to proteins.
+        /// There is no mutable access to prevent accidental violation of invariants (i.e. no matching transitions)
         const std::vector<OSWProtein>& getProteins() const
         {
           return proteins_;
         }
+
+        /// Replace existing protein at position @index
+        /// Note: this is NOT the protein ID, but the index into the internal protein vector. See getProteins()
+        /// 
+        /// @p index must be a valid index into the getProteins() vector
+        /// @p protein The protein to replace the existing one
+        /// @throws Exception::Precondition() if transition IDs within protein are unknown
+        void setProtein(const Size index, OSWProtein&& protein)
+        {
+          checkTransitions_(protein);
+          proteins_[index] = std::move(protein);
+        }
+
+        void popLast(OSWProtein& prot)
+        {
+          prot = std::move(proteins_.back());
+          proteins_.pop_back();
+        }
+
 
         Size transitionCount() const
         {
@@ -289,6 +325,16 @@ namespace OpenMS
 
         /// forget all data
         void clear();
+
+        /// only forget protein data
+        void clearProteins();
+
+      protected:
+
+        /// All transition references are checked against transitions_ to make sure
+        /// they are valid.
+        /// @throws Exception::Precondition() if transition IDs within protein are unknown
+        void checkTransitions_(const OSWProtein& prot) const;
 
       private:
 

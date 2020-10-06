@@ -595,7 +595,7 @@ public:
       public BaseException
     {
 public:
-      SqlOperationFailed(const char* file, int line, const char* function, const std::string& desciption)  noexcept;
+      SqlOperationFailed(const char* file, int line, const char* function, const std::string& description)  noexcept;
     };
 
     /**

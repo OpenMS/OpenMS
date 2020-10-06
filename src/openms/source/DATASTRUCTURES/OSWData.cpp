@@ -41,6 +41,23 @@ namespace OpenMS
   void OpenMS::OSWData::addProtein(OSWProtein&& prot)
   {
     // check if transitions are known
+    checkTransitions_(prot);
+    proteins_.push_back(std::move(prot));
+  }
+
+  void OSWData::clear()
+  {
+    transitions_.clear();
+    proteins_.clear();
+  }
+
+  void OSWData::clearProteins()
+  {
+    proteins_.clear();
+  }
+
+  void OSWData::checkTransitions_(const OSWProtein& prot) const
+  {
     for (const auto& pc : prot.getPeptidePrecursors())
     {
       for (const auto& f : pc.getFeatures())
@@ -54,17 +71,11 @@ namespace OpenMS
         }
       }
     }
-    proteins_.push_back(std::move(prot));
   }
 
-  void OSWData::clear()
-  {
-    transitions_.clear();
-    proteins_.clear();
-  }
-
-  OSWProtein::OSWProtein(const String& accession, std::vector<OSWPeptidePrecursor>&& peptides)
+  OSWProtein::OSWProtein(const String& accession, const Size id, std::vector<OSWPeptidePrecursor>&& peptides)
     : accession_(accession),
+    id_(id),
     peptides_(std::move(peptides))
   {}
 

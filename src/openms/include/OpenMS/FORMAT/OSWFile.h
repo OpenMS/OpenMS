@@ -64,8 +64,36 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI OSWFile
   {
-public:
-  
+  public:
+    
+    /// query all proteins, not just one with a particular ID
+    static constexpr Size ALL_PROTEINS = -1;
+
+    OSWFile(const String& filename);
+    OSWFile(const OSWFile& rhs) = default;
+    OSWFile& operator=(const OSWFile& rhs) = default;
+
+    /// read data from an SQLLite OSW file into @p swath_result
+    /// Depending on the number of proteins, this could take a while. If you want a faster
+    /// method, use readMinimal().
+    void read(OSWData& swath_result);
+
+    /// reads in transitions and a list of protein names/IDs
+    /// but no peptide/feature/transition mapping data (which could be very expensive)
+    /// Use in conjunction with on-demand readProtein() to query proteins as needed
+    void readMinimal(OSWData& swath_result);
+
+    /**
+      @brief populates a protein at index @p index with Peptides, unless the protein already has peptides
+
+      Internally uses the proteins ID to search for cross referencing peptides and transitions in the OSW file.
+      @throws Exception::InvalidValue if the ID is not present in the OSW file
+    */
+    void readProtein(OSWData& swath_result, const Size index);
+
+    
+
+    /// for Percolator data read/write operations
     enum class OSWLevel
     {
       MS1,
@@ -99,9 +127,26 @@ public:
     */
     static void writeFromPercolator(const std::string& in_osw, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
 
-    /// read data from an SQLLite OSW file @p filename into @p swath_result
-    static void read(const String& filename, OSWData& swath_result);
+  protected:
+    /** populate transitions of @p swath_result
+    
+      Clears swath_result entirely (incl. proteins) before adding transitions.
+    */
+    void readTransitions_(OSWData& swath_result);
 
+    /**
+      @brief fill one (@p prot_id) or all proteins into @p swath_result
+
+      @param[out] swath_result Output data. Proteins are cleared before if ALL_PROTEINS is used.
+      @param prot_index Using ALL_PROTEINS queries all proteins (could take some time)
+
+    */
+    void getFullProteins_(OSWData& swath_result, Size prot_index = ALL_PROTEINS);
+
+  private:
+    String filename_;       ///< sql file to open/write to
+    SqliteConnector conn_;  ///< SQL connection. Stays open as long as this object lives
+    bool has_SCOREMS2_;     ///< database contains pyProphet's score_MS2 table with qvalues
   };
 
 } // namespace OpenMS

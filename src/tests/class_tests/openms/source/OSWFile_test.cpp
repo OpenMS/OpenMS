@@ -44,10 +44,6 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(OSWFile, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 /*
 Creating an OWS test database from pyProphet osw-db files (which provided the SCORE_MS2 table, which is missing in OpenSwathWorkflow outputs)
@@ -112,20 +108,8 @@ INNER JOIN (SELECT PEPTIDE_ID as PID, PROTEIN_ID as POD FROM PEPTIDE_PROTEIN_MAP
 
 */
 
-START_SECTION(static void read(const std::string& filename, OSWData& swath_result))
-	
-	OSWData res;
-	/*StopWatch s;
-	s.start();
-	OSWFile::read("c:\\Users\\bielow\\SwathWizardOut\\olgas_K121026_001_SW_Wayne_R1_d00_copy.osw", res);
-	std::cout << s.toString() <<std::endl;
-	exit(1);
-	*/
-
-	OSWFile::read(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"), res); 
-	TEST_EQUAL(res.getProteins().size(), 2);
-	TEST_EQUAL(res.transitionCount(), 140);
-
+void checkData(OSWData& res)
+{
 	const OSWProtein& prot = *res.getProteins().begin();
 	TEST_EQUAL(prot.getAccession(), "1/P00167ups|CYB5_HUMAN_UPS");
 	const OSWPeptidePrecursor& prec = *prot.getPeptidePrecursors().begin();
@@ -134,13 +118,13 @@ START_SECTION(static void read(const std::string& filename, OSWData& swath_resul
 	TEST_REAL_SIMILAR(prec.getPCMz(), 1103.4676);
 	TEST_EQUAL(prec.getSequence(), "EQAGGDATENFEDVGHSTDAR");
 	TEST_EQUAL(prec.getFeatures().size(), 5);
-	const std::vector<UInt32> tr{ 236830, 236831, 236832, 236833, 236834};
+	const std::vector<UInt32> tr{ 236830, 236831, 236832, 236833, 236834 };
 	const auto& trd = prec.getFeatures().back().getTransitionIDs();
 	TEST_EQUAL(trd == tr, true);
 	// check last transition
 	const OSWProtein& prot_last = res.getProteins().back();
 	TEST_EQUAL(prot_last.getPeptidePrecursors().back().getFeatures().back().getTransitionIDs().back(), 99);
-	
+
 	// all features should have 5 transitions
 	for (const auto& prot : res.getProteins())
 	{
@@ -152,8 +136,44 @@ START_SECTION(static void read(const std::string& filename, OSWData& swath_resul
 			}
 		}
 	}
-			
+}
+
+START_TEST(OSWFile, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+START_SECTION(void read(OSWData& swath_result))
+	
+	OSWData res;
+	OSWFile oswf(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"));
+	oswf.read(res);
+	TEST_EQUAL(res.getProteins().size(), 2);
+	TEST_EQUAL(res.transitionCount(), 140);
+	checkData(res);
 END_SECTION			
+
+
+START_SECTION(void readMinimal(OSWData & swath_result))
+
+	OSWData res;
+	OSWFile oswf(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"));
+	oswf.readMinimal(res);
+	TEST_EQUAL(res.getProteins().size(), 2);
+	TEST_EQUAL(res.transitionCount(), 140);
+
+	// make sure proteins are actually empty
+	TEST_EQUAL(res.getProteins()[0].getPeptidePrecursors().empty(), true);
+	TEST_EQUAL(res.getProteins()[1].getPeptidePrecursors().empty(), true);
+
+	// now fill them...
+
+	for (Size i = 0; i < res.getProteins().size(); ++i)
+	{
+		oswf.readProtein(res, i);
+	}
+	checkData(res);
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
