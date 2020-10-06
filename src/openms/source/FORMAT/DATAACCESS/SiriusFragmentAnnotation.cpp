@@ -58,34 +58,41 @@ namespace OpenMS
                                                                        use_exact_mass);
 
       SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
-                                                                      annotated_decoy);
+                                                                    annotated_decoy);
 
-      // resolve multiple use of the same concatenated nativeids (used for multiple features/identifications)
-      map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
-      it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
-      if (it != native_ids_annotated_spectra.end())
+      if (annotated_spectrum.empty())
       {
-        if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
+        continue;
+      }
+      else
+      {
+        // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
+        map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
+        it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
+        if (it != native_ids_annotated_spectra.end())
+        {
+          if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
+          {
+            SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
+            native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else
         {
           SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
           native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
         }
-        else
-        {
-          continue;
-        }
-      }
-      else
-      {
-        SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
-        native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
       }
     }
 
     // convert to vector
-    for( const auto& it : native_ids_annotated_spectra)
+    for(auto it : native_ids_annotated_spectra)
     {
-      annotated_spectra.push_back(it.second);
+      annotated_spectra.emplace_back(std::move(it.second));
     }
 
     return annotated_spectra;

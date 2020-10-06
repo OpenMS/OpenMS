@@ -178,7 +178,7 @@ namespace OpenMS
 
           /**
           @brief extractAnnotationFromDecoyFile
-          Extract decoy annotation from SIRIUS/PASSATUTTO  (./decoy/1_sumformula.tsv).
+          Extract decoy annotation from SIRIUS/PASSATUTTO  (./decoys/1_sumformula.tsv).
 
           @return annotated decoy MSSpectrum (mz, rel. int, fragment explanation, ionization).
 

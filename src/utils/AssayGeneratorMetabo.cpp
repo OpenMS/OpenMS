@@ -447,7 +447,7 @@ protected:
 
                 // sort vector path list
         std::vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::move(subdirs));
-  
+
         // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
         // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
         vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sorted_subdirs, use_exact_mass);
@@ -655,7 +655,7 @@ protected:
     }
     else if (extension == "pqp")
     {
-      //validate 
+      //validate
       OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
       // write pqp
       TransitionPQPFile pqp_out;
