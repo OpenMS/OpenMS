@@ -21,7 +21,7 @@
 295.120851794460 581.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2167 experiment=5
-##mid sample=1 period=1 cycle=2167 experiment=5_0
+##mid UNKNOWN_sample=1 period=1 cycle=2167 experiment=5_0
 ##scan 6
 ##specref ms_run[1]:sample=1 period=1 cycle=2167 experiment=5
 292.120347921437 2157.000000000000
@@ -67,7 +67,7 @@
 296.814412450300 484.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2175 experiment=4
-##mid sample=1 period=1 cycle=2175 experiment=4_0
+##mid UNKNOWN_sample=1 period=1 cycle=2175 experiment=4_0
 ##scan 18
 ##specref ms_run[1]:sample=1 period=1 cycle=2175 experiment=4
 291.217137556058 714.000000000000
@@ -120,7 +120,7 @@
 296.691543393358 583.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2176 experiment=6
-##mid sample=1 period=1 cycle=2176 experiment=6_0
+##mid UNKNOWN_sample=1 period=1 cycle=2176 experiment=6_0
 ##scan 20
 ##specref ms_run[1]:sample=1 period=1 cycle=2176 experiment=6
 291.222353601227 923.000000000000
@@ -148,7 +148,7 @@
 294.117460558153 780.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2165 experiment=4
-##mid sample=1 period=1 cycle=2165 experiment=4_0
+##mid UNKNOWN_sample=1 period=1 cycle=2165 experiment=4_0
 ##scan 2
 ##specref ms_run[1]:sample=1 period=1 cycle=2165 experiment=4
 292.121314370419 294.000000000000
@@ -168,7 +168,7 @@
 294.116966544654 1439.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2166 experiment=6
-##mid sample=1 period=1 cycle=2166 experiment=6_0
+##mid UNKNOWN_sample=1 period=1 cycle=2166 experiment=6_0
 ##scan 4
 ##specref ms_run[1]:sample=1 period=1 cycle=2166 experiment=6
 292.121333456885 798.000000000000
@@ -191,7 +191,7 @@
 296.123099065922 1194.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2171 experiment=3
-##mid sample=1 period=1 cycle=2171 experiment=3_0
+##mid UNKNOWN_sample=1 period=1 cycle=2171 experiment=3_0
 ##scan 11
 ##specref ms_run[1]:sample=1 period=1 cycle=2171 experiment=3
 296.123852278497 84.000000000000
@@ -217,7 +217,7 @@
 296.123821549630 1828.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2172 experiment=4
-##mid sample=1 period=1 cycle=2172 experiment=4_0
+##mid UNKNOWN_sample=1 period=1 cycle=2172 experiment=4_0
 ##scan 13
 ##specref ms_run[1]:sample=1 period=1 cycle=2172 experiment=4
 296.124718247637 252.000000000000
@@ -249,7 +249,7 @@
 296.176985366327 631.191101074219
 >ms2peaks
 ##nid sample=1 period=1 cycle=2173 experiment=2
-##mid sample=1 period=1 cycle=2173 experiment=2_0
+##mid UNKNOWN_sample=1 period=1 cycle=2173 experiment=2_0
 ##scan 15
 ##specref ms_run[1]:sample=1 period=1 cycle=2173 experiment=2
 296.125886082126 602.945556640625
@@ -274,7 +274,7 @@
 295.187072485748 607.000000000000
 >ms2peaks
 ##nid sample=1 period=1 cycle=2199 experiment=3
-##mid sample=1 period=1 cycle=2199 experiment=3_0
+##mid UNKNOWN_sample=1 period=1 cycle=2199 experiment=3_0
 ##scan 43
 ##specref ms_run[1]:sample=1 period=1 cycle=2199 experiment=3
 295.083913845584 42.000000000000
@@ -303,7 +303,7 @@
 295.185958723798 337.209289550781
 >ms2peaks
 ##nid sample=1 period=1 cycle=2204 experiment=6
-##mid sample=1 period=1 cycle=2204 experiment=6_0
+##mid UNKNOWN_sample=1 period=1 cycle=2204 experiment=6_0
 ##scan 49
 ##specref ms_run[1]:sample=1 period=1 cycle=2204 experiment=6
 290.106948471714 84.000000000000

@@ -21,7 +21,7 @@
 388.504413701488 34441.722656250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5228
-##mid controllerType=0 controllerNumber=1 scan=5228_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5228_0
 ##scan 58
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5228
 388.483886718750 6671.827148437500
@@ -35,7 +35,7 @@
 389.066829056673 28064.935546875000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5270
-##mid controllerType=0 controllerNumber=1 scan=5270_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5270_0
 ##scan 72
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5270
 388.502746582031 9647.169921875000
@@ -52,7 +52,7 @@
 
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5064
-##mid controllerType=0 controllerNumber=1 scan=5064_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5064_0
 ##scan 0
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5064
 388.512359619141 2733.562744140625
@@ -73,7 +73,7 @@
 388.517387861963 36523.714843750000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5078
-##mid controllerType=0 controllerNumber=1 scan=5078_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5078_0
 ##scan 4
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5078
 388.529785156250 2096.352050781250
@@ -97,7 +97,7 @@
 389.064365953773 20154.470703125000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5102
-##mid controllerType=0 controllerNumber=1 scan=5102_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5102_0
 ##scan 9
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5102
 388.514862060547 5612.131347656250
@@ -121,7 +121,7 @@
 389.064365953773 20154.470703125000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5104
-##mid controllerType=0 controllerNumber=1 scan=5104_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5104_0
 ##scan 10
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5104
 388.515228271484 2812.135742187500
@@ -145,7 +145,7 @@
 389.064365953773 20154.470703125000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5106
-##mid controllerType=0 controllerNumber=1 scan=5106_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5106_0
 ##scan 11
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5106
 388.520111083984 3175.204345703125
@@ -170,7 +170,7 @@
 389.066049692285 57271.812500000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5112
-##mid controllerType=0 controllerNumber=1 scan=5112_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5112_0
 ##scan 13
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5112
 388.513275146484 2292.960449218750
@@ -194,7 +194,7 @@
 388.507729504849 40560.300781250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5120
-##mid controllerType=0 controllerNumber=1 scan=5120_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5120_0
 ##scan 16
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5120
 388.523376464844 2778.042236328125
@@ -218,7 +218,7 @@
 388.507729504849 40560.300781250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5123
-##mid controllerType=0 controllerNumber=1 scan=5123_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5123_0
 ##scan 17
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5123
 388.518035888672 3210.635986328125
@@ -242,7 +242,7 @@
 388.498647800657 37526.675781250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5134
-##mid controllerType=0 controllerNumber=1 scan=5134_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5134_0
 ##scan 20
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5134
 388.504425048828 4407.778320312500
@@ -266,7 +266,7 @@
 388.518866636505 32125.845703125000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5140
-##mid controllerType=0 controllerNumber=1 scan=5140_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5140_0
 ##scan 22
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5140
 388.515411376953 3203.265136718750
@@ -290,7 +290,7 @@
 388.518866636505 32125.845703125000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5142
-##mid controllerType=0 controllerNumber=1 scan=5142_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5142_0
 ##scan 23
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5142
 388.512573242188 2397.379638671875
@@ -315,7 +315,7 @@
 388.525476948355 26159.498046875000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5144
-##mid controllerType=0 controllerNumber=1 scan=5144_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5144_0
 ##scan 25
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5144
 388.506378173828 5946.649902343750
@@ -340,7 +340,7 @@
 388.525476948355 26159.498046875000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5146
-##mid controllerType=0 controllerNumber=1 scan=5146_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5146_0
 ##scan 26
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5146
 380.871215820312 2421.481445312500
@@ -366,7 +366,7 @@
 388.525476948355 26159.498046875000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5147
-##mid controllerType=0 controllerNumber=1 scan=5147_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5147_0
 ##scan 27
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5147
 388.516876220703 3832.713867187500
@@ -390,7 +390,7 @@
 388.517027978613 46458.316406250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5152
-##mid controllerType=0 controllerNumber=1 scan=5152_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5152_0
 ##scan 29
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5152
 388.510528564453 2463.083740234375
@@ -414,7 +414,7 @@
 388.517027978613 46458.316406250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5154
-##mid controllerType=0 controllerNumber=1 scan=5154_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5154_0
 ##scan 30
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5154
 388.521301269531 2193.841552734375
@@ -439,7 +439,7 @@
 388.522683096290 38953.957031250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5156
-##mid controllerType=0 controllerNumber=1 scan=5156_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5156_0
 ##scan 32
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5156
 388.532897949219 9376.273437500000
@@ -463,7 +463,7 @@
 388.516003260310 35410.140625000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5166
-##mid controllerType=0 controllerNumber=1 scan=5166_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5166_0
 ##scan 34
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5166
 388.504455566406 3209.396240234375
@@ -488,7 +488,7 @@
 388.511700055532 31325.679687500000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5170
-##mid controllerType=0 controllerNumber=1 scan=5170_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5170_0
 ##scan 36
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5170
 388.497467041016 2736.907470703125
@@ -511,7 +511,7 @@
 388.522672114824 65379.640625000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5175
-##mid controllerType=0 controllerNumber=1 scan=5175_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5175_0
 ##scan 38
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5175
 388.516937255859 3782.554199218750
@@ -534,7 +534,7 @@
 388.522672114824 65379.640625000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5176
-##mid controllerType=0 controllerNumber=1 scan=5176_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5176_0
 ##scan 39
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5176
 388.515869140625 5777.634765625000
@@ -558,7 +558,7 @@
 388.521522912627 35428.902343750000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5182
-##mid controllerType=0 controllerNumber=1 scan=5182_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5182_0
 ##scan 41
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5182
 388.512176513672 3941.473388671875
@@ -582,7 +582,7 @@
 388.522686419830 50129.687500000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5186
-##mid controllerType=0 controllerNumber=1 scan=5186_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5186_0
 ##scan 43
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5186
 388.530395507812 5454.081054687500
@@ -606,7 +606,7 @@
 388.522686419830 50129.687500000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5190
-##mid controllerType=0 controllerNumber=1 scan=5190_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5190_0
 ##scan 44
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5190
 383.351745605469 2312.426513671875
@@ -630,7 +630,7 @@
 388.520106837891 43687.179687500000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5200
-##mid controllerType=0 controllerNumber=1 scan=5200_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5200_0
 ##scan 47
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5200
 388.521636962891 2728.623535156250
@@ -655,7 +655,7 @@
 388.518509908271 70472.875000000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5204
-##mid controllerType=0 controllerNumber=1 scan=5204_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5204_0
 ##scan 49
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5204
 388.500518798828 2143.193603515625
@@ -679,7 +679,7 @@
 388.518509908271 70472.875000000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5205
-##mid controllerType=0 controllerNumber=1 scan=5205_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5205_0
 ##scan 50
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5205
 388.505645751953 3585.830322265625
@@ -703,7 +703,7 @@
 388.518509908271 70472.875000000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5208
-##mid controllerType=0 controllerNumber=1 scan=5208_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5208_0
 ##scan 51
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5208
 388.531311035156 2233.527832031250
@@ -726,7 +726,7 @@
 388.521644834028 63814.535156250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5211
-##mid controllerType=0 controllerNumber=1 scan=5211_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5211_0
 ##scan 53
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5211
 388.489410400391 6644.488769531250
@@ -750,7 +750,7 @@
 388.521644834028 63814.535156250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5213
-##mid controllerType=0 controllerNumber=1 scan=5213_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5213_0
 ##scan 54
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5213
 384.934570312500 3770.946289062500
@@ -775,7 +775,7 @@
 388.511692163829 24463.740234375000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5246
-##mid controllerType=0 controllerNumber=1 scan=5246_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5246_0
 ##scan 62
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5246
 388.524780273438 2684.740966796875
@@ -799,7 +799,7 @@
 388.511692163829 24463.740234375000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5247
-##mid controllerType=0 controllerNumber=1 scan=5247_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5247_0
 ##scan 63
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5247
 388.519042968750 3144.522216796875
@@ -823,7 +823,7 @@
 388.511692163829 24463.740234375000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5249
-##mid controllerType=0 controllerNumber=1 scan=5249_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5249_0
 ##scan 64
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5249
 388.518890380859 2521.047851562500
@@ -847,7 +847,7 @@
 388.507058528323 32102.144531250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5256
-##mid controllerType=0 controllerNumber=1 scan=5256_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5256_0
 ##scan 66
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5256
 388.496612548828 2901.192382812500
@@ -871,7 +871,7 @@
 388.496732298011 22250.017578125000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5262
-##mid controllerType=0 controllerNumber=1 scan=5262_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5262_0
 ##scan 68
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5262
 388.503448486328 2561.519042968750
@@ -896,7 +896,7 @@
 388.515875298343 24380.142578125000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5266
-##mid controllerType=0 controllerNumber=1 scan=5266_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5266_0
 ##scan 70
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5266
 388.511413574219 3232.858154296875
@@ -921,7 +921,7 @@
 389.066829056673 28064.935546875000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5271
-##mid controllerType=0 controllerNumber=1 scan=5271_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5271_0
 ##scan 73
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5271
 388.510711669922 2436.738769531250
@@ -946,7 +946,7 @@
 389.066829056673 28064.935546875000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5272
-##mid controllerType=0 controllerNumber=1 scan=5272_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5272_0
 ##scan 74
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5272
 388.504974365234 2716.641601562500
@@ -971,7 +971,7 @@
 389.066829056673 28064.935546875000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5274
-##mid controllerType=0 controllerNumber=1 scan=5274_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5274_0
 ##scan 75
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5274
 388.500640869141 2533.258300781250
@@ -995,7 +995,7 @@
 388.504886747224 31218.916015625000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5277
-##mid controllerType=0 controllerNumber=1 scan=5277_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5277_0
 ##scan 77
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5277
 388.505798339844 3076.616943359375
@@ -1020,7 +1020,7 @@
 389.066643590529 24542.886718750000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5295
-##mid controllerType=0 controllerNumber=1 scan=5295_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5295_0
 ##scan 81
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5295
 388.527282714844 2542.034667968750
@@ -1042,7 +1042,7 @@
 388.063240795613 201712.437500000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5303
-##mid controllerType=0 controllerNumber=1 scan=5303_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5303_0
 ##scan 83
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5303
 388.522491455078 3164.252685546875
@@ -1065,7 +1065,7 @@
 388.519917121081 57937.144531250000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5309
-##mid controllerType=0 controllerNumber=1 scan=5309_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5309_0
 ##scan 85
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5309
 388.489990234375 2685.556884765625
@@ -1089,7 +1089,7 @@
 388.517222724446 28668.593750000000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5316
-##mid controllerType=0 controllerNumber=1 scan=5316_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5316_0
 ##scan 87
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5316
 388.520904541016 4145.904296875000
@@ -1112,7 +1112,7 @@
 389.065343772049 27347.304687500000
 >ms2peaks
 ##nid controllerType=0 controllerNumber=1 scan=5320
-##mid controllerType=0 controllerNumber=1 scan=5320_0
+##mid UNKNOWN_controllerType=0 controllerNumber=1 scan=5320_0
 ##scan 89
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5320
 388.528137207031 2444.213867187500
