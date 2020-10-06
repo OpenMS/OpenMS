@@ -301,6 +301,7 @@ namespace OpenMS
     connect(dm_precursors_2d_, &QAction::toggled, this, &TOPPViewBase::changeLayerFlag);
 
     projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections", this, &TOPPViewBase::toggleProjections);
+    projections_2d_->setCheckable(true);
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
     projections_2d_->setShortcut(Qt::Key_2);
 
@@ -1891,7 +1892,7 @@ namespace OpenMS
   {
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorAMS annotator;
-    assert(log != nullptr);
+    assert(log_ != nullptr);
     if (!annotator.annotate(layer, *log_, current_path_))
     {
       return;
@@ -1903,7 +1904,7 @@ namespace OpenMS
   { // this should only be callable if current layer's type is one of PEAK, FEATURE, CONSENSUS
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorPeptideID annotator;
-    assert(log != nullptr);
+    assert(log_ != nullptr);
     if (!annotator.annotate(layer, *log_, current_path_))
     {
       return;

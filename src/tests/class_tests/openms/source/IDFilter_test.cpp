@@ -971,6 +971,33 @@ START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<Pea
 }
 END_SECTION
 
+START_SECTION((static void keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n)))
+{
+  vector<ProteinIdentification> proteins;
+  vector<PeptideIdentification> peptides;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test5.idXML"),
+                   proteins, peptides);
+
+  cout << peptides[0].getHits()[0].getSequence().toString() << endl;
+  cout << peptides[1].getHits()[0].getSequence().toString() << endl;
+
+  IDFilter::keepNBestSpectra(peptides, 2); // keep best two spectra (those with best hits)
+
+  TEST_EQUAL(peptides.size(), 2);
+
+  vector<PeptideHit> peptide_hits = peptides[0].getHits();
+  TEST_EQUAL(peptide_hits.size(), 2);
+
+  peptide_hits = peptides[1].getHits();
+  TEST_EQUAL(peptide_hits.size(), 2);
+
+  cout << peptides[0].getHits()[0].getSequence().toString() << endl;
+  cout << peptides[1].getHits()[0].getSequence().toString() << endl;
+  TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), 1000);
+  TEST_REAL_SIMILAR(peptides[1].getHits()[0].getScore(), 40);
+}
+END_SECTION
+
 START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExperiment<PeakT>& experiment, const vector<FASTAFile::FASTAEntry>& proteins)))
 {
   PeakMap experiment;
@@ -1013,4 +1040,3 @@ END_SECTION
 END_TEST
 
 #pragma clang diagnostic pop
-

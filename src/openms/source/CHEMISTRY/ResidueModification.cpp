@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -804,7 +805,7 @@ namespace OpenMS
   }
   String ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
   {
-    return String(diff_mono_mass < 0.0 ? "-" : "+") += std::abs(diff_mono_mass);
+    return String(diff_mono_mass < 0.0 ? "-" : "+") += std::fabs(diff_mono_mass);
   }
   String ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
   {

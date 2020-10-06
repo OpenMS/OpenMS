@@ -421,7 +421,7 @@ protected:
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
-        // get Sirius FragmentAnnotion from subdirs
+        // get Sirius FragmentAnnotation from subdirs
         vector<MSSpectrum> annotated_spectra;
         for (const auto& subdir : subdirs)
         {
