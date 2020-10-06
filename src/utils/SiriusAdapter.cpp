@@ -240,13 +240,13 @@ protected:
     //-------------------------------------------------------------
 
     // sort vector path list
-    vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::move(subdirs));
+    SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
 
     // convert sirius_output to mztab and store file
     int candidates = sirius_algo.getCandidates();
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(sorted_subdirs, in, candidates, sirius_result);
+    SiriusMzTabWriter::read(subdirs, in, candidates, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
     // convert sirius_output to mztab and store file
@@ -255,7 +255,7 @@ protected:
       int top_n_hits = sirius_algo.getTopNHits();
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(sorted_subdirs, in, top_n_hits, csi_result);
+      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
       csifile.store(out_csifingerid, csi_result);
     }
 

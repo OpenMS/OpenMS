@@ -37,6 +37,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                                  String executable,
                                                  String out_csifingerid,
                                                  SiriusAdapterAlgorithm sirius_algo) nogil except +
+                                        
+        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[String]& subdirs)
         
         # rvalue references (std::move) are not yet supported by autowrap
         # libcpp_vector[String] sortSiriusWorkspacePathsByScanIndex(libcpp_vector[String]&& subdirs) nogil except +

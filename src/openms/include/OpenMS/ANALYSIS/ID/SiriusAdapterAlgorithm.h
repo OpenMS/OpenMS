@@ -79,7 +79,7 @@ namespace OpenMS
       @return Vector of sorted sirius workspace paths based on the scan_index
 
       */
-      static std::vector<String> sortSiriusWorkspacePathsByScanIndex(std::vector<String>&& subdirs);
+      static void sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs);
 
       /**
       @brief Preprocessing needed for SIRIUS
