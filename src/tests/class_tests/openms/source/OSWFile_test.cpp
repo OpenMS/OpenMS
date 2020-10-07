@@ -39,8 +39,6 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 ///////////////////////////
 
-#include <OpenMS/SYSTEM/StopWatch.h>
-
 using namespace OpenMS;
 using namespace std;
 

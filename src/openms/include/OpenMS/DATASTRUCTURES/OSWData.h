@@ -292,8 +292,8 @@ namespace OpenMS
         /// Replace existing protein at position @index
         /// Note: this is NOT the protein ID, but the index into the internal protein vector. See getProteins()
         /// 
-        /// @p index must be a valid index into the getProteins() vector
-        /// @p protein The protein to replace the existing one
+        /// @param index A valid index into the getProteins() vector
+        /// @param protein The protein to replace the existing one
         /// @throws Exception::Precondition() if transition IDs within protein are unknown
         void setProtein(const Size index, OSWProtein&& protein)
         {
@@ -301,23 +301,19 @@ namespace OpenMS
           proteins_[index] = std::move(protein);
         }
 
-        void popLast(OSWProtein& prot)
-        {
-          prot = std::move(proteins_.back());
-          proteins_.pop_back();
-        }
-
-
+        /// get the total number of transitions (chromatograms)
         Size transitionCount() const
         {
           return transitions_.size();
         }
 
+        /// obtain a certain transition meta information with @p id (this matches the ID of a chromatogram in an sqMass file).
         const OSWTransition& getTransition(const UInt32 id) const
         {
           return transitions_.at(id);
         }
         
+        /// get all transitions mapped by their ID (UInt32)
         const std::map<UInt32, OSWTransition>& getTransitions() const
         {
           return transitions_;

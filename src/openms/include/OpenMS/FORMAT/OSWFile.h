@@ -74,24 +74,26 @@ namespace OpenMS
     OSWFile& operator=(const OSWFile& rhs) = default;
 
     /// read data from an SQLLite OSW file into @p swath_result
-    /// Depending on the number of proteins, this could take a while. If you want a faster
-    /// method, use readMinimal().
+    /// Depending on the number of proteins, this could take a while. 
+    /// @note If you just want the proteins and transitions without peptides and features, use readMinimal().
     void read(OSWData& swath_result);
 
-    /// reads in transitions and a list of protein names/IDs
-    /// but no peptide/feature/transition mapping data (which could be very expensive)
-    /// Use in conjunction with on-demand readProtein() to query proteins as needed
+    /// Reads in transitions and a list of protein names/IDs
+    /// but no peptide/feature/transition mapping data (which could be very expensive).
+    /// Use in conjunction with on-demand readProtein() to fully populate proteins with peptide/feature data as needed.
+    /// @note If you read in all proteins afterwards in one go anyway, using the read() method will be faster (by about 30%)
     void readMinimal(OSWData& swath_result);
 
     /**
-      @brief populates a protein at index @p index with Peptides, unless the protein already has peptides
+      @brief populates a protein at index @p index  within @p swath_results with Peptides, unless the protein already has peptides
 
       Internally uses the proteins ID to search for cross referencing peptides and transitions in the OSW file.
-      @throws Exception::InvalidValue if the ID is not present in the OSW file
+
+      @param swath_result OSWData obtained from the readMinimal() method
+      @param index Index into swath_result.getProteins()[index]. Make sure the index is within the vector's size.
+      @throws Exception::InvalidValue if the protein at @p index does not have any peptides present in the OSW file
     */
     void readProtein(OSWData& swath_result, const Size index);
-
-    
 
     /// for Percolator data read/write operations
     enum class OSWLevel
