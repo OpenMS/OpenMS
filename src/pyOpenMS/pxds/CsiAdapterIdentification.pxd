@@ -1,6 +1,8 @@
 from Types cimport *
 from CsiAdapterHit cimport *
 from String cimport *
+from libcpp.vector cimport vector as libcpp_vector
+
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace "OpenMS::CsiFingerIdMzTabWriter":
     
@@ -10,5 +12,4 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
         int scan_index
         int scan_number
         String feature_id
-        libcpp_vector[ CsiAdapterHit ] hits
-
+        libcpp_vector[CsiAdapterHit] hits
