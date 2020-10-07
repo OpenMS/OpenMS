@@ -392,9 +392,8 @@ namespace OpenMS
       // count target and decoy as on entry - to ensure same numbering of targets and decoys
       for (size_t i = 0; i < 2; ++i)
       {
-
         MSSpectrum transition_spectrum;
-        if ( i == 0)
+        if (i == 0)
         {
           transition_spectrum = csp.target_decoy_spectra.target;
         }
@@ -456,7 +455,7 @@ namespace OpenMS
               if (explanation_array[spec_index] == sumformula)
               {
                 // save exact mass
-                if (use_exact_mass && !decoy) // only use for targets
+                if (use_exact_mass && decoy == 0) // only use for targets
                 {
                   exact_mass_precursor = spec_it->getMZ();
                 }
@@ -580,7 +579,7 @@ namespace OpenMS
             {
               rmt.setMetaValue("mids_id", csp.compound_info.mids_id);
             }
-            if (decoy)
+            if (decoy == 1)
             {
               rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
             }
