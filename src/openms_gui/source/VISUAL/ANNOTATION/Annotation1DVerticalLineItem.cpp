@@ -43,18 +43,18 @@ using namespace std;
 namespace OpenMS
 {
 
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const QString & text, const PointType & start_point, const PointType & end_point) :
-      Annotation1DItem(text),
-      start_point_(start_point),
-      end_point_(end_point)
+  //TODO: adding text item
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const PointType& position, const QColor& color, const QString & text) :
+      position_(position),
+      color_(color),
+      Annotation1DItem(text)
   {
   }
 
   Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem & rhs) :
       Annotation1DItem(rhs)
   {
-    start_point_ = rhs.getStartPoint();
-    end_point_ = rhs.getEndPoint();
+    position_ = rhs.getPosition();
   }
 
   Annotation1DVerticalLineItem::~Annotation1DVerticalLineItem()
@@ -65,81 +65,62 @@ namespace OpenMS
   {
     //translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
-    canvas->dataToWidget(start_point_.getX(), start_point_.getY(), start_p, flipped, true);
-    canvas->dataToWidget(end_point_.getX(), end_point_.getY(), end_p, flipped, true);
-
-    // compute bounding box on the specified painter
-    if (canvas->isMzToXAxis())
-    {
-      bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() + 4));     // +4 for lower half of arrow heads
-    }
-    else
-    {
-      bounding_box_ = QRectF(QPointF(start_p.x() - 4, start_p.y()), QPointF(end_p.x(), end_p.y()));
-    }
-
-    // find out how much additional space is needed for the text:
-    QRectF text_boundings = painter.boundingRect(QRectF(), Qt::AlignCenter, text_);
-    if (canvas->isMzToXAxis())
-    {
-      bounding_box_.setTop(bounding_box_.top() - text_boundings.height());
-    }
-    else
-    {
-      bounding_box_.setRight(bounding_box_.right() + text_boundings.width());
-    }
-    // if text doesn't fit between peaks, enlarge bounding box:
-    if (canvas->isMzToXAxis())
-    {
-      if (text_boundings.width() > bounding_box_.width())
-      {
-        float additional_space = (text_boundings.width() - bounding_box_.width()) / 2;
-        bounding_box_.setLeft(bounding_box_.left() - additional_space);
-        bounding_box_.setRight(bounding_box_.right() + additional_space);
-      }
-    }
-    else
-    {
-      if (text_boundings.height() > bounding_box_.height())
-      {
-        float additional_space = (text_boundings.height() - bounding_box_.height()) / 2;
-        bounding_box_.setTop(bounding_box_.top() - additional_space);
-        bounding_box_.setBottom(bounding_box_.bottom() + additional_space);
-      }
-    }
+    canvas->dataToWidget(position_.getX(), 0, start_p, flipped, true);
+    canvas->dataToWidget(position_.getX(), position_.getY(), end_p, flipped, true);
 
     // draw line
     painter.drawLine(start_p, end_p);
 
-    // draw ticks
-    if (!ticks_.empty())
-    {
-      for (vector<double>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
-      {
-        QPoint tick;
-        canvas->dataToWidget(*it, start_point_.getY(), tick, flipped, true);
-        painter.drawLine(tick.x(), tick.y() - 4, tick.x(), tick.y() + 4);
-      }
-    }
+//    // compute bounding box on the specified painter
+//    if (canvas->isMzToXAxis())
+//    {
+//      bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() + 4));     // +4 for lower half of arrow heads
+//    }
+//    else
+//    {
+//      bounding_box_ = QRectF(QPointF(start_p.x() - 4, start_p.y()), QPointF(end_p.x(), end_p.y()));
+//    }
+//
+//    // find out how much additional space is needed for the text:
+//    QRectF text_boundings = painter.boundingRect(QRectF(), Qt::AlignCenter, text_);
+//    if (canvas->isMzToXAxis())
+//    {
+//      bounding_box_.setTop(bounding_box_.top() - text_boundings.height());
+//    }
+//    else
+//    {
+//      bounding_box_.setRight(bounding_box_.right() + text_boundings.width());
+//    }
+//    // if text doesn't fit between peaks, enlarge bounding box:
+//    if (canvas->isMzToXAxis())
+//    {
+//      if (text_boundings.width() > bounding_box_.width())
+//      {
+//        float additional_space = (text_boundings.width() - bounding_box_.width()) / 2;
+//        bounding_box_.setLeft(bounding_box_.left() - additional_space);
+//        bounding_box_.setRight(bounding_box_.right() + additional_space);
+//      }
+//    }
+//    else
+//    {
+//      if (text_boundings.height() > bounding_box_.height())
+//      {
+//        float additional_space = (text_boundings.height() - bounding_box_.height()) / 2;
+//        bounding_box_.setTop(bounding_box_.top() - additional_space);
+//        bounding_box_.setBottom(bounding_box_.bottom() + additional_space);
+//      }
+//    }
 
-    // draw arrow heads and the ends if they won't overlap
-    if ((start_p - end_p).manhattanLength() > 10)
-    {
-      if (canvas->isMzToXAxis())
-      {
-        painter.drawLine(start_p, QPoint(start_p.x() + 5, start_p.y() - 4));
-        painter.drawLine(start_p, QPoint(start_p.x() + 5, start_p.y() + 4));
-        painter.drawLine(end_p, QPoint(end_p.x() - 5, end_p.y() - 4));
-        painter.drawLine(end_p, QPoint(end_p.x() - 5, end_p.y() + 4));
-      }
-      else
-      {
-        painter.drawLine(start_p, QPoint(start_p.x() + 4, start_p.y() - 5));
-        painter.drawLine(start_p, QPoint(start_p.x() - 4, start_p.y() - 5));
-        painter.drawLine(end_p, QPoint(end_p.x() + 4, end_p.y() + 5));
-        painter.drawLine(end_p, QPoint(end_p.x() - 4, end_p.y() + 5));
-      }
-    }
+    // draw ticks
+//    if (!ticks_.empty())
+//    {
+//      for (vector<double>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
+//      {
+//        QPoint tick;
+//        canvas->dataToWidget(*it, start_point_.getY(), tick, flipped, true);
+//        painter.drawLine(tick.x(), tick.y() - 4, tick.x(), tick.y() + 4);
+//      }
+//    }
 
     if (!canvas->isMzToXAxis())
     {
@@ -156,29 +137,18 @@ namespace OpenMS
 
   void Annotation1DVerticalLineItem::move(const PointType & delta)
   {
-    // shift vertical position according to y-component of delta
-    start_point_.setY(start_point_.getY() + delta.getY());
-    end_point_.setY(end_point_.getY() + delta.getY());
+    position_.setX(position_.getX() + delta.getX());
+    position_.setY(position_.getY() + delta.getY());
   }
 
-  void Annotation1DVerticalLineItem::setStartPoint(const PointType & p)
+  void Annotation1DVerticalLineItem::setPosition(const PointType & x)
   {
-    start_point_ = p;
+    position_ = x;
   }
 
-  void Annotation1DVerticalLineItem::setEndPoint(const PointType & p)
+  const Annotation1DVerticalLineItem::PointType & Annotation1DVerticalLineItem::getPosition() const
   {
-    end_point_ = p;
-  }
-
-  const Annotation1DVerticalLineItem::PointType & Annotation1DVerticalLineItem::getStartPoint() const
-  {
-    return start_point_;
-  }
-
-  const Annotation1DVerticalLineItem::PointType & Annotation1DVerticalLineItem::getEndPoint() const
-  {
-    return end_point_;
+    return position_;
   }
 
   void Annotation1DVerticalLineItem::setTicks(const std::vector<double> & ticks)

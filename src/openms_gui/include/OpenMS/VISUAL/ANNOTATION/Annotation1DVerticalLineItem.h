@@ -35,7 +35,10 @@
 #pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <vector>
+
+#include <QtGui/QColor>
 
 namespace OpenMS
 {
@@ -48,7 +51,7 @@ namespace OpenMS
 
   public:
     /// Constructor
-    Annotation1DVerticalLineItem(const QString & text, const PointType & start_point, const PointType & end_point);
+    Annotation1DVerticalLineItem(const PointType& position, const QColor& color, const QString & tex="");
     /// Copy constructor
     Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem & rhs);
     /// Destructor
@@ -59,21 +62,24 @@ namespace OpenMS
     void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
     // Docu in base class
     void move(const PointType & delta) override;
-    /// Sets the start point of the measured distance line
-    void setStartPoint(const PointType & start);
-    /// Sets the peak index of the end peak of the measurement
-    void setEndPoint(const PointType & end);
-    /// Returns the start point as (MZ,intensity)
-    const PointType & getStartPoint() const;
-    /// Returns the end point as (MZ,intensity)
-    const PointType & getEndPoint() const;
+
+    /// Sets the uppermost position of the line
+    void setPosition(const PointType & x);
+    /// Returns the uppermost position of line as (MZ, Intensity)
+    const PointType & getPosition() const;
     /// Set tick lines for the distance item
     void setTicks(const std::vector<double> & ticks);
+
   protected:
-    /// The start point of the measured distance line
+    /// The uppermost position of the vertical line
+    PointType position_;
+    /// The color of the line
+    QColor color_;
+
+    /// remove these temp values
     PointType start_point_;
-    /// The end point of the measured distance line
     PointType end_point_;
+
     /// Additional tick lines for the distance item
     std::vector<double> ticks_;
 
