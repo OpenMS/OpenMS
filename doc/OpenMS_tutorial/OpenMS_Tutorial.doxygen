@@ -498,7 +498,7 @@ Extract isotope distribution and monoisotopic weight of an EmpiricalFormula obje
 
 \snippet Tutorial_EmpiricalFormula.cpp EmpiricalFormula
 
-@subsection tutorial_aaseq AASequence - Representing a Peptide 
+@subsection tutorial_aaseq AASequence - Representing a Peptide (amino acid sequence)
 An AASequence object stores a (potentially chemically modified) peptide.
 It can conveniently be constructed from the amino acid sequence (e.g., a string or a string literal “DEFIANGR”). Modifications may be encoded using the unimod name.
 Once constructed, many convenient functions are available to calculate peptide or ion properties.
@@ -511,8 +511,8 @@ Compute and output basic AASequence properties
 
 Internally, an AASequence object is composed of Residues.
 
-@subsection tutorial_residue Residue and ResidueDB - Dealing with amino acids
-Residues are the building blocks of AASequence objects. They store physico-chemical properties of specific amino acids. ResidueDB provides access to different residue sets (e.g. all natural AAs).
+@subsection tutorial_residue Residue and ResidueDB - Dealing with residues / amino acids
+Residues are the building blocks of AASequence objects. They store physico-chemical properties of amino acids. ResidueDB provides access to different residue sets (e.g. all natural AAs).
 <br><br>
 <b>Example: Tutorial_Residue.cpp</b>
 <br>
