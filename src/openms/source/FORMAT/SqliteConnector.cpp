@@ -39,6 +39,7 @@
 #include <sqlite3.h>
 
 #include <cstring> // for strcmp
+#include <iostream>
 
 namespace OpenMS
 {
@@ -92,11 +93,6 @@ namespace OpenMS
     sqlite3_finalize(stmt);
 
     return found;
-  }
-
-  void SqliteConnector::executeStatement(sqlite3 *db, const std::stringstream& statement)
-  {
-    executeStatement(db, statement.str());
   }
 
   void SqliteConnector::executeStatement(sqlite3 *db, const String& statement)
@@ -181,6 +177,15 @@ namespace OpenMS
         }
         return false;
       }
+      template <> bool extractValue<Int64>(Int64* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      {
+        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+        {
+          *dst = sqlite3_column_int64(stmt, pos);
+          return true;
+        }
+        return false;
+      }
 
       template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
@@ -199,18 +204,125 @@ namespace OpenMS
           *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
           return true;
         }
+
         return false;
+      }
+
+      Size countTableRows(SqliteConnector& conn, const String& table_name)
+      {
+        sqlite3_stmt* stmt;
+        String select_runs = "SELECT count(*) FROM " + table_name + ";";
+        conn.prepareStatement(&stmt, select_runs);
+        sqlite3_step(stmt);
+        if (sqlite3_column_type(stmt, 0) == SQLITE_NULL)
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not retrieve " + table_name + " table count!");
+        }
+        Size res = sqlite3_column_int64(stmt, 0);
+        sqlite3_finalize(stmt);
+        return res;
+      }
+
+      SqlState nextRow(sqlite3_stmt* stmt, SqlState current)
+      {
+        if (current != SqlState::ROW)
+        { // querying a new row after the last invocation gave 'DONE' might loop around
+          // to the first entry and give an infinite loop!!!
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation requested on DONE/ERROR state. This should never happen. Please file a bug report!");
+        }
+        int rc = sqlite3_step(stmt);
+        if (rc == SQLITE_ROW)
+        {
+          return SqlState::ROW;
+        }
+        if (rc == SQLITE_DONE)
+        {
+          return SqlState::DONE;
+        }
+        if (rc == SQLITE_ERROR)
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation failed with SQLITE_ERROR!");
+        }
+        if (rc == SQLITE_BUSY)
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation failed with SQLITE_BUSY!");
+        }
+        if (rc == SQLITE_MISUSE)
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation failed with SQLITE_MISUSE!");
+        }
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation failed with unexpected error code!");
       }
 
       /// Special case: store integer in a string data value
       bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
       {
-        if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+        if (sqlite3_column_type(stmt, pos) == SQLITE_INTEGER)
         {
           *dst = sqlite3_column_int(stmt, pos);
           return true;
         }
         return false;
+      }
+
+      double extractDouble(sqlite3_stmt* stmt, int pos)
+      {
+        double res;
+        if (!extractValue<double>(&res, stmt, pos)) 
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to double failed");
+        }
+        return res;
+      }
+
+      float extractFloat(sqlite3_stmt* stmt, int pos)
+      {
+        double res; // there is no sqlite3_column_float.. so we extract double and convert
+        if (!extractValue<double>(&res, stmt, pos))
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to double/float failed");
+        }
+        return (float)res;
+      }
+
+      int extractInt(sqlite3_stmt* stmt, int pos)
+      {
+        int res;
+        if (!extractValue<int>(&res, stmt, pos))
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to int failed");
+        }
+        return res;
+      }
+
+      Int64 extractInt64(sqlite3_stmt* stmt, int pos)
+      {
+        Int64 res;
+        if (!extractValue<Int64>(&res, stmt, pos))
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to Int64 failed");
+        }
+        return res;
+      }
+
+      String extractString(sqlite3_stmt* stmt, int pos)
+      {
+        String res;
+        if (!extractValue<String>(&res, stmt, pos))
+        {
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Conversion of column " + String(pos) + " to String failed");
+        }
+        return res;
+      }
+
+      char extractChar(sqlite3_stmt* stmt, int pos)
+      {
+        return extractString(stmt, pos)[0];
+      }
+
+      bool extractBool(sqlite3_stmt* stmt, int pos)
+      {
+        return extractInt(stmt, pos) != 0;
       }
 
     }
