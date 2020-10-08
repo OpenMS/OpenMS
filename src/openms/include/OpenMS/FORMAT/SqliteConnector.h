@@ -92,6 +92,10 @@ public:
       return tableExists(db_, tablename);
     }
 
+    /// Counts the number of entries in SQL table @p table_name
+    /// @throws Exception::SqlOperationFailed if table is unknown
+    Size countTableRows(const String& table_name);
+
     /**
       @brief Checkes whether the given table contains a certain column
 
@@ -262,30 +266,26 @@ protected:
   {
     namespace SqliteHelper
     {
-      /// Counts the number of entries in SQL table @p table_name
-      /// @throws Exception::SqlOperationFailed if table is unknown
-      Size countTableRows(SqliteConnector& conn, const String& table_name);
-
       enum class SqlState
       {
-        ROW,
-        DONE,
-        ERROR ///< includes SQLITE_BUSY, SQLITE_ERROR, SQLITE_MISUSE
+        SQL_ROW,
+        SQL_DONE,
+        SQL_ERROR ///< includes SQLITE_BUSY, SQLITE_ERROR, SQLITE_MISUSE
       };
 
       /**
         @brief retrieves the next row from a prepared statement
 
-        If you receive 'SqlState::DONE', do NOT query nextRow() again,
+        If you receive 'SqlState::SQL_DONE', do NOT query nextRow() again,
         because you might enter an infinite loop!
         To avoid oversights, you can pass the old return value into the function again
         and get an Exception which will tell you that there is buggy code!
 
         @param current Return value of the previous call to this function.
-        @return one of SqlState::ROW or SqlState::DONE
+        @return one of SqlState::SQL_ROW or SqlState::SQL_DONE
         @throws Exception::SqlOperationFailed if state would be SqlState::ERROR
       */
-      SqlState nextRow(sqlite3_stmt* stmt, SqlState current = SqlState::ROW);
+      SqlState nextRow(sqlite3_stmt* stmt, SqlState current = SqlState::SQL_ROW);
 
 
       /**
