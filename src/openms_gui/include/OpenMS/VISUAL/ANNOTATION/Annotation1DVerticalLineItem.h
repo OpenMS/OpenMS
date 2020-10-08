@@ -36,34 +36,32 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <vector>
 
 #include <QtGui/QColor>
 
 namespace OpenMS
 {
-  /** @brief An annotation item which represents a vertical line.
-          @see Annotation1DItem
+  /** @brief An annotation item which represents a vertical line and text label on top.
+      @see Annotation1DItem
   */
   class Annotation1DVerticalLineItem :
       public Annotation1DItem
   {
   public:
     /// Constructor
-    Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString & tex="");
+    Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString& text="");
     /// Copy constructor
-    Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem & rhs);
+    Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem& rhs) = default;
     /// Destructor
-    ~Annotation1DVerticalLineItem() override;
+    ~Annotation1DVerticalLineItem() override = default;
     // Docu in base class
-    void ensureWithinDataRange(Spectrum1DCanvas * const canvas) override;
+    void ensureWithinDataRange(Spectrum1DCanvas* const canvas) override;
     // Docu in base class
-    void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
+    void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
     // Docu in base class
-    void move(const PointType & delta) override;
-
+    void move(const PointType& delta) override;
     /// Sets the uppermost position of the line
-    void setPosition(const double & x);
+    void setPosition(const double& x);
     /// Returns the position
     const double & getPosition() const;
 

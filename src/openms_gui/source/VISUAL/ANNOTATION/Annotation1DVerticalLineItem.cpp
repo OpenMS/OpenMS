@@ -43,25 +43,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString & text) :
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString& text) :
       Annotation1DItem(text),
       x_(x),
       color_(color)
   {
   }
 
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem & rhs) :
-      Annotation1DItem(rhs)
-  {
-    x_ = rhs.x_;
-    color_ = rhs.color_;
-  }
-
-  Annotation1DVerticalLineItem::~Annotation1DVerticalLineItem()
-  {
-  }
-
-  void Annotation1DVerticalLineItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DVerticalLineItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
     //translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
@@ -73,18 +62,12 @@ namespace OpenMS
 
     // compute bounding box on the specified painter
     // TODO: implement proper bounding box calculation
-    if (canvas->isMzToXAxis())
-    {
-      bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() ));    
-    }
-    else
-    {
-      bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y()));
-    }
+    // currently not needed as we don't support selection or moving
+    bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() ));    
 
     // TODO: draw according to proper bounding box to support switching axis and flipping
     // 5 pixel to x() was added to give some space between the line and the text
-    painter.drawText(start_p.x()+5, 20.0, text_);
+    painter.drawText(start_p.x() + 5, 20.0, text_);
   }
 
   void Annotation1DVerticalLineItem::move(const PointType & delta)
@@ -102,9 +85,8 @@ namespace OpenMS
     return x_;
   }
 
-  void Annotation1DVerticalLineItem::ensureWithinDataRange(Spectrum1DCanvas * const)
-  {
-    // TODO: add code when needed
+  void Annotation1DVerticalLineItem::ensureWithinDataRange(Spectrum1DCanvas* const)
+  { // TODO: add code when needed
   }
 
 } //Namespace
