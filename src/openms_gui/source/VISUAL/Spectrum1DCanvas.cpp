@@ -61,6 +61,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DPrefDialog.h>
 
@@ -1012,6 +1013,17 @@ namespace OpenMS
     QColor col{ QColor(layer.param.getValue("annotation_color").toQString()) };
     // 0: default pen; 1: selected pen
     QPen pen[2] = { col, col.lighter() };
+
+    // TODO: remove - just some debug code
+    if (layer.getCurrentAnnotations().empty())
+    {
+      QColor col{ QColor(layer.param.getValue("annotation_color").toQString()) };
+      for (double mz = 0.0; mz <= 2000.0; mz += 100.0)
+      {
+        auto item = new Annotation1DVerticalLineItem(mz, col, "Test");
+        getCurrentLayer().getCurrentAnnotations().push_front(item);
+      }
+    }
 
     for (const auto& c : layer.getCurrentAnnotations())
     {

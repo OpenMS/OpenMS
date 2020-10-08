@@ -51,7 +51,7 @@ namespace OpenMS
 
   public:
     /// Constructor
-    Annotation1DVerticalLineItem(const PointType& position, const QColor& color, const QString & tex="");
+    Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString & tex="");
     /// Copy constructor
     Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem & rhs);
     /// Destructor
@@ -64,24 +64,16 @@ namespace OpenMS
     void move(const PointType & delta) override;
 
     /// Sets the uppermost position of the line
-    void setPosition(const PointType & x);
-    /// Returns the uppermost position of line as (MZ, Intensity)
-    const PointType & getPosition() const;
-    /// Set tick lines for the distance item
-    void setTicks(const std::vector<double> & ticks);
+    void setPosition(const double & x);
+    /// Returns the position
+    const double & getPosition() const;
 
   protected:
-    /// The uppermost position of the vertical line
-    PointType position_;
+    /// The position of the vertical line
+    double x_;
+
     /// The color of the line
     QColor color_;
-
-    /// remove these temp values
-    PointType start_point_;
-    PointType end_point_;
-
-    /// Additional tick lines for the distance item
-    std::vector<double> ticks_;
 
   };
 } // namespace OpenMS
