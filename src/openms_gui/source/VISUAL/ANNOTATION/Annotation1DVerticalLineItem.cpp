@@ -67,7 +67,7 @@ namespace OpenMS
     //translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
     canvas->dataToWidget(x_, 0, start_p, flipped, true);
-    canvas->dataToWidget(x_, 1e20, end_p, flipped, true);
+    canvas->dataToWidget(x_, canvas->getDataRange().maxY(), end_p, flipped, true);
 
     // draw line
     painter.drawLine(start_p, end_p);
@@ -84,7 +84,8 @@ namespace OpenMS
     }
 
     // TODO: draw according to proper bounding box to support switching axis and flipping
-    painter.drawText(start_p.x(), 20.0, text_);
+    // 5 pixel to x() was added to give some space between the line and the text
+    painter.drawText(start_p.x()+5, 20.0, text_);
 
   }
 
@@ -105,19 +106,7 @@ namespace OpenMS
 
   void Annotation1DVerticalLineItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
   {
-/*
-    DRange<3> data_range = canvas->getDataRange();
-    CoordinateType y_pos = position.getY() * canvas->getPercentageFactor();
-
-    if (y_pos < data_range.minPosition()[1])
-    {
-      cropped_position.setY(data_range.minPosition()[1] / canvas->getPercentageFactor());
-    }
-    if (y_pos > data_range.maxPosition()[1])
-    {
-      cropped_position.setY(data_range.maxPosition()[1] / canvas->getPercentageFactor());
-    }
-*/
+    // TODO: add code when needed
   }
 
 } //Namespace

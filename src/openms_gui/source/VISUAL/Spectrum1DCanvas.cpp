@@ -1014,17 +1014,6 @@ namespace OpenMS
     // 0: default pen; 1: selected pen
     QPen pen[2] = { col, col.lighter() };
 
-    // TODO: remove - just some debug code
-    if (layer.getCurrentAnnotations().empty())
-    {
-      QColor col{ QColor(layer.param.getValue("annotation_color").toQString()) };
-      for (double mz = 0.0; mz <= 2000.0; mz += 100.0)
-      {
-        auto item = new Annotation1DVerticalLineItem(mz, col, "Test");
-        getCurrentLayer().getCurrentAnnotations().push_front(item);
-      }
-    }
-
     for (const auto& c : layer.getCurrentAnnotations())
     {
       painter.setPen(pen[c->isSelected()]);
