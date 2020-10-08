@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Jihyung Kim $
-// $Authors: Jihyung Kim $
+// $Maintainer: Jihyung Kim, Timo Sachsenberg $
+// $Authors: Jihyung Kim, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
