@@ -45,8 +45,8 @@ namespace OpenMS
 
   Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString & text) :
       Annotation1DItem(text),
-      color_(color),
       x_(x),
+      color_(color)
   {
   }
 
