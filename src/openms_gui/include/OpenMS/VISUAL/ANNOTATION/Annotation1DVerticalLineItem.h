@@ -48,7 +48,6 @@ namespace OpenMS
   class Annotation1DVerticalLineItem :
       public Annotation1DItem
   {
-
   public:
     /// Constructor
     Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString & tex="");
@@ -74,6 +73,5 @@ namespace OpenMS
 
     /// The color of the line
     QColor color_;
-
   };
 } // namespace OpenMS
