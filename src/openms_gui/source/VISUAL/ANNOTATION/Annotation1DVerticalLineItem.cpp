@@ -43,11 +43,10 @@ using namespace std;
 namespace OpenMS
 {
 
-  //TODO: adding text item
   Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString & text) :
-      x_(x),
+      Annotation1DItem(text),
       color_(color),
-      Annotation1DItem(text)
+      x_(x),
   {
   }
 
@@ -86,7 +85,6 @@ namespace OpenMS
     // TODO: draw according to proper bounding box to support switching axis and flipping
     // 5 pixel to x() was added to give some space between the line and the text
     painter.drawText(start_p.x()+5, 20.0, text_);
-
   }
 
   void Annotation1DVerticalLineItem::move(const PointType & delta)
