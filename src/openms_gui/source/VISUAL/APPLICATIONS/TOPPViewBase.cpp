@@ -1889,7 +1889,7 @@ namespace OpenMS
   }
 
   void TOPPViewBase::annotateWithAMS()
-  {
+  { // this should only be callable if current layer's type is of type DT_PEAK
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorAMS annotator;
     assert(log_ != nullptr);
@@ -1901,7 +1901,7 @@ namespace OpenMS
   }
 
   void TOPPViewBase::annotateWithID()
-  { // this should only be callable if current layer's type is one of PEAK, FEATURE, CONSENSUS
+  { // this should only be callable if current layer's type is one of DT_PEAK, DT_FEATURE, DT_CONSENSUS
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorPeptideID annotator;
     assert(log_ != nullptr);

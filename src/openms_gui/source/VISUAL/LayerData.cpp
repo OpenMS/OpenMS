@@ -65,16 +65,16 @@ namespace OpenMS
 
   const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
   {
-    return boost::static_pointer_cast<const ExperimentType>(peaks);
+    return boost::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
   void LayerData::updateRanges()
   {
-    peaks->updateRanges();
-    features->updateRanges();
-    consensus->updateRanges();
+    peak_map_->updateRanges();
+    features_->updateRanges();
+    consensus_map_->updateRanges();
     // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
-    chromatograms->updateRanges();
+    chromatogram_map_->updateRanges();
     cached_spectrum_.updateRanges();
   }
 
@@ -133,9 +133,9 @@ namespace OpenMS
 
   void LayerData::updateCache_()
   {
-    if (peaks->getNrSpectra() > current_spectrum_ && (*peaks)[current_spectrum_].size() > 0)
+    if (peak_map_->getNrSpectra() > current_spectrum_ && (*peak_map_)[current_spectrum_].size() > 0)
     {
-      cached_spectrum_ = (*peaks)[current_spectrum_];
+      cached_spectrum_ = (*peak_map_)[current_spectrum_];
     }
     else if (on_disc_peaks->getNrSpectra() > current_spectrum_)
     {

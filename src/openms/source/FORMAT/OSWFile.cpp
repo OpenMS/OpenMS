@@ -275,7 +275,7 @@ namespace OpenMS
       : filename_(filename),
       conn_(filename)
     {
-      has_SCOREMS2_ = Sql::countTableRows(conn_, "SCORE_MS2") > 0;
+      has_SCOREMS2_ = conn_.tableExists("SCORE_MS2");
     }
 
     void OSWFile::readMinimal(OSWData& swath_result)
@@ -298,7 +298,7 @@ namespace OpenMS
       }
       String accession;
       // protein loop
-      while (rc == Sql::SqlState::ROW)
+      while (rc == Sql::SqlState::SQL_ROW)
       {
         int id = Sql::extractInt(stmt, I_PROTID);
         accession = Sql::extractString(stmt, I_ACCESSION);
@@ -487,20 +487,20 @@ namespace OpenMS
       };
 
       // protein loop
-      while (rc == Sql::SqlState::ROW)
+      while (rc == Sql::SqlState::SQL_ROW)
       {
         // precursor loop (peptide with charge)
-        while (rc == Sql::SqlState::ROW)
+        while (rc == Sql::SqlState::SQL_ROW)
         {
           // feature loop
-          while (rc == Sql::SqlState::ROW)
+          while (rc == Sql::SqlState::SQL_ROW)
           {
             new_transition = Sql::extractInt(stmt, I_TRID);
             new_line.setFeature(stmt);
             if (check_add_feat()) break; // new feature just started?--> check if new PC started as well.
             rc = Sql::nextRow(stmt, rc); // next row
           }
-          if (rc != Sql::SqlState::ROW) {
+          if (rc != Sql::SqlState::SQL_ROW) {
             // we are beyond last row; new feature is not yet made; so we forcibly do it now
             check_add_feat(true);    // add last feature
             check_add_pc(true);      // add last precursor
@@ -568,7 +568,7 @@ namespace OpenMS
         throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Query was changed! Please report this bug!");
       }
 
-      if (rc == Sql::SqlState::DONE)
+      if (rc == Sql::SqlState::SQL_DONE)
       { // no data
         return;
       }
@@ -599,8 +599,7 @@ namespace OpenMS
     {
       swath_result.clear();
 
-      Sql::SqlState rc;
-      Size count = Sql::countTableRows(conn_, "RUN");
+      Size count = conn_.countTableRows("RUN");
       if (count != 1)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Database '" + filename_ + "' contains more than one RUN. This is currently not supported!");
@@ -624,8 +623,8 @@ namespace OpenMS
       String select_transitions = "SELECT " + ListUtils::concatenate(colnames_tr, ",") + " FROM TRANSITION ORDER BY ID;";
       sqlite3_stmt* stmt;
       conn_.prepareStatement(&stmt, select_transitions);
-      rc = Sql::nextRow(stmt);
-      while (rc == Sql::SqlState::ROW)
+      Sql::SqlState rc = Sql::nextRow(stmt);
+      while (rc == Sql::SqlState::SQL_ROW)
       {
         OSWTransition tr(Sql::extractString(stmt, COLIDs::ANNOTATION),
           Sql::extractInt(stmt, COLIDs::ID),

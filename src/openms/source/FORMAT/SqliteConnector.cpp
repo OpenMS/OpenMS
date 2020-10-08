@@ -95,6 +95,21 @@ namespace OpenMS
     return found;
   }
 
+  Size SqliteConnector::countTableRows(const String& table_name)
+  {
+    sqlite3_stmt* stmt;
+    String select_runs = "SELECT count(*) FROM " + table_name + ";";
+    this->prepareStatement(&stmt, select_runs);
+    sqlite3_step(stmt);
+    if (sqlite3_column_type(stmt, 0) == SQLITE_NULL)
+    {
+      throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not retrieve " + table_name + " table count!");
+    }
+    Size res = sqlite3_column_int64(stmt, 0);
+    sqlite3_finalize(stmt);
+    return res;
+  }
+
   void SqliteConnector::executeStatement(sqlite3 *db, const String& statement)
   {
     char *zErrMsg = nullptr;
@@ -208,36 +223,21 @@ namespace OpenMS
         return false;
       }
 
-      Size countTableRows(SqliteConnector& conn, const String& table_name)
-      {
-        sqlite3_stmt* stmt;
-        String select_runs = "SELECT count(*) FROM " + table_name + ";";
-        conn.prepareStatement(&stmt, select_runs);
-        sqlite3_step(stmt);
-        if (sqlite3_column_type(stmt, 0) == SQLITE_NULL)
-        {
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not retrieve " + table_name + " table count!");
-        }
-        Size res = sqlite3_column_int64(stmt, 0);
-        sqlite3_finalize(stmt);
-        return res;
-      }
-
       SqlState nextRow(sqlite3_stmt* stmt, SqlState current)
       {
-        if (current != SqlState::ROW)
-        { // querying a new row after the last invocation gave 'DONE' might loop around
+        if (current != SqlState::SQL_ROW)
+        { // querying a new row after the last invocation gave 'SQL_DONE' might loop around
           // to the first entry and give an infinite loop!!!
-          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation requested on DONE/ERROR state. This should never happen. Please file a bug report!");
+          throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sql operation requested on SQL_DONE/SQL_ERROR state. This should never happen. Please file a bug report!");
         }
         int rc = sqlite3_step(stmt);
         if (rc == SQLITE_ROW)
         {
-          return SqlState::ROW;
+          return SqlState::SQL_ROW;
         }
         if (rc == SQLITE_DONE)
         {
-          return SqlState::DONE;
+          return SqlState::SQL_DONE;
         }
         if (rc == SQLITE_ERROR)
         {

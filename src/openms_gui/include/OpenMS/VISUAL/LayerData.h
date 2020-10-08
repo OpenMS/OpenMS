@@ -178,11 +178,11 @@ public:
       label(L_NONE),
       peptide_id_index(-1),
       peptide_hit_index(-1),
-      features(new FeatureMapType()),
-      consensus(new ConsensusMapType()),
-      peaks(new ExperimentType()),
+      features_(new FeatureMapType()),
+      consensus_map_(new ConsensusMapType()),
+      peak_map_(new ExperimentType()),
       on_disc_peaks(new OnDiscMSExperiment()),
-      chromatograms(new ExperimentType()),
+      chromatogram_map_(new ExperimentType()),
       current_spectrum_(0),
       cached_spectrum_()
     {
@@ -203,25 +203,25 @@ public:
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
     {
-      return features;
+      return features_;
     }
 
     /// Returns a const reference to the current feature data
     FeatureMapSharedPtrType & getFeatureMap()
     {
-      return features;
+      return features_;
     }
 
     /// Returns a const reference to the consensus feature data
     const ConsensusMapSharedPtrType & getConsensusMap() const
     {
-      return consensus;
+      return consensus_map_;
     }
 
     /// Returns current consensus map (mutable)
     ConsensusMapSharedPtrType & getConsensusMap()
     {
-      return consensus;
+      return consensus_map_;
     }
 
     /**
@@ -244,14 +244,14 @@ public:
 
     @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
     */
-    const ExperimentSharedPtrType & getPeakDataMuteable() {return peaks;}
+    const ExperimentSharedPtrType & getPeakDataMuteable() {return peak_map_;}
 
     /**
     @brief Set the current in-memory peak data
     */
     void setPeakData(ExperimentSharedPtrType p)
     {
-      peaks = p;
+      peak_map_ = p;
       updateCache_();
     }
 
@@ -270,13 +270,13 @@ public:
     /// Returns a mutable reference to the current chromatogram data
     const ExperimentSharedPtrType & getChromatogramData() const
     {
-      return chromatograms;
+      return chromatogram_map_;
     }
 
     /// Returns a mutable reference to the current chromatogram data
     ExperimentSharedPtrType & getChromatogramData()
     {
-      return chromatograms;
+      return chromatogram_map_;
     }
 
     /// add peptide identifications to the layer
@@ -327,15 +327,15 @@ public:
     {
       if (spectrum_idx == current_spectrum_) return cached_spectrum_;
 
-      if ((*peaks)[spectrum_idx].size() > 0)
+      if ((*peak_map_)[spectrum_idx].size() > 0)
       {
-        return (*peaks)[spectrum_idx];
+        return (*peak_map_)[spectrum_idx];
       }
       else if (!on_disc_peaks->empty())
       {
         return on_disc_peaks->getSpectrum(spectrum_idx);
       }
-      return (*peaks)[spectrum_idx];
+      return (*peak_map_)[spectrum_idx];
     }
       
     /// Get the index of the current spectrum (1D view)
@@ -361,7 +361,7 @@ public:
 
     void labelAsIonMobilityData() const
     {
-      peaks->setMetaValue("is_ion_mobility", "true");
+      peak_map_->setMetaValue("is_ion_mobility", "true");
     }
 
     /// Check whether the current layer contains DIA (SWATH-MS) data
@@ -375,7 +375,7 @@ public:
     /// Label the current layer as DIA (SWATH-MS) data
     void labelAsDIAData()
     {
-      peaks->setMetaValue("is_dia_data", "true");
+      peak_map_->setMetaValue("is_dia_data", "true");
     }
 
     /**
@@ -396,7 +396,7 @@ public:
     /// set the chromatogram flag
     void set_chromatogram_flag()
     {
-      peaks->setMetaValue("is_chromatogram", "true");
+      peak_map_->setMetaValue("is_chromatogram", "true");
     }
 
     /// remove the chromatogram flag
@@ -404,7 +404,7 @@ public:
     {
       if (this->chromatogram_flag_set())
       {
-        peaks->removeMetaValue("is_chromatogram");
+        peak_map_->removeMetaValue("is_chromatogram");
       }
     }
     
@@ -497,19 +497,19 @@ private:
     void updatePeptideHitAnnotations_(PeptideHit& hit);
 
     /// feature data
-    FeatureMapSharedPtrType features;
+    FeatureMapSharedPtrType features_;
 
     /// consensus feature data
-    ConsensusMapSharedPtrType consensus;
+    ConsensusMapSharedPtrType consensus_map_;
 
     /// peak data
-    ExperimentSharedPtrType peaks;
+    ExperimentSharedPtrType peak_map_;
 
     /// on disc peak data
     ODExperimentSharedPtrType on_disc_peaks;
 
     /// chromatogram data
-    ExperimentSharedPtrType chromatograms;
+    ExperimentSharedPtrType chromatogram_map_;
 
     /// Index of the current spectrum
     Size current_spectrum_;
