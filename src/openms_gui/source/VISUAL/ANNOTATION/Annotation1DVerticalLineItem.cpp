@@ -102,7 +102,7 @@ namespace OpenMS
     return x_;
   }
 
-  void Annotation1DVerticalLineItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  void Annotation1DVerticalLineItem::ensureWithinDataRange(Spectrum1DCanvas * const)
   {
     // TODO: add code when needed
   }
