@@ -76,10 +76,6 @@ namespace OpenMS
             SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
             native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
           }
-          else
-          {
-            continue;
-          }
         }
         else
         {

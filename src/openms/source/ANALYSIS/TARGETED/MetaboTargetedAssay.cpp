@@ -503,7 +503,7 @@ namespace OpenMS
           cmp.id = String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter;
           cmp.setMetaValue("CompoundName", description);
         }
-        else
+        if (decoy == 1)
         {
           description = String(description + "_decoy");
           cmp.id = String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter;
@@ -511,6 +511,7 @@ namespace OpenMS
         }
 
         OPENMS_LOG_DEBUG << "Processed annotated Spectra - mapping of the description and the SIRIUS identifier." << " Description: " << description << " SIRIUS_workspace_identifier: " << csp.compound_info.cmp << std::endl;
+        OPENMS_LOG_DEBUG << "Compound identifier." << cmp.id << std::endl;
 
         cmp.smiles_string = "NA";
         cmp.molecular_formula = sumformula;
