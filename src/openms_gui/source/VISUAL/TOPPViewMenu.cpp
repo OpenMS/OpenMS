@@ -123,6 +123,10 @@ namespace OpenMS
       TV_STATUS::HAS_LAYER, LayerData::DT_PEAK + LayerData::DT_FEATURE + LayerData::DT_CONSENSUS);
     action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
     
+    action = addAction_(m_tools->addAction("&Top-down Proteomics", parent, &TOPPViewBase::topDown, Qt::CTRL + Qt::Key_D),
+      TV_STATUS::HAS_LAYER, FS_LAYER(LayerData::DT_PEAK));
+    action->setToolTip("Deconvolution and mass annotation for Top-Down Proteomics");
+    
     action = addAction_(m_tools->addAction("Align spectra", parent, &TOPPViewBase::showSpectrumAlignmentDialog),
       TV_STATUS::HAS_MIRROR_MODE);
     action->setToolTip("Only available in 1D View for mirrored (flipped) spectra. To flip, use the Layer View and right click a layer.");

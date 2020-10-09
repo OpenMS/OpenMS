@@ -38,6 +38,7 @@ Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
 SwathLibraryStats.h
+TopDownViewWidget.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASMergerVertex.h
@@ -54,6 +55,7 @@ TOPPViewIdentificationViewBehavior.h
 TOPPViewMenu.h
 #TOPPViewPreferences.h
 TOPPViewSpectraViewBehavior.h
+TOPPViewTopDownViewBehavior.h
 )
 
 ### add path to the filenames

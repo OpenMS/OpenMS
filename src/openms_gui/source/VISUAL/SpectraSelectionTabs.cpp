@@ -41,10 +41,12 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/TopDownViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
+#include <OpenMS/VISUAL/TOPPViewTopDownViewBehavior.h>
 
 namespace OpenMS
 {
@@ -61,8 +63,11 @@ namespace OpenMS
     : QTabWidget(parent),
     spectra_view_widget_(new SpectraViewWidget(this)),
     id_view_widget_(new SpectraIdentificationViewWidget(Param(), this)),
+    topdown_view_widget_(new TopDownViewWidget(Param(), this)),
     spectraview_behavior_(new TOPPViewSpectraViewBehavior(tv)),
     idview_behaviour_(new TOPPViewIdentificationViewBehavior(tv, id_view_widget_)),
+    topdownview_behaviour_(new TOPPViewTopDownViewBehavior(tv, topdown_view_widget_)),
+
     tv_(tv)
   {
     // Hook-up controller and views for spectra inspection
@@ -80,13 +85,23 @@ namespace OpenMS
     connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_behaviour_, CONNECTCAST(TOPPViewIdentificationViewBehavior, activate1DSpectrum, (int, int, int)));
     connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_behaviour_, &TOPPViewIdentificationViewBehavior::setVisibleArea1D);
 
+    // Hook-up controller and views for top down view
+    connect(topdown_view_widget_, &TopDownViewWidget::showSpectrumAs1D, this, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (int)));
+    connect(topdown_view_widget_, &TopDownViewWidget::requestVisibleArea1D, topdownview_behaviour_, &TOPPViewTopDownViewBehavior::setVisibleArea1D);
+    connect(topdown_view_widget_, &TopDownViewWidget::spectrumSelected, topdownview_behaviour_, CONNECTCAST(TOPPViewTopDownViewBehavior, activate1DSpectrum, (int)));
+    connect(topdown_view_widget_, &TopDownViewWidget::spectrumDeselected, topdownview_behaviour_, &TOPPViewTopDownViewBehavior::deactivate1DSpectrum);
+
+
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());
     if (index != SPECTRA_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
     index = addTab(id_view_widget_, id_view_widget_->objectName());
     if (index != IDENT_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 1");
+    index = addTab(topdown_view_widget_, topdown_view_widget_->objectName());
+    if (index != TOPDOWN_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 2");
     setTabEnabled(SPECTRA_IDX, true);
     setTabEnabled(IDENT_IDX, false);
+    setTabEnabled(TOPDOWN_IDX, false);
 
     // switch between different view tabs
     connect(this, &QTabWidget::currentChanged, this, &SpectraSelectionTabs::currentTabChanged);
@@ -111,8 +126,10 @@ namespace OpenMS
     {
       spectra_view_widget_->clear();
       id_view_widget_->clear();
+      topdown_view_widget_->clear();
       setTabEnabled(SPECTRA_IDX, true);
       setTabEnabled(IDENT_IDX, false);
+      setTabEnabled(TOPDOWN_IDX, false);
       return;
     }
 
@@ -129,6 +146,15 @@ namespace OpenMS
         id_view_widget_->setLayer(&cc->getCurrentLayer());
       }
     }
+
+    if (topdown_view_widget_->isVisible())
+    {
+      if (&cc->getCurrentLayer() != topdown_view_widget_->getLayer())
+      {
+        topdown_view_widget_->setLayer(&cc->getCurrentLayer());
+      }
+    }
+    
   }
 
   void SpectraSelectionTabs::currentTabChanged(int tab_index)
@@ -138,15 +164,27 @@ namespace OpenMS
     {
     case SPECTRA_IDX:
       idview_behaviour_->deactivateBehavior(); // finalize old behavior
+      topdownview_behaviour_->deactivateBehavior();
       spectraview_behavior_->activateBehavior(); // initialize new behavior
       break;
     case IDENT_IDX:
       spectraview_behavior_->deactivateBehavior();
+      topdownview_behaviour_->deactivateBehavior();
+      idview_behaviour_->deactivateBehavior(); // finalize old behavior
       if (tv_->getActive2DWidget()) // currently 2D window is open
       {
         showSpectrumAs1D(0);
       }
       idview_behaviour_->activateBehavior();
+      break;
+    case TOPDOWN_IDX:
+      spectraview_behavior_->deactivateBehavior();
+      idview_behaviour_->deactivateBehavior(); // finalize old behavior
+      if (tv_->getActive2DWidget()) // currently 2D window is open
+      {
+        showSpectrumAs1D(0);
+      }
+      topdownview_behaviour_->activateBehavior();
       break;
     default:
       std::cerr << "Error: tab_index " << tab_index << " is invalid\n";
@@ -170,6 +208,11 @@ namespace OpenMS
       if (id_view_widget_->isVisible())
       {
         idview_behaviour_->showSpectrumAs1D(index);
+      }
+
+      if (topdown_view_widget_->isVisible())
+      {
+        topdownview_behaviour_->showSpectrumAs1D(index);
       }
     }
   }
@@ -207,6 +250,7 @@ namespace OpenMS
         setTabEnabled(IDENT_IDX, true); // enable identification view
 
         spectraview_behavior_->deactivateBehavior();
+        topdownview_behaviour_->deactivateBehavior();
         if (tv_->getActive2DWidget()) // currently 2D window is open
         {
           showSpectrumAs1D(0);

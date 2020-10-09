@@ -44,6 +44,7 @@ SpectrumCanvas.cpp
 SpectrumWidget.cpp
 SwathLibraryStats.cpp
 SwathLibraryStats.ui
+TopDownViewWidget.cpp
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASMergerVertex.cpp
@@ -60,6 +61,7 @@ TOPPViewIdentificationViewBehavior.cpp
 TOPPViewMenu.cpp
 #TOPPViewPreferences.cpp
 TOPPViewSpectraViewBehavior.cpp
+TOPPViewTopDownViewBehavior.cpp
 )
 
 ### add path to the filenames
