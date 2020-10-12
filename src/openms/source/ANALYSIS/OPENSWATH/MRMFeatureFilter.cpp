@@ -846,8 +846,12 @@ namespace OpenMS
         if (filter_template.component_qcs.at(c_qc_it).component_name == quant_method.getComponentName()) {
 
           // update the lower/upper bound for the `calculated_concentration` metaValue
-          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").first = quant_method.getLLOQ();
-          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").second = quant_method.getULOQ();
+          if (filter_template.component_qcs.at(c_qc_it).meta_value_qc.count("calculated_concentration")) {
+            filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").first = quant_method.getLLOQ();
+            filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").second = quant_method.getULOQ();
+          } else {
+            filter_template.component_qcs.at(c_qc_it).meta_value_qc.emplace("calculated_concentration", std::make_pair(quant_method.getLLOQ(), quant_method.getULOQ()));
+          }
         }
       }
     }
