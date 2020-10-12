@@ -41,9 +41,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-//#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
-
 #include <iostream>
 #include <iomanip>
 #include <chrono>
@@ -78,20 +75,26 @@ public:
     ~FLASHDeconvAlgorithm();
 
     /// copy constructor
-   // FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &);
+    // FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &);
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
-    void getPeakGroups(DeconvolutedSpectrum &spec, int& specIndex, int& massIndex);
-    static int getNominalMass(double &m);
+
+    // deconvolution main function
+    void getPeakGroups(DeconvolutedSpectrum &spec, int &specIndex, int &massIndex);
+
+    // convert double to nominal mass
+    static int getNominalMass(double m);
 
   protected:
+    // FLASHDeconv parameter set
     Parameter &param;
+    // precalcualted averagine patterns
     FLASHDeconvHelperStructs::PrecalculatedAveragine &avg;
 
+    //The data structures for spectra overlapping.
     std::vector<std::vector<Size>> prevMassBinMap;
     std::vector<double> prevMinBinLogMassMap;
-    //std::vector<PeakGroup> peakGroups;
   private:
 
   };

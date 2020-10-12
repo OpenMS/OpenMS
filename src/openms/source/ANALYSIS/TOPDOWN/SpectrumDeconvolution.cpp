@@ -11,7 +11,7 @@ namespace OpenMS
   SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, Parameter &p) :
       spec(s), param(p)
   {
-   // param.print();
+    // param.print();
     setFilters();
     updateLogMzPeaks(p.chargeMass);
   }
@@ -37,19 +37,18 @@ namespace OpenMS
     delete[] harmonicFilter;
   }
 
+  // generate filters
   void SpectrumDeconvolution::setFilters()
   {
     filter = new double[param.chargeRange];
     harmonicFilter = new double *[param.hCharges.size()];
-    //    int *random = new int[param.chargeRange];
-    //std::srand(std::time(nullptr));
-    
+
     for (int i = 0; i < param.chargeRange; i++)
     {
       filter[i] = log(
           1.0 / (i + param.minCharge));
     }
-    
+
     for (Size k = 0; k < param.hCharges.size(); k++)
     {
       harmonicFilter[k] = new double[param.chargeRange];
@@ -58,7 +57,6 @@ namespace OpenMS
 
       for (int i = 0; i < param.chargeRange; i++)
       {
-        //auto r = ((float) rand()) / (float) RAND_MAX - .5;log(1.0 / (i + n / hc + param.minCharge));
         double factor = -1;
         if (i + param.minCharge == 1)
         {
@@ -66,29 +64,25 @@ namespace OpenMS
         }
 
         harmonicFilter[k][i] = log(1.0 / (i + factor * n / hc + param
-            .minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0)) //
-        //std::cout<<i<<" " << log(1.0 / (i + factor * n / hc + param.minCharge)) << std::endl;
+            .minCharge));
       }
     }
   }
 
+  //Generate uncharged log mz transformated peaks
   void SpectrumDeconvolution::updateLogMzPeaks(double chargeMass)
   {
     logMzPeaks.reserve(spec.size());
-    //int index = 0;
     for (auto &peak: spec)
     {
-      //std::cout << peak.getMZ() << " " << peak.getIntensity() << std::endl;
       if (peak.getIntensity() <= param.intensityThreshold)//
       {
         continue;
       }
       LogMzPeak logMzPeak(peak, chargeMass);
-      //logMzPeak.index = index++;
       logMzPeaks.push_back(logMzPeak);
     }
   }
-
 
   double SpectrumDeconvolution::getBinValue(Size bin, double minV, double binWidth)
   {
@@ -118,12 +112,11 @@ namespace OpenMS
     std::cout << "];" << std::endl;
   }
 
+  // From log mz to mz bins. To reduce edge effect, its adjacent bin is set when a bin is set.
   void SpectrumDeconvolution::updateMzBins(double &mzBinMinValue, Size &binNumber, double binWidth,
-                                           float *mzBinIntensities
-  )
+                                           float *mzBinIntensities)
   {
     mzBins = boost::dynamic_bitset<>(binNumber);
-    // double *intensities = new double[binNumber];
     std::fill_n(mzBinIntensities, binNumber, .0);
 
     for (auto &p : logMzPeaks)
@@ -154,36 +147,15 @@ namespace OpenMS
           mzBinIntensities[bi - 1] += p.intensity;
         }
       }
-
-
     }
-
-    /*
-    if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
-    {
-      Size pbi = 0;
-      for (auto &p : logMzPeaks)
-      {
-        Size bi = getBinNumber(p.logMz, mzBinMinValue, binWidth);
-        if (p.mz > 740 && p.mz < 742)
-        { //
-          if (pbi != bi)
-          {
-            std::cout << bi << " " << p.mz << " " << mzBinIntensities[bi] << "\n";
-            pbi = bi;
-          }
-        }
-      }
-      std::cout << std::endl;
-    }*/
   }
 
+  //take the mass bins from previous overlapping spectra and put them in the candidate mass bins.
   void SpectrumDeconvolution::unionPrevMassBins(double &massBinMinValue,
                                                 std::vector<std::vector<Size>> &prevMassBinVector,
                                                 std::vector<double> &prevMassBinMinValue,
                                                 UInt msLevel)
   {
-    //return;
     if (massBins.empty())
     {
       return;
@@ -213,50 +185,58 @@ namespace OpenMS
     }
   }
 
-
+  //Find candidate mass bins from the current spectrum. The runtime of FLASHDeconv is deteremined by this function..
   boost::dynamic_bitset<> SpectrumDeconvolution::getCandidateMassBinsForThisSpectrum(float *massIntensitites,
                                                                                      float *mzIntensities,
                                                                                      double &mzMinValue,
                                                                                      unsigned int &msLevel)
   {
     int chargeRange = param.currentChargeRange;
-    int hChargeSize = (int) param.hCharges.size(); // msLevel == 1 ? (int) param.hCharges.size() : 1;
+    int hChargeSize = (int) param.hCharges.size();
     int minContinuousChargePeakCount = param.minContinuousChargePeakCount[msLevel - 1];
 
     long binEnd = (long) massBins.size();
     auto candidateMassBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
 
+    // how many peaks of continuous charges per mass
     Byte *continuousChargePeakPairCount = new Byte[massBins.size()];
     std::fill_n(continuousChargePeakPairCount, massBins.size(), 0);
 
     auto mzBinIndex = mzBins.find_first();
     std::fill_n(massIntensitites, massBins.size(), 0);
 
+    // to calculate continuous charges, the previous charge value per mass should be stored
     Byte *prevCharges = new Byte[massBins.size()];
     std::fill_n(prevCharges, massBins.size(), (Byte) (chargeRange + 2));
 
+    // not just charges but intensities are stored to see the intensity fold change
     auto *prevIntensities = new float[massBins.size()];
     std::fill_n(prevIntensities, massBins.size(), 1);
 
+    // harmonic peak intensities contribute to noise
     auto noise = new float *[hChargeSize + 1];
     for (auto k = 0; k < hChargeSize + 1; k++)
     {
       noise[k] = new float[massBins.size()];
       std::fill_n(noise[k], massBins.size(), 0);
     }
+    // bin width per ms level
     auto binWidth = param.binWidth[msLevel - 1];
 
-    float factor = 4.0;//msLevel==1 ?4.0 : 8.0;
-    float factor2 = (1 - 1.0 / factor);
+    // intensity change ratio should not exceed the factor. factor2 just to reduce run time
+    float factor = 4.0;
+    float factor2 = (1 - 1.0f / factor);
 
-
+    // scan through log mz peaks
     while (mzBinIndex != mzBins.npos)
     {
       auto &intensity = mzIntensities[mzBinIndex];
       double mz = -1.0, logMz = 0;
 
+      // scan through charges
       for (Byte j = 0; j < chargeRange; j++)
       {
+        // mass is given by shifting by binOffsets[j]
         long massBinIndex = mzBinIndex + binOffsets[j];
 
         if (massBinIndex < 0)
@@ -268,90 +248,93 @@ namespace OpenMS
           break;
         }
 
+        // intensity of previous charge
         auto &prevIntensity = prevIntensities[massBinIndex];
         auto isoIntensity = .0;
 
-        float id = intensity / prevIntensity;
-        id = id < 1 ? 1.0f / id : id;
-        bool out = prevCharges[massBinIndex] - j != 1;
-        bool hcheck = false;
+        // intensity ratio between current and previous charges
+        float intensityRatio = intensity / prevIntensity;
+        intensityRatio = intensityRatio < 1 ? 1.0f / intensityRatio : intensityRatio;
 
-        if (msLevel > 1){
+        // check if peaks of continuous charges are present
+        bool chargeNotContinous = prevCharges[massBinIndex] - j != 1;
+        // if passFirstStep is true, harmonic peak filtration is done
+        bool passFirstStep = false;
+
+        // for MS2,3,... iostopic peaks or water nh3 loss peaks are considered
+        if (msLevel > 1)
+        {
           auto charge = j + param.minCharge;
-          //if (charge <= 5)
+
+          if (mz <= 0)
           {
-            if (mz <= 0)
+            logMz = getBinValue(mzBinIndex, mzMinValue, binWidth);
+            mz = exp(logMz);
+          }
+          double diff = Constants::ISOTOPE_MASSDIFF_55K_U / charge / mz;
+          auto nextIsoMz = logMz + diff;//log(mz + Constants::C13C12_MASSDIFF_U / charge);
+          auto nextIsoBin = getBinNumber(nextIsoMz, mzMinValue, binWidth);
+
+          if (nextIsoBin < mzBins.size() && mzBins[nextIsoBin] && intensity > mzIntensities[nextIsoBin])
+          {
+            isoIntensity = mzIntensities[nextIsoBin];
+            passFirstStep = true;
+          }
+
+          if (passFirstStep) // if isotopic peaks are present
+          {
+            auto waterAddMz = log(mz + 18.010565 / charge); // 17.026549
+            auto waterAddBin = getBinNumber(waterAddMz, mzMinValue, binWidth);
+            float waterAddIntensity = .0;
+
+            if (waterAddBin < mzBins.size() && mzBins[waterAddBin])
             {
-              logMz = getBinValue(mzBinIndex, mzMinValue, binWidth);
-              mz = exp(logMz);
+              waterAddIntensity = mzIntensities[waterAddBin];
             }
-            double diff = Constants::ISOTOPE_MASSDIFF_55K_U / charge / mz;
-            auto nextIsoMz = logMz + diff;//log(mz + Constants::C13C12_MASSDIFF_U / charge);
-            auto nextIsoBin = getBinNumber(nextIsoMz, mzMinValue, binWidth);
-            //if (hcheck)
 
-            if (nextIsoBin < mzBins.size() && mzBins[nextIsoBin] && intensity > mzIntensities[nextIsoBin])
+            if (waterAddIntensity > 0 && waterAddIntensity < intensity)
             {
-              isoIntensity = mzIntensities[nextIsoBin];
-              //continuousChargePeakPairCount[massBinIndex]++;
-              hcheck = true;
+              isoIntensity += waterAddIntensity;
             }
 
-            if (hcheck)
+            auto amoniaLossMz = log(mz - 17.026549 / charge); // 17.026549
+            auto amoniaLossBin = getBinNumber(amoniaLossMz, mzMinValue, binWidth);
+            float amoniaLossntensity = .0;
+
+            if (amoniaLossBin >= 0 && mzBins[amoniaLossBin])
             {
-              auto waterAddMz = log(mz + 18.010565 / charge); // 17.026549
-              auto waterAddBin = getBinNumber(waterAddMz, mzMinValue, binWidth);
-              float waterAddIntensity = .0;
-
-              if (waterAddBin < mzBins.size() && mzBins[waterAddBin])
-              {
-                waterAddIntensity = mzIntensities[waterAddBin];
-              }
-
-              if (waterAddIntensity > 0 && waterAddIntensity < intensity)
-              {
-                isoIntensity += waterAddIntensity;
-              }
-
-              auto amoniaLossMz = log(mz - 17.026549 / charge); // 17.026549
-              auto amoniaLossBin = getBinNumber(amoniaLossMz, mzMinValue, binWidth);
-              float amoniaLossntensity = .0;
-
-              if (amoniaLossBin >= 0 && mzBins[amoniaLossBin])
-              {
-                amoniaLossntensity = mzIntensities[amoniaLossBin];
-              }
-
-              if (amoniaLossntensity > 0 && amoniaLossntensity < intensity)
-              {
-                isoIntensity += amoniaLossntensity;
-              }
+              amoniaLossntensity = mzIntensities[amoniaLossBin];
             }
-            else
+
+            if (amoniaLossntensity > 0 && amoniaLossntensity < intensity)
             {
-              massIntensitites[massBinIndex] -= intensity;
+              isoIntensity += amoniaLossntensity;
             }
           }
+          else
+          {
+            massIntensitites[massBinIndex] -= intensity;
+          }
         }
-
-
-        if (prevCharges[massBinIndex] < chargeRange && out && id < factor)
+          //for MS1, if charge not continuous and intensity change ratio is low it is noise
+        else if (prevCharges[massBinIndex] < chargeRange && chargeNotContinous && intensityRatio < factor)
         {
           noise[hChargeSize][massBinIndex] += intensity;
         }
 
-        if (out || id > factor)
+        // if charge not continous or intensity ratio is too high reset continuousChargePeakPairCount
+        if (chargeNotContinous || intensityRatio > factor)
         {
           continuousChargePeakPairCount[massBinIndex] = 0;
         }
         else
         {
-          hcheck = true;
+          passFirstStep = true;
         }
 
-
-        if (hcheck)
+        if (passFirstStep)
         {
+          //check harmonic
           int maxHcharge = -1;
           float maxHint = .0;
           auto highThreshold = intensity * factor;
@@ -376,9 +359,6 @@ namespace OpenMS
             }
           }
 
-          //if(mzBinIndex == 106751)
-          //  std::cout<<mzBinIndex<< " " << (int)j << " " << candidateMassBinsForThisSpectrum[massBinIndex]<<std::endl;
-
           if (maxHcharge >= 0) //
           {
             noise[maxHcharge][massBinIndex] += maxHint;
@@ -392,12 +372,8 @@ namespace OpenMS
             }
 
             massIntensitites[massBinIndex] += intensity + isoIntensity;
-            //if (!candidateMassBinsForThisSpectrum[massBinIndex])
-            // {
             candidateMassBinsForThisSpectrum[massBinIndex] =
                 (++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount);
-
-            // }
           }
         }
         prevIntensity = intensity;
@@ -405,12 +381,12 @@ namespace OpenMS
       }
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
-    //std::cout << candidateMassBinsForThisSpectrum.count() << std::endl;
+
+    // Subtract noise intensity from each mass
     auto mindex = candidateMassBinsForThisSpectrum.find_first();
     while (mindex != candidateMassBinsForThisSpectrum.npos)
     {
       auto &s = massIntensitites[mindex];
-      // auto msnr = s / (noise[0][mindex]);
       float maxNoise = .0;
       for (auto k = 0; k <= hChargeSize; k++)
       {
@@ -428,12 +404,10 @@ namespace OpenMS
     }
     delete[] noise;
     delete[] continuousChargePeakPairCount;
-
-
     return candidateMassBinsForThisSpectrum;
   }
 
-
+  // Subfunction of updateMassBins. For each peak, only one mass is selected..
   Byte **SpectrumDeconvolution::updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
                                                 float *massIntensities,
                                                 long &binStart, long &binEnd,
@@ -816,7 +790,7 @@ namespace OpenMS
     {
       peakBinNumbers[i] = getBinNumber(logMzPeaks[i].logMz, mzBinMinValue, binWidth);
     }
-   
+
     while (massBinIndex != massBins.npos)
     {
       double logM = getBinValue(massBinIndex, massBinMinValue, binWidth);
@@ -1009,7 +983,7 @@ namespace OpenMS
 
         }
       }
-      
+
       if (!pg.peaks.empty())
       {
         double maxIntensity = -1.0;
@@ -1061,9 +1035,9 @@ namespace OpenMS
   }
 
   std::vector<PeakGroup> &SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
-                                                                                                  std::vector<double> &prevMinBinLogMassVector,
-                                                                                                  FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                                                                                  unsigned int msLevel)
+                                                                           std::vector<double> &prevMinBinLogMassVector,
+                                                                           FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+                                                                           unsigned int msLevel)
   {
     auto minContinuousChargePeakCount =
         param.minContinuousChargePeakCount[msLevel - 1];//
@@ -1117,14 +1091,14 @@ namespace OpenMS
     }
     auto perMassChargeRanges = updateMassBins(massBinMinValue, mzBinMinValue, massIntensities,
                                               mzBinIntensities, msLevel);
-    
+
     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
                            massIntensities,
                            perMassChargeRanges, avg, msLevel);
 
 
     PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
-    
+
     peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);
 
     if (msLevel == 1)

@@ -36,14 +36,11 @@
 
 namespace OpenMS
 {
-   
-
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &a, Parameter &p) :
       param(p), avg(a)
   {
     prevMassBinMap = std::vector<std::vector<Size>>();
     prevMinBinLogMassMap = std::vector<double>();
-    //peakGroups = std::vector<PeakGroup>();
   }
 
   FLASHDeconvAlgorithm::~FLASHDeconvAlgorithm()
@@ -61,31 +58,40 @@ namespace OpenMS
     //...
     return *this;
   }
-   
-  int FLASHDeconvAlgorithm::getNominalMass(double &m)
+
+  //Calcualte the nominla mass from double mass. Mutiply 0.999497 reduces the rounding error.
+  int FLASHDeconvAlgorithm::getNominalMass(double m)
   {
     return (int) (m * 0.999497 + .5);
   }
 
-  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int& specIndex, int& massIndex)
+
+  //This function is the main function for the deconvolution. Takes empty DeconvolutedSpectrum and fill it up with peakGroups.
+  //A peakGroup is the collection of peaks from a single mass (monoisotopic mass). Thus it contains peaks from different charges and iostope indices.
+  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int &specIndex, int &massIndex)
   {
-    auto* spec = dspec.spec;
+    auto *spec = dspec.spec;
     int msLevel = spec->getMSLevel();
-    if (msLevel == 1 || dspec.precursorPeakGroup == nullptr) {
+
+    //For MS2,3,.. max mass and charge ranges should be determined by precursors
+    if (msLevel == 1 || dspec.precursorPeakGroup == nullptr)
+    {
       param.currentMaxMass = param.maxMass;
       param.currentChargeRange = param.chargeRange;
     }
-    else{
-     param.currentChargeRange = dspec.precursorPeak.getCharge();
-     param.currentMaxMass = dspec.precursorPeakGroup->monoisotopicMass;
+    else
+    {
+      param.currentChargeRange = dspec.precursorPeak.getCharge();
+      param.currentMaxMass = dspec.precursorPeakGroup->monoisotopicMass;
     }
 
-
+    //Prepare spectrum deconvolution
     auto sd = SpectrumDeconvolution(*spec, param);
 
+    //Perform deconvolution and fill in deconvolutedSpectrum
     dspec.peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
-                                               prevMinBinLogMassMap,
-                                               avg, msLevel);
+                                                    prevMinBinLogMassMap,
+                                                    avg, msLevel);
 
 
     if (dspec.empty())
@@ -93,6 +99,7 @@ namespace OpenMS
       return;
     }
 
+    //Update peakGroup information after deconvolution
     for (auto &pg : (dspec.peakGroups))
     {
       sort(pg.peaks.begin(), pg.peaks.end());

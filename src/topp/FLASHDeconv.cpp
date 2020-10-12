@@ -43,7 +43,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
-//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -74,21 +73,9 @@ public:
                false)
   {
   }
-  /*Kyowon,
 
-  scan_1_1 is a single MS1 scan which doesn't give any deconvolution results
-  upon running the version of FLASHDeconv that we have.
-   We single scan modes for our targeted-mode features within MASH Explorer,
-   which can be either an MS1 or MS2 scan.
-
-  scan_107_134 is a set of scan which there are 2 MS2 scans and a set of MS1 scans.
-
-  Thanks,
-  Sean*/
 protected:
-  //typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
   typedef FLASHDeconvHelperStructs::Parameter Parameter;
-  //typedef FLASHDeconvHelperStructs::DeconvolutedSpectrum DeconvolutedSpectrum;
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
@@ -107,9 +94,18 @@ protected:
                         "(e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)",
                         false);
 
-    //registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
-    registerIntOption_("min_charge", "<min_charge>", 1, "minimum charge state", false, false);
-    registerIntOption_("max_charge", "<max_charge>", 100, "maximum charge state", false, false);
+    registerIntOption_("min_charge",
+                       "<min_charge>",
+                       1,
+                       "minimum charge state (can be negative for negative mode)",
+                       false,
+                       false);
+    registerIntOption_("max_charge",
+                       "<max_charge>",
+                       100,
+                       "maximum charge state (can be negative for negative mode)",
+                       false,
+                       false);
     registerDoubleOption_("min_mass", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
@@ -166,12 +162,14 @@ protected:
                        "if set, deconvoluted masses (for MS1 spectra) are reported in promex output format ([prefix]]_FD.ms1ft)",
                        false,
                        true);
+
     registerIntOption_("topfd_out",
                        "",
                        0,
                        "if set, deconvoluted masses are reported in topfd output format ([prefiX]_FD_msX.msalign, per MS level X)",
                        false,
                        true);
+
     registerIntOption_("mzml_out",
                        "",
                        0,
@@ -181,22 +179,17 @@ protected:
 
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
 
-    //registerIntOption_("use_peak_picking",
-    //                  "",
-    //                  0,
-    //                  "if set to 1, peak picking is performed befre deconvolution",
-    //                  false,
-    //                  false);
-
     registerIntOption_("use_ensamble_spectrum",
                        "",
                        0,
                        "if set to 1, all spectra will add up to a single ensamble spectrum (per MS level) for which the deconvolution is performed",
                        false,
                        false);
+
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
   }
 
+  // set Parameter by parsing input parameter options
   Parameter setParameter()
   {
     Parameter param;
@@ -239,18 +232,16 @@ protected:
 
     param.maxMassCount = getIntList_("max_mass_count");
 
-    //param.chargeDistributionScoreThreshold = getDoubleOption_("minCDScore");
     param.RTwindow = getDoubleOption_("RT_window");
     param.minRTSpan = getDoubleOption_("min_RT_span");
-    //param.threads = getIntOption_("threads");
     param.writeDetail = getIntOption_("write_detail");
-    //param.jitter = getIntOption_("jitter");
     param.maxMSLevel = getIntOption_("max_MS_level");
     param.promexOut = getIntOption_("promex_out");
     param.topfdOut = getIntOption_("topfd_out");
     param.mzmlOut = getIntOption_("mzml_out");
     param.useRNAavg = getIntOption_("use_RNA_averagine") > 0;
     param.ensamble = getIntOption_("use_ensamble_spectrum") > 0;
+
     return param;
   }
 
@@ -264,25 +255,42 @@ protected:
     String outfilePath = getStringOption_("out");
 
     auto param = setParameter();
+    // precalculate averagines for quick deconvolution
     auto avgine = FLASHDeconvHelperStructs::calculateAveragines(param);
 
+    // spectrum number per ms level per input file
     auto specCntr = new int[param.maxMSLevel];
     fill_n(specCntr, param.maxMSLevel, 0);
+    // spectrum number with at least one deconvoluted mass per ms level per input file
     auto qspecCntr = new int[param.maxMSLevel];
     fill_n(qspecCntr, param.maxMSLevel, 0);
+    // mass number per ms level per input file
     auto massCntr = new int[param.maxMSLevel];
     fill_n(massCntr, param.maxMSLevel, 0);
+    // feature number per input file
     auto featureCntr = 0;
 
+    // spectrum index written in the output file
+    int specIndex = 1;
+    // mass index written in the output file
+    int massIndex = 1;
+    // feature index written in the output file
+    int featureIndex = 1;
+
+    // total spectrum number per ms level
     auto total_specCntr = new int[param.maxMSLevel];
     fill_n(total_specCntr, param.maxMSLevel, 0);
+    // total spectrum number with at least one deconvoluted mass per ms level
     auto total_qspecCntr = new int[param.maxMSLevel];
     fill_n(total_qspecCntr, param.maxMSLevel, 0);
+    // total mass number per ms level
     auto total_massCntr = new int[param.maxMSLevel];
+    // total feature number
     fill_n(total_massCntr, param.maxMSLevel, 0);
     auto total_featureCntr = 0;
 
     MSExperiment ensamble_map;
+    // generate ensamble spectrum if param.ensamble is set
     if (param.ensamble)
     {
       for (auto i = 0; i < param.maxMSLevel; i++)
@@ -297,16 +305,11 @@ protected:
     }
 
 
-    int specIndex = 1;
-    int massIndex = 1;
-    int featureIndex = 1;
-
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
     fstream featureOut, promexOut, topfdOut_MS1, topfdOut_MS2;
     String mzmlOut;
     auto specOut = new fstream[param.maxMSLevel];
-    //auto mzmlOut = new fstream[param.maxMSLevel];
-    //fstream fa;
+
     //-------------------------------------------------------------
     // reading input file directory -> put that in array
     //-------------------------------------------------------------
@@ -327,10 +330,12 @@ protected:
     }
     sort(infileArray.begin(), infileArray.end());
 
+    // check if output path is a directory
     bool isOutPathDir = (QFileInfo(QString::fromUtf8(outfilePath.data(), (int) outfilePath.size())).isDir());
 
     OPENMS_LOG_INFO << "Initializing ... " << endl;
 
+    // if output path is a file name, output names should be specified accordingly here
     if (!isOutPathDir)
     {
       for (int n = 1; n <= (int) param.maxMSLevel; ++n)
@@ -342,12 +347,8 @@ protected:
       if (param.mzmlOut)
       {
         mzmlOut = outfilePath + "_deconved.mzml";//[preifx]_train_MSn.csv
-        //DeconvolutedSpectrum::writeAttCsvHeader(mzmlOut[n - 1]); //
       }
-      //fa.open(outfilePath + "_MassList.csv", fstream::out);//[preifx]_train_MSn.csv
-      //DeconvolutedSpectrum::writeAttCsvHeader(fa);
-      //fsm.open(outfilePath + ".csv", fstream::out);
-      //writeAttCsvHeader(fsm);
+
       if (!param.ensamble)
       {
         featureOut.open(outfilePath + ".tsv", fstream::out);
@@ -372,6 +373,7 @@ protected:
     //-------------------------------------------------------------
     for (auto &infile : infileArray)
     {
+      // if output is a directory, initialze index and counters
       if (isOutPathDir)
       {
         fill_n(specCntr, param.maxMSLevel, 0);
@@ -379,18 +381,19 @@ protected:
         fill_n(massCntr, param.maxMSLevel, 0);
 
         featureCntr = 0;
+        specIndex = 1;
+        massIndex = 1;
+        featureIndex = 1;
       }
       MSExperiment map;
       MzMLFile mzml;
 
+      // all for measure elapsed cup wall time
       double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-      //double elapsed_deconv_cpu_secs = 0, elapsed_deconv_wall_secs = 0;
-
       auto elapsed_deconv_cpu_secs = new double[param.maxMSLevel];
       auto elapsed_deconv_wall_secs = new double[param.maxMSLevel];
       fill_n(elapsed_deconv_cpu_secs, param.maxMSLevel, 0);
       fill_n(elapsed_deconv_wall_secs, param.maxMSLevel, 0);
-
 
       auto begin = clock();
       auto t_start = chrono::high_resolution_clock::now();
@@ -399,17 +402,14 @@ protected:
 
       mzml.setLogType(log_type_);
       mzml.load(infile, map);
-
       param.fileName = QFileInfo(infile).fileName().toStdString();
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
       auto ms1Cntr = 0;
       auto ms2Cntr = .0; // for debug...
       param.currentMaxMSLevel = 0;
-      specIndex = 1;
-      massIndex = 1;
-      featureIndex = 1;
 
+      // read input dataset once to count spectra and generate ensamble spectrum if necessary
       for (auto &it : map)
       {
         if (it.empty())
@@ -443,23 +443,20 @@ protected:
         }
       }
 
-      //auto numMS2perMS1 = round(ms2Cntr/ms1Cntr)
+      // Max MS Level is adjusted according to the input dataset
       param.currentMaxMSLevel = param.currentMaxMSLevel > param.maxMSLevel ? param.maxMSLevel : param.currentMaxMSLevel;
 
+      // if an ensamble spectrum is analyzed, replace the input dataset with the ensamble one
       if (param.ensamble)
       {
         for (int i = 0; i < param.currentMaxMSLevel; ++i)
         {
           ensamble_map[i].sortByPosition();
         }
-      }
-
-      if (param.ensamble)
-      {
         map = ensamble_map;
         param.numOverlappedScans = 1;
       }
-      else
+      else // otherwise, adjust the number of overlapped spectra with retention time duration specified by users
       {
         double rtDelta = rtDuration / ms1Cntr;
 
@@ -472,6 +469,7 @@ protected:
 
       std::string outfileName(param.fileName);
 
+      // is output is dir, the output file name should be specified by the input file name here
       if (isOutPathDir)
       {
         std::size_t found = outfileName.find_last_of('.');
@@ -487,16 +485,14 @@ protected:
         if (param.mzmlOut)
         {
           mzmlOut = outfilePath + outfileName + "_deconved.mzml";//[preifx]_train_MSn.csv
-          //DeconvolutedSpectrum::writeAttCsvHeader(mzmlOut[n - 1]);
         }
 
-        //mzmlOut.open(outfilePath + outfileName + "_MassList.csv", fstream::out);//[preifx]_train_MSn.csv
-        //DeconvolutedSpectrum::writeThermoInclusionHeader(fa);
         if (!param.ensamble)
         {
           featureOut.open(outfilePath + outfileName + ".tsv", fstream::out);
           MassFeatureTrace::writeHeader(featureOut);
         }
+
         if (param.promexOut)
         {
           promexOut.open(outfilePath + outfileName + "_FD.ms1ft", fstream::out);
@@ -510,7 +506,7 @@ protected:
         }
       }
 
-
+      // parameter set for mass trace
       Param common_param = getParam_().copy("algorithm:common:", true);
       writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
@@ -520,6 +516,7 @@ protected:
       mtd_param.insert("", common_param);
       mtd_param.remove("chrom_fwhm");
 
+      // finally run FLASHDeconv here
       OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
       int scanNumber = 0;
@@ -530,24 +527,17 @@ protected:
 
       MSExperiment exp;
 
-
-      //SpectrumLookup sl;
-      //sl.readSpectra(map);
-
       auto fd = FLASHDeconvAlgorithm(avgine, param);
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         scanNumber = SpectrumLookup::extractScanNumber(it->getNativeID(),
                                                        map.getSourceFiles()[0].getNativeIDTypeAccession());
-        //std::cout<<scanNumber<< " " << map.getSourceFiles()[0].getNativeIDTypeAccession()<<std::endl;
         if (it->empty())
         {
           continue;
         }
 
         auto msLevel = it->getMSLevel();
-        //        if(msLevel ==2 && scanNumber != 171) continue; // TODO
-
         if (msLevel > param.currentMaxMSLevel)
         {
           continue;
@@ -557,20 +547,17 @@ protected:
         auto deconv_begin = clock();
         auto deconv_t_start = chrono::high_resolution_clock::now();
 
-        // per spec deconvolution
+
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
-        //bool proceed = true;
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
+        // for MS>1 spectrum, register precursor
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
-        //if (proceed)
-        //{
+        // per spec deconvolution
         fd.getPeakGroups(deconvolutedSpectrum, specIndex, massIndex);
-        //}
-
 
         if (param.mzmlOut)
         {
@@ -582,7 +569,7 @@ protected:
 
         if (msLevel < param.currentMaxMSLevel)
         {
-          lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
+          lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
         }
         if (deconvolutedSpectrum.empty())
         {
@@ -590,7 +577,7 @@ protected:
         }
         if (!param.ensamble)
         {
-          massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
+          massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);// add deconvoluted mass in massTracer
         }
         qspecCntr[msLevel - 1]++;
         massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
@@ -605,13 +592,17 @@ protected:
         float progress = (float) (it - map.begin()) / map.size();
         if (progress > prevProgress + .01)
         {
-          printProgress(progress); //
+          printProgress(progress);
           prevProgress = progress;
         }
       }
+      // deconvolution progress is finished here
+
       printProgress(1); //
       std::cout << std::endl;
-      std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra);
+      std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra); // empty memory
+
+      // massTracer run
       if (!param.ensamble)
       {
         massTracer.findFeatures(featureCntr, featureIndex, featureOut, promexOut);
@@ -622,6 +613,7 @@ protected:
         mzMlFile.store(mzmlOut, exp);
       }
 
+      // output messages, etc.
       if (isOutPathDir)
       {
         for (int j = 0; j < (int) param.maxMSLevel; j++)
@@ -653,7 +645,7 @@ protected:
         {
           specOut[n - 1].close();
 
-          if (specCntr[n - 1] == 0)
+          if (specCntr[n - 1] == 0)// remove empty files
           {
             QString filename = QString::fromStdString(
                 outfilePath + outfileName + "_MS" + n + (param.ensamble ? "_ensamble_spec" : "_spec") + ".tsv");
@@ -661,8 +653,7 @@ protected:
             file.remove();
           }
         }
-        //fa.close();
-        // fsm.close();
+
         if (!param.ensamble)
         {
           featureOut.close();
@@ -678,7 +669,6 @@ protected:
           topfdOut_MS2.close();
         }
 
-        //fsm.close();
         for (int j = 0; j < (int) param.maxMSLevel; j++)
         {
           total_specCntr[j] += specCntr[j];
@@ -749,12 +739,6 @@ protected:
     }
 
 
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
     OPENMS_LOG_INFO << "Total elapsed time\n-- done [took " << total_elapsed_cpu_secs << " s (CPU), "
                     << total_elapsed_wall_secs
                     << " s (Wall)] --"
@@ -790,9 +774,6 @@ protected:
 
     if (!isOutPathDir)
     {
-      // fsm << "];";
-      //  fsm.close();
-      //  promexOut.close();
       for (int n = 1; n <= (int) param.maxMSLevel; ++n)
       {
         specOut[n - 1].close();
@@ -806,8 +787,6 @@ protected:
         }
       }
 
-      //fa.close();
-      //fsm.close();
       if (!param.ensamble)
       {
         featureOut.close();
@@ -828,7 +807,6 @@ protected:
 
   static void printProgress(float progress)
   {
-    //return; //
     float barWidth = 70;
     std::cout << "[";
     int pos = (int) (barWidth * progress);
