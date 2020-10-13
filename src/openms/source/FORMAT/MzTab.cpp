@@ -1386,15 +1386,15 @@ namespace OpenMS
     entries_ = entries;
   }
 
-  void MzTab::addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row)
+  void MzTabPSMSectionRow::addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences)
   {
     if (peptide_evidences.empty())
     {
       // report without pep evidence information
-      row.pre = MzTabString();
-      row.post = MzTabString();
-      row.start = MzTabString();
-      row.end = MzTabString();
+      pre = MzTabString();
+      post = MzTabString();
+      start = MzTabString();
+      end = MzTabString();
       return;
     }
 
@@ -1456,11 +1456,11 @@ namespace OpenMS
 
       if (i < peptide_evidences.size() - 1) { pre += ','; post += ','; start += ','; end += ','; accession += ',';}
     }
-    row.pre = MzTabString(pre);
-    row.post = MzTabString(post);
-    row.start = MzTabString(start);
-    row.end = MzTabString(end);
-    row.accession = MzTabString(accession);
+    this->pre = MzTabString(pre);
+    this->post = MzTabString(post);
+    this->start = MzTabString(start);
+    this->end = MzTabString(end);
+    this->accession = MzTabString(accession);
   }
 
 
@@ -2094,7 +2094,7 @@ namespace OpenMS
     const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
 
     // add peptide evidences to Rows
-    addPepEvidenceToRows(peptide_evidences, row);
+    row.addPepEvidenceToRows(peptide_evidences);
   
     // remap target/decoy column
     remapTargetDecoyPSMAndPeptideSection_(row.opt_);
