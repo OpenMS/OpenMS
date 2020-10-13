@@ -30,10 +30,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
 // $Authors: Kyowon Jeong, Jihyung Kim $
-// --------------------------------------------------------------------------
-//
-// Created by Kyowon Jeong on 4/22/20.
-//
+// --------------------------------------------------------------------------\
 
 #include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h"
 

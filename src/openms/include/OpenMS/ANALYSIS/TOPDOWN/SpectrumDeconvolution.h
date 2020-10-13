@@ -126,17 +126,17 @@ namespace OpenMS
                            UInt msLevel);
 
     //Update mass bins from mz bins and universal pattern. It select candidate mass bins using the pattern, eliminate possible harmonic masses
-    Byte **updateMassBins(double &massBinMinValue,
-                          double &mzBinMinValue,
-                          float *massIntensities,
-                          float *mzIntensities,
-                          unsigned int &msLevel);
+    std::vector<Byte *> updateMassBins(double &massBinMinValue,
+                                       double &mzBinMinValue,
+                                       float *massIntensities,
+                                       float *mzIntensities,
+                                       unsigned int &msLevel);
 
     //Subfunction of updateMassBins.
-    Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
-                           float *massIntensities,
-                           long &binStart, long &binEnd,
-                           unsigned int &msLevel);
+    std::vector<Byte *> updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
+                                        float *massIntensities,
+                                        long &binStart, long &binEnd,
+                                        unsigned int &msLevel);
 
     //Subfunction of updateMassBins.
     boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites,
@@ -149,7 +149,7 @@ namespace OpenMS
     void getCandidatePeakGroups(double &mzBinMinValue,
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
-                                Byte **chargeRanges,
+                                std::vector<Byte *> chargeRanges,
                                 FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                 unsigned int &msLevel);
 

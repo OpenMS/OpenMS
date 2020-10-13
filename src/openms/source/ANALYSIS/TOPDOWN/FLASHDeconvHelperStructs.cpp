@@ -36,30 +36,31 @@
 
 namespace OpenMS
 {
-	void FLASHDeconvHelperStructs::Parameter::print()
-	{
-        std::cout << "minMass " << this->minMass << "\n"
-            << "maxMass " << this->maxMass << "\n"
-            << "minCharge " << this->minCharge << "\n"
-            << "chargeRange " << this->chargeRange << "\n"
-            << "minNumOverLappedScans " << this->minNumOverLappedScans << "\n"
-            << "tolerances";
-        for (auto i = 0; i < this->tolerance.size(); i++) {
-            std::cout << " " << this->tolerance[i];
-        }
-        std::cout << std::endl;
-
-	}
-
-    FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine()
+  void FLASHDeconvHelperStructs::Parameter::print()
+  {
+    std::cout << "minMass " << this->minMass << "\n"
+              << "maxMass " << this->maxMass << "\n"
+              << "minCharge " << this->minCharge << "\n"
+              << "chargeRange " << this->chargeRange << "\n"
+              << "minNumOverLappedScans " << this->minNumOverLappedScans << "\n"
+              << "tolerances";
+    for (auto i = 0; i < this->tolerance.size(); i++)
     {
+      std::cout << " " << this->tolerance[i];
     }
+    std::cout << std::endl;
 
-    FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(double m,
-                                                                             double M,
-                                                                             double delta,
-                                                                             CoarseIsotopePatternGenerator *generator,
-                                                                             bool useRNAavg)
+  }
+
+  FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine()
+  {
+  }
+
+  FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(double m,
+                                                                           double M,
+                                                                           double delta,
+                                                                           CoarseIsotopePatternGenerator *generator,
+                                                                           bool useRNAavg)
       :
       massInterval(delta), minMass(m)
   {
@@ -77,15 +78,10 @@ namespace OpenMS
         break;
       }
       auto iso = useRNAavg ? generator->estimateFromRNAWeight(a) : generator->estimateFromPeptideWeight(a);
-      //iso.trimIntensities()
-
-      //std::cout<< a << " "<<iso[10].getMZ() - iso[9].getMZ()<<std::endl;
-
       auto factor = .01;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;
-      // double mean = .0;
       Size mostAbundantIndex = 0;
       double mostAbundantInt = 0;
 
@@ -202,7 +198,7 @@ namespace OpenMS
       logMz(peak.logMz),
       charge(c),
       isotopeIndex(i)
-      //index(peak.index)
+  //index(peak.index)
   {
   }
 
@@ -245,7 +241,8 @@ namespace OpenMS
     }
   };
 
-  FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvHelperStructs::calculateAveragines(FLASHDeconvHelperStructs::Parameter& param)
+  FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvHelperStructs::calculateAveragines(
+      FLASHDeconvHelperStructs::Parameter &param)
   {
     auto generator = new CoarseIsotopePatternGenerator();
     //generator->estimateFromRNAWeight(param.maxMass)
