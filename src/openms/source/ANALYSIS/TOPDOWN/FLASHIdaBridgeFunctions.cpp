@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong$
+// $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIdaBridgeFunctions.h>
@@ -37,27 +37,30 @@
 
 namespace OpenMS
 {
-    FLASHIda * CreateFLASHIda(char *arg)
+  FLASHIda *CreateFLASHIda(char *arg)
+  {
+    std::cout << " FLASHIda creating .. " << std::endl;
+    std::unordered_map<std::string, std::vector<double>> inputs;
+    char *token = std::strtok(arg, " ");
+    std::string key;
+
+    while (token != nullptr)
     {
-        std::cout << " FLASHIda creating .. " << std::endl;
-        std::unordered_map<std::string, std::vector<double>> inputs;
-        char* token = std::strtok(arg, " ");
-        std::string key;
+      auto tokenString = std::string(token);
+      auto num = atof(tokenString.c_str());
 
-        while (token != nullptr) {
-            auto tokenString = std::string(token);
-            auto num = atof(tokenString.c_str());
-
-            if (num == 0.0) {
-                key = tokenString;
-                inputs[key] = std::vector<double>();
-            }
-            else {
-                inputs[key].push_back(num);
-                //std::cout << key << " " << num << std::endl;
-            }
-            token = std::strtok(nullptr, " ");
-        }
+      if (num == 0.0)
+      {
+        key = tokenString;
+        inputs[key] = std::vector<double>();
+      }
+      else
+      {
+        inputs[key].push_back(num);
+        //std::cout << key << " " << num << std::endl;
+      }
+      token = std::strtok(nullptr, " ");
+    }
 
         qScoreThreshold = inputs["score_threshold"][0];
         param.minCharge = inputs["min_charge"][0];

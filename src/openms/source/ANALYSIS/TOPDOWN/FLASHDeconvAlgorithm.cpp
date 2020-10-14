@@ -67,6 +67,7 @@ namespace OpenMS
 
 
   //This function is the main function for the deconvolution. Takes empty DeconvolutedSpectrum and fill it up with peakGroups.
+  // DeconvolutedSpectrum contains the recursor peak group for MSn.
   //A peakGroup is the collection of peaks from a single mass (monoisotopic mass). Thus it contains peaks from different charges and iostope indices.
   void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int &specIndex, int &massIndex)
   {
@@ -93,14 +94,13 @@ namespace OpenMS
                                                     prevMinBinLogMassMap,
                                                     avg, msLevel);
 
-
     if (dspec.empty())
     {
       return;
     }
 
     //Update peakGroup information after deconvolution
-    for (auto &pg : (dspec.peakGroups))
+    for (auto &pg : dspec.peakGroups)
     {
       sort(pg.peaks.begin(), pg.peaks.end());
       pg.spec = spec;

@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong $
+// $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHProFilterAlgorithm.h>
@@ -50,34 +50,12 @@ namespace OpenMS
     }
 
     std::cout << "Total " << proteinVectors.size() << " proteins processed\n";
-    //std::cout << map.size() << " " << *map.rbegin() << std::endl;
   }
 
   FLASHProFilterAlgorithm::~FLASHProFilterAlgorithm()
   {
 
-  }//-march=native
-
-  /*
-      Size m = *specVectorIndex.rbegin();
-      evergreen::Tensor<evergreen::cpx> y({m+1});
-      for (auto j: specVectorIndex)
-        y[j] = evergreen::cpx{double(specVector[j]), .0};
-      for(int i=0;i<proteinVectors.size();i++)
-      {
-        Size  n = *proteinVectorIndex[i].rbegin();
-        evergreen::Tensor<evergreen::cpx> x({n+1});
-
-        //std::cout<<n+1<<std::endl;
-
-        for (auto &j: proteinVectorIndex[i])
-        {
-         // std::cout << j << " "<< i<< std::endl;
-          x[j] = evergreen::cpx{double(proteinVectors[i][j]), .0};
-        }
-        evergreen::Tensor<evergreen::cpx> z = fft_convolve(x, y);
-      }
-  */
+  }
 
   double *FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec, double intThreshold)
   {
@@ -96,7 +74,6 @@ namespace OpenMS
         continue;
       }
       intensities.push_back(sp.getIntensity());
-      // filtered.push_back(Peak1D(sp.getMZ(), log10(sp.getIntensity())));
     }
     auto scores = new double[proteinVectors.size()];
     std::fill_n(scores, proteinVectors.size(), 0);

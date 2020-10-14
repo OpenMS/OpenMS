@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong$
+// $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
 
@@ -81,10 +81,4 @@ auto score =
 
     return -score;
   }
-
-  //double QScore::getQScore(PeakGroup *pg, Precursor peak){
-  //  return getQScore(pg, peak.getIntensity(), peak.getCharge());
-  //}
-
-
 }

@@ -44,6 +44,7 @@
 
 namespace OpenMS
 {
+  // class for real time flashdeconv..
   class OPENMS_DLLAPI FLASHIda
   {
   public:

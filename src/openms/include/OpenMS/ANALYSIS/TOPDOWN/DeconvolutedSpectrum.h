@@ -42,23 +42,24 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <iomanip>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 
 namespace OpenMS
 {
-  class PeakGroup;
+  struct PeakGroup;
 
-  class OPENMS_DLLAPI DeconvolutedSpectrum
+  struct OPENMS_DLLAPI DeconvolutedSpectrum
   {
 
-  public: // TODO protect and public devide..
+  public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-    //typedef FLASHDeconvHelperStructs::hash_LogMzPeak hash_LogMzPeak;
 
     DeconvolutedSpectrum();
 
+    //takes spectrum and scan number
     explicit DeconvolutedSpectrum(MSSpectrum &s, int n);
 
     ~DeconvolutedSpectrum();
@@ -81,19 +82,17 @@ namespace OpenMS
 
     bool empty() const;
 
+    // for memory save... clear unnecessary information in mass tracing
     void clearPeakGroupsChargeInfo();
+
+    bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
 
     MSSpectrum *spec;
     std::vector<PeakGroup> peakGroups;
-    //std::vector<LogMzPeak> peaks;
-    //std::vector<double> mzs; // sorted peaks from the original spectrum
 
     PeakGroup *precursorPeakGroup = nullptr;
     Precursor precursorPeak;
-    //double originalPrecursorIntensity = 0;
     std::string activationMethod;
-
-    bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
 
     int scanNumber, precursorScanNumber;
   };

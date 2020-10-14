@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong$
+// $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
@@ -38,26 +38,33 @@
 
 namespace OpenMS
 {
-    // constructor
-    FLASHIda::FLASHIda(Parameter& p, PrecalculatedAveragine& a) :
-        param(p), avg(a)
-    {
-        //prevRT = -1;
-        selected = std::map<int, std::vector<double>>(); // int mass, rt, qscore
-        prevMassBinMap = std::vector<std::vector<Size>>();
-        prevMinBinLogMassMap = std::vector<double>();
-        peakGroups = std::vector<PeakGroup>();
-    }
+  // constructor
+  FLASHIda::FLASHIda(Parameter &p, PrecalculatedAveragine &a) :
+      param(p), avg(a)
+  {
+    //prevRT = -1;
+    selected = std::map<int, std::vector<double>>(); // int mass, rt, qscore
+    prevMassBinMap = std::vector<std::vector<Size>>();
+    prevMinBinLogMassMap = std::vector<double>();
+    peakGroups = std::vector<PeakGroup>();
+  }
 
-    FLASHIda::~FLASHIda()
-    {
-    }
+  FLASHIda::~FLASHIda()
+  {
+  }
 
-    int FLASHIda::getPeakGroups(double* mzs, double* ints, int length, double rt, int msLevel, char* name, double qScoreThreshold)
+  int FLASHIda::getPeakGroups(double *mzs,
+                              double *ints,
+                              int length,
+                              double rt,
+                              int msLevel,
+                              char *name,
+                              double qScoreThreshold)
+  {
+    if (msLevel == 1)
     {
-        if (msLevel == 1) {
-            param.currentMaxMass = param.maxMass;
-            param.currentChargeRange = param.chargeRange;
+      param.currentMaxMass = param.maxMass;
+      param.currentChargeRange = param.chargeRange;
 
         }
         else {

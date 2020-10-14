@@ -37,6 +37,7 @@
 namespace OpenMS
 {
 
+  //Once a peak group is defined it is scored using this class.
   PeakGroupScoring::PeakGroupScoring(std::vector<PeakGroup> &pg, Parameter &p) :
       peakGroups(pg), param(p)
   {
@@ -44,7 +45,6 @@ namespace OpenMS
 
   PeakGroupScoring::~PeakGroupScoring()
   {
-
   }
 
 
@@ -295,6 +295,7 @@ namespace OpenMS
     }
 
 
+    auto maxCntr = 0;
     for (int f = -isoSize - minIsotopeIndex; f <= maxIsotopeIndex; f++)
     {
       auto cos = PeakGroupScoring::getCosine(perIsotopeIntensities,
@@ -312,13 +313,22 @@ namespace OpenMS
                                               isoSize,
                                               f);
  */
-      if (maxCosine < cos)
+      if (maxCosine <= cos)
       {
-        maxCosine = cos;
-        offset = f;
+        if (maxCosine == cos)
+        {
+          maxCntr++;
+          offset += f;
+        }
+        else
+        {
+          maxCosine = cos;
+          maxCntr = 1;
+          offset = f;
+        }
       }
     }
-
+    offset /= maxCntr;
     return maxCosine;
   }
 
@@ -796,7 +806,7 @@ namespace OpenMS
   void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
   { // pgs are sorted
     //return;
-    int isoLength = 3; // inclusive
+    int isoLength = 0; // inclusive
     sort(peakGroups.begin(), peakGroups.end());
     std::vector<PeakGroup> filtered;
     filtered.reserve(peakGroups.size());

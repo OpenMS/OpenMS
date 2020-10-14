@@ -44,6 +44,7 @@
 
 #include "OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h"
 
+// C++ to C# bridge functions
 namespace OpenMS
 {
 	extern "C" OPENMS_DLLAPI FLASHIda * CreateFLASHIda(char* arg);

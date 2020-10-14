@@ -46,36 +46,41 @@
 
 namespace OpenMS
 {
-  //class DeconvolutedSpectrum;
-  class OPENMS_DLLAPI PeakGroup
+  // data structure for peak group. A mass contains multiple peaks of different charges and isotope indices
+  struct OPENMS_DLLAPI PeakGroup
   {
-  public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
 
-    //econvolutedSpectrum *deconvSpec;
-    int scanNumber, specIndex;
+    // the spectrum from which a peak group is generated
     MSSpectrum *spec;
+    // the peaks contained in this peak group
     std::vector<LogMzPeak> peaks;
+    // information for identity
+    int scanNumber, specIndex;
+
+    // information on the deconvouted mass
     double monoisotopicMass = .0;
     double avgMass = .0;
-    double intensity = .0;
+    double intensity = .0;// total intensity
     Size massBinIndex = 0;
+    int massIndex;
 
+    // information on scoring
     float isotopeCosineScore = .0;
     float chargeCosineScore = .0;
-
-    int massIndex;
-    int maxCharge, minCharge;
     int maxQScoreCharge = 0;
-    std::unordered_map<int, std::vector<float>> perChargeInfo; // charge -> SNR, ICos, SumInt
-    //std::unordered_map<int, float> perChargeICos;
-    //std::unordered_map<int, float> perChargeSumInt;
-
     float qScore = -10000;
     float totalSNR = 0;
+
+    // other information appeared on the output file
+    int maxCharge, minCharge;
     double maxQScoreMzEnd, maxQScoreMzStart;
+
+    // necessary temp information for scoring.
+    std::unordered_map<int, std::vector<float>> perChargeInfo; // charge -> SNR, ICos, SumInt
+
 
     ~PeakGroup();
 

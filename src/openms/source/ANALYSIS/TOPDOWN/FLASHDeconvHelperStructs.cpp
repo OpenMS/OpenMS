@@ -120,17 +120,11 @@ namespace OpenMS
         iso[k].setIntensity(0);
       }
 
-      //iso.averageMass()
-      //iso[0].getMZ()
-
       rightIndices.push_back(rightIndex);
       leftIndices.push_back(leftIndex);
       averageMassDelta.push_back(iso.averageMass() - iso[0].getMZ());
       norms.push_back(norm);
       isotopes.push_back(iso);
-
-      //std::cout<< a << " " << mostAbundantIndex <<" " << endIndex << std::endl;
-      //auto mostAbundant = iso.getMostAbundant();
     }
   }
 
@@ -245,7 +239,6 @@ namespace OpenMS
       FLASHDeconvHelperStructs::Parameter &param)
   {
     auto generator = new CoarseIsotopePatternGenerator();
-    //generator->estimateFromRNAWeight(param.maxMass)
     auto maxIso = param.useRNAavg ?
                   generator->estimateFromRNAWeight(param.maxMass) :
                   generator->estimateFromPeptideWeight(param.maxMass);
@@ -261,9 +254,4 @@ namespace OpenMS
     return std::log(mz - chargeMass);
   }
 
-  /*
-  std::size_t FLASHDeconvHelperStructs::hash_LogMzPeak::operator()(FLASHDeconvHelperStructs::LogMzPeak const &key) const
-  {
-    return std::hash<double>()(key.mz);
-  }*/
 }

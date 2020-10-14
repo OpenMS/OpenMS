@@ -46,8 +46,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-//#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
-
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
 #include <iomanip>
@@ -61,13 +59,13 @@
 
 namespace OpenMS
 {
+  // feature trace in mass dimention for FLASHDeconv
   class OPENMS_DLLAPI MassFeatureTrace
   {
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-   // typedef FLASHDeconvHelperStructs::DeconvolutedSpectrum DeconvolutedSpectrum;
 
     /// default constructor
     MassFeatureTrace(Parameter &param, Param &mtd_param, PrecalculatedAveragine &averagines);
@@ -80,13 +78,13 @@ namespace OpenMS
     void findFeatures(int &featureCntr, int &featureIndex, std::fstream &fsf, std::fstream &fsp);
 
     static void writeHeader(std::fstream &fs);
+
     static void writePromexHeader(std::fstream &fs);
 
   protected:
     Parameter &param;
     Param &mtd_param;
     PrecalculatedAveragine &averagines;
-
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };
 }

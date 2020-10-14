@@ -76,18 +76,15 @@ namespace OpenMS
 
   bool PeakGroup::operator>(const PeakGroup &a) const
   {
-    //if(this->spec->getRT() == a.spec->getRT()){
     if(this->monoisotopicMass == a.monoisotopicMass){
       return this->intensity > a.intensity;
     }
     return this->monoisotopicMass > a.monoisotopicMass;
-    //}
-    //return this->spec->getRT() > a.spec->getRT();
   }
 
   bool PeakGroup::operator==(const PeakGroup &a) const
   {
-    return// this->spec->getRT() == a.spec->getRT() &&
+    return
         this->monoisotopicMass == a.monoisotopicMass
         && this->intensity == a.intensity;
   }

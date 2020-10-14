@@ -114,11 +114,13 @@ namespace OpenMS
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
 
-      int minScanNum = (int)map.size() + 1000;
+      int minScanNum = (int) map.size() + 1000;
       int maxScanNum = 0;
 
       int repScan = 0, repCharge = 0;
       double maxIntensity = 0;
+      double maxMass = .0;
+      double maxIso = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
       std::fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
       std::fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
@@ -141,6 +143,13 @@ namespace OpenMS
         {
           maxIntensity = pg.intensity;
           repScan = scanNumber;
+
+        }
+
+        if (pg.isotopeCosineScore > maxIso)
+        {
+          maxIso = pg.isotopeCosineScore;
+          maxMass = pg.monoisotopicMass;
         }
 
 
@@ -161,9 +170,8 @@ namespace OpenMS
           }
           perChargeMaxIntensity[p.charge] = p.intensity;
           perChargeMz[p.charge] = p.mz;
-          // std::cout<<3<<std::endl;
         }
-        //std::cout<<3<<std::endl;
+
       }
 
       double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity,
@@ -174,6 +182,7 @@ namespace OpenMS
       }
 
       int offset = 0;
+
       double mass = mt.getCentroidMZ();
       double isoScore = PeakGroupScoring::getIsotopeCosineAndDetermineIsotopeIndex(mass,
                                                                                    perIsotopeIntensity,
@@ -199,16 +208,10 @@ namespace OpenMS
       }
 
       auto massDelta = averagines.getAverageMassDelta(mass);
-
-      //
-
-      //auto mass = mt.getCentroidMZ();
       ++featureCntr;
       fsf << featureIndex++ << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"
           << std::to_string(mass + massDelta) << "\t" // massdiff
           << mt.getSize() << "\t"
-          //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
-          //<< getNominalMass(mass) << "\t"
           << mt.begin()->getRT() << "\t"
           << mt.rbegin()->getRT() << "\t"
           << mt.getTraceLength() << "\t"
@@ -284,7 +287,6 @@ namespace OpenMS
     fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
-          //"\tPeakGroupMasses\tPeakGroupRTs"
           "\n";
   }
 
@@ -294,7 +296,6 @@ namespace OpenMS
     fs << "FeatureID\tMinScan\tMaxScan\tMinCharge\tMaxCharge\t"
           "MonoMass\tRepScan\tRepCharge\tRepMz\tAbundance\tApexScanNum\tApexIntensity\tMinElutionTime\tMaxElutionTime\t"
           "ElutionLength\tEnvelope\tLikelihoodRatio"
-          //"\tPeakGroupMasses\tPeakGroupRTs"
           "\n";
   }
 

@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong $
+// $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
 
@@ -38,20 +38,19 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CONCEPT/Types.h>
-//#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include  <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 
 namespace OpenMS
 {
-  class PeakGroup;
+  struct PeakGroup;
 
+  // QScore : quality score for precursors
   class OPENMS_DLLAPI QScore
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     static double getQScore(PeakGroup *pg, double intensity, int charge);
-    //static double getQScore(PeakGroup *pg, Precursor peak);
   };
 }

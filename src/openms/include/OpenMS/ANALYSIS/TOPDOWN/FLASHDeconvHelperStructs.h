@@ -55,6 +55,7 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
   {
+    // FLASHDeconv parameter
     struct OPENMS_DLLAPI Parameter
     {
       int minCharge = 1;
@@ -70,30 +71,34 @@ namespace OpenMS
 
       IntList minContinuousChargePeakCount = {3, 2};
       int maxIsotopeCount = 100;
-      IntList maxMassCount = { -1, -1 };
-
+      IntList maxMassCount = {-1, -1};
       unsigned int maxMSLevel = 100;//maxMSL;
       unsigned int currentMaxMSLevel = 100;//maxMSL;
 
-      //double charg = 1eDistributionScoreThreshold;
       double RTwindow = 60.0;
       double minRTSpan = 10.0;
-      std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
+
       int chargeRange = 100;
       int currentChargeRange = 100;
-      DoubleList binWidth;
-      UInt minNumOverLappedScans = 15;
-      int numOverlappedScans = 15;
-      int threads = 1;
+
       int writeDetail = 0;
       bool promexOut = false;
       bool topfdOut = false;
       bool mzmlOut = false;
       bool useRNAavg = false;
       bool ensamble = false;
+
+      // automatically set parameters...
+      std::vector<int> hCharges{2, 3, 5,};
+      /
+      DoubleList binWidth;
+      UInt minNumOverLappedScans = 15;
+      int numOverlappedScans = 15;
+      int threads = 0;
+
       void print();
+
       double chargeMass = Constants::PROTON_MASS_U;
-      //int jitter = 0;
     };
 
     struct OPENMS_DLLAPI PrecalculatedAveragine
@@ -131,7 +136,6 @@ namespace OpenMS
       double mass = .0;
       int charge = 0;
       int isotopeIndex = -1;
-      //int index = -1;// index in (filtered) spectrum
 
       LogMzPeak();
 
@@ -152,12 +156,6 @@ namespace OpenMS
       bool operator==(const LogMzPeak &other) const;
 
     };
-
-    /*
-    struct OPENMS_DLLAPI hash_LogMzPeak
-    {
-      std::size_t operator () (const LogMzPeak &key) const;
-    };*/
 
     static PrecalculatedAveragine calculateAveragines(Parameter &param);
 

@@ -47,51 +47,13 @@ namespace OpenMS
 
   DeconvolutedSpectrum::~DeconvolutedSpectrum()
   {
-    //delete peakGroups;
-    //std::vector<LogMzPeak>().swap(peaks);
     std::vector<PeakGroup>().swap(peakGroups);
-    //std::unordered_map<int, PeakGroup>().swap(peakGroupMap);
   }
 
   bool DeconvolutedSpectrum::empty() const
   {
     return peakGroups.empty();
   }
-
-  //void DeconvolutedSpectrum::clearChargeSNRMap(){
-  //  for(auto &pg : peakGroups){
-  //    pg.clearChargeInfo();
-  //  }
-  //}
-  /*void DeconvolutedSpectrum::updatePeakGroupMap()
-  {
-    if (!peakGroupMap.empty())
-    {
-      return;
-    }
-    //std::cout<< peaks.size()<<std::endl;
-
-    for (auto &pg : peakGroups)
-    {
-      for (auto &p : pg.peaks)
-      {
-        auto position = p.index;
-        if (peakGroupMap.find(position) == peakGroupMap.end())
-        {
-          peakGroupMap[position] = pg;
-        }
-        else
-        {
-          if (peakGroupMap[position].isotopeCosineScore < pg.isotopeCosineScore)
-          {
-            peakGroupMap[position] = pg;
-          }
-          continue;
-        }
-      }
-    }
-    //std::cout<<"2"<<std::endl;
-  }*/
 
   MSSpectrum DeconvolutedSpectrum::toSpectrum()
   {
@@ -103,7 +65,7 @@ namespace OpenMS
       {
         continue;
       }
-      auto p = Peak1D(pg.monoisotopicMass, pg.intensity); //TODO
+      auto p = Peak1D(pg.monoisotopicMass, pg.intensity);
       outSpec.push_back(p);
     }
     if (precursorPeakGroup != nullptr && !spec->getPrecursors().empty())
@@ -144,22 +106,6 @@ namespace OpenMS
         minCharge = minCharge < p.charge ? minCharge : p.charge;
         maxCharge = maxCharge > p.charge ? maxCharge : p.charge;
       }
-
-      //"MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
-      //               "SumIntensity\tMinCharge\tMaxCharge\t"
-      //               "PeakCount
-      //               \tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-
-      //               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
-      //
-      // "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
-      //               "SumIntensity\tMinCharge\tMaxCharge\t"
-      //               "PeakCount
-      //               \tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-
-      //               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorQScore\t"
-      //               "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
-      //
 
       fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.scanNumber << "\t"
          << std::to_string(spec->getRT()) << "\t"
@@ -209,14 +155,7 @@ namespace OpenMS
           fs << 1e6 * diff << ";";
         }
         fs << "\t";
-
-
       }
-
-      //               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
-      //               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorQScore\t"
-      //               "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
-
       if (spec->getMSLevel() > 1)
       {
         //PrecursorScanNum	PrecursorMz	PrecursorIntensity PrecursorCharge	PrecursorMonoMass		PrecursorQScore
@@ -256,7 +195,7 @@ namespace OpenMS
       if (n == 1)
       {
         fs
-            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
@@ -264,10 +203,10 @@ namespace OpenMS
       else
       {
         fs
-            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoMass\tPrecursorQScore\t"
+               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
                "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
       }
     }
@@ -276,7 +215,7 @@ namespace OpenMS
       if (n == 1)
       {
         fs
-            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
@@ -286,20 +225,13 @@ namespace OpenMS
       else
       {
         fs
-            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
-               //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoMass\tPrecursorQScore\t"
+               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
                "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
-
-
       }
-
     }
-    //pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz
-    //MinScan	MaxScan	 RepScan	RepCharge	RepMz ApexScanNum    Envelope
-
   }
 
   void DeconvolutedSpectrum::writeAttCsvHeader(std::fstream &fs)
@@ -333,16 +265,6 @@ namespace OpenMS
     {
       if (precursorPeakGroup != nullptr)
       {
-        /*auto avgDiff = .0;
-
-        for (auto &p : precursorPeakGroup->peaks)
-        {
-          auto tm = precursorPeakGroup->monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-          avgDiff += (tm / p.charge + Constants::PROTON_MASS_U - p.mz) / p.mz;
-        }
-        avgDiff /= precursorPeakGroup->peaks.size();
-        avgDiff *= 1e6;*/
-
         fs << scanNumber << "," << precursorPeakGroup->spec->getRT() << "," << precursorPeakGroup->scanNumber << ","
            << precursorPeak.getCharge()
            << "," << log10(precursorPeakGroup->perChargeInfo[precursorPeak.getCharge()][0] + 1e-3) << ","
@@ -480,7 +402,7 @@ namespace OpenMS
         }
       }
     }
-    //std::cout<<toExclude.size()<<std::endl;
+
     nselected.swap(selected);
     std::map<double, std::map<int, double>>().swap(nselected);
 
@@ -492,7 +414,7 @@ namespace OpenMS
       scores.reserve(peakGroups.size());
       for (auto &pg : peakGroups)
       {
-        int nmass = (int) (pg.monoisotopicMass * 0.999497 + .5); // TODO optimize!!
+        int nmass = FLASHDeconvAlgorithm::getNominalMass(pg.monoisotopicMass);
         if (toExclude.find(nmass) != toExclude.end())
         {
           continue;
@@ -525,7 +447,7 @@ namespace OpenMS
       {
         break;
       }
-      int nmass = (int) (pg.monoisotopicMass * 0.999497 + .5);
+      int nmass = FLASHDeconvAlgorithm::getNominalMass(pg.monoisotopicMass);
 
       if (numMaxMS2 > 0 && peakGroups.size() > (Size) numMaxMS2)
       {
@@ -579,7 +501,7 @@ namespace OpenMS
       auto rtinMin = pg.spec->getRT() / 60.0;
       auto z = pg.maxQScoreCharge;
       auto iso = (pg.maxQScoreMzEnd - pg.maxQScoreMzStart) / 2.0 + .2;
-      iso = iso < .4 ? .4 : iso; // TODO
+      iso = iso < .4 ? .4 : iso; // TODO : .4 should be defined somewhere
 
       fs << pg.qScore  //"spec"<<scanNumber<<"_mz"<<tmz<<"_z"<<z<<"_m"<<pg.monoisotopicMass
          << "," << pg.monoisotopicMass << "," << maxIntensity << "," << std::to_string(tmz) << "," << z << ","
@@ -606,9 +528,6 @@ namespace OpenMS
       {
         fs << "MS_ONE_ID=" << precursorPeakGroup->specIndex << "\n"
            << "MS_ONE_SCAN=" << precursorPeakGroup->scanNumber << "\n"
-           //<< "PRECURSOR_MZ_ori="
-           //<< std::to_string(spec->getPrecursors()[0].getMZ()) << "\n"
-           //<< "PRECURSOR_CHARGE_ori=" << spec->getPrecursors()[0].getCharge() << "\n"
            << "PRECURSOR_MZ="
            << std::to_string(precursorPeak.getMZ()) << "\n"
            << "PRECURSOR_CHARGE=" << precursorPeak.getCharge() << "\n"
@@ -622,9 +541,6 @@ namespace OpenMS
            << "PRECURSOR_MZ="
            << std::to_string(precursorPeak.getMZ()) << "\n"
            << "PRECURSOR_CHARGE=" << precursorPeak.getCharge() << "\n"
-           //<< "PRECURSOR_MZ="
-           //<< std::to_string(precursorPeak->mz) << "\n"
-           //<< "PRECURSOR_CHARGE=" << precursorPeak->charge << "\n"
            << "PRECURSOR_MASS=" << std::to_string(precursorPeak.getMZ() * precursorPeak.getCharge()) << "\n"
            << "PRECURSOR_INTENSITY=" << precursorPeak.getIntensity() << "\n";
       }
@@ -729,37 +645,6 @@ namespace OpenMS
         maxSumIntensity = sumIntensity;
         precursorPeakGroup = &pg;
       }
-
-      /*if (precursorPeak == nullptr)
-      {
-        double minDistance = 10000.0;
-
-        auto position =
-            std::lower_bound(precursorSpectrum.spec->begin(), precursorSpectrum.spec->end(), LogMzPeak(startMz)) -
-                precursorSpectrum.spec->begin();
-
-        for (; position < (int) precursorSpectrum.spec->size(); position++)
-        {
-          auto mz = (*precursorSpectrum.spec)[position].getMZ();
-          if (mz < startMz)
-          {
-            continue;
-          }
-          if (mz > endMz)
-          {
-            break;
-          }
-
-          auto distance = abs(p.getMZ() - mz);
-          if (distance > minDistance)
-          {
-            continue;
-          }
-
-          minDistance = distance;
-          precursorPeak = &((*precursorSpectrum.spec)[position]);
-        }
-      }*/
     }
 
     return precursorPeakGroup != nullptr;
