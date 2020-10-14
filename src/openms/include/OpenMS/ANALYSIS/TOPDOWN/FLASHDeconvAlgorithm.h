@@ -60,9 +60,12 @@ namespace OpenMS
   @ingroup Topdown
 */
   /** check OPENMS c++ guide **/
+
+  struct DeconvolutedSpectrum;
+
   class OPENMS_DLLAPI FLASHDeconvAlgorithm
   {
-public:
+  public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;

@@ -90,7 +90,6 @@ namespace OpenMS
 
       // automatically set parameters...
       std::vector<int> hCharges{2, 3, 5,};
-      /
       DoubleList binWidth;
       UInt minNumOverLappedScans = 15;
       int numOverlappedScans = 15;

@@ -30,7 +30,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
 // $Authors: Kyowon Jeong, Jihyung Kim $
-// --------------------------------------------------------------------------\
+// --------------------------------------------------------------------------
 
 #include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h"
 
