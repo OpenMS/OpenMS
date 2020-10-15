@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-
 #include "OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h"
 
 namespace OpenMS

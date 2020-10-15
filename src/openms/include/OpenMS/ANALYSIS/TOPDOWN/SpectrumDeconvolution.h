@@ -49,7 +49,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 
-
 namespace OpenMS
 {
   //This class performs spectrum level deconvolution.

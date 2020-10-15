@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-
 #include "include/OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h"
 
 namespace OpenMS

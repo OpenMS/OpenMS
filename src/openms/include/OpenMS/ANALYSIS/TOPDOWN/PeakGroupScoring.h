@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-
 #pragma once
 
 #include <Eigen/Dense>
@@ -45,6 +44,7 @@
 
   #include <omp.h> // for test..
 #endif
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI PeakGroupScoring

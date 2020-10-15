@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-
 #pragma once
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

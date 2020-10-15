@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
-
 #include "OpenMS/ANALYSIS/TOPDOWN/QScore.h"
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 

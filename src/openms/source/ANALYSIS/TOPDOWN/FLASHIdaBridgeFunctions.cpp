@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIdaBridgeFunctions.h>
 
-
 namespace OpenMS
 {
   FLASHIda *CreateFLASHIda(char *arg)

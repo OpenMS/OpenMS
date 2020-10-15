@@ -71,7 +71,6 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    /// 
     FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &avg, Parameter &param);
 
     /// default destructor
@@ -92,7 +91,7 @@ namespace OpenMS
   protected:
     // FLASHDeconv parameter set
     Parameter &param;
-    // precalcualted averagine patterns
+    // precalculated averagine patterns
     FLASHDeconvHelperStructs::PrecalculatedAveragine &avg;
 
     //The data structures for spectra overlapping.
