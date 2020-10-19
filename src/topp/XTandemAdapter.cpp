@@ -102,7 +102,7 @@ using namespace std;
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
     Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
 
-    Hint: this adapter supports 15N labeling by specifying
+    @note This adapter supports 15N labeling by specifying
 @code
 <note type="input" label="protein, modified residue mass file">/path/to/bioml.xml</note>
 @endcode

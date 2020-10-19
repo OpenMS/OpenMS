@@ -75,10 +75,10 @@ using namespace std;
           </tr>
           <tr>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref OpenSWATH pipeline </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref Utils_AccurateMassSearch </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_AccurateMassSearch </td>
           </tr>
       </table>
   </CENTER>

@@ -26,7 +26,7 @@ The most important CMake variables are:
   <tr>
     <td valign="top">\c Qt5_DIR</td>
     <td>Additional search path for the Qt5 CMake files. Use <tt>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt5</tt> as value.</td>
-  <\tr>
+  </tr>
   <tr>
     <td valign="top">\c HAS_XSERVER=On/Off</td>
     <td>[Linux/MacOS only] Defines if a running X Server is available when building %OpenMS.
