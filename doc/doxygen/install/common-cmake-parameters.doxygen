@@ -60,7 +60,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
-    <td>Check online for OpenMS Updates upon invocation of any TOPP/UTIL.
+    <td>Check online for %OpenMS Updates upon invocation of any TOPP/UTIL.
     (Default: On)</td>
   </tr>
   <tr>
@@ -96,8 +96,8 @@ The most important CMake variables are:
     This directory is only needed to include thirdparty tools in the installer for %OpenMS.
   </tr>
   <tr>
-    <td valign="top">\c PYOPENMS</td>
-    <td>Use ON to enable the target for Python bindings, see also @ref pyOpenMS.</td>
+    <td valign="top">\c PYOPENMS=Off/On</td>
+    <td>Create Python bindings, see also @ref pyOpenMS (Default: Off)</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_INSTALL_PREFIX</td>
