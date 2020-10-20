@@ -8,7 +8,6 @@ set(UTILS_executables
     ClusterMassTraces
     ClusterMassTracesByPrecursor
     CVInspector
-    DBsearchDeconvMass
     DatabaseFilter
     DecoyDatabase
     DeMeanderize
