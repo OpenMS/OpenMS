@@ -66,9 +66,9 @@ public:
     /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
     bool getForceMQCompatability() const;
 
-    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    /// [mzML only!] Whether to skip writing the \<isolationWindow\> tag so that TPP finds the correct precursor m/z
     void setForceTPPCompatability(bool forceTPP);
-    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    /// [mzML only!] Whether to skip writing the \<isolationWindow\> tag so that TPP finds the correct precursor m/z
     bool getForceTPPCompatability() const;
     //@}
 
