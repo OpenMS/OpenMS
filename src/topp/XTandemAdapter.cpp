@@ -98,7 +98,7 @@ using namespace std;
     By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
     The parameter @p default_config_file can be used to specify such a custom configuration.
     An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the @em X!Tandem installation and in the %OpenMS installation
-    under <code>OpenMS/share/CHEMISTRY/XTandem_default_input.xml</code>.
+    under <code>OpenMS/share/CHEMISTRY/XTandem_default_config.xml</code>.
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
     Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
 
@@ -161,7 +161,7 @@ protected:
       "tandem.exe",
 #endif
       "X! Tandem executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-    registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_input.xml'.", false, false, {"skipexists"});
+    registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_config.xml'.", false, false, {"skipexists"});
     setValidFormats_("default_config_file", {"xml"});
     registerFlag_("ignore_adapter_param", "Set this to use the configuration given in 'default_config_file' exclusively, ignoring other parameters (apart from 'in', 'out', 'database', 'xtandem_executable') set via this adapter.");
 
