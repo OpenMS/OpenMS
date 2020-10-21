@@ -43,10 +43,6 @@ namespace OpenMS
     prevMinBinLogMassMap = std::vector<double>();
   }
 
-  FLASHDeconvAlgorithm::~FLASHDeconvAlgorithm()
-  {
-    //std::vector<PeakGroup>().swap(peakGroups);
-  }
 
   FLASHDeconvAlgorithm &FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm &fd)
   {

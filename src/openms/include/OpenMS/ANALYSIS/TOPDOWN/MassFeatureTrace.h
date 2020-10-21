@@ -34,9 +34,6 @@
 
 #pragma once
 
-#ifndef OPENMS_HOST_MASSFEATURETRACE_H
-#define OPENMS_HOST_MASSFEATURETRACE_H
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
@@ -91,4 +88,3 @@ namespace OpenMS
 
 
 
-#endif //OPENMS_HOST_MASSFEATURETRACE_H

@@ -43,7 +43,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 
 namespace OpenMS
 {
@@ -56,12 +55,12 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    DeconvolutedSpectrum();
+    DeconvolutedSpectrum() = default;
 
     //takes spectrum and scan number
     explicit DeconvolutedSpectrum(MSSpectrum &s, int n);
 
-    ~DeconvolutedSpectrum();
+    ~DeconvolutedSpectrum() = default;
 
     void writeDeconvolutedMasses(std::fstream &fs, Parameter &param);
 

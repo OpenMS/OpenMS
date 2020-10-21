@@ -74,10 +74,13 @@ namespace OpenMS
     FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &avg, Parameter &param);
 
     /// default destructor
-    ~FLASHDeconvAlgorithm();
+    ~FLASHDeconvAlgorithm() = default;
 
     /// copy constructor
-    // FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &);
+    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &) = default;
+
+    // move constructor
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);

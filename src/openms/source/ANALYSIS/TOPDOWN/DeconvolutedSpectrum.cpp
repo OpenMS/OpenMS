@@ -36,18 +36,9 @@
 
 namespace OpenMS
 {
-  DeconvolutedSpectrum::DeconvolutedSpectrum()
-  {
-  }
-
   DeconvolutedSpectrum::DeconvolutedSpectrum(MSSpectrum &s, int n) :
       spec(&s), scanNumber(n)
   {
-  }
-
-  DeconvolutedSpectrum::~DeconvolutedSpectrum()
-  {
-    std::vector<PeakGroup>().swap(peakGroups);
   }
 
   bool DeconvolutedSpectrum::empty() const
@@ -65,8 +56,7 @@ namespace OpenMS
       {
         continue;
       }
-      auto p = Peak1D(pg.monoisotopicMass, pg.intensity);
-      outSpec.push_back(p);
+      outSpec.emplace_back(pg.monoisotopicMass, pg.intensity);
     }
     if (precursorPeakGroup != nullptr && !spec->getPrecursors().empty())
     {
@@ -96,9 +86,9 @@ namespace OpenMS
       {
         continue;
       }
-      double &m = pg.monoisotopicMass;
-      double &am = pg.avgMass;
-      double &intensity = pg.intensity;
+      const double &m = pg.monoisotopicMass;
+      const double &am = pg.avgMass;
+      const double &intensity = pg.intensity;
       int minCharge = param.chargeRange + param.minCharge;
       int maxCharge = -1;
       for (auto &p : pg.peaks)
@@ -151,7 +141,6 @@ namespace OpenMS
         {
           auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
           auto diff = (tm / p.charge + param.chargeMass - p.mz) / p.mz;
-
           fs << 1e6 * diff << ";";
         }
         fs << "\t";

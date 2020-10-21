@@ -70,9 +70,6 @@ namespace OpenMS
 
   protected:
     std::vector<FASTAFile::FASTAEntry> fastaEntry;
-    //Eigen::MatrixXcf
-
-    //std::vector<std::set<Size>> proteinVectorIndex;
     std::vector<PeakSpectrum> proteinVectors;
   };
 }

@@ -39,7 +39,6 @@ namespace OpenMS
   FLASHProFilterAlgorithm::FLASHProFilterAlgorithm(const String &fasta)
   {
     FASTAFile::load(fasta, fastaEntry);
-    //std::set<int> map;
     for (auto &fe : fastaEntry)
     {
       auto aaSeq = AASequence::fromString(fe.sequence);
