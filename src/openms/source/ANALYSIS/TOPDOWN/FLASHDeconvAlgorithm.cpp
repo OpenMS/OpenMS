@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h>
 
 namespace OpenMS
 {
@@ -42,7 +45,6 @@ namespace OpenMS
     prevMassBinMap = std::vector<std::vector<Size>>();
     prevMinBinLogMassMap = std::vector<double>();
   }
-
 
   FLASHDeconvAlgorithm &FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm &fd)
   {

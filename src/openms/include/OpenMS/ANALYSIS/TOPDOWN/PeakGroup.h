@@ -59,18 +59,18 @@ namespace OpenMS
     int scanNumber, specIndex;
 
     // information on the deconvouted mass
-    double monoisotopicMass = .0;
-    double avgMass = .0;
-    double intensity = .0;// total intensity
-    Size massBinIndex = 0;
+    double monoisotopicMass;
+    double avgMass;
+    double intensity;// total intensity
+    Size massBinIndex;
     int massIndex;
 
     // information on scoring
-    float isotopeCosineScore = .0;
-    float chargeCosineScore = .0;
-    int maxQScoreCharge = 0;
-    float qScore = -10000;
-    float totalSNR = 0;
+    float isotopeCosineScore;
+    float chargeCosineScore;
+    int maxQScoreCharge;
+    float qScore;
+    float totalSNR;
 
     // other information appeared on the output file
     int maxCharge, minCharge;

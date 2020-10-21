@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h"
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 
 namespace OpenMS
 {
@@ -60,13 +61,12 @@ namespace OpenMS
     }
     if (precursorPeakGroup != nullptr && !spec->getPrecursors().empty())
     {
-      std::vector<Precursor> precursors;
       Precursor precursor(spec->getPrecursors()[0]);
       precursor.setCharge(precursorPeakGroup->maxQScoreCharge);
       precursor.setMZ(precursorPeakGroup->monoisotopicMass);
       precursor.setIntensity(precursorPeakGroup->intensity);
-      precursors.push_back(precursor);
-      outSpec.setPrecursors(precursors);
+
+      outSpec.getPrecursors().emplace_back(precursor);
     }
 
     return outSpec;
