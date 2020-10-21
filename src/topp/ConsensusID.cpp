@@ -220,7 +220,7 @@ protected:
         const auto& iter_inserted = seen_proteins.emplace(hit.getAccession());
         if (iter_inserted.second)
         {
-          merged_proteins.emplace_back(std::move(hit));
+          merged_proteins.push_back(std::move(hit));
         }
       }
     }
@@ -814,7 +814,7 @@ protected:
       {
         if (in.size() != 1)
         {
-          OPENMS_LOG_WARN << "ConsensusID on idXML without the --per_spectrum flag, expects a single idXML file."
+          OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag, expects a single idXML file."
           "Please merge the files with IDMerger using its default settings." << std::endl;
         }
         // note: this requires a single merged idXML file.
@@ -822,7 +822,7 @@ protected:
 
         if (prot_ids.size() == 1)
         {
-          OPENMS_LOG_WARN << "ConsensusID on idXML without the --per_spectrum flag usually expects a merged idXML file"
+          OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag expects a merged idXML file"
           "with multiple runs. Only one run found in the first file." << std::endl;
         }
         
@@ -883,20 +883,21 @@ protected:
 
         // compute consensus
         pep_ids.clear();
-        for (ConsensusMap::Iterator it = grouping.begin(); it != grouping.end();
-             ++it)
+        for (auto& cfeature : grouping)
         {
-          consensus->apply(it->getPeptideIdentifications(), runid_to_se, old_size);
-          if (!it->getPeptideIdentifications().empty())
+          auto& ids = cfeature.getPeptideIdentifications();
+          consensus->apply(ids, runid_to_se, old_size);
+          
+          if (!ids.empty())
           {
-            PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
+            PeptideIdentification& pep_id = ids[0];
             // hits may be empty due to filtering (parameter "min_support");
             // in that case skip to avoid a warning from "IDXMLFile::store":
             if (!pep_id.getHits().empty())
             {
               pep_id.setIdentifier(prot_ids[0].getIdentifier());
-              pep_id.setRT(it->getRT());
-              pep_id.setMZ(it->getMZ());
+              pep_id.setRT(cfeature.getRT());
+              pep_id.setMZ(cfeature.getMZ());
               pep_ids.push_back(pep_id);
             }
           }
