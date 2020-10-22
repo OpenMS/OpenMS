@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <iomanip>
 
 namespace OpenMS
 {
