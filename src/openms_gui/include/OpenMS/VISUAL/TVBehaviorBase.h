@@ -36,7 +36,6 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
-#include <vector>
 
 namespace OpenMS
 {
@@ -76,10 +75,10 @@ public:
 
     virtual ~TVBehaviorBase() = default;
 public slots:
-    /// Slot for behavior activation
+    /// Slot for behavior activation. The default behaviour does nothing. Override in child class if desired.
     virtual void activateBehavior();
 
-    /// Slot for behavior deactivation
+    /// Slot for behavior deactivation. The default behaviour does nothing. Override in child class if desired.
     virtual void deactivateBehavior();
 protected:
     /// Construct the behaviour
