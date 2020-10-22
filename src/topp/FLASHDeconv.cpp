@@ -254,6 +254,8 @@ protected:
     String infilePath = getStringOption_("in");
     String outfilePath = getStringOption_("out");
 
+    OPENMS_LOG_INFO << "Initializing ... " << endl;
+
     auto param = setParameter();
     // precalculate averagines for quick deconvolution
     auto avgine = FLASHDeconvHelperStructs::calculateAveragines(param);
@@ -332,8 +334,6 @@ protected:
 
     // check if output path is a directory
     bool isOutPathDir = (QFileInfo(QString::fromUtf8(outfilePath.data(), (int) outfilePath.size())).isDir());
-
-    OPENMS_LOG_INFO << "Initializing ... " << endl;
 
     // if output path is a file name, output names should be specified accordingly here
     if (!isOutPathDir)
