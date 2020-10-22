@@ -18,6 +18,5 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>" namespace "Op
         Int getNumberOfProtIds(double protein_id_threshold) nogil except +
         # TODO nested STL
         # Int getNumberOfProtIdsPeptideRule(Int min_peptides, libcpp_map[ String, libcpp_set[ String ] ] & prot_id_counter) nogil except +
-        void setSolver(SOLVER solver) nogil except +
         SOLVER getSolver() nogil except +
 

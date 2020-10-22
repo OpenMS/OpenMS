@@ -106,16 +106,14 @@ namespace OpenMS
 
   bool Spectrum3DCanvas::finishAdding_()
   {
-    if (layers_.back().type != LayerData::DT_PEAK)
+    if (layers_.getCurrentLayer().type != LayerData::DT_PEAK)
     {
       popIncompleteLayer_("This widget supports peak data only. Aborting!");
       return false;
     }
 
-    current_layer_ = getLayerCount() - 1;
-
     //Abort if no data points are contained
-    if (getCurrentLayer().getPeakData()->size() == 0 || getCurrentLayer().getPeakData()->getSize() == 0)
+    if (getCurrentLayer().getPeakData()->empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
@@ -125,26 +123,22 @@ namespace OpenMS
     resetZoom(false);
 
     //Warn if negative intensities are contained
-    if (getMinIntensity(current_layer_) < 0.0)
+    if (getCurrentMinIntensity() < 0.0)
     {
       QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
     }
 
     emit layerActivated(this);
-    openglwidget()->recalculateDotGradient_(current_layer_);
+    openglwidget()->recalculateDotGradient_(getCurrentLayer());
     update_buffer_ = true;
     update_(OPENMS_PRETTY_FUNCTION);
 
     return true;
   }
 
-  void Spectrum3DCanvas::activateLayer(Size layer_index)
+  void Spectrum3DCanvas::activateLayer(Size index)
   {
-    if (layer_index >= getLayerCount() || layer_index == current_layer_)
-    {
-      return;
-    }
-    current_layer_ = layer_index;
+    layers_.setCurrentLayer(index);
     emit layerActivated(this);
     update_(OPENMS_PRETTY_FUNCTION);
   }
@@ -156,14 +150,9 @@ namespace OpenMS
       return;
     }
 
-    layers_.erase(layers_.begin() + layer_index);
-
-    //update current layer if it became invalid
-    if (current_layer_ != 0 && current_layer_ >= getLayerCount())
-      current_layer_ = getLayerCount() - 1;
+    layers_.removeLayer(layer_index);
 
     recalculateRanges_(0, 1, 2);
-
     if (layers_.empty())
     {
       overall_data_range_ = DRange<3>::empty;
@@ -209,7 +198,7 @@ namespace OpenMS
   void Spectrum3DCanvas::showCurrentLayerPreferences()
   {
     Internal::Spectrum3DPrefDialog dlg(this);
-    LayerData & layer = getCurrentLayer_();
+    LayerData & layer = getCurrentLayer();
 
 // cout << "IN: " << param_ << endl;
 
@@ -236,7 +225,7 @@ namespace OpenMS
 
   void Spectrum3DCanvas::currentLayerParamtersChanged_()
   {
-    openglwidget()->recalculateDotGradient_(current_layer_);
+    openglwidget()->recalculateDotGradient_(layers_.getCurrentLayer());
     recalculateRanges_(0, 1, 2);
 
     update_buffer_ = true;
@@ -253,7 +242,7 @@ namespace OpenMS
     QAction * result = nullptr;
 
     //Display name and warn if current layer invisible
-    String layer_name = String("Layer: ") + getCurrentLayer().name;
+    String layer_name = String("Layer: ") + getCurrentLayer().getName();
     if (!getCurrentLayer().visible)
     {
       layer_name += " (invisible)";
@@ -376,7 +365,7 @@ namespace OpenMS
     selected_peak_.clear();
     recalculateRanges_(0, 1, 2);
     resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
-    openglwidget()->recalculateDotGradient_(i);
+    openglwidget()->recalculateDotGradient_(layers_.getLayer(i));
     intensityModeChange_();
     modificationStatus_(i, false);
   }
@@ -392,10 +381,10 @@ namespace OpenMS
     {
       gradient_str = linear_gradient_.toString();
     }
-    for (Size i = 0; i < layers_.size(); ++i)
+    for (Size i = 0; i < layers_.getLayerCount(); ++i)
     {
-      layers_[i].param.setValue("dot:gradient", gradient_str);
-      openglwidget()->recalculateDotGradient_(i);
+      layers_.getLayer(i).param.setValue("dot:gradient", gradient_str);
+      openglwidget()->recalculateDotGradient_(layers_.getLayer(i));
     }
     SpectrumCanvas::intensityModeChange_();
   }

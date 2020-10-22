@@ -32,11 +32,13 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
+
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
@@ -117,20 +119,19 @@ namespace OpenMS
       ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
       // fix legend and set layer name
-      caption = layer.name + "[" + index + "]";
+      caption = layer.getName() + "[" + index + "]";
       w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
-      if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
+      if (!w->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, layer.filename, caption, exp_sptr, index, false))
       {
         return;
       }
-      w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-      w->canvas()->activateSpectrum(0);
+      w->canvas()->activateSpectrum(index);
     }
     else if (layer.type == LayerData::DT_PEAK)
     {
-      caption = layer.name;
+      caption = layer.getName();
 
       // add data
       if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
@@ -172,13 +173,11 @@ namespace OpenMS
       visible_area.setMinY(tmp_x1);
       visible_area.setMaxY(tmp_x2);
       w->canvas()->setVisibleArea(visible_area);
-
-      w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
     }
 
     // basic behavior 2
-    String caption = layer.name;
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    String caption = layer.getName();
+    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
     tv_->showSpectrumWidgetInWindow(w, caption);
     tv_->updateLayerBar();
@@ -201,7 +200,7 @@ namespace OpenMS
     // string for naming the different chromatogram layers with their index
     String chromatogram_caption;
     // string for naming the tab title with the indices of the chromatograms
-    caption = layer.name;
+    caption = layer.getName();
 
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
@@ -215,15 +214,15 @@ namespace OpenMS
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
         // fix legend and set layer name
-        caption = caption + " [" + index + "];";
-        chromatogram_caption = layer.name + "[" + index + "]";
+        caption += String(" [") + index + "];";
+        chromatogram_caption = layer.getName() + "[" + index + "]";
 
         // add chromatogram data as peak spectrum
         if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
         {
           return;
         }
-        w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), chromatogram_caption);
+        w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), chromatogram_caption);
         w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
 
         w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
@@ -252,22 +251,20 @@ namespace OpenMS
     // basic behavior 2
 
     tv_->showSpectrumWidgetInWindow(w, caption);
-    tv_->updateLayerBar();
-    tv_->updateViewBar();
-    tv_->updateFilterBar();
-    tv_->updateMenu();
+    tv_->updateBarsAndMenus();
   }
 
+  // called by SpectraViewWidget::spectrumSelected()
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
   {
-    Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
+    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     widget_1d->canvas()->activateSpectrum(index);
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
@@ -275,49 +272,25 @@ namespace OpenMS
     if (layer.chromatogram_flag_set())
     {
       // first get raw data (the full experiment with all chromatograms), we
-      // only need to grab the ones with the desired indices
-      ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
+      // only need to grab the one with the desired index
+      ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
       auto ondisc_sptr = layer.getOnDiscPeakData();
 
-      const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
       String fname = layer.filename;
-      String lname = layer.name;
 
-      Size layercount = widget_1d->canvas()->getLayerCount();
-      for (Size i = 0; i != layercount; ++i)
-      {
-        widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
-      }
+      widget_1d->canvas()->removeLayers();
 
       ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
       // fix legend and set layer name
-      caption = lname + "[" + index + "]";
+      caption = fname + "[" + index + "]";
 
-      // add chromatogram data as peak spectrum
-      if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, fname))
-      {
-        return;
-      }
-
-      widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-      widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
-
-      widget_1d->canvas()->getCurrentLayer().name = caption;
-      widget_1d->canvas()->getCurrentLayer().filename = fname;
-      widget_1d->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
-      //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-      widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
-      widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "false");
-      widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
-
-      tv_->updateLayerBar();
-      tv_->updateViewBar();
-      tv_->updateFilterBar();
-      tv_->updateMenu();
+      // add chromatogram data as peak spectrum and update other controls
+      widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, false);
     }
   }
 
+  // called by SpectraViewWidget::spectrumSelected()
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(const std::vector<int>& indices)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
@@ -326,24 +299,25 @@ namespace OpenMS
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
+    const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
     // new spectrum.
-    const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
-    String fname = layer.filename;
     if (layer.chromatogram_flag_set())
     {
       // first get raw data (the full experiment with all chromatograms), we
       // only need to grab the ones with the desired indices
-      ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
+      ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
       auto ondisc_sptr = layer.getOnDiscPeakData();
 
-      Size layercount = widget_1d->canvas()->getLayerCount();
-      for (Size i = 0; i != layercount; ++i)
-      {
-        widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
-      }
+      widget_1d->canvas()->removeLayers();
 
+      widget_1d->canvas()->blockSignals(true);
+      RAIICleanup clean([&]()
+      {
+        widget_1d->canvas()->blockSignals(false);
+      });
+      String fname = layer.filename;
       for (const auto& index : indices)
       {
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
@@ -354,29 +328,11 @@ namespace OpenMS
         {
           caption = String(chrom_exp_sptr->getMetaValue("peptide_sequence")) + "[" + index + "]";
         }
-
         // add chromatogram data as peak spectrum
-        if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, fname))
-        {
-          return;
-        }
-
-        widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-        widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
-
-        widget_1d->canvas()->getCurrentLayer().name = caption;
-        widget_1d->canvas()->getCurrentLayer().filename = fname;
-        widget_1d->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
-        //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
-        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "true");
-        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
+        widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, true);
       }
 
-      tv_->updateLayerBar();
-      tv_->updateViewBar();
-      tv_->updateFilterBar();
-      tv_->updateMenu();
+      tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
     }
   }
 

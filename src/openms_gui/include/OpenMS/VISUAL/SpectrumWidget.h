@@ -152,12 +152,6 @@ public:
     /// Saves the widget's content as image file
     virtual void saveAsImage();
 
-    /// getter for the EnhancedTabBar window id as defined in the interface
-    Int getWindowId() override;
-
-    /// setter for the EnhancedTabBar window id as defined in the interface
-    void setWindowId(Int window_id) override;
-
 signals:
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string, OpenMS::UInt);
@@ -231,6 +225,8 @@ protected:
     void dragEnterEvent(QDragEnterEvent * event) override;
     void dragMoveEvent(QDragMoveEvent * event) override;
     void dropEvent(QDropEvent * event) override;
+    /// make our subclassed QWidget listen to things like stylesheet changes
+    void paintEvent(QPaintEvent * /*event*/) override;
     //@}
 
     /// Pointer to the canvas widget
@@ -245,8 +241,6 @@ protected:
     QScrollBar * x_scrollbar_;
     /// Vertical scrollbar
     QScrollBar * y_scrollbar_;
-
-    Int window_id_;
   };
 }
 

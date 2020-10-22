@@ -17,6 +17,9 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
+        
+    - name: Reduce PATH
+      run: echo "::set-env name=PATH::C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
@@ -174,6 +177,11 @@ jobs:
               lnknm=$(basename "${f%/*}" ".framework")
               ln -s $f $lnknm
             done
+            for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
+            do
+              install_name_tool -id $f $f
+            done
+            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
           mkdir bld
           pushd bld
@@ -249,8 +257,8 @@ jobs:
 
     - name: Build on manylinux2014 
       run: |
-            # fixes some issues with empty pxd files
-            rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
+            ## Do not load shared objects from root folder oft he package at import. Auditwheel handles dependencies.
+            patch -p0 $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyopenms/__init__.py < $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/dist-scripts/manylinux.patch
 
             # install Python deps
             for PYBIN in /opt/python/cp3*; do
@@ -259,7 +267,7 @@ jobs:
               "$PYBIN/bin/pip" install -U wheel==0.31.1
               "$PYBIN/bin/pip" install -U numpy
               "$PYBIN/bin/pip" install -U nose
-              "$PYBIN/bin/pip" install -U autowrap==0.18.1
+              "$PYBIN/bin/pip" install -U autowrap
             done
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -394,7 +402,9 @@ jobs:
           pip install $CURRENT_WHL
 
           python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"
-
+          ## at least test the import
+          ## TODO run test suite?
+          python -c "import pyopenms"
           conda deactivate
 
           # clean up

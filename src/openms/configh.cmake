@@ -184,5 +184,33 @@ set(CONFIGURED_OPENMS_DATA_PATH_H ${PROJECT_BINARY_DIR}/include/OpenMS/openms_da
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/openms_data_path.h.in ${CONFIGURED_OPENMS_DATA_PATH_H})
 
 #------------------------------------------------------------------------------
-# export a list of all configured heders
-set(OpenMS_configured_headers "${CONFIGURED_CONFIG_H};${CONFIGURED_OPENMS_PACKAGE_VERSION_H};${CONFIGURED_OPENMS_DATA_PATH_H}")
+# Generate build_config_$config.h at configure time
+# Modify the used build_config.h at build time
+set (CONFIGURED_BUILD_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/build_config_$<CONFIG>.h)
+set (CONFIGURED_BUILD_CONFIG_CURRENT_H ${PROJECT_BINARY_DIR}/include/OpenMS/build_config.h)
+
+file (GENERATE
+			OUTPUT ${CONFIGURED_BUILD_CONFIG_H}
+			CONTENT "
+#ifndef OPENMS_BUILD_CONFIG_H
+#define OPENMS_BUILD_CONFIG_H
+
+#define OPENMS_BUILD_TYPE \"$<CONFIG>\"
+
+#endif // OPENMS_BUILD_CONFIG_H
+"
+			)
+
+add_custom_command (
+		COMMAND ${CMAKE_COMMAND} "-E" "copy_if_different" "${CONFIGURED_BUILD_CONFIG_H}" "${CONFIGURED_BUILD_CONFIG_CURRENT_H}"
+		VERBATIM
+		PRE_BUILD
+		DEPENDS  "${CONFIGURED_BUILD_CONFIG_H}"
+		OUTPUT   "${CONFIGURED_BUILD_CONFIG_CURRENT_H}"
+		COMMENT  "creating build_config.h file ({event: PRE_BUILD}, {filename: build_config.h})"
+)
+
+#------------------------------------------------------------------------------
+# export a list of all configured headers
+set(OpenMS_configured_headers "${CONFIGURED_BUILD_CONFIG_CURRENT_H};${CONFIGURED_CONFIG_H};${CONFIGURED_OPENMS_PACKAGE_VERSION_H};${CONFIGURED_OPENMS_DATA_PATH_H}")
+set_property(SOURCE ${CONFIGURED_BUILD_CONFIG_CURRENT_H} PROPERTY SKIP_AUTOMOC ON)

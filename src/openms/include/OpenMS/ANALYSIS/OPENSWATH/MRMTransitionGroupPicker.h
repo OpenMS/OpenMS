@@ -414,7 +414,7 @@ public:
           if (!transition_group.getTransitions()[k].isDetectingTransition())
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "When using non-censensus peak picker, all transitions need to be detecting transitions.");
+                "When using non-consensus peak picker, all transitions need to be detecting transitions.");
           }
           local_left = left_edges[k];
           local_right = right_edges[k];

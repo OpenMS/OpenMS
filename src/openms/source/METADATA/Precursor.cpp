@@ -109,6 +109,17 @@ namespace OpenMS
     return activation_methods_;
   }
 
+  StringList Precursor::getActivationMethodsAsString() const
+  {
+    StringList am;
+    am.reserve(activation_methods_.size());
+    for (const auto& m : activation_methods_)
+    {
+      am.push_back(NamesOfActivationMethod[m]);
+    }
+    return am;
+  }
+
   void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)
   {
     activation_methods_ = activation_methods;

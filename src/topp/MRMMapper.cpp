@@ -124,7 +124,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("traML"));
 
     registerOutputFile_("out", "<file>", "", "Output file containing mapped chromatograms");
     setValidFormats_("out", ListUtils::create<String>("mzML"));

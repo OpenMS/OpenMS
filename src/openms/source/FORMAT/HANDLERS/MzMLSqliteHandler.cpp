@@ -35,20 +35,18 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
-
-#include <OpenMS/FORMAT/SqliteConnector.h>
-
-#include <sqlite3.h>
-#include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
+#include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/ZlibCompression.h>
 
 #include <QtCore/QFileInfo>
 
 // #include <type_traits> // for template arg detection
 #include <boost/type_traits.hpp>
+
+#include <sqlite3.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -740,7 +738,7 @@ namespace OpenMS
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
           run_id << ",'" << native_id << "','" << native_id << "'); ";
       conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_run_sql);
+      conn.executeStatement(insert_run_sql.str());
       conn.executeStatement("END TRANSACTION");
 
       if (write_full_meta)
@@ -1106,9 +1104,9 @@ namespace OpenMS
       }
 
       conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_spectra_sql);
-      if (nr_precursors > 0) conn.executeStatement(insert_precursor_sql);
-      if (nr_products > 0) conn.executeStatement(insert_product_sql);
+      conn.executeStatement(insert_spectra_sql.str());
+      if (nr_precursors > 0) conn.executeStatement(insert_precursor_sql.str());
+      if (nr_products > 0) conn.executeStatement(insert_product_sql.str());
       conn.executeStatement("END TRANSACTION");
     }
 
@@ -1299,9 +1297,9 @@ namespace OpenMS
       }
 
       conn.executeStatement("BEGIN TRANSACTION");
-      conn.executeStatement(insert_chrom_sql);
-      conn.executeStatement(insert_precursor_sql);
-      conn.executeStatement(insert_product_sql);
+      conn.executeStatement(insert_chrom_sql.str());
+      conn.executeStatement(insert_precursor_sql.str());
+      conn.executeStatement(insert_product_sql.str());
       conn.executeStatement("END TRANSACTION");
     }
 

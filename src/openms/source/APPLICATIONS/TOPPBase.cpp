@@ -108,6 +108,11 @@ namespace OpenMS
 #endif
   }
 
+  String TOPPBase::getToolPrefix() const
+  {
+    return tool_name_ + ":" + instance_number_ + ":";
+  }
+
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
     tool_name_(tool_name),
     tool_description_(tool_description),
@@ -191,7 +196,7 @@ namespace OpenMS
     writeDebug_(String("Instance: ") + String(instance_number_), 1);
 
     // assign ini location
-    *const_cast<String*>(&ini_location_) = tool_name_ + ':' + String(instance_number_) + ':';
+    *const_cast<String*>(&ini_location_) = this->getToolPrefix();
     writeDebug_(String("Ini_location: ") + getIniLocation_(), 1);
 
     // set debug level
@@ -1913,7 +1918,7 @@ namespace OpenMS
   Param TOPPBase::getDefaultParameters_() const
   {
     Param tmp;
-    String loc = tool_name_ + ":" + String(instance_number_) + ":";
+    String loc = this->getToolPrefix();
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
@@ -2185,19 +2190,18 @@ namespace OpenMS
 
   String TOPPBase::getDocumentationURL() const
   {
-    if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
+    VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
+    String tool_prefix = official_ ? "TOPP_" : "UTILS_";
+    // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
+    // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
+    if (ver.pre_release_identifier.empty())
     {
-      return String("http://www.openms.de/documentation/TOPP_") + tool_name_ + ".html";
-    }
-    else if (ToolHandler::getUtilList().count(tool_name_))
-    {
-      return String("http://www.openms.de/documentation/UTILS_") + tool_name_ + ".html";
+      String release_version = String(ver.version_major) + "." + String(ver.version_minor) + "." + String(ver.version_patch);
+      return String("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ tool_prefix + tool_name_ + ".html";
     }
     else
     {
-      // TODO: Fix tests first
-      // throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A tool either needs to be an official tool or registered as util (TOPP tool not registered)");
-      return "";
+      return String("http://www.openms.de/doxygen/nightly/html/") + tool_prefix + tool_name_ + ".html";
     }
   }
 

@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Marc Sturm, Stephan Aiche $
+// $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,8 +37,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <string>
-#include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -95,7 +94,6 @@ namespace OpenMS
       TXT,                ///< any text format, which has only loose definition of what it actually contains -- thus it is usually hard to say where the file actually came from (e.g. PepNovo).
       OBO,                ///< Controlled Vocabulary format
       HTML,               ///< any HTML format
-      XML,                ///< any XML format
       ANALYSISXML,        ///< analysisXML format
       XSD,                ///< XSD schema format
       PSQ,                ///< NCBI binary blast db
@@ -114,31 +112,54 @@ namespace OpenMS
       JSON,               ///< JavaScript Object Notation file (.json)
       RAW,                ///< Thermo Raw File (.raw)
       EXE,                ///< Executable (.exe)
+      XML,                ///< any XML format
+      BZ2,                ///< any BZ2 compressed file
+      GZ,                 ///< any Gzipped file
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
+    };
+
+
+    enum class Filter
+    {
+      COMPACT,    ///< make a single item, e.g. 'all readable files (*.mzML *.mzXML);;'
+      ONE_BY_ONE, ///< list all types individually, e.g. 'mzML files (*.mzML);;mzXML files (*.mzXML);;'
+      BOTH        ///< combine COMPACT and ONE_BY_ONE
+    };
+    /**
+      @brief holds a vector of known file types, e.g. as a way to specify supported input formats
+
+      The vector can be exported in Qt's file dialog format.
+    */
+    class OPENMS_DLLAPI FileTypeList
+    {
+    public:
+      FileTypeList(const std::vector<Type>& types);
+
+      /// check if @p type is contained in this array
+      bool contains(const Type& type) const;
+
+      /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
+      /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
+      /// @param style Create a combined filter, or single filters, or both
+      /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
+      String toFileDialogFilter(const Filter style, bool add_all_filter) const;
+    private:
+      std::vector<Type> type_list_;
     };
 
     /// Returns the name/extension of the type.
     static String typeToName(Type type);
-
-    /// Returns the mzML name (TODO: switch to accession since they are more stable!)
-    static String typeToMZML(Type type);
-
+    
+    /// Returns the human-readable explanation of the type.
+    /// This may or may not add information, e.g.
+    /// MZML becomes "mzML raw data file", but FEATUREXML becomes "OpenMS feature map"
+    static String typeToDescription(Type type);
+    
     /// Converts a file type name into a Type
     static Type nameToType(const String& name);
 
-private:
-    /// Maps the FileType::Type to the preferred extension.
-    static const std::map<Type, String> name_of_types_;
-
-    /// Maps the FileType::Type to the preferred mzML CV name.
-    static const std::map<Type, String> name_of_MZMLtypes_;
-
-    /// Initializer for the file extension map.
-    static std::map<Type, String> initializeMap_();
-
-    /// Initializer for the file extension map.
-    static std::map<Type, String> initializeMZMLMap_();
-
+    /// Returns the mzML name (TODO: switch to accession since they are more stable!)
+    static String typeToMZML(Type type);
   };
 
 } //namespace OpenMS

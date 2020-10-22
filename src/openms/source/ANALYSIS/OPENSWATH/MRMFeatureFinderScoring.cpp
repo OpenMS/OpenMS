@@ -106,6 +106,7 @@ namespace OpenMS
     defaults_.setValidStrings("scoring_model", ListUtils::create<String>("default,single_transition"));
     defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25% extra on each side)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("im_extra_drift", 0.0);
+    defaults_.setValue("strict", "true", "Whether to error (true) or skip (false) if a transition in a transition group does not have a corresponding chromatogram.", ListUtils::create<String>("advanced"));
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -155,8 +156,6 @@ namespace OpenMS
 
     // write defaults into Param object param_
     defaultsToParam_();
-
-    strict_ = true;
   }
 
   MRMFeatureFinderScoring::~MRMFeatureFinderScoring()
@@ -907,8 +906,8 @@ namespace OpenMS
       ///////////////////////////////////////////////////////////////////////////
       // add the peptide hit information to the feature
       ///////////////////////////////////////////////////////////////////////////
-      PeptideIdentification pep_id_ = PeptideIdentification();
-      PeptideHit pep_hit_ = PeptideHit();
+      PeptideIdentification pep_id_;
+      PeptideHit pep_hit_;
 
       if (pep->getChargeState() != 0)
       {
@@ -1027,6 +1026,7 @@ namespace OpenMS
 
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
     emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));
+    strict_ = (bool)param_.getValue("strict").toBool();
 
     su_.use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
     su_.use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();
@@ -1146,7 +1146,7 @@ namespace OpenMS
     // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
-      if (!trgroup_it->second.isInternallyConsistent() || trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size())
+      if (!trgroup_it->second.isInternallyConsistent())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
                                          trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \

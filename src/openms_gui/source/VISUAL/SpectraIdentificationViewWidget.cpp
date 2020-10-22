@@ -142,7 +142,7 @@ namespace OpenMS
 
 
     QPushButton* save_IDs = new QPushButton("Save IDs", this);
-    connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
+    connect(save_IDs, &QPushButton::clicked, this, &SpectraIdentificationViewWidget::saveIDs_);
 
     QPushButton* export_table = new QPushButton("Export table", this);
 
@@ -165,18 +165,24 @@ namespace OpenMS
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint &)));
-    connect(table_widget_, SIGNAL(cellClicked(int, int)), this, SLOT(cellClicked_(int, int)));
-    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
-    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
-    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
-    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
-    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
+    connect(table_widget_->horizontalHeader(), &QHeaderView::customContextMenuRequested, this, &SpectraIdentificationViewWidget::headerContextMenu_);
+    connect(table_widget_, &QTableWidget::cellClicked, this, &SpectraIdentificationViewWidget::cellClicked_);
+    connect(table_widget_, &QTableWidget::currentItemChanged, this, &SpectraIdentificationViewWidget::spectrumSelectionChange_);
+    connect(table_widget_, &QTableWidget::itemChanged, this, &SpectraIdentificationViewWidget::updateData_);
+    connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIdentificationViewWidget::updateEntries);
+    connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIdentificationViewWidget::updateEntries);
+    connect(export_table, &QPushButton::clicked, this, &SpectraIdentificationViewWidget::exportEntries_);
   }
 
   QTableWidget* SpectraIdentificationViewWidget::getTableWidget()
   {
     return table_widget_;
+  }
+
+  void SpectraIdentificationViewWidget::clear()
+  {
+    // remove all entries
+    setLayer(nullptr);
   }
 
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
@@ -192,40 +198,43 @@ namespace OpenMS
 
     if (table_widget_->horizontalHeaderItem(column)->text() == "precursor m/z")
     {
-      if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty()) // has precursor
+      if ((*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty()) 
+      { // no precursor
+        return;
+      }
+      
+      // has precursor:
+      // determine parent MS1 spectrum of current MS2 row
+      int ms1_spectrum_index = 0;
+      for (ms1_spectrum_index = ms2_spectrum_index; ms1_spectrum_index >= 0; --ms1_spectrum_index)
       {
-        // determine parent MS1 spectrum of current MS2 row
-        int ms1_spectrum_index = 0;
-        for (ms1_spectrum_index = ms2_spectrum_index; ms1_spectrum_index >= 0; --ms1_spectrum_index)
+        if ((*layer_->getPeakData())[ms1_spectrum_index].getMSLevel() == 1)
         {
-          if ((*layer_->getPeakData())[ms1_spectrum_index].getMSLevel() == 1)
-          {
-            break;
-          }
+          break;
+        }
+      }
+
+      if (ms1_spectrum_index != -1)
+      {
+        double precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
+        // determine start and stop of isolation window
+        double isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
+        double isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
+
+        if (!is_ms1_shown_)
+        {
+#ifdef DEBUG_IDENTIFICATION_VIEW
+          cout << "cellClicked_ deselect MS2: " << ms2_spectrum_index << endl;
+#endif
+          emit spectrumDeselected(ms2_spectrum_index);
         }
 
-        if (ms1_spectrum_index != -1)
-        {
-          double precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
-          // determine start and stop of isolation window
-          double isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
-          double isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
-
-          if (!is_ms1_shown_)
-          {
 #ifdef DEBUG_IDENTIFICATION_VIEW
-            cout << "cellClicked_ deselect MS2: " << ms2_spectrum_index << endl;
+        cout << "cellClicked_ select MS1: " << ms1_spectrum_index << endl;
 #endif
-            emit spectrumDeselected(ms2_spectrum_index);
-          }
-
-#ifdef DEBUG_IDENTIFICATION_VIEW
-          cout << "cellClicked_ select MS1: " << ms1_spectrum_index << endl;
-#endif
-          emit spectrumSelected(ms1_spectrum_index, -1, -1); // no identification or hit selected (-1)
-          is_ms1_shown_ = true;
-          emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
-        }
+        emit spectrumSelected(ms1_spectrum_index, -1, -1); // no identification or hit selected (-1)
+        is_ms1_shown_ = true;
+        emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
       }
     }
     else if (table_widget_->horizontalHeaderItem(column)->text() == "PeakAnnotations")
@@ -347,6 +356,8 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::setLayer(LayerData* cl)
   {
+    // do not try to be smart and check if layer_ == cl; to return early
+    // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
     updateEntries();
   }
@@ -358,6 +369,7 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::updateEntries()
   {
+    has_data_ = false;
     // no valid peak layer attached
     if (layer_ == nullptr
     || layer_->getPeakData()->size() == 0
@@ -811,12 +823,13 @@ namespace OpenMS
 
     table_widget_->blockSignals(false);
     table_widget_->setUpdatesEnabled(true);
+    has_data_ = true;
   }
 
   void SpectraIdentificationViewWidget::headerContextMenu_(const QPoint& pos)
   {
     // create menu
-    QMenu* context_menu = new QMenu(table_widget_);
+    QMenu context_menu(table_widget_);
 
     // extract header labels
     QStringList header_labels;
@@ -829,28 +842,19 @@ namespace OpenMS
       }
     }
 
-    // add actions
-    for (int i = 0; i < header_labels.size(); ++i)
+    // add actions which show/hide columns
+    for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
-      QAction* tmp = new QAction(header_labels[i], context_menu);
-      tmp->setCheckable(true);
-      tmp->setChecked(!table_widget_->isColumnHidden(i));
-      context_menu->addAction(tmp);
+      QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
+      if (ti == nullptr) continue;
+      QAction* action = context_menu.addAction(ti->text(), [=]() {
+              // invert visibility upon clicking the item
+              table_widget_->setColumnHidden(i, !table_widget_->isColumnHidden(i));
+        });
+      action->setCheckable(true);
+      action->setChecked(!table_widget_->isColumnHidden(i));
     }
-
-    // show menu and hide selected columns
-    QAction* selected = context_menu->exec(table_widget_->mapToGlobal(pos));
-    if (selected != nullptr)
-    {
-      for (int i = 0; i < header_labels.size(); ++i)
-      {
-        if (selected->text() == header_labels[i])
-        {
-          selected->isChecked() ? table_widget_->setColumnHidden(i, false) : table_widget_->setColumnHidden(i, true);
-        }
-      }
-    }
-    delete (context_menu);
+    context_menu.exec(table_widget_->mapToGlobal(pos));
   }
 
   void SpectraIdentificationViewWidget::exportEntries_()
@@ -958,7 +962,7 @@ namespace OpenMS
             }
             else
             {
-              strList << table_widget_->item(r, c)->text();
+              strList << ti->text();
             }
           }
         }
@@ -994,14 +998,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::addCheckboxItemToBottomRow_(bool selected,  Size column_index, const QColor& c)
   {
     QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
-    if (selected)
-    {
-      item->setCheckState(Qt::Checked);
-    }
-    else
-    {
-      item->setCheckState(Qt::Unchecked);
-    }
+    item->setCheckState(selected ? Qt::Checked : Qt::Unchecked);
     item->setBackgroundColor(c);
     table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
   }

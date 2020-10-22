@@ -68,6 +68,14 @@ namespace OpenMS
                              const std::set<String>& synonyms = std::set<String>(),
                              String regex_description = "");
 
+    /// Detailed constructor 2
+    explicit DigestionEnzyme(const String& name,
+                             String cut_before,
+                             const String& nocut_after = "",
+                             String sense = "C",
+                             const std::set<String>& synonyms = std::set<String>(),
+                             String regex_description = "");
+
     /// Destructor
     virtual ~DigestionEnzyme();
     //@}

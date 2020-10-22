@@ -199,7 +199,7 @@ protected:
         MzIdentMLFile().load(in, prot_ids, pep_ids);
 
         MzTabFile().store(out,
-	  prot_ids,
+	        prot_ids,
           pep_ids,
           getFlag_("first_run_inference_only"));
         return EXECUTION_OK;

@@ -594,6 +594,7 @@ public:
     std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
+
     /// Comparison operator for sorting rows
     struct RowCompare
     {
@@ -631,6 +632,13 @@ public:
     MzTabString end;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
+    /**
+      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
+
+      @param peptide_evidences Vector of PeptideEvidence holding internal data.
+    */
+
+    void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences);
     /// Comparison operator for sorting rows
     struct RowCompare
     {
@@ -861,14 +869,6 @@ public:
 
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
-
-    /**
-      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
-
-      @param peptide_evidences Vector of PeptideEvidence holding internal data.
-      @param row Pre- or unfilled MzTabPSMSectionRow to be filled with the data.
-    */
-    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row);
 
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getNucleicAcidOptionalColumnNames() const;
@@ -1140,7 +1140,7 @@ public:
 
     static void getIdentificationMetaValues_(
       const std::vector<const ProteinIdentification*>& prot_ids, 
-      std::vector<const PeptideIdentification*> peptide_ids_,
+      std::vector<const PeptideIdentification*>& peptide_ids_,
       std::set<String>& protein_hit_user_value_keys,
       std::set<String>& peptide_id_user_value_keys,
       std::set<String>& peptide_hit_user_value_keys);
@@ -1175,6 +1175,7 @@ public:
 
     static void mapBetweenRunAndSearchEngines_(
       const std::vector<const ProteinIdentification*>& prot_ids,
+      const std::vector<const PeptideIdentification*>& pep_ids,
       bool skip_first_run,
       std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
       std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
@@ -1221,7 +1222,7 @@ public:
     }
 
     static void getSearchModifications_(
-      const std::vector<const ProteinIdentification*> prot_ids, 
+      const std::vector<const ProteinIdentification*>& prot_ids,
       StringList& var_mods, 
       StringList& fixed_mods);
 

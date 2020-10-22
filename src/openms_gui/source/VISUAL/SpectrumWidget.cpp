@@ -112,7 +112,6 @@ namespace OpenMS
 
   SpectrumWidget::~SpectrumWidget()
   {
-    emit aboutToBeDestroyed(window_id_);
   }
 
   void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
@@ -225,6 +224,9 @@ namespace OpenMS
   void SpectrumWidget::saveAsImage()
   {
     QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Images (*.bmp *.png *.jpg *.gif)");
+    QString old_stylesheet = this->styleSheet();
+    // Make the whole widget (including the usually natively styled AxisWidgets) white
+    this->setStyleSheet("background: white");
     bool x_visible = x_scrollbar_->isVisible();
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();
@@ -233,6 +235,7 @@ namespace OpenMS
     x_scrollbar_->setVisible(x_visible);
     y_scrollbar_->setVisible(y_visible);
     pixmap.save(file_name);
+    this->setStyleSheet(old_stylesheet);
   }
 
   void SpectrumWidget::updateAxes()
@@ -322,7 +325,7 @@ namespace OpenMS
       const LayerData& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
-        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.name +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
+        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
         if (result == QMessageBox::Ok)
         {
           canvas()->activateLayer(l);
@@ -351,20 +354,17 @@ namespace OpenMS
 
   void SpectrumWidget::dropEvent(QDropEvent* event)
   {
-    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), window_id_);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), this->getWindowId());
     event->acceptProposedAction();
   }
 
-  // from interface EnhancedTabBarInterface
-  Int SpectrumWidget::getWindowId()
+  void SpectrumWidget::paintEvent(QPaintEvent * /*event*/)
   {
-    return window_id_;
-  }
-
-  // from interface EnhancedTabBarInterface
-  void SpectrumWidget::setWindowId(Int window_id)
-  {
-    window_id_ = window_id;
+    QStyleOption opt;
+    opt.init(this);
+    QPainter p(this);
+    // apply style options and draw the widget using current stylesheets
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
   }
 
 } //namespace OpenMS

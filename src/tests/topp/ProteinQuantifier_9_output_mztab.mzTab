@@ -4,9 +4,9 @@ MTD	mzTab-type	Quantification
 MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
-MTD	peptide_search_engine_score[1]	[, , Mascot, ]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
 MTD	psm_search_engine_score[1]	[, , Mascot, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-plfq-spec-count-2020-05-24]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-keepSamePeps-2020-08-28]
 MTD	software[2]	[, , Mascot, ]
 MTD	software[2]-setting[1]	db:null
 MTD	software[2]-setting[2]	db_version:null

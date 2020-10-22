@@ -90,7 +90,8 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
-    // no lock required here because read only and array is initialized in thread-safe constructor
+    //TODO why does this not throw but the String version does??
+    //no lock required here because read only and array is initialized in thread-safe constructor
     return residue_by_one_letter_code_[one_letter_code];
   }
 
@@ -563,7 +564,7 @@ namespace OpenMS
           {
             // create and register this modified residue
             res = new Residue(*residue_names_[res_name]);
-            res->setModification_(*mod);
+            res->setModification(mod);
             addResidue_(res);
           }
         }
