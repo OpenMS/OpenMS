@@ -6,6 +6,7 @@ set(sources_list
 AxisPainter.cpp
 AxisTickCalculator.cpp
 AxisWidget.cpp
+TVBehaviorBase.cpp
 ColorSelector.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
