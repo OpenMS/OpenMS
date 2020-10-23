@@ -6,6 +6,8 @@ name: pyopenms-wheels
 # events but only for the master branch
 on:
   push:
+    tags:
+      - 'Release*'
     branches: [ nightly ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -411,7 +413,8 @@ jobs:
           conda remove --name pyoms-bld-$py --all
 
         done        
-# Upload the wheels (the action only runs on ubuntu slaves)
+  
+  # Upload the wheels (the action only runs on ubuntu slaves)
   publish:
     needs: [test] # doesn't really NEED it but we want the tests to pass first
     runs-on: ubuntu-latest
@@ -437,9 +440,18 @@ jobs:
             pwd
             ls -la wheels/
 
-    - name: Publish package to PyPI
+    - name: Publish package to nightly PyPI
+      if: "!contains(github.ref, 'Release')"
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token }}
+        packages_dir: ${{ github.workspace }}/wheels
+        
+    - name: Publish package to PyPI
+      if: "contains(github.ref, 'Release')"
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_api_token_release }}
         packages_dir: ${{ github.workspace }}/wheels
