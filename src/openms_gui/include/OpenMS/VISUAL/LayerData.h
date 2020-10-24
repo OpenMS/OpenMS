@@ -57,7 +57,6 @@
 
 namespace OpenMS
 {
-
   /**
   @brief Class that stores the data for one layer
 
@@ -86,7 +85,7 @@ namespace OpenMS
 
   @ingroup SpectrumWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerData
+  class OPENMS_GUI_DLLAPI LayerDataBase
   {
 public:
     /** @name Type definitions */
@@ -160,46 +159,64 @@ public:
     //@}
 
     /// Default constructor
-    LayerData() :
-      flags(),
-      visible(true),
-      flipped(false),
-      type(DT_UNKNOWN),
-      name_(),
-      filename(),
-      peptides(),
-      param(),
-      gradient(),
-      filters(),
-      annotations_1d(),
-      peak_colors_1d(),
-      modifiable(false),
-      modified(false),
-      label(L_NONE),
-      peptide_id_index(-1),
-      peptide_hit_index(-1),
-      features_(new FeatureMapType()),
-      consensus_map_(new ConsensusMapType()),
-      peak_map_(new ExperimentType()),
-      on_disc_peaks(new OnDiscMSExperiment()),
-      chromatogram_map_(new ExperimentType()),
-      current_spectrum_(0),
-      cached_spectrum_()
-    {
-      annotations_1d.resize(1);
-    }
+    LayerDataBase() = default;
 
     /// no Copy-ctor (should not be needed)
-    LayerData(const LayerData& ld) = delete;
+    LayerDataBase(const LayerDataBase& ld) = delete;
+
     /// no assignment operator (should not be needed)
-    LayerData& operator=(const LayerData& ld) = delete;
+    LayerDataBase& operator=(const LayerDataBase& ld) = delete;
 
     /// move Ctor
-    LayerData(LayerData&& ld) = default;
+    LayerDataBase(LayerDataBase&& ld) = default;
 
     /// move assignment
-    LayerData& operator=(LayerData&& ld) = default;
+    LayerDataBase& operator=(LayerDataBase&& ld) = default;
 
+    /// Destructor
+    virtual ~LayerDataBase() = default;
+
+    const String& getName() const
+    {
+      return name_;
+    }
+
+    void setName(const String& new_name)
+    {
+      name_ = new_name;
+    }
+
+    /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+    String getDecoratedName() const;
+
+    /**
+    @brief Update ranges of all data structures
+
+    Updates ranges of all tracked data structures 
+    (spectra, chromatograms, features etc).
+    */
+    virtual void updateRanges() = 0;
+
+    /// Returns the minimum intensity of the internal data, depending on type
+    virtual float getMinIntensity() const = 0;
+
+    /// Returns the maximum intensity of the internal data, depending on type
+    virtual float getMaxIntensity() const = 0;
+
+protected:
+    /// layer name
+    String name_;
+
+    /// Flag that indicates if the layer data can be modified (so far used for features only)
+    bool modifiable_;
+
+    /// Flag that indicates that the layer data was modified since loading it
+    bool modified_;
+    };
+
+  class OPENMS_GUI_DLLAPI FeatureLayer : public LayerDataBase
+  {
+public:
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
     {
@@ -212,6 +229,15 @@ public:
       return features_;
     }
 
+protected:
+    /// feature data
+    FeatureMapSharedPtrType features_;
+  };
+
+
+  class OPENMS_GUI_DLLAPI ConsensusLayer : public LayerDataBase
+  {
+public:
     /// Returns a const reference to the consensus feature data
     const ConsensusMapSharedPtrType & getConsensusMap() const
     {
@@ -224,6 +250,14 @@ public:
       return consensus_map_;
     }
 
+protected:
+    /// consensus feature data
+    ConsensusMapSharedPtrType consensus_map_;
+  }
+
+  class OPENMS_GUI_DLLAPI PeakLayer : public LayerDataBase
+  {
+public:
     /**
     @brief Returns a const reference to the current in-memory peak data
 
@@ -244,7 +278,7 @@ public:
 
     @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
     */
-    const ExperimentSharedPtrType & getPeakDataMuteable() {return peak_map_;}
+    const ExperimentSharedPtrType & getPeakDataMuteable() { return peak_map_; } 
 
     /**
     @brief Set the current in-memory peak data
@@ -277,37 +311,6 @@ public:
     ExperimentSharedPtrType & getChromatogramData()
     {
       return chromatogram_map_;
-    }
-
-    /// add peptide identifications to the layer
-    /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
-    /// Will return false otherwise.
-    bool annotate(const std::vector<PeptideIdentification>& identifications,
-                  const std::vector<ProteinIdentification>& protein_identifications);
-
-
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer & getCurrentAnnotations() const
-    {
-      return annotations_1d[current_spectrum_];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer & getCurrentAnnotations()
-    {
-      return annotations_1d[current_spectrum_];
-    }
-
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer & getAnnotations(Size spectrum_index) const
-    {
-      return annotations_1d[spectrum_index];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer & getAnnotations(Size spectrum_index)
-    {
-      return annotations_1d[spectrum_index];
     }
 
     /**
@@ -407,21 +410,104 @@ public:
         peak_map_->removeMetaValue("is_chromatogram");
       }
     }
+
+private:
+    /// Update current cached spectrum for easy retrieval
+    void updateCache_();
+
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    void updatePeptideHitAnnotations_(PeptideHit& hit);
+
+    /// peak data
+    ExperimentSharedPtrType peak_map_;
+
+    /// on disc peak data
+    ODExperimentSharedPtrType on_disc_peaks;
+
+    /// chromatogram data
+    ExperimentSharedPtrType chromatogram_map_;
+
+    /// Index of the current spectrum
+    Size current_spectrum_;
+
+    /// Current cached spectrum
+    ExperimentType::SpectrumType cached_spectrum_;
+  };
+
+
+    LayerData() :
+      flags(),
+      visible(true),
+      flipped(false),
+      type(DT_UNKNOWN),
+      name_(),
+      filename(),
+      peptides(),
+      param(),
+      gradient(),
+      filters(),
+      annotations_1d(),
+      peak_colors_1d(),
+      modifiable(false),
+      modified(false),
+      label(L_NONE),
+      peptide_id_index(-1),
+      peptide_hit_index(-1),
+      features_(new FeatureMapType()),
+      consensus_map_(new ConsensusMapType()),
+      peak_map_(new ExperimentType()),
+      on_disc_peaks(new OnDiscMSExperiment()),
+      chromatogram_map_(new ExperimentType()),
+      current_spectrum_(0),
+      cached_spectrum_()
+    {
+      annotations_1d.resize(1);
+    }
+
+    /// no Copy-ctor (should not be needed)
+    LayerData(const LayerData& ld) = delete;
+    /// no assignment operator (should not be needed)
+    LayerData& operator=(const LayerData& ld) = delete;
+
+    /// move Ctor
+    LayerData(LayerData&& ld) = default;
+
+    /// move assignment
+    LayerData& operator=(LayerData&& ld) = default;
+
+
+    /// add peptide identifications to the layer
+    /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
+    /// Will return false otherwise.
+    bool annotate(const std::vector<PeptideIdentification>& identifications,
+                  const std::vector<ProteinIdentification>& protein_identifications);
+
+
+    /// Returns a const reference to the annotations of the current spectrum (1D view)
+    const Annotations1DContainer & getCurrentAnnotations() const
+    {
+      return annotations_1d[current_spectrum_];
+    }
+
+    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
+    Annotations1DContainer & getCurrentAnnotations()
+    {
+      return annotations_1d[current_spectrum_];
+    }
+
+    /// Returns a const reference to the annotations of the current spectrum (1D view)
+    const Annotations1DContainer & getAnnotations(Size spectrum_index) const
+    {
+      return annotations_1d[spectrum_index];
+    }
+
+    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
+    Annotations1DContainer & getAnnotations(Size spectrum_index)
+    {
+      return annotations_1d[spectrum_index];
+    }
+
     
-    /**
-    @brief Update ranges of all data structures
-
-    Updates ranges of all tracked data structures 
-    (spectra, chromatograms, features etc).
-    */
-    void updateRanges();
-
-    /// Returns the minimum intensity of the internal data, depending on type
-    float getMinIntensity() const;
-
-    /// Returns the maximum intensity of the internal data, depending on type
-    float getMaxIntensity() const;
-
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
     void synchronizePeakAnnotations();
@@ -438,20 +524,8 @@ public:
     /// data type (peak or feature data)
     DataType type;
 
-    private:
-    /// layer name
-    String name_;
 
-    public:
-      const String& getName() const
-      {
-        return name_;
-      }
-      void setName(const String& new_name)
-      {
-        name_ = new_name;
-      }
-
+public:
     /// file name of the file the data comes from (if available)
     String filename;
 
@@ -473,11 +547,6 @@ public:
     /// Peak colors of the currently shown spectrum
     std::vector<QColor> peak_colors_1d;
 
-    /// Flag that indicates if the layer data can be modified (so far used for features only)
-    bool modifiable;
-
-    /// Flag that indicates that the layer data was modified since loading it
-    bool modified;
 
     /// Label type
     LabelType label;
@@ -486,36 +555,7 @@ public:
     int peptide_id_index;
     int peptide_hit_index;
 
-    /// get name augmented with attributes, e.g. [flipped], or '*' if modified
-    String getDecoratedName() const;
 
-private:
-    /// Update current cached spectrum for easy retrieval
-    void updateCache_();
-
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    void updatePeptideHitAnnotations_(PeptideHit& hit);
-
-    /// feature data
-    FeatureMapSharedPtrType features_;
-
-    /// consensus feature data
-    ConsensusMapSharedPtrType consensus_map_;
-
-    /// peak data
-    ExperimentSharedPtrType peak_map_;
-
-    /// on disc peak data
-    ODExperimentSharedPtrType on_disc_peaks;
-
-    /// chromatogram data
-    ExperimentSharedPtrType chromatogram_map_;
-
-    /// Index of the current spectrum
-    Size current_spectrum_;
-
-    /// Current cached spectrum
-    ExperimentType::SpectrumType cached_spectrum_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data
