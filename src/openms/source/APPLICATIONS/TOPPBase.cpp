@@ -135,19 +135,31 @@ namespace OpenMS
     // check if tool entries are in Utils and TOPP (duplication)
     if (ToolHandler::checkDuplicated(tool_name_))
     {
-      writeLog_(String("Warning: Message to maintainer - The '") + tool_name_ + "' has entries in the UTILS and TOPP category. Please add it to the correct category in the ToolHandler.");
+      throw Exception::InvalidValue(__FILE__,
+                                    __LINE__,
+                                    OPENMS_PRETTY_FUNCTION,
+                                    String("The '" + tool_name_ + "' has entries in the UTILS and TOPP category. Please add it to the correct category in the ToolHandler."),
+                                    tool_name_);
     }
 
     // check if tool is in official tools list
     if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
     {
-      writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
+      throw Exception::InvalidValue(__FILE__,
+                                    __LINE__,
+                                    OPENMS_PRETTY_FUNCTION,
+                                    String("If '" + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
+                                    tool_name_);
     }
 
     // check if tool is in util list
     if (!official_ && !ToolHandler::getUtilList().count(tool_name_))
     {
-      writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is a Util, add it to the util list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to true.");
+      throw Exception::InvalidValue(__FILE__,
+                                    __LINE__,
+                                    OPENMS_PRETTY_FUNCTION,
+                                    String("If '" + tool_name_ + "' is a Util, add it to the util list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to true."),
+                                    tool_name_);
     }
   }
 
