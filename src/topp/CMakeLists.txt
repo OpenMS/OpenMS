@@ -48,7 +48,6 @@ find_package(Qt5 COMPONENTS Core Network REQUIRED)
 include(executables.cmake)
 foreach(i ${TOPP_executables})
   add_executable(${i} ${i}.cpp)
-  
   target_link_libraries(${i} ${OpenMS_LIBRARIES})
   # we also want to install each topp tool
   install_tool(${i})
@@ -56,7 +55,6 @@ foreach(i ${TOPP_executables})
     set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
   endif()
 endforeach(i)
-
 
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
@@ -87,6 +85,5 @@ add_dependencies(TOPP ${TOPP_executables})
 ## export the list of TOPP tools into CACHE
 set(TOPP_TOOLS ${TOPP_executables}
     CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
-
 
 openms_doc_path("${PROJECT_SOURCE_DIR}")

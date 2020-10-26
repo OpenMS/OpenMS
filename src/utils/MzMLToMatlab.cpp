@@ -66,14 +66,12 @@ class TOPPMzMLToMatlab :
     public TOPPBase
 {
 public:
-
   TOPPMzMLToMatlab() :
       TOPPBase("MzMLToMatlab", "Converts spectra in a mzML file into MATLAB variable txt", false)
   {
   }
 
 protected:
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
@@ -104,9 +102,7 @@ protected:
     matlabOut.close();
     return EXECUTION_OK;
   }
-
 };
-
 
 int main(int argc, const char **argv)
 {
