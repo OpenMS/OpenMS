@@ -1366,7 +1366,7 @@ namespace OpenMS
           pevid_ids =  pep_evis[pepi];
         }
 
-        String cmz(hit.getSequence().getMZ(hit.getCharge()); //calculatedMassToCharge
+        String cmz(hit.getSequence().getMZ(hit.getCharge())); //calculatedMassToCharge
         String r(hit.getRank()); //rank
         String sc(hit.getScore());
 
