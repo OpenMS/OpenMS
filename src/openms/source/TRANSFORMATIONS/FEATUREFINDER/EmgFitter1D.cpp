@@ -40,7 +40,12 @@
 
 namespace OpenMS
 {
-  int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+  const EmgFitter1D::CoordinateType EmgFitter1D::EgmFitterFunctor::sqrt2pi = sqrt(2.0 * Constants::PI);
+  const EmgFitter1D::CoordinateType EmgFitter1D::EgmFitterFunctor::emg_const = 2.4055;
+  const EmgFitter1D::CoordinateType EmgFitter1D::EgmFitterFunctor::sqrt_2 = sqrt(2.0);
+  const EmgFitter1D::CoordinateType EmgFitter1D::EgmFitterFunctor::c = -emg_const / sqrt_2;
+
+  int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
   {
     Size n = m_data->n;
     EmgFitter1D::RawDataArrayType set = m_data->set;
@@ -51,14 +56,18 @@ namespace OpenMS
     EmgFitter1D::CoordinateType z = x(3);
 
     EmgFitter1D::CoordinateType Yi = 0.0;
+    double prefix = (h * w / s) * sqrt2pi;
+    double part1 = w*w / (2 * s*s);
+    double part2 = w / s;
 
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
       double t = set[i].getPos();
+      double diff = t - z;
 
-      // Simplified EMG
-      Yi = (h * w / s) * sqrt(2.0 * Constants::PI) * exp((pow(w, 2) / (2 * pow(s, 2))) - ((t - z) / s)) / (1 + exp((-2.4055 / sqrt(2.0)) * (((t - z) / w) - w / s)));
+      // Simplified EMG (doi=10.1.1.915.3568) Equation 9
+      Yi = prefix * exp(part1 - (diff / s)) / (1 + exp(c * ((diff / w) - part2)));
 
       fvec(i) = Yi - set[i].getIntensity();
     }
@@ -66,43 +75,43 @@ namespace OpenMS
   }
 
   // compute Jacobian matrix for the different parameters
-  int EmgFitter1D::EgmFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+  int EmgFitter1D::EgmFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
   {
     Size n =  m_data->n;
     EmgFitter1D::RawDataArrayType set = m_data->set;
 
     EmgFitter1D::CoordinateType h = x(0);
     EmgFitter1D::CoordinateType w = x(1);
+    EmgFitter1D::CoordinateType w2 = w*w;
     EmgFitter1D::CoordinateType s = x(2);
+    EmgFitter1D::CoordinateType s2 = s*s;
+    EmgFitter1D::CoordinateType s3 = s2 * s;
     EmgFitter1D::CoordinateType z = x(3);
 
-    const EmgFitter1D::CoordinateType emg_const = 2.4055;
-    const EmgFitter1D::CoordinateType sqrt_2pi = sqrt(2 * Constants::PI);
-    const EmgFitter1D::CoordinateType sqrt_2 = sqrt(2.0);
-
-    EmgFitter1D::CoordinateType exp1, exp2, exp3 = 0.0;
+    EmgFitter1D::CoordinateType diff, exp1, exp2, exp3 = 0.0;
     EmgFitter1D::CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
+
 
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
       EmgFitter1D::CoordinateType t = set[i].getPos();
-
-      exp1 = exp(((w * w) / (2 * s * s)) - ((t - z) / s));
-      exp2 = (1 + exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s)));
-      exp3 = exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s));
+      diff = t - z;
+      exp1 = exp((w2 / (2 * s2)) - (diff / s));
+      exp3 = exp((-emg_const / sqrt_2) * ((diff / w) - w / s));
+      exp2 = 1 + exp3;
 
       // f'(h)
-      derivative_height = w / s * sqrt_2pi * exp1 / exp2;
+      derivative_height = w / s * sqrt2pi * exp1 / exp2;
 
       // f'(w)
-      derivative_width = h / s * sqrt_2pi * exp1 / exp2 + (h * w * w) / (s * s * s) * sqrt_2pi * exp1 / exp2 + (emg_const * h * w) / s * sqrt_2pi * exp1 * (-(t - z) / (w * w) - 1 / s) * exp3 / ((exp2 * exp2) * sqrt_2);
+      derivative_width = h / s * sqrt2pi * exp1 / exp2 + (h * w2) / s3 * sqrt2pi * exp1 / exp2 + (emg_const * h * w) / s * sqrt2pi * exp1 * (-diff / w2 - 1 / s) * exp3 / ((exp2 * exp2) * sqrt_2);
 
       // f'(s)
-      derivative_symmetry = -h * w / (s * s) * sqrt_2pi * exp1 / exp2 + h * w / s * sqrt_2pi * (-(w * w) / (s * s * s) + (t - z) / (s * s)) * exp1 / exp2 + (emg_const * h * w * w) / (s * s * s) * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
+      derivative_symmetry = -h * w / s2 * sqrt2pi * exp1 / exp2 + h * w / s * sqrt2pi * (-(w * w) / s3 + diff / s2) * exp1 / exp2 + (emg_const * h * w2) / s3 * sqrt2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
 
       // f'(z)
-      derivative_retention = h * w / (s * s) * sqrt_2pi * exp1 / exp2 - (emg_const * h) / s * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
+      derivative_retention = h * w / s2 * sqrt2pi * exp1 / exp2 - (emg_const * h) / s * sqrt2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
 
       // set the jacobian matrix
       J(i, 0) = derivative_height;
@@ -172,16 +181,16 @@ namespace OpenMS
     setInitialParameters_(set);
 
     // Optimize parameter with Levenberg-Marquardt algorithm
-//    CoordinateType x_init[4] = { height_, width_, symmetry_, retention_ };
     Eigen::VectorXd x_init(4);
     x_init(0) = height_;
     x_init(1) = width_;
     x_init(2) = symmetry_;
     x_init(3) = retention_;
-    if (symmetric_ == false)
+
+    if (!symmetric_)
     {
-      EgmFitterFunctor functor(4, &d);
-      optimize_(x_init, functor);
+        EgmFitterFunctor functor(4, &d);
+        optimize_(x_init, functor);
     }
 
     // Set optimized parameters
@@ -189,13 +198,6 @@ namespace OpenMS
     width_ = x_init[1];
     symmetry_ = x_init[2];
     retention_ = x_init[3];
-
-#ifdef DEBUG_FEATUREFINDER
-    if (getGslStatus_() != "success")
-    {
-      std::cout << "status: " << getGslStatus_() << std::endl;
-    }
-#endif
 
     // build model
     model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EmgModel"));
@@ -211,7 +213,6 @@ namespace OpenMS
     tmp.setValue("emg:symmetry", symmetry_);
     tmp.setValue("emg:retention", retention_);
     model->setParameters(tmp);
-
 
     // calculate pearson correlation
     std::vector<float> real_data;
@@ -236,34 +237,49 @@ namespace OpenMS
 
   void EmgFitter1D::setInitialParameters_(const RawDataArrayType& set)
   {
-    // sum over all intensities
-    CoordinateType sum = 0.0;
-    for (Size i = 0; i < set.size(); ++i)
-      sum += set[i].getIntensity();
-
-    // calculate the median
-    Size median = 0;
-    float count = 0.0;
-    for (Size i = 0; i < set.size(); ++i)
+    std::vector<CoordinateType> weighted;
+    weighted.reserve(set.size());
+    CoordinateType weighted_sum = 0.;
+    CoordinateType weight_sum = 0.;
+    for (Size s = 0 ; s < set.size() ; ++s)
     {
-      count += set[i].getIntensity();
-      if (count <= sum / 2)
-        median = i;
+      weighted_sum += set[s].getPos() * set[s].getIntensity();
+      weight_sum += set[s].getIntensity();
     }
+    CoordinateType weighted_mean = weighted_sum / weight_sum;
 
-    double max_peak_width = fabs(set[set.size() - 1].getPos() - set[median].getPos()); // cannot be wider than this
+    int weighted_median_idx = 0;
+    double sum = weight_sum - set[0].getIntensity(); // sum is the total weight of all `x[i] > x[k]`
+
+    while(sum > weight_sum/2.)
+    {
+      ++weighted_median_idx;
+      sum -= set[weighted_median_idx].getIntensity();
+    }
+    CoordinateType weighted_median = set[weighted_median_idx].getPos();
+
+    CoordinateType weighted_sd = 0.;
+    for (Size s = 0 ; s < set.size() ; ++s)
+    {
+      weighted_sd += std::pow(weighted_mean - set[s].getPos(), 2) * set[s].getIntensity();
+    }
+    weighted_sd /= weight_sum;
+    weighted_sd = std::sqrt(weighted_sd);
+    CoordinateType weighted_skew = std::fabs(weighted_mean - weighted_median) / weighted_sd;
+
+    CoordinateType max_peak_width = fabs(set[set.size() - 1].getPos() - set[weighted_median_idx].getPos()); // cannot be wider than this
 
     // calculate the height of the peak
-    height_ = set[median].getIntensity();
+    height_ = set[weighted_median_idx].getIntensity();
 
     // calculate retention time
-    retention_ = set[median].getPos();
+    retention_ = weighted_mean - weighted_sd * std::pow(weighted_skew / 2., 1./3.);
 
     // default is an asymmetric peak
     symmetric_ = false;
 
     // calculate the symmetry (fronted peak: s<1 , tailed peak: s>1)
-    symmetry_ = fabs(set[set.size() - 1].getPos() - set[median].getPos()) / fabs(set[median].getPos() - set[0].getPos());
+    symmetry_ = weighted_sd * std::pow(weighted_skew / 2., 1./3.);
 
     // check the symmetry
     if (std::isinf(symmetry_) || std::isnan(symmetry_))
@@ -289,6 +305,8 @@ namespace OpenMS
     // normally: width_ = fabs( set[set.size() - 1].getPos() - set[0].getPos() );
     // but its better for the emg function to proceed from narrow peaks
     width_ = symmetry_;
+    //MOM estimator would be the following, but it is too large for the test
+    //width_ = weighted_sd * std::sqrt(std::pow(1. - (weighted_skew / 2.), 2./3.));
   }
 
   void EmgFitter1D::updateMembers_()

@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS
 {
@@ -96,12 +97,16 @@ public:
         m_data(data)
       {}
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) override;
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const override;
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) override;
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const override;
 
 protected:
       const EmgFitter1D::Data* m_data;
+      static const EmgFitter1D::CoordinateType c;
+      static const EmgFitter1D::CoordinateType sqrt2pi;
+      static const EmgFitter1D::CoordinateType emg_const;
+      static const EmgFitter1D::CoordinateType sqrt_2;
     };
 
     /// Compute start parameter

@@ -220,7 +220,12 @@ namespace OpenMS
     SpectrumMetaDataLookup lookup;
     if (lookup.empty())
     {
-      FileHandler().loadExperiment(filename, exp);
+      FileHandler fh;
+      auto opts = fh.getOptions();
+      opts.setFillData(false);
+      opts.setSkipXMLChecks(true);
+      fh.setOptions(opts);
+      fh.loadExperiment(filename, exp);
       lookup.readSpectra(exp.getSpectra());
       lookup.setSpectraDataRef(filename);
     }

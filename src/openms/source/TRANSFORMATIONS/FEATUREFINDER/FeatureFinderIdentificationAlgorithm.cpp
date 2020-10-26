@@ -187,6 +187,7 @@ namespace OpenMS
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("EMGScoring:max_iteration", 100); // stop after that
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {

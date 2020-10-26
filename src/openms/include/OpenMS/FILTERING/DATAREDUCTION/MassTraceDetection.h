@@ -105,7 +105,7 @@ namespace OpenMS
         typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
 
         /// The internal run method
-        void run_(const MapIdxSortedByInt& chrom_apices,
+        void run_(const std::vector<std::pair<double,std::pair<Size,Size>>>& chrom_apices,
                   const Size peak_count,
                   const PeakMap & work_exp,
                   const std::vector<Size>& spec_offsets,

@@ -196,7 +196,7 @@ namespace OpenMS
       //   - use work_exp for actual work (remove peaks below noise threshold)
       //   - store potential apices in chrom_apices
       PeakMap work_exp;
-      MapIdxSortedByInt chrom_apices;
+      std::vector<std::pair<double,std::pair<Size,Size>>> chrom_apices;
 
       Size total_peak_count(0);
       std::vector<Size> spec_offsets;
@@ -223,7 +223,7 @@ namespace OpenMS
             // --> add this peak as possible chromatographic apex
             if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
             {
-              chrom_apices.insert(std::make_pair(tmp_peak_int, std::make_pair(spectra_count, indices_passing.size())));
+              chrom_apices.emplace_back(tmp_peak_int, std::make_pair(spectra_count, indices_passing.size()));
             }
             indices_passing.push_back(peak_idx);
             ++total_peak_count;
@@ -245,6 +245,12 @@ namespace OpenMS
       // discard last spectrum's offset
       spec_offsets.pop_back();
 
+      std::sort(chrom_apices.begin(),chrom_apices.end(),
+                [](const std::pair<double,std::pair<Size,Size>> & a,
+                    const std::pair<double,std::pair<Size,Size>> & b) -> bool
+      {
+        return a.first > b.first;
+      });
       // *********************************************************************
       // Step 2: start extending mass traces beginning with the apex peak (go
       // through all peaks in order of decreasing intensity)
@@ -254,7 +260,7 @@ namespace OpenMS
       return;
     } // end of MassTraceDetection::run
 
-    void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apices,
+    void MassTraceDetection::run_(const std::vector<std::pair<double,std::pair<Size,Size>>>& chrom_apices,
                                   const Size total_peak_count,
                                   const PeakMap& work_exp,
                                   const std::vector<Size>& spec_offsets,
@@ -290,7 +296,7 @@ namespace OpenMS
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
-      for (MapIdxSortedByInt::const_reverse_iterator m_it = chrom_apices.rbegin(); m_it != chrom_apices.rend(); ++m_it)
+      for (std::vector<std::pair<double,std::pair<Size,Size>>>::const_reverse_iterator m_it = chrom_apices.rbegin(); m_it != chrom_apices.rend(); ++m_it)
       {
         Size apex_scan_idx(m_it->second.first);
         Size apex_peak_idx(m_it->second.second);

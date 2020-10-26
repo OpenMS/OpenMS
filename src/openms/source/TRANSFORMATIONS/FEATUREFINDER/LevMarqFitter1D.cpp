@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
+#include <fstream>
+
 namespace OpenMS
 {
 
@@ -50,6 +52,10 @@ namespace OpenMS
       lmSolver.parameters.maxfev = max_iteration_;
       Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
+      std::ofstream outfile;
+
+      outfile.open("FitterEvals.txt", std::ios_base::app); // append instead of overwrite
+      outfile << lmSolver.iter << ";" << lmSolver.nfev << std::endl;
       //the states are poorly documented. after checking the source, we believe that
       //all states except NotStarted, Running and ImproperInputParameters are good
       //termination states.

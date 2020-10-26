@@ -1025,7 +1025,7 @@ namespace OpenMS
     sonarscoring_.setParameters(p);
 
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
-    emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));
+    emgscoring_.setFitterParam(param_.copy("EMGScoring:", true));
     strict_ = (bool)param_.getValue("strict").toBool();
 
     su_.use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
