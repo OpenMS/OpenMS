@@ -35,6 +35,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 
 #include "OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h"
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {

@@ -34,22 +34,11 @@
 
 #pragma once
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include "boost/dynamic_bitset.hpp"
-#include <iostream>
-#include <iomanip>
-#include <chrono>
-
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES//Matrix.h>
-#include <iomanip>
 
 namespace OpenMS
 {

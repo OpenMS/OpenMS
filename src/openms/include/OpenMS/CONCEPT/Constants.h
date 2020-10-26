@@ -123,7 +123,7 @@ namespace OpenMS
     /** Averagine with mass 55kDa mass difference.
         In units (\f$1.002371\f$u)
     */
-    extern OPENMS_DLLAPI const double ISOTOPE_MASSDIFF_55K_U;
+    extern OPENMS_DLLAPI const double ISOTOPE_MASSDIFF_55K_U;     // u
 
     /** Neutron mass.
             In units of kg (\f$1.6749286 \cdot 10^{-27}\f$ kg).

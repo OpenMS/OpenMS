@@ -39,10 +39,16 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <iomanip>
 
+
 namespace OpenMS
 {
   struct PeakGroup;
+  /**
+       @brief
 
+       @param
+       @param
+  */
   struct OPENMS_DLLAPI DeconvolutedSpectrum
   {
 
@@ -52,7 +58,11 @@ namespace OpenMS
 
     DeconvolutedSpectrum() = default;
 
-    //takes spectrum and scan number
+    /**
+       @brief Constructor for DeconvolutedSpectrum
+       @param s spectrum
+       @param n scan number
+  */
     explicit DeconvolutedSpectrum(MSSpectrum &s, int n);
 
     ~DeconvolutedSpectrum() = default;

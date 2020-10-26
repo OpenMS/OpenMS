@@ -280,11 +280,9 @@ namespace OpenMS
     }
     else
     {
-      //double scoreThreshold = 0;
-      std::vector<double> scores;
-
       if (numMaxMS2 > 0 && peakGroups.size() > (Size) numMaxMS2)// max peak count for TopPic
       {
+        std::vector<double> scores;
         scores.reserve(peakGroups.size());
         for (auto &pg : peakGroups)
         {
@@ -292,7 +290,6 @@ namespace OpenMS
         }
         std::sort(scores.begin(), scores.end());
         qScoreThreshold = std::max(qScoreThreshold, scores[scores.size() - numMaxMS2]);
-        std::vector<double>().swap(scores);
       }
 
       int size = 0;

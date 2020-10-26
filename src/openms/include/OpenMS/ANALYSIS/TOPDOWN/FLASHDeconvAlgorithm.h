@@ -41,15 +41,11 @@
 
 namespace OpenMS
 {
-  /** NEED to be modified
-  @brief @ref
-
-  @htmlinclude
+  /**
+  @brief FLASHDeocnv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset
 
   @ingroup Topdown
 */
-  /** check OPENMS c++ guide **/
-
   struct DeconvolutedSpectrum;
 
   class OPENMS_DLLAPI FLASHDeconvAlgorithm

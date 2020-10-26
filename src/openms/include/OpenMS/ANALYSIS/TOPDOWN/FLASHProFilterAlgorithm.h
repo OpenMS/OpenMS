@@ -49,8 +49,6 @@
 #include <cstring>
 #include <Evergreen/evergreen.hpp>
 #include "Convolution/p_convolve.hpp"
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 
 #ifdef _OPENMP
   #include <omp.h>

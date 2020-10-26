@@ -34,12 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <QDirIterator>
-#include <QFileInfo>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 
 namespace OpenMS

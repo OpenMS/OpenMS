@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include "OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h"
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {

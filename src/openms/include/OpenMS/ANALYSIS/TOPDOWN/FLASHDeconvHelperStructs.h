@@ -35,8 +35,6 @@
 #pragma once
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
