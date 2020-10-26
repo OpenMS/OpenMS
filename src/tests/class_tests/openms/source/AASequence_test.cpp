@@ -415,6 +415,7 @@ START_SECTION((double getMZ(Int charge, Residue::ResidueType type = Residue::Ful
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(1, Residue::YIon), double(1018.4952))
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(2, Residue::YIon), double((1018.4952 + Constants::PROTON_MASS_U) / 2.0))
 }
+END_SECTION
 
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
