@@ -47,6 +47,10 @@
 #include <functional>
 #include <numeric>
 
+#ifdef _OPENMP
+  #include "omp.h"
+#endif
+
 using namespace std;
 
 namespace OpenMS
@@ -339,6 +343,7 @@ namespace OpenMS
 
     // we loop backwards because then the small products tend to come first
     // (for better numerics)
+    #pragma omp parallel for
     for (SignedSize i = input.size() - 1; i >= 0; --i)
     {
       for (SignedSize j = min<SignedSize>(r_max - i, input.size()) - 1; j >= 0; --j)

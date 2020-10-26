@@ -314,7 +314,7 @@ namespace OpenMS
         PeptideHit seed_hit;
         seed_hit.setCharge(f_it->getCharge());
 
-        const String pseudo_mod_name = String(100000 + seeds_added);
+        const String pseudo_mod_name = String(1);
 
         AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
         seed_hit.setSequence(some_seq);
@@ -616,6 +616,7 @@ namespace OpenMS
   {
     std::set<String> protein_accessions;
 
+    Size seedcount = 0;
     for (auto pm_it = begin;
          pm_it != end; ++pm_it)
     {
@@ -666,9 +667,10 @@ namespace OpenMS
 
         if (seq.toUnmodifiedString().hasPrefix("XXX")) // seed
         {
+          seedcount++;
           //cout << peptide.sequence << " " << charge << endl;
 
-          String peptide_id = peptide.sequence + "/" + String(charge);
+          String peptide_id = peptide.sequence + String(seedcount) + "/" + String(charge);
           peptide.setChargeState(charge);
           peptide.id = peptide_id;
           peptide.setPeptideGroupLabel(peptide_id);
@@ -695,6 +697,7 @@ namespace OpenMS
               auto &a = reg_it->ids[charge].first;
               double mz = a.begin()->second->getMZ();
               // get isotope distribution for peptide:
+              //TODO Why 10? Document constant?
               Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
               CoarseIsotopePatternGenerator generator(n_isotopes);
 

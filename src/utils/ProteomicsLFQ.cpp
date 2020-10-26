@@ -476,6 +476,8 @@ protected:
 
   void calculateSeeds_(const MSExperiment & ms_centroided, FeatureMap & seeds, double median_fwhm)
   {
+
+    //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
     MSExperiment e;
     for (const auto& s : ms_centroided)
     { 
@@ -484,6 +486,7 @@ protected:
         e.addSpectrum(s);
       }
     }
+
     ThresholdMower threshold_mower_filter;
     Param tm = threshold_mower_filter.getParameters();
     tm.setValue("threshold", getDoubleOption_("seedThreshold"));  // TODO: derive from data
@@ -499,6 +502,7 @@ protected:
     p.setValue("algorithm:rt_min", median_fwhm * 0.5);
     p.setValue("algorithm:spectrum_type", "centroid");
     algorithm.setParameters(p);
+    //FIXME progress of FFM is not printed at all
     const bool progress(true);
     algorithm.run(e, progress);
     seeds = algorithm.getFeatureMap(); 
