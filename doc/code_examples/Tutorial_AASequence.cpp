@@ -68,7 +68,11 @@ int main()
   // mass of the 2+ charged b-ion with the given sequence
   double ion_mass_2plus = peptide_meth_ox.getMonoWeight(Residue::BIon, 2);
   cout << "Mass of the doubly positively charged b-ion: " << ion_mass_2plus << endl;
-         
+
+  // M7Z of the 2+ charged b-ion and full peptide with the given sequence
+  cout << "Mass-to-charge of the doubly positively charged b-ion: " << peptide_meth_ox.getMZ(2, Residue::BIon) << endl;
+  cout << "Mass-to-charge of the doubly positively charged peptide: " << peptide_meth_ox.getMZ(2, Residue::Full) << endl;
+
   // ... many more
   return 0;
 }

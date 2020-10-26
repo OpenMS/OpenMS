@@ -1986,7 +1986,7 @@ namespace OpenMS
       // set precursor information
       vector<Precursor> precursors;
       Precursor precursor;
-      precursor.setMZ(aa_sequence.getMonoWeight());
+      precursor.setMZ(aa_sequence.getMZ(charge));
       precursor.setCharge(charge);
       precursors.push_back(precursor);
       spectrum.setPrecursors(precursors);
