@@ -80,6 +80,8 @@ namespace OpenMS
 
     void reserve(Size n);
 
+    bool empty();
+
     void clearChargeInfo();
 
     bool operator<(const PeakGroup &a) const;

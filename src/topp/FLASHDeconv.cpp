@@ -557,7 +557,7 @@ protected:
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         // per spec deconvolution
-        fd.getPeakGroups(deconvolutedSpectrum, specIndex, massIndex);
+        fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
 
         if (param.mzmlOut)
         {
@@ -580,7 +580,7 @@ protected:
           massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);// add deconvoluted mass in massTracer
         }
         qspecCntr[msLevel - 1]++;
-        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
+        massCntr[msLevel - 1] += deconvolutedSpectrum.size();
         deconvolutedSpectrum.writeDeconvolutedMasses(specOut[msLevel - 1], param);
 
         if (param.topfdOut)

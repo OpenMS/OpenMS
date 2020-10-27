@@ -67,30 +67,30 @@ namespace OpenMS
   //This function is the main function for the deconvolution. Takes empty DeconvolutedSpectrum and fill it up with peakGroups.
   // DeconvolutedSpectrum contains the recursor peak group for MSn.
   //A peakGroup is the collection of peaks from a single mass (monoisotopic mass). Thus it contains peaks from different charges and iostope indices.
-  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int &specIndex, int &massIndex)
+  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int scanNumber, int &specIndex, int &massIndex)
   {
-    auto *spec = dspec.spec;
+    auto *spec = &(dspec.getOriginalSpectrum());
     int msLevel = spec->getMSLevel();
 
     //For MS2,3,.. max mass and charge ranges should be determined by precursors
-    if (msLevel == 1 || dspec.precursorPeakGroup == nullptr)
+    if (msLevel == 1 || dspec.getPrecursorPeakGroup().empty())
     {
       param.currentMaxMass = param.maxMass;
       param.currentChargeRange = param.chargeRange;
     }
     else
     {
-      param.currentChargeRange = dspec.precursorPeak.getCharge();
-      param.currentMaxMass = dspec.precursorPeakGroup->monoisotopicMass;
+      param.currentChargeRange = dspec.getPrecursorCharge() - param.minCharge;
+      param.currentMaxMass = dspec.getPrecursorPeakGroup().monoisotopicMass;
     }
 
     //Prepare spectrum deconvolution
     auto sd = SpectrumDeconvolution(*spec, param);
 
     //Perform deconvolution and fill in deconvolutedSpectrum
-    dspec.peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
-                                                    prevMinBinLogMassMap,
-                                                    avg, msLevel);
+    dspec.setPeakGroups(sd.getPeakGroupsFromSpectrum(prevMassBinMap,
+                                                     prevMinBinLogMassMap,
+                                                     avg, msLevel));
 
     if (dspec.empty())
     {
@@ -98,12 +98,12 @@ namespace OpenMS
     }
 
     //Update peakGroup information after deconvolution
-    for (auto &pg : dspec.peakGroups)
+    for (auto &pg : dspec)
     {
       sort(pg.peaks.begin(), pg.peaks.end());
       pg.spec = spec;
       pg.specIndex = specIndex;
-      pg.scanNumber = dspec.scanNumber;
+      pg.scanNumber = scanNumber;
       pg.massIndex = massIndex++;
     }
 

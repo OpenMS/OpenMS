@@ -270,13 +270,15 @@ namespace OpenMS
 
   void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)
   {
-    if(deconvolutedSpectrum.spec->getMSLevel() != 1){
+    if (deconvolutedSpectrum.getOriginalSpectrum().getMSLevel() != 1)
+    {
       return;
     }
-    double rt = deconvolutedSpectrum.spec->getRT();
+    double rt = deconvolutedSpectrum.getOriginalSpectrum().getRT();
     peakGroupMap[rt] = std::unordered_map<double, PeakGroup>();
     auto &subMap = peakGroupMap[rt];
-    for(auto &pg : (deconvolutedSpectrum.peakGroups)){
+    for (auto &pg : deconvolutedSpectrum)
+    {
       subMap[pg.monoisotopicMass] = pg;
     }
   }

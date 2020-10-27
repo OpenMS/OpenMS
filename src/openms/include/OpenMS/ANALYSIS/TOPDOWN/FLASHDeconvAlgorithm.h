@@ -41,12 +41,13 @@
 
 namespace OpenMS
 {
+
+  struct DeconvolutedSpectrum;
+
   /**
   @brief FLASHDeocnv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset
-
   @ingroup Topdown
 */
-  struct DeconvolutedSpectrum;
 
   class OPENMS_DLLAPI FLASHDeconvAlgorithm
   {
@@ -71,7 +72,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
 
     // deconvolution main function
-    void getPeakGroups(DeconvolutedSpectrum &spec, int &specIndex, int &massIndex);
+    void getPeakGroups(DeconvolutedSpectrum &spec, int scanNumber, int &specIndex, int &massIndex);
 
     // convert double to nominal mass
     static int getNominalMass(double m);

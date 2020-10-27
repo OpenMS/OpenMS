@@ -43,15 +43,12 @@
 namespace OpenMS
 {
   struct PeakGroup;
+
   /**
-       @brief
-
-       @param
-       @param
+       @brief A struct representing a deconvoluted spectrum. Also contains deconvoluted precursro information for MSn n>1.
   */
-  struct OPENMS_DLLAPI DeconvolutedSpectrum
+  class OPENMS_DLLAPI DeconvolutedSpectrum
   {
-
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
@@ -63,41 +60,91 @@ namespace OpenMS
        @param s spectrum
        @param n scan number
   */
-    explicit DeconvolutedSpectrum(MSSpectrum &s, int n);
+    explicit DeconvolutedSpectrum(const MSSpectrum &s, int n);
 
+    /// default deconstructor
     ~DeconvolutedSpectrum() = default;
 
-    void writeDeconvolutedMasses(std::fstream &fs, Parameter &param);
-
-    void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold, int numMaxMS2);
-
-    void writeMassList(std::fstream &fs, double retDelta, double qScoreThreshold, int numMaxMS2);
-
-    void writeTopFD(std::fstream &fs, int id);
-
-    MSSpectrum toSpectrum();
-
+    /**
+        @brief write the header in the output file (spectrum level)
+        @param fs file stream to the output file
+        @param n the index to the mass
+        @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
+   */
     static void writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail);
 
-    static void writeAttCsvHeader(std::fstream &fs);
+    /**
+      @brief write the deconvoluted masses in the output file (spectrum level)
+      @param fs file stream to the output file
+      @param param FLASHDeconv paramter
+    */
+    void writeDeconvolutedMasses(std::fstream &fs, Parameter &param);
 
+    //void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold, int numMaxMS2);
+    //void writeMassList(std::fstream &fs, double retDelta, double qScoreThreshold, int numMaxMS2);
+
+    /**
+      @brief write the deconvoluted masses TopFD format
+      @param fs file stream to the output file
+      @param id the index to the spectrum. updated outside.
+ */
+    void writeTopFD(std::fstream &fs, int id);
+
+    /// cast DeconvolutedSpectrum into MSSpectrum object to write mzml format
+    MSSpectrum toSpectrum();
+
+    //static void writeAttCsvHeader(std::fstream &fs);
+
+    /// write the header for Thermo Inclusion List header format
     static void writeThermoInclusionHeader(std::fstream &fs);
 
+    /// check if empty
     bool empty() const;
 
-    // for memory save... clear unnecessary information in mass tracing
+    /// for memory save... clear unnecessary information in mass tracing
     void clearPeakGroupsChargeInfo();
 
+    /**
+     @brief register the precusor info in this from the precursor DeconvolutedSpectrum
+     @param precursorSpectrum the precursor DeconvolutedSpectrum
+     */
     bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
 
-    MSSpectrum *spec;
+    /// begin for iterator over peakGroups (or masses)
+    std::__wrap_iter<std::vector<PeakGroup, std::allocator<PeakGroup>>::pointer> begin();
+
+    /// end for iterator over peakGroups (or masses)
+    std::__wrap_iter<std::vector<PeakGroup, std::allocator<PeakGroup>>::pointer> end();
+
+    /// peakGroups setter
+    void setPeakGroups(std::vector<PeakGroup> &peakGroups);
+
+    /// original spectrum setter
+    MSSpectrum &getOriginalSpectrum();
+
+    /// peakGroup getter
+    PeakGroup getPrecursorPeakGroup();
+
+    /// precursor charge getter : set in registerPrecursor
+    int getPrecursorCharge();
+
+    /// size of peakGroups
+    int size();
+
+  private:
+    /// the original spectrum from which this is generated
+    MSSpectrum spec;
+    /// the list of peakGorups (or masses)
     std::vector<PeakGroup> peakGroups;
-
+    /// precursor peakGroup (or mass)
     PeakGroup *precursorPeakGroup = nullptr;
+    /// precursor peak (not deconvoluted one)
     Precursor precursorPeak;
+    /// activation method for file output
     std::string activationMethod;
-
+    /// scan number and precursor scan number
     int scanNumber, precursorScanNumber;
+
   };
 }
 

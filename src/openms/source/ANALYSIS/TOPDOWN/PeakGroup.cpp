@@ -127,4 +127,9 @@ namespace OpenMS
     avgMass = monoisotopicMass + massDelta;
 
   }
+
+  bool PeakGroup::empty()
+  {
+    return peaks.empty();
+  }
 }
