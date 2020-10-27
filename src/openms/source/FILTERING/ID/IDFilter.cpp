@@ -98,8 +98,7 @@ namespace OpenMS
     {
       Int z = hit.getCharge();
       if (z == 0) z = 1;
-      double peptide_mz = (hit.getSequence().getMonoWeight(Residue::Full, z) /
-                           double(z));
+      double peptide_mz = hit.getSequence().getMZ(z);
       return fabs(precursor_mz_ - peptide_mz) <= tolerance_;
     }
   };

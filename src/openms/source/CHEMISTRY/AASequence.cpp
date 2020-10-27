@@ -484,6 +484,12 @@ namespace OpenMS
     return tag_offset + getFormula(type, charge).getAverageWeight();
   }
 
+  double AASequence::getMZ(Int charge, Residue::ResidueType type) const
+  {
+    if (charge == 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can't calculate mass-to-charge ratio for charge=0.", toString());
+    return getMonoWeight(type, charge) / charge;
+  }
+
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
     if (peptide_.size() >= 1)
