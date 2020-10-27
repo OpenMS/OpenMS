@@ -293,16 +293,18 @@ namespace OpenMS
     // return if no active 1D widget is present
     if (widget_1D == nullptr) { return; }
 
+    // lambda which returns the current layer
+    // (this needs to be reevaluated, since adding a layer can invalidate the reference/pointer due to realloc)
+    auto current_layer = [&]() -> LayerData& { return widget_1D->canvas()->getCurrentLayer(); };
     widget_1D->canvas()->activateSpectrum(spectrum_index);
-    LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
-    current_layer.peptide_id_index = peptide_id_index;
-    current_layer.peptide_hit_index = peptide_hit_index;
+    current_layer().peptide_id_index = peptide_id_index;
+    current_layer().peptide_hit_index = peptide_hit_index;
 
-    if (current_layer.type == LayerData::DT_PEAK)
+    if (current_layer().type == LayerData::DT_PEAK)
     {
-      UInt ms_level = current_layer.getCurrentSpectrum().getMSLevel();
+      UInt ms_level = current_layer().getCurrentSpectrum().getMSLevel();
 
-      const vector<PeptideIdentification>& pis = current_layer.getCurrentSpectrum().getPeptideIdentifications();
+      const vector<PeptideIdentification>& pis = current_layer().getCurrentSpectrum().getPeptideIdentifications();
       switch (ms_level)
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
@@ -311,15 +313,15 @@ namespace OpenMS
           vector<Precursor> precursors;
 
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
-          for (Size i = spectrum_index + 1; i < current_layer.getPeakData()->size(); ++i)
+          for (Size i = spectrum_index + 1; i < current_layer().getPeakData()->size(); ++i)
           {
-            if ((*current_layer.getPeakData())[i].getMSLevel() == 1) break;
+            if ((*current_layer().getPeakData())[i].getMSLevel() == 1) break;
 
             // skip MS2 without precursor
-            if ((*current_layer.getPeakData())[i].getPrecursors().empty()) continue;
+            if ((*current_layer().getPeakData())[i].getPrecursors().empty()) continue;
 
             // there should be only one precursor per MS2 spectrum.
-            vector<Precursor> pcs = (*current_layer.getPeakData())[i].getPrecursors();
+            vector<Precursor> pcs = (*current_layer().getPeakData())[i].getPrecursors();
             copy(pcs.begin(), pcs.end(), back_inserter(precursors));
           }
           addPrecursorLabels1D_(precursors);
@@ -339,7 +341,7 @@ namespace OpenMS
               addTheoreticalSpectrumLayer_(ph);
 
               // synchronize PeptideHits with the annotations in the spectrum
-              current_layer.synchronizePeakAnnotations();
+              current_layer().synchronizePeakAnnotations();
               // remove labels and theoretical spectrum (will be recreated using PH annotations)
               removeGraphicalPeakAnnotations_(spectrum_index);
               removeTheoreticalSpectrumLayer_();
@@ -348,7 +350,7 @@ namespace OpenMS
               if (widget_1D == nullptr) { return; }
               // update current PeptideHit with the synchronized one
               widget_1D->canvas()->activateSpectrum(spectrum_index);
-              const vector<PeptideIdentification>& pis2 = current_layer.getCurrentSpectrum().getPeptideIdentifications();
+              const vector<PeptideIdentification>& pis2 = current_layer().getCurrentSpectrum().getPeptideIdentifications();
               ph = pis2[peptide_id_index].getHits()[peptide_hit_index];
 
             }
@@ -455,7 +457,7 @@ namespace OpenMS
           OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
       }
     } // end DT_PEAK
-    // else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
+    // else if (current_layer().type == LayerData::DT_CHROMATOGRAM)
   }
 
   // Helper function for text formatting
@@ -830,7 +832,7 @@ namespace OpenMS
       {
         // determine start and stop of isolation window
         double center_mz = it->metaValueExists("isolation window target m/z") ?
-          double(it->getMetaValue("isolation window target m/z")) : it->getMZ();
+        double(it->getMetaValue("isolation window target m/z")) : it->getMZ();
         double isolation_window_lower_mz = center_mz - it->getIsolationWindowLowerOffset();
         double isolation_window_upper_mz = center_mz + it->getIsolationWindowUpperOffset();
 
