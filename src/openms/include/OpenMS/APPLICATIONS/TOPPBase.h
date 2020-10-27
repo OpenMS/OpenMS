@@ -174,7 +174,7 @@ public:
 
       @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
     */
-    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {});
+    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
     /// Destructor
     virtual ~TOPPBase();
@@ -239,6 +239,9 @@ private:
 
     /// Log file stream.  Use the writeLog_() and writeDebug_() methods to access it.
     mutable std::ofstream log_;
+
+    /// Enable the ToolHandler tests
+    bool toolhandler_test_;
 
     /**
       @brief Ensures that at least some default logging destination is
