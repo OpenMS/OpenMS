@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -510,6 +510,7 @@ protected:
     /// @note will not (and cannot) control whether the required ion can exist
     /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
     /// supplementing/deduction of the sequence to its ionic form.
+    /// @throws Exception::InvalidValue if @p charge==0
     double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const;
 
     /// returns a pointer to the residue at given position
