@@ -240,9 +240,6 @@ private:
     /// Log file stream.  Use the writeLog_() and writeDebug_() methods to access it.
     mutable std::ofstream log_;
 
-    /// Enable the ToolHandler tests
-    bool toolhandler_test_;
-
     /**
       @brief Ensures that at least some default logging destination is
       opened for writing in append mode.
@@ -396,7 +393,10 @@ protected:
 
     /// Papers, specific for this tool (will be shown in '--help')
     std::vector<Citation> citations_;
-    
+
+    /// Enable the ToolHandler tests
+    bool toolhandler_test_;
+
     /**
       @brief Returns the location of the ini file where parameters are taken
       from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then

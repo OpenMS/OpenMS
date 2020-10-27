@@ -113,7 +113,7 @@ namespace OpenMS
     return tool_name_ + ":" + instance_number_ + ":";
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official,const std::vector<Citation>& citations, bool toolhandler_test) :
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
