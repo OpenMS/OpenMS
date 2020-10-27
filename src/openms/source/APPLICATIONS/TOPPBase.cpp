@@ -133,6 +133,7 @@ namespace OpenMS
       verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
     }
 
+    // can be disabled to allow unit tests
     if (toolhandler_test_)
     {
       // check if tool entries are in Utils and TOPP (duplication)
