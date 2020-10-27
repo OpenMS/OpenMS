@@ -27,54 +27,63 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
 
-//! [AASequence]
+#pragma once
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <iostream>
+#include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/VISUAL/LayerData.h>
 
-using namespace OpenMS;
-using namespace std;
-
-int main()
+namespace OpenMS
 {
-  // generate AASequence object from String
-  const String s = "DEFIANGER";
-  AASequence peptide1 = AASequence::fromString(s);
+  class TOPPViewBase;
 
-  // generate AASequence object from string literal
-  AASequence peptide2 = AASequence::fromString("PEPTIDER");
+  /**
+  @brief Base behavior for different visualizaton modules in TOPPView.
+  */
+  class TVBehaviorBase
+    : public QObject
+  {
+    Q_OBJECT
 
-  // extract prefix and suffix
-  AASequence prefix(peptide1.getPrefix(2));
-  AASequence suffix(peptide1.getSuffix(3));
-  cout << peptide1.toString() << " "
-       << prefix << " "
-       << suffix << endl;
-  
-  // create chemically modified peptide
-  AASequence peptide_meth_ox = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
-  cout << peptide_meth_ox.toString() << " "
-       << peptide_meth_ox.toUnmodifiedString()
-       << endl;
+protected:
+    ///@name Type definitions
+    //@{
+    /// Feature map type
+    typedef LayerData::FeatureMapType FeatureMapType;
+    /// Feature map managed type
+    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
-  // mass of the full, uncharged peptide
-  double peptide_mass_mono = peptide_meth_ox.getMonoWeight();
-  cout << "Monoisotopic mass of the uncharged, full peptide: " << peptide_mass_mono << endl;
+    /// Consensus feature map type
+    typedef LayerData::ConsensusMapType ConsensusMapType;
+    /// Consensus  map managed type
+    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
-  double peptide_mass_avg = peptide_meth_ox.getAverageWeight();
-  cout << "Average mass of the uncharged, full peptide: " << peptide_mass_avg << endl;
+    /// Peak map type
+    typedef LayerData::ExperimentType ExperimentType;
+    /// Main managed data type (experiment)
+    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    /// Peak spectrum type
+    typedef ExperimentType::SpectrumType SpectrumType;
+    //@}
 
-  // mass of the 2+ charged b-ion with the given sequence
-  double ion_mass_2plus = peptide_meth_ox.getMonoWeight(Residue::BIon, 2);
-  cout << "Mass of the doubly positively charged b-ion: " << ion_mass_2plus << endl;
+public:
+    TVBehaviorBase() = delete;
 
-  // mass-to-charge ratio (m/z) of the 2+ charged b-ion and full peptide with the given sequence
-  cout << "Mass-to-charge of the doubly positively charged b-ion: " << peptide_meth_ox.getMZ(2, Residue::BIon) << endl;
-  cout << "Mass-to-charge of the doubly positively charged peptide: " << peptide_meth_ox.getMZ(2) << endl;
+    virtual ~TVBehaviorBase() = default;
+public slots:
+    /// Slot for behavior activation. The default behaviour does nothing. Override in child class if desired.
+    virtual void activateBehavior();
 
-  // ... many more
-  return 0;
+    /// Slot for behavior deactivation. The default behaviour does nothing. Override in child class if desired.
+    virtual void deactivateBehavior();
+protected:
+    /// Construct the behaviour
+    TVBehaviorBase(TOPPViewBase* parent);
+
+    TOPPViewBase* tv_;
+  };
 }
-
-//! [AASequence]

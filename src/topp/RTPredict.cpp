@@ -573,7 +573,7 @@ protected:
           {
             identifications[i].sort();
             Int charge = identifications[i].getHits().front().getCharge();
-            double mz =  identifications[i].getHits().front().getSequence().getMonoWeight(Residue::Full, charge) / double(charge);
+            double mz =  identifications[i].getHits().front().getSequence().getMZ(charge);
             double rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
 
             identifications[i].setRT(rt);

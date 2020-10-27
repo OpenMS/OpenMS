@@ -48,6 +48,10 @@ using namespace std;
 
 namespace OpenMS
 {
+  TOPPViewSpectraViewBehavior::TOPPViewSpectraViewBehavior(TOPPViewBase* parent):
+    TVBehaviorBase(parent)
+  {  
+  }
 
   LayerData::ExperimentSharedPtrType prepareChromatogram(Size index, LayerData::ExperimentSharedPtrType exp_sptr, LayerData::ODExperimentSharedPtrType ondisc_sptr)
   {
@@ -94,11 +98,6 @@ namespace OpenMS
 
     chrom_exp_sptr->addSpectrum(spectrum);
     return chrom_exp_sptr;
-  }
-
-  TOPPViewSpectraViewBehavior::TOPPViewSpectraViewBehavior(TOPPViewBase * parent) :
-    tv_(parent)
-  {
   }
 
   String caption;
@@ -339,16 +338,6 @@ namespace OpenMS
   void TOPPViewSpectraViewBehavior::deactivate1DSpectrum(int /* spectrum_index */)
   {
     // no special handling of spectrum deactivation needed
-  }
-
-  void TOPPViewSpectraViewBehavior::activateBehavior()
-  {
-    // no special handling of activation
-  }
-
-  void TOPPViewSpectraViewBehavior::deactivateBehavior()
-  {
-    // no special handling of deactivation
   }
 
 } // OpenMS

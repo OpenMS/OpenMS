@@ -27,54 +27,31 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
 
-//! [AASequence]
-
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <iostream>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/TVBehaviorBase.h>
 
 using namespace OpenMS;
 using namespace std;
 
-int main()
+namespace OpenMS
 {
-  // generate AASequence object from String
-  const String s = "DEFIANGER";
-  AASequence peptide1 = AASequence::fromString(s);
+  TVBehaviorBase::TVBehaviorBase(TOPPViewBase* parent):
+    tv_(parent)
+  {  
+  }
 
-  // generate AASequence object from string literal
-  AASequence peptide2 = AASequence::fromString("PEPTIDER");
+  void TVBehaviorBase::activateBehavior()
+  {
+    // no special handling of activation is default
+  }
 
-  // extract prefix and suffix
-  AASequence prefix(peptide1.getPrefix(2));
-  AASequence suffix(peptide1.getSuffix(3));
-  cout << peptide1.toString() << " "
-       << prefix << " "
-       << suffix << endl;
-  
-  // create chemically modified peptide
-  AASequence peptide_meth_ox = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
-  cout << peptide_meth_ox.toString() << " "
-       << peptide_meth_ox.toUnmodifiedString()
-       << endl;
-
-  // mass of the full, uncharged peptide
-  double peptide_mass_mono = peptide_meth_ox.getMonoWeight();
-  cout << "Monoisotopic mass of the uncharged, full peptide: " << peptide_mass_mono << endl;
-
-  double peptide_mass_avg = peptide_meth_ox.getAverageWeight();
-  cout << "Average mass of the uncharged, full peptide: " << peptide_mass_avg << endl;
-
-  // mass of the 2+ charged b-ion with the given sequence
-  double ion_mass_2plus = peptide_meth_ox.getMonoWeight(Residue::BIon, 2);
-  cout << "Mass of the doubly positively charged b-ion: " << ion_mass_2plus << endl;
-
-  // mass-to-charge ratio (m/z) of the 2+ charged b-ion and full peptide with the given sequence
-  cout << "Mass-to-charge of the doubly positively charged b-ion: " << peptide_meth_ox.getMZ(2, Residue::BIon) << endl;
-  cout << "Mass-to-charge of the doubly positively charged peptide: " << peptide_meth_ox.getMZ(2) << endl;
-
-  // ... many more
-  return 0;
+  void TVBehaviorBase::deactivateBehavior()
+  {
+    // no special handling of deactivation is default
+  }
 }
-
-//! [AASequence]

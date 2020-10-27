@@ -64,7 +64,7 @@ using namespace std;
 namespace OpenMS
 {
   TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
-    tv_(parent),
+    TVBehaviorBase(parent),
     spec_id_view_(spec_id_view)
   {
   }
@@ -1283,7 +1283,8 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewIdentificationViewBehavior::activateBehavior()
+  // override
+  void TOPPViewIdentificationViewBehavior::activateBehavior() 
   {
     Spectrum1DWidget* w = tv_->getActive1DWidget();
     if (w == nullptr) return;
@@ -1311,6 +1312,7 @@ namespace OpenMS
     }
   }
 
+  // override
   void TOPPViewIdentificationViewBehavior::deactivateBehavior()
   {
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();

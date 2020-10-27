@@ -6,6 +6,7 @@ set(sources_list_h
 AxisTickCalculator.h
 AxisPainter.h
 AxisWidget.h
+TVBehaviorBase.h
 ColorSelector.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h

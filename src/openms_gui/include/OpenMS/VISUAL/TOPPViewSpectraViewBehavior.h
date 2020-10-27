@@ -36,6 +36,7 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/TVBehaviorBase.h>
 #include <vector>
 
 namespace OpenMS
@@ -46,28 +47,9 @@ namespace OpenMS
   @brief Behavior of TOPPView in spectra view mode.
   */
   class TOPPViewSpectraViewBehavior
-    : public QObject
+    : public TVBehaviorBase
   {
     Q_OBJECT
-    ///@name Type definitions
-    //@{
-    /// Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
-    /// Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
-
-    /// Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
-    /// Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
-
-    /// Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
-    /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-    /// Peak spectrum type
-    typedef ExperimentType::SpectrumType SpectrumType;
-    //@}
 
 public:
     /// Construct the behaviour with its parent
@@ -88,13 +70,5 @@ public slots:
 
     /// Behavior for deactivate1DSpectrum
     virtual void deactivate1DSpectrum(int index);
-
-    /// Slot for behavior activation
-    virtual void activateBehavior();
-
-    /// Slot for behavior deactivation
-    virtual void deactivateBehavior();
-private:
-    TOPPViewBase* tv_;
   };
 }

@@ -74,8 +74,7 @@ namespace OpenMS
         pep_it->sort();
         const PeptideHit& hit = pep_it->getHits().front();
         Int charge = hit.getCharge();
-        mz = hit.getSequence().getMonoWeight(Residue::Full, charge) /
-             double(charge);
+        mz = hit.getSequence().getMZ(charge);
       }
       else
       {
