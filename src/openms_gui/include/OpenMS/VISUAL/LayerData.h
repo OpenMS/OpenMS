@@ -102,23 +102,6 @@ public:
       DT_UNKNOWN          ///< Undefined data type indicating an error
     };
 
-    /// Flags that determine which information is shown.
-    enum Flags
-    {
-      F_HULL,          ///< Features: Overall convex hull
-      F_HULLS,         ///< Features: Convex hulls of single mass traces
-      F_UNASSIGNED,    ///< Features: Unassigned peptide hits
-      P_PRECURSORS,    ///< Peaks: Mark precursor peaks of MS/MS scans
-      P_PROJECTIONS,   ///< Peaks: Show projections
-      C_ELEMENTS,      ///< Consensus features: Show elements
-      I_PEPTIDEMZ,     ///< Identifications: m/z source
-      I_LABELS,        ///< Identifications: Show labels (not sequences)
-      SIZE_OF_FLAGS
-    };
-
-    /// Actual state of each flag
-    std::bitset<SIZE_OF_FLAGS> flags;
-
     /// Label used in visualization
     enum LabelType
     {
@@ -132,29 +115,6 @@ public:
 
     /// Label names
     static const std::string NamesOfLabelType[SIZE_OF_LABEL_TYPE];
-
-    /// Features
-    typedef FeatureMap FeatureMapType;
-
-    /// SharedPtr on feature map
-    typedef boost::shared_ptr<FeatureMap > FeatureMapSharedPtrType;
-
-    /// consensus features
-    typedef ConsensusMap ConsensusMapType;
-
-    /// SharedPtr on consensus features
-    typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
-
-    /// Main data type (experiment)
-    typedef PeakMap ExperimentType;
-
-    /// SharedPtr on MSExperiment
-    typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
-
-    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
-
-    /// SharedPtr on On-Disc MSExperiment
-    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
     //@}
 
@@ -203,6 +163,18 @@ public:
     /// Returns the maximum intensity of the internal data, depending on type
     virtual float getMaxIntensity() const = 0;
 
+    /// if this layer is visible
+    bool visible;
+
+    /// data type (peak or feature data)
+    DataType type;
+
+    /// file name of the file the data comes from (if available)
+    String filename;
+
+    /// Filters to apply before painting
+    DataFilters filters;
+
 protected:
     /// layer name
     String name_;
@@ -214,9 +186,28 @@ protected:
     bool modified_;
     };
 
+
   class OPENMS_GUI_DLLAPI FeatureLayer : public LayerDataBase
   {
 public:
+    /// Flags that determine which information is shown.
+    enum FeatureLayerFlags
+    {
+      F_HULL,          ///< Features: Overall convex hull
+      F_HULLS,         ///< Features: Convex hulls of single mass traces
+      F_UNASSIGNED,    ///< Features: Unassigned peptide hits
+      SIZE_OF_FLAGS
+    };
+
+    /// features
+    typedef FeatureMap FeatureMapType;
+
+    /// SharedPtr on features
+    typedef boost::shared_ptr<FeatureMap> FeatureMapSharedPtrType;
+
+    /// Actual state of each flag
+    std::bitset<SIZE_OF_FLAGS> feature_layer_flags;
+
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
     {
@@ -229,6 +220,21 @@ public:
       return features_;
     }
 
+    /// Default constructor
+    FeatureLayer() = delete;
+
+    /// no Copy-ctor (should not be needed)
+    FeatureLayer(const FeatureLayer& ld) = delete;
+
+    /// no assignment operator (should not be needed)
+    FeatureLayer& operator=(const FeatureLayer& ld) = delete;
+
+    /// move Ctor
+    FeatureLayer(FeatureLayer&& ld) = default;
+
+    /// move assignment
+    FeatureLayer& operator=(FeatureLayer&& ld) = default;
+
 protected:
     /// feature data
     FeatureMapSharedPtrType features_;
@@ -238,6 +244,22 @@ protected:
   class OPENMS_GUI_DLLAPI ConsensusLayer : public LayerDataBase
   {
 public:
+    /// Flags that determine which information is shown.
+    enum ConsensusLayerFlags
+    {
+      C_ELEMENTS,      ///< Consensus features: Show elements
+      SIZE_OF_FLAGS
+    };
+
+    /// Actual state of each flag
+    std::bitset<SIZE_OF_FLAGS> consensus_layer_flags;
+
+    /// consensus features
+    typedef ConsensusMap ConsensusMapType;
+
+    /// SharedPtr on consensus features
+    typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
+
     /// Returns a const reference to the consensus feature data
     const ConsensusMapSharedPtrType & getConsensusMap() const
     {
@@ -250,6 +272,20 @@ public:
       return consensus_map_;
     }
 
+    /// Default constructor
+    ConsensusLayer() = default;
+
+    /// no Copy-ctor (should not be needed)
+    ConsensusLayer(const ConsensusLayer& ld) = delete;
+
+    /// no assignment operator (should not be needed)
+    ConsensusLayer& operator=(const ConsensusLayer& ld) = delete;
+
+    /// move Ctor
+    ConsensusLayer(ConsensusLayer&& ld) = default;
+
+    /// move assignment
+    ConsensusLayer& operator=(ConsensusLayer&& ld) = default;
 protected:
     /// consensus feature data
     ConsensusMapSharedPtrType consensus_map_;
@@ -258,6 +294,27 @@ protected:
   class OPENMS_GUI_DLLAPI PeakLayer : public LayerDataBase
   {
 public:
+    /// Flags that determine which information is shown.
+    enum Flags
+    {
+      P_PRECURSORS,    ///< Peaks: Mark precursor peaks of MS/MS scans
+      P_PROJECTIONS,   ///< Peaks: Show projections
+      I_PEPTIDEMZ,     ///< Identifications: m/z source
+      I_LABELS,        ///< Identifications: Show labels (not sequences)
+      SIZE_OF_FLAGS
+    };
+
+    /// Main data type (experiment)
+    typedef PeakMap ExperimentType;
+
+    /// SharedPtr on MSExperiment
+    typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
+
+    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
+
+    /// SharedPtr on On-Disc MSExperiment
+    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
+
     /**
     @brief Returns a const reference to the current in-memory peak data
 
@@ -411,6 +468,14 @@ public:
       }
     }
 
+    /**
+      * only applies to 1D View
+      */
+    /// Annotations of all spectra of the experiment (1D view)
+    std::vector<Annotations1DContainer> annotations_1d;
+
+    /// Peak colors of the currently shown spectrum
+    std::vector<QColor> peak_colors_1d;
 private:
     /// Update current cached spectrum for easy retrieval
     void updateCache_();
@@ -453,35 +518,17 @@ private:
       label(L_NONE),
       peptide_id_index(-1),
       peptide_hit_index(-1),
-      features_(new FeatureMapType()),
-      consensus_map_(new ConsensusMapType()),
-      peak_map_(new ExperimentType()),
-      on_disc_peaks(new OnDiscMSExperiment()),
-      chromatogram_map_(new ExperimentType()),
       current_spectrum_(0),
       cached_spectrum_()
     {
       annotations_1d.resize(1);
     }
 
-    /// no Copy-ctor (should not be needed)
-    LayerData(const LayerData& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerData& operator=(const LayerData& ld) = delete;
-
-    /// move Ctor
-    LayerData(LayerData&& ld) = default;
-
-    /// move assignment
-    LayerData& operator=(LayerData&& ld) = default;
-
-
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
     bool annotate(const std::vector<PeptideIdentification>& identifications,
                   const std::vector<ProteinIdentification>& protein_identifications);
-
 
     /// Returns a const reference to the annotations of the current spectrum (1D view)
     const Annotations1DContainer & getCurrentAnnotations() const
@@ -506,7 +553,6 @@ private:
     {
       return annotations_1d[spectrum_index];
     }
-
     
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
@@ -515,20 +561,10 @@ private:
     /// remove peak annotations in the given list from the currently active PeptideHit
     void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
 
-    /// if this layer is visible
-    bool visible;
-
     /// if this layer is flipped (1d mirror view)
     bool flipped;
 
-    /// data type (peak or feature data)
-    DataType type;
-
-
 public:
-    /// file name of the file the data comes from (if available)
-    String filename;
-
     /// peptide identifications
     std::vector<PeptideIdentification> peptides;
 
@@ -538,23 +574,12 @@ public:
     /// Gradient for 2D and 3D views
     MultiGradient gradient;
 
-    /// Filters to apply before painting
-    DataFilters filters;
-
-    /// Annotations of all spectra of the experiment (1D view)
-    std::vector<Annotations1DContainer> annotations_1d;
-
-    /// Peak colors of the currently shown spectrum
-    std::vector<QColor> peak_colors_1d;
-
-
     /// Label type
     LabelType label;
 
     /// Selected peptide id and hit index (-1 if none is selected)
     int peptide_id_index;
     int peptide_hit_index;
-
 
   };
 
