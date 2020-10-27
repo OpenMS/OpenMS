@@ -414,6 +414,7 @@ START_SECTION((double getMZ(Int charge, Residue::ResidueType type = Residue::Ful
   // uses getMonoWeight and is thus thoroughly tested
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(1, Residue::YIon), double(1018.4952))
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(2, Residue::YIon), double((1018.4952 + Constants::PROTON_MASS_U) / 2.0))
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, AASequence::fromString("DFPIANGER").getMZ(0));
 }
 END_SECTION
 
