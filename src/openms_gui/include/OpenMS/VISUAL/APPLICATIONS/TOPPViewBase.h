@@ -300,6 +300,8 @@ public slots:
     void annotateWithAMS();
     /// Annotates current layer with ID data
     void annotateWithID();
+    /// Switch to Top-Down view
+    void topDown();
     /// Shows the theoretical spectrum generation dialog
     void showSpectrumGenerationDialog();
     /// Shows the spectrum alignment dialog
