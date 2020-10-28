@@ -1042,7 +1042,7 @@ namespace OpenMS
       /**
        * cluster filter results
        */
-      MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
+      MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"));
       clustering.setLogType(getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
@@ -1067,7 +1067,7 @@ namespace OpenMS
       /**
        * cluster filter results
        */
-      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
+      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"));
       clustering.setLogType(getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
       
