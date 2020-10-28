@@ -225,8 +225,8 @@
         \endcode
 
         The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
-        @note If you build Qt5 from source, the build directories will be located at <tt>&lt;path_to_qt&gt;/mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
-        @note Example CMAKE_PREFIX_PATH: <tt>C:\dev\qt-5.9\mkspecs\winrt-x64-msvc2017</tt>
+        @note If you build Qt5 from source, the build directories will be located at <tt>&lt;path_to_qt&gt;\\mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
+        @note Example CMAKE_PREFIX_PATH: <tt>C:\\dev\\qt-5.9\\mkspecs\\winrt-x64-msvc2017</tt>
         
         The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
         
@@ -273,7 +273,7 @@
   go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
   For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
   You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
-  Single tests can be run with <tt>ctest -R <testnameregex></tt>, e.g. <tt>ctest -R Base64_test</tt>.
+  Single tests can be run with <tt>ctest -R &lt;testnameregex&gt;</tt>, e.g. <tt>ctest -R Base64_test</tt>.
   For more syntax on CTest look at the online documentation at http://cmake.org/.
 
   @section install_win_cmdline_openms Building OpenMS on the commandline

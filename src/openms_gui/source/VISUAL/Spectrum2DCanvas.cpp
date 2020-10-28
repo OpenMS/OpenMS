@@ -935,7 +935,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D> & hulls, bool hasIdentifications, QPainter & painter)
+  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D> & hulls, bool has_identifications, QPainter & painter)
   {
     QPolygon points;
 
@@ -954,7 +954,7 @@ namespace OpenMS
       }
       painter.setPen(QPen(Qt::white, 5, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin));
       painter.drawPolygon(points);
-      painter.setPen(QPen( hasIdentifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+      painter.setPen(QPen( has_identifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
       painter.drawPolygon(points);
     }
   }

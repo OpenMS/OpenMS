@@ -89,7 +89,7 @@ using namespace std;
     To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
     PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
 
-    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CometAdapter.cli

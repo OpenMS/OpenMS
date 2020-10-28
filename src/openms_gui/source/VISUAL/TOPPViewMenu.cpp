@@ -90,8 +90,7 @@ namespace OpenMS
     m_file->addMenu(recent_files->getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
 
     m_file->addSeparator();
-    addAction_(m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog),
-               TV_STATUS::HAS_LAYER);
+    m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
     m_file->addAction("&Quit", qApp, SLOT(quit()));
 
     // Tools menu

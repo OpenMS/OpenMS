@@ -60,17 +60,30 @@ using namespace std;
 namespace OpenMS
 {
 
-  ToolsDialog::ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType type) :
+  ToolsDialog::ToolsDialog(
+          QWidget* parent,
+          String ini_file,
+          String default_dir,
+          LayerData::DataType layer_type,
+          String layer_name
+    ) :
     QDialog(parent),
     ini_file_(ini_file),
     default_dir_(default_dir)
   {
-    QGridLayout* main_grid = new QGridLayout(this);
-    QLabel* label = new QLabel("TOPP tool:");
-    main_grid->addWidget(label, 0, 0);
+    auto main_grid = new QGridLayout(this);
+
+    // Layer label
+    auto layer_label = new QLabel("Selected Layer:");
+    main_grid->addWidget(layer_label, 0, 0);
+    auto layer_label_name = new QLabel(layer_name.toQString());
+    main_grid->addWidget(layer_label_name, 0, 1);
+
+    auto label = new QLabel("TOPP tool:");
+    main_grid->addWidget(label, 1, 0);
     QStringList list;
 
-    if (type == LayerData::DT_PEAK)
+    if (layer_type == LayerData::DT_PEAK)
     {
       list << "FileFilter" << "FileInfo"
            << "NoiseFilterGaussian" << "NoiseFilterSGolay"
@@ -87,18 +100,18 @@ namespace OpenMS
            << "SpectraFilterScaler" << "SpectraFilterBernNorm"
            << "SpectraFilterNLargest" << "SpectraFilterNormalizer";
     }
-    else if (type == LayerData::DT_FEATURE)
+    else if (layer_type == LayerData::DT_FEATURE)
     {
       list << "FileFilter" << "FileConverter"
            << "FileInfo" << "Decharger"
            << "FeatureLinkerLabeled";
     }
-    else if (type == LayerData::DT_CONSENSUS)
+    else if (layer_type == LayerData::DT_CONSENSUS)
     {
       list << "FileFilter" << "FileConverter"
            << "FileInfo";
     }
-    else if (type == LayerData::DT_CHROMATOGRAM)
+    else if (layer_type == LayerData::DT_CHROMATOGRAM)
     {
       //TODO CHROM
     }
@@ -110,33 +123,33 @@ namespace OpenMS
     tools_combo_->addItems(list);
     connect(tools_combo_, SIGNAL(activated(int)), this, SLOT(setTool_(int)));
 
-    main_grid->addWidget(tools_combo_, 0, 1);
+    main_grid->addWidget(tools_combo_, 1, 1);
 
     label = new QLabel("input argument:");
-    main_grid->addWidget(label, 1, 0);
+    main_grid->addWidget(label, 2, 0);
     input_combo_ = new QComboBox;
-    main_grid->addWidget(input_combo_, 1, 1);
+    main_grid->addWidget(input_combo_, 2, 1);
 
     label = new QLabel("output argument:");
-    main_grid->addWidget(label, 2, 0);
+    main_grid->addWidget(label, 3, 0);
     output_combo_ = new QComboBox;
-    main_grid->addWidget(output_combo_, 2, 1);
+    main_grid->addWidget(output_combo_, 3, 1);
 
     // tools description label
     tool_desc_ = new QLabel;
     tool_desc_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     tool_desc_->setWordWrap(true);
-    main_grid->addWidget(tool_desc_, 0, 2, 3, 1);
+    main_grid->addWidget(tool_desc_, 1, 2, 3, 1);
 
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
-    main_grid->addWidget(editor_, 3, 0, 1, 5);
+    main_grid->addWidget(editor_, 4, 0, 1, 5);
 
-    QHBoxLayout* hbox = new QHBoxLayout;
-    QPushButton* load_button = new QPushButton(tr("&Load"));
+    auto hbox = new QHBoxLayout;
+    auto load_button = new QPushButton(tr("&Load"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton* store_button = new QPushButton(tr("&Store"));
+    auto store_button = new QPushButton(tr("&Store"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();
@@ -145,14 +158,14 @@ namespace OpenMS
     connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
     hbox->addWidget(ok_button_);
 
-    QPushButton* cancel_button = new QPushButton(tr("&Cancel"));
+    auto cancel_button = new QPushButton(tr("&Cancel"));
     connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
     hbox->addWidget(cancel_button);
     main_grid->addLayout(hbox, 5, 0, 1, 5);
 
     setLayout(main_grid);
 
-    setWindowTitle(tr("TOPP tools"));
+    setWindowTitle(tr("Apply TOPP tool to layer"));
     disable_();
   }
 

@@ -54,7 +54,7 @@ namespace OpenMS
     @brief A tabbed view, to browse lists of spectra or identifications
     
   */
-  class OPENMS_GUI_DLLAPI SpectraSelectionTabs
+  class OPENMS_GUI_DLLAPI DataSelectionTabs
     : public QTabWidget
   {
     Q_OBJECT
@@ -69,7 +69,7 @@ namespace OpenMS
     };
 
     /// Default constructor
-    SpectraSelectionTabs(QWidget* parent, TOPPViewBase* tv);
+    DataSelectionTabs(QWidget* parent, TOPPViewBase* tv);
 
     /// update items in the two tabs according to the currently selected layer
     void update();
@@ -113,4 +113,3 @@ namespace OpenMS
   };
 
 } //namespace
-

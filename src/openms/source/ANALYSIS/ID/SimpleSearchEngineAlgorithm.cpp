@@ -322,7 +322,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
           if (annotation_precursor_error_ppm)
           {
-            double theo_mz = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
+            double theo_mz = fixed_and_variable_modified_peptide.getMZ(charge);
             double ppm_difference = Math::getPPM(mz, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
