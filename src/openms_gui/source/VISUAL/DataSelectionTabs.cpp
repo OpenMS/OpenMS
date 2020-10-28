@@ -43,8 +43,8 @@
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
-#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
+#include <OpenMS/VISUAL/TVSpectraViewController.h>
+#include <OpenMS/VISUAL/TVIdentificationViewController.h>
 
 namespace OpenMS
 {
@@ -61,24 +61,24 @@ namespace OpenMS
     : QTabWidget(parent),
     spectra_view_widget_(new SpectraViewWidget(this)),
     id_view_widget_(new SpectraIdentificationViewWidget(Param(), this)),
-    spectraview_behavior_(new TOPPViewSpectraViewBehavior(tv)),
-    idview_behaviour_(new TOPPViewIdentificationViewBehavior(tv, id_view_widget_)),
+    spectraview_behavior_(new TVSpectraViewController(tv)),
+    idview_behaviour_(new TVIdentificationViewController(tv, id_view_widget_)),
     tv_(tv)
   {
     // Hook-up controller and views for spectra inspection
     connect(spectra_view_widget_, &SpectraViewWidget::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)), spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (const std::vector<int>&)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)), spectraview_behavior_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), spectraview_behavior_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
 
     // Hook-up controller and views for identification inspection
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, idview_behaviour_, &TOPPViewIdentificationViewBehavior::deactivate1DSpectrum);
+    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, idview_behaviour_, &TVIdentificationViewController::deactivate1DSpectrum);
     connect(id_view_widget_, &SpectraIdentificationViewWidget::showSpectrumAs1D, this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_behaviour_, CONNECTCAST(TOPPViewIdentificationViewBehavior, activate1DSpectrum, (int, int, int)));
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_behaviour_, &TOPPViewIdentificationViewBehavior::setVisibleArea1D);
+    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_behaviour_, CONNECTCAST(TVIdentificationViewController, activate1DSpectrum, (int, int, int)));
+    connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_behaviour_, &TVIdentificationViewController::setVisibleArea1D);
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());

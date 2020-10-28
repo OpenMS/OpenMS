@@ -45,8 +45,8 @@ namespace OpenMS
 {
   class SpectraViewWidget;
   class SpectraIdentificationViewWidget;
-  class TOPPViewIdentificationViewBehavior;
-  class TOPPViewSpectraViewBehavior;
+  class TVIdentificationViewController;
+  class TVSpectraViewController;
   class TOPPViewBase;
   /**
     @brief A tabbed view, to browse lists of spectra or identifications
@@ -98,9 +98,9 @@ namespace OpenMS
     //@}
 
     /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior* spectraview_behavior_;
+    TVSpectraViewController* spectraview_behavior_;
     /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior* idview_behaviour_;
+    TVIdentificationViewController* idview_behaviour_;
     /// pointer to base class to access some members (going signal/slot would be cleaner)
     TOPPViewBase* tv_;
   };

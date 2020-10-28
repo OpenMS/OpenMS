@@ -50,11 +50,11 @@ TOPPASToolVertex.h
 TOPPASTreeView.h
 TOPPASVertex.h
 TOPPASWidget.h
-TOPPViewIdentificationViewBehavior.h
 TOPPViewMenu.h
 #TOPPViewPreferences.h
-TOPPViewSpectraViewBehavior.h
-TVBehaviorBase.h
+TVControllerBase.h
+TVIdentificationViewController.h
+TVSpectraViewController.h
 )
 
 ### add path to the filenames

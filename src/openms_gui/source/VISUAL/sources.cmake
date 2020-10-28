@@ -56,11 +56,11 @@ TOPPASToolVertex.cpp
 TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
-TOPPViewIdentificationViewBehavior.cpp
 TOPPViewMenu.cpp
 #TOPPViewPreferences.cpp
-TOPPViewSpectraViewBehavior.cpp
-TVBehaviorBase.cpp
+TVIdentificationViewController.cpp
+TVSpectraViewController.cpp
+TVControllerBase.cpp
 )
 
 ### add path to the filenames

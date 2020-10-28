@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
+#include <OpenMS/VISUAL/TVSpectraViewController.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
@@ -48,8 +48,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPViewSpectraViewBehavior::TOPPViewSpectraViewBehavior(TOPPViewBase* parent):
-    TVBehaviorBase(parent)
+  TVSpectraViewController::TVSpectraViewController(TOPPViewBase* parent):
+    TVControllerBase(parent)
   {  
   }
 
@@ -102,7 +102,7 @@ namespace OpenMS
 
   String caption;
 
-  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(int index)
+  void TVSpectraViewController::showSpectrumAs1D(int index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
@@ -185,7 +185,7 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(const std::vector<int>& indices)
+  void TVSpectraViewController::showSpectrumAs1D(const std::vector<int>& indices)
   {
 
     // basic behavior 1
@@ -254,7 +254,7 @@ namespace OpenMS
   }
 
   // called by SpectraViewWidget::spectrumSelected()
-  void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
+  void TVSpectraViewController::activate1DSpectrum(int index)
   {
     Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
 
@@ -290,7 +290,7 @@ namespace OpenMS
   }
 
   // called by SpectraViewWidget::spectrumSelected()
-  void TOPPViewSpectraViewBehavior::activate1DSpectrum(const std::vector<int>& indices)
+  void TVSpectraViewController::activate1DSpectrum(const std::vector<int>& indices)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
@@ -335,7 +335,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewSpectraViewBehavior::deactivate1DSpectrum(int /* spectrum_index */)
+  void TVSpectraViewController::deactivate1DSpectrum(int /* spectrum_index */)
   {
     // no special handling of spectrum deactivation needed
   }

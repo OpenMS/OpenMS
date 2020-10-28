@@ -44,7 +44,7 @@ namespace OpenMS
   /**
   @brief Base behavior for different visualizaton modules in TOPPView.
   */
-  class TVBehaviorBase
+  class TVControllerBase
     : public QObject
   {
     Q_OBJECT
@@ -71,9 +71,9 @@ protected:
     //@}
 
 public:
-    TVBehaviorBase() = delete;
+    TVControllerBase() = delete;
 
-    virtual ~TVBehaviorBase() = default;
+    virtual ~TVControllerBase() = default;
 public slots:
     /// Slot for behavior activation. The default behaviour does nothing. Override in child class if desired.
     virtual void activateBehavior();
@@ -82,7 +82,7 @@ public slots:
     virtual void deactivateBehavior();
 protected:
     /// Construct the behaviour
-    TVBehaviorBase(TOPPViewBase* parent);
+    TVControllerBase(TOPPViewBase* parent);
 
     TOPPViewBase* tv_;
   };
