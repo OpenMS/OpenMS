@@ -98,9 +98,9 @@ namespace OpenMS
     //@}
 
     /// TOPPView behavior for the spectra view
-    TVSpectraViewController* spectraview_behavior_;
+    TVSpectraViewController* spectraview_controller_;
     /// TOPPView behavior for the identification view
-    TVIdentificationViewController* idview_behaviour_;
+    TVIdentificationViewController* idview_controller_;
     /// pointer to base class to access some members (going signal/slot would be cleaner)
     TOPPViewBase* tv_;
   };

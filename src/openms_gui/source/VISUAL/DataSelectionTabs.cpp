@@ -61,24 +61,24 @@ namespace OpenMS
     : QTabWidget(parent),
     spectra_view_widget_(new SpectraViewWidget(this)),
     id_view_widget_(new SpectraIdentificationViewWidget(Param(), this)),
-    spectraview_behavior_(new TVSpectraViewController(tv)),
-    idview_behaviour_(new TVIdentificationViewController(tv, id_view_widget_)),
+    spectraview_controller_(new TVSpectraViewController(tv)),
+    idview_controller_(new TVIdentificationViewController(tv, id_view_widget_)),
     tv_(tv)
   {
     // Hook-up controller and views for spectra inspection
     connect(spectra_view_widget_, &SpectraViewWidget::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)), spectraview_behavior_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), spectraview_behavior_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
 
     // Hook-up controller and views for identification inspection
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, idview_behaviour_, &TVIdentificationViewController::deactivate1DSpectrum);
+    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
     connect(id_view_widget_, &SpectraIdentificationViewWidget::showSpectrumAs1D, this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_behaviour_, CONNECTCAST(TVIdentificationViewController, activate1DSpectrum, (int, int, int)));
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_behaviour_, &TVIdentificationViewController::setVisibleArea1D);
+    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_controller_, CONNECTCAST(TVIdentificationViewController, activate1DSpectrum, (int, int, int)));
+    connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_controller_, &TVIdentificationViewController::setVisibleArea1D);
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());
@@ -137,16 +137,16 @@ namespace OpenMS
     switch (tab_index)
     {
     case SPECTRA_IDX:
-      idview_behaviour_->deactivateBehavior(); // finalize old behavior
-      spectraview_behavior_->activateBehavior(); // initialize new behavior
+      idview_controller_->deactivateBehavior(); // finalize old behavior
+      spectraview_controller_->activateBehavior(); // initialize new behavior
       break;
     case IDENT_IDX:
-      spectraview_behavior_->deactivateBehavior();
+      spectraview_controller_->deactivateBehavior();
       if (tv_->getActive2DWidget()) // currently 2D window is open
       {
         showSpectrumAs1D(0);
       }
-      idview_behaviour_->activateBehavior();
+      idview_controller_->activateBehavior();
       break;
     default:
       std::cerr << "Error: tab_index " << tab_index << " is invalid\n";
@@ -164,12 +164,12 @@ namespace OpenMS
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_behavior_->showSpectrumAs1D(index);
+        spectraview_controller_->showSpectrumAs1D(index);
       }
 
       if (id_view_widget_->isVisible())
       {
-        idview_behaviour_->showSpectrumAs1D(index);
+        idview_controller_->showSpectrumAs1D(index);
       }
     }
   }
@@ -183,14 +183,14 @@ namespace OpenMS
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_behavior_->showSpectrumAs1D(indices);
+        spectraview_controller_->showSpectrumAs1D(indices);
       }
     }
     else if (widget_2d)
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_behavior_->showSpectrumAs1D(indices);
+        spectraview_controller_->showSpectrumAs1D(indices);
       }
     }
   }
@@ -206,12 +206,12 @@ namespace OpenMS
       {
         setTabEnabled(IDENT_IDX, true); // enable identification view
 
-        spectraview_behavior_->deactivateBehavior();
+        spectraview_controller_->deactivateBehavior();
         if (tv_->getActive2DWidget()) // currently 2D window is open
         {
           showSpectrumAs1D(0);
         }
-        idview_behaviour_->activateBehavior();
+        idview_controller_->activateBehavior();
 
         // TODO: check this triggers update!
         setCurrentIndex(IDENT_IDX); // switch to identification view --> triggers currentTabChanged() slot
