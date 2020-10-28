@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -86,7 +86,7 @@ namespace OpenMS
     connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_behaviour_, &TOPPViewIdentificationViewBehavior::setVisibleArea1D);
 
     // Hook-up controller and views for top down view
-    connect(topdown_view_widget_, &TopDownViewWidget::showSpectrumAs1D, this, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (int)));
+    connect(topdown_view_widget_, &TopDownViewWidget::showSpectrumAs1D, this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
     connect(topdown_view_widget_, &TopDownViewWidget::requestVisibleArea1D, topdownview_behaviour_, &TOPPViewTopDownViewBehavior::setVisibleArea1D);
     connect(topdown_view_widget_, &TopDownViewWidget::spectrumSelected, topdownview_behaviour_, CONNECTCAST(TOPPViewTopDownViewBehavior, activate1DSpectrum, (int)));
     connect(topdown_view_widget_, &TopDownViewWidget::spectrumDeselected, topdownview_behaviour_, &TOPPViewTopDownViewBehavior::deactivate1DSpectrum);

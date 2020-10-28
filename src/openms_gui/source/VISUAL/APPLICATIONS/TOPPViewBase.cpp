@@ -1914,7 +1914,7 @@ namespace OpenMS
 
   void TOPPViewBase::topDown()
   { // this should only be callable if current layer's type is of DT_PEAK
-    selection_view_->show(SpectraSelectionTabs::TOPDOWN_IDX);
+    selection_view_->show(DataSelectionTabs::TOPDOWN_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
