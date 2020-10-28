@@ -80,7 +80,7 @@ namespace OpenMS
   class LogWindow;
   class LayerListView;
   class MultiGradientSelector;
-  class SpectraSelectionTabs;
+  class DataSelectionTabs;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
@@ -392,7 +392,7 @@ protected:
     /// Layer management widget
     LayerListView* layers_view_;
 
-    SpectraSelectionTabs* selection_view_;
+    DataSelectionTabs* selection_view_;
 
     ///@name Filter widget
     //@{
