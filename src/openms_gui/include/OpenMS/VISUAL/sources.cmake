@@ -6,7 +6,6 @@ set(sources_list_h
 AxisTickCalculator.h
 AxisPainter.h
 AxisWidget.h
-TVBehaviorBase.h
 ColorSelector.h
 DataSelectionTabs.h
 EnhancedTabBar.h
@@ -55,6 +54,7 @@ TOPPViewIdentificationViewBehavior.h
 TOPPViewMenu.h
 #TOPPViewPreferences.h
 TOPPViewSpectraViewBehavior.h
+TVBehaviorBase.h
 )
 
 ### add path to the filenames
