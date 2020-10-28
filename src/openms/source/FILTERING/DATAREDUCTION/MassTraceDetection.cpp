@@ -253,7 +253,7 @@ namespace OpenMS
                 [](const Apex & a,
                     const Apex & b) -> bool
       {
-        return a.intensity > b.intensity;
+        return a.intensity < b.intensity;
       });
 
       // *********************************************************************

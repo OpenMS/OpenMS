@@ -61,10 +61,7 @@ namespace OpenMS
 
   public :
 
-    EmgScoring()
-    {
-
-    }
+    EmgScoring() = default;
 
     ~EmgScoring() = default;
 
@@ -124,7 +121,6 @@ namespace OpenMS
       delete model_rt;
 
       return quality;
-
     }
 
   protected:

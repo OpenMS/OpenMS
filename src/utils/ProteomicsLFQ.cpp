@@ -483,7 +483,6 @@ protected:
 
   void calculateSeeds_(const MSExperiment & ms_centroided, FeatureMap & seeds, double median_fwhm)
   {
-
     //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
     MSExperiment e;
     for (const auto& s : ms_centroided)

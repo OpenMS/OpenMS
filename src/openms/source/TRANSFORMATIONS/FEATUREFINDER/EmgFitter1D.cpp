@@ -251,7 +251,7 @@ namespace OpenMS
     int weighted_median_idx = 0;
     double sum = weight_sum - set[0].getIntensity(); // sum is the total weight of all `x[i] > x[k]`
 
-    while(sum > weight_sum/2.)
+    while (sum > weight_sum/2.)
     {
       ++weighted_median_idx;
       sum -= set[weighted_median_idx].getIntensity();
