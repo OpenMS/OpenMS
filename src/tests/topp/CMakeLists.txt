@@ -2866,7 +2866,7 @@ add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml BSA_plusTransfer.consensusXML.tmp
          -out_msstats BSA_plusTransfer.csv.tmp
          -out BSA_plusTransfer.mzTab.tmp
-         -threads 4
+         -threads 1
          -proteinFDR 0.3
          -test
          )
@@ -2903,7 +2903,7 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml BSA_plusSeeds_plusTransfer.consensusXML.tmp
          -out_msstats BSA_plusSeeds_plusTransfer.csv.tmp
          -out BSA_plusSeeds_plusTransfer.mzTab.tmp
-         -threads 4
+         -threads 1
          -proteinFDR 0.3
          -test
          )

@@ -53,6 +53,7 @@
 //#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
@@ -228,6 +229,10 @@ protected:
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs,"
+                                                                 "if treeguided, calculated a guiding tree first.", false, true);
+    setValidStrings_("alignment_order", ListUtils::create<String>("star,treeguided"));
+
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
                                                                      " sequence as a candidate per feature in the same file.", false, true);
     setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
@@ -253,13 +258,15 @@ protected:
     }
     ffi_defaults.remove("detect:peak_width"); // set from data
 
-    Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
-    ma_defaults.setValue("max_rt_shift", 0.1);
-    ma_defaults.setValue("use_unassigned_peptides", "false");
-    ma_defaults.setValue("use_feature_rt", "true");
+    Param ma_defaults = MapAlignmentAlgorithmTreeGuided().getDefaults();
+
+    ma_defaults.setValue("align_algorithm:max_rt_shift", 0.1);
+    ma_defaults.setValue("align_algorithm:use_unassigned_peptides", "false");
+    ma_defaults.setValue("align_algorithm:use_feature_rt", "true");
 
     // hide entries
-    for (const auto& s : {"use_unassigned_peptides", "use_feature_rt", "score_cutoff", "min_score"} )
+    for (const auto& s : {"align_algorithm:use_unassigned_peptides", "align_algorithm:use_feature_rt",
+                          "align_algorithm:score_cutoff", "align_algorithm:min_score"} )
     {
       ma_defaults.addTag(s, "advanced");
     }
@@ -518,15 +525,8 @@ protected:
   {
     if (feature_maps.size() > 1) // do we have several maps to align / link?
     {
-      Param ma_param = getParam_().copy("Alignment:", true);
-      writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
-
-      // Determine reference from data, otherwise a change in order of input files
-      // leads to slightly different results
-      const int reference_index(-1); // set no reference (determine from data)
-      MapAlignmentAlgorithmIdentification aligner;
-      aligner.setLogType(log_type_);
-      aligner.setParameters(ma_param);
+      Param mat_param = getParam_().copy("Alignment:", true);
+      writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
       Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type");
@@ -534,7 +534,24 @@ protected:
 
       try
       {
-        aligner.align(feature_maps, transformations, reference_index);
+        if (getStringOption_("alignment_order") == "star")
+        {
+          // Determine reference from data, otherwise a change in order of input files
+          // leads to slightly different results
+          const int reference_index(-1); // set no reference (determine from data)
+          Param ma_param = getParam_().copy("align_algorithm:", true);
+          MapAlignmentAlgorithmIdentification aligner;
+          aligner.setLogType(log_type_);
+          aligner.setParameters(ma_param);
+          aligner.align(feature_maps, transformations, reference_index);
+        }
+        else //tree-guided
+        {
+          MapAlignmentAlgorithmTreeGuided aligner;
+          aligner.setLogType(log_type_);
+          aligner.setParameters(mat_param);
+          aligner.align(feature_maps, transformations);
+        }
       }
       catch (Exception::MissingInformation& err)
       {
