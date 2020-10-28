@@ -76,11 +76,11 @@ class QToolButton;
 
 namespace OpenMS
 {
+  class DataSelectionTabs;
   class FileWatcher;
   class LogWindow;
   class LayerListView;
   class MultiGradientSelector;
-  class DataSelectionTabs;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
