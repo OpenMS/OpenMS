@@ -6,8 +6,8 @@ set(sources_list_h
 AxisTickCalculator.h
 AxisPainter.h
 AxisWidget.h
-TVBehaviorBase.h
 ColorSelector.h
+DataSelectionTabs.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
@@ -28,7 +28,6 @@ ParamEditor.h
 RecentFilesMenu.h
 SpectraViewWidget.h
 SpectraIdentificationViewWidget.h
-SpectraSelectionTabs.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h
@@ -55,6 +54,7 @@ TOPPViewIdentificationViewBehavior.h
 TOPPViewMenu.h
 #TOPPViewPreferences.h
 TOPPViewSpectraViewBehavior.h
+TVBehaviorBase.h
 )
 
 ### add path to the filenames

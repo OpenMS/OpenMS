@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/SpectraSelectionTabs.h>
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/VISUAL/LayerData.h>
@@ -57,7 +57,7 @@ namespace OpenMS
 
   /// Default constructor
 
-  SpectraSelectionTabs::SpectraSelectionTabs(QWidget* parent, TOPPViewBase* tv)
+  DataSelectionTabs::DataSelectionTabs(QWidget* parent, TOPPViewBase* tv)
     : QTabWidget(parent),
     spectra_view_widget_(new SpectraViewWidget(this)),
     id_view_widget_(new SpectraIdentificationViewWidget(Param(), this)),
@@ -67,16 +67,16 @@ namespace OpenMS
   {
     // Hook-up controller and views for spectra inspection
     connect(spectra_view_widget_, &SpectraViewWidget::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (int)), this, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)), spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (const std::vector<int>&)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (int)), this, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
 
     // Hook-up controller and views for identification inspection
     connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, idview_behaviour_, &TOPPViewIdentificationViewBehavior::deactivate1DSpectrum);
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::showSpectrumAs1D, this, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (int)));
+    connect(id_view_widget_, &SpectraIdentificationViewWidget::showSpectrumAs1D, this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
     connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_behaviour_, CONNECTCAST(TOPPViewIdentificationViewBehavior, activate1DSpectrum, (int, int, int)));
     connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_behaviour_, &TOPPViewIdentificationViewBehavior::setVisibleArea1D);
 
@@ -89,11 +89,11 @@ namespace OpenMS
     setTabEnabled(IDENT_IDX, false);
 
     // switch between different view tabs
-    connect(this, &QTabWidget::currentChanged, this, &SpectraSelectionTabs::currentTabChanged);
-    connect(this, &QTabWidget::tabBarDoubleClicked, this, &SpectraSelectionTabs::tabBarDoubleClicked);
+    connect(this, &QTabWidget::currentChanged, this, &DataSelectionTabs::currentTabChanged);
+    connect(this, &QTabWidget::tabBarDoubleClicked, this, &DataSelectionTabs::tabBarDoubleClicked);
   }
 
-  void SpectraSelectionTabs::update()
+  void DataSelectionTabs::update()
   {
     // prevent infinite loop when calling 'setTabEnabled' -> currentTabChanged() -> update()
     this->blockSignals(true);
@@ -131,7 +131,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraSelectionTabs::currentTabChanged(int tab_index)
+  void DataSelectionTabs::currentTabChanged(int tab_index)
   {
     // set new behavior
     switch (tab_index)
@@ -155,7 +155,7 @@ namespace OpenMS
     update();
   }
 
-  void SpectraSelectionTabs::showSpectrumAs1D(int index)
+  void DataSelectionTabs::showSpectrumAs1D(int index)
   {
     Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
     Spectrum2DWidget* widget_2d = tv_->getActive2DWidget();
@@ -174,7 +174,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraSelectionTabs::showSpectrumAs1D(std::vector<int> indices)
+  void DataSelectionTabs::showSpectrumAs1D(std::vector<int> indices)
   {
     Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
     Spectrum2DWidget* widget_2d = tv_->getActive2DWidget();
@@ -195,7 +195,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraSelectionTabs::tabBarDoubleClicked(int tab_index)
+  void DataSelectionTabs::tabBarDoubleClicked(int tab_index)
   {
     if (!tv_->getActiveSpectrumWidget()) return;
 
@@ -224,13 +224,13 @@ namespace OpenMS
     // update here?
   }
 
-  void SpectraSelectionTabs::show(TAB_INDEX which)
+  void DataSelectionTabs::show(TAB_INDEX which)
   {
     setTabEnabled(which, true);
     setCurrentIndex(which);
   }
 
-  SpectraIdentificationViewWidget* SpectraSelectionTabs::getSpectraIdentificationViewWidget()
+  SpectraIdentificationViewWidget* DataSelectionTabs::getSpectraIdentificationViewWidget()
   {
     return id_view_widget_;
   }
