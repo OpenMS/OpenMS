@@ -157,7 +157,8 @@ namespace OpenMS
         /**
          * @brief minimum retention time
          */
-        double rt_minimum_;
+        //unused
+        //double rt_minimum_;
         
    };
   

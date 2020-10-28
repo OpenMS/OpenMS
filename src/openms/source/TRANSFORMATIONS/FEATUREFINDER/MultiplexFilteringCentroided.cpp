@@ -102,7 +102,7 @@ namespace OpenMS
         // loop over m/z
         //for (MSSpectrum::ConstIterator it_mz = it_rt.begin(); it_mz != it_rt.end(); ++it_mz)
         #pragma omp parallel for
-        for (Size s = 0; s < it_rt.size(); s++)
+        for (SignedSize s = 0; s < (SignedSize) it_rt.size(); s++)
         {
           auto& it_mz = it_rt[s];
           double mz = it_mz.getMZ();

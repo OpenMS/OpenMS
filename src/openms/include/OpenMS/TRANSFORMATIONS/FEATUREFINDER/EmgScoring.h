@@ -85,8 +85,6 @@ namespace OpenMS
       double avg_score = 0;
       bool smooth_data = false;
 
-      //int active_levels = omp_get_active_level();
-      //#pragma omp parallel for if(active_levels < 1)
       for (Size k = 0; k < transition_group.size(); k++)
       {
         // get the id, then find the corresponding transition and features within this peakgroup
@@ -96,7 +94,6 @@ namespace OpenMS
 
         // TODO what if score is -1 ?? e.g. if it is undefined
         double fscore = elutionModelFit(f.getConvexHulls()[0].getHullPoints(), smooth_data);
-        //#pragma omp atomic
         avg_score += fscore;
       }
 

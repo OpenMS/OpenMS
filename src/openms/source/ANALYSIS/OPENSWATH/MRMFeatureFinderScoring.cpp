@@ -554,7 +554,7 @@ namespace OpenMS
     int in_parallel = omp_in_parallel();
     #endif
     #pragma omp parallel for if(in_parallel == 0) schedule(dynamic,1)
-    for (Size feature_idx = 0; feature_idx < mrmfeatures.size(); ++feature_idx)
+    for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
     {
       auto& mrmfeature = mrmfeatures[feature_idx];
       OpenSwath::IMRMFeature* imrmfeature;

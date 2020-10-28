@@ -280,8 +280,10 @@ namespace OpenMS
     // alignment
     vector<Size> trafo_order;
     FeatureMap map_transformed;
-    vector<FeatureMap> copied_maps = feature_maps;
-    treeGuidedAlignment(tree, copied_maps, maps_ranges, map_transformed, trafo_order);
+    {
+      vector<FeatureMap> copied_maps = feature_maps;
+      treeGuidedAlignment(tree, copied_maps, maps_ranges, map_transformed, trafo_order);
+    } // free copied maps
 
     //-------------------------------------------------------------
     // generating output

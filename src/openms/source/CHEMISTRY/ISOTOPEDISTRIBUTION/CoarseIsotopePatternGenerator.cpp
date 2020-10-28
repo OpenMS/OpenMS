@@ -47,10 +47,6 @@
 #include <functional>
 #include <numeric>
 
-#ifdef _OPENMP
-  #include "omp.h"
-#endif
-
 using namespace std;
 
 namespace OpenMS
@@ -431,30 +427,6 @@ namespace OpenMS
     return result;
 
   }
-
-  /*IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::fillGaps_(const IsotopeDistribution::ContainerType& id) const
-  {
-    IsotopeDistribution::ContainerType id_gapless;
-    Size mass = round(id.begin()->getMZ());
-    //TODO actually reserves from min_round_mass to max_round_mass?
-    id_gapless.reserve(id.size());
-
-    for (IsotopeDistribution::ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
-    {
-      Size roundedmz = round(it->getMZ());
-      //round atomic mass to the mass_number
-      if (roundedmz != mass)
-      { // missing an entry
-        id_gapless.emplace_back(mass, 0.0);
-      }
-      else
-      { // mass is registered already
-        id_gapless.emplace_back(roundedmz, it->getIntensity()); // copy
-        ++it;  // ... and advance
-      }
-    }
-    return id_gapless;
-  }*/
 
   IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::fillGaps_(const IsotopeDistribution::ContainerType& id) const
   {

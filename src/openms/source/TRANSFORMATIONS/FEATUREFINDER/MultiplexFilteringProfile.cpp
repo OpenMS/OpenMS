@@ -171,7 +171,7 @@ namespace OpenMS
         
         // loop over mz
         #pragma omp parallel for
-        for (Size s = 0; s < it_rt.size(); s++)
+        for (SignedSize s = 0; s < (SignedSize) it_rt.size(); s++)
         {
           double mz = it_rt[s].getMZ();
           MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][s], idx_rt);
