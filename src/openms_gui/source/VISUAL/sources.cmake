@@ -6,7 +6,6 @@ set(sources_list
 AxisPainter.cpp
 AxisTickCalculator.cpp
 AxisWidget.cpp
-TVBehaviorBase.cpp
 ColorSelector.cpp
 DataSelectionTabs.cpp
 EnhancedTabBar.cpp
@@ -61,6 +60,7 @@ TOPPViewIdentificationViewBehavior.cpp
 TOPPViewMenu.cpp
 #TOPPViewPreferences.cpp
 TOPPViewSpectraViewBehavior.cpp
+TVBehaviorBase.cpp
 )
 
 ### add path to the filenames
