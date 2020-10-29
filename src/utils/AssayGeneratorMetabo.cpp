@@ -142,6 +142,10 @@ protected:
     registerStringOption_("fragment_annotation", "<choice>", "none", "Fragment annotation method",false);
     setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
 
+    registerDoubleOption_("fragment_annotation_score_threshold", "<num>", 0.80, "Filters annotations based on the explained intensity of the peaks in a spectrum", false);
+    setMinFloat_("fragment_annotation_score_threshold", 0.0);
+    setMaxFloat_("fragment_annotation_score_threshold", 1.0);
+
     registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting appraoch. This option does only work in combination with the fragment annotation via sirius.", false);
 
     registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach (original). This approach can be extended by using resolve_overlap, which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. Add_shift which will add a -CH2 mass shift to the target fragments and use them as additional decoy if fragmentation-tree re-rooting failed. Both combines the extended methods (resolve_overlap, add_shift).",false);
@@ -158,7 +162,7 @@ protected:
     registerDoubleOption_("precursor_recalibration_window", "<num>", 0.1, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
     setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
-    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
+    registerDoubleOption_("consensus_spectrum_precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
 
     // transition extraction 
@@ -203,6 +207,7 @@ protected:
     String fragment_annotation = getStringOption_("fragment_annotation");
     String method = getStringOption_("method");
     bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
+    double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
     bool decoy_generation = getFlag_("decoy_generation");
     if (decoy_generation && !use_fragment_annotation)
     {
@@ -243,7 +248,7 @@ protected:
     double min_fragment_mz = getDoubleOption_("min_fragment_mz");
     double max_fragment_mz = getDoubleOption_("max_fragment_mz");
 
-    double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
+    double consensus_spectrum_precursor_rt_tolerance = getDoubleOption_("consensus_spectrum_precursor_rt_tolerance");
     double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
     String pre_recal_win_unit = getStringOption_("precursor_recalibration_window_unit");
     bool ppm_recal = pre_recal_win_unit == "ppm" ? true : false;
@@ -450,7 +455,7 @@ protected:
 
         // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
         // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
-        vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sorted_subdirs, use_exact_mass);
+        vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sorted_subdirs, score_threshold, use_exact_mass);
 
         // should the sirius workspace be retained
         if (!sirius_workspace_directory.empty())
@@ -550,7 +555,7 @@ protected:
       {
         tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssay(spectra,
                                                                   feature_mapping,
-                                                                  precursor_rt_tol,
+                                                                  consensus_spectrum_precursor_rt_tolerance,
                                                                   precursor_mz_distance,
                                                                   cosine_sim_threshold,
                                                                   transition_threshold,

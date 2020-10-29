@@ -66,7 +66,7 @@ namespace OpenMS
           @param sirius_workspace_subdirs: Vector of paths to SIRIUS subdirectories.
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass);
+          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass);
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  
@@ -170,7 +170,7 @@ namespace OpenMS
           @brief extractCompoundRankingAndFilename
           Extract compound ranking and score   (./formula_candidates.tsv).
 
-          @return a map with specified rank and score (TreeIsotope_Score) (based on the annotation)
+          @return a map with specified rank and score (explainedIntensity) (based on the annotation)
 
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           */

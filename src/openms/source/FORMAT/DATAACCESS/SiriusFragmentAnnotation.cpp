@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass)
+  std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass)
   {
     std::map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra> native_ids_annotated_spectra;
     std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra;
@@ -66,21 +66,25 @@ namespace OpenMS
       }
       else
       {
-        // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
-        map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
-        it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
-        if (it != native_ids_annotated_spectra.end())
+        // only use spectra over a certain score threshold (0-1)
+        if (double(annotated_spectrum.getMetaValue("score")) >= score_threshold)
         {
-          if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
+          // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
+          map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
+          it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
+          if (it != native_ids_annotated_spectra.end())
+          {
+            if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
+            {
+              SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
+              native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
+            }
+          }
+          else
           {
             SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
             native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
           }
-        }
-        else
-        {
-          SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
-          native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
         }
       }
     }
@@ -228,7 +232,7 @@ namespace OpenMS
         StringList sl;
         candidates.getRow(i, sl);
         rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
-                                             sl[columnname_to_columnindex.at("TreeIsotope_Score")].toDouble()));
+                                             sl[columnname_to_columnindex.at("explainedIntensity")].toDouble()));
       }
     }
     fcandidates.close();
