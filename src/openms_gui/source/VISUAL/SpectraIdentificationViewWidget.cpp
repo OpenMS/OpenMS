@@ -698,8 +698,7 @@ namespace OpenMS
               {
                 double exp_precursor = first_precursor.getMZ();
                 int charge = first_precursor.getCharge();
-                double theo_mass = ph.getSequence().getMonoWeight();
-                double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
+                double theo_precursor= ph.getSequence().getMZ(charge);
                 ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
               }
               addDoubleItemToBottomRow_(ppm_error, 15, c);

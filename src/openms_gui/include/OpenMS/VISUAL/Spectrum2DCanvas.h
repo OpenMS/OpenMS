@@ -261,10 +261,11 @@ protected:
     /**
       @brief Paints convex hulls (one for each mass trace) for a single feature.
 
-      @param hulls Reference to convex hull vector.
-      @param p The QPainter to paint on.
+      @param hulls Reference to convex hull vector
+      @param has_identifications Draw hulls in green (true) or blue color (false)
+      @param p The QPainter to paint on
     */
-    void paintConvexHulls_(const std::vector<ConvexHull2D>& hulls, bool hasIdentifications, QPainter& p);
+    void paintConvexHulls_(const std::vector<ConvexHull2D>& hulls, bool has_identifications, QPainter& p);
 
     // Docu in base class
     void intensityModeChange_() override;
@@ -339,9 +340,9 @@ protected:
       Internally, this function makes use of the members 'canvas_coverage_min_' (giving the fraction (e.g. 20%) of area which should be covered by data)
       and 'pen_size_max_' (maximum allowed number of pixels per data point).
 
-      @param ratio_data2pixel The current ratio of #data points vs. # pixels of image
+      @param ratio_data2pixel The current ratio of # data points vs. # pixels of image
       @param pen_size In/Out param: gives the initial pen size, and is increased (up to @p MAX_PEN_SIZE) to reach desired coverage given by 'canvas_coverage_min_'
-      @return The factor by which @pen_size increased (gives a hint of how many data points should be merged to avoid overplotting)
+      @return The factor by which @p pen_size increased (gives a hint of how many data points should be merged to avoid overplotting)
     */
     double adaptPenScaling_(double ratio_data2pixel, double& pen_size) const;
     

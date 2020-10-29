@@ -88,7 +88,7 @@ namespace Internal
     std::vector< std::streampos > chromatograms_offsets_;
     /// Mapping of chromatogram native ids to offsets
     std::unordered_map< std::string, Size > chromatograms_native_ids_;
-    /// offset to the <indexList> element
+    /// offset to the \<indexList\> element
     std::streampos index_offset_;
     /// Whether spectra are written before chromatograms in this file
     bool spectra_before_chroms_;

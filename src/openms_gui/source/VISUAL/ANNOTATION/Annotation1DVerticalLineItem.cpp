@@ -27,54 +27,66 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Jihyung Kim, Timo Sachsenberg  $
+// $Authors: Jihyung Kim, Timo Sachsenberg $
+// --------------------------------------------------------------------------
 
-//! [AASequence]
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
+#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <iostream>
+#include <QtCore/QPoint>
+#include <QtGui/QPainter>
 
-using namespace OpenMS;
 using namespace std;
 
-int main()
+namespace OpenMS
 {
-  // generate AASequence object from String
-  const String s = "DEFIANGER";
-  AASequence peptide1 = AASequence::fromString(s);
 
-  // generate AASequence object from string literal
-  AASequence peptide2 = AASequence::fromString("PEPTIDER");
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString& text) :
+      Annotation1DItem(text),
+      x_(x),
+      color_(color)
+  {
+  }
 
-  // extract prefix and suffix
-  AASequence prefix(peptide1.getPrefix(2));
-  AASequence suffix(peptide1.getSuffix(3));
-  cout << peptide1.toString() << " "
-       << prefix << " "
-       << suffix << endl;
-  
-  // create chemically modified peptide
-  AASequence peptide_meth_ox = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
-  cout << peptide_meth_ox.toString() << " "
-       << peptide_meth_ox.toUnmodifiedString()
-       << endl;
+  void Annotation1DVerticalLineItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
+  {
+    //translate mz/intensity to pixel coordinates
+    QPoint start_p, end_p;
+    canvas->dataToWidget(x_, 0, start_p, flipped, true);
+    canvas->dataToWidget(x_, canvas->getDataRange().maxY(), end_p, flipped, true);
 
-  // mass of the full, uncharged peptide
-  double peptide_mass_mono = peptide_meth_ox.getMonoWeight();
-  cout << "Monoisotopic mass of the uncharged, full peptide: " << peptide_mass_mono << endl;
+    // draw line
+    painter.drawLine(start_p, end_p);
 
-  double peptide_mass_avg = peptide_meth_ox.getAverageWeight();
-  cout << "Average mass of the uncharged, full peptide: " << peptide_mass_avg << endl;
+    // compute bounding box on the specified painter
+    // TODO: implement proper bounding box calculation
+    // currently not needed as we don't support selection or moving
+    bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() ));    
 
-  // mass of the 2+ charged b-ion with the given sequence
-  double ion_mass_2plus = peptide_meth_ox.getMonoWeight(Residue::BIon, 2);
-  cout << "Mass of the doubly positively charged b-ion: " << ion_mass_2plus << endl;
+    // TODO: draw according to proper bounding box to support switching axis and flipping
+    // 5 pixel to x() was added to give some space between the line and the text
+    painter.drawText(start_p.x() + 5, 20.0, text_);
+  }
 
-  // mass-to-charge ratio (m/z) of the 2+ charged b-ion and full peptide with the given sequence
-  cout << "Mass-to-charge of the doubly positively charged b-ion: " << peptide_meth_ox.getMZ(2, Residue::BIon) << endl;
-  cout << "Mass-to-charge of the doubly positively charged peptide: " << peptide_meth_ox.getMZ(2) << endl;
+  void Annotation1DVerticalLineItem::move(const PointType & delta)
+  {
+    x_ += delta.getX();
+  }
 
-  // ... many more
-  return 0;
-}
+  void Annotation1DVerticalLineItem::setPosition(const double & x)
+  {
+    x_ = x;
+  }
 
-//! [AASequence]
+  const double & Annotation1DVerticalLineItem::getPosition() const
+  {
+    return x_;
+  }
+
+  void Annotation1DVerticalLineItem::ensureWithinDataRange(Spectrum1DCanvas* const)
+  { // TODO: add code when needed
+  }
+
+} //Namespace

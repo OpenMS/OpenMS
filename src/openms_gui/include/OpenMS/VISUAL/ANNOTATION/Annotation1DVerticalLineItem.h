@@ -28,73 +28,48 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Jihyung Kim, Timo Sachsenberg $
+// $Authors: Jihyung Kim, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/VISUAL/LayerData.h>
-#include <vector>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
+
+#include <QtGui/QColor>
 
 namespace OpenMS
 {
-  class TOPPViewBase;
-
-  /**
-  @brief Behavior of TOPPView in spectra view mode.
+  /** @brief An annotation item which represents a vertical line and text label on top.
+      @see Annotation1DItem
   */
-  class TOPPViewSpectraViewBehavior
-    : public QObject
+  class Annotation1DVerticalLineItem :
+      public Annotation1DItem
   {
-    Q_OBJECT
-    ///@name Type definitions
-    //@{
-    /// Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
-    /// Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+  public:
+    /// Constructor
+    Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString& text="");
+    /// Copy constructor
+    Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem& rhs) = default;
+    /// Destructor
+    ~Annotation1DVerticalLineItem() override = default;
+    // Docu in base class
+    void ensureWithinDataRange(Spectrum1DCanvas* const canvas) override;
+    // Docu in base class
+    void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
+    // Docu in base class
+    void move(const PointType& delta) override;
+    /// Sets the uppermost position of the line
+    void setPosition(const double& x);
+    /// Returns the position
+    const double & getPosition() const;
 
-    /// Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
-    /// Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+  protected:
+    /// The position of the vertical line
+    double x_;
 
-    /// Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
-    /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-    /// Peak spectrum type
-    typedef ExperimentType::SpectrumType SpectrumType;
-    //@}
-
-public:
-    /// Construct the behaviour with its parent
-    TOPPViewSpectraViewBehavior(TOPPViewBase* parent);
-
-public slots:
-    /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(int index);
-
-    /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(const std::vector<int>& indices);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(const std::vector<int>& indices);
-
-    /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
-
-    /// Slot for behavior activation
-    virtual void activateBehavior();
-
-    /// Slot for behavior deactivation
-    virtual void deactivateBehavior();
-private:
-    TOPPViewBase* tv_;
+    /// The color of the line
+    QColor color_;
   };
-}
+} // namespace OpenMS

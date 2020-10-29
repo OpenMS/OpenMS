@@ -114,11 +114,6 @@ class TOPPSiriusAdapter :
 
 protected:
 
-  static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
-  {
-    return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
-  }
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("executable", "<executable>", 
@@ -245,7 +240,7 @@ protected:
     //-------------------------------------------------------------
 
     // sort vector path list
-    std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
+    SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
 
     // convert sirius_output to mztab and store file
     int candidates = sirius_algo.getCandidates();

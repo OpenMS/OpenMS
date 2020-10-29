@@ -36,6 +36,7 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/TVControllerBase.h>
 #include <vector>
 
 namespace OpenMS
@@ -47,33 +48,14 @@ namespace OpenMS
   /**
   @brief Behavior of TOPPView in identification mode.
   */
-  class TOPPViewIdentificationViewBehavior
-    : public QObject
+  class TVIdentificationViewController
+    : public TVControllerBase
   {
     Q_OBJECT
-    ///@name Type definitions
-    //@{
-    //Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
-    //Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
-
-    //Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
-    //Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
-
-    //Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
-    //Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-    ///Peak spectrum type
-    typedef ExperimentType::SpectrumType SpectrumType;
-    //@}
 
   public:
     /// Construct the behaviour with its parent
-    TOPPViewIdentificationViewBehavior(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view_);
+    TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view_);
 
   public slots:
     /// Behavior for showSpectrumAs1D
@@ -92,10 +74,10 @@ namespace OpenMS
     virtual void deactivate1DSpectrum(int index);
 
     /// Slot for behavior activation
-    virtual void activateBehavior();
+    void activateBehavior() override;
 
     /// Slot for behavior deactivation
-    virtual void deactivateBehavior();
+    void deactivateBehavior() override;
 
     void setVisibleArea1D(double l, double h);
 
@@ -141,7 +123,6 @@ namespace OpenMS
     String collapseStringVector(std::vector<String> strings);
 
   private:
-    TOPPViewBase* tv_;
     SpectraIdentificationViewWidget* spec_id_view_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership
     /// of the AnnotationItems has the Annotation1DContainer

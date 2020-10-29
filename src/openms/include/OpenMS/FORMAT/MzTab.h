@@ -594,6 +594,7 @@ public:
     std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
+
     /// Comparison operator for sorting rows
     struct RowCompare
     {
@@ -631,6 +632,13 @@ public:
     MzTabString end;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
+    /**
+      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
+
+      @param peptide_evidences Vector of PeptideEvidence holding internal data.
+    */
+
+    void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences);
     /// Comparison operator for sorting rows
     struct RowCompare
     {
@@ -861,14 +869,6 @@ public:
 
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
-
-    /**
-      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
-
-      @param peptide_evidences Vector of PeptideEvidence holding internal data.
-      @param row Pre- or unfilled MzTabPSMSectionRow to be filled with the data.
-    */
-    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row);
 
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getNucleicAcidOptionalColumnNames() const;
