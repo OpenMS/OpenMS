@@ -72,7 +72,7 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("debug", 0);
 
-    defaults_.setValue("extract:batch_size", 1000, "Nr of peptides used in each batch of chromatogram extraction."
+    defaults_.setValue("extract:batch_size", 5000, "Nr of peptides used in each batch of chromatogram extraction."
                          " Smaller values decrease memory usage but increase runtime.");
     defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
@@ -163,9 +163,9 @@ namespace OpenMS
 
     defaults_.setSectionDescription("model", "Parameters for fitting elution models to features");
 
-    defaults_.setValue("EMGScoring:max_iteration", 100);
-    defaults_.setMinInt("EMGScoring:max_iteration",1);
-    defaults_.setValue("EMGScoring:init_mom", "false");
+    defaults_.setValue("EMGScoring:max_iteration", 100, "Maximum number of iterations for EMG fitting.");
+    defaults_.setMinInt("EMGScoring:max_iteration", 1);
+    defaults_.setValue("EMGScoring:init_mom", "false", "Alternative initial parameters for fitting through method of moments.");
     defaults_.setValidStrings("EMGScoring:init_mom", {"true","false"});
 
     defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
@@ -286,7 +286,8 @@ namespace OpenMS
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
     Size seeds_added(0);
 
-    // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs.
+    // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
+    // make them truly unique and not be converted to an actual modification.
     const String pseudo_mod_name = String(10000);
     AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
     for (FeatureMap::ConstIterator f_it = seeds.begin(); f_it != seeds.end(); ++f_it)
