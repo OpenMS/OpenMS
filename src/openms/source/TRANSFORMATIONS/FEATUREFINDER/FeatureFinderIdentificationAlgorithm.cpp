@@ -163,11 +163,18 @@ namespace OpenMS
 
     defaults_.setSectionDescription("model", "Parameters for fitting elution models to features");
 
+    defaults_.setValue("EMGScoring:max_iteration", 100);
+    defaults_.setMinInt("EMGScoring:max_iteration",1);
+    defaults_.setValue("EMGScoring:init_mom", "false");
+    defaults_.setValidStrings("EMGScoring:init_mom", {"true","false"});
+
+    defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
+
     defaultsToParam_();
   }
 
   void FeatureFinderIdentificationAlgorithm::run(
-    vector<PeptideIdentification>& peptides,
+    vector<PeptideIdentification> peptides,
     const vector<ProteinIdentification>& proteins,
     vector<PeptideIdentification> peptides_ext,
     vector<ProteinIdentification> proteins_ext,
@@ -187,7 +194,8 @@ namespace OpenMS
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
-    params.setValue("EMGScoring:max_iteration", 100); // stop after that
+    params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration"));
+    params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom"));
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
@@ -277,6 +285,10 @@ namespace OpenMS
     // TODO make sure that only assembled traces (more than one trace -> has a charge)
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
     Size seeds_added(0);
+
+    // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs.
+    const String pseudo_mod_name = String(10000);
+    AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
     for (FeatureMap::ConstIterator f_it = seeds.begin(); f_it != seeds.end(); ++f_it)
     {
       // check if already a peptide in peptide_map_ that is close in RT and MZ
@@ -315,16 +327,8 @@ namespace OpenMS
         peptides.emplace_back();
         PeptideHit seed_hit;
         seed_hit.setCharge(f_it->getCharge());
-
-        const String pseudo_mod_name = String(1);
-
-        // WARNING: Superhack2! Use unique ID to distinguish seeds from real IDs.
-        AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
         seed_hit.setSequence(some_seq);
-        OPENMS_LOG_DEBUG << "adding seed: " << some_seq.toString() << " to peptide map." << endl;
-        vector<PeptideHit> seed_hits;
-        seed_hits.push_back(seed_hit);
-        peptides.back().setHits(seed_hits);
+        peptides.back().getHits().push_back(std::move(seed_hit));
         peptides.back().setRT(f_it->getRT());
         peptides.back().setMZ(f_it->getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
@@ -333,7 +337,6 @@ namespace OpenMS
       }
     }
     OPENMS_LOG_INFO << "Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
-
 
     n_internal_peps_ = peptide_map_.size();
     for (vector<PeptideIdentification>::iterator pep_it =
@@ -344,7 +347,6 @@ namespace OpenMS
     }
     n_external_peps_ = peptide_map_.size() - n_internal_peps_;
 
-
     OPENMS_LOG_INFO << "Creating assay library..." << endl;
     boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
     OpenSwath::SpectrumAccessPtr spec_temp =
@@ -352,7 +354,7 @@ namespace OpenMS
     auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
 
     PeptideRefRTMap ref_rt_map;
-    if (debug_level_ >= 666)
+    if (debug_level_ >= 668)
     {
       // Warning: this step is pretty inefficient, since it does the whole library generation twice
       // Really use for debug only
@@ -369,6 +371,8 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "Extracting chromatograms..." << endl;
     for (auto& chunk : chunks)
     {
+      //TODO since ref_rt_map is only used after chunking, we could create
+      // maps per chunk and merge them in the end.
       createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
 
       ChromatogramExtractor extractor;
@@ -643,7 +647,7 @@ namespace OpenMS
       // TODO add own data structure for them
       if (seq.toUnmodifiedString().hasPrefix("XXX")) // seed
       {
-        // we do not have to aggregate their retention times, thereofer just
+        // we do not have to aggregate their retention times, therefore just
         // iterate over the entries
         const ChargeMap& cm = pm_it->second;
         for (const auto& charge_rtmap : cm)
@@ -1181,15 +1185,14 @@ namespace OpenMS
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
-    RTMap::value_type pair = make_pair(rt, &peptide);
     if (!external)
     {
       OPENMS_LOG_DEBUG << "Adding " << hit.getSequence() << " " << charge << " " << rt << endl;
-      peptide_map[hit.getSequence()][charge].first.insert(pair);
+      peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide);
     }
     else
     {
-      peptide_map[hit.getSequence()][charge].second.insert(pair);
+      peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
     }
   }
 

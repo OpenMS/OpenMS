@@ -538,7 +538,8 @@ protected:
           // Determine reference from data, otherwise a change in order of input files
           // leads to slightly different results
           const int reference_index(-1); // set no reference (determine from data)
-          Param ma_param = getParam_().copy("align_algorithm:", true);
+          Param ma_param = mat_param.copy("align_algorithm:", true);
+          writeDebug_("Parameters passed to MapAlignerIdentification", ma_param, 3);
           MapAlignmentAlgorithmIdentification aligner;
           aligner.setLogType(log_type_);
           aligner.setParameters(ma_param);
@@ -1097,6 +1098,8 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
+      ffi_param.setValue("EMGScoring:init_mom", "true");
+      ffi_param.setValue("EMGScoring:max_iteration", 100);
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 

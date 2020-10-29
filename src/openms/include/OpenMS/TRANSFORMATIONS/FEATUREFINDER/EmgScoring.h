@@ -65,11 +65,14 @@ namespace OpenMS
 
     ~EmgScoring() = default;
 
+    /// overwrites params for the Emg1DFitter. Unspecified params will stay default.
+    /// use getDefaults to see what you can set.
     void setFitterParam(const Param& param)
     {
       fitter_emg1D_params_ = param;
     }
 
+    /// Get default params for the Emg1D fitting
     Param getDefaults()
     {
       return EmgFitter1D().getDefaults();

@@ -111,6 +111,9 @@ protected:
 
     /// Compute start parameter
     virtual void setInitialParameters_(const RawDataArrayType& set);
+    /// Compute start parameters using method of moments (usually reduces nr. of iterations needed at some
+    /// additional one-time costs
+    void setInitialParametersMOM_(const RawDataArrayType& set);
 
     /// Parameter of emg - peak height
     CoordinateType height_;

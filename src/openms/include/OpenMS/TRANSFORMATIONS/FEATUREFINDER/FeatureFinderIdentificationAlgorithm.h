@@ -69,7 +69,7 @@ public:
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
   void run(
-    std::vector<PeptideIdentification>& peptides,
+    std::vector<PeptideIdentification> peptides,
     const std::vector<ProteinIdentification>& proteins,
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,

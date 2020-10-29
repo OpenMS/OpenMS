@@ -126,7 +126,9 @@ namespace OpenMS
     LevMarqFitter1D()
   {
     setName(getProductName());
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("init_mom", "false", "Initialize parameters using method of moments estimators.", {"advanced"});
+    defaults_.setValidStrings("init_mom", {"true","false"});
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaultsToParam_();
   }
 
@@ -137,9 +139,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  EmgFitter1D::~EmgFitter1D()
-  {
-  }
+  EmgFitter1D::~EmgFitter1D() = default;
 
   EmgFitter1D& EmgFitter1D::operator=(const EmgFitter1D& source)
   {
@@ -235,7 +235,7 @@ namespace OpenMS
     return correlation;
   }
 
-  void EmgFitter1D::setInitialParameters_(const RawDataArrayType& set)
+  void EmgFitter1D::setInitialParametersMOM_(const RawDataArrayType& set)
   {
     std::vector<CoordinateType> weighted;
     weighted.reserve(set.size());
@@ -307,6 +307,69 @@ namespace OpenMS
     width_ = symmetry_;
     //MOM estimator would be the following, but it is too large for the test
     //width_ = weighted_sd * std::sqrt(std::pow(1. - (weighted_skew / 2.), 2./3.));
+  }
+
+  void EmgFitter1D::setInitialParameters_(const RawDataArrayType& set)
+  {
+    if (param_.getValue("init_mom").toBool())
+    {
+      setInitialParametersMOM_(set);
+      return;
+    }
+
+    // sum over all intensities
+    CoordinateType sum = 0.0;
+    for (Size i = 0; i < set.size(); ++i)
+      sum += set[i].getIntensity();
+
+    // calculate the median
+    Size median = 0;
+    float count = 0.0;
+    for (Size i = 0; i < set.size(); ++i)
+    {
+      count += set[i].getIntensity();
+      if (count <= sum / 2)
+        median = i;
+    }
+
+    double max_peak_width = fabs(set[set.size() - 1].getPos() - set[median].getPos()); // cannot be wider than this
+
+    // calculate the height of the peak
+    height_ = set[median].getIntensity();
+
+    // calculate retention time
+    retention_ = set[median].getPos();
+
+    // default is an asymmetric peak
+    symmetric_ = false;
+
+    // calculate the symmetry (fronted peak: s<1 , tailed peak: s>1)
+    symmetry_ = fabs(set[set.size() - 1].getPos() - set[median].getPos()) / fabs(set[median].getPos() - set[0].getPos());
+
+    // check the symmetry
+    if (std::isinf(symmetry_) || std::isnan(symmetry_))
+    {
+      symmetric_ = true;
+      symmetry_ = 10.0;
+    }
+
+    // optimize the symmetry
+    // The computations can lead to an overflow error at very low values of symmetry (s~0).
+    // For s~5 the parameter can be approximated by the Levenberg-Marquardt algorithms.
+    // (the other parameters are much greater than one)
+    if (symmetry_ < 1)
+    {
+      symmetry_ += 5;
+    }
+
+    // Need to ensure that we do not go beyond the maximal width of the peak
+    symmetry_ = std::min(symmetry_, max_peak_width);
+
+    // calculate the width of the peak
+    // rt-values with intensity zero are not allowed for calculation of the width
+    // normally: width_ = fabs( set[set.size() - 1].getPos() - set[0].getPos() );
+    // but its better for the emg function to proceed from narrow peaks
+    width_ = symmetry_;
   }
 
   void EmgFitter1D::updateMembers_()
