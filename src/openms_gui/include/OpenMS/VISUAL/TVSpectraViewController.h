@@ -28,30 +28,47 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/TVBehaviorBase.h>
+#pragma once
 
-using namespace OpenMS;
-using namespace std;
+#include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/TVControllerBase.h>
+#include <vector>
 
 namespace OpenMS
 {
-  TVBehaviorBase::TVBehaviorBase(TOPPViewBase* parent):
-    tv_(parent)
-  {  
-  }
+  class TOPPViewBase;
 
-  void TVBehaviorBase::activateBehavior()
+  /**
+  @brief Behavior of TOPPView in spectra view mode.
+  */
+  class TVSpectraViewController
+    : public TVControllerBase
   {
-    // no special handling of activation is default
-  }
+    Q_OBJECT
 
-  void TVBehaviorBase::deactivateBehavior()
-  {
-    // no special handling of deactivation is default
-  }
+public:
+    /// Construct the behaviour with its parent
+    TVSpectraViewController(TOPPViewBase* parent);
+
+public slots:
+    /// Behavior for showSpectrumAs1D
+    virtual void showSpectrumAs1D(int index);
+
+    /// Behavior for showSpectrumAs1D
+    virtual void showSpectrumAs1D(const std::vector<int>& indices);
+
+    /// Behavior for activate1DSpectrum
+    virtual void activate1DSpectrum(int index);
+
+    /// Behavior for activate1DSpectrum
+    virtual void activate1DSpectrum(const std::vector<int>& indices);
+
+    /// Behavior for deactivate1DSpectrum
+    virtual void deactivate1DSpectrum(int index);
+  };
 }

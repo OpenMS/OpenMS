@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
+#include <OpenMS/VISUAL/TVIdentificationViewController.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -63,19 +63,19 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
-    TVBehaviorBase(parent),
+  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
+    TVControllerBase(parent),
     spec_id_view_(spec_id_view)
   {
   }
 
-  void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int index)
+  void TVIdentificationViewController::showSpectrumAs1D(int index)
   {
     // Show spectrum "index" without selecting an identification
     showSpectrumAs1D(index, -1, -1);
   }
 
-  void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  void TVIdentificationViewController::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
@@ -164,7 +164,7 @@ namespace OpenMS
     // else if (layer.type == LayerData::DT_CHROMATOGRAM)
   }
 
-  void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
+  void TVIdentificationViewController::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
   {
     // called anew for every click on a spectrum
     LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
@@ -278,12 +278,12 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
+  void TVIdentificationViewController::activate1DSpectrum(int index)
   {
     activate1DSpectrum(index, -1, -1);
   }
 
-  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(
+  void TVIdentificationViewController::activate1DSpectrum(
     int spectrum_index,
     int peptide_id_index,
     int peptide_hit_index)
@@ -461,7 +461,7 @@ namespace OpenMS
   }
 
   // Helper function for text formatting
-  String TOPPViewIdentificationViewBehavior::n_times(Size n, String input)
+  String TVIdentificationViewController::n_times(Size n, String input)
   {
     String result;
     for (Size i = 0; i < n; ++i)
@@ -472,7 +472,7 @@ namespace OpenMS
   }
 
   // Helper function that collapses a vector of strings into one string
-  String TOPPViewIdentificationViewBehavior::collapseStringVector(vector<String> strings)
+  String TVIdentificationViewController::collapseStringVector(vector<String> strings)
   {
     String result;
     for (Size i = 0; i < strings.size(); ++i)
@@ -483,7 +483,7 @@ namespace OpenMS
   }
 
   // Helper function that turns fragment annotations into coverage strings for visualization with the sequence
-  void TOPPViewIdentificationViewBehavior::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
+  void TVIdentificationViewController::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
   {
     vector<String> alpha_strings(alpha_size, " ");
     vector<String> beta_strings(beta_size, " ");
@@ -602,7 +602,7 @@ namespace OpenMS
   }
 
 
-  void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const AASequence& seq, vector<String>& row)
+  void TVIdentificationViewController::generateSequenceRow_(const AASequence& seq, vector<String>& row)
   {
     // @TODO: spell out modifications or just use an indicator like "*"?
     // @TODO: support "user defined modifications"?
@@ -628,7 +628,7 @@ namespace OpenMS
   }
 
 
-  void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const NASequence& seq, vector<String>& row)
+  void TVIdentificationViewController::generateSequenceRow_(const NASequence& seq, vector<String>& row)
   {
     if (seq.hasFivePrimeMod())
     {
@@ -650,7 +650,7 @@ namespace OpenMS
 
 
   template <typename SeqType>
-  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(
+  String TVIdentificationViewController::generateSequenceDiagram_(
     const SeqType& seq,
     const vector<PeptideHit::PeakAnnotation>& annotations,
     const vector<String>& top_ions,
@@ -816,11 +816,11 @@ namespace OpenMS
 
 
   // add specializations to allow template implementation outside of header file:
-  template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<AASequence>(const AASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
-  template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+  template String TVIdentificationViewController::generateSequenceDiagram_<AASequence>(const AASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+  template String TVIdentificationViewController::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
 
-  void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
+  void TVIdentificationViewController::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
     LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
@@ -870,7 +870,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewIdentificationViewBehavior::removeTemporaryAnnotations_(Size spectrum_index)
+  void TVIdentificationViewController::removeTemporaryAnnotations_(Size spectrum_index)
   {
 #ifdef DEBUG_IDENTIFICATION_VIEW
     cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
@@ -891,7 +891,7 @@ namespace OpenMS
     temporary_annotations_.clear();
   }
 
-  void TOPPViewIdentificationViewBehavior::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
+  void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
     SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
@@ -1080,7 +1080,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewIdentificationViewBehavior::removeGraphicalPeakAnnotations_(int spectrum_index)
+  void TVIdentificationViewController::removeGraphicalPeakAnnotations_(int spectrum_index)
   {
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
@@ -1103,7 +1103,7 @@ namespace OpenMS
     return;
   }
 
-  void TOPPViewIdentificationViewBehavior::deactivate1DSpectrum(int spectrum_index)
+  void TVIdentificationViewController::deactivate1DSpectrum(int spectrum_index)
   {
     // Retrieve active 1D widget
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
@@ -1135,7 +1135,7 @@ namespace OpenMS
     widget_1D->canvas()->setTextBox(QString());
   }
 
-  void TOPPViewIdentificationViewBehavior::addPeakAnnotationsFromID_(const PeptideHit& hit)
+  void TVIdentificationViewController::addPeakAnnotationsFromID_(const PeptideHit& hit)
   {
     // get annotations and sequence
     const vector<PeptideHit::PeakAnnotation>& annotations =
@@ -1259,7 +1259,7 @@ namespace OpenMS
     tv_->updateLayerBar();
   }
 
-  void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
+  void TVIdentificationViewController::removeTheoreticalSpectrumLayer_()
   {
     Spectrum1DWidget* spectrum_widget_1D = tv_->getActive1DWidget();
     if (spectrum_widget_1D)
@@ -1284,7 +1284,7 @@ namespace OpenMS
   }
 
   // override
-  void TOPPViewIdentificationViewBehavior::activateBehavior() 
+  void TVIdentificationViewController::activateBehavior() 
   {
     Spectrum1DWidget* w = tv_->getActive1DWidget();
     if (w == nullptr) return;
@@ -1313,7 +1313,7 @@ namespace OpenMS
   }
 
   // override
-  void TOPPViewIdentificationViewBehavior::deactivateBehavior()
+  void TVIdentificationViewController::deactivateBehavior()
   {
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
@@ -1332,7 +1332,7 @@ namespace OpenMS
     tv_->getActive1DWidget()->canvas()->repaint();
   }
 
-  void TOPPViewIdentificationViewBehavior::setVisibleArea1D(double l, double h)
+  void TVIdentificationViewController::setVisibleArea1D(double l, double h)
   {
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 

@@ -36,7 +36,7 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
-#include <OpenMS/VISUAL/TVBehaviorBase.h>
+#include <OpenMS/VISUAL/TVControllerBase.h>
 #include <vector>
 
 namespace OpenMS
@@ -48,14 +48,14 @@ namespace OpenMS
   /**
   @brief Behavior of TOPPView in identification mode.
   */
-  class TOPPViewIdentificationViewBehavior
-    : public TVBehaviorBase
+  class TVIdentificationViewController
+    : public TVControllerBase
   {
     Q_OBJECT
 
   public:
     /// Construct the behaviour with its parent
-    TOPPViewIdentificationViewBehavior(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view_);
+    TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view_);
 
   public slots:
     /// Behavior for showSpectrumAs1D
