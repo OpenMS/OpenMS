@@ -1912,6 +1912,18 @@ namespace OpenMS
     selection_view_->show(SpectraSelectionTabs::IDENT_IDX);
   }
 
+  void TOPPViewBase::annotateWithOSW()
+  { // this should only be callable if current layer's type is of type DT_CHROMATOGRAM
+    LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    LayerAnnotatorOSW annotator;
+    assert(log_ != nullptr);
+    if (!annotator.annotate(layer, *log_, current_path_))
+    {
+      return;
+    }
+    selection_view_->show(SpectraSelectionTabs::IDENT_IDX);
+  }
+
   void TOPPViewBase::showSpectrumGenerationDialog()
   {
     TheoreticalSpectrumGenerationDialog spec_gen_dialog;

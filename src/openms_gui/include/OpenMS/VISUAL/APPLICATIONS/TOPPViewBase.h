@@ -300,6 +300,8 @@ public slots:
     void annotateWithAMS();
     /// Annotates current layer with ID data
     void annotateWithID();
+    /// Annotates current chromatogram layer with ID data
+    void annotateWithOSW();
     /// Shows the theoretical spectrum generation dialog
     void showSpectrumGenerationDialog();
     /// Shows the spectrum alignment dialog

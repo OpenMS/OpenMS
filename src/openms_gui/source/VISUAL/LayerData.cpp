@@ -40,6 +40,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
 
@@ -500,4 +501,17 @@ namespace OpenMS
     return false;
   }
 
-} //Namespace
+  bool LayerAnnotatorOSW::annotateWorker_(LayerData &layer,
+                                          const String &filename,
+                                          LogWindow &log) const
+  {
+    OSWFile oswf(filename);
+    OSWData data;
+    log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Reading OSW data ...");
+    oswf.readMinimal(data);
+    layer.setChromatogramAnnotation(std::move(data));
+    log.appendText(" done");
+    return true;
+  }
+
+} // namespace OpenMS

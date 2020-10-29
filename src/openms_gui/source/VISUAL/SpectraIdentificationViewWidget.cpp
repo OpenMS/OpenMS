@@ -372,8 +372,8 @@ namespace OpenMS
     has_data_ = false;
     // no valid peak layer attached
     if (layer_ == nullptr
-    || layer_->getPeakData()->size() == 0
-    || layer_->type != LayerData::DT_PEAK)
+        || (layer_->type == LayerData::DT_PEAK && layer_->getPeakData()->empty())
+        || (layer_->type == LayerData::DT_CHROMATOGRAM && layer_->getChromatogramData()->empty()))
     {
       table_widget_->clear();
       return;
@@ -681,6 +681,7 @@ namespace OpenMS
               item->setData(Qt::DisplayRole, first_precursor.getMZ());
               item->setBackgroundColor(c);
               item->setTextColor(Qt::blue);
+              table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
 
               double ppm_error(0);
 
@@ -702,49 +703,12 @@ namespace OpenMS
                 ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
               }
               addDoubleItemToBottomRow_(ppm_error, 15, c);
-            }
 
-            // fill precursor information in columns
-            if (!precursors.empty()) // has precursor
-            {
-              const Precursor & first_precursor = precursors.front();
-              item = table_widget_->itemPrototype()->clone();
-              item->setData(Qt::DisplayRole, precursors.front().getMZ());
-              item->setBackgroundColor(c);
-              item->setTextColor(Qt::blue);
-              table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
-
-              item = table_widget_->itemPrototype()->clone();
-              if (!first_precursor.getActivationMethods().empty())
-              {
-                QString t;
-                for (auto it = first_precursor.getActivationMethods().begin();
-                  it != first_precursor.getActivationMethods().end();
-                  ++it)
-                {
-                  if (!t.isEmpty()) { t.append(","); }
-                  t.append(QString::fromStdString(first_precursor.NamesOfActivationMethod[*first_precursor.getActivationMethods().begin()]));
-                }
-                item->setText(t);
-              }
-              else
-              {
-                item->setText("-");
-              }
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
+              // activation methods              
+              addTextItemToBottomRow_(ListUtils::concatenate(first_precursor.getActivationMethodsAsString(), ",").toQString(), 4, c);
 
               // set precursor intensity
-              item = table_widget_->itemPrototype()->clone();
-              item->setData(Qt::DisplayRole, first_precursor.getIntensity());
-              item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount() - 1, 16, item);
-            }
-            else // has no precursor (leave fields 3 and 4 empty)
-            {
-              addTextItemToBottomRow_("-", 3, c);
-              addTextItemToBottomRow_("-", 4, c);
-              addTextItemToBottomRow_("-", 16, c); // precursor intensity
+              addDoubleItemToBottomRow_(first_precursor.getIntensity(), 16, c);
             }
 
             // add additional meta value columns

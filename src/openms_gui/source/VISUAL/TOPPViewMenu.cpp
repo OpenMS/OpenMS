@@ -122,6 +122,10 @@ namespace OpenMS
     action = addAction_(m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I),
       TV_STATUS::HAS_LAYER, LayerData::DT_PEAK + LayerData::DT_FEATURE + LayerData::DT_CONSENSUS);
     action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
+
+    action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW, Qt::CTRL + Qt::Key_P),
+      TV_STATUS::HAS_LAYER, FS_LAYER(LayerData::DT_CHROMATOGRAM));
+    action->setToolTip("Annotate Chromatogram layer with OSW transition id data from OpenSwathWorkflow or pyProphet");
     
     action = addAction_(m_tools->addAction("Align spectra", parent, &TOPPViewBase::showSpectrumAlignmentDialog),
       TV_STATUS::HAS_MIRROR_MODE);
