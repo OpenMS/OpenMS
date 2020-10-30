@@ -70,7 +70,6 @@ int isotopes_per_peptide_max = 6;
 double intensity_cutoff = 10.0;
 double rt_band = 3;
 double rt_typical = 90;
-double rt_minimum = 5;
 double mz_tolerance = 40;
 bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double peptide_similarity = 0.8;
