@@ -299,7 +299,7 @@ namespace OpenMS
       {
         double seed_RT = f_it->getRT();
         double seed_MZ = f_it->getMZ();
-	      double seed_charge = f_it->getCharge();
+        double seed_charge = f_it->getCharge();
         double peptide_RT = peptide.getRT();
         double peptide_MZ = peptide.getMZ();
 
