@@ -69,6 +69,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
@@ -81,7 +82,6 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-#include <OpenMS/VISUAL/SpectraSelectionTabs.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
@@ -301,6 +301,7 @@ namespace OpenMS
     connect(dm_precursors_2d_, &QAction::toggled, this, &TOPPViewBase::changeLayerFlag);
 
     projections_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/projections.png"), "Show Projections", this, &TOPPViewBase::toggleProjections);
+    projections_2d_->setCheckable(true);
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.<BR>(Hotkey: 2)");
     projections_2d_->setShortcut(Qt::Key_2);
 
@@ -404,7 +405,7 @@ namespace OpenMS
     views_dockwidget_ = new QDockWidget("Views", this);
     views_dockwidget_->setObjectName("views_dock_widget");
     addDockWidget(Qt::BottomDockWidgetArea, views_dockwidget_);
-    selection_view_ = new SpectraSelectionTabs(views_dockwidget_, this);
+    selection_view_ = new DataSelectionTabs(views_dockwidget_, this);
     views_dockwidget_->setWidget(selection_view_);
 
     
@@ -951,7 +952,7 @@ namespace OpenMS
     }
 
     // enable spectra view tab (not required anymore since selection_view_.update() will decide automatically)
-    //selection_view_->show(SpectraSelectionTabs::SPECTRA_IDX);
+    //selection_view_->show(DataSelectionTabs::SPECTRA_IDX);
   }
 
   void TOPPViewBase::addRecentFile_(const String& filename)
@@ -1424,7 +1425,7 @@ namespace OpenMS
     {
       connect(sw2->getHorizontalProjection(), &Spectrum2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2->getVerticalProjection(), &Spectrum2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
-      connect(sw2, CONNECTCAST(Spectrum2DWidget, showSpectrumAs1D, (int)), selection_view_, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (int)));
+      connect(sw2, CONNECTCAST(Spectrum2DWidget, showSpectrumAs1D, (int)), selection_view_, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
       connect(sw2, &Spectrum2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }
 
@@ -1641,7 +1642,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type);
+    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -1888,7 +1889,7 @@ namespace OpenMS
   }
 
   void TOPPViewBase::annotateWithAMS()
-  {
+  { // this should only be callable if current layer's type is of type DT_PEAK
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorAMS annotator;
     assert(log_ != nullptr);
@@ -1896,11 +1897,11 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(SpectraSelectionTabs::IDENT_IDX);
+    selection_view_->show(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::annotateWithID()
-  { // this should only be callable if current layer's type is one of PEAK, FEATURE, CONSENSUS
+  { // this should only be callable if current layer's type is one of DT_PEAK, DT_FEATURE, DT_CONSENSUS
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorPeptideID annotator;
     assert(log_ != nullptr);
@@ -1908,7 +1909,7 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(SpectraSelectionTabs::IDENT_IDX);
+    selection_view_->show(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -1985,7 +1986,7 @@ namespace OpenMS
       // set precursor information
       vector<Precursor> precursors;
       Precursor precursor;
-      precursor.setMZ(aa_sequence.getMonoWeight());
+      precursor.setMZ(aa_sequence.getMZ(charge));
       precursor.setCharge(charge);
       precursors.push_back(precursor);
       spectrum.setPrecursors(precursors);

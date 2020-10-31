@@ -13,6 +13,5 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
         double score
         String name
         String smiles
-        libcpp_vector[ String ] pubchemids
-        libcpp_vector[ String ] links
-
+        libcpp_vector[String] pubchemids
+        libcpp_vector[String] links

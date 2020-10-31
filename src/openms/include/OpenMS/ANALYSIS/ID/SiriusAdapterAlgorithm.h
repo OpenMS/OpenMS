@@ -50,7 +50,7 @@ namespace OpenMS
       SiriusAdapterAlgorithm();
 
       /// Struct for temporary folder structure
-      struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
+      class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
       public:
 
@@ -72,6 +72,14 @@ namespace OpenMS
         String tmp_out_dir_;
 
       };
+
+      /**
+      @brief Sort function using the extracted scan_index from the sirius workspace file path
+
+      @return Vector of sorted sirius workspace paths based on the scan_index
+
+      */
+      static void sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs);
 
       /**
       @brief Preprocessing needed for SIRIUS

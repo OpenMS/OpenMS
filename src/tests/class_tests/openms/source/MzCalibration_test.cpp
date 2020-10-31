@@ -247,6 +247,7 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   PeptideIdentification pep_no_spec_ref;
   PeptideHit dummy_hit;
   dummy_hit.setSequence(AASequence::fromString("MMMMM"));
+  dummy_hit.setCharge(2);
   pep_no_spec_ref.setHits({dummy_hit});
   fmap[0].setPeptideIdentifications({pep_no_spec_ref});
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, cal.compute(fmap, exp, spectra_map), "No spectrum reference annotated at peptide identification!");

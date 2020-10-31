@@ -7,6 +7,7 @@ AxisTickCalculator.h
 AxisPainter.h
 AxisWidget.h
 ColorSelector.h
+DataSelectionTabs.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
@@ -27,7 +28,6 @@ ParamEditor.h
 RecentFilesMenu.h
 SpectraViewWidget.h
 SpectraIdentificationViewWidget.h
-SpectraSelectionTabs.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h
@@ -50,10 +50,11 @@ TOPPASToolVertex.h
 TOPPASTreeView.h
 TOPPASVertex.h
 TOPPASWidget.h
-TOPPViewIdentificationViewBehavior.h
 TOPPViewMenu.h
 #TOPPViewPreferences.h
-TOPPViewSpectraViewBehavior.h
+TVControllerBase.h
+TVIdentificationViewController.h
+TVSpectraViewController.h
 )
 
 ### add path to the filenames

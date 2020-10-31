@@ -217,6 +217,8 @@ protected:
     setValidStrings_("mz:unit", ListUtils::create<String>("Da,ppm"));
 
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
+    registerIntOption_("best:n_spectra", "<integer>", 0, "Keep only the 'n' best spectra (i.e., PeptideIdentifications) (for n > 0). A spectrum is considered better if it has a higher scoring peptide hit than the other spectrum.", false);
+    setMinInt_("best:n_spectra", 0);
     registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n > 0).", false);
     setMinInt_("best:n_peptide_hits", 0);
     registerIntOption_("best:n_protein_hits", "<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n > 0).", false);
@@ -586,6 +588,13 @@ protected:
     {
       OPENMS_LOG_INFO << "Filtering by peptide charge..." << endl;
       IDFilter::filterPeptidesByCharge(peptides, min_charge, max_charge);
+    }
+
+    const Size best_n_spectra = getIntOption_("best:n_spectra");
+    if (best_n_spectra > 0)
+    {
+      OPENMS_LOG_INFO << "Filtering by best n spectra..." << endl;
+      IDFilter::keepNBestSpectra(peptides, best_n_spectra);
     }
 
     Size best_n_pep = getIntOption_("best:n_peptide_hits");

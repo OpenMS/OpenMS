@@ -227,6 +227,7 @@ set(format_executables_list
   TraMLValidator_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
+  OSWFile_test
   PTMXMLFile_test
   ParamXMLFile_test
   PeakFileOptions_test
