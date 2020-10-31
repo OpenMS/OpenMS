@@ -79,8 +79,8 @@ using namespace OpenMS;
     defaults_.setValue("precursor:corrections", ListUtils::create<int>("4, 3, 2, 1, 0"), "Monoisotopic peak correction. Matches candidates for possible monoisotopic precursor peaks for experimental mass m and given numbers n at masses (m - n * (C13-C12)). These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.");
     defaults_.setSectionDescription("precursor", "Precursor filtering settings");
 
-    defaults_.setValue("fragment:mass_tolerance", 20, "Fragment mass tolerance");
-    defaults_.setValue("fragment:mass_tolerance_xlinks", 20, "Fragment mass tolerance for cross-link ions");
+    defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance_xlinks", 20.0, "Fragment mass tolerance for cross-link ions");
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", mass_tolerance_unit_valid_strings);
     defaults_.setSectionDescription("fragment", "Fragment peak matching settings");
