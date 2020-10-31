@@ -699,9 +699,11 @@ using namespace OpenMS;
         double wTIC = XQuestScores::weightedTICScore(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
         double wTICold = XQuestScores::weightedTICScoreXQuest(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
 
-        // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
+        // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2, we need the difference between min and max here
         Size n_xlink_charges = (precursor_charge - 1) - 2;
-        if (n_xlink_charges < 1) n_xlink_charges = 1;
+        // check for reasonable numbers. In case precursor_charge is lower than 4, n_xlink_charges should always be 1
+        // it should never have a number higher than 7 or 8. If it's > 20, that is because of an underflow
+        if (n_xlink_charges < 1 | n_xlink_charges > 20) n_xlink_charges = 1;
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
         double log_occu_c_alpha = XQuestScores::logOccupancyProb(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
