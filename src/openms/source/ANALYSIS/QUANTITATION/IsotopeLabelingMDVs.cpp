@@ -52,39 +52,39 @@ namespace OpenMS
   void IsotopeLabelingMDVs::isotopicCorrection(
     const Feature& normalized_feature,
     Feature& corrected_feature,
-    const std::vector<std::vector<double>> correction_matrix,
+    const Matrix<double>& correction_matrix,
     const std::string correction_matrix_agent)
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
-    std::vector<std::vector<double>> selected_correction_matrix;
+    Eigen::MatrixXd correction_matrix_eigen;
     auto correction_matrix_search = correction_matrices_.find(correction_matrix_agent);
     
     if (!correction_matrix_agent.empty() && correction_matrix_search != correction_matrices_.end())
     {
-      selected_correction_matrix = correction_matrix_search->second ;
+      correction_matrix_eigen.resize(correction_matrix_search->second.size(), correction_matrix_search->second[0].size());
+      for (size_t i = 0; i < correction_matrix_search->second.size(); ++i)
+      {
+        for (size_t j = 0; j < correction_matrix_search->second[0].size(); ++j)
+        {
+          correction_matrix_eigen(i,j) = correction_matrix_search->second[i][j];
+        }
+      }
     }
     else
     {
-      selected_correction_matrix = correction_matrix;
-    }
-    
-    uint16_t correction_matrix_n = selected_correction_matrix.size();
-    std::vector<std::vector<double>> correction_matrix_inversed(correction_matrix_n, std::vector<double>(correction_matrix_n,0));
-    
-    // 1- correction matrix inversion
-    Eigen::MatrixXd correction_matrix_eigen(selected_correction_matrix.size(), selected_correction_matrix[0].size());
-    for (uint i = 0; i < selected_correction_matrix.size(); i++){
-      for (uint j = 0; j < selected_correction_matrix[0].size(); j++){
-        correction_matrix_eigen(i,j) = selected_correction_matrix[i][j];
+      correction_matrix_eigen.resize(correction_matrix.rows(), correction_matrix.cols());
+      for (size_t i = 0; i < correction_matrix.rows(); ++i)
+      {
+        for (size_t j = 0; j < correction_matrix.cols(); ++j)
+        {
+          correction_matrix_eigen(i,j) = correction_matrix(i,j);
+        }
       }
     }
+    
+    // 1- inversion of correction matrix
     Eigen::MatrixXd correction_matrix_eigen_inversed = correction_matrix_eigen.inverse();
-    for (int i = 0; i < correction_matrix_eigen_inversed.rows(); i++){
-      for (int j = 0; j < correction_matrix_eigen_inversed.cols(); j++){
-        correction_matrix_inversed[i][j] = correction_matrix_eigen_inversed(i,j);
-      }
-    }
     
     // 2- element-wise expansion with MDV_observed
     std::vector<Feature> normalized_feature_subordinates = normalized_feature.getSubordinates();
@@ -95,10 +95,12 @@ namespace OpenMS
     }
     
     corrected_feature = normalized_feature;
-    for (size_t i = 0; i < correction_matrix_inversed.size(); ++i) {
+    for (int i = 0; i < correction_matrix_eigen_inversed.rows(); ++i)
+    {
       double corrected_value = 0.0;
-      for (size_t j = 0; j < correction_matrix_inversed[0].size(); ++j) {
-        corrected_value += correction_matrix_inversed[i][j] * MDV_observed[j];
+      for (int j = 0; j < correction_matrix_eigen_inversed.cols(); ++j)
+      {
+        corrected_value += correction_matrix_eigen_inversed(i,j) * MDV_observed[j];
       }
       corrected_feature.getSubordinates().at(i).setIntensity(corrected_value);
     }
@@ -107,12 +109,13 @@ namespace OpenMS
   void IsotopeLabelingMDVs::isotopicCorrections(
     const FeatureMap& normalized_featureMap,
     FeatureMap& corrected_featureMap,
-    const std::vector<std::vector<double>> correction_matrix,
+    const Matrix<double>& correction_matrix,
     const std::string correction_matrix_agent)
   {
-    for (const Feature& feature : normalized_featureMap) {
+    for (const Feature& feature : normalized_featureMap)
+    {
       Feature corrected_feature;
-      isotopicCorrection( feature, corrected_feature, correction_matrix, correction_matrix_agent);
+      isotopicCorrection(feature, corrected_feature, correction_matrix, correction_matrix_agent);
       corrected_featureMap.push_back(corrected_feature);
     }
   }
@@ -125,17 +128,17 @@ namespace OpenMS
   {
     featuremap_with_isotopic_purity = normalized_featuremap;
     
-    if ( !experiment_data.empty() )
+    if (!experiment_data.empty())
     {
       double experiment_data_peak = 0.0;
       std::vector<double>::iterator max_it = std::max_element(experiment_data.begin(), experiment_data.end());
       uint64_t experiment_data_peak_idx = std::distance(experiment_data.begin(), max_it);
       experiment_data_peak = experiment_data[experiment_data_peak_idx];
       
-      if ( experiment_data_peak_idx >= 1 && experiment_data_peak != 0.0)
+      if (experiment_data_peak_idx >= 1 && experiment_data_peak != 0.0)
       {
         double previous_experiment_data_peak = experiment_data[experiment_data_peak_idx - 1];
-        double isotopic_purity = experiment_data_peak_idx / (experiment_data_peak_idx + ( previous_experiment_data_peak / experiment_data_peak));
+        double isotopic_purity = experiment_data_peak_idx / (experiment_data_peak_idx + (previous_experiment_data_peak / experiment_data_peak));
         featuremap_with_isotopic_purity.setMetaValue(isotopic_purity_name, isotopic_purity);
       }
     }
@@ -147,9 +150,10 @@ namespace OpenMS
     std::vector<double>& experiment_data,
     std::string& isotopic_purity_name)
   {
-    for (const Feature& feature : normalized_featureMap){
+    for (const Feature& feature : normalized_featureMap)
+    {
       Feature feature_with_isotopic_purity;
-      calculateIsotopicPurity( feature, feature_with_isotopic_purity, experiment_data, isotopic_purity_name);
+      calculateIsotopicPurity(feature, feature_with_isotopic_purity, experiment_data, isotopic_purity_name);
       featureMap_with_isotopic_purity.push_back(feature_with_isotopic_purity);
     }
   }
@@ -163,24 +167,28 @@ namespace OpenMS
     feature_with_accuracy_info = normalized_feature;
     
     std::vector<double> fragment_isotopomer_abs_diff;
-    for (size_t i = 0; i < fragment_isotopomer_theoretical.size(); ++i) {
+    for (size_t i = 0; i < fragment_isotopomer_theoretical.size(); ++i)
+    {
       fragment_isotopomer_abs_diff.push_back(std::abs(fragment_isotopomer_theoretical[i] - fragment_isotopomer_measured[i]));
     }
     
     double diff_mean = 0.0;
-    for (size_t i = 0; i < fragment_isotopomer_abs_diff.size(); ++i) {
+    for (size_t i = 0; i < fragment_isotopomer_abs_diff.size(); ++i)
+    {
       diff_mean += fragment_isotopomer_abs_diff.at(i);
     }
     
     diff_mean /= fragment_isotopomer_abs_diff.size();
     
     std::vector<double> fragment_isotopomer_abs_diff_;
-    for (size_t i = 0; i < fragment_isotopomer_abs_diff.size(); ++i) {
+    for (size_t i = 0; i < fragment_isotopomer_abs_diff.size(); ++i)
+    {
       fragment_isotopomer_abs_diff_.push_back(std::abs(fragment_isotopomer_abs_diff[i] - diff_mean));
     }
     
     diff_mean = 0.0;
-    for (size_t i = 0; i < fragment_isotopomer_abs_diff_.size(); ++i) {
+    for (size_t i = 0; i < fragment_isotopomer_abs_diff_.size(); ++i)
+    {
       diff_mean += fragment_isotopomer_abs_diff_.at(i);
     }
     
@@ -196,7 +204,8 @@ namespace OpenMS
     const std::vector<double>& fragment_isotopomer_measured,
     const std::vector<double>& fragment_isotopomer_theoretical)
   {
-    for (const Feature& feature : normalized_featureMap) {
+    for (const Feature& feature : normalized_featureMap)
+    {
       Feature feature_with_accuracy_info;
       calculateMDVAccuracy(feature, feature_with_accuracy_info, fragment_isotopomer_measured, fragment_isotopomer_theoretical);
       featureMap_with_accuracy_info.push_back(feature_with_accuracy_info);
@@ -225,12 +234,13 @@ namespace OpenMS
       
         for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
         {
-          if(measured_feature_max != 0.0) {
+          if (measured_feature_max != 0.0)
+          {
             normalized_feature.getSubordinates().at(i).setIntensity(normalized_feature.getSubordinates().at(i).getIntensity() /  measured_feature_max);
           }
         }
       }
-      
+      // for every other case where feature_name isn't 'intensity', i.e. 'peak_apex_int'
       else
       {
         std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
@@ -243,13 +253,13 @@ namespace OpenMS
           
         for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
         {
-          if (measured_feature_max != 0.0) {
+          if (measured_feature_max != 0.0)
+          {
             normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
           }
         }
       }
     }
-    
     else if (mass_intensity_type == "norm_sum")
     {
       if (feature_name == "intensity")
@@ -266,7 +276,7 @@ namespace OpenMS
           normalized_feature.setMetaValue((it - measured_feature_subordinates.begin()), (it->getIntensity() / feature_peak_apex_intensity_sum));
         }
       }
-      
+      // for every other case where feature_name isn't 'intensity', i.e. 'peak_apex_int'
       else
       {
         OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
@@ -291,7 +301,8 @@ namespace OpenMS
     const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
     const String& mass_intensity_type, const String& feature_name)
   {
-    for (const Feature& feature : measured_featureMap) {
+    for (const Feature& feature : measured_featureMap)
+    {
       Feature normalized_feature;
       calculateMDV(feature, normalized_feature, mass_intensity_type, feature_name);
       normalized_featureMap.push_back(normalized_feature);

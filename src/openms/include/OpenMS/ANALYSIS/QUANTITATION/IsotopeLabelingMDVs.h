@@ -38,6 +38,7 @@
 
 //Kernal classes
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -47,7 +48,6 @@
  #include <string>
  #include <cmath>
  #include <unordered_map>
- #include <numeric>
  #include <algorithm>
  #include <Eigen/Dense>
 
@@ -85,7 +85,7 @@ namespace OpenMS
     */
     void isotopicCorrection(
       const Feature& normalized_feature, Feature& corrected_feature,
-      const std::vector<std::vector<double>> correction_matrix, const std::string correction_matrix_agent);
+      const Matrix<double>& correction_matrix, const std::string correction_matrix_agent);
     
     /**
       @brief This function performs an isotopic correction to account for unlabeled abundances coming from
@@ -103,7 +103,7 @@ namespace OpenMS
     */
     void isotopicCorrections(
       const FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap,
-      const std::vector<std::vector<double>> correction_matrix, const std::string correction_matrix_agent);
+      const Matrix<double>& correction_matrix, const std::string correction_matrix_agent);
 
     /**
       @brief This function calculates the isotopic purity of the MDV using the following formula:
