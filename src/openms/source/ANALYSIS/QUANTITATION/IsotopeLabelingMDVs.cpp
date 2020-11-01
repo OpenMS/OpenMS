@@ -60,6 +60,7 @@ namespace OpenMS
     Eigen::MatrixXd correction_matrix_eigen;
     auto correction_matrix_search = correction_matrices_.find(correction_matrix_agent);
     
+    // use the internally saved correction matrix if the derivatization agent name is supplied and found
     if (!correction_matrix_agent.empty() && correction_matrix_search != correction_matrices_.end())
     {
       correction_matrix_eigen.resize(correction_matrix_search->second.size(), correction_matrix_search->second[0].size());
@@ -71,6 +72,7 @@ namespace OpenMS
         }
       }
     }
+    // copy correction_matrix to an eigen matrix, when correction_matrix is supplied
     else
     {
       correction_matrix_eigen.resize(correction_matrix.rows(), correction_matrix.cols());
