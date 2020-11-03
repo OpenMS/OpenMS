@@ -145,7 +145,7 @@ namespace OpenMS
     setLayer(nullptr);
   }
 
-  void SpectraIdentificationViewWidget::currentCellChanged_(int row, int column, int old_row, int old_column)
+  void SpectraIdentificationViewWidget::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // sometimes Qt calls this function when table empty during refreshing
     if (row < 0 || column < 0) return;
@@ -202,8 +202,6 @@ namespace OpenMS
         // column might not be present. Check the header name to make sure
         && table_widget_->horizontalHeaderItem(Clmn::PEAK_ANNOTATIONS)->text() == Clmn::HEADER_NAMES[Clmn::PEAK_ANNOTATIONS])
     {         
-
-      QTableWidgetItem* current = table_widget_->item(row, column);
 
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
       if (item_pepid)  // might be null for MS1 spectra
@@ -387,7 +385,7 @@ namespace OpenMS
       if (hide_no_identification_->isChecked() && id_count == 0)  { continue; }
 
       // set row background color
-      QColor bg_color = (id_count == 0 ? bg_color = Qt::white : bg_color = Qt::green);
+      QColor bg_color = (id_count == 0 ? Qt::white : Qt::green);
 
       // get peptide identifications of current spectrum
       if (id_count == 0)
@@ -500,7 +498,7 @@ namespace OpenMS
         }
       }
 
-      if (i == restore_spec_index)
+      if ((int)i == restore_spec_index)
       {
         selected_row = table_widget_->rowCount(); // get model index of selected spectrum
       }
@@ -588,18 +586,12 @@ namespace OpenMS
   // update the corresponding PeptideIdentification / PeptideHits by adding a metavalue: 'selected'
   void SpectraIdentificationViewWidget::updatedSingleCell_(QTableWidgetItem* item)
   {
-    // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
-    {
-      return;
-    }
-
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int row = item->row();
     String selected = item->checkState() == Qt::Checked ? "true" : "false";
     int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-    int num_id = table_widget_->item(row, Clmn::ID_NR)->text().toInt();
-    int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->text().toInt();
+    int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
+    int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
     vector<PeptideIdentification>& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].getPeptideIdentifications();
 
