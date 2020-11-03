@@ -130,6 +130,5 @@ namespace OpenMS
   protected slots:
     /// Display header context menu; allows to show/hide columns
     void headerContextMenu_(const QPoint&);
-
   };
 }

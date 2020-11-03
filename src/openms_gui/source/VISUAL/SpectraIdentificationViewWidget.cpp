@@ -340,7 +340,6 @@ namespace OpenMS
       common_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<
                       std::vector<std::reference_wrapper<const PeptideHit>>,
                       set<String> >(all_hits.begin(), all_hits.end(), 100.0, getter);
-
     }
 
     // create header labels (setting header labels must occur after fill)
