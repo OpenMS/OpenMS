@@ -371,7 +371,7 @@ namespace OpenMS
     return v_mta;
   }
 
-  // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
+  // method to extract potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
   std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(const vector < CompoundTargetDecoyPair >& v_cmp_spec,
                                                                                                       const double& transition_threshold,
                                                                                                       const double& min_fragment_mz,

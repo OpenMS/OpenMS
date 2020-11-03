@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         String determineSiriusExecutable(String& executable) nogil except +
 
-        libcpp_vector[String] sortSiriusWorkspacePathsByScanIndex(libcpp_vector[String]& subdirs) nogil except +
+        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) nogil except +
 
         void preprocessingSirius(String featureinfo,
                                  MSExperiment& spectra,
@@ -38,18 +38,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                      FeatureMapping_FeatureToMs2Indices& feature_mapping,
                                      MSExperiment& spectra) nogil except +
 
-        void checkFeatureSpectraNumber(String featureinfo,
-                                       FeatureMapping_FeatureToMs2Indices feature_mapping,
-                                       MSExperiment spectra, 
-                                       SiriusAdapterAlgorithm sirius_algo) nogil except +
-
         libcpp_vector[String] callSiriusQProcess(String tmp_ms_file,
                                                  String tmp_out_dir,
                                                  String executable,
                                                  String out_csifingerid,
                                                  bool decoy_generation) nogil except +
-                                        
-        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ] subdirs) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
  
