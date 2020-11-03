@@ -49,7 +49,7 @@ namespace OpenMS
     /// Constructor
     TableView(QWidget* parent = nullptr);
     /// Destructor
-    virtual ~TableView() override = default;
+    virtual ~TableView() = default;
 
     /**
       @brief Export table entries as currently shown in the table in TSV format (only for visible data)
