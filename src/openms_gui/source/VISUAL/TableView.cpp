@@ -39,7 +39,7 @@
 
 #include <QFile>
 #include <QFileDialog>
-#include <QHeaderview>
+#include <QHeaderView>
 #include <QMenu>
 #include <QTextStream>
 
