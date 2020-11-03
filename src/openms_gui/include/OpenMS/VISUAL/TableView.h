@@ -54,15 +54,13 @@ namespace OpenMS
     /**
       @brief Export table entries as currently shown in the table in TSV format (only for visible data)
       
-      A filename will be queried using a dialog, before export.
+      A filename will be queried using a dialog, before exporting.
     
       Headers will be exported using their export name (if available, see @p setHeaderExportName()).
       
       All cells will be queried for their Qt::UserRole, then for Qt::DisplayRole and last for Qt::CheckStateRole.
       The first item to return data will be used!
-      Thus, to export data which differs from the visible (==DisplayRole), use the QTableWidgetItem::setData(Qt::UserRole, ...).
-      
-
+      Thus, to export data which differs from the visible (==DisplayRole), use QTableWidgetItem::setData(Qt::UserRole, ...).
     */
     virtual void exportEntries();
 
@@ -93,15 +91,16 @@ namespace OpenMS
 
        @param which With or without invisible columns?
        @param use_export_name If column has a hidden export name, use that instead of the displayed name 
-       @return 
+       @return List of header names 
     */
     QStringList getHeaderNames(const HeaderInfo which, bool use_export_name = false);
+    
     /**
       @brief Set the export-name of a column, which will be returned in getHeaderNames() when @p use_export_name it true
 
-      Export names are useful when exporting the table to CSV (see @p exportEntries()), and the column header should be a bit more verbose
+      Export names are useful when exporting the table to CSV (see @p exportEntries()), and the column header should be a bit more verbose.
 
-      Internally, this set the Qt::UserRole's data to store the value.
+      Internally, this uses the Qt::UserRole's data to store the value.
 
       @param header_column Index of column
       @param export_name New export name to set
@@ -113,7 +112,7 @@ namespace OpenMS
     /**
      @brief Gets the export-name of a column.
 
-     Export names are useful when exporting the table to CSV (see @p exportEntries()), and the column header should be a bit more verbose
+     Export names are useful when exporting the table to CSV (see @p exportEntries()), and the column header should be a bit more verbose.
 
      Internally, this queries the Qt::UserRole's data to get the value.
      If the export name was not set (using @p setHeaderExportName()), it returns the display name.
