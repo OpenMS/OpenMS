@@ -7,6 +7,7 @@ AxisPainter.cpp
 AxisTickCalculator.cpp
 AxisWidget.cpp
 ColorSelector.cpp
+DataSelectionTabs.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
@@ -32,7 +33,6 @@ ParamEditor.ui
 RecentFilesMenu.cpp
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
-SpectraSelectionTabs.cpp
 Spectrum1DCanvas.cpp
 Spectrum1DWidget.cpp
 Spectrum2DCanvas.cpp
@@ -56,10 +56,11 @@ TOPPASToolVertex.cpp
 TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
-TOPPViewIdentificationViewBehavior.cpp
 TOPPViewMenu.cpp
 #TOPPViewPreferences.cpp
-TOPPViewSpectraViewBehavior.cpp
+TVIdentificationViewController.cpp
+TVSpectraViewController.cpp
+TVControllerBase.cpp
 )
 
 ### add path to the filenames

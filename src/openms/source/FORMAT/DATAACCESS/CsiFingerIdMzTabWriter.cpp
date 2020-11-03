@@ -118,7 +118,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
 
         // extract column name and index from header
         StringList header_row;
-        std::map< String, Size > columnname_to_columnindex; // TODO: need to be done probably only once for the workspace!
+        std::map< String, Size > columnname_to_columnindex;
         compounds.getRow(0, header_row);
 
         for (size_t i = 0; i < header_row.size(); i++)

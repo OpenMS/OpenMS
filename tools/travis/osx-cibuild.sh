@@ -68,7 +68,7 @@ export BUILD_NAME=${_build_name}
 
 # set os dependent folder for preinstalled libraries (in this case to homebrew libraries)
 export OS_PREFIX_PATH=/usr/local
-ctest -V -S tools/travis/cibuild.cmake
+ctest --output-on-failure -V -S tools/travis/cibuild.cmake
 
 # tell the user where he can find the results
 echo "Please check the build results at: http://cdash.openms.de/index.php?project=OpenMS&date="$(date +"%y-%m-%d")"#Continuous"

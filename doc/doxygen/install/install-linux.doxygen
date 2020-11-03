@@ -85,7 +85,7 @@
     # Get REQUIRED installable contrib libraries
     sudo yum install cmake3 qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel glpk-devel
     # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
-    #sudo yum boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel
+    ## sudo yum boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel
     # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
     </pre>
     </td>
@@ -99,7 +99,7 @@
       # REQUIRED dependencies
       sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel python-devel glpk-devel
       # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
-      #sudo zypper install boost-devel libzip-devel zlib-devel \
+      ## sudo zypper install boost-devel libzip-devel zlib-devel \
       # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
       </pre></td>
   </tr>

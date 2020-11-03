@@ -45,14 +45,14 @@ namespace OpenMS
 {
   class SpectraViewWidget;
   class SpectraIdentificationViewWidget;
-  class TOPPViewIdentificationViewBehavior;
-  class TOPPViewSpectraViewBehavior;
+  class TVIdentificationViewController;
+  class TVSpectraViewController;
   class TOPPViewBase;
   /**
     @brief A tabbed view, to browse lists of spectra or identifications
     
   */
-  class OPENMS_GUI_DLLAPI SpectraSelectionTabs
+  class OPENMS_GUI_DLLAPI DataSelectionTabs
     : public QTabWidget
   {
     Q_OBJECT
@@ -66,7 +66,7 @@ namespace OpenMS
     };
 
     /// Default constructor
-    SpectraSelectionTabs(QWidget* parent, TOPPViewBase* tv);
+    DataSelectionTabs(QWidget* parent, TOPPViewBase* tv);
 
     /// update items in the two tabs according to the currently selected layer
     void update();
@@ -98,12 +98,11 @@ namespace OpenMS
     //@}
 
     /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior* spectraview_behavior_;
+    TVSpectraViewController* spectraview_controller_;
     /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior* idview_behaviour_;
+    TVIdentificationViewController* idview_controller_;
     /// pointer to base class to access some members (going signal/slot would be cleaner)
     TOPPViewBase* tv_;
   };
 
 } //namespace
-

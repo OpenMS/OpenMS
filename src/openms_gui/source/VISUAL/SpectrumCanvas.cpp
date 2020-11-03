@@ -1000,7 +1000,7 @@ namespace OpenMS
     {
       const PeptideHit & hit = peptide.getHits().front();
       Int charge = hit.getCharge();
-      return hit.getSequence().getMonoWeight(Residue::Full, charge) / charge;
+      return hit.getSequence().getMZ(charge);
     }
     else
     {

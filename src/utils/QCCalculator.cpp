@@ -900,8 +900,9 @@ protected:
           row.push_back(tmp.getScore());
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
-          row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-          double dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), it->getMZ(), true));
+          double mz = tmp.getSequence().getMZ(tmp.getCharge());
+          row.push_back(String(mz));
+          double dppm = getMassDifference(mz, it->getMZ(), true);
           row.push_back(String(dppm));
 //          row.push_back(String(calculateSNident(tmp)));
           deltas.push_back(dppm);

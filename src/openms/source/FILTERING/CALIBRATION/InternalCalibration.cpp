@@ -248,7 +248,7 @@ namespace OpenMS
     PeptideIdentification pid = pep_id;
     pid.sort();
     int q = pid.getHits()[0].getCharge();
-    mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
+    mz_ref = pid.getHits()[0].getSequence().getMZ(q);
 
     // Only use ID if precursor m/z and theoretical mass don't deviate too much.
     // as they may occur due to isotopic peak misassignments

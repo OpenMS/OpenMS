@@ -119,6 +119,11 @@ namespace OpenMS
     static String extractFeatureId(const String& path);
 
     /**
+    @brief Extract columnname and index based in SIRIUS entries
+    */
+    static std::map< String, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
+
+    /**
     @brief Conversion of sirius output to mzTab
     
     Output of Sirius is one directory per spectrum/compound
@@ -133,7 +138,6 @@ namespace OpenMS
                      const Size& top_n_hits,
                      MzTab& result);
 
-    static std::map< String, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
 
   };
 

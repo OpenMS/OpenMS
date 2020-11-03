@@ -17,4 +17,3 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
         double sirius_score
         int explainedpeaks
         double explainedintensity
-

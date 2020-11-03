@@ -113,12 +113,13 @@ namespace OpenMS
     return tool_name_ + ":" + instance_number_ + ":";
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
     official_(official),
     citations_(citations),
+    toolhandler_test_(toolhandler_test),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
@@ -132,10 +133,38 @@ namespace OpenMS
       verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
     }
 
-    //check if tool is in official tools list
-    if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+    // can be disabled to allow unit tests
+    if (toolhandler_test_)
     {
-      writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
+      // check if tool entries are in Utils and TOPP (duplication)
+      if (ToolHandler::checkDuplicated(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("The '" + tool_name_ + "' has entries in the UTILS and TOPP category. Please add it to the correct category in the ToolHandler."),
+                                      tool_name_);
+      }
+
+      // check if tool is in official tools list
+      if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("If '" + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
+                                      tool_name_);
+      }
+
+      // check if tool is in util list
+      if (!official_ && !ToolHandler::getUtilList().count(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("If '" + tool_name_ + "' is a Util, add it to the util list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to true."),
+                                      tool_name_);
+      }
     }
   }
 
@@ -2190,19 +2219,18 @@ namespace OpenMS
 
   String TOPPBase::getDocumentationURL() const
   {
-    if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
+    VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
+    String tool_prefix = official_ ? "TOPP_" : "UTILS_";
+    // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
+    // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
+    if (ver.pre_release_identifier.empty())
     {
-      return String("http://www.openms.de/documentation/TOPP_") + tool_name_ + ".html";
-    }
-    else if (ToolHandler::getUtilList().count(tool_name_))
-    {
-      return String("http://www.openms.de/documentation/UTILS_") + tool_name_ + ".html";
+      String release_version = String(ver.version_major) + "." + String(ver.version_minor) + "." + String(ver.version_patch);
+      return String("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ tool_prefix + tool_name_ + ".html";
     }
     else
     {
-      // TODO: Fix tests first
-      // throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A tool either needs to be an official tool or registered as util (TOPP tool not registered)");
-      return "";
+      return String("http://www.openms.de/doxygen/nightly/html/") + tool_prefix + tool_name_ + ".html";
     }
   }
 

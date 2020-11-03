@@ -98,8 +98,7 @@ namespace OpenMS
     {
       Int z = hit.getCharge();
       if (z == 0) z = 1;
-      double peptide_mz = (hit.getSequence().getMonoWeight(Residue::Full, z) /
-                           double(z));
+      double peptide_mz = hit.getSequence().getMZ(z);
       return fabs(precursor_mz_ - peptide_mz) <= tolerance_;
     }
   };
@@ -782,6 +781,47 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n)
+  {
+    String score_type;
+    for (PeptideIdentification& p : peptides) 
+    { 
+      p.sort();
+      if (score_type.empty()) 
+      {
+        score_type = p.getScoreType();
+      }
+      else
+      {
+        if (p.getScoreType() != score_type)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
+        }
+      }                
+    }
+
+    // there might be less spectra identified than n -> adapt
+    n = std::min(n, peptides.size());
+
+    auto has_better_peptidehit = 
+      [] (const PeptideIdentification& l, const PeptideIdentification& r) 
+      {
+        if (r.getHits().empty()) return true; // right has no hit? -> left is better
+        if (l.getHits().empty()) return false; // left has no hit but right has a hit? -> right is better
+
+        const bool higher_better = l.isHigherScoreBetter();
+        const double l_score = l.getHits()[0].getScore();
+        const double r_score = r.getHits()[0].getScore();
+      
+        // both have hits? better score of best PSM is better
+        if (higher_better) return l_score > r_score;
+ 
+        return l_score < r_score;
+      };
+
+    std::partial_sort(peptides.begin(), peptides.begin() + n, peptides.end(), has_better_peptidehit);
+    peptides.resize(n);
+  }
 
   void IDFilter::keepBestMatchPerQuery(
     IdentificationData& id_data,

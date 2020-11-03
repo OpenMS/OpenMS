@@ -74,10 +74,10 @@ using namespace OpenMS;
           </tr>
           <tr>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref OpenSWATH pipeline </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref Utils_AccurateMassSearch </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_AccurateMassSearch </td>
           </tr>
       </table>
   </CENTER>
@@ -189,7 +189,7 @@ protected:
     registerFlag_("deisotoping:keep_only_deisotoped", "Only monoisotopic peaks of fragments with isotopic pattern are retained", false);
     registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
 
-    // sirius 
+    // sirius
     registerFullParam_(algorithm.getDefaults());
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
@@ -450,12 +450,12 @@ protected:
   
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
 
-                // sort vector path list
-        std::vector<String> sorted_subdirs = SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::move(subdirs));
+        // sort vector path list
+        SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
 
         // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
         // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
-        vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(sorted_subdirs, score_threshold, use_exact_mass);
+        vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
 
         // should the sirius workspace be retained
         if (!sirius_workspace_directory.empty())

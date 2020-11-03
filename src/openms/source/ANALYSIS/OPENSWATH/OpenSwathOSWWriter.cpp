@@ -168,7 +168,7 @@ namespace OpenMS
             << input_filename_ << "'); ";
 
     // Execute SQL insert statement
-    conn.executeStatement(sql_run);
+    conn.executeStatement(sql_run.str());
   }
 
   String OpenSwathOSWWriter::getScore(const Feature& feature, std::string score_name) const

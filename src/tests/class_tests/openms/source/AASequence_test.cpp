@@ -406,6 +406,18 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 }
 END_SECTION
 
+START_SECTION((double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const))
+{
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.0 + 1e-6)
+  
+  // uses getMonoWeight and is thus thoroughly tested
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(1, Residue::YIon), double(1018.4952))
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(2, Residue::YIon), double((1018.4952 + Constants::PROTON_MASS_U) / 2.0))
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, AASequence::fromString("DFPIANGER").getMZ(0));
+}
+END_SECTION
+
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;

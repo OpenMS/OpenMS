@@ -567,7 +567,7 @@ namespace OpenMS
       SiriusWorkspaceIndex(int array_index, int scan_index) : array_index {array_index}, scan_index {scan_index} {}
     };
 
-    std::vector<String> SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::vector<String>&& subdirs)
+     void  SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs)
     {
       std::vector<String> sorted_subdirs;
       std::vector<SiriusWorkspaceIndex> indices;
@@ -583,10 +583,10 @@ namespace OpenMS
 
       for (const auto& index : indices)
       {
-        sorted_subdirs.emplace_back(subdirs[index.array_index]);
+        sorted_subdirs.emplace_back(std::move(subdirs[index.array_index]));
       }
 
-      return sorted_subdirs;
+      sorted_subdirs.swap(subdirs);
     }
 
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
