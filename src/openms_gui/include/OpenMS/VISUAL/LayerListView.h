@@ -43,7 +43,7 @@
 
 namespace OpenMS
 {
-  class SpectrumWidget;
+  class PlotWidget;
   /**
     @brief Pimped QListView for Layers of a Canvas
 
@@ -59,7 +59,7 @@ namespace OpenMS
     LayerListView(QWidget* parent);
 
     /// rebuild list of layers and remember current widget (for context menu etc)
-    void update(SpectrumWidget* active_widget);
+    void update(PlotWidget* active_widget);
 
   signals:
     /// emitted whenever a change to a layer happened, e.g. its name was changed, it was removed, or a new layer was selected
@@ -76,7 +76,7 @@ namespace OpenMS
     /// show preferences dialog
     void itemDoubleClickedAction_(QListWidgetItem*);
 
-    SpectrumWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
+    PlotWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
   };
 
 } //namespace

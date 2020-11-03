@@ -35,12 +35,12 @@
 #include <OpenMS/VISUAL/LayerListView.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
-#include <OpenMS/VISUAL/Spectrum2DWidget.h>
-#include <OpenMS/VISUAL/Spectrum3DWidget.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
+#include <OpenMS/VISUAL/Plot2DWidget.h>
+#include <OpenMS/VISUAL/Plot3DWidget.h>
 
 #include <QtWidgets/QListWidgetItem>
 
@@ -67,20 +67,20 @@ namespace OpenMS
     connect(this, &QListWidget::itemDoubleClicked, this, &LayerListView::itemDoubleClickedAction_);
   }
 
-  void LayerListView::update(SpectrumWidget* active_widget)
+  void LayerListView::update(PlotWidget* active_widget)
   {
     // reset items
     this->clear();
 
     spectrum_widget_ = active_widget;
-    // during program exit, this could be called after SpectrumWidgets are gone
+    // during program exit, this could be called after PlotWidgets are gone
     if (spectrum_widget_ == nullptr) return;
 
-    SpectrumCanvas* cc = spectrum_widget_->canvas();
+    PlotCanvas* cc = spectrum_widget_->canvas();
     if (cc == nullptr) return;
 
     // determine if this is a 1D view (for text color)
-    bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != nullptr);
+    bool is_1d_view = (dynamic_cast<Plot1DCanvas*>(cc) != nullptr);
 
     this->blockSignals(true);
     RAIICleanup cl([&]() { this->blockSignals(false); });
@@ -175,7 +175,7 @@ namespace OpenMS
       emit layerDataChanged();
     });
 
-    auto widget1D = qobject_cast<Spectrum1DWidget*>(spectrum_widget_);
+    auto widget1D = qobject_cast<Plot1DWidget*>(spectrum_widget_);
     if (widget1D != nullptr)
     {
       if (widget1D->canvas()->getLayer(layer_idx).flipped)

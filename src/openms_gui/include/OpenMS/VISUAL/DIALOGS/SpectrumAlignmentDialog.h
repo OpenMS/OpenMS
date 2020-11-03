@@ -46,7 +46,7 @@ namespace Ui
 
 namespace OpenMS
 {
-  class Spectrum1DWidget;
+  class Plot1DWidget;
 
   /**
       @brief Lets the user select two spectra and set the parameters for the spectrum alignment.
@@ -61,7 +61,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    SpectrumAlignmentDialog(Spectrum1DWidget * parent);
+    SpectrumAlignmentDialog(Plot1DWidget * parent);
     ~SpectrumAlignmentDialog();
   
     double getTolerance() const;
