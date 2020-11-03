@@ -38,6 +38,7 @@ Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
 SwathLibraryStats.h
+TableView.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASMergerVertex.h

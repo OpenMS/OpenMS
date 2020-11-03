@@ -44,6 +44,7 @@ SpectrumCanvas.cpp
 SpectrumWidget.cpp
 SwathLibraryStats.cpp
 SwathLibraryStats.ui
+TableView.cpp
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASMergerVertex.cpp

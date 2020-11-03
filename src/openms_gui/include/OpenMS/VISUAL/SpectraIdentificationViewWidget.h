@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/TableView.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <QtWidgets>
@@ -59,62 +60,47 @@ public:
     /// Constructor
     SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
-    ~SpectraIdentificationViewWidget() override;
+    ~SpectraIdentificationViewWidget() override = default;
 
-    /// set / get layer data
+    /// set layer data and create table anew
     void setLayer(LayerData* model);
-
+    /// get layer data
     LayerData* getLayer();
-
-    /// Helper function to block outgoing signals
-    bool ignore_update;
-
-    /// Access the table widget
-    QTableWidget* getTableWidget();
 
     /// clears all visible data from table widget and void the layer
     void clear();
 
-    /// do we have data to show?
-    bool hasData() const
-    {
-      return has_data_;
-    }
-
-protected slots:
+    /// Helper member to block outgoing signals
+    bool ignore_update = false; 
+  
+  protected slots:
     /// Rebuild table entries
     void updateEntries();
 signals:
-    void spectrumSelected(int, int, int);
-    void spectrumDeselected(int);
-    void spectrumDoubleClicked(int);
-    void showSpectrumAs1D(int);
-    void showSpectrumMetaData(int);
-    void requestVisibleArea1D(double, double);
+    void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
+    void spectrumDeselected(int spectrum_index);
+    void spectrumDoubleClicked(int spectrum_index);
+    void showSpectrumAs1D(int spectrum_index);
+    void showSpectrumMetaData(int spectrum_index);
+    void requestVisibleArea1D(double lower_mz, double upper_mz);
 private:
-    void addTextItemToBottomRow_(const QString& text, Size column_index, const QColor& c);
-    void addIntItemToBottomRow_(const Int i, Size column_index, const QColor& c);
-    void addDoubleItemToBottomRow_(const double d, Size column_index, const QColor& c);
-    void addCheckboxItemToBottomRow_(bool selected,  Size column_index, const QColor& c);
-    LayerData* layer_;
-    QCheckBox* hide_no_identification_;
-    QCheckBox* create_rows_for_commmon_metavalue_;
-    QTableWidget* table_widget_;
-    bool is_ms1_shown_;
-    QTableWidget* fragment_window_;
-    /// do we have data to show?
-    bool has_data_ = false;
+
+   /// partially fill the bottom-most row  
+   void fillRow_(const MSSpectrum& spectrum, int index, const QColor background_color);
+
+    LayerData* layer_ = nullptr;
+    QCheckBox* hide_no_identification_ = nullptr;
+    QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
+    TableView* table_widget_ = nullptr;
+    QTableWidget* fragment_window_ = nullptr;
+    bool is_ms1_shown_ = false;
 private slots:
     /// Emits spectrumSelected with the current spectrum index
     void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
-    /// Export table entries as csv
-    void exportEntries_();
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
     void saveIDs_();
     /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
-    void updateData_(QTableWidgetItem* item);
-    /// Display header context menu
-    void headerContextMenu_(const QPoint&);
+    void updatedSingleCell_(QTableWidgetItem* item);
     /// Cell clicked in table_widget
     void cellClicked_(int row, int column);
   };

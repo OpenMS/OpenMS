@@ -1921,7 +1921,7 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(SpectraSelectionTabs::IDENT_IDX);
+    selection_view_->show(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
