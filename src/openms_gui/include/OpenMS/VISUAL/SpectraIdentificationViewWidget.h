@@ -77,16 +77,16 @@ public:
     /// Rebuild table entries
     void updateEntries();
 signals:
+    /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
     void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
+    /// request to unshow a spectrum
     void spectrumDeselected(int spectrum_index);
-    void spectrumDoubleClicked(int spectrum_index);
-    void showSpectrumAs1D(int spectrum_index);
-    void showSpectrumMetaData(int spectrum_index);
+    /// request to zoom into a 1D spec
     void requestVisibleArea1D(double lower_mz, double upper_mz);
 private:
 
    /// partially fill the bottom-most row  
-   void fillRow_(const MSSpectrum& spectrum, int index, const QColor background_color);
+   void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
 
     LayerData* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
@@ -95,13 +95,11 @@ private:
     QTableWidget* fragment_window_ = nullptr;
     bool is_ms1_shown_ = false;
 private slots:
-    /// Emits spectrumSelected with the current spectrum index
-    void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
     void saveIDs_();
     /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
     void updatedSingleCell_(QTableWidgetItem* item);
-    /// Cell clicked in table_widget
-    void cellClicked_(int row, int column);
+    /// Cell clicked in table_widget; emits which spectrum (row) was clicked, and may show additional data
+    void currentCellChanged_(int row, int column, int old_row, int old_column);
   };
 }

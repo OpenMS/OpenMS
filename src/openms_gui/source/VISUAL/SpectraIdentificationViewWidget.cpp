@@ -62,7 +62,7 @@ namespace Clmn
 {
   enum HeaderNames
   { // indices into QTableWidget's columns (which start at index 0)
-    MS_LEVEL, INDEX, RT, PRECURSOR_MZ, DISSOCIATION, SCANTYPE, ZOOM, SCORE, RANK, 
+    MS_LEVEL, SPEC_INDEX, RT, PRECURSOR_MZ, DISSOCIATION, SCANTYPE, ZOOM, SCORE, RANK, 
     CHARGE, SEQUENCE, ACCESSIONS, ID_NR, PEPHIT_NR, CURATED, PREC_PPM, PREC_INT, PEAK_ANNOTATIONS, /* last entry --> */ SIZE_OF_HEADERNAMES
   };
   // keep in SYNC with enum HeaderNames
@@ -132,8 +132,7 @@ namespace OpenMS
     tmp_hbox_layout->addWidget(export_table);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
 
-    connect(table_widget_, &QTableWidget::cellClicked, this, &SpectraIdentificationViewWidget::cellClicked_);
-    connect(table_widget_, &QTableWidget::currentItemChanged, this, &SpectraIdentificationViewWidget::spectrumSelectionChange_);
+    connect(table_widget_, &QTableWidget::currentCellChanged, this, &SpectraIdentificationViewWidget::currentCellChanged_);
     connect(table_widget_, &QTableWidget::itemChanged, this, &SpectraIdentificationViewWidget::updatedSingleCell_);
     connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIdentificationViewWidget::updateEntries);
     connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIdentificationViewWidget::updateEntries);
@@ -146,162 +145,124 @@ namespace OpenMS
     setLayer(nullptr);
   }
 
-  void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
+  void SpectraIdentificationViewWidget::currentCellChanged_(int row, int column, int old_row, int old_column)
   {
+    // sometimes Qt calls this function when table empty during refreshing
+    if (row < 0 || column < 0) return;
+
     if (row >= table_widget_->rowCount()
-    || column >= table_widget_->columnCount()
-    || table_widget_->horizontalHeaderItem(column) == nullptr)
+        ||  column >= table_widget_->columnCount())
     {
-      return;
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
 
-    int ms2_spectrum_index = table_widget_->item(row, Clmn::INDEX)->data(Qt::DisplayRole).toInt();
+    // deselect whatever is currently shown
+    int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
+    emit spectrumDeselected(last_spectrum_index);
 
+
+    int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+    const auto& exp = *layer_->getPeakData();
+    const auto& spec2 = exp[current_spectrum_index];
+
+    // show precursor spectrum (usually MS1)
     if (column == Clmn::PRECURSOR_MZ)
     {
-      if ((*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty()) 
-      { // no precursor
-        return;
-      }
+      const auto prec_it = exp.getPrecursorSpectrum(exp.begin() + current_spectrum_index);
       
-      // has precursor:
-      // determine parent MS1 spectrum of current MS2 row
-      int ms1_spectrum_index = 0;
-      for (ms1_spectrum_index = ms2_spectrum_index; ms1_spectrum_index >= 0; --ms1_spectrum_index)
+      if (prec_it != exp.end() && !spec2.getPrecursors().empty())
       {
-        if ((*layer_->getPeakData())[ms1_spectrum_index].getMSLevel() == 1)
-        {
-          break;
-        }
-      }
-
-      if (ms1_spectrum_index != -1)
-      {
-        double precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
+        double precursor_mz = spec2.getPrecursors()[0].getMZ();
         // determine start and stop of isolation window
-        double isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
-        double isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
+        double isolation_window_lower_mz = precursor_mz - spec2.getPrecursors()[0].getIsolationWindowLowerOffset();
+        double isolation_window_upper_mz = precursor_mz + spec2.getPrecursors()[0].getIsolationWindowUpperOffset();
 
-        if (!is_ms1_shown_)
-        {
-          emit spectrumDeselected(ms2_spectrum_index);
-        }
-
-        emit spectrumSelected(ms1_spectrum_index, -1, -1); // no identification or hit selected (-1)
-        is_ms1_shown_ = true;
+        emit spectrumSelected(std::distance(exp.begin(), prec_it), -1, -1); // no identification or hit selected (-1)
+        // zoom into precursor area
         emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
       }
     }
-    else if (column == Clmn::PEAK_ANNOTATIONS)
-    {
-      QTableWidgetItem* current = table_widget_->item(row, column);
-
-      int current_identification_index = table_widget_->item(current->row(), Clmn::ID_NR)->data(Qt::DisplayRole).toInt();  // peptide id. index
-
-      if (current_identification_index < 0
-       || current_identification_index >= static_cast<int>((*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications().size()))
-       {
-         return;
-       }
-
-      int current_peptide_hit_index = table_widget_->item(current->row(), Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();  // peptide hit index
-
-      const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications();
-      const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
-
-      if (current_peptide_hit_index < 0
-       || current_peptide_hit_index >= static_cast<int>(phits.size()))
+    else
+    { // if spectrum with no PepIDs is selected, there is nothing to show...
+      auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
+      if (item_pepid == nullptr   // null for MS1 spectra
+          || (!(item_pepid->data(Qt::DisplayRole).isValid())))
       {
         return;
       }
-      const PeptideHit& hit = phits[current_peptide_hit_index];
-
-      // initialize window, when the table is requested for the first time
-      // afterwards the size will stay at the manually resized window size
-      if (fragment_window_ == nullptr)
-      {
-        fragment_window_ = new QTableWidget();
-        fragment_window_->resize(320, 500);
-
-        fragment_window_->verticalHeader()->setHidden(true); // hide vertical column
-
-        QStringList header_labels;
-        header_labels << "m/z" << "name" << "intensity" << "charge";
-        fragment_window_->setColumnCount(header_labels.size());
-        fragment_window_->setHorizontalHeaderLabels(header_labels);
-
-        QTableWidgetItem* proto_item = new QTableWidgetItem();
-        proto_item->setTextAlignment(Qt::AlignCenter);
-        fragment_window_->setItemPrototype(proto_item);
-        fragment_window_->setSortingEnabled(true);
-        fragment_window_->setWindowTitle(QApplication::translate("tr_fragment_annotation", "Peak Annotations"));
-      }
-
-      // reset table, if a new ID is chosen
-      fragment_window_->setRowCount(0);
-
-      for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
-      {
-        fragment_window_->insertRow(fragment_window_->rowCount());
-        QTableWidgetItem * item = fragment_window_->itemPrototype()->clone();
-        item->setData(Qt::DisplayRole, pa.mz);
-        fragment_window_->setItem(fragment_window_->rowCount() - 1, 0, item);
-        item = fragment_window_->itemPrototype()->clone();
-        item->setData(Qt::DisplayRole, pa.annotation.toQString());
-        fragment_window_->setItem(fragment_window_->rowCount() - 1, 1, item);
-        item = fragment_window_->itemPrototype()->clone();
-        item->setData(Qt::DisplayRole, pa.intensity);
-        fragment_window_->setItem(fragment_window_->rowCount() - 1, 2, item);
-        item = fragment_window_->itemPrototype()->clone();
-        item->setData(Qt::DisplayRole, pa.charge);
-        fragment_window_->setItem(fragment_window_->rowCount() - 1, 3, item);
-      }
-
-      fragment_window_->resizeColumnsToContents();
-      fragment_window_->resizeRowsToContents();
-      fragment_window_->show();
-      fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
-      QApplication::setActiveWindow(fragment_window_);
-    }
-  }
-
-  void SpectraIdentificationViewWidget::spectrumSelectionChange_(QTableWidgetItem* current, QTableWidgetItem* previous)
-  {
-    if (current == nullptr)
-    { //  no new item clicked?
-      return;
-    }
-
-    int current_spectrum_index = table_widget_->item(current->row(), Clmn::INDEX)->data(Qt::DisplayRole).toInt();
-
-    if (is_ms1_shown_)
-    {
-      emit spectrumDeselected(int(layer_->getCurrentSpectrumIndex()));
-    }
-    else
-    { // deselect the previous spectrum (is null on upon showing the widget for the first time)
-      if (previous != nullptr)
-      {
-        int previous_spectrum_index = table_widget_->item(previous->row(), Clmn::INDEX)->data(Qt::DisplayRole).toInt();
-        emit spectrumDeselected(previous_spectrum_index);
-      }
-    }
-
-    if (current->column() == Clmn::PRECURSOR_MZ)
-    {
-      // handled by cell click event
-    }
-    else
-    {
-      // if spectrum with no PepIDs is selected, there is nothing to show...
-      if (!(table_widget_->item(current->row(), Clmn::ID_NR)->data(Qt::DisplayRole).isValid()))
-      {
-        return;
-      }
-      int current_identification_index = table_widget_->item(current->row(), Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
-      int current_peptide_hit_index = table_widget_->item(current->row(), Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+      int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
+      int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
       emit spectrumSelected(current_spectrum_index, current_identification_index, current_peptide_hit_index);
     }
+
+    //
+    // show extra peak-fragment window
+    //
+    if (column == Clmn::PEAK_ANNOTATIONS 
+        // column might not be present. Check the header name to make sure
+        && table_widget_->horizontalHeaderItem(Clmn::PEAK_ANNOTATIONS)->text() == Clmn::HEADER_NAMES[Clmn::PEAK_ANNOTATIONS])
+    {         
+
+      QTableWidgetItem* current = table_widget_->item(row, column);
+
+      auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
+      if (item_pepid)  // might be null for MS1 spectra
+      {
+        int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
+        int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+
+        const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
+        const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
+        const PeptideHit& hit = phits[current_peptide_hit_index];
+
+        // initialize window, when the table is requested for the first time
+        // afterwards the size will stay at the manually resized window size
+        if (fragment_window_ == nullptr)
+        {
+          fragment_window_ = new QTableWidget();
+          fragment_window_->resize(320, 500);
+
+          fragment_window_->verticalHeader()->setHidden(true); // hide vertical column
+
+          QStringList header_labels;
+          header_labels << "m/z" << "name" << "intensity" << "charge";
+          fragment_window_->setColumnCount(header_labels.size());
+          fragment_window_->setHorizontalHeaderLabels(header_labels);
+
+          QTableWidgetItem* proto_item = new QTableWidgetItem();
+          proto_item->setTextAlignment(Qt::AlignCenter);
+          fragment_window_->setItemPrototype(proto_item);
+          fragment_window_->setSortingEnabled(true);
+          fragment_window_->setWindowTitle(QApplication::translate("tr_fragment_annotation", "Peak Annotations"));
+        }
+
+        // reset table, if a new ID is chosen
+        fragment_window_->setRowCount(0);
+
+        for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
+        {
+          fragment_window_->insertRow(fragment_window_->rowCount());
+          QTableWidgetItem * item = fragment_window_->itemPrototype()->clone();
+          item->setData(Qt::DisplayRole, pa.mz);
+          fragment_window_->setItem(fragment_window_->rowCount() - 1, 0, item);
+          item = fragment_window_->itemPrototype()->clone();
+          item->setData(Qt::DisplayRole, pa.annotation.toQString());
+          fragment_window_->setItem(fragment_window_->rowCount() - 1, 1, item);
+          item = fragment_window_->itemPrototype()->clone();
+          item->setData(Qt::DisplayRole, pa.intensity);
+          fragment_window_->setItem(fragment_window_->rowCount() - 1, 2, item);
+          item = fragment_window_->itemPrototype()->clone();
+          item->setData(Qt::DisplayRole, pa.charge);
+          fragment_window_->setItem(fragment_window_->rowCount() - 1, 3, item);
+        }
+
+        fragment_window_->resizeColumnsToContents();
+        fragment_window_->resizeRowsToContents();
+        fragment_window_->show();
+        fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
+        QApplication::setActiveWindow(fragment_window_);
+      }
+    } // PeakAnnotation cell clicked
   }
 
   void SpectraIdentificationViewWidget::setLayer(LayerData* cl)
@@ -396,6 +357,7 @@ namespace OpenMS
 
     table_widget_->clear();
     table_widget_->setRowCount(0);
+    table_widget_->setColumnCount(headers.size());
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
@@ -552,7 +514,7 @@ namespace OpenMS
 
     table_widget_->resizeColumnsToContents();
     table_widget_->setSortingEnabled(true);
-    table_widget_->sortByColumn(Clmn::INDEX, Qt::AscendingOrder);
+    table_widget_->sortByColumn(Clmn::SPEC_INDEX, Qt::AscendingOrder);
 
     if (selected_row != -1)  // select and scroll down to item
     {
@@ -589,7 +551,7 @@ namespace OpenMS
     for (int r = 0; r < table_widget_->rowCount(); ++r)
     {
       // get spectrum index of current table line
-      int spectrum_index = table_widget_->item(r, Clmn::INDEX)->data(Qt::DisplayRole).toInt();
+      int spectrum_index = table_widget_->item(r, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
 
       // skip this row, if this spectrum was already processed
       if (std::find(added_spectra.begin(), added_spectra.end(), spectrum_index) != added_spectra.end())
@@ -636,7 +598,7 @@ namespace OpenMS
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int row = item->row();
     String selected = item->checkState() == Qt::Checked ? "true" : "false";
-    int spectrum_index = table_widget_->item(row, Clmn::INDEX)->data(Qt::DisplayRole).toInt();
+    int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(row, Clmn::ID_NR)->text().toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->text().toInt();
 
@@ -659,12 +621,12 @@ namespace OpenMS
     }
   }
 
-  void SpectraIdentificationViewWidget::fillRow_(const MSSpectrum& spectrum, int index, const QColor background_color)
+  void SpectraIdentificationViewWidget::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color)
   {
     const vector<Precursor>& precursors = spectrum.getPrecursors();
 
     table_widget_->setAtBottomRow(QString::number(spectrum.getMSLevel()), Clmn::MS_LEVEL, background_color);
-    table_widget_->setAtBottomRow(index, Clmn::INDEX, background_color);
+    table_widget_->setAtBottomRow(spec_index, Clmn::SPEC_INDEX, background_color);
     table_widget_->setAtBottomRow(spectrum.getRT(), Clmn::RT, background_color);
 
     // scan mode

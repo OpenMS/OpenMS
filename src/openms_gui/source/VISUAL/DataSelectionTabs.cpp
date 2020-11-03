@@ -76,7 +76,6 @@ namespace OpenMS
 
     // Hook-up controller and views for identification inspection
     connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::showSpectrumAs1D, this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
     connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_controller_, CONNECTCAST(TVIdentificationViewController, activate1DSpectrum, (int, int, int)));
     connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_controller_, &TVIdentificationViewController::setVisibleArea1D);
 
