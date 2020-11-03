@@ -38,7 +38,7 @@
 			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_0_pm_1" version="1.10.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="1.10.0" >
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
@@ -50,7 +50,7 @@
 			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_1_pm_1" version="1.10.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
 		</software>
 		<software id="so_dp_sp_1_pm_2" version="1.10.0" >
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
@@ -62,7 +62,7 @@
 			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_2_pm_1" version="1.10.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
 		</software>
 		<software id="so_dp_sp_2_pm_2" version="1.10.0" >
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
