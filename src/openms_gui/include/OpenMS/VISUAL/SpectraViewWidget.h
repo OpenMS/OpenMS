@@ -35,11 +35,14 @@
 #pragma once
 
 #include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTreeWidget>
+
 
 #include <OpenMS/VISUAL/LayerData.h>
+
+class QLineEdit;
+class QComboBox;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace OpenMS
 {
@@ -58,11 +61,15 @@ public:
     /// Destructor
     ~SpectraViewWidget() = default;
 
-    QTreeWidget* getTreeWidget();
-    QComboBox* getComboBox();
+    /// refresh the table using data from @p cl
     void updateEntries(const LayerData & cl);
     /// remove all visible data
     void clear();
+
+    /// Return a copy of the currently selected spectrum/chrom (for drag'n'drop to new window)
+    /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)
+    /// If no spectrum/chrom is selected, false is returned and @p exp is empty
+    bool getSelectedScan(MSExperiment& exp) const;
 
 signals:
     void spectrumSelected(int);

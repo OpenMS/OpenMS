@@ -36,11 +36,10 @@
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 
-#include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
-
+#include <QtWidgets/QTreeWidget>
 
 namespace OpenMS
 {
@@ -88,7 +87,7 @@ namespace OpenMS
     };
     // keep in SYNC with enum HeaderNames
     const QStringList HEADER_NAMES = QStringList()
-      << " type " << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";;
+      << " type" << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";;
   }
 
   struct IndexExtrator
@@ -112,6 +111,9 @@ namespace OpenMS
   SpectraViewWidget::SpectraViewWidget(QWidget * parent) :
     QWidget(parent)
   {
+    // these must be identical, because there is code which extracts the scan index irrespective of what we show
+    assert(ClmnPeak::SPEC_INDEX == ClmnChrom::CHROM_INDEX);
+
     setObjectName("Scans");
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     spectra_treewidget_ = new QTreeWidget(this);
@@ -154,16 +156,6 @@ namespace OpenMS
     tmp_hbox_layout->addWidget(spectra_search_box_);
     tmp_hbox_layout->addWidget(spectra_combo_box_);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
-  }
-
-  QTreeWidget* SpectraViewWidget::getTreeWidget()
-  {
-    return spectra_treewidget_;
-  }
-
-  QComboBox* SpectraViewWidget::getComboBox()
-  {
-    return spectra_combo_box_;
   }
 
   void SpectraViewWidget::spectrumSearchText_()
@@ -333,7 +325,7 @@ namespace OpenMS
       std::vector<QTreeWidgetItem *> parent_stack;
       parent_stack.push_back(nullptr);
       bool fail = false;
-
+      last_peakmap_ = &*cl.getPeakData();
       spectra_treewidget_->setHeaderLabels(ClmnPeak::HEADER_NAMES);
       spectra_treewidget_->setColumnCount(ClmnPeak::HEADER_NAMES.size());
 
@@ -609,8 +601,27 @@ namespace OpenMS
 
   void SpectraViewWidget::clear()
   {
-    getTreeWidget()->clear();
-    getComboBox()->clear();
+    spectra_treewidget_->clear();
+    spectra_combo_box_->clear();
+  }
+
+
+  bool SpectraViewWidget::getSelectedScan(MSExperiment& exp) const
+  {
+    exp.clear(true);
+    QTreeWidgetItem* item = spectra_treewidget_->currentItem();
+    if (item == nullptr) return false;
+    // getting the index works for PEAK and CHROM data
+    int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
+    if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
+    { // we currently show chromatogram data
+      exp.addChromatogram(last_peakmap_->getChromatograms()[index]);
+    }
+    else
+    {
+      exp.addSpectrum(last_peakmap_->getSpectra()[index]);
+    }
+    return true;
   }
 
 }
