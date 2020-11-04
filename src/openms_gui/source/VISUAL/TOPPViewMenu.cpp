@@ -90,8 +90,7 @@ namespace OpenMS
     m_file->addMenu(recent_files->getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
 
     m_file->addSeparator();
-    addAction_(m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog),
-               TV_STATUS::HAS_LAYER);
+    m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
     m_file->addAction("&Quit", qApp, SLOT(quit()));
 
     // Tools menu
@@ -122,6 +121,10 @@ namespace OpenMS
     action = addAction_(m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I),
       TV_STATUS::HAS_LAYER, LayerData::DT_PEAK + LayerData::DT_FEATURE + LayerData::DT_CONSENSUS);
     action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
+
+    action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW, Qt::CTRL + Qt::Key_P),
+      TV_STATUS::HAS_LAYER, FS_LAYER(LayerData::DT_CHROMATOGRAM));
+    action->setToolTip("Annotate Chromatogram layer with OSW transition id data from OpenSwathWorkflow or pyProphet");
     
     action = addAction_(m_tools->addAction("Align spectra", parent, &TOPPViewBase::showSpectrumAlignmentDialog),
       TV_STATUS::HAS_MIRROR_MODE);

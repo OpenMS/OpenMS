@@ -7,6 +7,7 @@ AxisPainter.cpp
 AxisTickCalculator.cpp
 AxisWidget.cpp
 ColorSelector.cpp
+DataSelectionTabs.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
@@ -29,21 +30,21 @@ OutputDirectory.cpp
 OutputDirectory.ui
 ParamEditor.cpp
 ParamEditor.ui
+Plot1DCanvas.cpp
+Plot1DWidget.cpp
+Plot2DCanvas.cpp
+Plot2DWidget.cpp
+Plot3DCanvas.cpp
+Plot3DOpenGLCanvas.cpp
+Plot3DWidget.cpp
+PlotCanvas.cpp
+PlotWidget.cpp
 RecentFilesMenu.cpp
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
-SpectraSelectionTabs.cpp
-Spectrum1DCanvas.cpp
-Spectrum1DWidget.cpp
-Spectrum2DCanvas.cpp
-Spectrum2DWidget.cpp
-Spectrum3DCanvas.cpp
-Spectrum3DOpenGLCanvas.cpp
-Spectrum3DWidget.cpp
-SpectrumCanvas.cpp
-SpectrumWidget.cpp
 SwathLibraryStats.cpp
 SwathLibraryStats.ui
+TableView.cpp
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASMergerVertex.cpp
@@ -56,10 +57,11 @@ TOPPASToolVertex.cpp
 TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
-TOPPViewIdentificationViewBehavior.cpp
 TOPPViewMenu.cpp
 #TOPPViewPreferences.cpp
-TOPPViewSpectraViewBehavior.cpp
+TVIdentificationViewController.cpp
+TVSpectraViewController.cpp
+TVControllerBase.cpp
 )
 
 ### add path to the filenames

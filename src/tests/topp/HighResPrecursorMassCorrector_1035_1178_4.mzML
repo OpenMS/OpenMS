@@ -47,7 +47,7 @@
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 		<software id="so_dp_sp_0_pm_4" version="2.0.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">

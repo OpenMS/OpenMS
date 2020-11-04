@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -80,10 +81,10 @@ namespace OpenMS
   Persistent changes can be applied to getPeakDataMuteable() and will be
   available on the next cache update.
 
-  @note Layer is mainly used as a member variable of SpectrumCanvas which holds
+  @note Layer is mainly used as a member variable of PlotCanvas which holds
   a vector of LayerData objects.
 
-  @ingroup SpectrumWidgets
+  @ingroup PlotWidgets
   */
   class OPENMS_GUI_DLLAPI LayerDataBase
   {
@@ -164,10 +165,10 @@ public:
     virtual float getMaxIntensity() const = 0;
 
     /// if this layer is visible
-    bool visible;
+    bool visible = true;
 
     /// data type (peak or feature data)
-    DataType type;
+    DataType type = DT_UNKNOWN;
 
     /// file name of the file the data comes from (if available)
     String filename;
@@ -175,15 +176,21 @@ public:
     /// Filters to apply before painting
     DataFilters filters;
 
+    /// Layer parameters
+    Param param;
+
+    /// Label type
+    LabelType label = L_NONE; 
+
 protected:
     /// layer name
     String name_;
 
     /// Flag that indicates if the layer data can be modified (so far used for features only)
-    bool modifiable_;
+    bool modifiable_ = false;
 
     /// Flag that indicates that the layer data was modified since loading it
-    bool modified_;
+    bool modified_ = false;
     };
 
 
@@ -240,6 +247,37 @@ protected:
     FeatureMapSharedPtrType features_;
   };
 
+  class OPENMS_GUI_DLLAPI IdLayer : public LayerDataBase
+  {
+public:
+    /// Flags that determine which information is shown.
+    enum IdLayerFlags
+    {
+      C_ELEMENTS,      ///< TODO:
+      SIZE_OF_FLAGS
+    };
+
+    /// Actual state of each flag
+    std::bitset<SIZE_OF_FLAGS> id_layer_flags;
+
+    /// Default constructor
+    IdLayer() = default;
+
+    /// no Copy-ctor (should not be needed)
+    IdLayer(const IdLayer& ld) = delete;
+
+    /// no assignment operator (should not be needed)
+    IdLayer& operator=(const IdLayer& ld) = delete;
+
+    /// move Ctor
+    IdLayer(IdLayer&& ld) = default;
+
+    /// move assignment
+    IdLayer& operator=(IdLayer&& ld) = default;
+protected:
+    /// peptide identifications
+    std::vector<PeptideIdentification> peptides;
+  };
 
   class OPENMS_GUI_DLLAPI ConsensusLayer : public LayerDataBase
   {
@@ -289,11 +327,16 @@ public:
 protected:
     /// consensus feature data
     ConsensusMapSharedPtrType consensus_map_;
-  }
+  };
 
   class OPENMS_GUI_DLLAPI PeakLayer : public LayerDataBase
   {
 public:
+    PeakLayer() 
+    {
+      annotations_1d.resize(1); 
+    }
+
     /// Flags that determine which information is shown.
     enum Flags
     {
@@ -369,6 +412,50 @@ public:
     {
       return chromatogram_map_;
     }
+
+    /// get annotation (e.g. to build a hierachical ID View)
+    const OSWData& getChromatogramAnnotation()
+    {
+      return chrom_annotation_;
+    }
+
+    /// add annotation from an OSW sqlite file.
+    void setChromatogramAnnotation(OSWData&& data)
+    {
+      chrom_annotation_ = std::move(data);
+    }
+
+    /// add peptide identifications to the layer
+    /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
+    /// Will return false otherwise.
+    bool annotate(const std::vector<PeptideIdentification>& identifications,
+                  const std::vector<ProteinIdentification>& protein_identifications);
+
+
+    /// Returns a const reference to the annotations of the current spectrum (1D view)
+    const Annotations1DContainer & getCurrentAnnotations() const
+    {
+      return annotations_1d[current_spectrum_];
+    }
+
+    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
+    Annotations1DContainer & getCurrentAnnotations()
+    {
+      return annotations_1d[current_spectrum_];
+    }
+
+    /// Returns a const reference to the annotations of the current spectrum (1D view)
+    const Annotations1DContainer & getAnnotations(Size spectrum_index) const
+    {
+      return annotations_1d[spectrum_index];
+    }
+
+    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
+    Annotations1DContainer & getAnnotations(Size spectrum_index)
+    {
+      return annotations_1d[spectrum_index];
+    }
+
 
     /**
     @brief Returns a const reference to the current spectrum (1D view)
@@ -476,6 +563,17 @@ public:
 
     /// Peak colors of the currently shown spectrum
     std::vector<QColor> peak_colors_1d;
+
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
+    void synchronizePeakAnnotations();
+
+    /// remove peak annotations in the given list from the currently active PeptideHit
+    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
+
+    /// Gradient for 2D and 3D views
+    MultiGradient gradient;
+
 private:
     /// Update current cached spectrum for easy retrieval
     void updateCache_();
@@ -492,95 +590,21 @@ private:
     /// chromatogram data
     ExperimentSharedPtrType chromatogram_map_;
 
+    /// Chromatogram annotation data
+    OSWData chrom_annotation_;
+
     /// Index of the current spectrum
-    Size current_spectrum_;
+    Size current_spectrum_ = 0;
 
     /// Current cached spectrum
     ExperimentType::SpectrumType cached_spectrum_;
-  };
-
-
-    LayerData() :
-      flags(),
-      visible(true),
-      flipped(false),
-      type(DT_UNKNOWN),
-      name_(),
-      filename(),
-      peptides(),
-      param(),
-      gradient(),
-      filters(),
-      annotations_1d(),
-      peak_colors_1d(),
-      modifiable(false),
-      modified(false),
-      label(L_NONE),
-      peptide_id_index(-1),
-      peptide_hit_index(-1),
-      current_spectrum_(0),
-      cached_spectrum_()
-    {
-      annotations_1d.resize(1);
-    }
-
-    /// add peptide identifications to the layer
-    /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
-    /// Will return false otherwise.
-    bool annotate(const std::vector<PeptideIdentification>& identifications,
-                  const std::vector<ProteinIdentification>& protein_identifications);
-
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer & getCurrentAnnotations() const
-    {
-      return annotations_1d[current_spectrum_];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer & getCurrentAnnotations()
-    {
-      return annotations_1d[current_spectrum_];
-    }
-
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer & getAnnotations(Size spectrum_index) const
-    {
-      return annotations_1d[spectrum_index];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer & getAnnotations(Size spectrum_index)
-    {
-      return annotations_1d[spectrum_index];
-    }
-    
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
-    void synchronizePeakAnnotations();
-
-    /// remove peak annotations in the given list from the currently active PeptideHit
-    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
-
-    /// if this layer is flipped (1d mirror view)
-    bool flipped;
-
-public:
-    /// peptide identifications
-    std::vector<PeptideIdentification> peptides;
-
-    /// Layer parameters
-    Param param;
-
-    /// Gradient for 2D and 3D views
-    MultiGradient gradient;
-
-    /// Label type
-    LabelType label;
 
     /// Selected peptide id and hit index (-1 if none is selected)
-    int peptide_id_index;
-    int peptide_hit_index;
+    int peptide_id_index = -1;
+    int peptide_hit_index = -1;
 
+    /// if this layer is flipped (1d mirror view)
+    bool flipped = false;
   };
 
   /// A base class to annotate layers of specific types with (identification) data
@@ -641,6 +665,23 @@ public:
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
+    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+  };
+  
+  /// Annotate a chromatogram layer with ID data (from an OSW sqlite file as produced by OpenSwathWorkflow or pyProphet).
+  /// The OSWData is loaded from a file selected by the user via a file-dialog.
+  class LayerAnnotatorOSW
+    : public LayerAnnotatorBase
+  {
+  public:
+    LayerAnnotatorOSW()
+      : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::OSW },
+                           "Select OpenSwath/pyProphet output file")
+    {}
+
+  protected:
+    /// loads the OSWData from @p filename and stores the data using Layer::setChromatogramAnnotation()
+    /// Always returns true (unless an exception is thrown from internal sub-functions)
     virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
   };
 

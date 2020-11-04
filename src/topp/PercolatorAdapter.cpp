@@ -480,8 +480,8 @@ protected:
         double calc_mass; 
         if (!hit.metaValueExists("CalcMass"))
         {
-          calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
-          hit.setMetaValue("CalcMass", calc_mass);
+          calc_mass = hit.getSequence().getMZ(charge);
+          hit.setMetaValue("CalcMass", calc_mass); // Percolator calls is CalcMass instead of m/z
         }
         else
         {

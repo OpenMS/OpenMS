@@ -2070,7 +2070,7 @@ namespace OpenMS
     row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
     
     row.charge = MzTabInteger(best_ph.getCharge());
-    row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
+    row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMZ(best_ph.getCharge())) : MzTabDouble();
 
     // add opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
     MzTabOptionalColumnEntry opt_entry;
