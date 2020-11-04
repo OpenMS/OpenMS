@@ -63,7 +63,7 @@ namespace OpenMS
     };
 
     /**
-    @brief Constructs a mass mapping of targets and decoys using a the unique mids identifier.
+    @brief Constructs a mass mapping of targets and decoys using a the unique m_ids identifier.
 
     @param t_exp TransitionExperiment holds compound and transition information used for the mapping.
 

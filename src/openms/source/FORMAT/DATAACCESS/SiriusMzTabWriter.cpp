@@ -86,6 +86,43 @@ std::map< String, Size > SiriusMzTabWriter::extract_columnname_to_columnindex(Cs
   return columnname_to_columnindex;
 };
 
+SiriusMzTabWriter::SiriusSpectrumMSInfo SiriusMzTabWriter::extractSpectrumMSInfo(const String& single_sirius_path)
+{
+  SiriusSpectrumMSInfo info;
+  // extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file
+  const String sirius_spectrum_ms = single_sirius_path + "/spectrum.ms";
+  ifstream spectrum_ms_file(sirius_spectrum_ms);
+  if (spectrum_ms_file)
+  {
+    const String n_id_prefix = "##n_id";
+    const String rt_prefix = ">rt";
+    const String pmass_prefix = ">parentmass";
+    String line;
+    while (getline(spectrum_ms_file, line))
+    {
+      if (line.hasPrefix(pmass_prefix))
+      {
+        info.ext_mz = String(line.erase(line.find(pmass_prefix), pmass_prefix.size())).toDouble();
+      }
+      else if (line.hasPrefix(rt_prefix))
+      {
+        line = line.erase(line.find("s"), 1); // >rt 418.39399999998s - remove unit "s"
+        info.ext_rt = String(line.erase(line.find(rt_prefix), rt_prefix.size())).toDouble();
+      }
+      else if (line.hasPrefix(n_id_prefix))
+      {
+        info.ext_n_id.emplace_back(line.erase(line.find(n_id_prefix), n_id_prefix.size()));
+      }
+    }
+    spectrum_ms_file.close();
+    return info;
+  }
+  else
+  {
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sirius_spectrum_ms);
+  }
+};
+
 void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
                              const String& original_input_mzml,
                              const Size& top_n_hits,
@@ -95,36 +132,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
 
   for (const auto& it : sirius_output_paths)
   {
-    // extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file
-    StringList ext_nid; // multiple possible MS2 spectra
-    double ext_mz = 0.0;
-    double ext_rt = 0.0;
-    const String sirius_spectrum_ms = it + "/spectrum.ms";
-    ifstream spectrum_ms_file(sirius_spectrum_ms);
-    if (spectrum_ms_file)
-    {
-      const String nid_prefix = "##nid";
-      const String rt_prefix = ">rt";
-      const String pmass_prefix = ">parentmass";
-      String line;
-      while (getline(spectrum_ms_file, line))
-      {
-        if (line.hasPrefix(pmass_prefix))
-        {
-           ext_mz = String(line.erase(line.find(pmass_prefix), pmass_prefix.size())).toDouble();
-        }
-        else if (line.hasPrefix(rt_prefix))
-        {
-           line = line.erase(line.find("s"), 1); // >rt 418.39399999998s - remove unit "s"
-           ext_rt = String(line.erase(line.find(rt_prefix), rt_prefix.size())).toDouble();
-        }
-        else if (line.hasPrefix(nid_prefix))
-        {
-           ext_nid.emplace_back(line.erase(line.find(nid_prefix), nid_prefix.size()));
-        }
-      }
-      spectrum_ms_file.close();
-    }
+    SiriusSpectrumMSInfo info = SiriusMzTabWriter::extractSpectrumMSInfo(it);
 
     // extract data from formula_candidates.csv
     const std::string pathtosiriuscsv = it + "/formula_candidates.tsv";
@@ -182,9 +190,9 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
           sirius_id.hits.push_back(sirius_hit);
         }
 
-        sirius_id.mz = ext_mz;
-        sirius_id.rt = ext_rt;
-        sirius_id.native_ids = ext_nid;
+        sirius_id.mz = info.ext_mz;
+        sirius_id.rt = info.ext_rt;
+        sirius_id.native_ids = info.ext_n_id;
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
         sirius_id.feature_id = feature_id;

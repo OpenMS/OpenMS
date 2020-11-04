@@ -73,8 +73,9 @@ namespace OpenMS
     @return mzTab
     */
 
-    struct SiriusAdapterHit
+    class SiriusAdapterHit
     {
+    public:
       OpenMS::String formula;
       OpenMS::String adduct;
       OpenMS::String precursor_formula;
@@ -87,8 +88,9 @@ namespace OpenMS
       double explainedintensity = 0.0;
     };
 
-    struct SiriusAdapterIdentification
+    class SiriusAdapterIdentification
     {
+    public:
       double mz = 0.;
       double rt = 0.;
       OpenMS::StringList native_ids;
@@ -98,9 +100,18 @@ namespace OpenMS
       std::vector<SiriusAdapterHit> hits;
     };
 
-    struct SiriusAdapterRun
+    class SiriusAdapterRun
     {
+    public:
       std::vector<SiriusAdapterIdentification> identifications;
+    };
+
+    class SiriusSpectrumMSInfo
+    {
+    public:
+      StringList ext_n_id; // multiple possible MS2 spectra
+      double ext_mz = 0.0;
+      double ext_rt = 0.0;
     };
 
     /**
@@ -122,6 +133,11 @@ namespace OpenMS
     @brief Extract columnname and index based in SIRIUS entries
     */
     static std::map< String, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
+
+    /**
+     @brief Extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file
+    */
+    static SiriusSpectrumMSInfo extractSpectrumMSInfo(const String& single_sirius_path);
 
     /**
     @brief Conversion of sirius output to mzTab

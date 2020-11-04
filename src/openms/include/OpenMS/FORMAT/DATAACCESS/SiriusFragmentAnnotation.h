@@ -70,7 +70,7 @@ namespace OpenMS
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  
-          Extract concatenated native ids and concatenated mids (unique identifier) from (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.tsv) from SIRIUS output (per compound).
+          Extract concatenated native ids and concatenated m_ids (unique identifier) from (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.tsv) from SIRIUS output (per compound).
 
           @return annotated (consensus) MSSpectrum with associated native id
 
@@ -95,7 +95,7 @@ namespace OpenMS
 
           /**
           @brief extractSiriusDecoyAnnotationMapping
-          Extract concatenated native ids and concatenated mids (./spectrum.ms) and fragment annotation (./decoy/1_sumformula.tsv) from SIRIUS/PASSATUTTO output (per compound).
+          Extract concatenated native ids and concatenated m_ids (./spectrum.ms) and fragment annotation (./decoy/1_sumformula.tsv) from SIRIUS/PASSATUTTO output (per compound).
 
           @return annotated decoy MSSpectrum with associated native id
 
@@ -130,11 +130,11 @@ namespace OpenMS
 
           /**
           @brief extractMIDFromSiriusMS
-          Extract mids from SIRIUS output (./spectrum.ms) and concatenates them.
-          Mid is the native id + an index, which is incremented based
+          Extract m_ids from SIRIUS output (./spectrum.ms) and concatenates them.
+          M_id is the native id + an index, which is incremented based
           on the number of possible identifications (accurate mass search).
 
-          @return String mid of current SIRIUS compound
+          @return String m_id of current SIRIUS compound
 
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           */

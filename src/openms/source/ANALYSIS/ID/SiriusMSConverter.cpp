@@ -394,16 +394,16 @@ namespace OpenMS
           {
             os << ">collision" << " " << collision << "\n";
           }
-          os << "##nid " << native_id << endl;
-          // "mid" annotation for multiple possible identifications (description_native_id_k)
-          // fragment mapping will be done using the mid
-          String mid = cmpinfo.des + "_" + native_id + "_" + k;
-          os << "##mid " << mid << endl;
+          os << "##n_id " << native_id << endl;
+          // "m_id" annotation for multiple possible identifications (description_native_id_k)
+          // fragment mapping will be done using the m_id
+          String m_id = cmpinfo.des + "_" + native_id + "_" + k;
+          os << "##m_id " << m_id << endl;
           os << "##scan " << ind << endl;
           os << "##specref " << "ms_run[1]:" << native_id << endl;
 
           cmpinfo.native_ids.push_back(native_id);
-          cmpinfo.mids.push_back(mid);
+          cmpinfo.m_ids.push_back(m_id);
           cmpinfo.scan_indices.push_back(ind);
           cmpinfo.specrefs.push_back(String("ms_run[1]:" + native_id));
 
@@ -423,7 +423,7 @@ namespace OpenMS
         }
       }
       cmpinfo.native_ids_id = ListUtils::concatenate(cmpinfo.native_ids, "|");
-      cmpinfo.mids_id = ListUtils::concatenate(cmpinfo.mids, "|");
+      cmpinfo.m_ids_id = ListUtils::concatenate(cmpinfo.m_ids, "|");
       v_cmpinfo.push_back(std::move(cmpinfo));
     }
   }

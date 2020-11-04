@@ -54,39 +54,9 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
 
   for (const auto& it : sirius_output_paths)
   {
-
-    // TODO: change or extract class/method
     // extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file
-    StringList ext_nid;
-    double ext_mz = 0.0;
-    double ext_rt = 0.0;
-    const String sirius_spectrum_ms = it + "/spectrum.ms";
-    ifstream spectrum_ms_file(sirius_spectrum_ms);
-    if (spectrum_ms_file)
-    {
-      const String nid_prefix = "##nid";
-      const String rt_prefix = ">rt";
-      const String pmass_prefix = ">parentmass";
-      String line;
-      while (getline(spectrum_ms_file, line))
-      {
-        if (line.hasPrefix(pmass_prefix))
-        {
-           ext_mz = String(line.erase(line.find(pmass_prefix), pmass_prefix.size())).toDouble();
-        }
-        else if (line.hasPrefix(rt_prefix))
-        {
-           line = line.erase(line.find("s"), 1); // >rt 418.39399999998s - remove unit "s"
-           ext_rt = String(line.erase(line.find(rt_prefix), rt_prefix.size())).toDouble();
-        }
-        else if (line.hasPrefix(nid_prefix))
-        {
-           ext_nid.emplace_back(line.erase(line.find(nid_prefix), nid_prefix.size()));
-        }
-      }
-      spectrum_ms_file.close();
-    } 
-   
+    SiriusMzTabWriter::SiriusSpectrumMSInfo info = SiriusMzTabWriter::extractSpectrumMSInfo(it);
+
     const std::string pathtocsicsv = it + "/structure_candidates.tsv";
 
     ifstream file(pathtocsicsv);
@@ -117,14 +87,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         String feature_id = SiriusMzTabWriter::extractFeatureId(str);
 
         // extract column name and index from header
-        StringList header_row;
-        std::map< String, Size > columnname_to_columnindex;
-        compounds.getRow(0, header_row);
-
-        for (size_t i = 0; i < header_row.size(); i++)
-        {
-          columnname_to_columnindex.insert(make_pair(header_row[i], i));
-        }
+        std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
 
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)
@@ -148,9 +111,9 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
           csi_id.hits.push_back(csi_hit);
         }
 
-        csi_id.mz = ext_mz;
-        csi_id.rt = ext_rt;
-        csi_id.native_ids = ext_nid;
+        csi_id.mz = info.ext_mz;
+        csi_id.rt = info.ext_rt;
+        csi_id.native_ids = info.ext_n_id;
         csi_id.scan_index = scan_index;
         csi_id.scan_number = scan_number;
         csi_id.feature_id = feature_id;

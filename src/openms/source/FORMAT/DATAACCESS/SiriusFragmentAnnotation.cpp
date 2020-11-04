@@ -90,7 +90,7 @@ namespace OpenMS
     }
 
     // convert to vector
-    for(auto it : native_ids_annotated_spectra)
+    for (const auto it : native_ids_annotated_spectra)
     {
       annotated_spectra.emplace_back(std::move(it.second));
     }
@@ -101,39 +101,39 @@ namespace OpenMS
   void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   {
     OpenMS::String native_id = SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String mid = SiriusFragmentAnnotation::extractMIDFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String m_id = SiriusFragmentAnnotation::extractMIDFromSiriusMS_(path_to_sirius_workspace);
     SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
     msspectrum_to_fill.setNativeID(native_id);
-    msspectrum_to_fill.setName(mid);
+    msspectrum_to_fill.setName(m_id);
   }
 
   void SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill)
   {
     OpenMS::String native_id = SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String mid = SiriusFragmentAnnotation::extractMIDFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String m_id = SiriusFragmentAnnotation::extractMIDFromSiriusMS_(path_to_sirius_workspace);
     SiriusFragmentAnnotation::extractAnnotationFromDecoyFile_(path_to_sirius_workspace, msspectrum_to_fill);
     msspectrum_to_fill.setNativeID(native_id);
-    msspectrum_to_fill.setName(mid);
+    msspectrum_to_fill.setName(m_id);
   }
   
   // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
   // first native id in the spectrum.ms
   OpenMS::String SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(const String& path_to_sirius_workspace)
   {
-    vector< String > ext_nids;
-    String ext_nid;
+    vector< String > ext_n_ids;
+    String ext_n_id;
     const String sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
     if (spectrum_ms_file)
     {
-      const OpenMS::String nid_prefix = "##nid ";
+      const OpenMS::String n_id_prefix = "##n_id ";
       String line;
       while (getline(spectrum_ms_file, line))
       {
-        if (line.hasPrefix(nid_prefix))
+        if (line.hasPrefix(n_id_prefix))
         {
-           String nid = line.erase(line.find(nid_prefix), nid_prefix.size());
-           ext_nids.emplace_back(nid);
+           String n_id = line.erase(line.find(n_id_prefix), n_id_prefix.size());
+           ext_n_ids.emplace_back(n_id);
         }
         else if (spectrum_ms_file.eof())
         {
@@ -143,39 +143,39 @@ namespace OpenMS
       }
       spectrum_ms_file.close();
     }
-    ext_nid = ListUtils::concatenate(ext_nids, "|");
-    return ext_nid;
+    ext_n_id = ListUtils::concatenate(ext_n_ids, "|");
+    return ext_n_id;
   }
 
-  // extract mid from SIRIUS spectrum.ms output file (workspace - compound specific)
-  // first mid id in the spectrum.ms
+  // extract m_id from SIRIUS spectrum.ms output file (workspace - compound specific)
+  // first m_id id in the spectrum.ms
   OpenMS::String SiriusFragmentAnnotation::extractMIDFromSiriusMS_(const String& path_to_sirius_workspace)
   {
-    vector< String > ext_mids;
-    String ext_mid;
+    vector< String > ext_m_ids;
+    String ext_m_id;
     const String sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
     if (spectrum_ms_file)
     {
-      const OpenMS::String mid_prefix = "##mid ";
+      const OpenMS::String m_id_prefix = "##m_id ";
       String line;
       while (getline(spectrum_ms_file, line))
       {
-        if (line.hasPrefix(mid_prefix))
+        if (line.hasPrefix(m_id_prefix))
         {
-          String mid = line.erase(line.find(mid_prefix), mid_prefix.size());
-          ext_mids.emplace_back(mid);
+          String m_id = line.erase(line.find(m_id_prefix), m_id_prefix.size());
+          ext_m_ids.emplace_back(m_id);
         }
         else if (spectrum_ms_file.eof())
         {
-          OPENMS_LOG_WARN << "No SiriusAdapter_MID id was found - please check your input mzML. " << std::endl;
+          OPENMS_LOG_WARN << "No SiriusAdapter m_id was found - please check your input mzML. " << std::endl;
           break;
         }
       }
       spectrum_ms_file.close();
     }
-    ext_mid = ListUtils::concatenate(ext_mids, "|");
-    return ext_mid;
+    ext_m_id = ListUtils::concatenate(ext_m_ids, "|");
+    return ext_m_id;
   }
 
    // provides a mapping of rank and the file it belongs to since this is not encoded in the directory structure/filename
@@ -248,13 +248,18 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSSpectrum was provided");
     }
 
-    std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
-    std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
-
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
     if (dir.exists())
     {
+      std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
+      std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
+
+      // use first file in folder (rank 1)
+      String filename = rank_filename.at(1); // rank 1
+      double score = rank_score.at(1); // rank 1
+      QFileInfo firstfile(dir,filename.toQString());
+
       if (use_exact_mass)
       {
         msspectrum_to_fill.setMetaValue("peak_mz", DataValue("exact_mass"));
@@ -263,11 +268,6 @@ namespace OpenMS
       {
         msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
       }
-
-      // use first file in folder (rank 1)
-      String filename = rank_filename.at(1); // rank 1
-      double score = rank_score.at(1); // rank 1
-      QFileInfo firstfile(dir,filename.toQString());
 
       // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
       String current_sumformula = filename.substr(0, filename.find_last_of("_"));
@@ -342,19 +342,19 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSSpectrum was provided");
     }
 
-    std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
-    std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
-
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/decoys/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
     if (dir.exists())
     {
-      msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
+      std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
+      std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
 
       // use first file in folder (rank 1)
       String filename = rank_filename.at(1); // rank 1
       double score = rank_score.at(1); // rank 1
       QFileInfo firstfile(dir,filename.toQString());
+
+      msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
 
       // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
       String current_sumformula = filename.substr(0, filename.find_last_of("_"));

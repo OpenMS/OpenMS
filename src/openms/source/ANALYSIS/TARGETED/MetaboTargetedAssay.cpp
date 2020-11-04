@@ -521,9 +521,9 @@ namespace OpenMS
         {
           cmp.setMetaValue("native_ids_id", csp.compound_info.native_ids_id);
         }
-        if (!csp.compound_info.mids_id.empty())
+        if (!csp.compound_info.m_ids_id.empty())
         {
-          cmp.setMetaValue("mids_id", csp.compound_info.mids_id);
+          cmp.setMetaValue("m_ids_id", csp.compound_info.m_ids_id);
         }
         if (!csp.compound_info.cmp.empty())
         {
@@ -576,9 +576,9 @@ namespace OpenMS
             {
               rmt.setMetaValue("native_ids_id", csp.compound_info.native_ids_id);
             }
-            if (!csp.compound_info.mids_id.empty())
+            if (!csp.compound_info.m_ids_id.empty())
             {
-              rmt.setMetaValue("mids_id", csp.compound_info.mids_id);
+              rmt.setMetaValue("m_ids_id", csp.compound_info.m_ids_id);
             }
             if (decoy == 1)
             {
@@ -605,7 +605,7 @@ namespace OpenMS
     return v_mta;
   }
 
-  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the MID (unique identifier)
+  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
   std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                                                                                                   const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra)
   {
@@ -614,7 +614,7 @@ namespace OpenMS
     {
       for (const auto& spectra : annotated_spectra)
       {
-        if (cmp.mids_id == spectra.target.getName())
+        if (cmp.m_ids_id == spectra.target.getName())
         {
           MetaboTargetedAssay::CompoundTargetDecoyPair csp(cmp, spectra);
           v_cmp_spec.push_back(move(csp));

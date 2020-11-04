@@ -48,7 +48,7 @@ namespace OpenMS
       // only need to extract identifier from the targets, since targets and decoys have the same one
       if (it.getMetaValue("decoy") == DataValue(0))
       {
-        identifier.emplace_back(it.getMetaValue("mids_id"));
+        identifier.emplace_back(it.getMetaValue("m_ids_id"));
       }
     }
 
@@ -63,7 +63,7 @@ namespace OpenMS
                                   rmts.end(),
                                   [&it](ReactionMonitoringTransition &rts)
                                   {
-                                    return rts.getMetaValue("mids_id") == it &&
+                                    return rts.getMetaValue("m_ids_id") == it &&
                                            rts.getDecoyTransitionType() == ReactionMonitoringTransition::TARGET;
                                   })) != rmts.end())
       {
@@ -76,7 +76,7 @@ namespace OpenMS
                                  rmts.end(),
                                  [&it](ReactionMonitoringTransition &rts)
                                  {
-                                   return rts.getMetaValue("mids_id") == it &&
+                                   return rts.getMetaValue("m_ids_id") == it &&
                                           rts.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY;
                                  })) != rmts.end())
       {

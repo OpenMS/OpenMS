@@ -47,8 +47,9 @@ namespace OpenMS
 public:
 
   // struct to store information about accessions
-  struct AccessionInfo
+  class AccessionInfo
   {
+  public:
     String sf_path; ///< sourcefile path for mztab-m
     String sf_type; ///< sourcefile type for mztab-m
     String sf_accession; ///< sourcefile accessions for mztab-m
@@ -58,8 +59,9 @@ public:
 
   // struct to store the compound information
   // can be used to map compound and fragment annotated spectrum later on
-  struct CompoundInfo
+  class CompoundInfo
   {
+  public:
     String cmp; ///< query_id used compound in .ms file
     double pmass; ///< parent/precursor mass of the compound
     double pint_mono; ///< parent/precursor intensity of the compound
@@ -75,8 +77,8 @@ public:
     String source_format; ///< format of the sourcefile for mztab-m
     std::vector<String> native_ids; ///< native ids of the associated spectra
     String native_ids_id; ///< concatenated list of the associated spectra
-    std::vector<String> mids; ///< native ids and identifier for multiple possible identification via AMS ("|" separator)
-    String mids_id; ///< concatenated list of native ids and identifier for multiple possible identification via AMS ("|" separator) used for mapping of compounds and the annotated spectrum.
+    std::vector<String> m_ids; ///< native ids and identifier for multiple possible identification via AMS ("|" separator)
+    String m_ids_id; ///< concatenated list of native ids and identifier for multiple possible identification via AMS ("|" separator) used for mapping of compounds and the annotated spectrum.
     std::vector<String> scan_indices; ///< index of the associated spectra
     std::vector<String> specrefs; ///< spectra reference for mztab-m
   };

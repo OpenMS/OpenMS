@@ -101,7 +101,7 @@
 179.106488149861 2092.017333984375
 182.961571664514 1566.125366210938
 182.982955367691 1389.804321289062
-186.221312636852 2310.0
+186.221312636852 2310
 194.116506735598 3012.14208984375
 195.1219835686 1971.532348632812
 198.184492106186 2254.0
@@ -473,9 +473,9 @@
 
 >ms2peaks
 ##specref ms_run[1]:sample=1 period=1 cycle=657 experiment=5
-##nid sample=1 period=1 cycle=657 experiment=5
+##n_id sample=1 period=1 cycle=657 experiment=5
 ##scan 4
-##mid sample=1 period=1 cycle=657 experiment=5_0
+##m_id sample=1 period=1 cycle=657 experiment=5_0
 51.024411650566 166.0
 77.038595873029 3035.0
 78.994852705761 195.0
@@ -489,9 +489,9 @@
 
 >ms2peaks
 ##specref ms_run[1]:sample=1 period=1 cycle=658 experiment=6
-##nid sample=1 period=1 cycle=658 experiment=6
+##n_id sample=1 period=1 cycle=658 experiment=6
 ##scan 14
-##mid sample=1 period=1 cycle=658 experiment=6_0
+##m_id sample=1 period=1 cycle=658 experiment=6_0
 50.014691789931 30.0
 50.024594232484 15.0
 51.023487773864 693.36083984375
@@ -532,9 +532,9 @@
 
 >ms2peaks
 ##specref ms_run[1]:sample=1 period=1 cycle=659 experiment=7
-##nid sample=1 period=1 cycle=659 experiment=7
+##n_id sample=1 period=1 cycle=659 experiment=7
 ##scan 24
-##mid sample=1 period=1 cycle=659 experiment=7_0
+##m_id sample=1 period=1 cycle=659 experiment=7_0
 50.011945356227 45.0
 50.016256671506 49.487056732178
 50.022471395276 30.022994995117
