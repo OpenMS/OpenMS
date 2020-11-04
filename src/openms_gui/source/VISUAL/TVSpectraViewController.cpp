@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
@@ -111,7 +111,7 @@ namespace OpenMS
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // open new 1D widget
-    Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    Plot1DWidget * w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
 
     if (layer.type == LayerData::DT_CHROMATOGRAM)
     {
@@ -119,7 +119,7 @@ namespace OpenMS
 
       // fix legend and set layer name
       caption = layer.getName() + "[" + index + "]";
-      w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
+      w->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
       if (!w->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, layer.filename, caption, exp_sptr, index, false))
@@ -148,7 +148,7 @@ namespace OpenMS
     }
 
     // set relative (%) view of visible area
-    w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+    w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
     if (layer.type == LayerData::DT_PEAK)
     {
@@ -178,7 +178,7 @@ namespace OpenMS
     String caption = layer.getName();
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
-    tv_->showSpectrumWidgetInWindow(w, caption);
+    tv_->showPlotWidgetInWindow(w, caption);
     tv_->updateLayerBar();
     tv_->updateViewBar();
     tv_->updateFilterBar();
@@ -202,9 +202,9 @@ namespace OpenMS
     caption = layer.getName();
 
     //open new 1D widget
-    Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    Plot1DWidget * w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
     // fix legend if its a chromatogram
-    w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
+    w->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
     for (const auto& index : indices)
     {
@@ -222,7 +222,7 @@ namespace OpenMS
           return;
         }
         w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), chromatogram_caption);
-        w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+        w->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
 
         w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
 
@@ -245,18 +245,18 @@ namespace OpenMS
     }
 
     // set relative (%) view of visible area
-    w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+    w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
     // basic behavior 2
 
-    tv_->showSpectrumWidgetInWindow(w, caption);
+    tv_->showPlotWidgetInWindow(w, caption);
     tv_->updateBarsAndMenus();
   }
 
   // called by SpectraViewWidget::spectrumSelected()
   void TVSpectraViewController::activate1DSpectrum(int index)
   {
-    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
+    Plot1DWidget* widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
     if (widget_1d == nullptr) return;
@@ -292,7 +292,7 @@ namespace OpenMS
   // called by SpectraViewWidget::spectrumSelected()
   void TVSpectraViewController::activate1DSpectrum(const std::vector<int>& indices)
   {
-    Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
+    Plot1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
     if (widget_1d == nullptr) return;

@@ -201,8 +201,8 @@
 		The following example image shows a small section of a peak map and the detected features
 		in a second layer.
 
-		@image html Spectrum2DWidget.png
-		@image latex Spectrum2DWidget.png "" width=8cm
+		@image html Plot2DWidget.png
+		@image latex Plot2DWidget.png "" width=8cm
 
 		In addition to the normal top-down view, the 2D view can display the projections
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
@@ -229,8 +229,8 @@
 
 		The following example image shows a small region of a peak map:
 
-		@image html Spectrum3DWidget.png
-		@image latex Spectrum3DWidget.png "" width=8cm
+		@image html Plot3DWidget.png
+		@image latex Plot3DWidget.png "" width=8cm
 
 		Through the <B>context menu:</B> of the 3D view you can:
 		<UL>

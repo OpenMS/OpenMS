@@ -43,7 +43,7 @@ class QPainter;
 
 namespace OpenMS
 {
-  class Spectrum1DCanvas;
+  class Plot1DCanvas;
 
   /** @brief An abstract class acting as an interface for the different 1D annotation items.
 
@@ -92,10 +92,10 @@ public:
     bool editText();
 
     /// Ensures that the item has coordinates within the visible area of the canvas
-    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas) = 0;
+    virtual void ensureWithinDataRange(Plot1DCanvas * const canvas) = 0;
 
     /// Draws the item on @p painter
-    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) = 0;
+    virtual void draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped = false) = 0;
 
     /// Moves the item; behaviour depends on item type and is implemented in the subclasses
     virtual void move(const PointType & delta) = 0;

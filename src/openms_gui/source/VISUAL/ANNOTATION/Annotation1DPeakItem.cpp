@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtGui/QPainter>
 #include <QtCore/QPoint>
@@ -65,7 +65,7 @@ namespace OpenMS
     const PointType & peak_position,
     const PointType & position,
     const QString & text,
-    Spectrum1DCanvas * const canvas,
+    Plot1DCanvas * const canvas,
     bool flipped,
     QPoint & position_widget,
     QPoint & peak_position_widget,
@@ -123,7 +123,7 @@ namespace OpenMS
     return bounding_box;
   }
 
-  void Annotation1DPeakItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DPeakItem::draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped)
   {
     painter.save();
 
@@ -334,7 +334,7 @@ namespace OpenMS
     return peak_position_;
   }
 
-  void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  void Annotation1DPeakItem::ensureWithinDataRange(Plot1DCanvas * const canvas)
   {
     DRange<3> data_range = canvas->getDataRange();
 

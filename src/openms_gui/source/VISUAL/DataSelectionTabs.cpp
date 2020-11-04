@@ -41,8 +41,8 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/TVSpectraViewController.h>
 #include <OpenMS/VISUAL/TVIdentificationViewController.h>
 
@@ -101,7 +101,7 @@ namespace OpenMS
       this->blockSignals(false);
     });
 
-    SpectrumCanvas* cc = tv_->getActiveCanvas();
+    PlotCanvas* cc = tv_->getActiveCanvas();
     Size layer_row = (cc == nullptr 
                           ? -1 
                           : cc->getCurrentLayerIndex() /* may return -1 as well */);
@@ -156,8 +156,8 @@ namespace OpenMS
 
   void DataSelectionTabs::showSpectrumAs1D(int index)
   {
-    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
-    Spectrum2DWidget* widget_2d = tv_->getActive2DWidget();
+    Plot1DWidget* widget_1d = tv_->getActive1DWidget();
+    Plot2DWidget* widget_2d = tv_->getActive2DWidget();
 
     if (widget_1d || widget_2d)
     {
@@ -175,8 +175,8 @@ namespace OpenMS
 
   void DataSelectionTabs::showSpectrumAs1D(std::vector<int> indices)
   {
-    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
-    Spectrum2DWidget* widget_2d = tv_->getActive2DWidget();
+    Plot1DWidget* widget_1d = tv_->getActive1DWidget();
+    Plot2DWidget* widget_2d = tv_->getActive2DWidget();
 
     if (widget_1d)
     {
@@ -196,7 +196,7 @@ namespace OpenMS
 
   void DataSelectionTabs::tabBarDoubleClicked(int tab_index)
   {
-    if (!tv_->getActiveSpectrumWidget()) return;
+    if (!tv_->getActivePlotWidget()) return;
 
     switch (tab_index)
     {

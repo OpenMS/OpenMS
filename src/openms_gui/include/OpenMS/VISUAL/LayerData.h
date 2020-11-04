@@ -82,10 +82,10 @@ namespace OpenMS
   Persistent changes can be applied to getPeakDataMuteable() and will be
   available on the next cache update.
 
-  @note Layer is mainly used as a member variable of SpectrumCanvas which holds
+  @note Layer is mainly used as a member variable of PlotCanvas which holds
   a vector of LayerData objects.
 
-  @ingroup SpectrumWidgets
+  @ingroup PlotWidgets
   */
   class OPENMS_GUI_DLLAPI LayerData
   {

@@ -47,11 +47,11 @@ namespace OpenMS
   /**
     @brief provides a signal mechanism (by deriving from QObject) for classes which are not allowed to have signals themselves.
 
-    This might be useful for EnhancedTabBarWidgetInterface, since that cannot derive from QObject due to the diamond star inheritance problem via its parent classes (e.g. SpectrumWidget).
+    This might be useful for EnhancedTabBarWidgetInterface, since that cannot derive from QObject due to the diamond star inheritance problem via its parent classes (e.g. PlotWidget).
     
     Diamond star problem:
       
-      SpectrumWidget
+      PlotWidget
        /       \
     ETBWI    QWidget
        -!      /
