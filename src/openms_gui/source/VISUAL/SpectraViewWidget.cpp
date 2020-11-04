@@ -479,7 +479,7 @@ namespace OpenMS
       std::map<Precursor, std::vector<Size>, Precursor::MZLess>& map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
       if (!was_cached)
       { // create cache: collect all precursor that fall into the mz rt window
-        for (auto it = exp->getChromatograms().begin(); it != exp->getChromatograms().end(); ++it)
+        for (auto it = exp->getChromatograms().cbegin(); it != exp->getChromatograms().cend(); ++it)
         {
           map_precursor_to_chrom_idx[it->getPrecursor()].push_back(it - exp->getChromatograms().begin());
         }
