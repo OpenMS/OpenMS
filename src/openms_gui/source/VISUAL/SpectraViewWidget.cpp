@@ -55,6 +55,15 @@ namespace OpenMS
     return out;
   }
 
+
+  QList<QVariant> vecToList(const std::vector<Size>& in)
+  {
+    QList<QVariant> res;
+    for (auto i : in) res.push_back((unsigned int)i);
+    return res;
+  }
+
+
   SpectraViewWidget::SpectraViewWidget(QWidget * parent) :
     QWidget(parent)
   {
@@ -145,8 +154,8 @@ namespace OpenMS
       return;
     }
 
-    int spectrum_index = current->text(1).toInt();
-    const QList<QVariant> & res = current->data(0, 0).toList();
+    int spectrum_index = current->data(1, Qt::DisplayRole).toInt();
+    const QList<QVariant>& res = current->data(0, Qt::UserRole).toList();
     if (res.size() == 0)
     {
       emit spectrumSelected(spectrum_index);
@@ -171,8 +180,9 @@ namespace OpenMS
     {
       return;
     }
-    int spectrum_index = current->text(1).toInt();
-    const QList<QVariant>& res = current->data(0, 0).toList();
+    int spectrum_index = current->data(1, Qt::DisplayRole).toInt();
+    QVariant test;
+    const QList<QVariant>& res = current->data(0, Qt::UserRole).toList();
     if (res.empty())
     {
       emit spectrumDoubleClicked(spectrum_index);
@@ -190,12 +200,12 @@ namespace OpenMS
     if (item)
     {
       //create menu
-      int spectrum_index = item->text(1).toInt();
+      int spectrum_index = item->data(1, Qt::DisplayRole).toInt();
       QMenu context_menu(spectra_treewidget_);
       context_menu.addAction("Show in 1D view", [&]()
       {
         std::vector<int> chrom_indices;
-        const QList<QVariant>& res = item->data(0, 0).toList();
+        const QList<QVariant>& res = item->data(0, Qt::UserRole).toList();
         if (res.empty())
         {
           emit showSpectrumAs1D(spectrum_index);
@@ -236,8 +246,8 @@ namespace OpenMS
   void populateRow_(QTreeWidgetItem* item, const int index, const MSSpectrum& spec)
   {
     item->setText(0, QString("MS") + QString::number(spec.getMSLevel()));
-    item->setText(1, QString::number(index));
-    item->setText(2, QString::number(spec.getRT()));
+    item->setData(1, Qt::DisplayRole, index);
+    item->setData(2, Qt::DisplayRole, spec.getRT());
 
     const std::vector<Precursor>& current_precursors = spec.getPrecursors();
 
@@ -254,7 +264,7 @@ namespace OpenMS
         precursor_mz = current_pc.getMZ();
         item->setText(4, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
       }
-      item->setText(3, QString::number(precursor_mz));
+      item->setData(3, Qt::DisplayRole, precursor_mz);
     }
 
     item->setText(5, QString::fromStdString(spec.getInstrumentSettings().NamesOfScanMode[spec.getInstrumentSettings().getScanMode()]));
@@ -271,7 +281,7 @@ namespace OpenMS
     spectra_treewidget_->blockSignals(true);
     RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });
 
-    QTreeWidgetItem* item = nullptr;
+    QTreeWidgetItem* toplevel_item = nullptr;
     QTreeWidgetItem* selected_item = nullptr;
     QList<QTreeWidgetItem*> toplevel_items;
     bool more_than_one_spectrum = true;
@@ -300,7 +310,7 @@ namespace OpenMS
           // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
           if (current_spec.getMSLevel() == prev_spec.getMSLevel() + 1)
           {
-            item = new QTreeWidgetItem(parent_stack.back());
+            toplevel_item = new QTreeWidgetItem(parent_stack.back());
             parent_stack.resize(parent_stack.size() + 1);
           }
           // current MS level = previous MS level (e.g. MS2,MS2 or MS1,MS1)
@@ -308,11 +318,11 @@ namespace OpenMS
           {
             if (parent_stack.size() == 1)
             {
-              item = new QTreeWidgetItem((QTreeWidget *)nullptr);
+              toplevel_item = new QTreeWidgetItem();
             }
             else
             {
-              item = new QTreeWidgetItem(*(parent_stack.end() - 2));
+              toplevel_item = new QTreeWidgetItem(*(parent_stack.end() - 2));
             }
           }
           // current MS level < previous MS level (e.g. MS1,MS2)
@@ -324,11 +334,11 @@ namespace OpenMS
             {
               parent_index = parent_stack.size() - level_diff - 1;
               QTreeWidgetItem * parent = parent_stack[parent_index];
-              item = new QTreeWidgetItem(parent, parent_stack[parent_index + 1]);
+              toplevel_item = new QTreeWidgetItem(parent, parent_stack[parent_index + 1]);
             }
             else
             {
-              item = new QTreeWidgetItem((QTreeWidget *)nullptr);
+              toplevel_item = new QTreeWidgetItem((QTreeWidget *)nullptr);
             }
             parent_stack.resize(parent_index + 1);
           }
@@ -341,21 +351,21 @@ namespace OpenMS
         }
         else
         {
-          item = new QTreeWidgetItem((QTreeWidget *)nullptr);
+          toplevel_item = new QTreeWidgetItem();
         }
 
-        parent_stack.back() = item;
+        parent_stack.back() = toplevel_item;
         if (parent_stack.size() == 1)
         {
-          toplevel_items.push_back(item);
+          toplevel_items.push_back(toplevel_item);
         }
 
-        populateRow_(item, i, current_spec);
+        populateRow_(toplevel_item, i, current_spec);
 
         if (i == cl.getCurrentSpectrumIndex())
         {
           // just remember it, select later
-          selected_item = item;
+          selected_item = toplevel_item;
         }
       }
 
@@ -368,15 +378,15 @@ namespace OpenMS
         for (Size i = 0; i < cl.getPeakData()->size(); ++i)
         {
           const MSSpectrum& current_spec = (*cl.getPeakData())[i];
-          item = new QTreeWidgetItem((QTreeWidget*)nullptr);
+          toplevel_item = new QTreeWidgetItem();
           
-          populateRow_(item, i, current_spec);
+          populateRow_(toplevel_item, i, current_spec);
 
-          toplevel_items.push_back(item);
+          toplevel_items.push_back(toplevel_item);
           if (i == cl.getCurrentSpectrumIndex())
           {
             // just remember it, select later
-            selected_item = item;
+            selected_item = toplevel_item;
           }
         }
       }
@@ -441,87 +451,76 @@ namespace OpenMS
       std::map<Precursor, std::vector<Size>, Precursor::MZLess>& map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
       if (!was_cached)
       { // create cache: collect all precursor that fall into the mz rt window
-        for (std::vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
+        for (auto it = exp->getChromatograms().begin(); it != exp->getChromatograms().end(); ++it)
         {
-          map_precursor_to_chrom_idx[iter->getPrecursor()].push_back(iter - exp->getChromatograms().begin());
+          map_precursor_to_chrom_idx[it->getPrecursor()].push_back(it - exp->getChromatograms().begin());
         }
       }
 
-      if (!map_precursor_to_chrom_idx.empty())
+      int precursor_idx = 0;
+      for (const auto& pc_indices : map_precursor_to_chrom_idx)
       {
-        int precursor_idx = 0;
-        for (auto mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
+        const auto& pc = pc_indices.first;
+        const auto& indx = pc_indices.second;
+        // Show the peptide sequence if available, otherwise show the m/z and charge only
+        QString description;
+        if (pc.metaValueExists("peptide_sequence"))
         {
-          // Show the peptide sequence if available, otherwise show the m/z and charge only
-          QString mz_string = QString::number(mit->first.getMZ());
-          QString charge = QString::number(mit->first.getCharge());
-          QString description = "";
-          if (mit->first.metaValueExists("description"))
+          description = String(pc.getMetaValue("peptide_sequence")).toQString();
+        }
+        else if (pc.metaValueExists("description"))
+        {
+          description = String(pc.getMetaValue("description")).toQString();
+        }
+
+        // Top level precursor entry
+        toplevel_item = new QTreeWidgetItem();
+        toplevel_item->setText(0, "Peptide");
+        toplevel_item->setData(0, Qt::UserRole, vecToList(indx));
+        toplevel_item->setData(1, Qt::DisplayRole, precursor_idx++);
+        toplevel_item->setData(2, Qt::DisplayRole, pc.getMZ());
+        toplevel_item->setText(3, description);
+        //toplevel_item->setText(4, QString::number(prod_it->second[0].front().getRT()));
+        //toplevel_item->setText(5, QString::number(prod_it->second[0].back().getRT()));
+        toplevel_item->setText(6, QString("-"));
+        toplevel_item->setData(7, Qt::DisplayRole, pc.getCharge());
+
+        toplevel_items.push_back(toplevel_item);
+
+        bool one_selected = false;
+        // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
+        for (const Size chrom_idx : indx)
+        {
+          const MSChromatogram& current_chromatogram = exp->getChromatograms()[chrom_idx];
+
+          // Children chromatogram entry
+          QTreeWidgetItem* sub_item = new QTreeWidgetItem(toplevel_item);
+          if ((int)chrom_idx == this_selected_item)
           {
-            description = String(mit->first.getMetaValue("description")).toQString();
+            one_selected = true;
+            selected_item = sub_item;
           }
-          if (mit->first.metaValueExists("peptide_sequence"))
+          QString chrom_description = "ion";
+          if (pc.metaValueExists("description"))
           {
-            description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
+            chrom_description = String(pc.getMetaValue("description")).toQString();
           }
 
-          // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms
-          QList<QVariant> chroms_idx;
-          for (std::vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
+          sub_item->setText(0, "Transition");
+          sub_item->setData(1, Qt::DisplayRole, (unsigned int)chrom_idx);
+          sub_item->setData(2, Qt::DisplayRole, current_chromatogram.getProduct().getMZ());
+          sub_item->setText(3, chrom_description);
+          if (! current_chromatogram.empty())
           {
-            chroms_idx.push_back((unsigned int)*vit);
+            sub_item->setData(4, Qt::DisplayRole, current_chromatogram.front().getRT());
+            sub_item->setData(5, Qt::DisplayRole, current_chromatogram.back().getRT());
           }
 
-          bool one_selected = false;
-
-          // Top level precursor entry
-          item = new QTreeWidgetItem(0);
-          item->setText(0, QString("Peptide"));
-          item->setText(1, QString::number(precursor_idx++));
-          item->setText(2, mz_string);
-          item->setText(3, description);
-          //item->setText(4, QString::number(prod_it->second[0].front().getRT()));
-          //item->setText(5, QString::number(prod_it->second[0].back().getRT()));
-          item->setText(6, QString("-"));
-          item->setText(7, charge);
-          item->setData(0, 0, chroms_idx);
-
-          toplevel_items.push_back(item);
-
-          // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
-          for (std::vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
-          {
-            const MSChromatogram & current_chromatogram = exp->getChromatograms()[*vit];
-
-            // Children chromatogram entry
-            QTreeWidgetItem * sub_item = new QTreeWidgetItem(item);
-            if ((int)*vit == this_selected_item)
-            {
-              one_selected = true;
-              selected_item = sub_item;
-            }
-            QString chrom_description = "ion";
-            if (mit->first.metaValueExists("description"))
-            {
-              chrom_description = String(mit->first.getMetaValue("description")).toQString();
-            }
-
-            sub_item->setText(0, QString("Transition"));
-            sub_item->setText(1, QString::number((unsigned int)*vit));
-            sub_item->setText(2, QString::number(current_chromatogram.getProduct().getMZ()));
-            sub_item->setText(3, QString(chrom_description));
-            if (! current_chromatogram.empty())
-            {
-              sub_item->setText(4, QString::number(current_chromatogram.front().getRT()));
-              sub_item->setText(5, QString::number(current_chromatogram.back().getRT()));
-            }
-
-            sub_item->setText(6, MSChromatogram::ChromatogramNames[current_chromatogram.getChromatogramType()]);
-          }
-          if (one_selected && multiple_select)
-          {
-            selected_item = item;
-          }
+          sub_item->setText(6, MSChromatogram::ChromatogramNames[current_chromatogram.getChromatogramType()]);
+        }
+        if (one_selected && multiple_select)
+        {
+          selected_item = toplevel_item;
         }
       }
       spectra_treewidget_->addTopLevelItems(toplevel_items);
@@ -549,9 +548,9 @@ namespace OpenMS
 
     populateSearchBox_();
 
-    if (more_than_one_spectrum && item != nullptr)
+    if (more_than_one_spectrum && toplevel_item != nullptr)
     { // not enabled
-      item->setFlags(Qt::NoItemFlags);
+      toplevel_item->setFlags(Qt::NoItemFlags);
     }
 
     // automatically set column width, depending on data
