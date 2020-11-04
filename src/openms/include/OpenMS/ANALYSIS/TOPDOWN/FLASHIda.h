@@ -43,11 +43,10 @@ namespace OpenMS
   class OPENMS_DLLAPI FLASHIda
   {
   public:
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    FLASHIda(Parameter &p, PrecalculatedAveragine &a);
+    FLASHIda(char *arg);
 
     ~FLASHIda();
 
@@ -59,16 +58,14 @@ namespace OpenMS
                       char *name,
                       double qScoreThreshold);
 
-    void getIsolationWindows(double *wstart, double *wend, double *qScores, int* charges, double* avgMasses);
+    void getIsolationWindows(double *wstart, double *wend, double *qScores, int *charges, double *avgMasses);
 
   protected:
     std::map<int, std::vector<double>> selected; // int mass, rt, qscore
+    PrecalculatedAveragine avg;
 
-    Parameter &param;
-    PrecalculatedAveragine &avg;
-
-    std::vector<std::vector<Size>> prevMassBinMap;
-    std::vector<double> prevMinBinLogMassMap;
+    std::vector<std::vector<Size>> prevMassBinVector;
+    std::vector<double> prevMinBinLogMassVector;
     std::vector<PeakGroup> peakGroups;
 
     void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
@@ -76,8 +73,20 @@ namespace OpenMS
 
     MSSpectrum makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);
 
-    void deepClearSpectrum(MSSpectrum& spec);
+    void deepClearSpectrum(MSSpectrum &spec);
 
+  private:
+    double qScoreThreshold;
+    int minCharge;
+    int currentChargeRange;
+    int chargeRange;
+    double minMass;
+    double currentMaxMass;
+    double maxMass;
+    std::vector<double> tolerance, binWidth;
+    double RTwindow;
+    std::vector<double> maxMassCount;
+    int numOverlappedScans;
     // all information to keep track of
     // parameter
     // averagine results

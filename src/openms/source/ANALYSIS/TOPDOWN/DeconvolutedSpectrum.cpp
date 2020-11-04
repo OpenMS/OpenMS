@@ -69,12 +69,14 @@ namespace OpenMS
 
       outSpec.getPrecursors().emplace_back(precursor);
     }
-
     return outSpec;
   }
 
   void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
-                                                     FLASHDeconvHelperStructs::Parameter &param)//, fstream &fsm, fstream &fsp)
+                                                     int minCharge,
+                                                     int chargeRange,
+                                                     const String &fileName,
+                                                     bool writeDetail)//, fstream &fsm, fstream &fsp)
   {
     if (empty())
     {
@@ -90,22 +92,22 @@ namespace OpenMS
       const double &m = pg.monoisotopicMass;
       const double &am = pg.avgMass;
       const double &intensity = pg.intensity;
-      int minCharge = param.chargeRange + param.minCharge;
-      int maxCharge = -1;
+      int minPgCharge = chargeRange + minCharge;
+      int maxPgCharge = minCharge - 1;
       for (auto &p : pg.peaks)
       {
-        minCharge = minCharge < p.charge ? minCharge : p.charge;
-        maxCharge = maxCharge > p.charge ? maxCharge : p.charge;
+        minPgCharge = minPgCharge < p.charge ? minPgCharge : p.charge;
+        maxPgCharge = maxPgCharge > p.charge ? maxPgCharge : p.charge;
       }
 
-      fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.scanNumber << "\t"
+      fs << pg.massIndex << "\t" << pg.specIndex << "\t" << fileName << "\t" << pg.scanNumber << "\t"
          << std::to_string(spec.getRT()) << "\t"
          << peakGroups.size() << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
-         << minCharge << "\t" << maxCharge << "\t"
+         << minPgCharge << "\t" << maxPgCharge << "\t"
          << pg.peaks.size() << "\t";
 
-      if (param.writeDetail)
+      if (writeDetail)
       {
         fs << std::fixed << std::setprecision(2);
         for (auto &p : pg.peaks)
@@ -129,7 +131,7 @@ namespace OpenMS
         fs << "\t";
         for (auto &p : pg.peaks)
         {
-          fs << p.getUnchargedMass(param.chargeMass) << ";";
+          fs << p.getUnchargedMass() << ";";
         }
         fs << "\t";
         for (auto &p : pg.peaks)
@@ -141,7 +143,7 @@ namespace OpenMS
         for (auto &p : pg.peaks)
         {
           auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-          auto diff = (tm / p.charge + param.chargeMass - p.mz) / p.mz;
+          auto diff = (tm / abs(p.charge) + FLASHDeconvHelperStructs::getChargeMass(p.charge > 0) - p.mz) / p.mz;
           fs << 1e6 * diff << ";";
         }
         fs << "\t";
@@ -245,259 +247,6 @@ namespace OpenMS
     }
   }
 
-  /* void DeconvolutedSpectrum::writeAttCsv(std::fstream &fs,
-                                          int msLevel,
-                                          double qScoreThreshold = -1000,
-                                          int numMaxMS2 = -1)
-   {
-
-     if (msLevel > 1)
-     {
-       if (precursorPeakGroup != nullptr)
-       {
-         fs << scanNumber << "," << precursorPeakGroup->spec->getRT() << "," << precursorPeakGroup->scanNumber << ","
-            << precursorPeak.getCharge()
-            << "," << log10(precursorPeakGroup->perChargeInfo[precursorPeak.getCharge()][0] + 1e-3) << ","
-            << log10(precursorPeak.getIntensity() + 1)
-            << "," << log10(precursorPeakGroup->perChargeInfo[precursorPeak.getCharge()][2] + 1)
-            << "," << precursorPeakGroup->perChargeInfo[precursorPeak.getCharge()][1]
-            << "," << precursorPeak.getMZ()
-            << "," << precursorPeakGroup->monoisotopicMass << "," << log10(precursorPeakGroup->totalSNR + 1e-3) << ","
-            << precursorPeakGroup->isotopeCosineScore
-            << "," << precursorPeakGroup->chargeCosineScore << "," << log10(precursorPeakGroup->intensity + 1)
-            << "," << precursorPeakGroup->qScore
-            << ",f\n";
-       }
-       else
-       {
-         fs << scanNumber << "," << spec->getRT() << "," << 0 << "," << 0
-            << ",?,"
-            << log10(precursorPeak.getIntensity() + 1)
-            << ",?,?," << (precursorPeak.getMZ())
-            << "," << 0 << ",?,?,?,?"
-            << "," << precursorPeakGroup->qScore
-            << ",f\n";
-       }
-     }
-     else
-     {
-       if (numMaxMS2 > 0 && peakGroups.size() > (Size) numMaxMS2)// max peak count for TopPic
-       {
-         std::vector<double> scores;
-         scores.reserve(peakGroups.size());
-         for (auto &pg : peakGroups)
-         {
-           scores.push_back(pg.qScore);
-         }
-         std::sort(scores.begin(), scores.end());
-         qScoreThreshold = std::max(qScoreThreshold, scores[scores.size() - numMaxMS2]);
-       }
-
-       int size = 0;
-       for (auto &pg : peakGroups)
-       {
-         if (pg.qScore < qScoreThreshold)
-         {
-           continue;
-         }
-         if (size > numMaxMS2)
-         {
-           break;
-         }
-
-         LogMzPeak *peak = nullptr;
-         double maxIntensity = 0;
-         for (auto &p : pg.peaks)
-         {
-           if (p.charge != pg.maxQScoreCharge)
-           {
-             continue;
-           }
-
-           if (p.mz < pg.maxQScoreMzStart)
-           {
-             continue;
-           }
-           if (p.mz > pg.maxQScoreMzEnd)
-           {
-             break;
-           }
-
-           if (p.intensity < maxIntensity)
-           {
-             continue;
-           }
-           maxIntensity = p.intensity;
-           peak = &p;
-         }
-         if (peak == nullptr)
-         {
-           continue;
-         }
-
-         size++;
-         fs << scanNumber << "," << spec->getRT() << ",0," << pg.maxQScoreCharge
-            << "," << log10(pg.perChargeInfo[pg.maxQScoreCharge][0] + 1e-3) //<< "," << log10(peak->intensity + 1)
-            << "," << log10(peak->intensity + 1)
-            << "," << log10(pg.perChargeInfo[pg.maxQScoreCharge][2] + 1)
-            << "," << pg.perChargeInfo[pg.maxQScoreCharge][1]
-            << "," << peak->mz
-            << "," << pg.monoisotopicMass << "," << log10(pg.totalSNR + 1e-3) << "," << pg.isotopeCosineScore
-            << "," << pg.chargeCosineScore << "," << log10(pg.intensity + 1)
-            << "," << pg.qScore
-            << ",f\n";
-       }
-     }
-   }*/
-
-
-  /*
-   void DeconvolutedSpectrum::writeMassList(std::fstream &fs,
-                                            double retDelta,
-                                            double qScoreThreshold = -1000,
-                                            int numMaxMS2 = -1)
-   {
-
-     static std::map<double, std::map<int, double>> selected; // rt, int mass, qscore
-     static double prevRT = -1;
-     const double retWindow1 = 10;
-     const double retWindow2 = 60;
-
-     double rt = spec->getRT();
-     if (rt < prevRT)
-     {
-       std::map<double, std::map<int, double>>().swap(selected);
-     }
-     prevRT = rt;
-
-     std::map<double, std::map<int, double>> nselected;
-     std::set<int> toExclude;
-     std::map<int, double> allMasses;
-     for (auto &item : selected)
-     {
-       if (item.first < rt - retWindow2)
-       {
-         continue;
-       }
-       nselected[item.first] = item.second;
-
-       for (auto &i : item.second)
-       {
-         allMasses[i.first] = i.second;
-         if (item.first >= rt - retWindow1)
-         {
-           toExclude.insert(i.first);
-         }
-       }
-     }
-
-     nselected.swap(selected);
-     std::map<double, std::map<int, double>>().swap(nselected);
-
-     //double scoreThreshold = 0;
-     std::vector<double> scores;
-
-     if (numMaxMS2 > 0 && peakGroups.size() > (Size) numMaxMS2)// max peak count
-     {
-       scores.reserve(peakGroups.size());
-       for (auto &pg : peakGroups)
-       {
-         int nmass = FLASHDeconvAlgorithm::getNominalMass(pg.monoisotopicMass);
-         if (toExclude.find(nmass) != toExclude.end())
-         {
-           continue;
-         }
-
-         if (allMasses.find(nmass) != allMasses.end())
-         {
-           if (allMasses[nmass] > pg.intensity)
-           {
-             continue;
-           }
-         }
-         scores.push_back(pg.qScore);
-       }
-       std::sort(scores.begin(), scores.end());
-       qScoreThreshold = std::max(qScoreThreshold, scores[scores.size() - numMaxMS2]);
-       std::vector<double>().swap(scores);
-     }
-
-     int size = 0;
-     std::map<int, double> tselected;
-
-     for (auto &pg : peakGroups)
-     {
-       if (pg.qScore < qScoreThreshold)
-       {
-         continue;
-       }
-       if (size > numMaxMS2)
-       {
-         break;
-       }
-       int nmass = FLASHDeconvAlgorithm::getNominalMass(pg.monoisotopicMass);
-
-       if (numMaxMS2 > 0 && peakGroups.size() > (Size) numMaxMS2)
-       {
-         if (toExclude.find(nmass) != toExclude.end())
-         {
-           continue;
-         }
-
-         if (allMasses.find(nmass) != allMasses.end())
-         {
-           if (allMasses[nmass] > pg.intensity)
-           {
-             continue;
-           }
-         }
-       }
-
-       LogMzPeak *peak = nullptr;
-       double maxIntensity = 0;
-       for (auto &p : pg.peaks)
-       {
-         if (p.charge != pg.maxQScoreCharge)
-         {
-           continue;
-         }
-
-         if (p.mz < pg.maxQScoreMzStart)
-         {
-           continue;
-         }
-         if (p.mz > pg.maxQScoreMzEnd)
-         {
-           break;
-         }
-
-         if (p.intensity < maxIntensity)
-         {
-           continue;
-         }
-         maxIntensity = p.intensity;
-         peak = &p;
-       }
-       if (peak == nullptr)
-       {
-         continue;
-       }
-
-       tselected[nmass] = pg.intensity;
-       size++;
-       auto tmz = (pg.maxQScoreMzStart + pg.maxQScoreMzEnd) / 2.0;
-       auto rtinMin = pg.spec->getRT() / 60.0;
-       auto z = pg.maxQScoreCharge;
-       auto iso = (pg.maxQScoreMzEnd - pg.maxQScoreMzStart) / 2.0 + .2;
-       iso = iso < .4 ? .4 : iso; // TODO : .4 should be defined somewhere
-
-       fs << pg.qScore  //"spec"<<scanNumber<<"_mz"<<tmz<<"_z"<<z<<"_m"<<pg.monoisotopicMass
-          << "," << pg.monoisotopicMass << "," << maxIntensity << "," << std::to_string(tmz) << "," << z << ","
-          << rtinMin << "," << (rtinMin + retDelta / 60.0) << "," << iso << ",400\n";
-     }
-     selected[rt] = tselected;
-   }
- */
   void DeconvolutedSpectrum::writeTopFD(std::fstream &fs, int id)//, fstream &fsm, fstream &fsp)
   {
     auto msLevel = spec.getMSLevel();
@@ -677,4 +426,22 @@ namespace OpenMS
     return peakGroups.size();
   }
 
+  double DeconvolutedSpectrum::getCurrentMaxMass(double maxMass)
+  {
+    if (spec.getMSLevel() == 1 || precursorPeakGroup->empty())
+    {
+      return maxMass;
+    }
+    return precursorPeakGroup->monoisotopicMass;
+  }
+
+  int DeconvolutedSpectrum::getCurrentMaxCharge(int maxCharge)
+  {
+    if (spec.getMSLevel() == 1 || precursorPeakGroup->empty())
+    {
+      return maxCharge;
+    }
+    return precursorPeak.getCharge();
+
+  }
 }

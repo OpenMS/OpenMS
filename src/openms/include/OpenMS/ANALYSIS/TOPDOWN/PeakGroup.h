@@ -41,7 +41,6 @@ namespace OpenMS
   // data structure for peak group. A mass contains multiple peaks of different charges and isotope indices
   struct OPENMS_DLLAPI PeakGroup
   {
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
 
@@ -73,7 +72,6 @@ namespace OpenMS
     // necessary temp information for scoring.
     std::unordered_map<int, std::vector<float>> perChargeInfo; // charge -> SNR, ICos, SumInt
 
-
     ~PeakGroup();
 
     void push_back(LogMzPeak &p);
@@ -91,6 +89,7 @@ namespace OpenMS
     bool operator==(const PeakGroup &a) const;
 
     void updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines,
-                                  double chargeMass, int offset = 0, int maxIsoIndex = 0);
+                                  int offset = 0,
+                                  int maxIsoIndex = 0);
   };
 }

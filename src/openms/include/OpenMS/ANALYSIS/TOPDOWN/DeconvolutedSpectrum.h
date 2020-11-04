@@ -45,16 +45,15 @@ namespace OpenMS
   struct PeakGroup;
 
   /**
-       @brief A struct representing a deconvoluted spectrum. Also contains deconvoluted precursro information for MSn n>1.
+       @brief A class representing a deconvoluted spectrum. Also contains deconvoluted precursro information for MSn n>1.
   */
   class OPENMS_DLLAPI DeconvolutedSpectrum
   {
   public:
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
+    /// default constructor
     DeconvolutedSpectrum() = default;
-
     /**
        @brief Constructor for DeconvolutedSpectrum
        @param s spectrum
@@ -78,7 +77,11 @@ namespace OpenMS
       @param fs file stream to the output file
       @param param FLASHDeconv paramter
     */
-    void writeDeconvolutedMasses(std::fstream &fs, Parameter &param);
+    void writeDeconvolutedMasses(std::fstream &fs,
+                                 int minCharge,
+                                 int chargeRange,
+                                 const String &fileName,
+                                 bool writeDetail);
 
     //void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold, int numMaxMS2);
     //void writeMassList(std::fstream &fs, double retDelta, double qScoreThreshold, int numMaxMS2);
@@ -131,6 +134,10 @@ namespace OpenMS
     /// size of peakGroups
     int size();
 
+    double getCurrentMaxMass(double maxMass);
+
+    int getCurrentMaxCharge(int maxCharge);
+
   private:
     /// the original spectrum from which this is generated
     MSSpectrum spec;
@@ -144,7 +151,6 @@ namespace OpenMS
     std::string activationMethod;
     /// scan number and precursor scan number
     int scanNumber, precursorScanNumber;
-
   };
 }
 

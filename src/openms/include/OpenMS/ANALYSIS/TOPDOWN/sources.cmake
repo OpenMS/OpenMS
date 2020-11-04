@@ -3,18 +3,17 @@ set(directory include/OpenMS/ANALYSIS/TOPDOWN)
 
 ### list all header files of the directory here
 set(sources_list_h
-		DeconvolutedSpectrum.h
-		FLASHDeconvAlgorithm.h
-		FLASHDeconvHelperStructs.h
-		FLASHIda.h
-		FLASHIdaBridgeFunctions.h
-		FLASHProFilterAlgorithm.h
-		MassFeatureTrace.h
-		PeakGroup.h
-		PeakGroupScoring.h
-		QScore.h
-		SpectrumDeconvolution.h
-		)
+    DeconvolutedSpectrum.h
+    FLASHDeconvAlgorithm.h
+    FLASHDeconvHelperStructs.h
+    FLASHIda.h
+    FLASHIdaBridgeFunctions.h
+    MassFeatureTrace.h
+    PeakGroup.h
+    PeakGroupScoring.h
+    QScore.h
+    SpectrumDeconvolution.h
+    )
 
 ### add path to the filenames
 set(sources_h)

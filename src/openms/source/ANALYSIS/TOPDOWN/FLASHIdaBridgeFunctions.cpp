@@ -39,78 +39,38 @@ namespace OpenMS
   FLASHIda *CreateFLASHIda(char *arg)
   {
     std::cout << " FLASHIda creating .. " << std::endl;
-    std::unordered_map<std::string, std::vector<double>> inputs;
-    char *token = std::strtok(arg, " ");
-    std::string key;
+    return new FLASHIda(arg);
+  }
 
-    while (token != nullptr)
+  void DisposeFLASHIda(FLASHIda *pObject)
+  {
+    if (pObject != nullptr)
     {
-      auto tokenString = std::string(token);
-      auto num = atof(tokenString.c_str());
-
-      if (num == 0.0)
-      {
-        key = tokenString;
-        inputs[key] = std::vector<double>();
-      }
-      else
-      {
-        inputs[key].push_back(num);
-        //std::cout << key << " " << num << std::endl;
-      }
-      token = std::strtok(nullptr, " ");
+      delete pObject;
+      pObject = nullptr;
     }
+  }
 
-        qScoreThreshold = inputs["score_threshold"][0];
-        param.minCharge = inputs["min_charge"][0];
-        param.currentChargeRange = param.chargeRange = inputs["max_charge"][0] - param.minCharge;
-        param.minMass = inputs["min_mass"][0];
-        param.currentMaxMass = param.maxMass = inputs["max_mass"][0];
-        param.tolerance = inputs["tol"];
-        param.RTwindow = inputs["RT_window"][0];
-        //param.over
-        auto maxMassCount = inputs["max_mass_count"];
-        param.maxMassCount.clear();
-        for(auto& item : maxMassCount){
-          param.maxMassCount.push_back((int)item);
-        }
-
-        for (auto j = 0; j < (int)param.tolerance.size(); j++)
-        {
-            param.tolerance[j] *= 1e-6;
-            param.binWidth.push_back(.5 / param.tolerance[j]);
-        }
-        std::cout << " FLASHIda created with parameters:" << std::endl;
-        param.print();
-
-        avg = FLASHDeconvHelperStructs::calculateAveragines(param);
-        return new FLASHIda(param, avg);
-    }
-
-    void DisposeFLASHIda(FLASHIda * pObject)
+  int GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt, int msLevel, char *name)
+  {
+    if (pObject != nullptr)
     {
-        if (pObject != nullptr)
-        {
-            delete pObject;
-            pObject = nullptr;
-        }
+      return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name, qScoreThreshold);
     }
+    return 0;
+  }
 
-    int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, double rt, int msLevel, char* name)
+
+  void GetIsolationWindows(FLASHIda *pObject,
+                           double *wstart,
+                           double *wend,
+                           double *qScores,
+                           int *charges,
+                           double *avgMasses)
+  {
+    if (pObject != nullptr)
     {
-        if (pObject != nullptr)
-        {
-            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name, qScoreThreshold);
-        }
-        return 0;
+      pObject->getIsolationWindows(wstart, wend, qScores, charges, avgMasses);
     }
-
-
-    void GetIsolationWindows(FLASHIda* pObject, double* wstart, double* wend, double* qScores, int* charges, double* avgMasses)
-    {
-        if (pObject != nullptr)
-        {
-            pObject->getIsolationWindows(wstart, wend, qScores, charges, avgMasses);
-        }
-    }
+  }
 }

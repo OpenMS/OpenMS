@@ -42,6 +42,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
@@ -49,27 +50,34 @@ namespace OpenMS
   class OPENMS_DLLAPI MassFeatureTrace
   {
   public:
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    /// default constructor
-    MassFeatureTrace(Parameter &param, Param &mtd_param, PrecalculatedAveragine &averagines);
+    /// constructor
+    MassFeatureTrace(double tol, double minRTSpan, int numOverlappedScans, PrecalculatedAveragine &avg);
 
     /// default destructor
     ~MassFeatureTrace();
 
     void addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum);
 
-    void findFeatures(int &featureCntr, int &featureIndex, std::fstream &fsf, std::fstream &fsp);
+    void findFeatures(const String &fileName,
+                      bool promexOut,
+                      int &featureCntr,
+                      int &featureIndex,
+                      std::fstream &fsf,
+                      std::fstream &fsp);
 
     static void writeHeader(std::fstream &fs);
 
     static void writePromexHeader(std::fstream &fs);
 
-  protected:
-    Parameter &param;
-    Param &mtd_param;
+  private:
+    double tol;
+    int numOverlappedScans;
+    double minRTSpan;
+    double minChargeCosine, minIsotopeCosine;
+
     PrecalculatedAveragine &averagines;
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };

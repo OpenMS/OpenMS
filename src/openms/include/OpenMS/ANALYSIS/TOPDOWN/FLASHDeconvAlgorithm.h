@@ -38,26 +38,32 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <iostream>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
 
-  struct DeconvolutedSpectrum;
+  class DeconvolutedSpectrum;
 
   /**
   @brief FLASHDeocnv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset
   @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI FLASHDeconvAlgorithm
+  class OPENMS_DLLAPI FLASHDeconvAlgorithm :
+      public DefaultParamHandler
   {
   public:
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
+    //typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    /// default constructor
-    FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &avg, Parameter &param);
+    /**
+      @brief default constructor for FLASHDeconvAlgorithm
+      @param avg averagine distributions, precalculated
+      @param param FLASHDeconv parameters
+ */
+    FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
     /// default destructor
     ~FLASHDeconvAlgorithm() = default;
@@ -65,28 +71,40 @@ namespace OpenMS
     /// copy constructor
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &) = default;
 
-    // move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    /// move constructor
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm &&other) = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
 
-    // deconvolution main function
-    void getPeakGroups(DeconvolutedSpectrum &spec, int scanNumber, int &specIndex, int &massIndex);
+    /**
+      @brief main deconvolution function
+      @param spec spectrum
+      @param scanNumber scan number
+      @param specIndex index for each spectrum, for file output
+      @param massIndex index for each mass, for file output
+ */
+    void getPeakGroups(DeconvolutedSpectrum &spec,
+                       int scanNumber,
+                       int &specIndex,
+                       int &massIndex,
+                       int numOverlappedScans);
 
-    // convert double to nominal mass
+    /// convert double to nominal mass
     static int getNominalMass(double m);
 
   protected:
-    // FLASHDeconv parameter set
-    Parameter &param;
-    // precalculated averagine patterns
-    FLASHDeconvHelperStructs::PrecalculatedAveragine &avg;
+    void updateMembers_() override;
 
-    //The data structures for spectra overlapping.
-    std::vector<std::vector<Size>> prevMassBinMap;
-    std::vector<double> prevMinBinLogMassMap;
   private:
+    /// FLASHDeconv parameters
+    int minCharge, maxCharge;
+    double minMass, maxMass;
 
+    /// precalculated averagine distributions
+    FLASHDeconvHelperStructs::PrecalculatedAveragine &avg;
+    ///The data structures for spectra overlapping.
+    std::vector<std::vector<Size>> prevMassBinVector;
+    std::vector<double> prevMinBinLogMassVector;
   };
-}// namespace OpenMS
+}

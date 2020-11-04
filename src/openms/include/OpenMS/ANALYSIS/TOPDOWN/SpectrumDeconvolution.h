@@ -39,22 +39,22 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES//Matrix.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
   //This class performs spectrum level deconvolution.
-  class OPENMS_DLLAPI SpectrumDeconvolution
+  class OPENMS_DLLAPI SpectrumDeconvolution :
+      public DefaultParamHandler
   {
   public:
-    //FLASHDeconv parameter
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
     //Precalculated averagine
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     //Peaks with log mz transformation
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    SpectrumDeconvolution(MSSpectrum &spec, Parameter &param);
+    SpectrumDeconvolution(MSSpectrum &s, int minCharge, int maxCharge, double minMass, double maxMass);
 
     /// default destructor
     ~SpectrumDeconvolution();
@@ -64,6 +64,9 @@ namespace OpenMS
     //Main function
     std::vector<PeakGroup> &getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                                       std::vector<double> &prevMinBinLogMassVector,
+                                                      int currentChargeRange,
+                                                      double currentMaxMass,
+                                                      int numOverlappedScans,
                                                       FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                       unsigned int msLevel);
 
@@ -71,8 +74,27 @@ namespace OpenMS
     std::vector<LogMzPeak> logMzPeaks;
 
   protected:
+    void updateMembers_() override;
+
+  private:
+    std::vector<int> hCharges{2, 3, 5,};
+
     MSSpectrum &spec;
-    Parameter &param;
+
+    int minCharge, maxCharge;// should be in cosntructor
+    double minMass, maxMass;
+    DoubleList tolerance, binWidth;
+
+    double intensityThreshold;
+    IntList minContinuousChargePeakCount;
+    double minIsotopeCosine;
+    double minChargeCosine;
+
+    int maxMassCount;
+    double RTwindow;
+    double minRTSpan;
+    int maxMSLevel;
+    bool useRNAavg;
 
     //Bins for mass and mz. Bin size is deteremine by Parameter.tolerance
     //massBinsForThisSpectrum stores the selected bins only for this spectrum
@@ -103,7 +125,7 @@ namespace OpenMS
     static void pringMasses(boost::dynamic_bitset<> &massBins, double &minMass, double binWidth);
 
     //generate log mz peaks from the input spectrum
-    void updateLogMzPeaks(double chargeMass);
+    void updateLogMzPeaks();
 
     //generate mz bins from log mz peaks
     void updateMzBins(double &mzBinMinValue, Size &binNumber, double binWidth,
@@ -116,17 +138,17 @@ namespace OpenMS
                            UInt msLevel);
 
     //Update mass bins from mz bins and universal pattern. It select candidate mass bins using the pattern, eliminate possible harmonic masses
-    Matrix<Byte> updateMassBins(double &massBinMinValue,
-                                double &mzBinMinValue,
-                                float *massIntensities,
-                                float *mzIntensities,
-                                unsigned int &msLevel);
+    Matrix<int> updateMassBins(double &massBinMinValue,
+                               double &mzBinMinValue,
+                               float *massIntensities,
+                               float *mzIntensities,
+                               unsigned int &msLevel);
 
     //Subfunction of updateMassBins.
-    Matrix<Byte> updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
-                                 float *massIntensities,
-                                 long &binStart, long &binEnd,
-                                 unsigned int &msLevel);
+    Matrix<int> updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
+                                float *massIntensities,
+                                long &binStart, long &binEnd,
+                                unsigned int &msLevel);
 
     //Subfunction of updateMassBins.
     boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites,
@@ -139,7 +161,7 @@ namespace OpenMS
     void getCandidatePeakGroups(double &mzBinMinValue,
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
-                                Matrix<Byte> chargeRanges,
+                                Matrix<int> chargeRanges,
                                 FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                 unsigned int &msLevel);
 

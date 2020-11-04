@@ -75,7 +75,7 @@ public:
   }
 
 protected:
-  typedef FLASHDeconvHelperStructs::Parameter Parameter;
+  //typedef FLASHDeconvHelperStructs::Parameter Parameter;
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
@@ -106,6 +106,7 @@ protected:
                        "maximum charge state (can be negative for negative mode)",
                        false,
                        false);
+
     registerDoubleOption_("min_mass", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
@@ -187,88 +188,49 @@ protected:
                        false);
 
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
-  }
 
-  // set Parameter by parsing input parameter options
-  Parameter setParameter()
-  {
-    Parameter param;
-    param.minCharge = getIntOption_("min_charge");
-    int maxCharge = getIntOption_("max_charge");
 
-    if (maxCharge < 0 && param.minCharge < 0)
-    {
-      param.minCharge = -param.minCharge;
-      maxCharge = -maxCharge;
-      param.chargeMass = Constants::ELECTRON_MASS_U;
-    }
-    else
-    {
-      param.chargeMass = Constants::PROTON_MASS_U;
-    }
 
-    if (param.minCharge > maxCharge)
-    {
-      int tmp = param.minCharge;
-      param.minCharge = maxCharge;
-      maxCharge = tmp;
-    }
-
-    param.currentChargeRange = param.chargeRange = maxCharge - param.minCharge + 1;
-    param.currentMaxMass = param.maxMass = getDoubleOption_("max_mass");
-    param.minMass = getDoubleOption_("min_mass");
-    param.tolerance = getDoubleList_("tol");
-
-    for (auto j = 0; j < (int) param.tolerance.size(); j++)
-    {
-      param.tolerance[j] *= 1e-6;
-      param.binWidth.push_back(.5 / param.tolerance[j]);
-    }
-
-    param.intensityThreshold = getDoubleOption_("min_intensity");
-    param.minContinuousChargePeakCount = getIntList_("min_peaks");
-    param.minIsotopeCosine = getDoubleList_("min_isotope_cosine");
-    param.minChargeCosine = getDoubleOption_("min_charge_cosine");
-
-    param.maxMassCount = getIntList_("max_mass_count");
-
-    param.RTwindow = getDoubleOption_("RT_window");
-    param.minRTSpan = getDoubleOption_("min_RT_span");
-    param.writeDetail = getIntOption_("write_detail");
-    param.maxMSLevel = getIntOption_("max_MS_level");
-    param.promexOut = getIntOption_("promex_out");
-    param.topfdOut = getIntOption_("topfd_out");
-    param.mzmlOut = getIntOption_("mzml_out");
-    param.useRNAavg = getIntOption_("use_RNA_averagine") > 0;
-    param.ensamble = getIntOption_("use_ensamble_spectrum") > 0;
-
-    return param;
   }
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
+    OPENMS_LOG_INFO << "Initializing ... " << endl;
+
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
     String infilePath = getStringOption_("in");
     String outfilePath = getStringOption_("out");
+    int minCharge = getIntOption_("min_charge");
+    int maxCharge = getIntOption_("max_charge");
+    double maxMass = getIntOption_("max_mass");
+    bool useRNAavg = getIntOption_("use_RNA_averagine") > 0;
+    int maxMSLevel = getIntOption_("max_MS_level");
+    bool ensamble = getIntOption_("use_ensamble_spectrum") > 0;
+    bool outMzml = getIntOption_("mzml_out") > 0;
+    bool outTopfd = getIntOption_("topfd_out") > 0;
+    bool outPromex = getIntOption_("promex_out") > 0;
+    bool writeDetail = getIntOption_("write_detail") > 0;
+    double rtWindow = getDoubleOption_("RT_window");
+    double ms1tol = getDoubleList_("tol")[0];
+    double minRTSpan = getDoubleOption_("min_RT_span");
+    int minNumOverlappedScans = 15;
+    int currentMaxMSLevel = 0;
 
-    OPENMS_LOG_INFO << "Initializing ... " << endl;
-
-    auto param = setParameter();
     // precalculate averagines for quick deconvolution
-    auto avgine = FLASHDeconvHelperStructs::calculateAveragines(param);
+    auto avgine = FLASHDeconvHelperStructs::calculateAveragines(maxMass, useRNAavg);
 
     // spectrum number per ms level per input file
-    auto specCntr = new int[param.maxMSLevel];
-    fill_n(specCntr, param.maxMSLevel, 0);
+    auto specCntr = new int[maxMSLevel];
+    fill_n(specCntr, maxMSLevel, 0);
     // spectrum number with at least one deconvoluted mass per ms level per input file
-    auto qspecCntr = new int[param.maxMSLevel];
-    fill_n(qspecCntr, param.maxMSLevel, 0);
+    auto qspecCntr = new int[maxMSLevel];
+    fill_n(qspecCntr, maxMSLevel, 0);
     // mass number per ms level per input file
-    auto massCntr = new int[param.maxMSLevel];
-    fill_n(massCntr, param.maxMSLevel, 0);
+    auto massCntr = new int[maxMSLevel];
+    fill_n(massCntr, maxMSLevel, 0);
     // feature number per input file
     auto featureCntr = 0;
 
@@ -280,22 +242,22 @@ protected:
     int featureIndex = 1;
 
     // total spectrum number per ms level
-    auto total_specCntr = new int[param.maxMSLevel];
-    fill_n(total_specCntr, param.maxMSLevel, 0);
+    auto total_specCntr = new int[maxMSLevel];
+    fill_n(total_specCntr, maxMSLevel, 0);
     // total spectrum number with at least one deconvoluted mass per ms level
-    auto total_qspecCntr = new int[param.maxMSLevel];
-    fill_n(total_qspecCntr, param.maxMSLevel, 0);
+    auto total_qspecCntr = new int[maxMSLevel];
+    fill_n(total_qspecCntr, maxMSLevel, 0);
     // total mass number per ms level
-    auto total_massCntr = new int[param.maxMSLevel];
+    auto total_massCntr = new int[maxMSLevel];
     // total feature number
-    fill_n(total_massCntr, param.maxMSLevel, 0);
+    fill_n(total_massCntr, maxMSLevel, 0);
     auto total_featureCntr = 0;
 
     MSExperiment ensamble_map;
     // generate ensamble spectrum if param.ensamble is set
-    if (param.ensamble)
+    if (ensamble)
     {
-      for (auto i = 0; i < param.maxMSLevel; i++)
+      for (auto i = 0; i < maxMSLevel; i++)
       {
         auto spec = MSSpectrum();
         spec.setMSLevel(i + 1);
@@ -310,7 +272,7 @@ protected:
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
     fstream featureOut, promexOut, topfdOut_MS1, topfdOut_MS2;
     String mzmlOut;
-    auto specOut = new fstream[param.maxMSLevel];
+    auto specOut = new fstream[maxMSLevel];
 
     //-------------------------------------------------------------
     // reading input file directory -> put that in array
@@ -338,29 +300,29 @@ protected:
     // if output path is a file name, output names should be specified accordingly here
     if (!isOutPathDir)
     {
-      for (int n = 1; n <= (int) param.maxMSLevel; ++n)
+      for (int n = 1; n <= (int) maxMSLevel; ++n)
       {
         specOut[n - 1]
-            .open(outfilePath + "_MS" + n + (param.ensamble ? "_ensamble_spec" : "_spec") + ".tsv", fstream::out);
-        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(specOut[n - 1], n, param.writeDetail);
+            .open(outfilePath + "_MS" + n + (ensamble ? "_ensamble_spec" : "_spec") + ".tsv", fstream::out);
+        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(specOut[n - 1], n, writeDetail);
       }
-      if (param.mzmlOut)
+      if (outMzml)
       {
         mzmlOut = outfilePath + "_deconved.mzml";//[preifx]_train_MSn.csv
       }
 
-      if (!param.ensamble)
+      if (!ensamble)
       {
         featureOut.open(outfilePath + ".tsv", fstream::out);
         MassFeatureTrace::writeHeader(featureOut);
       }
-      if (param.promexOut)
+      if (outPromex)
       {
         promexOut.open(outfilePath + "_FD.ms1ft", fstream::out);
         MassFeatureTrace::writePromexHeader(promexOut);
       }
 
-      if (param.topfdOut)
+      if (outTopfd)
       {
         topfdOut_MS1.open(outfilePath + "_FD_ms1.msalign", fstream::out);
         topfdOut_MS2.open(outfilePath + "_FD_ms2.msalign", fstream::out);
@@ -376,9 +338,9 @@ protected:
       // if output is a directory, initialze index and counters
       if (isOutPathDir)
       {
-        fill_n(specCntr, param.maxMSLevel, 0);
-        fill_n(qspecCntr, param.maxMSLevel, 0);
-        fill_n(massCntr, param.maxMSLevel, 0);
+        fill_n(specCntr, maxMSLevel, 0);
+        fill_n(qspecCntr, maxMSLevel, 0);
+        fill_n(massCntr, maxMSLevel, 0);
 
         featureCntr = 0;
         specIndex = 1;
@@ -390,10 +352,10 @@ protected:
 
       // all for measure elapsed cup wall time
       double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-      auto elapsed_deconv_cpu_secs = new double[param.maxMSLevel];
-      auto elapsed_deconv_wall_secs = new double[param.maxMSLevel];
-      fill_n(elapsed_deconv_cpu_secs, param.maxMSLevel, 0);
-      fill_n(elapsed_deconv_wall_secs, param.maxMSLevel, 0);
+      auto elapsed_deconv_cpu_secs = new double[maxMSLevel];
+      auto elapsed_deconv_wall_secs = new double[maxMSLevel];
+      fill_n(elapsed_deconv_cpu_secs, maxMSLevel, 0);
+      fill_n(elapsed_deconv_wall_secs, maxMSLevel, 0);
 
       auto begin = clock();
       auto t_start = chrono::high_resolution_clock::now();
@@ -402,12 +364,12 @@ protected:
 
       mzml.setLogType(log_type_);
       mzml.load(infile, map);
-      param.fileName = QFileInfo(infile).fileName().toStdString();
+      auto fileName = QFileInfo(infile).fileName().toStdString();
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
       auto ms1Cntr = 0;
       auto ms2Cntr = .0; // for debug...
-      param.currentMaxMSLevel = 0;
+      currentMaxMSLevel = 0;
 
       // read input dataset once to count spectra and generate ensamble spectrum if necessary
       for (auto &it : map)
@@ -416,15 +378,15 @@ protected:
         {
           continue;
         }
-        if (it.getMSLevel() > param.maxMSLevel)
+        if (it.getMSLevel() > maxMSLevel)
         {
           continue;
         }
 
         auto msLevel = it.getMSLevel();
-        param.currentMaxMSLevel = param.currentMaxMSLevel < msLevel ? msLevel : param.currentMaxMSLevel;
+        currentMaxMSLevel = currentMaxMSLevel < msLevel ? msLevel : currentMaxMSLevel;
 
-        if (param.ensamble)
+        if (ensamble)
         {
           auto &espec = ensamble_map[it.getMSLevel() - 1];
           for (auto &p : it)
@@ -444,30 +406,28 @@ protected:
       }
 
       // Max MS Level is adjusted according to the input dataset
-      param.currentMaxMSLevel = param.currentMaxMSLevel > param.maxMSLevel ? param.maxMSLevel : param.currentMaxMSLevel;
-
+      currentMaxMSLevel = currentMaxMSLevel > maxMSLevel ? maxMSLevel : currentMaxMSLevel;
+      int numOverlappedScans = 1;
       // if an ensamble spectrum is analyzed, replace the input dataset with the ensamble one
-      if (param.ensamble)
+      if (ensamble)
       {
-        for (int i = 0; i < param.currentMaxMSLevel; ++i)
+        for (int i = 0; i < currentMaxMSLevel; ++i)
         {
           ensamble_map[i].sortByPosition();
         }
         map = ensamble_map;
-        param.numOverlappedScans = 1;
+        numOverlappedScans = 1;
       }
       else // otherwise, adjust the number of overlapped spectra with retention time duration specified by users
       {
         double rtDelta = rtDuration / ms1Cntr;
-
-        auto rw = param.RTwindow;
-        param.numOverlappedScans = max(param.minNumOverLappedScans, (UInt) round(rw / rtDelta));
-        OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT "
-                        << (rtDelta * param.numOverlappedScans) //
+        numOverlappedScans = max(minNumOverlappedScans, (int) round(rtWindow / rtDelta));
+        OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << numOverlappedScans << " (in RT "
+                        << (rtDelta * numOverlappedScans) //
                         << " sec)" << endl;
       }
 
-      std::string outfileName(param.fileName);
+      std::string outfileName(fileName);
 
       // is output is dir, the output file name should be specified by the input file name here
       if (isOutPathDir)
@@ -475,59 +435,59 @@ protected:
         std::size_t found = outfileName.find_last_of('.');
         outfileName = outfileName.substr(0, found);
 
-        for (int n = 1; n <= (int) param.maxMSLevel; ++n)
+        for (int n = 1; n <= (int) maxMSLevel; ++n)
         {
           specOut[n - 1]
-              .open(outfilePath + outfileName + "_MS" + n + (param.ensamble ? "_ensamble_spec" : "_spec") + ".tsv",
+              .open(outfilePath + outfileName + "_MS" + n + (ensamble ? "_ensamble_spec" : "_spec") + ".tsv",
                     fstream::out);
-          DeconvolutedSpectrum::writeDeconvolutedMassesHeader(specOut[n - 1], n, param.writeDetail);
+          DeconvolutedSpectrum::writeDeconvolutedMassesHeader(specOut[n - 1], n, writeDetail);
         }
-        if (param.mzmlOut)
+        if (outMzml)
         {
           mzmlOut = outfilePath + outfileName + "_deconved.mzml";//[preifx]_train_MSn.csv
         }
 
-        if (!param.ensamble)
+        if (!ensamble)
         {
           featureOut.open(outfilePath + outfileName + ".tsv", fstream::out);
           MassFeatureTrace::writeHeader(featureOut);
         }
 
-        if (param.promexOut)
+        if (outPromex)
         {
           promexOut.open(outfilePath + outfileName + "_FD.ms1ft", fstream::out);
           MassFeatureTrace::writePromexHeader(promexOut);
         }
 
-        if (param.topfdOut)
+        if (outTopfd)
         {
           topfdOut_MS1.open(outfilePath + outfileName + "_FD_ms1.msalign", fstream::out);
           topfdOut_MS2.open(outfilePath + outfileName + "_FD_ms2.msalign", fstream::out);
         }
       }
 
-      // parameter set for mass trace
-      Param common_param = getParam_().copy("algorithm:common:", true);
-      writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
+        // parameter set for mass trace
+        // Param common_param = getParam_().copy("algorithm:common:", true);
+        // writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
-      Param mtd_param = getParam_().copy("algorithm:mtd:", true);
-      writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
+        // Param mtd_param = getParam_().copy("algorithm:mtd:", true);
+        // writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
 
-      mtd_param.insert("", common_param);
-      mtd_param.remove("chrom_fwhm");
+        // mtd_param.insert("", common_param);
+        // mtd_param.remove("chrom_fwhm");
 
-      // finally run FLASHDeconv here
+        // finally run FLASHDeconv here
       OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
       int scanNumber = 0;
       float prevProgress = .0;
-
-      auto massTracer = MassFeatureTrace(param, mtd_param, avgine);
+      auto massTracer = MassFeatureTrace(ms1tol, minRTSpan, numOverlappedScans, avgine);
       auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
       MSExperiment exp;
 
-      auto fd = FLASHDeconvAlgorithm(avgine, param);
+      auto fd = FLASHDeconvAlgorithm(avgine);
+      fd.setParameters(getParam_());
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         scanNumber = SpectrumLookup::extractScanNumber(it->getNativeID(),
@@ -538,7 +498,7 @@ protected:
         }
 
         auto msLevel = it->getMSLevel();
-        if (msLevel > param.currentMaxMSLevel)
+        if (msLevel > currentMaxMSLevel)
         {
           continue;
         }
@@ -547,19 +507,16 @@ protected:
         auto deconv_begin = clock();
         auto deconv_t_start = chrono::high_resolution_clock::now();
 
-
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
-        param.currentChargeRange = param.chargeRange;
-        param.currentMaxMass = param.maxMass;
         // for MS>1 spectrum, register precursor
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         // per spec deconvolution
-        fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
+        fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex, numOverlappedScans);
 
-        if (param.mzmlOut)
+        if (outMzml)
         {
           exp.addSpectrum(deconvolutedSpectrum.toSpectrum());
         }
@@ -567,7 +524,7 @@ protected:
         elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
             chrono::high_resolution_clock::now() - deconv_t_start).count();
 
-        if (msLevel < param.currentMaxMSLevel)
+        if (msLevel < currentMaxMSLevel)
         {
           lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
         }
@@ -575,15 +532,20 @@ protected:
         {
           continue;
         }
-        if (!param.ensamble)
+        if (!ensamble)
         {
           massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);// add deconvoluted mass in massTracer
         }
         qspecCntr[msLevel - 1]++;
         massCntr[msLevel - 1] += deconvolutedSpectrum.size();
-        deconvolutedSpectrum.writeDeconvolutedMasses(specOut[msLevel - 1], param);
 
-        if (param.topfdOut)
+        auto currentChargeRange = deconvolutedSpectrum.getCurrentMaxCharge(maxCharge) - minCharge;
+        auto currentMaxMass = deconvolutedSpectrum.getCurrentMaxMass(maxMass);
+
+        deconvolutedSpectrum
+            .writeDeconvolutedMasses(specOut[msLevel - 1], minCharge, currentChargeRange, fileName, writeDetail);
+
+        if (outTopfd)
         {
           deconvolutedSpectrum.writeTopFD(msLevel == 1 ? topfdOut_MS1 : topfdOut_MS2, specIndex - 1);
         }
@@ -596,18 +558,17 @@ protected:
           prevProgress = progress;
         }
       }
-      // deconvolution progress is finished here
 
       printProgress(1); //
       std::cout << std::endl;
       std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra); // empty memory
 
       // massTracer run
-      if (!param.ensamble)
+      if (!ensamble)
       {
-        massTracer.findFeatures(featureCntr, featureIndex, featureOut, promexOut);
+        massTracer.findFeatures(fileName, outPromex, featureCntr, featureIndex, featureOut, promexOut);
       }
-      if (param.mzmlOut)
+      if (outMzml)
       {
         MzMLFile mzMlFile;
         mzMlFile.store(mzmlOut, exp);
@@ -616,13 +577,13 @@ protected:
       // output messages, etc.
       if (isOutPathDir)
       {
-        for (int j = 0; j < (int) param.maxMSLevel; j++)
+        for (int j = 0; j < (int) maxMSLevel; j++)
         {
           if (specCntr[j] == 0)
           {
             continue;
           }
-          if (param.ensamble)
+          if (ensamble)
           {
             OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr[j] << " masses in the ensamble MS"
                             << (j + 1) << " spectrum" << endl;
@@ -641,35 +602,35 @@ protected:
           OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
 
-        for (int n = 1; n <= (int) param.maxMSLevel; ++n)
+        for (int n = 1; n <= (int) maxMSLevel; ++n)
         {
           specOut[n - 1].close();
 
           if (specCntr[n - 1] == 0)// remove empty files
           {
             QString filename = QString::fromStdString(
-                outfilePath + outfileName + "_MS" + n + (param.ensamble ? "_ensamble_spec" : "_spec") + ".tsv");
+                outfilePath + outfileName + "_MS" + n + (ensamble ? "_ensamble_spec" : "_spec") + ".tsv");
             QFile file(filename);
             file.remove();
           }
         }
 
-        if (!param.ensamble)
+        if (!ensamble)
         {
           featureOut.close();
         }
-        if (param.promexOut)
+        if (outPromex)
         {
           promexOut.close();
         }
 
-        if (param.topfdOut)
+        if (outTopfd)
         {
           topfdOut_MS1.close();
           topfdOut_MS2.close();
         }
 
-        for (int j = 0; j < (int) param.maxMSLevel; j++)
+        for (int j = 0; j < (int) maxMSLevel; j++)
         {
           total_specCntr[j] += specCntr[j];
           total_qspecCntr[j] += qspecCntr[j];
@@ -679,14 +640,14 @@ protected:
       }
       else
       {
-        for (int j = 0; j < (int) param.currentMaxMSLevel; j++)
+        for (int j = 0; j < (int) currentMaxMSLevel; j++)
         {
           if (specCntr[j] == 0)
           {
             continue;
           }
 
-          if (param.ensamble)
+          if (ensamble)
           {
             OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in the ensamble MS"
                             << (j + 1) << " spectrum" << endl;
@@ -703,7 +664,7 @@ protected:
         {
           OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
-        for (int j = 0; j < (int) param.maxMSLevel; j++)
+        for (int j = 0; j < (int) maxMSLevel; j++)
         {
           total_specCntr[j] = specCntr[j];
           total_qspecCntr[j] = qspecCntr[j];
@@ -723,7 +684,7 @@ protected:
                       << endl;
 
       auto sumCntr = 0;
-      for (int j = 0; j < (int) param.currentMaxMSLevel; j++)
+      for (int j = 0; j < (int) currentMaxMSLevel; j++)
       {
         sumCntr += specCntr[j];
 
@@ -746,14 +707,14 @@ protected:
 
     if (massCntr[0] < total_massCntr[0])
     {
-      for (int j = 0; j < (int) param.currentMaxMSLevel; j++)
+      for (int j = 0; j < (int) currentMaxMSLevel; j++)
       {
         if (total_specCntr[j] == 0)
         {
           continue;
         }
 
-        if (param.ensamble)
+        if (ensamble)
         {
           OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr[j] << " masses in the ensamble MS"
                           << (j + 1) << " spectrum" << endl;
@@ -774,29 +735,29 @@ protected:
 
     if (!isOutPathDir)
     {
-      for (int n = 1; n <= (int) param.maxMSLevel; ++n)
+      for (int n = 1; n <= (int) maxMSLevel; ++n)
       {
         specOut[n - 1].close();
 
         if (qspecCntr[n - 1] == 0)
         {
           QString filename = QString::fromStdString(
-              outfilePath + "_MS" + n + (param.ensamble ? "_ensamble_spec" : "_spec") + ".tsv");
+              outfilePath + "_MS" + n + (ensamble ? "_ensamble_spec" : "_spec") + ".tsv");
           QFile file(filename);
           file.remove();
         }
       }
 
-      if (!param.ensamble)
+      if (!ensamble)
       {
         featureOut.close();
       }
-      if (param.promexOut)
+      if (outPromex)
       {
         promexOut.close();
       }
 
-      if (param.topfdOut)
+      if (outTopfd)
       {
         topfdOut_MS1.close();
         topfdOut_MS2.close();

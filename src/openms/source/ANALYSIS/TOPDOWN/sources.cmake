@@ -8,7 +8,6 @@ set(sources_list
 		FLASHDeconvHelperStructs.cpp
 		FLASHIda.cpp
 		FLASHIdaBridgeFunctions.cpp
-		FLASHProFilterAlgorithm.cpp
 		MassFeatureTrace.cpp
 		PeakGroup.cpp
 		PeakGroupScoring.cpp

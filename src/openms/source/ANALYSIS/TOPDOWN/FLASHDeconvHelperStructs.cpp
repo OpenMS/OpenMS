@@ -36,22 +36,6 @@
 
 namespace OpenMS
 {
-  void FLASHDeconvHelperStructs::Parameter::print()
-  {
-    std::cout << "minMass " << this->minMass << "\n"
-              << "maxMass " << this->maxMass << "\n"
-              << "minCharge " << this->minCharge << "\n"
-              << "chargeRange " << this->chargeRange << "\n"
-              << "minNumOverLappedScans " << this->minNumOverLappedScans << "\n"
-              << "tolerances";
-    for (auto i = 0; i < this->tolerance.size(); i++)
-    {
-      std::cout << " " << this->tolerance[i];
-    }
-    std::cout << std::endl;
-
-  }
-
   FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine()
   {
   }
@@ -172,17 +156,17 @@ namespace OpenMS
   {
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak, double chargeMass) :
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak, bool positive) :
       mz(peak.getMZ()),
       intensity(peak.getIntensity()),
-      logMz(getLogMz(peak.getMZ(), chargeMass)),
+      logMz(getLogMz(peak.getMZ(), positive)),
       charge(0),
       isotopeIndex(0)
   {
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz, double chargeMass) :
-      mz(mz), logMz(getLogMz(mz, chargeMass))
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz, bool positive) :
+      mz(mz), logMz(getLogMz(mz, positive))
   {
   }
 
@@ -201,11 +185,11 @@ namespace OpenMS
   }
 
 
-  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass(double chargeMass)
+  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (mass <= 0)
     {
-      mass = (mz - chargeMass) * charge;
+      mass = (mz - getChargeMass(charge > 0)) * abs(charge);
     }
     return mass;
   }
@@ -235,23 +219,30 @@ namespace OpenMS
     }
   };
 
-  FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvHelperStructs::calculateAveragines(
-      FLASHDeconvHelperStructs::Parameter &param)
+  FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvHelperStructs::calculateAveragines(double maxMass,
+                                                                                                 bool useRNAavg)
   {
     auto generator = new CoarseIsotopePatternGenerator();
-    auto maxIso = param.useRNAavg ?
-                  generator->estimateFromRNAWeight(param.maxMass) :
-                  generator->estimateFromPeptideWeight(param.maxMass);
+    auto maxIso = useRNAavg ?
+                  generator->estimateFromRNAWeight(maxMass) :
+                  generator->estimateFromPeptideWeight(maxMass);
     maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
-    param.maxIsotopeCount = (int) maxIso.size() - 1;
-    generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    return FLASHDeconvHelperStructs::PrecalculatedAveragine(50, param.maxMass, 20, generator, param.useRNAavg);
+
+    generator->setMaxIsotope(maxIso.size());
+    auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, maxMass, 20, generator, useRNAavg);
+    avg.maxIsotopeCount = maxIso.size() - 1;
+    return avg;
+  }
+
+  double FLASHDeconvHelperStructs::getChargeMass(bool positive)
+  {
+    return (positive ? Constants::PROTON_MASS_U : Constants::ELECTRON_MASS_U);
   }
 
 
-  double FLASHDeconvHelperStructs::getLogMz(double mz, double chargeMass)
+  double FLASHDeconvHelperStructs::getLogMz(double mz, bool positive)
   {
-    return std::log(mz - chargeMass);
+    return std::log(mz - getChargeMass(positive));
   }
 
 }

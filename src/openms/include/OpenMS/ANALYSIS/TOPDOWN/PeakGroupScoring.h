@@ -38,23 +38,23 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #ifdef _OPENMP
-
   #include <omp.h> // for test..
 #endif
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI PeakGroupScoring
+  class OPENMS_DLLAPI PeakGroupScoring :
+      public DefaultParamHandler
   {
   public:
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    PeakGroupScoring(std::vector<PeakGroup> &peakGroups, Parameter &param);
+    PeakGroupScoring(std::vector<PeakGroup> &pg, int minCharge, int maxCharge);
 
     /// default destructor
     ~PeakGroupScoring();
@@ -65,7 +65,6 @@ namespace OpenMS
     // examine intensity distribution over iostope indices. Also determines the most plausible isotope index or, monoisotopic mass
     static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
                                                            double *perIsotopeIntensities,
-                                                           int perIsotopeIntensitiesSize,
                                                            int &offset,
                                                            FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
@@ -74,8 +73,9 @@ namespace OpenMS
                                                      FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
   protected:
+    void updateMembers_() override;
+
     std::vector<PeakGroup> &peakGroups;
-    Parameter &param;
 
     //filter out overlapping masses
     void removeOverlappingPeakGroups(double tol);
@@ -87,6 +87,7 @@ namespace OpenMS
     std::vector<int> updatePerChargeIsotopeIntensity(
         double *perIsotopeIntensity,
         double *perChargeIntensity,
+        int maxIsotopeCount,
         PeakGroup &pg);
 
     //Filter out masses with low isotope cosine scores
@@ -99,7 +100,7 @@ namespace OpenMS
     void filterPeakGroupsByIntensity(int currentMaxMassCount);
 
     //For MS1, check intensity ratio between charges.
-    static bool checkChargeDistribution(double *perChargeIntensity, int range, int threshold);
+    bool checkChargeDistribution(double *perChargeIntensity);
 
     //cosine function
     static double getCosine(std::vector<double> &a, std::vector<double> &b, int off = 0);
@@ -124,8 +125,14 @@ namespace OpenMS
                             double &bNorm,
                             int offset);
 
-  public:
-
+  private:
+    IntList maxMassCount;
+    double minChargeCosine;
+    IntList minContinuousChargePeakCount; // for MS1
+    //int maxIsotopeCount;
+    DoubleList minIsotopeCosine, tolerance;
+    int minCharge;
+    int chargeRange;
   };
 
 

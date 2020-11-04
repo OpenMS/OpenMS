@@ -41,7 +41,6 @@
 
 namespace OpenMS
 {
-
   /**
    * @brief Wrapper struct for all the structs needed by the FLASHDeconv
    *
@@ -51,7 +50,7 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
   {
-    // FLASHDeconv parameter
+    /* FLASHDeconv parameter
     struct OPENMS_DLLAPI Parameter
     {
       int minCharge = 1;
@@ -59,14 +58,12 @@ namespace OpenMS
       double maxMass = 100000;
       double currentMaxMass = 100000;
       DoubleList tolerance;
-      String fileName;// up to here: ordinary user accessible parameters
 
       double intensityThreshold = 0;// advanced parameters
       DoubleList minIsotopeCosine = {.75, .75};
       double minChargeCosine = .8;
 
       IntList minContinuousChargePeakCount = {3, 2};
-      int maxIsotopeCount = 100;
       IntList maxMassCount = {-1, -1};
       unsigned int maxMSLevel = 100;//maxMSL;
       unsigned int currentMaxMSLevel = 100;//maxMSL;
@@ -77,24 +74,18 @@ namespace OpenMS
       int chargeRange = 100;
       int currentChargeRange = 100;
 
-      int writeDetail = 0;
-      bool promexOut = false;
-      bool topfdOut = false;
-      bool mzmlOut = false;
       bool useRNAavg = false;
-      bool ensamble = false;
 
-      // automatically set parameters...
+      /// automatically set parameters...
       std::vector<int> hCharges{2, 3, 5,};
       DoubleList binWidth;
       UInt minNumOverLappedScans = 15;
       int numOverlappedScans = 15;
-      int threads = 0;
 
-      void print();
+      //void print();
 
       double chargeMass = Constants::PROTON_MASS_U;
-    };
+    };*/
 
     struct OPENMS_DLLAPI PrecalculatedAveragine
     {
@@ -103,6 +94,7 @@ namespace OpenMS
       std::vector<double> averageMassDelta;
       std::vector<Size> leftIndices;
       std::vector<Size> rightIndices;
+      int maxIsotopeCount;
 
       double massInterval;
       double minMass;
@@ -134,15 +126,15 @@ namespace OpenMS
 
       LogMzPeak();
 
-      explicit LogMzPeak(Peak1D &peak, double chargeMass);
+      explicit LogMzPeak(Peak1D &peak, bool positive);
 
-      explicit LogMzPeak(double mz, double chargeMass);
+      explicit LogMzPeak(double mz, bool positive);
 
       LogMzPeak(LogMzPeak &peak, int c, int i);
 
       ~LogMzPeak();
 
-      double getUnchargedMass(double chargeMass);
+      double getUnchargedMass();
 
       bool operator<(const LogMzPeak &a) const;
 
@@ -152,9 +144,11 @@ namespace OpenMS
 
     };
 
-    static PrecalculatedAveragine calculateAveragines(Parameter &param);
+    static PrecalculatedAveragine calculateAveragines(double maxMass, bool useRNAavg);
 
-    static double getLogMz(double mz, double chargeMass);
+    static double getLogMz(double mz, bool positive);
+
+    static double getChargeMass(bool positive);
   };
 }
 

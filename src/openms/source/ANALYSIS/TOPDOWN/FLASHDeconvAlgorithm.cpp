@@ -39,16 +39,15 @@
 
 namespace OpenMS
 {
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &a, Parameter &p) :
-      param(p), avg(a)
+  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &a) :
+      DefaultParamHandler("FLASHDeconvAlgorithm"), avg(a)
   {
-    prevMassBinMap = std::vector<std::vector<Size>>();
-    prevMinBinLogMassMap = std::vector<double>();
+    prevMassBinVector = std::vector<std::vector<Size>>();
+    prevMinBinLogMassVector = std::vector<double>();
   }
 
   FLASHDeconvAlgorithm &FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm &fd)
   {
-    //ALWAYS CHECK FOR SELF ASSIGNEMT!
     if (this == &fd)
     {
       return *this;
@@ -67,30 +66,31 @@ namespace OpenMS
   //This function is the main function for the deconvolution. Takes empty DeconvolutedSpectrum and fill it up with peakGroups.
   // DeconvolutedSpectrum contains the recursor peak group for MSn.
   //A peakGroup is the collection of peaks from a single mass (monoisotopic mass). Thus it contains peaks from different charges and iostope indices.
-  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int scanNumber, int &specIndex, int &massIndex)
+  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec,
+                                           int scanNumber,
+                                           int &specIndex,
+                                           int &massIndex,
+                                           int numOverlappedScans)
   {
     auto *spec = &(dspec.getOriginalSpectrum());
     int msLevel = spec->getMSLevel();
 
     //For MS2,3,.. max mass and charge ranges should be determined by precursors
-    if (msLevel == 1 || dspec.getPrecursorPeakGroup().empty())
-    {
-      param.currentMaxMass = param.maxMass;
-      param.currentChargeRange = param.chargeRange;
-    }
-    else
-    {
-      param.currentChargeRange = dspec.getPrecursorCharge() - param.minCharge;
-      param.currentMaxMass = dspec.getPrecursorPeakGroup().monoisotopicMass;
-    }
+    auto currentChargeRange = dspec.getCurrentMaxCharge(maxCharge) - minCharge;
+    auto currentMaxMass = dspec.getCurrentMaxMass(maxMass);
 
     //Prepare spectrum deconvolution
-    auto sd = SpectrumDeconvolution(*spec, param);
+    auto sd = SpectrumDeconvolution(*spec, minCharge, currentMaxMass, minMass, currentMaxMass);
 
     //Perform deconvolution and fill in deconvolutedSpectrum
-    dspec.setPeakGroups(sd.getPeakGroupsFromSpectrum(prevMassBinMap,
-                                                     prevMinBinLogMassMap,
+    dspec.setPeakGroups(sd.getPeakGroupsFromSpectrum(prevMassBinVector,
+                                                     prevMinBinLogMassVector,
+                                                     currentChargeRange,
+                                                     currentMaxMass,
+                                                     numOverlappedScans,
                                                      avg, msLevel));
+
+    //TODO positiveMode should be passed.. to everywhere.
 
     if (dspec.empty())
     {
@@ -108,6 +108,22 @@ namespace OpenMS
     }
 
     specIndex++;
+  }
+
+  void FLASHDeconvAlgorithm::updateMembers_()
+  {
+    minCharge = param_.getValue("min_charge");
+    maxCharge = param_.getValue("max_charge");
+
+    if (minCharge > maxCharge)
+    {
+      int tmp = minCharge;
+      minCharge = maxCharge;
+      maxCharge = tmp;
+    }
+
+    maxMass = param_.getValue("max_mass");
+    minMass = param_.getValue("min_mass");
   }
 }
 
