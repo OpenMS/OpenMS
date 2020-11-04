@@ -59,7 +59,7 @@ namespace OpenMS
     QWidget(parent)
   {
     setObjectName("Scans");
-    QVBoxLayout * spectra_widget_layout = new QVBoxLayout(this);
+    QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     spectra_treewidget_ = new QTreeWidget(this);
     spectra_treewidget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to show it. "
                                       "Double-clicking might be implemented as well, depending on the data. "
@@ -114,8 +114,8 @@ namespace OpenMS
 
   void SpectraViewWidget::spectrumSearchText_()
   {
-    const QString text = spectra_search_box_->text(); // get text from QLineEdit
-    if (text.size() > 0)
+    const QString& text = spectra_search_box_->text(); // get text from QLineEdit
+    if (!text.isEmpty())
     {
       Qt::MatchFlags matchflags = Qt::MatchFixedString;
       matchflags |=  Qt::MatchRecursive; // match subitems (below top-level)
@@ -161,19 +161,19 @@ namespace OpenMS
   {
     //QTreeWidgetItem* current = spectra_treewidget_->currentItem();
     spectrumSearchText_(); // update selection first (we might be in a new layer)
-    QList<QTreeWidgetItem *> selected = spectra_treewidget_->selectedItems();
+    QList<QTreeWidgetItem*> selected = spectra_treewidget_->selectedItems();
     if (selected.size() > 0) spectrumSelectionChange_(selected.first(), selected.first());
   }
 
-  void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem * current)
+  void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem* current)
   {
     if (current == nullptr)
     {
       return;
     }
     int spectrum_index = current->text(1).toInt();
-    const QList<QVariant> & res = current->data(0, 0).toList();
-    if (res.size() == 0)
+    const QList<QVariant>& res = current->data(0, 0).toList();
+    if (res.empty())
     {
       emit spectrumDoubleClicked(spectrum_index);
     }
@@ -196,7 +196,7 @@ namespace OpenMS
       {
         std::vector<int> chrom_indices;
         const QList<QVariant>& res = item->data(0, 0).toList();
-        if (res.size() == 0)
+        if (res.empty())
         {
           emit showSpectrumAs1D(spectrum_index);
         }
@@ -209,7 +209,6 @@ namespace OpenMS
       {
         emit showSpectrumMetaData(spectrum_index);
       });
-      // todo: context_menu->addAction("Center here", [&]() {emit centerHere(spectrum_index); });
 
       context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
     }
@@ -276,8 +275,6 @@ namespace OpenMS
     QTreeWidgetItem* selected_item = nullptr;
     QList<QTreeWidgetItem*> toplevel_items;
     bool more_than_one_spectrum = true;
-
-    has_data_ = true; // for now ...
 
     // Branch if the current layer is a spectrum
     if (cl.type == LayerData::DT_PEAK  && !(cl.chromatogram_flag_set()))
@@ -371,7 +368,7 @@ namespace OpenMS
         for (Size i = 0; i < cl.getPeakData()->size(); ++i)
         {
           const MSSpectrum& current_spec = (*cl.getPeakData())[i];
-          item = new QTreeWidgetItem((QTreeWidget *)nullptr);
+          item = new QTreeWidgetItem((QTreeWidget*)nullptr);
           
           populateRow_(item, i, current_spec);
 
@@ -548,7 +545,6 @@ namespace OpenMS
     {
       spectra_treewidget_->setHeaderLabels(QStringList() << "No peak map");
       spectra_treewidget_->setColumnCount(1); // needed, otherwise old column names for column 2, 3, etc are displayed
-      has_data_ = false;
     }
 
     populateSearchBox_();
@@ -581,7 +577,6 @@ namespace OpenMS
   {
     getTreeWidget()->clear();
     getComboBox()->clear();
-    has_data_ = false;
   }
 
 }
