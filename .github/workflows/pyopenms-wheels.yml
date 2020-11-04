@@ -8,7 +8,7 @@ on:
   push:
     tags:
       - 'Release*'
-    branches: [ nightly ]
+    branches: [ nightly, fix/paths_actions ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -21,7 +21,7 @@ jobs:
         path: OpenMS
         
     - name: Reduce PATH
-      run: echo "::set-env name=PATH::C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+      run: echo "name=PATH::C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" >> $GITHUB_PATH
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
@@ -55,8 +55,8 @@ jobs:
     - name: Setup conda paths
       shell: bash
       run: |
-        echo "::add-path::$HOME/miniconda3/bin"
-        echo "::add-path::$HOME/miniconda3/Scripts"
+        echo "$HOME/miniconda3/bin" >> $GITHUB_ENV
+        echo "$HOME/miniconda3/Scripts" >> $GITHUB_ENV
 
     - name: Build
       shell: bash
@@ -144,8 +144,8 @@ jobs:
     - name: Setup conda paths
       shell: bash
       run: |
-        echo "::add-path::$HOME/miniconda3/bin"
-        echo "::add-path::$HOME/miniconda3/Scripts"
+        echo "$HOME/miniconda3/bin" >> $GITHUB_ENV
+        echo "$HOME/miniconda3/Scripts" >> $GITHUB_ENV
 
     - name: Install build tools
       run: brew install autoconf automake libtool
@@ -371,8 +371,8 @@ jobs:
     - name: Setup conda paths
       shell: bash
       run: |
-        echo "::add-path::$HOME/miniconda3/bin"
-        echo "::add-path::$HOME/miniconda3/Scripts"
+        echo "$HOME/miniconda3/bin" >> $GITHUB_ENV
+        echo "$HOME/miniconda3/Scripts" >> $GITHUB_ENV
 
     - name: Download artifacts
       uses: actions/download-artifact@v1.0.0
