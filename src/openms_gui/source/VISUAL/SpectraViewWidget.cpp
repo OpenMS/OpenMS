@@ -94,7 +94,7 @@ namespace OpenMS
   {
     IndexExtrator(const QTreeWidgetItem* item)
       : spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt()),
-        res(item->data(ClmnChrom::TYPE, Qt::UserRole).toList()) // this works, even if the QVariant is invalid. The list will be empty.
+        res(item->data(ClmnChrom::TYPE, Qt::UserRole).toList()) // this works, even if the QVariant is invalid (then the list is empty)
     {
     }
 
@@ -103,8 +103,8 @@ namespace OpenMS
       return !res.empty();
     }
 
-    int spectrum_index;
-    const QList<QVariant>& res;
+    const int spectrum_index;
+    const QList<QVariant> res;
   };
 
 
