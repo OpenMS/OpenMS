@@ -64,6 +64,51 @@ namespace OpenMS
   }
 
 
+  // Use a namespace to encapsulate names, yet use c-style 'enum' for fast conversion to int.
+  // So we can write: 'ClmnPeak::MS_LEVEL', but get implicit conversion to int
+  namespace ClmnPeak
+  {
+    enum HeaderNames
+    { // indices into QTableWidget's columns (which start at index 0)
+      // note: make sure SPEC_INDEX remains at 1 (and is synced with ClmnChrom::CHROM_INDEX!!!)
+      MS_LEVEL, SPEC_INDEX, RT, PRECURSOR_MZ, DISSOCIATION, SCANTYPE, ZOOM, /* last entry --> */ SIZE_OF_HEADERNAMES
+    };
+    // keep in SYNC with enum HeaderNames
+    const QStringList HEADER_NAMES = QStringList()
+       << "MS level" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan" << "zoom";
+  }
+  // Use a namespace to encapsulate names, yet use c-style 'enum' for fast conversion to int.
+  // So we can write: 'ClmnPeak::MS_LEVEL', but get implicit conversion to int
+  namespace ClmnChrom
+  {
+    enum HeaderNames
+    { // indices into QTableWidget's columns (which start at index 0)
+      // note: make sure CHROM_INDEX remains at 1 (and is synced with ClmnPeak::SPEC_INDEX!!!)
+      TYPE, CHROM_INDEX, MZ, DESCRIPTION, RT_START, RT_END, CHARGE, CHROM_TYPE, /* last entry --> */ SIZE_OF_HEADERNAMES
+    };
+    // keep in SYNC with enum HeaderNames
+    const QStringList HEADER_NAMES = QStringList()
+      << " type " << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";;
+  }
+
+  struct IndexExtrator
+  {
+    IndexExtrator(const QTreeWidgetItem* item)
+      : spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt()),
+        res(item->data(ClmnChrom::TYPE, Qt::UserRole).toList()) // this works, even if the QVariant is invalid. The list will be empty.
+    {
+    }
+
+    bool hasChromIndices() const
+    {
+      return !res.empty();
+    }
+
+    int spectrum_index;
+    const QList<QVariant>& res;
+  };
+
+
   SpectraViewWidget::SpectraViewWidget(QWidget * parent) :
     QWidget(parent)
   {
@@ -130,7 +175,7 @@ namespace OpenMS
       matchflags |=  Qt::MatchRecursive; // match subitems (below top-level)
       if (spectra_combo_box_->currentText().compare("index", Qt::CaseInsensitive) != 0) // strings not equal
       { // only the index has to be matched exactly
-        matchflags = matchflags | Qt::MatchStartsWith;
+        matchflags |= Qt::MatchStartsWith;
       }
       QList<QTreeWidgetItem*> searched = spectra_treewidget_->findItems(text, matchflags, spectra_combo_box_->currentIndex());
 
@@ -154,15 +199,14 @@ namespace OpenMS
       return;
     }
 
-    int spectrum_index = current->data(1, Qt::DisplayRole).toInt();
-    const QList<QVariant>& res = current->data(0, Qt::UserRole).toList();
-    if (res.size() == 0)
+    IndexExtrator ie(current);
+    if (!ie.hasChromIndices())
     {
-      emit spectrumSelected(spectrum_index);
+      emit spectrumSelected(ie.spectrum_index);
     }
     else
     { // open several chromatograms at once
-      emit spectrumSelected(listToVec(res));
+      emit spectrumSelected(listToVec(ie.res));
     }
   }
 
@@ -180,18 +224,15 @@ namespace OpenMS
     {
       return;
     }
-    int spectrum_index = current->data(1, Qt::DisplayRole).toInt();
-    QVariant test;
-    const QList<QVariant>& res = current->data(0, Qt::UserRole).toList();
-    if (res.empty())
+    IndexExtrator ie(current);
+    if (!ie.hasChromIndices())
     {
-      emit spectrumDoubleClicked(spectrum_index);
+      emit spectrumDoubleClicked(ie.spectrum_index);
     }
     else
     { // open several chromatograms at once
-      emit spectrumDoubleClicked(listToVec(res));
+      emit spectrumDoubleClicked(listToVec(ie.res));
     }
-
   }
 
   void SpectraViewWidget::spectrumContextMenu_(const QPoint& pos)
@@ -199,25 +240,23 @@ namespace OpenMS
     QTreeWidgetItem* item = spectra_treewidget_->itemAt(pos);
     if (item)
     {
-      //create menu
-      int spectrum_index = item->data(1, Qt::DisplayRole).toInt();
+      // create menu
+      IndexExtrator ie(item);
       QMenu context_menu(spectra_treewidget_);
       context_menu.addAction("Show in 1D view", [&]()
       {
-        std::vector<int> chrom_indices;
-        const QList<QVariant>& res = item->data(0, Qt::UserRole).toList();
-        if (res.empty())
+        if (!ie.hasChromIndices())
         {
-          emit showSpectrumAs1D(spectrum_index);
+          emit showSpectrumAs1D(ie.spectrum_index);
         }
         else
         { // open several chromatograms at once
-          emit showSpectrumAs1D(listToVec(res));
+          emit showSpectrumAs1D(listToVec(ie.res));
         }
       });
       context_menu.addAction("Meta data", [&]() 
       {
-        emit showSpectrumMetaData(spectrum_index);
+        emit showSpectrumMetaData(ie.spectrum_index);
       });
 
       context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
@@ -243,11 +282,11 @@ namespace OpenMS
     context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
   }
 
-  void populateRow_(QTreeWidgetItem* item, const int index, const MSSpectrum& spec)
+  void populatePeakDataRow_(QTreeWidgetItem* item, const int index, const MSSpectrum& spec)
   {
-    item->setText(0, QString("MS") + QString::number(spec.getMSLevel()));
-    item->setData(1, Qt::DisplayRole, index);
-    item->setData(2, Qt::DisplayRole, spec.getRT());
+    item->setText(ClmnPeak::MS_LEVEL, QString("MS") + QString::number(spec.getMSLevel()));
+    item->setData(ClmnPeak::SPEC_INDEX, Qt::DisplayRole, index);
+    item->setData(ClmnPeak::RT, Qt::DisplayRole, spec.getRT());
 
     const std::vector<Precursor>& current_precursors = spec.getPrecursors();
 
@@ -262,13 +301,13 @@ namespace OpenMS
       {
         const Precursor& current_pc = current_precursors[0];
         precursor_mz = current_pc.getMZ();
-        item->setText(4, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
+        item->setText(ClmnPeak::DISSOCIATION, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
       }
-      item->setData(3, Qt::DisplayRole, precursor_mz);
+      item->setData(ClmnPeak::PRECURSOR_MZ, Qt::DisplayRole, precursor_mz);
     }
 
-    item->setText(5, QString::fromStdString(spec.getInstrumentSettings().NamesOfScanMode[spec.getInstrumentSettings().getScanMode()]));
-    item->setText(6, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
+    item->setText(ClmnPeak::SCANTYPE, QString::fromStdString(spec.getInstrumentSettings().NamesOfScanMode[spec.getInstrumentSettings().getScanMode()]));
+    item->setText(ClmnPeak::ZOOM, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
   }
 
   void SpectraViewWidget::updateEntries(const LayerData& cl)
@@ -295,10 +334,8 @@ namespace OpenMS
       parent_stack.push_back(nullptr);
       bool fail = false;
 
-      QStringList header_labels;
-      header_labels << "MS level" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan" << "zoom";
-      spectra_treewidget_->setHeaderLabels(header_labels);
-      spectra_treewidget_->setColumnCount(header_labels.size());
+      spectra_treewidget_->setHeaderLabels(ClmnPeak::HEADER_NAMES);
+      spectra_treewidget_->setColumnCount(ClmnPeak::HEADER_NAMES.size());
 
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
       {
@@ -360,7 +397,7 @@ namespace OpenMS
           toplevel_items.push_back(toplevel_item);
         }
 
-        populateRow_(toplevel_item, i, current_spec);
+        populatePeakDataRow_(toplevel_item, i, current_spec);
 
         if (i == cl.getCurrentSpectrumIndex())
         {
@@ -380,7 +417,7 @@ namespace OpenMS
           const MSSpectrum& current_spec = (*cl.getPeakData())[i];
           toplevel_item = new QTreeWidgetItem();
           
-          populateRow_(toplevel_item, i, current_spec);
+          populatePeakDataRow_(toplevel_item, i, current_spec);
 
           toplevel_items.push_back(toplevel_item);
           if (i == cl.getCurrentSpectrumIndex())
@@ -434,10 +471,9 @@ namespace OpenMS
         this_selected_item = (int)cl.getPeakData()->getMetaValue("selected_chromatogram");
       }
 
-      // create a different header list
-      QStringList header_labels = QStringList() << " type " << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";
-      spectra_treewidget_->setHeaderLabels(header_labels);
-      spectra_treewidget_->setColumnCount(header_labels.size());
+      // create a header list
+      spectra_treewidget_->setHeaderLabels(ClmnChrom::HEADER_NAMES);
+      spectra_treewidget_->setColumnCount(ClmnChrom::HEADER_NAMES.size());
            
       if (exp->getChromatograms().size() > 1)
       {
@@ -475,15 +511,14 @@ namespace OpenMS
 
         // Top level precursor entry
         toplevel_item = new QTreeWidgetItem();
-        toplevel_item->setText(0, "Peptide");
-        toplevel_item->setData(0, Qt::UserRole, vecToList(indx));
-        toplevel_item->setData(1, Qt::DisplayRole, precursor_idx++);
-        toplevel_item->setData(2, Qt::DisplayRole, pc.getMZ());
-        toplevel_item->setText(3, description);
-        //toplevel_item->setText(4, QString::number(prod_it->second[0].front().getRT()));
-        //toplevel_item->setText(5, QString::number(prod_it->second[0].back().getRT()));
-        toplevel_item->setText(6, QString("-"));
-        toplevel_item->setData(7, Qt::DisplayRole, pc.getCharge());
+        toplevel_item->setText(ClmnChrom::TYPE, "Peptide");
+        toplevel_item->setData(ClmnChrom::TYPE, Qt::UserRole, vecToList(indx));
+        toplevel_item->setData(ClmnChrom::CHROM_INDEX, Qt::DisplayRole, precursor_idx++);
+        toplevel_item->setData(ClmnChrom::MZ, Qt::DisplayRole, pc.getMZ());
+        toplevel_item->setText(ClmnChrom::DESCRIPTION, description);
+        //toplevel_item->setText(ClmnChrom::RT_START, QString::number(prod_it->second[0].front().getRT()));
+        //toplevel_item->setText(ClmnChrom::RT_START, QString::number(prod_it->second[0].back().getRT()));
+        toplevel_item->setData(ClmnChrom::CHARGE, Qt::DisplayRole, pc.getCharge());
 
         toplevel_items.push_back(toplevel_item);
 
@@ -506,17 +541,17 @@ namespace OpenMS
             chrom_description = String(pc.getMetaValue("description")).toQString();
           }
 
-          sub_item->setText(0, "Transition");
-          sub_item->setData(1, Qt::DisplayRole, (unsigned int)chrom_idx);
-          sub_item->setData(2, Qt::DisplayRole, current_chromatogram.getProduct().getMZ());
-          sub_item->setText(3, chrom_description);
-          if (! current_chromatogram.empty())
+          sub_item->setText(ClmnChrom::TYPE, "Transition");
+          sub_item->setData(ClmnChrom::CHROM_INDEX, Qt::DisplayRole, (unsigned int)chrom_idx);
+          sub_item->setData(ClmnChrom::MZ, Qt::DisplayRole, current_chromatogram.getProduct().getMZ());
+          sub_item->setText(ClmnChrom::DESCRIPTION, chrom_description);
+          if (!current_chromatogram.empty())
           {
-            sub_item->setData(4, Qt::DisplayRole, current_chromatogram.front().getRT());
-            sub_item->setData(5, Qt::DisplayRole, current_chromatogram.back().getRT());
+            sub_item->setData(ClmnChrom::RT_START, Qt::DisplayRole, current_chromatogram.front().getRT());
+            sub_item->setData(ClmnChrom::RT_END, Qt::DisplayRole, current_chromatogram.back().getRT());
           }
 
-          sub_item->setText(6, MSChromatogram::ChromatogramNames[current_chromatogram.getChromatogramType()]);
+          sub_item->setText(ClmnChrom::CHROM_TYPE, MSChromatogram::ChromatogramNames[current_chromatogram.getChromatogramType()]);
         }
         if (one_selected && multiple_select)
         {
