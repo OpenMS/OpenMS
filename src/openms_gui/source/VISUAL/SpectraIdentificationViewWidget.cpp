@@ -34,21 +34,13 @@
 
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 #include <OpenMS/VISUAL/TableView.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
 #include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QTreeWidget>
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QMenu>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
-#include <QtCore/QTextStream>
-
 
 #include <vector>
 

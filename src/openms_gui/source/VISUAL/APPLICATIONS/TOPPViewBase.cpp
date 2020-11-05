@@ -2494,19 +2494,15 @@ namespace OpenMS
       }
       else if (spec_view != nullptr)
       {
-        QTreeWidgetItem* item = spec_view->getTreeWidget()->currentItem();
-        if (item != nullptr)
+        ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
+        if (spec_view->getSelectedScan(*new_exp_sptr))
         {
-          const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          Size index = (Size)(item->text(3).toInt());       // todo: wtf...
-          const ExperimentType::SpectrumType spectrum = (*layer.getPeakData())[index];
-          ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-          new_exp_sptr->addSpectrum(spectrum);
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
+          const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerData::DT_PEAK : LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)
