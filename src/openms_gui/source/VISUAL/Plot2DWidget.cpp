@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QGridLayout>

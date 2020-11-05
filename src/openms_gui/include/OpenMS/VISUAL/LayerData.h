@@ -41,7 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -58,6 +58,8 @@
 
 namespace OpenMS
 {
+  class OnDiscMSExperiment;
+
   /**
   @brief Class that stores the data for one layer
 
@@ -470,20 +472,7 @@ public:
     }
 
     /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
-    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
-    {
-      if (spectrum_idx == current_spectrum_) return cached_spectrum_;
-
-      if ((*peak_map_)[spectrum_idx].size() > 0)
-      {
-        return (*peak_map_)[spectrum_idx];
-      }
-      else if (!on_disc_peaks->empty())
-      {
-        return on_disc_peaks->getSpectrum(spectrum_idx);
-      }
-      return (*peak_map_)[spectrum_idx];
-    }
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const;
       
     /// Get the index of the current spectrum (1D view)
     Size getCurrentSpectrumIndex() const

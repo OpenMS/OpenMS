@@ -35,11 +35,14 @@
 #pragma once
 
 #include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTreeWidget>
+
 
 #include <OpenMS/VISUAL/LayerData.h>
+
+class QLineEdit;
+class QComboBox;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace OpenMS
 {
@@ -58,16 +61,16 @@ public:
     /// Destructor
     ~SpectraViewWidget() = default;
 
-    QTreeWidget* getTreeWidget();
-    QComboBox* getComboBox();
+    /// refresh the table using data from @p cl
     void updateEntries(const LayerData & cl);
     /// remove all visible data
     void clear();
-    /// do we have data to show?
-    bool hasData() const
-    {
-      return has_data_;
-    }
+
+    /// Return a copy of the currently selected spectrum/chrom (for drag'n'drop to new window)
+    /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)
+    /// If no spectrum/chrom is selected, false is returned and @p exp is empty
+    bool getSelectedScan(MSExperiment& exp) const;
+
 signals:
     void spectrumSelected(int);
     void spectrumSelected(std::vector<int> indices);
@@ -77,15 +80,11 @@ signals:
     void showSpectrumAs1D(std::vector<int> indices);
     void showSpectrumMetaData(int);
 private:
-    QLineEdit * spectra_search_box_;
-    QComboBox * spectra_combo_box_;
-    QTreeWidget * spectra_treewidget_;
+    QLineEdit* spectra_search_box_ = nullptr;
+    QComboBox* spectra_combo_box_ = nullptr;
+    QTreeWidget* spectra_treewidget_ = nullptr;
     /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
-
-    /// do we currently show data? 
-    bool has_data_ = false;
-
     /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
     const PeakMap* last_peakmap_ = nullptr;
 
