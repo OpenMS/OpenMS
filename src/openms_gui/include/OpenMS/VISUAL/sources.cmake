@@ -36,7 +36,7 @@ PlotCanvas.h
 PlotWidget.h
 RecentFilesMenu.h
 SpectraViewWidget.h
-SpectraIdentificationViewWidget.h
+SpectraIDViewTab.h
 SwathLibraryStats.h
 TableView.h
 TOPPASEdge.h

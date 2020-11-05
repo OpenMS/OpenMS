@@ -40,7 +40,7 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/TVSpectraViewController.h>
@@ -229,7 +229,7 @@ namespace OpenMS
     setCurrentIndex(which);
   }
 
-  SpectraIDViewTab* DataSelectionTabs::getSpectraIdentificationViewWidget()
+  SpectraIDViewTab* DataSelectionTabs::getSpectraIDViewTab()
   {
     return id_view_widget_;
   }

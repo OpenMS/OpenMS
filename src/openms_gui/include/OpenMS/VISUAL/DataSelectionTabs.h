@@ -87,7 +87,7 @@ namespace OpenMS
     /// enable and show the @p which tab
     void show(TAB_INDEX which);
 
-    SpectraIDViewTab* getSpectraIdentificationViewWidget();
+    SpectraIDViewTab* getSpectraIDViewTab();
   signals:
 
   private:

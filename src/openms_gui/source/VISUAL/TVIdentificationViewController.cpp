@@ -49,7 +49,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 
 
