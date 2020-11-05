@@ -734,7 +734,7 @@ namespace OpenMS
             iso_dist.renormalize();
           }
 
-          double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
+          double mz = seq.getMZ(charge);
           OPENMS_LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
           peptide.setChargeState(charge);
           String peptide_id = peptide.sequence + "/" + String(charge);

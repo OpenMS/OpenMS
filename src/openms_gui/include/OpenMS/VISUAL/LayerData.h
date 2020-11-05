@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -81,10 +82,10 @@ namespace OpenMS
   Persistent changes can be applied to getPeakDataMuteable() and will be
   available on the next cache update.
 
-  @note Layer is mainly used as a member variable of SpectrumCanvas which holds
+  @note Layer is mainly used as a member variable of PlotCanvas which holds
   a vector of LayerData objects.
 
-  @ingroup SpectrumWidgets
+  @ingroup PlotWidgets
   */
   class OPENMS_GUI_DLLAPI LayerData
   {
@@ -277,6 +278,18 @@ public:
     ExperimentSharedPtrType & getChromatogramData()
     {
       return chromatogram_map_;
+    }
+
+    /// get annotation (e.g. to build a hierachical ID View)
+    const OSWData& getChromatogramAnnotation()
+    {
+      return chrom_annotation_;
+    }
+
+    /// add annotation from an OSW sqlite file.
+    void setChromatogramAnnotation(OSWData&& data)
+    {
+      chrom_annotation_ = std::move(data);
     }
 
     /// add peptide identifications to the layer
@@ -511,6 +524,9 @@ private:
     /// chromatogram data
     ExperimentSharedPtrType chromatogram_map_;
 
+    /// Chromatogram annotation data
+    OSWData chrom_annotation_;
+
     /// Index of the current spectrum
     Size current_spectrum_;
 
@@ -576,6 +592,23 @@ private:
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
+    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+  };
+  
+  /// Annotate a chromatogram layer with ID data (from an OSW sqlite file as produced by OpenSwathWorkflow or pyProphet).
+  /// The OSWData is loaded from a file selected by the user via a file-dialog.
+  class LayerAnnotatorOSW
+    : public LayerAnnotatorBase
+  {
+  public:
+    LayerAnnotatorOSW()
+      : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::OSW },
+                           "Select OpenSwath/pyProphet output file")
+    {}
+
+  protected:
+    /// loads the OSWData from @p filename and stores the data using Layer::setChromatogramAnnotation()
+    /// Always returns true (unless an exception is thrown from internal sub-functions)
     virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
   };
 

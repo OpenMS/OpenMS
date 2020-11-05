@@ -174,7 +174,7 @@ public:
 
       @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
     */
-    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {});
+    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
     /// Destructor
     virtual ~TOPPBase();
@@ -393,7 +393,10 @@ protected:
 
     /// Papers, specific for this tool (will be shown in '--help')
     std::vector<Citation> citations_;
-    
+
+    /// Enable the ToolHandler tests
+    bool toolhandler_test_;
+
     /**
       @brief Returns the location of the ini file where parameters are taken
       from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then

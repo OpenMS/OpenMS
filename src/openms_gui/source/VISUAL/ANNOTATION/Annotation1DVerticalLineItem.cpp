@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtCore/QPoint>
 #include <QtGui/QPainter>
@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DVerticalLineItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
+  void Annotation1DVerticalLineItem::draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
     //translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
@@ -85,7 +85,7 @@ namespace OpenMS
     return x_;
   }
 
-  void Annotation1DVerticalLineItem::ensureWithinDataRange(Spectrum1DCanvas* const)
+  void Annotation1DVerticalLineItem::ensureWithinDataRange(Plot1DCanvas* const)
   { // TODO: add code when needed
   }
 

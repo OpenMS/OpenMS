@@ -10,11 +10,11 @@ LayerStatisticsDialog.h
 PythonModuleRequirement.h
 PythonSelector.h
 SaveImageDialog.h
-Spectrum1DGoToDialog.h
-Spectrum1DPrefDialog.h
-Spectrum2DGoToDialog.h
-Spectrum2DPrefDialog.h
-Spectrum3DPrefDialog.h
+Plot1DGoToDialog.h
+Plot1DPrefDialog.h
+Plot2DGoToDialog.h
+Plot2DPrefDialog.h
+Plot3DPrefDialog.h
 SpectrumAlignmentDialog.h
 SwathTabWidget.h
 TOPPASIOMappingDialog.h

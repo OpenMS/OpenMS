@@ -7,6 +7,7 @@ AxisTickCalculator.h
 AxisPainter.h
 AxisWidget.h
 ColorSelector.h
+DataSelectionTabs.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
@@ -24,20 +25,20 @@ MultiGradient.h
 MultiGradientSelector.h
 OutputDirectory.h
 ParamEditor.h
+Plot1DCanvas.h
+Plot1DWidget.h
+Plot2DCanvas.h
+Plot2DWidget.h
+Plot3DCanvas.h
+Plot3DOpenGLCanvas.h
+Plot3DWidget.h
+PlotCanvas.h
+PlotWidget.h
 RecentFilesMenu.h
 SpectraViewWidget.h
 SpectraIdentificationViewWidget.h
-SpectraSelectionTabs.h
-Spectrum1DCanvas.h
-Spectrum1DWidget.h
-Spectrum2DCanvas.h
-Spectrum2DWidget.h
-Spectrum3DCanvas.h
-Spectrum3DOpenGLCanvas.h
-Spectrum3DWidget.h
-SpectrumCanvas.h
-SpectrumWidget.h
 SwathLibraryStats.h
+TableView.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASMergerVertex.h
@@ -50,10 +51,11 @@ TOPPASToolVertex.h
 TOPPASTreeView.h
 TOPPASVertex.h
 TOPPASWidget.h
-TOPPViewIdentificationViewBehavior.h
 TOPPViewMenu.h
 #TOPPViewPreferences.h
-TOPPViewSpectraViewBehavior.h
+TVControllerBase.h
+TVIdentificationViewController.h
+TVSpectraViewController.h
 )
 
 ### add path to the filenames

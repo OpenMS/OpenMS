@@ -35,3 +35,5 @@ vscode:
     - mhutchie.git-graph@1.26.0:m8EvA1owa1dL2R6+Swieyg==
     - twxs.cmake@0.0.17:aQNzlYa74rJFJ5/BnUF1yA==
     - cschlosser.doxdocgen@0.7.2:g0DIKlW09t+j2Xi04fzrAA==
+    - hbenl.vscode-test-explorer@2.19.2:8rKHUShFJJd0UivektEkng==
+    - fredericbonnet.cmake-test-adapter@0.10.0:Fb9mp0fAtp8s6LKtpzJAyw==
