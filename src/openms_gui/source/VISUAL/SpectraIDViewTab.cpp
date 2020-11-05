@@ -32,7 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+
 #include <OpenMS/VISUAL/TableView.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>

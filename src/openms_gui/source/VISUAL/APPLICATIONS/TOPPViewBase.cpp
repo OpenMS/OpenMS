@@ -82,7 +82,7 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SpectraViewWidget.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>

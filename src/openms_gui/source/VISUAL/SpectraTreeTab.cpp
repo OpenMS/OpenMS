@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/SpectraViewWidget.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 

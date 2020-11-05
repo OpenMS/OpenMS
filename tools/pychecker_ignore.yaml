@@ -1703,7 +1703,7 @@ PyOpenMSChecker:
     - OpenMS::TOPPASScene
     - OpenMS::TOPPASToolVertex
     - OpenMS::TOPPASInputFileListVertex
-    - OpenMS::SpectraViewWidget
+    - OpenMS::SpectraTreeTab
     - OpenMS::DocumentIdentifierVisualizer
     - OpenMS::MassAnalyzerVisualizer
     - OpenMS::MetaInfoDescriptionVisualizer

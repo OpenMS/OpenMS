@@ -39,7 +39,7 @@
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/SpectraViewWidget.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
