@@ -58,7 +58,7 @@ namespace OpenMS
   QList<QVariant> vecToList(const std::vector<Size>& in)
   {
     QList<QVariant> res;
-    for (auto i : in) res.push_back((unsigned int)i);
+    for (Size i : in) res.push_back((unsigned int)i);
     return res;
   }
 
@@ -92,7 +92,7 @@ namespace OpenMS
 
   struct IndexExtrator
   {
-    IndexExtrator(const QTreeWidgetItem* item)
+    explicit IndexExtrator(const QTreeWidgetItem* item)
       : spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt()),
         res(item->data(ClmnChrom::TYPE, Qt::UserRole).toList()) // this works, even if the QVariant is invalid (then the list is empty)
     {
