@@ -60,7 +60,7 @@ namespace OpenMS
   DataSelectionTabs::DataSelectionTabs(QWidget* parent, TOPPViewBase* tv)
     : QTabWidget(parent),
     spectra_view_widget_(new SpectraViewWidget(this)),
-    id_view_widget_(new SpectraIdentificationViewWidget(Param(), this)),
+    id_view_widget_(new SpectraIDViewTab(Param(), this)),
     spectraview_controller_(new TVSpectraViewController(tv)),
     idview_controller_(new TVIdentificationViewController(tv, id_view_widget_)),
     tv_(tv)
@@ -75,9 +75,9 @@ namespace OpenMS
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
 
     // Hook-up controller and views for identification inspection
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, idview_controller_, CONNECTCAST(TVIdentificationViewController, activate1DSpectrum, (int, int, int)));
-    connect(id_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, idview_controller_, &TVIdentificationViewController::setVisibleArea1D);
+    connect(id_view_widget_, &SpectraIDViewTab::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
+    connect(id_view_widget_, &SpectraIDViewTab::spectrumSelected, idview_controller_, CONNECTCAST(TVIdentificationViewController, activate1DSpectrum, (int, int, int)));
+    connect(id_view_widget_, &SpectraIDViewTab::requestVisibleArea1D, idview_controller_, &TVIdentificationViewController::setVisibleArea1D);
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());
@@ -229,7 +229,7 @@ namespace OpenMS
     setCurrentIndex(which);
   }
 
-  SpectraIdentificationViewWidget* DataSelectionTabs::getSpectraIdentificationViewWidget()
+  SpectraIDViewTab* DataSelectionTabs::getSpectraIdentificationViewWidget()
   {
     return id_view_widget_;
   }

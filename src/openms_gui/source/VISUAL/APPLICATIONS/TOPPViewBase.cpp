@@ -491,7 +491,7 @@ namespace OpenMS
     defaults_.insert("preferences:3d:", Plot3DCanvas(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:3d", "Settings for 3D map view.");
     // identification view
-    defaults_.insert("preferences:idview:", SpectraIdentificationViewWidget(Param()).getDefaults());
+    defaults_.insert("preferences:idview:", SpectraIDViewTab(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
     subsections_.push_back("preferences:RecentFiles");

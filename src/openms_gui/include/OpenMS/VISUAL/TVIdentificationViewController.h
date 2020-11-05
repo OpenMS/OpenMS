@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   class NASequence;
-  class SpectraIdentificationViewWidget;
+  class SpectraIDViewTab;
   class TOPPViewBase;
 
   /**
@@ -55,7 +55,7 @@ namespace OpenMS
 
   public:
     /// Construct the behaviour with its parent
-    TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view_);
+    TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view_);
 
   public slots:
     /// Behavior for showSpectrumAs1D
@@ -123,7 +123,7 @@ namespace OpenMS
     String collapseStringVector(std::vector<String> strings);
 
   private:
-    SpectraIdentificationViewWidget* spec_id_view_;
+    SpectraIDViewTab* spec_id_view_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership
     /// of the AnnotationItems has the Annotation1DContainer
     std::vector<Annotation1DItem*> temporary_annotations_;

@@ -64,7 +64,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
+  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view) :
     TVControllerBase(parent),
     spec_id_view_(spec_id_view)
   {
