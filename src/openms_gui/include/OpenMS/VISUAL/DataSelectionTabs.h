@@ -43,7 +43,7 @@
 
 namespace OpenMS
 {
-  class SpectraViewWidget;
+  class SpectraTreeTab;
   class SpectraIDViewTab;
   class TVIdentificationViewController;
   class TVSpectraViewController;
@@ -93,7 +93,7 @@ namespace OpenMS
   private:
     ///@name Spectrum selection widgets
     //@{
-    SpectraViewWidget* spectra_view_widget_;
+    SpectraTreeTab* spectra_view_widget_;
     SpectraIDViewTab* id_view_widget_;
     //@}
 

@@ -108,7 +108,7 @@ namespace OpenMS
   };
 
 
-  SpectraViewWidget::SpectraViewWidget(QWidget * parent) :
+  SpectraTreeTab::SpectraTreeTab(QWidget * parent) :
     QWidget(parent)
   {
     // these must be identical, because there is code which extracts the scan index irrespective of what we show
@@ -129,10 +129,10 @@ namespace OpenMS
     spectra_treewidget_->setContextMenuPolicy(Qt::CustomContextMenu);
     spectra_treewidget_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraViewWidget::spectrumSelectionChange_);
-    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraViewWidget::spectrumDoubleClicked_);
-    connect(spectra_treewidget_, &QTreeWidget::customContextMenuRequested, this, &SpectraViewWidget::spectrumContextMenu_);
-    connect(spectra_treewidget_->header(), &QHeaderView::customContextMenuRequested, this, &SpectraViewWidget::spectrumBrowserHeaderContextMenu_);
+    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraTreeTab::spectrumSelectionChange_);
+    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraTreeTab::spectrumDoubleClicked_);
+    connect(spectra_treewidget_, &QTreeWidget::customContextMenuRequested, this, &SpectraTreeTab::spectrumContextMenu_);
+    connect(spectra_treewidget_->header(), &QHeaderView::customContextMenuRequested, this, &SpectraTreeTab::spectrumBrowserHeaderContextMenu_);
 
     spectra_widget_layout->addWidget(spectra_treewidget_);
 
@@ -149,16 +149,16 @@ namespace OpenMS
 
 
     // search whenever text is typed (and highlight the hits)
-    connect(spectra_search_box_, &QLineEdit::textEdited, this, &SpectraViewWidget::spectrumSearchText_);
+    connect(spectra_search_box_, &QLineEdit::textEdited, this, &SpectraTreeTab::spectrumSearchText_);
     // .. show hit upon pressing Enter (internally we search again, since the user could have activated another layer with different selections after last search)
-    connect(spectra_search_box_, &QLineEdit::returnPressed, this, &SpectraViewWidget::searchAndShow_);
+    connect(spectra_search_box_, &QLineEdit::returnPressed, this, &SpectraTreeTab::searchAndShow_);
 
     tmp_hbox_layout->addWidget(spectra_search_box_);
     tmp_hbox_layout->addWidget(spectra_combo_box_);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
   }
 
-  void SpectraViewWidget::spectrumSearchText_()
+  void SpectraTreeTab::spectrumSearchText_()
   {
     const QString& text = spectra_search_box_->text(); // get text from QLineEdit
     if (!text.isEmpty())
@@ -181,7 +181,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::spectrumSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+  void SpectraTreeTab::spectrumSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
   {
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
@@ -202,7 +202,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::searchAndShow_()
+  void SpectraTreeTab::searchAndShow_()
   {
     //QTreeWidgetItem* current = spectra_treewidget_->currentItem();
     spectrumSearchText_(); // update selection first (we might be in a new layer)
@@ -210,7 +210,7 @@ namespace OpenMS
     if (selected.size() > 0) spectrumSelectionChange_(selected.first(), selected.first());
   }
 
-  void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem* current)
+  void SpectraTreeTab::spectrumDoubleClicked_(QTreeWidgetItem* current)
   {
     if (current == nullptr)
     {
@@ -227,7 +227,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::spectrumContextMenu_(const QPoint& pos)
+  void SpectraTreeTab::spectrumContextMenu_(const QPoint& pos)
   {
     QTreeWidgetItem* item = spectra_treewidget_->itemAt(pos);
     if (item)
@@ -255,7 +255,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint& pos)
+  void SpectraTreeTab::spectrumBrowserHeaderContextMenu_(const QPoint& pos)
   {
     // allows to hide/show columns
     QMenu context_menu(spectra_treewidget_->header());
@@ -302,7 +302,7 @@ namespace OpenMS
     item->setText(ClmnPeak::ZOOM, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
   }
 
-  void SpectraViewWidget::updateEntries(const LayerData& cl)
+  void SpectraTreeTab::updateEntries(const LayerData& cl)
   {
     if (!spectra_treewidget_->isVisible() || spectra_treewidget_->signalsBlocked())
     {
@@ -585,7 +585,7 @@ namespace OpenMS
     spectra_treewidget_->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
   }
 
-  void SpectraViewWidget::populateSearchBox_()
+  void SpectraTreeTab::populateSearchBox_()
   {
     const auto& header = spectra_treewidget_->headerItem();
     QStringList header_texts;
@@ -599,14 +599,14 @@ namespace OpenMS
     spectra_combo_box_->setCurrentIndex(current_index);
   }
 
-  void SpectraViewWidget::clear()
+  void SpectraTreeTab::clear()
   {
     spectra_treewidget_->clear();
     spectra_combo_box_->clear();
   }
 
 
-  bool SpectraViewWidget::getSelectedScan(MSExperiment& exp) const
+  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp) const
   {
     exp.clear(true);
     QTreeWidgetItem* item = spectra_treewidget_->currentItem();

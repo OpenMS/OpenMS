@@ -1720,7 +1720,7 @@ namespace OpenMS
       // This means we have chromatogram data, either as DT_CHROMATOGRAM or as
       // DT_PEAK with the chromatogram flag set. To run the TOPPTool we need to
       // remove the flag and add the newly generated layer as spectrum data
-      // (otherwise we run into problems with SpectraViewWidget::updateEntries
+      // (otherwise we run into problems with SpectraTreeTab::updateEntries
       // which assumes that all chromatogram data has chromatograms).
       getActiveCanvas()->getCurrentLayer().remove_chromatogram_flag(); // removing the flag is not constant
       //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true");
@@ -2460,7 +2460,7 @@ namespace OpenMS
 
   void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
   {
-    SpectraViewWidget* spec_view = (source ? qobject_cast<SpectraViewWidget*>(source->parentWidget()) : nullptr);
+    SpectraTreeTab* spec_view = (source ? qobject_cast<SpectraTreeTab*>(source->parentWidget()) : nullptr);
     try
     {
       //NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)

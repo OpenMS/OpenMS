@@ -59,20 +59,20 @@ namespace OpenMS
 
   DataSelectionTabs::DataSelectionTabs(QWidget* parent, TOPPViewBase* tv)
     : QTabWidget(parent),
-    spectra_view_widget_(new SpectraViewWidget(this)),
+    spectra_view_widget_(new SpectraTreeTab(this)),
     id_view_widget_(new SpectraIDViewTab(Param(), this)),
     spectraview_controller_(new TVSpectraViewController(tv)),
     idview_controller_(new TVIdentificationViewController(tv, id_view_widget_)),
     tv_(tv)
   {
     // Hook-up controller and views for spectra inspection
-    connect(spectra_view_widget_, &SpectraViewWidget::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
+    connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
 
     // Hook-up controller and views for identification inspection
     connect(id_view_widget_, &SpectraIDViewTab::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);

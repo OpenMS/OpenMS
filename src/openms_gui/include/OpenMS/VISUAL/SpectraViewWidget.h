@@ -51,15 +51,15 @@ namespace OpenMS
 
     @ingroup PlotWidgets
   */
-  class SpectraViewWidget :
+  class SpectraTreeTab :
     public QWidget
   {
     Q_OBJECT
 public:
     /// Constructor
-    SpectraViewWidget(QWidget * parent = nullptr);
+    SpectraTreeTab(QWidget * parent = nullptr);
     /// Destructor
-    ~SpectraViewWidget() = default;
+    ~SpectraTreeTab() = default;
 
     /// refresh the table using data from @p cl
     void updateEntries(const LayerData & cl);
