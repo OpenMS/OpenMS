@@ -86,17 +86,17 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay
 
-    @param spectra: Input of MSExperiment with spectra information
-    @param feature_ms2_spectra_map: FeatureMapping class with associated MS2 spectra
-    @param precursor_rt_tol: Retention time tolerance of the precursor
-    @param precursor_mz_distance: Max m/z distance of the precursor entries of two spectra to be merged
-    @param cosine_sim_threshold: Cosine similarty threshold for the usage of SpectraMerger
-    @param transition_threshold: Intensity threshold for MS2 peak used in MetaboTargetedAssay
-    @param min_fragment_mz: Minimum m/z a fragment ion has to have to be considered as a transition
-    @param max_fragment_mz: Maximum m/z a fragment ion has to have to be considered as a transition
-    @param method_consensus_spectrum: Boolean to use consensus spectrum method
-    @param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
-    @param file_counter: Count if multiple files are used.
+    @param spectra Input of MSExperiment with spectra information
+    @param feature_ms2_spectra_map FeatureMapping class with associated MS2 spectra
+    @param precursor_rt_tol Retention time tolerance of the precursor
+    @param precursor_mz_distance Max m/z distance of the precursor entries of two spectra to be merged
+    @param cosine_sim_threshold Cosine similarty threshold for the usage of SpectraMerger
+    @param transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
+    @param max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
+    @param method_consensus_spectrum Boolean to use consensus spectrum method
+    @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
+    @param file_counter Count if multiple files are used.
 
     */
 
@@ -118,13 +118,13 @@ namespace OpenMS
     @return Vector of MetaboTargetedAssay
 
 
-    @param v_cmp_spec: Vector of CompoundInfo with associated fragment annotated MSspectrum
-    @param transition_threshold: Intensity threshold for MS2 peak used in MetaboTargetedAssay
-    @param min_fragment_mz: Minimum m/z a fragment ion has to have to be considered as a transition
-    @param max_fragment_mz: Maximum m/z a fragment ion has to have to be considered as a transition
-    @param use_exact_mass: Boolean if exact mass should be used as peak mass for annotated fragments
-    @param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
-    @param file_counter: Count if multiple files are used.
+    @param v_cmp_spec Vector of CompoundInfo with associated fragment annotated MSspectrum
+    @param transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
+    @param max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
+    @param use_exact_mass Boolean if exact mass should be used as peak mass for annotated fragments
+    @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
+    @param file_counter Count if multiple files are used.
 
     */
 
@@ -144,9 +144,9 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay::CompoundTargetDecoyPair
 
-    @param v_cmpinfo: Vector of SiriusMSFile::CompoundInfo
+    @param v_cmpinfo Vector of SiriusMSFile::CompoundInfo
 
-    @param annotated_spectra: Vector of SiriusTargetDecoySpectra
+    @param annotated_spectra Vector of SiriusTargetDecoySpectra
     */
     static std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                                                                                         const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra);

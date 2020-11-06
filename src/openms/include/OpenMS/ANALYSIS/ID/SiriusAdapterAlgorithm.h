@@ -144,10 +144,10 @@ namespace OpenMS
             
       Filter number of masstraces and perform feature mapping.
 
-      @param featureinfo: Path to featureXML
-      @param spectra: Input of MSExperiment with spectra information
-      @param fp_map_kd: KDTree used for query and match spectra with features
-      @param feature_mapping: Empty FeatureToMs2Indices
+      @param featureinfo Path to featureXML
+      @param spectra Input of MSExperiment with spectra information
+      @param fp_map_kd KDTree used for query and match spectra with features
+      @param feature_mapping Empty FeatureToMs2Indices
       */
       void preprocessingSirius(const String& featureinfo,
                                const MSExperiment& spectra,
@@ -160,9 +160,9 @@ namespace OpenMS
 
       Prints the number of features and spectra used (OPENMS_LOG_INFO)
 
-      @param featureinfo: Path to featureXML
-      @param feature_mapping: FeatureToMs2Indices with feature mapping
-      @param spectra: Input of MSExperiment with spectra information
+      @param featureinfo Path to featureXML
+      @param feature_mapping FeatureToMs2Indices with feature mapping
+      @param spectra Input of MSExperiment with spectra information
       */
       void logFeatureSpectraNumber(const String& featureinfo,
                                    const FeatureMapping::FeatureToMs2Indices& feature_mapping,
@@ -171,10 +171,10 @@ namespace OpenMS
       /**
       @brief Call SIRIUS with QProcess
 
-      @param tmp_ms_file: path to temporary .ms file
-      @param tmp_out_dir: path to temporary output folder
-      @param executable: path to executable
-      @param out_csifingerid: path to CSI:FingerID output (can be empty).
+      @param tmp_ms_file path to temporary .ms file
+      @param tmp_out_dir path to temporary output folder
+      @param executable path to executable
+      @param out_csifingerid path to CSI:FingerID output (can be empty).
 
       @return Vector with paths to a compound
       */
@@ -182,7 +182,7 @@ namespace OpenMS
                                               const String& tmp_out_dir,
                                               String& executable,
                                               const String& out_csifingerid,
-                                              const bool decoy_generation);
+                                              const bool decoy_generation) const;
 
     private:
     class ParameterModifier
@@ -239,7 +239,7 @@ namespace OpenMS
         return enclose->param_.getValue(toFullParameter(param_name));
       }
 
-      QStringList getCommandLine()
+      QStringList getCommandLine() const
       {
         const DataValue omit_integer(-1);
         const DataValue omit_string("");

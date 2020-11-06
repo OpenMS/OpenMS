@@ -6,14 +6,11 @@ from StringList cimport *
 cdef extern from "<OpenMS/FORMAT/CsvFile.h>" namespace "OpenMS":
 
   cdef cppclass CsvFile "OpenMS::CsvFile":
-    # wrap-inherits:
-    #   TextFile
-      CsvFile() nogil except +
-      #CsvFile(const String& filename, char is, bool ie, Int first_n) nogil except + #wrap-ignore
-      CsvFile(CsvFile) nogil except +
+    CsvFile() nogil except +
+    CsvFile(CsvFile) nogil except + #wrap-ignore
 
-      #void load(const String& filename, char is, bool ie, Int first_n) nogil except + #wrap-ignore
-      void store(const String& filename) nogil except +
-      void addRow(const StringList& list) nogil except +
-      void clear() nogil except +
-      bool getRow(int row, StringList& list) nogil except +
+    void load(const String& filename, char is_, bool ie_, int first_n) nogil except +
+    void store(const String& filename) nogil except +
+    void addRow(const StringList& list) nogil except +
+    void clear() nogil except +
+    bool getRow(int row, StringList& list) nogil except +

@@ -90,7 +90,7 @@ namespace OpenMS
     }
 
     // convert to vector
-    for (const auto it : native_ids_annotated_spectra)
+    for (const auto& it : native_ids_annotated_spectra)
     {
       annotated_spectra.emplace_back(std::move(it.second));
     }

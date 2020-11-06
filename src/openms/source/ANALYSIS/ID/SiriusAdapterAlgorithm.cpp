@@ -486,12 +486,12 @@ namespace OpenMS
       return false;
     }
 
-    String SiriusAdapterAlgorithm::determineSiriusExecutable(String &executable)
+    String SiriusAdapterAlgorithm::determineSiriusExecutable(String& executable)
     { 
       // if executable was not provided
       if (executable.empty())
       {
-        const String &qsiriuspathenv = QProcessEnvironment::systemEnvironment().value("SIRIUS_PATH");
+        const std::string& qsiriuspathenv(std::getenv("SIRIUS_PATH"));
         if (qsiriuspathenv.empty())
         {
           throw Exception::InvalidValue(__FILE__,
@@ -676,7 +676,7 @@ namespace OpenMS
                                                                          const String& tmp_out_dir,
                                                                          String& executable,
                                                                          const String& out_csifingerid,
-                                                                         const bool decoy_generation)
+                                                                         const bool decoy_generation) const
 
     {
       // get the command line parameters from all the subtools

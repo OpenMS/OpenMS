@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
     cdef cppclass MetaboTargetedAssay "OpenMS::MetaboTargetedAssay":
 
        MetaboTargetedAssay() nogil except +
-       MetaboTargetedAssay(MetaboTargetedAssay) nogil except +
+       MetaboTargetedAssay(MetaboTargetedAssay) nogil except + #wrap-ignore
 
        libcpp_vector[ MetaboTargetedAssay ] extractMetaboTargetedAssay(MSExperiment& spectra,
                                                                        FeatureMapping_FeatureToMs2Indices& feature_ms2_index,
