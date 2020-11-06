@@ -81,8 +81,8 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-#include <OpenMS/VISUAL/SpectraViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -491,7 +491,7 @@ namespace OpenMS
     defaults_.insert("preferences:3d:", Plot3DCanvas(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:3d", "Settings for 3D map view.");
     // identification view
-    defaults_.insert("preferences:idview:", SpectraIdentificationViewWidget(Param()).getDefaults());
+    defaults_.insert("preferences:idview:", SpectraIDViewTab(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
     subsections_.push_back("preferences:RecentFiles");
@@ -1720,7 +1720,7 @@ namespace OpenMS
       // This means we have chromatogram data, either as DT_CHROMATOGRAM or as
       // DT_PEAK with the chromatogram flag set. To run the TOPPTool we need to
       // remove the flag and add the newly generated layer as spectrum data
-      // (otherwise we run into problems with SpectraViewWidget::updateEntries
+      // (otherwise we run into problems with SpectraTreeTab::updateEntries
       // which assumes that all chromatogram data has chromatograms).
       getActiveCanvas()->getCurrentLayer().remove_chromatogram_flag(); // removing the flag is not constant
       //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true");
@@ -2460,7 +2460,7 @@ namespace OpenMS
 
   void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
   {
-    SpectraViewWidget* spec_view = (source ? qobject_cast<SpectraViewWidget*>(source->parentWidget()) : nullptr);
+    SpectraTreeTab* spec_view = (source ? qobject_cast<SpectraTreeTab*>(source->parentWidget()) : nullptr);
     try
     {
       //NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)

@@ -40,8 +40,8 @@ Plot3DWidget.cpp
 PlotCanvas.cpp
 PlotWidget.cpp
 RecentFilesMenu.cpp
-SpectraIdentificationViewWidget.cpp
-SpectraViewWidget.cpp
+SpectraIDViewTab.cpp
+SpectraTreeTab.cpp
 SwathLibraryStats.cpp
 SwathLibraryStats.ui
 TableView.cpp

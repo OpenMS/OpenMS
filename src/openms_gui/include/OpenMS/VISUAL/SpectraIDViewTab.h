@@ -51,16 +51,16 @@ namespace OpenMS
 
     @htmlinclude OpenMS_DigestSimulation.parameters
   */
-  class SpectraIdentificationViewWidget :
+  class SpectraIDViewTab :
     public QWidget,
     public DefaultParamHandler
   {
     Q_OBJECT
   public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
+    SpectraIDViewTab(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
-    ~SpectraIdentificationViewWidget() override = default;
+    ~SpectraIDViewTab() override = default;
 
     /// set layer data and create table anew
     void setLayer(LayerData* model);
