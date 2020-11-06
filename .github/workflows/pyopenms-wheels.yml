@@ -406,7 +406,7 @@ jobs:
 
           # check if package was installed
           python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"
-          # run test 
+          # run test
           python -c "exec(\"import pyopenms\nprint(pyopenms.EmpiricalFormula(\'C6H12O6\').getMonoWeight())\")"
 
           conda deactivate
@@ -414,8 +414,8 @@ jobs:
           # clean up
           conda remove --name pyoms-bld-$py --all
 
-        done        
-  
+        done
+
   # Upload the wheels (the action only runs on ubuntu slaves)
   publish:
     needs: [test] # doesn't really NEED it but we want the tests to pass first
