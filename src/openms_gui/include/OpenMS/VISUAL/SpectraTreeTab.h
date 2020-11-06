@@ -46,6 +46,7 @@ class QTreeWidgetItem;
 
 namespace OpenMS
 {
+  class TreeView;
   /**
     @brief Hierarchical visualization and selection of spectra.
 
@@ -82,7 +83,7 @@ signals:
 private:
     QLineEdit* spectra_search_box_ = nullptr;
     QComboBox* spectra_combo_box_ = nullptr;
-    QTreeWidget* spectra_treewidget_ = nullptr;
+    TreeView* spectra_treewidget_ = nullptr;
     /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
     /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
@@ -93,11 +94,13 @@ private slots:
     void populateSearchBox_();
     /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
     void spectrumSearchText_();
-    /// allows to show/hide columns
-    void spectrumBrowserHeaderContextMenu_(const QPoint &);
+    /// emits spectrumSelected() for either PEAK or CHROM data)
     void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
-    void searchAndShow_(); ///< searches using text box and plots the spectrum
-    void spectrumDoubleClicked_(QTreeWidgetItem *); ///< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
+    /// searches using text box and plots the spectrum
+    void searchAndShow_(); 
+    /// called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
+    void spectrumDoubleClicked_(QTreeWidgetItem *); 
+    /// Display context menu; allows to open metadata window
     void spectrumContextMenu_(const QPoint &);
   };
 }

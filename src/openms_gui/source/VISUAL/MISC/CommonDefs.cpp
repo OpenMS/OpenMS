@@ -32,40 +32,12 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-class QString; // declare this OUTSIDE of namespace OpenMS!
-class QStringList;
 
 namespace OpenMS
 {
-  /**
-    @brief Class which holds static GUI-related helper functions.
 
-    Since all methods are static, the c'tor is private.
-    
-    @ingroup Visual
-  */
-  class OPENMS_GUI_DLLAPI GUIHelpers
-  {
-  public:
+  // nothing to see here (yet)
 
-    GUIHelpers() = delete;
-    
-    /// Open a folder in file explorer
-    /// Will show a message box on failure
-    static void openFolder(const QString& folder);
-
-    /// Open TOPPView (e.g. from within TOPPAS)
-    static void startTOPPView(const QStringList& args);
-
-    /// Open a certain URL (in a browser)
-    /// Will show a message box on failure
-    static void openURL(const QString& target);
-    
-  };
-
-}
+} //namespace OpenMS

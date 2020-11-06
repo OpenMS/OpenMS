@@ -105,7 +105,7 @@ namespace OpenMS
     QStringList str_list;
 
     // write header
-    ts << getHeaderNames(HeaderInfo::VISIBLE_ONLY, true).join("\t") + "\n";
+    ts << getHeaderNames(WidgetHeader::VISIBLE_ONLY, true).join("\t") + "\n";
 
     // write entries
     for (int r = 0; r < rowCount(); ++r)
@@ -212,13 +212,13 @@ namespace OpenMS
     setItem(rowCount() - 1, (int)column_index, item);
   }
  
-  QStringList TableView::getHeaderNames(const HeaderInfo which, bool use_export_name)
+  QStringList TableView::getHeaderNames(const WidgetHeader which, bool use_export_name)
   {
     QStringList header_labels;
     for (int i = 0; i != columnCount(); ++i)
     {
       // do not export hidden columns
-      if (which == HeaderInfo::VISIBLE_ONLY && isColumnHidden(i))
+      if (which == WidgetHeader::VISIBLE_ONLY && isColumnHidden(i))
       {
         continue;
       }

@@ -52,7 +52,7 @@ TOPPASTreeView.h
 TOPPASVertex.h
 TOPPASWidget.h
 TOPPViewMenu.h
-#TOPPViewPreferences.h
+TreeView.h
 TVControllerBase.h
 TVIdentificationViewController.h
 TVSpectraViewController.h

@@ -34,38 +34,46 @@
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QTreeWidget>
 
-class QString; // declare this OUTSIDE of namespace OpenMS!
-class QStringList;
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
 namespace OpenMS
 {
   /**
-    @brief Class which holds static GUI-related helper functions.
-
-    Since all methods are static, the c'tor is private.
-    
-    @ingroup Visual
+    @brief A better QTreeWidget for TOPPView, which supports header context menu and conveniently adding/getting headers names.
   */
-  class OPENMS_GUI_DLLAPI GUIHelpers
+  class TreeView :
+    public QTreeWidget
   {
+    Q_OBJECT
   public:
+    /// Constructor
+    TreeView(QWidget* parent = nullptr);
+    /// Destructor
+    virtual ~TreeView() = default;
 
-    GUIHelpers() = delete;
-    
-    /// Open a folder in file explorer
-    /// Will show a message box on failure
-    static void openFolder(const QString& folder);
+    /// sets the visible headers (and the number of columns)
+    void setHeaders(const QStringList& headers);
 
-    /// Open TOPPView (e.g. from within TOPPAS)
-    static void startTOPPView(const QStringList& args);
+    /// hides columns with the given names
+    /// @throws Exception::InvalidParameter if a name is not matching the current column names
+    void hideColumns(const QStringList& header_names);
 
-    /// Open a certain URL (in a browser)
-    /// Will show a message box on failure
-    static void openURL(const QString& target);
-    
+    /**
+       @brief Obtain header names, either from all, or only the visible columns
+
+       @param which With or without invisible columns?
+       @return List of header names
+    */
+    QStringList getHeaderNames(const WidgetHeader which) const;
+
+    /// get the displayed name of the header in column with index @p header_column
+    /// @throws Exception::ElementNotFound if header at index @p header_column is not valid
+    QString getHeaderName(const int header_column) const;
+
+  private slots:
+    /// Display header context menu; allows to show/hide columns
+    void headerContextMenu_(const QPoint& pos);
   };
-
 }

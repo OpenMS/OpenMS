@@ -36,6 +36,8 @@
 
 #include <QTableWidget>
 
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
+
 namespace OpenMS
 {
   /**
@@ -78,11 +80,6 @@ namespace OpenMS
     /// @throws Exception::InvalidParameter if a name is not matching the current column names
     void hideColumns(const QStringList& header_names);
 
-    enum class HeaderInfo
-    {
-      VISIBLE_ONLY,
-      WITH_INVISIBLE,
-    };
     /**
        @brief Obtain header names, either from all, or only the visible columns
 
@@ -93,7 +90,7 @@ namespace OpenMS
        @param use_export_name If column has a hidden export name, use that instead of the displayed name 
        @return List of header names 
     */
-    QStringList getHeaderNames(const HeaderInfo which, bool use_export_name = false);
+    QStringList getHeaderNames(const WidgetHeader which, bool use_export_name = false);
     
     /**
       @brief Set the export-name of a column, which will be returned in getHeaderNames() when @p use_export_name it true

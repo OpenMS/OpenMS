@@ -58,7 +58,7 @@ TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
 TOPPViewMenu.cpp
-#TOPPViewPreferences.cpp
+TreeView.cpp
 TVIdentificationViewController.cpp
 TVSpectraViewController.cpp
 TVControllerBase.cpp
