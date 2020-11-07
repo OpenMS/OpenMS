@@ -288,7 +288,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
 
   for(size_t i = 0; i < lactate_normalized_normmax.size(); ++i)
   {
-    for(size_t j = 0; j < lactate_1_normalized_normmax.getSubordinates().size(); ++j)
+    for(size_t j = 0; j < lactate_normalized_normmax.at(i).getSubordinates().size(); ++j)
     {
       if (i == 0) // lactate_1
       {
@@ -303,7 +303,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
 
   for(size_t i = 0; i < lactate_normalized_normsum.size(); ++i)
   {
-    for(size_t j = 0; j < lactate_1_normalized_normsum.getSubordinates().size(); ++j)
+    for(size_t j = 0; j < lactate_normalized_normsum.at(i).getSubordinates().size(); ++j)
     {
       if (i == 0) // lactate_1
       {
@@ -360,13 +360,13 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
   }
   lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
 
-  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, correction_matrix_tBDMS, "");
+isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, correction_matrix_tBDMS, IsotopeLabelingMDVs::DerivatizationAgent::NOT_SELECTED);
   for(size_t i = 0; i < lactate_1_corrected.getSubordinates().size(); ++i)
   {
     TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getIntensity(), L1_corrected[i]);
   }
 
-  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, {}, "TBDMS");
+isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, {}, IsotopeLabelingMDVs::DerivatizationAgent::TBDMS);
   for(size_t i = 0; i < lactate_1_corrected.getSubordinates().size(); ++i)
   {
     TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getIntensity(), L1_corrected[i]);
@@ -421,7 +421,7 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
     lactate_1_featureMap.push_back(lactate_1_normalized);
   }
 
-  isotopelabelingmdvs.isotopicCorrections(lactate_1_featureMap, lactate_1_corrected_featureMap, correction_matrix_tBDMS, "");
+  isotopelabelingmdvs.isotopicCorrections(lactate_1_featureMap, lactate_1_corrected_featureMap, correction_matrix_tBDMS, IsotopeLabelingMDVs::DerivatizationAgent::NOT_SELECTED);
   for(uint8_t i = 0; i < lactate_1_corrected_featureMap.size(); ++i)
   {
     for(uint8_t j = 0; j < lactate_1_corrected_featureMap.at(i).getSubordinates().size(); ++j)
@@ -432,7 +432,7 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrections(
 
   lactate_1_corrected_featureMap.clear();
 
-  isotopelabelingmdvs.isotopicCorrections(lactate_1_featureMap, lactate_1_corrected_featureMap, {}, "TBDMS");
+  isotopelabelingmdvs.isotopicCorrections(lactate_1_featureMap, lactate_1_corrected_featureMap, {}, IsotopeLabelingMDVs::DerivatizationAgent::TBDMS);
   for(uint8_t i = 0; i < lactate_1_corrected_featureMap.size(); ++i)
   {
 //    for(uint8_t j = 0; j < lactate_1_corrected.getSubordinates().size(); ++j)
@@ -553,7 +553,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
                                               const Feature& normalized_feature,
                                               Feature& feature_with_accuracy_info,
                                               const std::vector<double>& fragment_isotopomer_measured,
-                                              const std::vector<double>& fragment_isotopomer_theoretical) ))
+                                              const std::string& fragment_isotopomer_theoretical_formula) ))
 
   // case 1: calculating accuracy given theoretical and measured values
 
@@ -599,11 +599,11 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
   }
   lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
 
-  isotopelabelingmdvs.calculateMDVAccuracy(lactate_1_normalized, lactate_1_with_accuracy_info, accoa_C23H37N7O17P3S_MRM_measured_13, accoa_C23H37N7O17P3S_MRM_theoretical_13);
+  isotopelabelingmdvs.calculateMDVAccuracy(lactate_1_normalized, lactate_1_with_accuracy_info, accoa_C23H37N7O17P3S_MRM_measured_13, "C23H37N7O17P3S");
   TEST_REAL_SIMILAR( lactate_1_with_accuracy_info.getMetaValue("average_accuracy"), Average_accuracy_groundtruth[0] );
   lactate_1_with_accuracy_info.clearMetaInfo();
 
-  isotopelabelingmdvs.calculateMDVAccuracy(lactate_1_normalized, lactate_1_with_accuracy_info, fad_C27H32N9O15P2_EPI_theoretical_48, fad_C27H32N9O15P2_EPI_measured_48);
+  isotopelabelingmdvs.calculateMDVAccuracy(lactate_1_normalized, lactate_1_with_accuracy_info, fad_C27H32N9O15P2_EPI_measured_48, "C27H32N9O15P2");
   TEST_REAL_SIMILAR( lactate_1_with_accuracy_info.getMetaValue("average_accuracy"), Average_accuracy_groundtruth[1] );
 
 END_SECTION
@@ -612,7 +612,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
                                               const FeatureMap& normalized_featureMap,
                                               FeatureMap& featureMap_with_accuracy_info,
                                               const std::vector<double>& fragment_isotopomer_measured,
-                                              const std::vector<double>& fragment_isotopomer_theoretical) ))
+                                              const std::string& fragment_isotopomer_theoretical_formula) ))
 
   // case 1: calculating accuracy given theoretical and measured values
 
@@ -665,7 +665,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
     lactate_1_featureMap.push_back(lactate_1_normalized);
   }
 
-  isotopelabelingmdvs.calculateMDVAccuracies(lactate_1_featureMap, lactate_1_with_accuracy_info_featureMap, accoa_C23H37N7O17P3S_MRM_measured_13, accoa_C23H37N7O17P3S_MRM_theoretical_13);
+  isotopelabelingmdvs.calculateMDVAccuracies(lactate_1_featureMap, lactate_1_with_accuracy_info_featureMap, accoa_C23H37N7O17P3S_MRM_measured_13, "C23H37N7O17P3S");
   for (uint8_t i = 0; i < lactate_1_with_accuracy_info_featureMap.size(); ++i)
   {
     TEST_REAL_SIMILAR( lactate_1_with_accuracy_info_featureMap.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[0] );
@@ -673,7 +673,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
   lactate_1_with_accuracy_info.clearMetaInfo();
   lactate_1_with_accuracy_info_featureMap.clear();
 
-  isotopelabelingmdvs.calculateMDVAccuracies(lactate_1_featureMap, lactate_1_with_accuracy_info_featureMap, fad_C27H32N9O15P2_EPI_theoretical_48, fad_C27H32N9O15P2_EPI_measured_48);
+  isotopelabelingmdvs.calculateMDVAccuracies(lactate_1_featureMap, lactate_1_with_accuracy_info_featureMap, fad_C27H32N9O15P2_EPI_measured_48, "C27H32N9O15P2");
   for (uint8_t i = 0; i < lactate_1_with_accuracy_info_featureMap.size(); ++i)
   {
     TEST_REAL_SIMILAR( lactate_1_with_accuracy_info_featureMap.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[1] );

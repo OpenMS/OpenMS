@@ -28,11 +28,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDVAccuracy(
           const Feature & normalized_feature, Feature & feature_with_accuracy_info,
-          const libcpp_vector[double] & fragment_isotopomer_measured, const libcpp_vector[double] & fragment_isotopomer_theoretical) nogil except +
+          const libcpp_vector[double] & fragment_isotopomer_measured, const String & fragment_isotopomer_theoretical_formula) nogil except +
 
         void calculateMDVAccuracies(
           const FeatureMap & normalized_featureMap, FeatureMap & featureMap_with_accuracy_info,
-          const libcpp_vector[double] & fragment_isotopomer_measured, const libcpp_vector[double] & fragment_isotopomer_theoretical) nogil except +
+          const libcpp_vector[double] & fragment_isotopomer_measured, const String & fragment_isotopomer_theoretical_formula) nogil except +
 
         void calculateMDV(
           const Feature & measured_feature, Feature & normalized_feature,

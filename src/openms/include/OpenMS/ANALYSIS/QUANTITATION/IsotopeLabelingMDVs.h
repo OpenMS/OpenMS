@@ -37,6 +37,8 @@
 #include <OpenMS/config.h>
 
 //Kernal classes
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -68,6 +70,12 @@ namespace OpenMS
     /// Destructor
     ~IsotopeLabelingMDVs();
     //@}
+    
+    enum class DerivatizationAgent
+    {
+      NOT_SELECTED,
+      TBDMS
+    };
  
     /**
       @brief This function performs an isotopic correction to account for unlabeled abundances coming from
@@ -85,7 +93,7 @@ namespace OpenMS
     */
     void isotopicCorrection(
       const Feature& normalized_feature, Feature& corrected_feature,
-      const Matrix<double>& correction_matrix, const std::string correction_matrix_agent);
+      const Matrix<double>& correction_matrix, const DerivatizationAgent& correction_matrix_agent);
     
     /**
       @brief This function performs an isotopic correction to account for unlabeled abundances coming from
@@ -103,7 +111,7 @@ namespace OpenMS
     */
     void isotopicCorrections(
       const FeatureMap& normalized_featureMap, FeatureMap& corrected_featureMap,
-      const Matrix<double>& correction_matrix, const std::string correction_matrix_agent);
+      const Matrix<double>& correction_matrix, const DerivatizationAgent& correction_matrix_agent);
 
     /**
       @brief This function calculates the isotopic purity of the MDV using the following formula:
@@ -143,12 +151,12 @@ namespace OpenMS
    
       @param[in]  normalized_feature Feature with normalized values for each component and the chemical formula of the component group.
       @param[in]  fragment_isotopomer_measured Measured scan values.
-      @param[in]  fragment_isotopomer_theoretical Theoretical scan values.
+      @param[in]  fragment_isotopomer_theoretical_formula Empirical formula from which the theoretical values will be generated.
       @param[out] feature_with_accuracy_info Feature with the component group accuracy and accuracy for the error for each component.
     */
     void calculateMDVAccuracy(
       const Feature& normalized_feature, Feature& feature_with_accuracy_info,
-      const std::vector<double>& fragment_isotopomer_measured, const std::vector<double>& fragment_isotopomer_theoretical);
+      const std::vector<double>& fragment_isotopomer_measured, const std::string& fragment_isotopomer_theoretical_formula);
     
     /**
        @brief This function calculates the accuracy of the MDVs as compared to the theoretical MDVs (only for 12C quality control experiments)
@@ -156,12 +164,12 @@ namespace OpenMS
     
        @param[in]  normalized_featuremap FeatureMap with normalized values for each component and the chemical formula of the component group.
        @param[in]  fragment_isotopomer_measured Measured scan values.
-       @param[in]  fragment_isotopomer_theoretical Theoretical scan values.
+       @param[in]  fragment_isotopomer_theoretical_formula Empirical formula from which the theoretical values will be generated.
        @param[out] featuremap_with_accuracy_info FeatureMap with the component group accuracy and accuracy for the error for each component.
     */
     void calculateMDVAccuracies(
       const FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_accuracy_info,
-      const std::vector<double>& fragment_isotopomer_measured, const std::vector<double>& fragment_isotopomer_theoretical);
+      const std::vector<double>& fragment_isotopomer_measured, const std::string& fragment_isotopomer_theoretical_formula);
  
     /**
       @brief This function calculates the mass distribution vector (MDV)
@@ -197,8 +205,16 @@ namespace OpenMS
     
   private:
     /// Correction Matrices for various derivatization agents
-    static const std::unordered_map<std::string, std::vector<std::vector<double>> > correction_matrices_;
-     
+    const std::unordered_map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices_
+    {
+      std::unordered_map<DerivatizationAgent, std::vector<std::vector<double>> >
+      {
+        { DerivatizationAgent::TBDMS, {{0.8213, 0.1053, 0.0734, 0.0000},
+                                       {0.8420, 0.0963, 0.0617, 0.0000},
+                                       {0.8466, 0.0957, 0.0343, 0.0233},
+                                       {0.8484, 0.0954, 0.0337, 0.0225}}
+        }
+      }
+    };
   };
-
 }
