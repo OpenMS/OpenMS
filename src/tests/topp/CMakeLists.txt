@@ -2819,7 +2819,7 @@ add_test("UTILS_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
-         -Alignment:max_rt_shift 0
+         -Alignment:align_algorithm:max_rt_shift 0
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only true
@@ -2857,7 +2857,7 @@ add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
-         -Alignment:max_rt_shift 0
+         -Alignment:align_algorithm:max_rt_shift 0
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only true
@@ -2866,7 +2866,7 @@ add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml BSA_plusTransfer.consensusXML.tmp
          -out_msstats BSA_plusTransfer.csv.tmp
          -out BSA_plusTransfer.mzTab.tmp
-         -threads 4
+         -threads 1
          -proteinFDR 0.3
          -test
          )
@@ -2894,7 +2894,7 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
-         -Alignment:max_rt_shift 0
+         -Alignment:align_algorithm:max_rt_shift 0
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false
@@ -2903,9 +2903,10 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml BSA_plusSeeds_plusTransfer.consensusXML.tmp
          -out_msstats BSA_plusSeeds_plusTransfer.csv.tmp
          -out BSA_plusSeeds_plusTransfer.mzTab.tmp
-         -threads 4
+         -threads 1
          -proteinFDR 0.3
          -test
+         -debug 5
          )
 add_test("UTILS_ProteomicsLFQ_3_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_plusSeeds_plusTransfer.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_3_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_3")

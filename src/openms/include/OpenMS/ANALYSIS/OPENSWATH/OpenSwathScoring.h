@@ -184,7 +184,7 @@ namespace OpenMS
                             const std::vector<TransitionType>& transitions,
                             const std::vector<OpenSwath::SwathMap>& swath_maps,
                             OpenSwath::SpectrumAccessPtr ms1_map,
-                            OpenMS::DIAScoring& diascoring,
+                            const OpenMS::DIAScoring& diascoring,
                             const CompoundType& compound,
                             OpenSwath_Scores& scores,
                             std::vector<double>& mzerror_ppm,
@@ -206,7 +206,7 @@ namespace OpenMS
      *
     */
     void calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
-                                     OpenMS::DIAScoring& diascoring, 
+                                     const OpenMS::DIAScoring& diascoring,
                                      double precursor_mz, 
                                      double rt, 
                                      const CompoundType& compound, 
@@ -230,7 +230,7 @@ namespace OpenMS
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                               const TransitionType & transition,
                               const std::vector<OpenSwath::SwathMap> swath_maps,
-                              OpenMS::DIAScoring & diascoring,
+                              const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
                               double drift_lower,
                               double drift_upper);
