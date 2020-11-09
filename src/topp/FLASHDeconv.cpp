@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
@@ -94,23 +95,23 @@ protected:
                         "(e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)",
                         false);
 
-    registerIntOption_("min_charge",
-                       "<min_charge>",
-                       1,
-                       "minimum charge state (can be negative for negative mode)",
-                       false,
-                       false);
-    registerIntOption_("max_charge",
-                       "<max_charge>",
-                       100,
-                       "maximum charge state (can be negative for negative mode)",
-                       false,
-                       false);
+    /*    registerIntOption_("min_charge",
+                           "<min_charge>",
+                           1,
+                           "minimum charge state (can be negative for negative mode)",
+                           false,
+                           false);
+        registerIntOption_("max_charge",
+                           "<max_charge>",
+                           100,
+                           "maximum charge state (can be negative for negative mode)",
+                           false,
+                           false);
 
-    registerDoubleOption_("min_mass", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
-    registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
+        registerDoubleOption_("min_mass", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
 
-    registerDoubleList_("min_isotope_cosine",
+    */
+    /*registerDoubleList_("min_isotope_cosine",
                         "<ms1_isotope_cos ms2_isotpe_cos, ...>",
                         {.75, .85},
                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... "
@@ -142,14 +143,18 @@ protected:
                      true);
     //
     registerDoubleOption_("min_intensity", "<min_intensity>", 0, "intensity threshold (default 0.0)", false, true);
-    registerDoubleOption_("RT_window",
+registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
+ registerDoubleOption_("RT_window",
                           "<seconds>",
                           0.0,
                           "RT window duration in seconds. (if 0, RT window contains 15 MS1 spectra)",
                           false,
                           true);
 
-    registerDoubleOption_("min_RT_span", "<seconds>", 10.0, "Min feature RT span", false, true);
+    */
+    //registerDoubleOption_("min_RT_span", "<seconds>", 10.0, "Min feature RT span", false, true);
+
+
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
@@ -162,21 +167,21 @@ protected:
                        0,
                        "if set, deconvoluted masses (for MS1 spectra) are reported in promex output format ([prefix]]_FD.ms1ft)",
                        false,
-                       true);
+                       false);
 
     registerIntOption_("topfd_out",
                        "",
                        0,
                        "if set, deconvoluted masses are reported in topfd output format ([prefiX]_FD_msX.msalign, per MS level X)",
                        false,
-                       true);
+                       false);
 
     registerIntOption_("mzml_out",
                        "",
                        0,
                        "if set, deconvoluted masses (for all spectra) are reported in mzml format ([preifx]_deconved.mzml)",
                        false,
-                       true);
+                       false);
 
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
 
@@ -190,7 +195,59 @@ protected:
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
 
 
+    Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
+    // overwrite algorithm default so we export everything (important for copying back MSstats results)
+    fd_defaults.setValue("min_charge", 1);
+    fd_defaults.setValue("max_charge", 100);
+    fd_defaults.setValue("min_mass", 50.0);
+    fd_defaults.setValue("max_mass", 100000.0);
+    fd_defaults.setValue("tol", DoubleList{10.0, 5.0}, "ppm tolerance, controlled by -tol option");
+    fd_defaults.addTag("tol", "advanced"); // hide entry
+    fd_defaults.setValue("min_peaks", IntList{3, 1});
+    fd_defaults.addTag("min_peaks", "advanced");
+    fd_defaults.setValue("min_intensity", .0, "intensity threshold");
+    fd_defaults.addTag("min_intensity", "advanced");
+    fd_defaults.setValue("min_isotope_cosine",
+                         DoubleList{.75, .85},
+                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+    fd_defaults.addTag("min_isotope_cosine", "advanced");
+    fd_defaults.setValue("min_charge_cosine",
+                         .5,
+                         "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
+    fd_defaults.addTag("min_charge_cosine", "advanced");
+    fd_defaults.setValue("max_mass_count",
+                         IntList{-1, -1},
+                         "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
+    fd_defaults.addTag("max_mass_count", "advanced");
+    fd_defaults.setValue("num_overlapped_scans", 15, "number of overlapped scans for MS1 deconvolution");
+    fd_defaults.addTag("num_overlapped_scans", "advanced");
 
+    Param mf_defaults = MassFeatureTrace().getDefaults();
+    mf_defaults.setValue("mass_error_ppm", 10.0, "ppm tolerance, controlled by -tol option");
+    mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
+    mf_defaults.setValue("trace_termination_criterion", "outlier");
+    mf_defaults.addTag("trace_termination_criterion", "advanced"); // hide entry
+    mf_defaults.setValue("reestimate_mt_sd", "false", "");
+    mf_defaults.addTag("reestimate_mt_sd", "advanced"); // hide entry
+    mf_defaults.setValue("quant_method", "area", "");
+    mf_defaults.addTag("quant_method", "advanced"); // hide entry
+    mf_defaults.setValue("noise_threshold_int", .0, "");
+    mf_defaults.addTag("noise_threshold_int", "advanced"); // hide entry
+    mf_defaults.setValue("min_sample_rate", 0.01, "");
+    mf_defaults.addTag("min_sample_rate", "advanced"); // hide entry
+    mf_defaults.addTag("trace_termination_outliers", "advanced"); // hide entry
+    //mf_defaults.addTag("min_trace_length", "advanced"); // hide entry
+    //mf_defaults.setValue("trace_termination_outliers", numOverlappedScans, "");
+    //mf_defaults.setValue("min_trace_length", minRTSpan, "");//min_RT_span
+    mf_defaults.setValue("min_charge_cosine", .5, "controlled by -min_charge_cosine option");
+    mf_defaults.addTag("min_charge_cosine", "advanced");
+    mf_defaults.setValue("min_isotope_cosine", .75, "controlled by -min_isotope_cosine option");
+    mf_defaults.addTag("min_isotope_cosine", "advanced");
+
+    Param combined;
+    combined.insert("Algorithm:", fd_defaults);
+    combined.insert("FeatureTracing:", mf_defaults);
+    registerFullParam_(combined);
   }
 
   // the main_ function is called after all parameters are read
@@ -203,9 +260,6 @@ protected:
     //-------------------------------------------------------------
     String infilePath = getStringOption_("in");
     String outfilePath = getStringOption_("out");
-    int minCharge = getIntOption_("min_charge");
-    int maxCharge = getIntOption_("max_charge");
-    double maxMass = getIntOption_("max_mass");
     bool useRNAavg = getIntOption_("use_RNA_averagine") > 0;
     int maxMSLevel = getIntOption_("max_MS_level");
     bool ensamble = getIntOption_("use_ensamble_spectrum") > 0;
@@ -213,14 +267,14 @@ protected:
     bool outTopfd = getIntOption_("topfd_out") > 0;
     bool outPromex = getIntOption_("promex_out") > 0;
     bool writeDetail = getIntOption_("write_detail") > 0;
-    double rtWindow = getDoubleOption_("RT_window");
+    //double rtWindow = getDoubleOption_("RT_window");
     double ms1tol = getDoubleList_("tol")[0];
-    double minRTSpan = getDoubleOption_("min_RT_span");
-    int minNumOverlappedScans = 15;
     int currentMaxMSLevel = 0;
 
+    //double maxMass = getDoubleOption_("max_mass"); // from FLASHDeconvAlgorithm
+
     // precalculate averagines for quick deconvolution
-    auto avgine = FLASHDeconvHelperStructs::calculateAveragines(maxMass, useRNAavg);
+    //auto avgine = FLASHDeconvHelperStructs::calculateAveragines(maxMass, useRNAavg);
 
     // spectrum number per ms level per input file
     auto specCntr = new int[maxMSLevel];
@@ -267,7 +321,6 @@ protected:
         ensamble_map.addSpectrum(spec);
       }
     }
-
 
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
     fstream featureOut, promexOut, topfdOut_MS1, topfdOut_MS2;
@@ -329,6 +382,7 @@ protected:
         //writeTopFDHeader(topfdOut);
       }
     }
+
 
     //-------------------------------------------------------------
     // reading input
@@ -407,7 +461,6 @@ protected:
 
       // Max MS Level is adjusted according to the input dataset
       currentMaxMSLevel = currentMaxMSLevel > maxMSLevel ? maxMSLevel : currentMaxMSLevel;
-      int numOverlappedScans = 1;
       // if an ensamble spectrum is analyzed, replace the input dataset with the ensamble one
       if (ensamble)
       {
@@ -416,16 +469,8 @@ protected:
           ensamble_map[i].sortByPosition();
         }
         map = ensamble_map;
-        numOverlappedScans = 1;
       }
-      else // otherwise, adjust the number of overlapped spectra with retention time duration specified by users
-      {
-        double rtDelta = rtDuration / ms1Cntr;
-        numOverlappedScans = max(minNumOverlappedScans, (int) round(rtWindow / rtDelta));
-        OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << numOverlappedScans << " (in RT "
-                        << (rtDelta * numOverlappedScans) //
-                        << " sec)" << endl;
-      }
+
 
       std::string outfileName(fileName);
 
@@ -474,20 +519,35 @@ protected:
         // writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
 
         // mtd_param.insert("", common_param);
-        // mtd_param.remove("chrom_fwhm");
+      // mtd_param.remove("chrom_fwhm");
 
-        // finally run FLASHDeconv here
-      OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
+      // finally run FLASHDeconv here
 
       int scanNumber = 0;
       float prevProgress = .0;
-      auto massTracer = MassFeatureTrace(ms1tol, minRTSpan, numOverlappedScans, avgine);
       auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
       MSExperiment exp;
 
-      auto fd = FLASHDeconvAlgorithm(avgine);
-      fd.setParameters(getParam_());
+
+      auto fd = FLASHDeconvAlgorithm();
+      Param fd_param = getParam_().copy("Algorithm:", true);
+      fd_param.setValue("tol", getParam_().getValue("tol"));
+      fd.setParameters(fd_param);
+      fd.calculateAveragine(useRNAavg);
+
+      auto massTracer = MassFeatureTrace();
+      Param mf_param = getParam_().copy("FeatureTracing:", true);
+      DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
+      mf_param.setValue("mass_error_ppm", ms1tol);
+      mf_param.setValue("trace_termination_outliers", fd_param.getValue("num_overlapped_scans"));
+      mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
+      mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
+
+      massTracer.setParameters(mf_param);
+
+      OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
+
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         scanNumber = SpectrumLookup::extractScanNumber(it->getNativeID(),
@@ -514,7 +574,7 @@ protected:
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         // per spec deconvolution
-        fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex, numOverlappedScans);
+        fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
 
         if (outMzml)
         {
@@ -538,12 +598,8 @@ protected:
         }
         qspecCntr[msLevel - 1]++;
         massCntr[msLevel - 1] += deconvolutedSpectrum.size();
-
-        auto currentChargeRange = deconvolutedSpectrum.getCurrentMaxCharge(maxCharge) - minCharge;
-        auto currentMaxMass = deconvolutedSpectrum.getCurrentMaxMass(maxMass);
-
         deconvolutedSpectrum
-            .writeDeconvolutedMasses(specOut[msLevel - 1], minCharge, currentChargeRange, fileName, writeDetail);
+            .writeDeconvolutedMasses(specOut[msLevel - 1], fileName, writeDetail);
 
         if (outTopfd)
         {
@@ -566,7 +622,8 @@ protected:
       // massTracer run
       if (!ensamble)
       {
-        massTracer.findFeatures(fileName, outPromex, featureCntr, featureIndex, featureOut, promexOut);
+        massTracer
+            .findFeatures(fileName, outPromex, featureCntr, featureIndex, featureOut, promexOut, fd.getAveragine());
       }
       if (outMzml)
       {

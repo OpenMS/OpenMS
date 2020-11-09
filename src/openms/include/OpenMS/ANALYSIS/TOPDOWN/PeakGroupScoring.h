@@ -38,7 +38,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #ifdef _OPENMP
   #include <omp.h> // for test..
@@ -46,15 +45,21 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI PeakGroupScoring :
-      public DefaultParamHandler
+  class OPENMS_DLLAPI PeakGroupScoring
   {
   public:
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    PeakGroupScoring(std::vector<PeakGroup> &pg, int minCharge, int maxCharge);
+    PeakGroupScoring(std::vector<PeakGroup> &pg,
+                     int minCharge,
+                     int maxCharge,
+                     double minChargeCosine,
+                     DoubleList &tolerance,
+                     IntList &maxMassCount,
+                     IntList &minContinuousChargePeakCount,
+                     DoubleList &minIsotopeCosine);
 
     /// default destructor
     ~PeakGroupScoring();
@@ -73,7 +78,6 @@ namespace OpenMS
                                                      FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
   protected:
-    void updateMembers_() override;
 
     std::vector<PeakGroup> &peakGroups;
 
@@ -129,8 +133,7 @@ namespace OpenMS
     IntList maxMassCount;
     double minChargeCosine;
     IntList minContinuousChargePeakCount; // for MS1
-    //int maxIsotopeCount;
-    DoubleList minIsotopeCosine, tolerance;
+    DoubleList tolerance, minIsotopeCosine;
     int minCharge;
     int chargeRange;
   };

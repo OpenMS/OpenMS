@@ -37,32 +37,27 @@
 namespace OpenMS
 {
   //Once a peak group is defined it is scored using this class.
-  PeakGroupScoring::PeakGroupScoring(std::vector<PeakGroup> &pg, int minCharge, int maxCharge) :
-      DefaultParamHandler("PeakGroupScoring"), peakGroups(pg), minCharge(minCharge), chargeRange(maxCharge - minCharge)
+  PeakGroupScoring::PeakGroupScoring(std::vector<PeakGroup> &pg,
+                                     int minCharge,
+                                     int maxCharge,
+                                     double minChargeCosine,
+                                     DoubleList &tolerance,
+                                     IntList &maxMassCount,
+                                     IntList &minContinuousChargePeakCount,
+                                     DoubleList &minIsotopeCosine)
+      :
+      peakGroups(pg), minCharge(minCharge), chargeRange(maxCharge - minCharge), minChargeCosine(minChargeCosine),
+      tolerance(tolerance), maxMassCount(maxMassCount), minContinuousChargePeakCount(minContinuousChargePeakCount),
+      minIsotopeCosine(minIsotopeCosine)
   {
+
+    //defaultsToParam_();
   }
 
   PeakGroupScoring::~PeakGroupScoring()
   {
   }
 
-  void PeakGroupScoring::updateMembers_()
-  {
-    //IntList maxMassCount;  max_mass_count
-    // int maxIsotopeCount;
-    maxMassCount = param_.getValue("max_mass_count");
-    minContinuousChargePeakCount = param_.getValue("min_peaks");
-    minIsotopeCosine = param_.getValue("min_isotope_cosine");
-    minChargeCosine = param_.getValue("min_charge_cosine");
-
-    maxMassCount = param_.getValue("max_mass_count");
-    tolerance = param_.getValue("tol");
-
-    for (auto j = 0; j < (int) tolerance.size(); j++)
-    {
-      tolerance[j] *= 1e-6;
-    }
-  }
 
   double PeakGroupScoring::getChargeFitScore(double *perChargeIntensity, int range)
   {

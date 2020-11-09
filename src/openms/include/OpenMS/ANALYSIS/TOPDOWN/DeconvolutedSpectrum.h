@@ -78,8 +78,6 @@ namespace OpenMS
       @param param FLASHDeconv paramter
     */
     void writeDeconvolutedMasses(std::fstream &fs,
-                                 int minCharge,
-                                 int chargeRange,
                                  const String &fileName,
                                  bool writeDetail);
 

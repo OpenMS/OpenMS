@@ -47,14 +47,15 @@
 namespace OpenMS
 {
   // feature trace in mass dimention for FLASHDeconv
-  class OPENMS_DLLAPI MassFeatureTrace
+  class OPENMS_DLLAPI MassFeatureTrace :
+      public DefaultParamHandler
   {
   public:
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// constructor
-    MassFeatureTrace(double tol, double minRTSpan, int numOverlappedScans, PrecalculatedAveragine &avg);
+    MassFeatureTrace();
 
     /// default destructor
     ~MassFeatureTrace();
@@ -66,19 +67,21 @@ namespace OpenMS
                       int &featureCntr,
                       int &featureIndex,
                       std::fstream &fsf,
-                      std::fstream &fsp);
+                      std::fstream &fsp,
+                      PrecalculatedAveragine averagines);
 
     static void writeHeader(std::fstream &fs);
 
     static void writePromexHeader(std::fstream &fs);
 
+  protected:
+    void updateMembers_() override;
+
   private:
     double tol;
-    int numOverlappedScans;
-    double minRTSpan;
     double minChargeCosine, minIsotopeCosine;
 
-    PrecalculatedAveragine &averagines;
+    //PrecalculatedAveragine averagines;
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };
 }

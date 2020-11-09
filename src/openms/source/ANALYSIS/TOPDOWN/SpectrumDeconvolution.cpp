@@ -39,16 +39,17 @@ namespace OpenMS
 {
 
   // constructor
-  SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s,
+  SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum *spec,
                                                int minCharge,
                                                int maxCharge,
                                                double minMass,
-                                               double maxMass) :
-      DefaultParamHandler("SpectrumDeconvolution"), spec(s), minCharge(minCharge), maxCharge(maxCharge),
+                                               double maxMass,
+                                               double intensityThreshold) :
+      minCharge(minCharge), maxCharge(maxCharge),
       minMass(minMass), maxMass(maxMass)
   {
     setFilters();
-    updateLogMzPeaks();
+    updateLogMzPeaks(spec, intensityThreshold);
   }
 
   /// default destructor
@@ -60,28 +61,6 @@ namespace OpenMS
     }
     std::vector<LogMzPeak>().swap(logMzPeaks);
     std::vector<PeakGroup>().swap(peakGroups);
-  }
-
-  void SpectrumDeconvolution::updateMembers_()
-  {
-    intensityThreshold = param_.getValue("min_intensity");
-    minContinuousChargePeakCount = param_.getValue("min_peaks");
-    minIsotopeCosine = param_.getValue("min_isotope_cosine");
-    minChargeCosine = param_.getValue("min_charge_cosine");
-
-    maxMassCount = param_.getValue("max_mass_count");
-
-    RTwindow = param_.getValue("RT_window");
-    minRTSpan = param_.getValue("min_RT_span");
-    maxMSLevel = param_.getValue("max_MS_level");
-    useRNAavg = (int) param_.getValue("use_RNA_averagine") > 0;
-    tolerance = param_.getValue("tol");
-
-    for (auto j = 0; j < (int) tolerance.size(); j++)
-    {
-      tolerance[j] *= 1e-6;
-      binWidth.push_back(.5 / tolerance[j]);
-    }
   }
 
   // generate filters
@@ -113,10 +92,10 @@ namespace OpenMS
   }
 
   //Generate uncharged log mz transformated peaks
-  void SpectrumDeconvolution::updateLogMzPeaks()
+  void SpectrumDeconvolution::updateLogMzPeaks(MSSpectrum *spec, double intensityThreshold)
   {
-    logMzPeaks.reserve(spec.size());
-    for (auto &peak: spec)
+    logMzPeaks.reserve(spec->size());
+    for (auto &peak: *spec)
     {
       if (peak.getIntensity() <= intensityThreshold)//
       {
@@ -197,6 +176,7 @@ namespace OpenMS
   void SpectrumDeconvolution::unionPrevMassBins(double &massBinMinValue,
                                                 std::vector<std::vector<Size>> &prevMassBinVector,
                                                 std::vector<double> &prevMassBinMinValue,
+                                                DoubleList &binWidth,
                                                 UInt msLevel)
   {
     if (massBins.empty())
@@ -231,6 +211,8 @@ namespace OpenMS
   //Find candidate mass bins from the current spectrum. The runtime of FLASHDeconv is deteremined by this function..
   boost::dynamic_bitset<> SpectrumDeconvolution::getCandidateMassBinsForThisSpectrum(float *massIntensitites,
                                                                                      float *mzIntensities,
+                                                                                     DoubleList &binWidth,
+                                                                                     IntList &minContinuousChargePeakCount,
                                                                                      double &mzMinValue,
                                                                                      unsigned int &msLevel)
   {
@@ -535,6 +517,8 @@ namespace OpenMS
                                                     double &mzBinMinValue,
                                                     float *massIntensities,
                                                     float *mzIntensities,
+                                                    DoubleList &binWidth,
+                                                    IntList &minContinuousChargePeakCount,
                                                     unsigned int &msLevel)
   {
     auto bw = binWidth[msLevel - 1];
@@ -546,6 +530,8 @@ namespace OpenMS
 
     auto candidateMassBins = getCandidateMassBinsForThisSpectrum(massIntensities,
                                                                  mzIntensities,
+                                                                 binWidth,
+                                                                 minContinuousChargePeakCount,
                                                                  mzBinMinValue,
                                                                  msLevel);
 
@@ -561,6 +547,7 @@ namespace OpenMS
   //With massBins, select peaks from the same mass in the original input spectrum
   void SpectrumDeconvolution::getCandidatePeakGroups(double &mzBinMinValue, double &massBinMinValue,
                                                      float *massIntensities,
+                                                     DoubleList &tolerance, DoubleList &binWidth,
                                                      Matrix<int> chargeRanges,
                                                      FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                      unsigned int &msLevel)
@@ -810,9 +797,14 @@ namespace OpenMS
   //spectral deconvolution main function
   std::vector<PeakGroup> &SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                                                            std::vector<double> &prevMinBinLogMassVector,
+                                                                           DoubleList &tolerance, DoubleList &binWidth,
+                                                                           IntList &minContinuousChargePeakCount,
                                                                            int currentChargeRange,
                                                                            double currentMaxMass,
                                                                            int numOverlappedScans,
+                                                                           double minChargeCosine,
+                                                                           IntList &maxMassCount,
+                                                                           DoubleList &minIsotopeCosine,
                                                                            FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                                            unsigned int msLevel)
   {
@@ -863,17 +855,24 @@ namespace OpenMS
 
     if (msLevel == 1)
     {
-      unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, msLevel);
+      unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, binWidth, msLevel);
     }
+
     auto perMassChargeRanges = updateMassBins(massBinMinValue, mzBinMinValue, massIntensities,
-                                              mzBinIntensities, msLevel);
+                                              mzBinIntensities, binWidth, minContinuousChargePeakCount, msLevel);
 
     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
-                           massIntensities,
+                           massIntensities, tolerance, binWidth,
                            perMassChargeRanges, avg, msLevel);
 
-    PeakGroupScoring scorer = PeakGroupScoring(peakGroups, minCharge, maxCharge);
-    scorer.setParameters(getParameters());
+    PeakGroupScoring scorer = PeakGroupScoring(peakGroups,
+                                               minCharge,
+                                               maxCharge,
+                                               minChargeCosine,
+                                               tolerance,
+                                               maxMassCount,
+                                               minContinuousChargePeakCount,
+                                               minIsotopeCosine);
 
     peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);
 
@@ -908,4 +907,3 @@ namespace OpenMS
     return peakGroups;
   }
 }
-

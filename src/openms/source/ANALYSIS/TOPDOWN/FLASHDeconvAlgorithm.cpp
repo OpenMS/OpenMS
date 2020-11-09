@@ -39,11 +39,35 @@
 
 namespace OpenMS
 {
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &a) :
-      DefaultParamHandler("FLASHDeconvAlgorithm"), avg(a)
+
+  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() :
+      DefaultParamHandler("FLASHDeconvAlgorithm")
   {
     prevMassBinVector = std::vector<std::vector<Size>>();
     prevMinBinLogMassVector = std::vector<double>();
+    defaults_.setValue("min_charge", 1, "minimum charge state (can be negative for negative mode)");
+    defaults_.setValue("max_charge", 100, "maximum charge state (can be negative for negative mode)");
+    defaults_.setValue("min_mass", 50.0, "minimum mass (Da)");
+    defaults_.setValue("max_mass", 100000.0, "maximum mass (Da)");
+    defaults_.setValue("min_peaks",
+                       IntList{3, 1},
+                       "minimum number of supporting peaks for MS1, 2, ...  (e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively)");
+    defaults_.setValue("tol",
+                       DoubleList{10.0, 5.0},
+                       "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
+
+    defaults_.setValue("min_isotope_cosine",
+                       DoubleList{.75, .85},
+                       "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue("min_charge_cosine",
+                       .5,
+                       "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
+    defaults_.setValue("max_mass_count",
+                       IntList{-1, -1},
+                       "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
+    defaults_.setValue("min_intensity", .0, "intensity threshold");
+    defaults_.setValue("num_overlapped_scans", 15, "number of overlapped scans for MS1 deconvolution");
+    defaultsToParam_();
   }
 
   FLASHDeconvAlgorithm &FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm &fd)
@@ -56,7 +80,7 @@ namespace OpenMS
     return *this;
   }
 
-  //Calcualte the nominla mass from double mass. Mutiply 0.999497 reduces the rounding error.
+  ///Calcualte the nominla mass from double mass. Mutiply 0.999497 reduces the rounding error.
   int FLASHDeconvAlgorithm::getNominalMass(double m)
   {
     return (int) (m * 0.999497 + .5);
@@ -69,8 +93,7 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec,
                                            int scanNumber,
                                            int &specIndex,
-                                           int &massIndex,
-                                           int numOverlappedScans)
+                                           int &massIndex)
   {
     auto *spec = &(dspec.getOriginalSpectrum());
     int msLevel = spec->getMSLevel();
@@ -80,17 +103,18 @@ namespace OpenMS
     auto currentMaxMass = dspec.getCurrentMaxMass(maxMass);
 
     //Prepare spectrum deconvolution
-    auto sd = SpectrumDeconvolution(*spec, minCharge, currentMaxMass, minMass, currentMaxMass);
+    auto sd = SpectrumDeconvolution(spec, minCharge, currentMaxMass, minMass, currentMaxMass, intensityThreshold);
 
     //Perform deconvolution and fill in deconvolutedSpectrum
     dspec.setPeakGroups(sd.getPeakGroupsFromSpectrum(prevMassBinVector,
                                                      prevMinBinLogMassVector,
+                                                     tolerance, binWidth,
+                                                     minContinuousChargePeakCount,
                                                      currentChargeRange,
                                                      currentMaxMass,
                                                      numOverlappedScans,
+                                                     minChargeCosine, maxMassCount, minIsotopeCosine,
                                                      avg, msLevel));
-
-    //TODO positiveMode should be passed.. to everywhere.
 
     if (dspec.empty())
     {
@@ -124,6 +148,34 @@ namespace OpenMS
 
     maxMass = param_.getValue("max_mass");
     minMass = param_.getValue("min_mass");
+
+    intensityThreshold = param_.getValue("min_intensity");
+    minContinuousChargePeakCount = param_.getValue("min_peaks");
+
+    tolerance = param_.getValue("tol");
+
+    for (auto j = 0; j < (int) tolerance.size(); j++)
+    {
+      tolerance[j] *= 1e-6;
+      binWidth.push_back(.5 / tolerance[j]);
+    }
+
+    minIsotopeCosine = param_.getValue("min_isotope_cosine");
+    minChargeCosine = param_.getValue("min_charge_cosine");
+    maxMassCount = param_.getValue("max_mass_count");
+    numOverlappedScans = param_.getValue("num_overlapped_scans");
+    //    std::cout << minCharge << " " << maxCharge << " " << minMass << " " << maxMass << std::endl;
+
+  }
+
+  FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvAlgorithm::getAveragine()
+  {
+    return avg;
+  }
+
+  void FLASHDeconvAlgorithm::calculateAveragine(bool useRNAavg)
+  {
+    avg = FLASHDeconvHelperStructs::calculateAveragines(maxMass, useRNAavg);
   }
 }
 

@@ -83,9 +83,9 @@ namespace OpenMS
     double minMass;
     double currentMaxMass;
     double maxMass;
-    std::vector<double> tolerance, binWidth;
+    DoubleList tolerance, binWidth;
     double RTwindow;
-    std::vector<double> maxMassCount;
+    IntList maxMassCount;
     int numOverlappedScans;
     // all information to keep track of
     // parameter

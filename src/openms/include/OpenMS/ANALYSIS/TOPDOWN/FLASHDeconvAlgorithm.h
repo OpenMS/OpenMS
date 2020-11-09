@@ -57,13 +57,13 @@ namespace OpenMS
     //typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-
     /**
-      @brief default constructor for FLASHDeconvAlgorithm
-      @param avg averagine distributions, precalculated
-      @param param FLASHDeconv parameters
- */
-    FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
+          @brief default constructor for FLASHDeconvAlgorithm
+          @param avg averagine distributions, precalculated
+          @param param FLASHDeconv parameters
+     */
+
+    FLASHDeconvAlgorithm();
 
     /// default destructor
     ~FLASHDeconvAlgorithm() = default;
@@ -87,8 +87,11 @@ namespace OpenMS
     void getPeakGroups(DeconvolutedSpectrum &spec,
                        int scanNumber,
                        int &specIndex,
-                       int &massIndex,
-                       int numOverlappedScans);
+                       int &massIndex);
+
+    FLASHDeconvHelperStructs::PrecalculatedAveragine getAveragine();
+
+    void calculateAveragine(bool useRNAavg);
 
     /// convert double to nominal mass
     static int getNominalMass(double m);
@@ -99,10 +102,17 @@ namespace OpenMS
   private:
     /// FLASHDeconv parameters
     int minCharge, maxCharge;
+    int numOverlappedScans;
     double minMass, maxMass;
+    double intensityThreshold;
+    IntList minContinuousChargePeakCount;
+    DoubleList tolerance, binWidth;
+    DoubleList minIsotopeCosine;
+    double minChargeCosine;
+    IntList maxMassCount;
 
     /// precalculated averagine distributions
-    FLASHDeconvHelperStructs::PrecalculatedAveragine &avg;
+    FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
     ///The data structures for spectra overlapping.
     std::vector<std::vector<Size>> prevMassBinVector;
     std::vector<double> prevMinBinLogMassVector;

@@ -38,11 +38,21 @@
 
 namespace OpenMS
 {
-  MassFeatureTrace::MassFeatureTrace(double tol, double minRTSpan, int numOverlappedScans, PrecalculatedAveragine &avg)
-      :
-      tol(tol), minRTSpan(minRTSpan), numOverlappedScans(numOverlappedScans), averagines(avg)
+  MassFeatureTrace::MassFeatureTrace() :
+      DefaultParamHandler("MassFeatureTrace")
   {
+    Param mtd_defaults = MassTraceDetection().getDefaults();
 
+    mtd_defaults.setValue("mass_error_ppm", 10.0);
+    mtd_defaults.remove("mass_error_da");
+    mtd_defaults.remove("chrom_peak_snr");
+    defaults_.insert("", mtd_defaults);
+
+    defaults_.setValue("min_charge_cosine",
+                       .5,
+                       "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
+    defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
+    defaultsToParam_();
   }
 
   MassFeatureTrace::~MassFeatureTrace()
@@ -58,12 +68,13 @@ namespace OpenMS
   void MassFeatureTrace::findFeatures(const String &fileName, bool promexOut, int &featureCntr,
                                       int &featureIndex,
                                       std::fstream &fsf,
-                                      std::fstream &fsp)
+                                      std::fstream &fsp,
+                                      PrecalculatedAveragine averagines)
   {
     MSExperiment map;
     std::map<int, MSSpectrum> indexSpecMap;
-    int minCharge = 0;
-    int maxCharge = 0;
+    int minCharge = INT_MAX;
+    int maxCharge = INT_MIN;
 
     for (auto &item : peakGroupMap)
     {
@@ -72,16 +83,9 @@ namespace OpenMS
       deconvSpec.setRT(rt);
       for (auto &pg : item.second)
       {
-        if (maxCharge == 0)
-        {
-          maxCharge = pg.second.maxCharge;
-          minCharge = pg.second.minCharge;
-        }
-        else
-        {
-          maxCharge = maxCharge > pg.second.maxCharge ? maxCharge : pg.second.maxCharge;
-          minCharge = minCharge < pg.second.minCharge ? minCharge : pg.second.minCharge;
-        }
+        maxCharge = maxCharge > pg.second.maxCharge ? maxCharge : pg.second.maxCharge;
+        minCharge = minCharge < pg.second.minCharge ? minCharge : pg.second.minCharge;
+
         Peak1D tp(pg.first, (float) pg.second.intensity);
         deconvSpec.push_back(tp);
       }
@@ -94,22 +98,11 @@ namespace OpenMS
     }
 
     map.sortSpectra();
-
     MassTraceDetection mtdet;
-    Param mtd_param;
-    mtd_param.setValue("mtd:mass_error_ppm", tol, "");
-    mtd_param.setValue("trace_termination_criterion", "outlier", "");
+    Param mtd_param = getParameters().copy("");
+    mtd_param.remove("min_charge_cosine");
+    mtd_param.remove("min_isotope_cosine");
 
-    mtd_param.setValue("reestimate_mt_sd", "false", "");
-    mtd_param.setValue("quant_method", "area", "");
-    mtd_param.setValue("noise_threshold_int", .0, "");
-
-    //double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
-    mtd_param.setValue("min_sample_rate", 0.01, "");
-    mtd_param.setValue("trace_termination_outliers", numOverlappedScans, "");
-    mtd_param.setValue("min_trace_length", minRTSpan, "");//min_RT_span
-
-    //mtd_param.setValue("max_trace_length", 1000.0, "");
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
 
@@ -121,11 +114,10 @@ namespace OpenMS
     auto *perChargeMz = new double[chargeRange + 1];
     auto *perIsotopeIntensity = new double[averagines.maxIsotopeCount];
 
+    //std::cout<<chargeRange << " " << averagines.maxIsotopeCount<<std::endl;
+
     for (auto &mt : m_traces)
     {
-      //if(mt.getSize() < 3){
-      //  continue;
-      //}
       int minFCharge = chargeRange + minCharge + 1; // min feature charge
       int maxFCharge = minCharge - 1; // max feature charge
 
@@ -166,7 +158,6 @@ namespace OpenMS
           maxIso = pg.isotopeCosineScore;
           maxMass = pg.monoisotopicMass;
         }
-
 
         for (auto &p : pg.peaks)
         {
@@ -274,7 +265,7 @@ namespace OpenMS
         fsp << std::setprecision(0);
       }
     }
-
+    //std::cout<<3<<std::endl;
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;
     delete[] perChargeMaxIntensity;
@@ -313,4 +304,13 @@ namespace OpenMS
           "ElutionLength\tEnvelope\tLikelihoodRatio"
           "\n";
   }
+
+  void MassFeatureTrace::updateMembers_()
+  {
+    tol = param_.getValue("mass_error_ppm");
+    minChargeCosine = param_.getValue("min_charge_cosine");
+    minIsotopeCosine = param_.getValue("min_isotope_cosine");
+  }
+
+
 }

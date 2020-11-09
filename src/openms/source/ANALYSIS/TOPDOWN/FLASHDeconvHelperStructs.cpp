@@ -223,6 +223,7 @@ namespace OpenMS
                                                                                                  bool useRNAavg)
   {
     auto generator = new CoarseIsotopePatternGenerator();
+
     auto maxIso = useRNAavg ?
                   generator->estimateFromRNAWeight(maxMass) :
                   generator->estimateFromPeptideWeight(maxMass);

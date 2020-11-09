@@ -73,8 +73,6 @@ namespace OpenMS
   }
 
   void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
-                                                     int minCharge,
-                                                     int chargeRange,
                                                      const String &fileName,
                                                      bool writeDetail)//, fstream &fsm, fstream &fsp)
   {
@@ -92,8 +90,8 @@ namespace OpenMS
       const double &m = pg.monoisotopicMass;
       const double &am = pg.avgMass;
       const double &intensity = pg.intensity;
-      int minPgCharge = chargeRange + minCharge;
-      int maxPgCharge = minCharge - 1;
+      int minPgCharge = INT_MAX;
+      int maxPgCharge = INT_MIN;
       for (auto &p : pg.peaks)
       {
         minPgCharge = minPgCharge < p.charge ? minPgCharge : p.charge;

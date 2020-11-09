@@ -54,7 +54,7 @@ namespace OpenMS
       if (num == 0.0)
       {
         key = tokenString;
-        inputs[key] = std::vector<double>();
+        inputs[key] = DoubleList();
       }
       else
       {
@@ -70,7 +70,12 @@ namespace OpenMS
     currentMaxMass = maxMass = inputs["max_mass"][0];
     tolerance = inputs["tol"];
     RTwindow = inputs["RT_window"][0];
-    maxMassCount = inputs["max_mass_count"];
+    auto maxMassCountd = inputs["max_mass_count"];
+    for (auto j = 0; j < (int) maxMassCountd.size(); j++)
+    {
+      maxMassCount.push_back((int) maxMassCountd[j]);
+    }
+
     numOverlappedScans = 10;
 
     for (auto j = 0; j < (int) tolerance.size(); j++)
@@ -111,13 +116,19 @@ namespace OpenMS
       //TODO precursor infor here
     }
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
-    auto sd = SpectrumDeconvolution(spec, minCharge, minCharge + chargeRange, minMass, maxMass);
+    auto sd = SpectrumDeconvolution(&spec, minCharge, minCharge + chargeRange, minMass, maxMass, .0);
+    IntList minContinuousChargePeakCount = {3, 1};
+    double minChargeCosine = .5;
+    DoubleList minIsotopeCosine = {.75, .85};
 
     peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinVector,
                                               prevMinBinLogMassVector,
+                                              tolerance, binWidth,
+                                              minContinuousChargePeakCount,
                                               currentChargeRange,
                                               currentMaxMass,
                                               numOverlappedScans,
+                                              minChargeCosine, maxMassCount, minIsotopeCosine,
                                               avg,
                                               msLevel);
 
