@@ -11,20 +11,20 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
         
         IsotopeLabelingMDVs() nogil except +
 
-        void isotopicCorrection(const FeatureMap & normalized_featureMap, FeatureMap & corrected_featureMap, 
-          const MatrixDouble & correction_matrix, const String correction_matrix_agent) nogil except +
+        void isotopicCorrection(const Feature & normalized_feature, Feature & corrected_feature, 
+          const MatrixDouble & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void isotopicCorrections(
           const FeatureMap & normalized_featureMap, FeatureMap & corrected_featureMap,
-          const MatrixDouble & correction_matrix, const String correction_matrix_agent) nogil except +
+          const MatrixDouble & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void calculateIsotopicPurity(
           const Feature & normalized_feature, Feature & feature_with_isotopic_purity,
-          libcpp_vector[double] & experiment_data, String & isotopic_purity_name) nogil except +
+          const libcpp_vector[double] & experiment_data, const String & isotopic_purity_name) nogil except +
 
         void calculateIsotopicPurities(
-          const FeatureMap & normalized_featureMap, FeatureMap & featureMap_with_isotopic_purity,
-          libcpp_vector[double] & experiment_data, String & isotopic_purity_name) nogil except +
+          const FeatureMap & normalized_feature, FeatureMap & feature_with_isotopic_purity,
+          const libcpp_vector[double] & experiment_data, const String & isotopic_purity_name) nogil except +
 
         void calculateMDVAccuracy(
           const Feature & normalized_feature, Feature & feature_with_accuracy_info,
@@ -36,8 +36,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDV(
           const Feature & measured_feature, Feature & normalized_feature,
-          const String & mass_intensity_type, const String & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +
 
         void calculateMDVs(
           const FeatureMap & measured_featureMap, FeatureMap & normalized_featureMap,
-          const String & mass_intensity_type, const String & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +

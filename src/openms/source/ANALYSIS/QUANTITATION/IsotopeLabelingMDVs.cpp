@@ -36,6 +36,9 @@
 
 namespace OpenMS
 {
+
+  const std::string IsotopeLabelingMDVs::NamesOfFeatureName[] = {"intensity", "peak_apex_int"};
+
   IsotopeLabelingMDVs::IsotopeLabelingMDVs() :
     DefaultParamHandler("IsotopeLabelingMDVs")
   {
@@ -125,17 +128,18 @@ namespace OpenMS
   void IsotopeLabelingMDVs::calculateIsotopicPurity(
     const Feature& normalized_featuremap,
     Feature& featuremap_with_isotopic_purity,
-    std::vector<double>& experiment_data,
-    std::string& isotopic_purity_name)
+    const std::vector<double>& experiment_data,
+    const std::string& isotopic_purity_name)
   {
     featuremap_with_isotopic_purity = normalized_featuremap;
     
     if (!experiment_data.empty())
     {
       double experiment_data_peak = 0.0;
-      std::vector<double>::iterator max_it = std::max_element(experiment_data.begin(), experiment_data.end());
-      uint64_t experiment_data_peak_idx = std::distance(experiment_data.begin(), max_it);
-      experiment_data_peak = experiment_data[experiment_data_peak_idx];
+      std::vector<double> experiment_data_ = experiment_data;
+      std::vector<double>::iterator max_it = std::max_element(experiment_data_.begin(), experiment_data_.end());
+      uint64_t experiment_data_peak_idx = std::distance(experiment_data_.begin(), max_it);
+      experiment_data_peak = experiment_data_[experiment_data_peak_idx];
       
       if (experiment_data_peak_idx >= 1 && experiment_data_peak != 0.0)
       {
@@ -149,8 +153,8 @@ namespace OpenMS
   void IsotopeLabelingMDVs::calculateIsotopicPurities(
     const FeatureMap& normalized_featureMap,
     FeatureMap& featureMap_with_isotopic_purity,
-    std::vector<double>& experiment_data,
-    std::string& isotopic_purity_name)
+    const std::vector<double>& experiment_data,
+    const std::string& isotopic_purity_name)
   {
     for (const Feature& feature : normalized_featureMap)
     {
@@ -224,14 +228,14 @@ namespace OpenMS
   void IsotopeLabelingMDVs::calculateMDV(
     const Feature& measured_feature,
     Feature& normalized_feature,
-    const String& mass_intensity_type,
-    const String& feature_name)
+    const MassIntensityType& mass_intensity_type,
+    const FeatureName& feature_name)
   {
     std::vector<Feature> measured_feature_subordinates = measured_feature.getSubordinates();
     normalized_feature = measured_feature;
-    if (mass_intensity_type == "norm_max")
+    if (mass_intensity_type == MassIntensityType::NORM_MAX)
     {
-      if (feature_name == "intensity")
+      if (feature_name == FeatureName::INTENSITY)
       {
         std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
@@ -250,12 +254,12 @@ namespace OpenMS
         }
       }
       // for every other case where feature_name isn't 'intensity', i.e. 'peak_apex_int'
-      else
+      else if (feature_name == FeatureName::PEAK_APEX_INT)
       {
         std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          intensities_vec.push_back(it->getMetaValue(feature_name));
+          intensities_vec.push_back(it->getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]));
         }
         std::vector<OpenMS::Peak2D::IntensityType>::iterator max_it = std::max_element(intensities_vec.begin(), intensities_vec.end());
         double measured_feature_max = intensities_vec[std::distance(intensities_vec.begin(), max_it)];
@@ -264,14 +268,14 @@ namespace OpenMS
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
+            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]) / measured_feature_max);
           }
         }
       }
     }
-    else if (mass_intensity_type == "norm_sum")
+    else if (mass_intensity_type == MassIntensityType::NORM_SUM)
     {
-      if (feature_name == "intensity")
+      if (feature_name == FeatureName::INTENSITY)
       {
         OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
@@ -285,19 +289,19 @@ namespace OpenMS
         }
       }
       // for every other case where feature_name isn't 'intensity', i.e. 'peak_apex_int'
-      else
+      else if (feature_name == FeatureName::PEAK_APEX_INT)
       {
         OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          feature_peak_apex_intensity_sum += (Peak2D::IntensityType)it->getMetaValue(feature_name);
+          feature_peak_apex_intensity_sum += (Peak2D::IntensityType)it->getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]);
         }
 
         if (feature_peak_apex_intensity_sum != 0.0)
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
+            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]) / feature_peak_apex_intensity_sum);
           }
         }
       }
@@ -306,7 +310,7 @@ namespace OpenMS
 
   void IsotopeLabelingMDVs::calculateMDVs(
     const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
-    const String& mass_intensity_type, const String& feature_name)
+    const MassIntensityType& mass_intensity_type, const FeatureName& feature_name)
   {
     if (!normalized_featureMap.empty())
     {

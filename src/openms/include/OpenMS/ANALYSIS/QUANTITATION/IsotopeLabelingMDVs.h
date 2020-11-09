@@ -76,6 +76,22 @@ namespace OpenMS
       NOT_SELECTED,
       TBDMS
     };
+    
+    enum class FeatureName
+    {
+      INTENSITY,
+      PEAK_APEX_INT,
+      SIZE_OF_FEATURENAME
+    };
+    
+    enum class MassIntensityType
+    {
+      NORM_MAX,
+      NORM_SUM,
+      SIZE_OF_MASSINTENSITYTYPE
+    };
+    
+    static const std::string NamesOfFeatureName[static_cast<int>(FeatureName::SIZE_OF_FEATURENAME)];
  
     /**
       @brief This function performs an isotopic correction to account for unlabeled abundances coming from
@@ -127,7 +143,7 @@ namespace OpenMS
     */
     void calculateIsotopicPurity(
       const Feature& normalized_feature, Feature& feature_with_isotopic_purity,
-      std::vector<double>& experiment_data, std::string& isotopic_purity_name);
+      const std::vector<double>& experiment_data, const std::string& isotopic_purity_name);
     
     /**
       @brief This function calculates the isotopic purity of the MDVs using the following formula:
@@ -143,7 +159,7 @@ namespace OpenMS
     */
     void calculateIsotopicPurities(
       const FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_isotopic_purity,
-      std::vector<double>& experiment_data, std::string& isotopic_purity_name);
+      const std::vector<double>& experiment_data, const std::string& isotopic_purity_name);
 
     /**
       @brief This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
@@ -183,7 +199,7 @@ namespace OpenMS
     */
     void calculateMDV(
       const Feature& measured_feature, Feature& normalized_feature,
-      const String& mass_intensity_type, const String& feature_name);
+      const MassIntensityType& mass_intensity_type, const FeatureName& feature_name);
     
     /**
       @brief This function calculates the mass distribution vector (MDV)
@@ -197,7 +213,7 @@ namespace OpenMS
     */
     void calculateMDVs(
       const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
-      const String& mass_intensity_type, const String& feature_name);
+      const MassIntensityType& mass_intensity_type, const FeatureName& feature_name);
     
   protected:
     /// Synchronize members with param class

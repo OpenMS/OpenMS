@@ -92,7 +92,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
   lactate_1_normmax.setSubordinates(L1_subordinates_normmax);
   
-  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, "norm_max", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_1_normalized_normmax.getSubordinates().size(); ++i)
   {
@@ -113,7 +113,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
   lactate_2_normmax.setSubordinates(L2_subordinates_normmax);
 
-  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, "norm_max", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_2_normalized_normmax.getSubordinates().size(); ++i)
   {
@@ -135,7 +135,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
   lactate_1_normsum.setSubordinates(L1_subordinates_normsum);
 
-  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, "norm_sum", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_1_normalized_normsum.getSubordinates().size(); ++i)
   {
@@ -155,7 +155,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   }
   lactate_2_normsum.setSubordinates(L2_subordinates_normsum);
 
-  isotopelabelingmdvs.calculateMDV(lactate_2_normsum, lactate_2_normalized_normsum, "norm_sum", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_2_normsum, lactate_2_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_2_normalized_normsum.getSubordinates().size(); ++i)
   {
@@ -202,7 +202,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_1_normmax.setSubordinates(L1_subordinates_normmax);
   
-  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, "norm_max", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_1_normmax, lactate_1_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_1_normalized_normmax.getSubordinates().size(); ++i)
   {
@@ -223,7 +223,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_2_normmax.setSubordinates(L2_subordinates_normmax);
 
-  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, "norm_max", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_2_normmax, lactate_2_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_2_normalized_normmax.getSubordinates().size(); ++i)
   {
@@ -245,7 +245,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_1_normsum.setSubordinates(L1_subordinates_normsum);
 
-  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, "norm_sum", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_1_normsum, lactate_1_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_1_normalized_normsum.getSubordinates().size(); ++i)
   {
@@ -265,7 +265,7 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   }
   lactate_2_normsum.setSubordinates(L2_subordinates_normsum);
 
-  isotopelabelingmdvs.calculateMDV(lactate_2_normsum, lactate_2_normalized_normsum, "norm_sum", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDV(lactate_2_normsum, lactate_2_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_2_normalized_normsum.getSubordinates().size(); ++i)
   {
@@ -283,8 +283,8 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   lactate_normsum.push_back(lactate_1_normsum);
   lactate_normsum.push_back(lactate_2_normsum);
 
-  isotopelabelingmdvs.calculateMDVs(lactate_normmax, lactate_normalized_normmax, "norm_max", "peak_apex_int");
-  isotopelabelingmdvs.calculateMDVs(lactate_normsum, lactate_normalized_normsum, "norm_sum", "peak_apex_int");
+  isotopelabelingmdvs.calculateMDVs(lactate_normmax, lactate_normalized_normmax, IsotopeLabelingMDVs::MassIntensityType::NORM_MAX, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
+  isotopelabelingmdvs.calculateMDVs(lactate_normsum, lactate_normalized_normsum, IsotopeLabelingMDVs::MassIntensityType::NORM_SUM, IsotopeLabelingMDVs::FeatureName::PEAK_APEX_INT);
 
   for(size_t i = 0; i < lactate_normalized_normmax.size(); ++i)
   {
