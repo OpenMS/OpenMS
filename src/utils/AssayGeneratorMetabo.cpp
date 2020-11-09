@@ -274,10 +274,10 @@ protected:
     // param SiriusAdapterAlgorithm
     String executable = getStringOption_("executable");
 
+    algorithm.updateExistingParameter(getParam_());
+
     writeDebug_("Parameters passed to SiriusAdapterAlgorithm", algorithm.getParameters(), 3);
 
-    algorithm.updateExistingParameter(getParam_());
-    
     // SIRIUS workspace (currently needed for fragmentation trees)
     String sirius_workspace_directory = getStringOption_("out_workspace_directory");
 

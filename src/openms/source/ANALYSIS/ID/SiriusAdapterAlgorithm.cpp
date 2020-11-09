@@ -680,6 +680,7 @@ namespace OpenMS
 
     {
       // get the command line parameters from all the subtools
+      QStringList project_params = project.getCommandLine();
       QStringList sirius_params = sirius.getCommandLine();
       QStringList fingerid_params = fingerid.getCommandLine();
 
@@ -687,7 +688,7 @@ namespace OpenMS
       const bool run_passatutto = decoy_generation;
 
       // structure of the command line passed to NightSky
-      QStringList command_line = QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params;
+      QStringList command_line = project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params;
 
       if (run_passatutto)
       {
