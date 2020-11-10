@@ -94,9 +94,9 @@ protected:
       EGHFitterFunctor(int dimensions, const EGHFitter1D::Data * data)
       : LevMarqFitter1D::GenericFunctor(dimensions, data->n), m_data(data) {}
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) override;
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const override;
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) override;
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const override;
 
       protected:
         const EGHFitter1D::Data * m_data;

@@ -141,7 +141,7 @@ namespace OpenMS
     else
     {
       // Behavior if its neither (user may have clicked on an empty tree or a
-      // dummy entry as drawn by SpectraViewWidget::updateEntries)
+      // dummy entry as drawn by SpectraTreeTab::updateEntries)
       QMessageBox::critical(w, "Error", "Cannot open data that is neither chromatogram nor spectrum data. Aborting!");
       return;
     }
@@ -252,7 +252,7 @@ namespace OpenMS
     tv_->updateBarsAndMenus();
   }
 
-  // called by SpectraViewWidget::spectrumSelected()
+  // called by SpectraTreeTab::spectrumSelected()
   void TVSpectraViewController::activate1DSpectrum(int index)
   {
     Plot1DWidget* widget_1d = tv_->getActive1DWidget();
@@ -295,7 +295,7 @@ namespace OpenMS
     }
   }
 
-  // called by SpectraViewWidget::spectrumSelected()
+  // called by SpectraTreeTab::spectrumSelected()
   void TVSpectraViewController::activate1DSpectrum(const std::vector<int>& indices)
   {
     Plot1DWidget * widget_1d = tv_->getActive1DWidget();

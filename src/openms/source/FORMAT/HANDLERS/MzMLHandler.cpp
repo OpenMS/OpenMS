@@ -168,7 +168,7 @@ namespace OpenMS
 
             catch (OpenMS::Exception::BaseException& e)
             {
-#pragma omp critical
+#pragma omp critical(MZMLErrorHandling)
               {
                 ++errCount;
                 error_message = e.what();
@@ -2183,7 +2183,7 @@ namespace OpenMS
         else if (accession == "MS:1000803") //analyzer scan offset
         {
           //No member => meta data
-          spec_.setMetaValue("analyzer scan offset", termValue); // used in SpectraIdentificationViewWidget()
+          spec_.setMetaValue("analyzer scan offset", termValue); // used in SpectraIDViewTab()
         }
         else if (accession == "MS:1000616") //preset scan configuration
         {

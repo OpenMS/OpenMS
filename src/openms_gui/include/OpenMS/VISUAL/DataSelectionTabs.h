@@ -43,8 +43,8 @@
 
 namespace OpenMS
 {
-  class SpectraViewWidget;
-  class SpectraIdentificationViewWidget;
+  class SpectraTreeTab;
+  class SpectraIDViewTab;
   class TVIdentificationViewController;
   class TVSpectraViewController;
   class TOPPViewBase;
@@ -87,14 +87,14 @@ namespace OpenMS
     /// enable and show the @p which tab
     void show(TAB_INDEX which);
 
-    SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
+    SpectraIDViewTab* getSpectraIDViewTab();
   signals:
 
   private:
     ///@name Spectrum selection widgets
     //@{
-    SpectraViewWidget* spectra_view_widget_;
-    SpectraIdentificationViewWidget* id_view_widget_;
+    SpectraTreeTab* spectra_view_widget_;
+    SpectraIDViewTab* id_view_widget_;
     //@}
 
     /// TOPPView behavior for the spectra view

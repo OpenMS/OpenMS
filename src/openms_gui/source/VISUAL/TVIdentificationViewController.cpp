@@ -49,7 +49,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 
 
@@ -64,7 +64,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
+  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view) :
     TVControllerBase(parent),
     spec_id_view_(spec_id_view)
   {
