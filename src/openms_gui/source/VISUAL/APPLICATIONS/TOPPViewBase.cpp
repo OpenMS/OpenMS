@@ -1921,7 +1921,7 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(DataSelectionTabs::IDENT_IDX);
+    selection_view_->show(DataSelectionTabs::DIAOSW_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -2350,9 +2350,7 @@ namespace OpenMS
       updateMenu();
     }
   }
-
   
-
   void TOPPViewBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
   {
     static StringList colors = { "@bw", "@bg", "@b", "@r", "@g", "@m" };

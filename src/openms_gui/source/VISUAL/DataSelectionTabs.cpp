@@ -36,6 +36,7 @@
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/VISUAL/DIATreeTab.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
@@ -43,6 +44,7 @@
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/TVDIATreeTabController.h>
 #include <OpenMS/VISUAL/TVSpectraViewController.h>
 #include <OpenMS/VISUAL/TVIdentificationViewController.h>
 
@@ -61,8 +63,10 @@ namespace OpenMS
     : QTabWidget(parent),
     spectra_view_widget_(new SpectraTreeTab(this)),
     id_view_widget_(new SpectraIDViewTab(Param(), this)),
+    dia_widget_(new DIATreeTab(this)),
     spectraview_controller_(new TVSpectraViewController(tv)),
     idview_controller_(new TVIdentificationViewController(tv, id_view_widget_)),
+    diatab_controller_(new TVDIATreeTabController(tv)),
     tv_(tv)
   {
     // Hook-up controller and views for spectra inspection
@@ -84,8 +88,11 @@ namespace OpenMS
     if (index != SPECTRA_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
     index = addTab(id_view_widget_, id_view_widget_->objectName());
     if (index != IDENT_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 1");
+    index = addTab(dia_widget_, dia_widget_->objectName());
+    if (index != DIAOSW_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 2");
     setTabEnabled(SPECTRA_IDX, true);
     setTabEnabled(IDENT_IDX, false);
+    setTabEnabled(DIAOSW_IDX, false);
 
     // switch between different view tabs
     connect(this, &QTabWidget::currentChanged, this, &DataSelectionTabs::currentTabChanged);
@@ -128,6 +135,11 @@ namespace OpenMS
         id_view_widget_->setLayer(&cc->getCurrentLayer());
       }
     }
+
+    if (dia_widget_->isVisible())
+    {
+      dia_widget_->updateEntries(cc->getCurrentLayer());
+    }
   }
 
   void DataSelectionTabs::currentTabChanged(int tab_index)
@@ -137,15 +149,22 @@ namespace OpenMS
     {
     case SPECTRA_IDX:
       idview_controller_->deactivateBehavior(); // finalize old behavior
+      diatab_controller_->deactivateBehavior();
       spectraview_controller_->activateBehavior(); // initialize new behavior
       break;
     case IDENT_IDX:
       spectraview_controller_->deactivateBehavior();
+      diatab_controller_->deactivateBehavior();
       if (tv_->getActive2DWidget()) // currently 2D window is open
       {
         showSpectrumAs1D(0);
       }
       idview_controller_->activateBehavior();
+      break;
+    case DIAOSW_IDX:
+      idview_controller_->deactivateBehavior(); // finalize old behavior
+      spectraview_controller_->deactivateBehavior();
+      diatab_controller_->activateBehavior(); // initialize new behavior
       break;
     default:
       std::cerr << "Error: tab_index " << tab_index << " is invalid\n";

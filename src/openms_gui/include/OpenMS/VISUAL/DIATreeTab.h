@@ -34,82 +34,62 @@
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QtWidgets>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <QTabWidget>
+#include <OpenMS/VISUAL/LayerData.h>
+
+class QLineEdit;
+class QComboBox;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace OpenMS
 {
-  class DIATreeTab;
-  class SpectraTreeTab;
-  class SpectraIDViewTab;
-  class TVDIATreeTabController;
-  class TVIdentificationViewController;
-  class TVSpectraViewController;
-  class TOPPViewBase;
+  class TreeView;
   /**
-    @brief A tabbed view, to browse lists of spectra or identifications
-    
+    @brief Hierarchical visualization and selection of spectra.
+
+    @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI DataSelectionTabs
-    : public QTabWidget
+  class DIATreeTab :
+    public QWidget
   {
     Q_OBJECT
-
   public:
-    enum TAB_INDEX
-    {
-      SPECTRA_IDX = 0,  ///< first tab
-      IDENT_IDX = 1,    ///< second tab
-      DIAOSW_IDX = 2,   ///< third tab
-      AUTO_IDX          ///< automatically decide which tab to show (i.e. prefer IDENT_IDX if it has data)
-    };
+    /// Constructor
+    DIATreeTab(QWidget* parent = nullptr);
+    /// Destructor
+    ~DIATreeTab() = default;
 
-    /// Default constructor
-    DataSelectionTabs(QWidget* parent, TOPPViewBase* tv);
+    /// refresh the table using data from @p cl
+    /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
+    void updateEntries(LayerData& cl);
+    /// remove all visible data
+    void clear();
 
-    /// update items in the two tabs according to the currently selected layer
-    void update();
-
-    /// invoked when user changes the active tab to @p tab_index
-    void currentTabChanged(int tab_index);
-    
-    /// forwards to the TOPPView*Behaviour classes, to show a certain spectrum in 1D
-    void showSpectrumAs1D(int index);
-    
-    /// forwards to the TOPPView*Behaviour classes, to show a certain set of chromatograms in 1D
-    void showSpectrumAs1D(std::vector<int> indices);
-
-    /// double-click on disabled identification view
-    /// --> enables it and creates an empty identification structure
-    void tabBarDoubleClicked(int tab_index);
-
-    /// enable and show the @p which tab
-    void show(TAB_INDEX which);
-
-    SpectraIDViewTab* getSpectraIDViewTab();
   signals:
+    void transitionSelected(std::vector<int> indices);
 
   private:
-    ///@name Spectrum selection widgets
-    //@{
-    SpectraTreeTab* spectra_view_widget_;
-    SpectraIDViewTab* id_view_widget_;
-    DIATreeTab* dia_widget_;
-    //@}
+    QLineEdit* spectra_search_box_ = nullptr;
+    QComboBox* spectra_combo_box_ = nullptr;
+    TreeView* dia_treewidget_ = nullptr;
 
-    /// TOPPView behavior for the spectra view
-    TVSpectraViewController* spectraview_controller_;
-    /// TOPPView behavior for the identification view
-    TVIdentificationViewController* idview_controller_;
-    /// TOPPView behavior for the DIA view
-    TVDIATreeTabController* diatab_controller_;
+    LayerData* current_layer_ = nullptr;
 
-    /// pointer to base class to access some members (going signal/slot would be cleaner)
-    TOPPViewBase* tv_;
+  private slots:
+    /// fill the search-combo-box with current column header names
+    void populateSearchBox_();
+    /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+    void spectrumSearchText_();
+    /// emits transitionSelected() for all subitems
+    void rowSelectionChange_(QTreeWidgetItem*, QTreeWidgetItem*);
+    /// emits transitionSelected() for all subitems
+    void rowSelectionChange2_(QTreeWidgetItem*, int col);
+    /// searches using text box and plots the spectrum
+    void searchAndShow_();
+
   };
+}
 
-} //namespace

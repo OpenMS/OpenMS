@@ -256,7 +256,8 @@ public:
     }
 
     /// get annotation (e.g. to build a hierachical ID View)
-    const OSWData& getChromatogramAnnotation()
+    /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+    OSWData& getChromatogramAnnotation()
     {
       return chrom_annotation_;
     }

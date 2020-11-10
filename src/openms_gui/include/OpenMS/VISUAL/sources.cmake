@@ -8,6 +8,7 @@ AxisPainter.h
 AxisWidget.h
 ColorSelector.h
 DataSelectionTabs.h
+DIATreeTab.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
@@ -54,6 +55,7 @@ TOPPASWidget.h
 TOPPViewMenu.h
 TreeView.h
 TVControllerBase.h
+TVDIATreeTabController.h
 TVIdentificationViewController.h
 TVSpectraViewController.h
 )
