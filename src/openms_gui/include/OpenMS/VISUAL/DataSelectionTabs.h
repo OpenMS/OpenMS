@@ -81,7 +81,7 @@ namespace OpenMS
     void showSpectrumAsNew1D(int index);
     
     /// forwards to the TOPPView*Behaviour classes, to show a certain set of chromatograms in 1D
-    void showChromsAsNew1D(const std::vector<int>& indices);
+    void showChromatogramsAsNew1D(const std::vector<int>& indices);
 
     /// double-click on disabled identification view
     /// --> enables it and creates an empty identification structure

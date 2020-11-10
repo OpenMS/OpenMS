@@ -108,7 +108,7 @@ signals:
     void toggleProjections();
     /// Requests to display the spectrum with index @p index in 1D
     void showSpectrumAsNew1D(int index);
-    void showChromsAsNew1D(std::vector<int, std::allocator<int> > indices);
+    void showChromatogramsAsNew1D(std::vector<int, std::allocator<int> > indices);
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
 

@@ -43,8 +43,6 @@
 
 namespace OpenMS
 {
-
-
   // Use a namespace to encapsulate names, yet use c-style 'enum' for fast conversion to int.
   // So we can write: 'Clmn::MS_LEVEL', but get implicit conversion to int
   namespace Clmn
@@ -56,7 +54,6 @@ namespace OpenMS
     // keep in SYNC with enum HeaderNames
     const QStringList HEADER_NAMES = QStringList()
       << "entity" << "index" << "charge" << "full name" << "rt delta" << "q-value";
-
   }
 
   namespace Entity
@@ -116,8 +113,6 @@ namespace OpenMS
       }
     }
   };
-
-
 
   DIATreeTab::DIATreeTab(QWidget* parent) :
     QWidget(parent)
@@ -353,10 +348,8 @@ namespace OpenMS
         dia_treewidget_->addTopLevelItem(item_prot);
       }
     }
-
     
     populateSearchBox_();
-
 
     // automatically set column width, depending on data
     dia_treewidget_->header()->setStretchLastSection(false);
@@ -377,7 +370,5 @@ namespace OpenMS
     dia_treewidget_->clear();
     spectra_combo_box_->clear();
   }
-
-
 
 }

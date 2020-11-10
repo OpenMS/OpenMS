@@ -2503,7 +2503,7 @@ namespace OpenMS
               chrom_indices.push_back(res[i].toInt());
               cout << "chrom_indices: " << res[i].toInt() << std::endl;
             }
-            emit showChromsAsNew1D(chrom_indices);
+            emit showChromatogramsAsNew1D(chrom_indices);
           }
           else   // Show single chromatogram
           {

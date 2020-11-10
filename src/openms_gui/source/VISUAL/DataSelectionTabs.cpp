@@ -72,11 +72,11 @@ namespace OpenMS
     // Hook-up controller and views for spectra inspection
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumAsNew1D, spectraview_controller_, &TVSpectraViewController::showSpectrumAsNew1D);
-    connect(spectra_view_widget_, &SpectraTreeTab::showChromsAsNew1D, spectraview_controller_, &TVSpectraViewController::showChromsAsNew1D);
+    connect(spectra_view_widget_, &SpectraTreeTab::showChromatogramsAsNew1D, spectraview_controller_, &TVSpectraViewController::showChromatogramsAsNew1D);
     connect(spectra_view_widget_, &SpectraTreeTab::spectrumSelected, spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
     connect(spectra_view_widget_, &SpectraTreeTab::chromsSelected, spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
     connect(spectra_view_widget_, &SpectraTreeTab::spectrumDoubleClicked, spectraview_controller_, &TVSpectraViewController::showSpectrumAsNew1D);
-    connect(spectra_view_widget_, &SpectraTreeTab::chromsDoubleClicked, spectraview_controller_, &TVSpectraViewController::showChromsAsNew1D);
+    connect(spectra_view_widget_, &SpectraTreeTab::chromsDoubleClicked, spectraview_controller_, &TVSpectraViewController::showChromatogramsAsNew1D);
 
     // Hook-up controller and views for identification inspection
     connect(id_view_widget_, &SpectraIDViewTab::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
@@ -192,7 +192,7 @@ namespace OpenMS
     }
   }
 
-  void DataSelectionTabs::showChromsAsNew1D(const std::vector<int>& indices)
+  void DataSelectionTabs::showChromatogramsAsNew1D(const std::vector<int>& indices)
   {
     Plot1DWidget* widget_1d = tv_->getActive1DWidget();
     Plot2DWidget* widget_2d = tv_->getActive2DWidget();
@@ -201,14 +201,14 @@ namespace OpenMS
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_controller_->showChromsAsNew1D(indices);
+        spectraview_controller_->showChromatogramsAsNew1D(indices);
       }
     }
     else if (widget_2d)
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_controller_->showChromsAsNew1D(indices);
+        spectraview_controller_->showChromatogramsAsNew1D(indices);
       }
     }
   }

@@ -46,6 +46,7 @@ namespace OpenMS
   #define CONNECTCAST(class,func,args) static_cast<void(class::*)args>(&class::func)
 
 
+  /// Enum to decide which headers(=column) names should be get/set in a table/tree widget
   enum class WidgetHeader
   {
     VISIBLE_ONLY,

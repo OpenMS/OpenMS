@@ -244,7 +244,7 @@ namespace OpenMS
         }
         else
         { // open several chromatograms at once
-          emit showChromsAsNew1D(listToVec(ie.res));
+          emit showChromatogramsAsNew1D(listToVec(ie.res));
         }
       });
       context_menu.addAction("Meta data", [&]() 

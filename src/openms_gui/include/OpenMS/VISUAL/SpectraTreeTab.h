@@ -78,7 +78,7 @@ signals:
     void spectrumDoubleClicked(int);
     void chromsDoubleClicked(std::vector<int> indices);
     void showSpectrumAsNew1D(int);
-    void showChromsAsNew1D(std::vector<int> indices);
+    void showChromatogramsAsNew1D(std::vector<int> indices);
     void showSpectrumMetaData(int);
 private:
     QLineEdit* spectra_search_box_ = nullptr;

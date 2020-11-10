@@ -184,7 +184,7 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  void TVSpectraViewController::showChromsAsNew1D(const std::vector<int>& indices)
+  void TVSpectraViewController::showChromatogramsAsNew1D(const std::vector<int>& indices)
   {
 
     // basic behavior 1

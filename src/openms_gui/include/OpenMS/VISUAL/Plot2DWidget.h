@@ -107,7 +107,7 @@ signals:
     void visibleAreaChanged(DRange<2> area);
     /// Requests to display the spectrum with index @p index in 1D
     void showSpectrumAsNew1D(int index);
-    void showChromsAsNew1D(std::vector<int, std::allocator<int> > indices);
+    void showChromatogramsAsNew1D(std::vector<int, std::allocator<int> > indices);
     /// Requests to display all spectra as 1D
     void showCurrentPeaksAs3D();
 
