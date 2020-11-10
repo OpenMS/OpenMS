@@ -337,17 +337,18 @@ namespace OpenMS
 
     dia_treewidget_->setHeaders(Clmn::HEADER_NAMES);
 
-    const OSWData& data = *cl.getChromatogramAnnotation().get();
+    const OSWData* data = cl.getChromatogramAnnotation().get();
 
-    if (data.getProteins().empty())
+    if (data == nullptr  // DIA tab is active, but the layer has no data to show...
+        || data->getProteins().empty())
     {
       dia_treewidget_->setHeaders(QStringList() << "No data");
     }
     else
     {
-      for (int prot_index = 0; prot_index < data.getProteins().size(); ++prot_index)
+      for (int prot_index = 0; prot_index < data->getProteins().size(); ++prot_index)
       {
-        const auto& prot = data.getProteins()[prot_index];
+        const auto& prot = data->getProteins()[prot_index];
         auto item_prot = createProt(prot, prot_index);
         dia_treewidget_->addTopLevelItem(item_prot);
       }
