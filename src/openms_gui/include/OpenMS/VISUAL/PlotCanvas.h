@@ -72,15 +72,15 @@ namespace OpenMS
   {
     public:
       /// adds a new layer and makes it the current layer
-      void addLayer(LayerData&& new_layer);
+      void addLayer(LayerDataBase* new_layer);
 
-      const LayerData& getLayer(const Size index) const;
+      const LayerDataBase* getLayer(const Size index) const;
 
-      LayerData& getLayer(const Size index);
+      LayerDataBase* getLayer(const Size index);
 
-      const LayerData& getCurrentLayer() const;
+      const LayerDataBase* getCurrentLayer() const;
 
-      LayerData& getCurrentLayer();
+      LayerDataBase* getCurrentLayer();
 
       /// throws Exception::IndexOverflow unless @p index is smaller than getLayerCount()
       void setCurrentLayer(Size index);
@@ -96,7 +96,7 @@ namespace OpenMS
       void removeCurrentLayer();
   
   protected:
-      std::vector<LayerData> layers_;
+      std::vector<LayerDataBase*> layers_;
   private:
       Size current_layer_ = -1;
   };
@@ -141,19 +141,19 @@ public:
     //@{
 
     /// Main data type (experiment)
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef PeakLayer::ExperimentType ExperimentType;
     /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-    typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
-    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+    typedef PeakLayer::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef PeakLayer::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
+    typedef PeakLayer::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     /// Main data type (features)
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef FeatureLayer::FeatureMapType FeatureMapType;
     /// Main managed data type (features)
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef FeatureLayer::FeatureMapSharedPtrType FeatureMapSharedPtrType;
     /// Main data type (consensus features)
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef ConsensusLayer::ConsensusMapType ConsensusMapType;
     /// Main managed data type (consensus features)
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef ConsensusLayer::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     /// Spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
@@ -267,23 +267,23 @@ public:
     }
 
     /// returns the layer data with index @p index
-    inline const LayerData& getLayer(Size index) const
+    inline const LayerDataBase* getLayer(Size index) const
     {
       return layers_.getLayer(index);
     }
     /// returns the layer data with index @p index
-    inline LayerData& getLayer(Size index)
+    inline LayerDataBase* getLayer(Size index)
     {
       return layers_.getLayer(index);
     }
 
     /// returns the layer data of the active layer
-    inline const LayerData& getCurrentLayer() const
+    inline const LayerDataBase* getCurrentLayer() const
     {
       return layers_.getCurrentLayer();
     }
     /// returns the layer data of the active layer
-    inline LayerData& getCurrentLayer()
+    inline LayerDataBase* getCurrentLayer()
     {
       return layers_.getCurrentLayer();
     }
@@ -295,39 +295,39 @@ public:
     }
 
     /// returns a layer flag of the current layer
-    bool getLayerFlag(LayerData::Flags f) const
+    bool getLayerFlag(LayerDataBase::Flags f) const
     {
       return getLayerFlag(layers_.getCurrentLayerIndex(), f);
     }
 
     /// sets a layer flag of the current layer
-    void setLayerFlag(LayerData::Flags f, bool value)
+    void setLayerFlag(LayerDataBase::Flags f, bool value)
     {
       setLayerFlag(layers_.getCurrentLayerIndex(), f, value);
     }
 
     /// returns a layer flag of the layer @p layer
-    bool getLayerFlag(Size layer, LayerData::Flags f) const
+    bool getLayerFlag(Size layer, LayerDataBase::Flags f) const
     {
-      return layers_.getLayer(layer).flags.test(f);
+      return layers_.getLayer(layer)->flags.test(f);
     }
 
     /// sets a layer flag of the layer @p layer
-    void setLayerFlag(Size layer, LayerData::Flags f, bool value)
+    void setLayerFlag(Size layer, LayerDataBase::Flags f, bool value)
     {
       //abort if there are no layers
       if (layers_.empty()) return;
 
-      layers_.getLayer(layer).flags.set(f, value);
+      layers_.getLayer(layer)->flags.set(f, value);
       update_buffer_ = true;
       update();
     }
 
-    inline void setLabel(LayerData::LabelType label)
+    inline void setLabel(LayerDataBase::LabelType label)
     {
       //abort if there are no layers
       if (layers_.empty()) return;
-      layers_.getCurrentLayer().label = label;
+      layers_.getCurrentLayer()->label = label;
       update_buffer_ = true;
       update();
     }
@@ -432,25 +432,25 @@ public:
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
     {
-      return layers_.getCurrentLayer().getMinIntensity();
+      return layers_.getCurrentLayer()->getMinIntensity();
     }
 
     /// Returns the maximum intensity of the active layer
     inline float getCurrentMaxIntensity() const
     {
-      return layers_.getCurrentLayer().getMaxIntensity();
+      return layers_.getCurrentLayer()->getMaxIntensity();
     }
 
     /// Returns the minimum intensity of the layer with index @p index
     inline float getMinIntensity(Size index) const
     {
-      return getLayer(index).getMinIntensity();
+      return getLayer(index)->getMinIntensity();
     }
 
     /// Returns the maximum intensity of the layer with index @p index
     inline float getMaxIntensity(Size index) const
     {
-      return getLayer(index).getMaxIntensity();
+      return getLayer(index)->getMaxIntensity();
     }
 
     /// Sets the @p name of layer @p i
@@ -462,7 +462,7 @@ public:
     /// Sets the parameters of the current layer
     inline void setCurrentLayerParameters(const Param& param)
     {
-      getCurrentLayer().param = param;
+      getCurrentLayer()->param = param;
       emit preferencesChange();
     }
 

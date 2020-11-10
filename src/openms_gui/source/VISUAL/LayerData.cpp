@@ -52,106 +52,87 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string LayerData::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
+  const std::string LayerDataBase::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
 
-  std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
+  std::ostream & operator<<(std::ostream & os, const LayerDataBase & rhs)
   {
-    os << "--LayerData BEGIN--" << std::endl;
+    os << "--LayerDataBase BEGIN--" << std::endl;
     os << "name: " << rhs.getName() << std::endl;
     os << "visible: " << rhs.visible << std::endl;
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
-    os << "--LayerData END--" << std::endl;
+    os << "--LayerDataBase END--" << std::endl;
     return os;
   }
 
-
-  /// Default constructor
-
-  LayerData::LayerData() :
-    flags(),
-    visible(true),
-    flipped(false),
-    type(DT_UNKNOWN),
-    name_(),
-    filename(),
-    peptides(),
-    param(),
-    gradient(),
-    filters(),
-    annotations_1d(),
-    peak_colors_1d(),
-    modifiable(false),
-    modified(false),
-    label(L_NONE),
-    peptide_id_index(-1),
-    peptide_hit_index(-1),
-    features_(new FeatureMapType()),
-    consensus_map_(new ConsensusMapType()),
-    peak_map_(new ExperimentType()),
-    on_disc_peaks(new OnDiscMSExperiment()),
-    chromatogram_map_(new ExperimentType()),
-    current_spectrum_(0),
-    cached_spectrum_()
-  {
-    annotations_1d.resize(1);
-  }
-
-  const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
+  const LayerDataBase::ConstExperimentSharedPtrType LayerDataBase::getPeakData() const
   {
     return boost::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
-  void LayerData::updateRanges()
+  void PeakLayer::updateRanges()
   {
     peak_map_->updateRanges();
-    features_->updateRanges();
-    consensus_map_->updateRanges();
     // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
     chromatogram_map_->updateRanges();
     cached_spectrum_.updateRanges();
   }
 
-  /// Returns the minimum intensity of the internal data, depending on type
-
-  float LayerData::getMinIntensity() const
+  void FeatureLayer::updateRanges()
   {
-    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    features_->updateRanges();
+  }
+
+  void ConsensusLayer::updateRanges()
+  {
+    consensus_map_->updateRanges();
+  }
+
+  /// Returns the minimum intensity of the internal data, depending on type
+  float PeakLayer::getMinIntensity() const
+  {
+    if (type == LayerDataBase::DT_PEAK || type == LayerDataBase::DT_CHROMATOGRAM) // TODO: what about chromatogram?
     {
       return getPeakData()->getMinInt();
     }
-    else if (type == LayerData::DT_FEATURE)
-    {
-      return getFeatureMap()->getMinInt();
-    }
-    else
-    {
-      return getConsensusMap()->getMinInt();
-    }
+  }
+
+  float FeatureLayer::getMinIntensity() const
+  {
+    return getFeatureMap()->getMinInt();
+  }
+
+  float ConsensusLayer::getMinIntensity() const
+  {
+    return getConsensusMap()->getMinInt();
   }
 
   /// Returns the maximum intensity of the internal data, depending on type
-
-  float LayerData::getMaxIntensity() const
+  float PeakLayer::getMaxIntensity() const
   {
-    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    if (type == LayerDataBase::DT_PEAK || type == LayerDataBase::DT_CHROMATOGRAM) // TODO: what about chromatogram?
     {
       return getPeakData()->getMaxInt();
     }
-    else if (type == LayerData::DT_FEATURE)
-    {
-      return getFeatureMap()->getMaxInt();
-    }
-    else
-    {
-      return getConsensusMap()->getMaxInt();
-    }
   }
 
+  float FeatureLayer::getMaxIntensity() const
+  {
+    return getFeatureMap()->getMaxInt();
+  }
+
+  float ConsensusLayer::getMaxIntensity() const
+  {
+    return getConsensusMap()->getMaxInt();
+  }
 
   /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+  String LayerDataBase::getDecoratedName() const
+  {
+    return name_;
+  }
 
-   String LayerData::getDecoratedName() const
-   {
+  String PeakLayer::getDecoratedName() const
+  {
     String n = name_;
     if (flipped)
     {
@@ -164,7 +145,7 @@ namespace OpenMS
     return n;
   }
 
-  void LayerData::updateCache_()
+  void PeakLayer::updateCache_()
   {
     if (peak_map_->getNrSpectra() > current_spectrum_ && (*peak_map_)[current_spectrum_].size() > 0)
     {
@@ -176,11 +157,11 @@ namespace OpenMS
     }
   }
 
-  bool LayerData::annotate(const vector<PeptideIdentification>& identifications,
+  bool IDAnnotateableInterface::annotate(const vector<PeptideIdentification>& identifications,
     const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
-    if (this->type == LayerData::DT_PEAK)
+    if (this->type == LayerDataBase::DT_PEAK)
     {
       Param p = mapper.getDefaults();
       p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
@@ -189,11 +170,11 @@ namespace OpenMS
       mapper.setParameters(p);
       mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
     }
-    else if (type == LayerData::DT_FEATURE)
+    else if (type == LayerDataBase::DT_FEATURE)
     {
       mapper.annotate(*getFeatureMap(), identifications, protein_identifications);
     }
-    else if (type == LayerData::DT_CONSENSUS)
+    else if (type == LayerDataBase::DT_CONSENSUS)
     {
       mapper.annotate(*getConsensusMap(), identifications, protein_identifications);
     }
@@ -205,14 +186,14 @@ namespace OpenMS
     return true;
   }
 
-  const LayerData::ExperimentType::SpectrumType& LayerData::getCurrentSpectrum() const
+  const LayerDataBase::ExperimentType::SpectrumType& LayerDataBase::getCurrentSpectrum() const
   {
     return cached_spectrum_;
   }
 
   /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
 
-  const LayerData::ExperimentType::SpectrumType LayerData::getSpectrum(Size spectrum_idx) const
+  const LayerDataBase::ExperimentType::SpectrumType LayerDataBase::getSpectrum(Size spectrum_idx) const
   {
     if (spectrum_idx == current_spectrum_) return cached_spectrum_;
 
@@ -227,10 +208,10 @@ namespace OpenMS
     return (*peak_map_)[spectrum_idx];
   }
 
-  void LayerData::synchronizePeakAnnotations()
+  void LayerDataBase::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK) { return; }
 
     // get mutable access to the spectrum
     MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
@@ -308,7 +289,7 @@ namespace OpenMS
     }
   }
 
-  void LayerData::updatePeptideHitAnnotations_(PeptideHit& hit)
+  void LayerDataBase::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
     const Annotations1DContainer & las = getCurrentAnnotations();
@@ -405,10 +386,10 @@ namespace OpenMS
     }
   }
 
-  void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
+  void LayerDataBase::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK) { return; }
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
@@ -468,7 +449,7 @@ namespace OpenMS
   {
   }
 
-  bool LayerAnnotatorBase::annotate(LayerData& layer, LogWindow& log, const String& current_path) const
+  bool LayerAnnotatorBase::annotate(LayerDataBase& layer, LogWindow& log, const String& current_path) const
   {
     // warn if hidden layer => wrong layer selected...
     if (!layer.visible)
@@ -499,7 +480,7 @@ namespace OpenMS
     return success;
   }
 
-  bool LayerAnnotatorPeptideID::annotateWorker_(LayerData& layer, const String& filename, LogWindow& /*log*/) const
+  bool LayerAnnotatorPeptideID::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& /*log*/) const
   {
     FileTypes::Type type = FileHandler::getType(filename);
     vector<PeptideIdentification> identifications;
@@ -518,7 +499,7 @@ namespace OpenMS
     return true;
   }
 
-  bool LayerAnnotatorAMS::annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const
+  bool LayerAnnotatorAMS::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const
   {
     FeatureMap fm;
     FeatureXMLFile().load(filename, fm);
@@ -530,7 +511,7 @@ namespace OpenMS
       engine = fm.getProteinIdentifications().back().getSearchEngine();
       if (engine == AccurateMassSearchEngine::search_engine_identifier)
       {
-        if (layer.type != LayerData::DT_PEAK)
+        if (layer.type != LayerDataBase::DT_PEAK)
         {
           QMessageBox::warning(nullptr, "Error", "Layer type is not DT_PEAK!");
           return false;
@@ -550,7 +531,7 @@ namespace OpenMS
     return false;
   }
 
-  bool LayerAnnotatorOSW::annotateWorker_(LayerData &layer,
+  bool LayerAnnotatorOSW::annotateWorker_(LayerDataBase &layer,
                                           const String &filename,
                                           LogWindow &log) const
   {

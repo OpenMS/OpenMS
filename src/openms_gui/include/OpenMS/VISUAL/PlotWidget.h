@@ -94,9 +94,9 @@ public:
     //@{
 
     /// Main data type (experiment)
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef PeakLayer::ExperimentType ExperimentType;
     /// Main data type (features)
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef FeatureLayer::FeatureMapType FeatureMapType;
     /// Spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}

@@ -97,11 +97,11 @@ protected:
     };
 
     /// Iterates over peaks of a spectrum
-    typedef LayerData::ExperimentType::SpectrumType::ConstIterator PeakIterator_;
+    typedef PeakLayer::ExperimentType::SpectrumType::ConstIterator PeakIterator_;
     /// Iterates over features of a feature map
-    typedef LayerData::FeatureMapType::ConstIterator FeatureIterator_;
+    typedef FeatureLayer::FeatureMapType::ConstIterator FeatureIterator_;
     /// Iterates over features of a feature map
-    typedef LayerData::ConsensusMapType::ConstIterator ConsensusIterator_;
+    typedef ConsensusLayer::ConsensusMapType::ConstIterator ConsensusIterator_;
     /// Iterates over the meta_stats map
     typedef std::map<UInt, MetaStatsValue_>::iterator MetaIterator_;
 
@@ -126,7 +126,7 @@ protected:
     /// The canvas of the layer
     PlotCanvas * canvas_;
     /// The LayerData object we compute statistics about
-    const LayerData& layer_data_;
+    const LayerDataBase* layer_data_;
     /// Minimum intensity value
     double min_intensity_;
     /// Maximum intensity value

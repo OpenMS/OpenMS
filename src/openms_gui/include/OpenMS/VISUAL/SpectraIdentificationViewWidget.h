@@ -63,9 +63,9 @@ namespace OpenMS
     ~SpectraIdentificationViewWidget() override = default;
 
     /// set layer data and create table anew
-    void setLayer(LayerData* model);
+    void setLayer(PeakLayer* model);
     /// get layer data
-    LayerData* getLayer();
+    PeakLayer* getLayer();
 
     /// clears all visible data from table widget and void the layer
     void clear();
@@ -88,7 +88,7 @@ namespace OpenMS
    /// partially fill the bottom-most row  
    void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
 
-    LayerData* layer_ = nullptr;
+    PeakLayer* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;

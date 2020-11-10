@@ -62,7 +62,7 @@ public:
     ~SpectraViewWidget() = default;
 
     /// refresh the table using data from @p cl
-    void updateEntries(const LayerData & cl);
+    void updateEntries(const PeakLayer& cl);
     /// remove all visible data
     void clear();
 

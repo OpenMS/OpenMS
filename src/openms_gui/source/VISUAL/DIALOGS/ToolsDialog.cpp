@@ -64,7 +64,7 @@ namespace OpenMS
           QWidget* parent,
           String ini_file,
           String default_dir,
-          LayerData::DataType layer_type,
+          LayerDataBase::DataType layer_type,
           String layer_name
     ) :
     QDialog(parent),
@@ -83,7 +83,7 @@ namespace OpenMS
     main_grid->addWidget(label, 1, 0);
     QStringList list;
 
-    if (layer_type == LayerData::DT_PEAK)
+    if (layer_type == LayerDataBase::DT_PEAK)
     {
       list << "FileFilter" << "FileInfo"
            << "NoiseFilterGaussian" << "NoiseFilterSGolay"
@@ -100,18 +100,18 @@ namespace OpenMS
            << "SpectraFilterScaler" << "SpectraFilterBernNorm"
            << "SpectraFilterNLargest" << "SpectraFilterNormalizer";
     }
-    else if (layer_type == LayerData::DT_FEATURE)
+    else if (layer_type == LayerDataBase::DT_FEATURE)
     {
       list << "FileFilter" << "FileConverter"
            << "FileInfo" << "Decharger"
            << "FeatureLinkerLabeled";
     }
-    else if (layer_type == LayerData::DT_CONSENSUS)
+    else if (layer_type == LayerDataBase::DT_CONSENSUS)
     {
       list << "FileFilter" << "FileConverter"
            << "FileInfo";
     }
-    else if (layer_type == LayerData::DT_CHROMATOGRAM)
+    else if (layer_type == LayerDataBase::DT_CHROMATOGRAM)
     {
       //TODO CHROM
     }

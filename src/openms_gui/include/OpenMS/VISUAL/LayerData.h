@@ -116,6 +116,23 @@ public:
       SIZE_OF_LABEL_TYPE
     };
 
+    /// Flags that determine which information is shown.
+    enum Flags
+    {
+      F_HULL,          ///< Features: Overall convex hull
+      F_HULLS,         ///< Features: Convex hulls of single mass traces
+      F_UNASSIGNED,    ///< Features: Unassigned peptide hits
+      P_PRECURSORS,    ///< Peaks: Mark precursor peaks of MS/MS scans
+      P_PROJECTIONS,   ///< Peaks: Show projections
+      C_ELEMENTS,      ///< Consensus features: Show elements
+      I_PEPTIDEMZ,     ///< Identifications: m/z source
+      I_LABELS,        ///< Identifications: Show labels (not sequences)
+      SIZE_OF_FLAGS
+    };
+
+    /// Actual state of each flag
+    std::bitset<SIZE_OF_FLAGS> flags;
+
     /// Label names
     static const std::string NamesOfLabelType[SIZE_OF_LABEL_TYPE];
 
@@ -195,27 +212,22 @@ protected:
     bool modified_ = false;
     };
 
-
-  class OPENMS_GUI_DLLAPI FeatureLayer : public LayerDataBase
+  class OPENMS_GUI_DLLAPI IDAnnotateableInterface
   {
 public:
-    /// Flags that determine which information is shown.
-    enum FeatureLayerFlags
-    {
-      F_HULL,          ///< Features: Overall convex hull
-      F_HULLS,         ///< Features: Convex hulls of single mass traces
-      F_UNASSIGNED,    ///< Features: Unassigned peptide hits
-      SIZE_OF_FLAGS
-    };
+    /// add peptide identifications to the layer
+    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
+                  const std::vector<ProteinIdentification>& protein_identifications) = 0;
+  };
 
+  class OPENMS_GUI_DLLAPI FeatureLayer : public LayerDataBase, public IDAnnotateableInterface
+  {
+public:
     /// features
     typedef FeatureMap FeatureMapType;
 
     /// SharedPtr on features
     typedef boost::shared_ptr<FeatureMap> FeatureMapSharedPtrType;
-
-    /// Actual state of each flag
-    std::bitset<SIZE_OF_FLAGS> feature_layer_flags;
 
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
@@ -252,16 +264,6 @@ protected:
   class OPENMS_GUI_DLLAPI IdLayer : public LayerDataBase
   {
 public:
-    /// Flags that determine which information is shown.
-    enum IdLayerFlags
-    {
-      C_ELEMENTS,      ///< TODO:
-      SIZE_OF_FLAGS
-    };
-
-    /// Actual state of each flag
-    std::bitset<SIZE_OF_FLAGS> id_layer_flags;
-
     /// Default constructor
     IdLayer() = default;
 
@@ -281,19 +283,9 @@ protected:
     std::vector<PeptideIdentification> peptides;
   };
 
-  class OPENMS_GUI_DLLAPI ConsensusLayer : public LayerDataBase
+  class OPENMS_GUI_DLLAPI ConsensusLayer : public LayerDataBase, public IDAnnotateableInterface
   {
 public:
-    /// Flags that determine which information is shown.
-    enum ConsensusLayerFlags
-    {
-      C_ELEMENTS,      ///< Consensus features: Show elements
-      SIZE_OF_FLAGS
-    };
-
-    /// Actual state of each flag
-    std::bitset<SIZE_OF_FLAGS> consensus_layer_flags;
-
     /// consensus features
     typedef ConsensusMap ConsensusMapType;
 
@@ -331,7 +323,8 @@ protected:
     ConsensusMapSharedPtrType consensus_map_;
   };
 
-  class OPENMS_GUI_DLLAPI PeakLayer : public LayerDataBase
+
+  class OPENMS_GUI_DLLAPI PeakLayer : public LayerDataBase, public IDAnnotateableInterface
   {
 public:
     PeakLayer() 
@@ -428,10 +421,8 @@ public:
     }
 
     /// add peptide identifications to the layer
-    /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
-    /// Will return false otherwise.
     bool annotate(const std::vector<PeptideIdentification>& identifications,
-                  const std::vector<ProteinIdentification>& protein_identifications);
+                  const std::vector<ProteinIdentification>& protein_identifications) override;
 
 
     /// Returns a const reference to the annotations of the current spectrum (1D view)
@@ -458,6 +449,11 @@ public:
       return annotations_1d[spectrum_index];
     }
 
+    /// return true if the layer is flipped
+    bool getFlipped() const { return flipped; };
+
+    /// set the flip flag
+    void setFlipped(bool f) { flipped = f; };
 
     /**
     @brief Returns a const reference to the current spectrum (1D view)
@@ -612,12 +608,12 @@ private:
       /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
       /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
       /// as implemented by the derived classes
-      bool annotate(LayerData& layer, LogWindow& log, const String& current_path) const;
+      bool annotate(IDAnnotateableInterface& layer, LogWindow& log, const String& current_path) const;
 
     protected:
       /// abstract virtual worker function to annotate a layer using content from the @p filename
       /// returns true on success
-      virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const = 0;
+      virtual bool annotateWorker_(IDAnnotateableInterface& layer, const String& filename, LogWindow& log) const = 0;
       
       const FileTypes::FileTypeList supported_types_;
       const String file_dialog_text_;
@@ -637,7 +633,7 @@ private:
   protected:
     /// loads the ID data from @p filename and calls Layer::annotate.
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    virtual bool annotateWorker_(IDAnnotateableInterface& layer, const String& filename, LogWindow& log) const;
   };
 
   /// Annotate a layer with AccurateMassSearch results (from an AMS-featureXML file).
@@ -654,7 +650,7 @@ private:
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    virtual bool annotateWorker_(IDAnnotateableInterface& layer, const String& filename, LogWindow& log) const;
   };
   
   /// Annotate a chromatogram layer with ID data (from an OSW sqlite file as produced by OpenSwathWorkflow or pyProphet).
@@ -671,11 +667,11 @@ private:
   protected:
     /// loads the OSWData from @p filename and stores the data using Layer::setChromatogramAnnotation()
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+    virtual bool annotateWorker_(IDAnnotateableInterface& layer, const String& filename, LogWindow& log) const;
   };
 
   /// Print the contents to a stream.
-  OPENMS_GUI_DLLAPI std::ostream& operator<<(std::ostream & os, const LayerData & rhs);
+  OPENMS_GUI_DLLAPI std::ostream& operator<<(std::ostream & os, const LayerDataBase & rhs);
 
 } //namespace
 

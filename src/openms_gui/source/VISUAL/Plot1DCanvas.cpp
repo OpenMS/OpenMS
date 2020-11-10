@@ -133,12 +133,12 @@ namespace OpenMS
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
     setIntensityMode(Plot1DCanvas::IM_NONE);
 
-    getCurrentLayer().setName(caption);
-    getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
+    getCurrentLayer()->setName(caption);
+    getCurrentLayer()->getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
     //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-    getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
-    getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", multiple_select ? "true" : "false");
-    getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
+    getCurrentLayer()->getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
+    getCurrentLayer()->getPeakDataMuteable()->setMetaValue("multiple_select", multiple_select ? "true" : "false");
+    getCurrentLayer()->getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
 
     return true;
   }
@@ -276,7 +276,7 @@ namespace OpenMS
     if (e->button() == Qt::LeftButton)
     {
       // selection/deselection of annotation items
-      Annotation1DItem* item = getCurrentLayer().getCurrentAnnotations().getItemAt(last_mouse_pos_);
+      Annotation1DItem* item = getCurrentLayer()->getCurrentAnnotations().getItemAt(last_mouse_pos_);
       if (item)
       {
         if (!(e->modifiers() & Qt::ControlModifier))
@@ -289,7 +289,7 @@ namespace OpenMS
           else if (!item->isSelected())
           {
             // the item becomes the only selected item
-            getCurrentLayer().getCurrentAnnotations().deselectAll();
+            getCurrentLayer()->getCurrentAnnotations().deselectAll();
             item->setSelected(true);
           }
           // an item was clicked -> can be moved on the canvas
@@ -313,7 +313,7 @@ namespace OpenMS
       else
       {
         // no item was under the cursor
-        getCurrentLayer().getCurrentAnnotations().deselectAll();
+        getCurrentLayer()->getCurrentAnnotations().deselectAll();
       }
 
       if (action_mode_ == AM_ZOOM)
@@ -328,7 +328,7 @@ namespace OpenMS
           if (selected_peak_.isValid())
           {
             measurement_start_ = selected_peak_;
-            const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
+            const ExperimentType::PeakType & peak = getCurrentLayer()->getCurrentSpectrum()[measurement_start_.peak];
             if (intensity_mode_ == IM_PERCENTAGE)
             {
               updatePercentageFactor_(getCurrentLayerIndex());
@@ -337,7 +337,7 @@ namespace OpenMS
             {
               percentage_factor_ = 1.0;
             }
-            dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
+            dataToWidget(peak, measurement_start_point_, getCurrentLayer()->getFlipped());
             measurement_start_point_.setY(last_mouse_pos_.y());
           }
           else
@@ -350,9 +350,9 @@ namespace OpenMS
           if (selected_peak_.isValid())
           {
             measurement_start_ = selected_peak_;
-            const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
+            const ExperimentType::PeakType & peak = getCurrentLayer()->getCurrentSpectrum()[measurement_start_.peak];
             updatePercentageFactor_(getCurrentLayerIndex());
-            dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
+            dataToWidget(peak, measurement_start_point_, getCurrentLayer()->getFlipped());
             measurement_start_point_.setX(last_mouse_pos_.x());
           }
           else
@@ -370,14 +370,14 @@ namespace OpenMS
     // mouse position relative to the diagram widget
     QPoint p = e->pos();
     PointType data_pos = widgetToData(p);
-    emit sendCursorStatus(data_pos.getX(), getCurrentLayer().getCurrentSpectrum().getRT());
+    emit sendCursorStatus(data_pos.getX(), getCurrentLayer()->getCurrentSpectrum().getRT());
 
     PeakIndex near_peak = findPeakAtPosition_(p);
 
     if (e->buttons() & Qt::LeftButton)
     {
       bool move = moving_annotations_;
-      if (mirror_mode_ && (getCurrentLayer().flipped ^ (p.y() > height() / 2)))
+      if (mirror_mode_ && (getCurrentLayer()->getFlipped() ^ (p.y() > height() / 2)))
       {
         move = false;
       }
@@ -386,7 +386,7 @@ namespace OpenMS
         updatePercentageFactor_(getCurrentLayerIndex());
         PointType delta = widgetToData(p, true) - widgetToData(last_mouse_pos_, true);
 
-        Annotations1DContainer& ann_1d = getCurrentLayer().getCurrentAnnotations();
+        Annotations1DContainer& ann_1d = getCurrentLayer()->getCurrentAnnotations();
         for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
         {
           if ((*it)->isSelected())
@@ -454,7 +454,7 @@ namespace OpenMS
     if (selected_peak_.isValid())
     {
       String status;
-      const ExperimentType::SpectrumType& s = getCurrentLayer().getCurrentSpectrum();
+      const ExperimentType::SpectrumType& s = getCurrentLayer()->getCurrentSpectrum();
       for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
       {
         if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -502,8 +502,8 @@ namespace OpenMS
         }
         if (measurement_start_.isValid() && selected_peak_.peak != measurement_start_.peak)
         {
-          const ExperimentType::PeakType& peak_1 = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
-          const ExperimentType::PeakType& peak_2 = getCurrentLayer().getCurrentSpectrum()[selected_peak_.peak];
+          const ExperimentType::PeakType& peak_1 = getCurrentLayer()->getCurrentSpectrum()[measurement_start_.peak];
+          const ExperimentType::PeakType& peak_2 = getCurrentLayer()->getCurrentSpectrum()[selected_peak_.peak];
           updatePercentageFactor_(getCurrentLayerIndex());
           PointType p = widgetToData(measurement_start_point_, true);
           bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
@@ -514,7 +514,7 @@ namespace OpenMS
           PointType end_p(end_mz, p.getY());
           // draw line for measured distance between two peaks and annotate with distance in m/z -- use 4 digits to resolve 13C distances between isotopes
           Annotation1DItem * item = new Annotation1DDistanceItem(QString::number(distance, 'f', 4), start_p, end_p);
-          getCurrentLayer().getCurrentAnnotations().push_front(item);
+          getCurrentLayer()->getCurrentAnnotations().push_front(item);
         }
       }
 
@@ -532,15 +532,15 @@ namespace OpenMS
     if (e->key() == Qt::Key_Delete)
     {
       e->accept();
-      getCurrentLayer().removePeakAnnotationsFromPeptideHit(getCurrentLayer().getCurrentAnnotations().getSelectedItems());
-      getCurrentLayer().getCurrentAnnotations().removeSelectedItems();
+      getCurrentLayer()->removePeakAnnotationsFromPeptideHit(getCurrentLayer()->getCurrentAnnotations().getSelectedItems());
+      getCurrentLayer()->getCurrentAnnotations().removeSelectedItems();
       update_(OPENMS_PRETTY_FUNCTION);
     }
     // 'a' pressed && in zoom mode (ctrl pressed) => select all annotation items
     else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_A))
     {
       e->accept();
-      getCurrentLayer().getCurrentAnnotations().selectAll();
+      getCurrentLayer()->getCurrentAnnotations().selectAll();
       update_(OPENMS_PRETTY_FUNCTION);
     }
     else
@@ -556,12 +556,12 @@ namespace OpenMS
       return PeakIndex();
 
     // mirror mode and p not on same half as active layer => return invalid peak index
-    if (mirror_mode_ && (getCurrentLayer().flipped ^ (p.y() > height() / 2)))
+    if (mirror_mode_ && (getCurrentLayer()->getFlipped() ^ (p.y() > height() / 2)))
       return PeakIndex();
 
     //reference to the current data
-    const SpectrumType& spectrum = getCurrentLayer().getCurrentSpectrum();
-    Size spectrum_index = getCurrentLayer().getCurrentSpectrumIndex();
+    const SpectrumType& spectrum = getCurrentLayer()->getCurrentSpectrum();
+    Size spectrum_index = getCurrentLayer()->getCurrentSpectrumIndex();
 
     // get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
     PointType lt = widgetToData(p - QPoint(2, 2), true);
@@ -591,9 +591,9 @@ namespace OpenMS
     // select source interval start and end depending on diagram orientation
     updatePercentageFactor_(getCurrentLayerIndex());
     QPoint tmp;
-    dataToWidget(0, overall_data_range_.minY(), tmp, getCurrentLayer().flipped, true);
+    dataToWidget(0, overall_data_range_.minY(), tmp, getCurrentLayer()->getFlipped(), true);
     double dest_interval_start = tmp.y();
-    dataToWidget(0, overall_data_range_.maxY(), tmp, getCurrentLayer().flipped, true);
+    dataToWidget(0, overall_data_range_.maxY(), tmp, getCurrentLayer()->getFlipped(), true);
     double dest_interval_end = tmp.y();
 
     int nearest_intensity = static_cast<int>(intervalTransformation(nearest_it->getIntensity(), visible_area_.minY(),
@@ -712,41 +712,41 @@ namespace OpenMS
 
     for (Size i = 0; i < getLayerCount(); ++i)
     {
-      const LayerData& layer = getLayer(i);
+      const LayerDataBase* layer = getLayer(i);
 
       // skip non peak data layer or invisible
-      if (layer.type != LayerData::DT_PEAK || !layer.visible) { continue; }
+      if (layer->type != LayerDataBase::DT_PEAK || !layer->visible) { continue; }
 
-      const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
+      const ExperimentType::SpectrumType& spectrum = layer->getCurrentSpectrum();
 
       // get default icon and peak color
-      QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
-      QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
+      QPen icon_pen = QPen(QColor(layer->param.getValue("icon_color").toQString()), 1);
+      QPen pen(QColor(layer->param.getValue("peak_color").toQString()), 1);
       pen.setStyle(peak_penstyle_[i]);
 
       // TODO option for variable pen width
       // pen.setWidthF(1.5);
       painter->setPen(pen);
       updatePercentageFactor_(i);
-      SpectrumConstIteratorType vbegin = getLayer(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
-      SpectrumConstIteratorType vend = getLayer(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
+      SpectrumConstIteratorType vbegin = getLayer(i)->getCurrentSpectrum().MZBegin(visible_area_.minX());
+      SpectrumConstIteratorType vend = getLayer(i)->getCurrentSpectrum().MZEnd(visible_area_.maxX());
 
       // draw dashed elongations for pairs of peaks annotated with a distance
-      for (auto it = layer.getCurrentAnnotations().begin();
-            it != layer.getCurrentAnnotations().end(); ++it)
+      for (auto it = layer->getCurrentAnnotations().begin();
+            it != layer->getCurrentAnnotations().end(); ++it)
       {
         Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(*it);
         if (distance_item)
         {
           QPoint from, to;
-          dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
+          dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer->getFlipped());
 
-          dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+          dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer->getFlipped());
           drawDashedLine_(from, to, *painter);
 
-          dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer.flipped);
+          dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer->getFlipped());
 
-          dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
+          dataToWidget(distance_item->getEndPoint().getX(), getVisibleArea().maxY(), to, layer->getFlipped());
           drawDashedLine_(from, to, *painter);
         }
       }
@@ -758,31 +758,31 @@ namespace OpenMS
 
         for (SpectrumConstIteratorType it = vbegin; it != vend; ++it)
         {
-          if (layer.filters.passes(spectrum, it - spectrum.begin()))
+          if (layer->filters.passes(spectrum, it - spectrum.begin()))
           {
             // use peak colors stored in the layer, if available
-            if (layer.peak_colors_1d.size() == spectrum.size())
+            if (layer->peak_colors_1d.size() == spectrum.size())
             {
               // find correct peak index
               Size peak_index = std::distance(spectrum.begin(), it);
-              pen.setColor(layer.peak_colors_1d[peak_index]);
+              pen.setColor(layer->peak_colors_1d[peak_index]);
               painter->setPen(pen);
             }
 
             // Warn if non-empty peak color array present but size doesn't match number of peaks
             // This indicates a bug but we gracefuly just issue a warning
-            if (!layer.peak_colors_1d.empty() &&
-                layer.peak_colors_1d.size() < spectrum.size())
+            if (!layer->peak_colors_1d.empty() &&
+                layer->peak_colors_1d.size() < spectrum.size())
             {
               OPENMS_LOG_ERROR << "Peak color array size ("
-                               << layer.peak_colors_1d.size()
+                               << layer->peak_colors_1d.size()
                                << ") doesn't match number of peaks ("
                                << spectrum.size()
                                << ") in spectrum."
                                << endl;
             }
-            dataToWidget(*it, end, layer.flipped);
-            dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
+            dataToWidget(*it, end, layer->getFlipped());
+            dataToWidget(it->getMZ(), 0.0f, begin, layer->getFlipped());
             // draw peak
             painter->drawLine(begin, end);
           }
@@ -799,7 +799,7 @@ namespace OpenMS
         bool first_point = true;
         for (SpectrumConstIteratorType it = vbegin; it != vend; it++)
         {
-          dataToWidget(*it, begin, layer.flipped);
+          dataToWidget(*it, begin, layer->getFlipped());
 
           // connect lines
           if (first_point)
@@ -817,16 +817,16 @@ namespace OpenMS
         // clipping on left side
         if (vbegin != spectrum.begin() && vbegin != spectrum.end())
         {
-          dataToWidget(*(vbegin - 1), begin, layer.flipped);
-          dataToWidget(*(vbegin), end, layer.flipped);
+          dataToWidget(*(vbegin - 1), begin, layer->getFlipped());
+          dataToWidget(*(vbegin), end, layer->getFlipped());
           painter->drawLine(begin, end);
         }
 
         // clipping on right side
         if (vend != spectrum.end() && vend != spectrum.begin())
         {
-          dataToWidget(*(vend - 1), begin, layer.flipped);
-          dataToWidget(*(vend), end, layer.flipped);
+          dataToWidget(*(vend - 1), begin, layer->getFlipped());
+          dataToWidget(*(vend), end, layer->getFlipped());
           painter->drawLine(begin, end);
         }
       }
@@ -845,13 +845,13 @@ namespace OpenMS
       // draw a legend
       if (param_.getValue("show_legend").toBool())
       {
-        const SpectrumType & spectrum = getLayer(i).getCurrentSpectrum();
+        const SpectrumType & spectrum = getLayer(i)->getCurrentSpectrum();
         double xpos = getVisibleArea().maxX() - (getVisibleArea().maxX() - getVisibleArea().minX()) * 0.1;
         SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(xpos), PeakType::IntensityLess());
         if (tmp != spectrum.end())
         {
           PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
-          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.getName().toQString(), QColor(layer.param.getValue("peak_color").toQString()));
+          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer->getName().toQString(), QColor(layer->param.getValue("peak_color").toQString()));
           item.draw(this, *painter);
         }
       }
@@ -952,10 +952,10 @@ namespace OpenMS
 
       updatePercentageFactor_(layer_index);
 
-      dataToWidget(sel, begin, getLayer(layer_index).flipped);
+      dataToWidget(sel, begin, getLayer(layer_index)->getFlipped());
       QPoint top_end(begin);
 
-      bool layer_flipped = getLayer(layer_index).flipped;
+      bool layer_flipped = getLayer(layer_index)->getFlipped();
       if (isMzToXAxis())
       {
         if (layer_flipped)
@@ -1008,25 +1008,25 @@ namespace OpenMS
 
   void Plot1DCanvas::drawAnnotations(Size layer_index, QPainter& painter)
   {
-    LayerData& layer = getLayer(layer_index);
+    LayerDataBase* layer = getLayer(layer_index);
     updatePercentageFactor_(layer_index);
-    QColor col{ QColor(layer.param.getValue("annotation_color").toQString()) };
+    QColor col{ QColor(layer->param.getValue("annotation_color").toQString()) };
     // 0: default pen; 1: selected pen
     QPen pen[2] = { col, col.lighter() };
 
-    for (const auto& c : layer.getCurrentAnnotations())
+    for (const auto& c : layer->getCurrentAnnotations())
     {
       painter.setPen(pen[c->isSelected()]);
-      c->draw(this, painter, layer.flipped);
+      c->draw(this, painter, layer->getFlipped());
     }
   }
 
   void Plot1DCanvas::drawMZAtInterestingPeaks_(Size layer_index, QPainter& painter)
   {
-    LayerData& layer = getLayer(layer_index);
-    const MSSpectrum& current_spectrum = layer.getCurrentSpectrum();
+    LayerDataBase* layer = getLayer(layer_index);
+    const MSSpectrum& current_spectrum = layer->getCurrentSpectrum();
 
-    bool flipped = layer.flipped;
+    bool flipped = layer->getFlipped();
     updatePercentageFactor_(layer_index);
 
     // get visible peaks
@@ -1120,22 +1120,22 @@ namespace OpenMS
 
   bool Plot1DCanvas::finishAdding_()
   {
-    if (getCurrentLayer().type != LayerData::DT_PEAK)
+    if (getCurrentLayer()->type != LayerDataBase::DT_PEAK)
     {
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return false;
     }
 
-    getCurrentLayer().updateRanges();
+    getCurrentLayer()->updateRanges();
 
     // Abort if no data points are contained (note that all data could be on disk)
-    if (getCurrentLayer().getCurrentSpectrum().empty())
+    if (getCurrentLayer()->getCurrentSpectrum().empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
     }
 
-    const MSSpectrum& spectrum = getCurrentLayer().getCurrentSpectrum();
+    const MSSpectrum& spectrum = getCurrentLayer()->getCurrentSpectrum();
 
     // add new draw mode and style (default: peaks)
     draw_modes_.push_back(DM_PEAKS);
@@ -1152,40 +1152,40 @@ namespace OpenMS
     switch (getCurrentLayerIndex() % 5)
     {
     case 0:
-      getCurrentLayer().param.setValue("peak_color", "#0000ff");
-      getCurrentLayer().param.setValue("annotation_color", "#005500");
+      getCurrentLayer()->param.setValue("peak_color", "#0000ff");
+      getCurrentLayer()->param.setValue("annotation_color", "#005500");
       break;
 
     case 1:
-      getCurrentLayer().param.setValue("peak_color", "#00cc00");
-      getCurrentLayer().param.setValue("annotation_color", "#005500");
+      getCurrentLayer()->param.setValue("peak_color", "#00cc00");
+      getCurrentLayer()->param.setValue("annotation_color", "#005500");
       break;
 
     case 2:
-      getCurrentLayer().param.setValue("peak_color", "#cc0000");
-      getCurrentLayer().param.setValue("annotation_color", "#550055");
+      getCurrentLayer()->param.setValue("peak_color", "#cc0000");
+      getCurrentLayer()->param.setValue("annotation_color", "#550055");
       break;
 
     case 3:
-      getCurrentLayer().param.setValue("peak_color", "#00cccc");
-      getCurrentLayer().param.setValue("annotation_color", "#005555");
+      getCurrentLayer()->param.setValue("peak_color", "#00cccc");
+      getCurrentLayer()->param.setValue("annotation_color", "#005555");
       break;
 
     case 4:
-      getCurrentLayer().param.setValue("peak_color", "#ffaa00");
-      getCurrentLayer().param.setValue("annotation_color", "#550000");
+      getCurrentLayer()->param.setValue("peak_color", "#ffaa00");
+      getCurrentLayer()->param.setValue("annotation_color", "#550000");
       break;
     }
 
     // sort spectra in ascending order of position (ensure that we sort all spectra as well as the currently
     // TODO: check why this is need since we load data already sorted! 
-    for (Size i = 0; i < getCurrentLayer().getPeakData()->size(); ++i)
+    for (Size i = 0; i < getCurrentLayer()->getPeakData()->size(); ++i)
     {
-      (*getCurrentLayer().getPeakDataMuteable())[i].sortByPosition();
+      (*getCurrentLayer()->getPeakDataMuteable())[i].sortByPosition();
     }
-    getCurrentLayer().sortCurrentSpectrumByPosition();
+    getCurrentLayer()->sortCurrentSpectrumByPosition();
 
-    getCurrentLayer().annotations_1d.resize(getCurrentLayer().getPeakData()->size());
+    getCurrentLayer()->annotations_1d.resize(getCurrentLayer()->getPeakData()->size());
 
     // update nearest peak
     selected_peak_.clear();
@@ -1223,13 +1223,13 @@ namespace OpenMS
     double mz = 0.0;
     float it = 0.0;
     // only peak data is supported here
-    if (getCurrentLayer().type != LayerData::DT_PEAK)
+    if (getCurrentLayer()->type != LayerDataBase::DT_PEAK)
     {
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return;
     }
-    mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
-    it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
+    mz = getCurrentLayer()->getCurrentSpectrum()[peak.peak].getMZ();
+    it = getCurrentLayer()->getCurrentSpectrum()[peak.peak].getIntensity();
 
     //draw text
     QStringList lines;
@@ -1261,7 +1261,7 @@ namespace OpenMS
     float it;
     float ppm;
 
-    if (getCurrentLayer().type != LayerData::DT_PEAK)
+    if (getCurrentLayer()->type != LayerDataBase::DT_PEAK)
     {
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return;
@@ -1269,16 +1269,16 @@ namespace OpenMS
 
     if (end.isValid())
     {
-      mz = getCurrentLayer().getCurrentSpectrum()[end.peak].getMZ() - getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ();
-      it = getCurrentLayer().getCurrentSpectrum()[end.peak].getIntensity() - getCurrentLayer().getCurrentSpectrum()[start.peak].getIntensity();
+      mz = getCurrentLayer()->getCurrentSpectrum()[end.peak].getMZ() - getCurrentLayer()->getCurrentSpectrum()[start.peak].getMZ();
+      it = getCurrentLayer()->getCurrentSpectrum()[end.peak].getIntensity() - getCurrentLayer()->getCurrentSpectrum()[start.peak].getIntensity();
     }
     else
     {
       PointType point = widgetToData_(last_mouse_pos_);
-      mz = point[0] - getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ();
+      mz = point[0] - getCurrentLayer()->getCurrentSpectrum()[start.peak].getMZ();
       it = std::numeric_limits<double>::quiet_NaN();
     }
-    ppm = (mz / getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ()) * 1e6;
+    ppm = (mz / getCurrentLayer()->getCurrentSpectrum()[start.peak].getMZ()) * 1e6;
 
     //draw text
     QStringList lines;
@@ -1314,7 +1314,7 @@ namespace OpenMS
       double local_max  = -numeric_limits<double>::max();
       for (Size i = 0; i < getLayerCount(); ++i)
       {
-        const SpectrumType & spectrum = getLayer(i).getCurrentSpectrum();
+        const SpectrumType & spectrum = getLayer(i)->getCurrentSpectrum();
         SpectrumConstIteratorType tmp = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
         if (tmp != spectrum.end() && tmp->getIntensity() > local_max)
         {
@@ -1349,7 +1349,7 @@ namespace OpenMS
   void Plot1DCanvas::showCurrentLayerPreferences()
   {
     Internal::Plot1DPrefDialog dlg(this);
-    LayerData& layer = getCurrentLayer();
+    LayerDataBase* layer = getCurrentLayer();
 
     ColorSelector* peak_color = dlg.findChild<ColorSelector*>("peak_color");
     ColorSelector* icon_color = dlg.findChild<ColorSelector*>("icon_color");
@@ -1357,17 +1357,17 @@ namespace OpenMS
     ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
     ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
 
-    peak_color->setColor(QColor(layer.param.getValue("peak_color").toQString()));
-    icon_color->setColor(QColor(layer.param.getValue("icon_color").toQString()));
-    annotation_color->setColor(QColor(layer.param.getValue("annotation_color").toQString()));
+    peak_color->setColor(QColor(layer->param.getValue("peak_color").toQString()));
+    icon_color->setColor(QColor(layer->param.getValue("icon_color").toQString()));
+    annotation_color->setColor(QColor(layer->param.getValue("annotation_color").toQString()));
     bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
     selected_color->setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
 
     if (dlg.exec())
     {
-      layer.param.setValue("peak_color", peak_color->getColor().name());
-      layer.param.setValue("icon_color", icon_color->getColor().name());
-      layer.param.setValue("annotation_color", annotation_color->getColor().name());
+      layer->param.setValue("peak_color", peak_color->getColor().name());
+      layer->param.setValue("icon_color", icon_color->getColor().name());
+      layer->param.setValue("annotation_color", annotation_color->getColor().name());
       param_.setValue("background_color", bg_color->getColor().name());
       param_.setValue("highlighted_peak_color", selected_color->getColor().name());
 
@@ -1387,7 +1387,7 @@ namespace OpenMS
     QMenu* context_menu = new QMenu(this);
     QAction* result = nullptr;
 
-    Annotations1DContainer& annots_1d = getCurrentLayer().getCurrentAnnotations();
+    Annotations1DContainer& annots_1d = getCurrentLayer()->getCurrentAnnotations();
     Annotation1DItem* annot_item = annots_1d.getItemAt(e->pos());
     if (annot_item)
     {
@@ -1403,13 +1403,13 @@ namespace OpenMS
         {
           vector<Annotation1DItem*> as;
           as.push_back(annot_item);
-          getCurrentLayer().removePeakAnnotationsFromPeptideHit(as);
+          getCurrentLayer()->removePeakAnnotationsFromPeptideHit(as);
           annots_1d.removeSelectedItems();
         }
         else if (result->text() == "Edit")
         {
           annot_item->editText();
-          getCurrentLayer().synchronizePeakAnnotations();
+          getCurrentLayer()->synchronizePeakAnnotations();
         }
         update_(OPENMS_PRETTY_FUNCTION);
       }
@@ -1417,15 +1417,15 @@ namespace OpenMS
     else // !annot_item
     {
       //Display name and warn if current layer invisible
-      String layer_name = String("Layer: ") + getCurrentLayer().getName();
-      if (!getCurrentLayer().visible)
+      String layer_name = String("Layer: ") + getCurrentLayer()->getName();
+      if (!getCurrentLayer()->visible)
       {
         layer_name += " (invisible)";
       }
       context_menu->addAction(layer_name.toQString())->setEnabled(false);
       context_menu->addSeparator();
       QAction* new_action = context_menu->addAction("Add label");
-      if (mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2)))
+      if (mirror_mode_ && (getCurrentLayer()->getFlipped() ^ (e->pos().y() > height() / 2)))
       {
         new_action->setEnabled(false);
       }
@@ -1469,18 +1469,18 @@ namespace OpenMS
       context_menu->addMenu(settings_menu);
 
       // only add to context menu if there is a MS1 map
-      if (getCurrentLayer().getPeakData()->containsScanOfLevel(1))
+      if (getCurrentLayer()->getPeakData()->containsScanOfLevel(1))
       {
         context_menu->addAction("Switch to 2D view");
         context_menu->addAction("Switch to 3D view");
       }
 
-      if (getCurrentLayer().getCurrentSpectrum().containsIMData())
+      if (getCurrentLayer()->getCurrentSpectrum().containsIMData())
       {
         context_menu->addAction("Switch to ion mobility view");
       }
 
-      if (getCurrentLayer().isDIAData())
+      if (getCurrentLayer()->isDIAData())
       {
         context_menu->addAction("Switch to DIA-MS view");
       }
@@ -1555,8 +1555,8 @@ namespace OpenMS
         }
         else if (result->text() == "Add peak annotation mz")
         {
-          QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
-          addPeakAnnotation(near_peak, label, getCurrentLayer().param.getValue("peak_color").toQString());
+          QString label = String::number(getCurrentLayer()->getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
+          addPeakAnnotation(near_peak, label, getCurrentLayer()->param.getValue("peak_color").toQString());
         }
         else if (result->text() == "Reset alignment")
         {
@@ -1609,7 +1609,7 @@ namespace OpenMS
 
     PointType position = widgetToData(screen_position, true);
     Annotation1DItem* item = new Annotation1DTextItem(position, text);
-    getCurrentLayer().getCurrentAnnotations().push_front(item);
+    getCurrentLayer()->getCurrentAnnotations().push_front(item);
 
     update_(OPENMS_PRETTY_FUNCTION);
   }
@@ -1620,30 +1620,30 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation(near_peak, text, QColor(getCurrentLayer().param.getValue("peak_color").toQString()));
+      addPeakAnnotation(near_peak, text, QColor(getCurrentLayer()->param.getValue("peak_color").toQString()));
     }
   }
 
   Annotation1DItem* Plot1DCanvas::addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color)
   {
-    PeakType peak = getCurrentLayer().getCurrentSpectrum()[peak_index.peak];
+    PeakType peak = getCurrentLayer()->getCurrentSpectrum()[peak_index.peak];
     PointType position(peak.getMZ(), peak.getIntensity());
     Annotation1DItem* item = new Annotation1DPeakItem(position, text, color);
     item->setSelected(false);
-    getCurrentLayer().getCurrentAnnotations().push_front(item);
+    getCurrentLayer()->getCurrentAnnotations().push_front(item);
     update_(OPENMS_PRETTY_FUNCTION);
     return item;
   }
 
   void Plot1DCanvas::saveCurrentLayer(bool visible)
   {
-    const LayerData& layer = getCurrentLayer();
+    const LayerDataBase* layer = getCurrentLayer();
 
     //determine proposed filename
     String proposed_name = param_.getValue("default_path");
-    if (!visible && !layer.filename.empty())
+    if (!visible && !layer->filename.empty())
     {
-      proposed_name = layer.filename;
+      proposed_name = layer->filename;
     }
 
     QString selected_filter = "";
@@ -1688,7 +1688,7 @@ namespace OpenMS
       else
       {
         // TODO: this will not work if the data is cached on disk
-        FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
+        FileHandler().storeExperiment(file_name, *layer->getPeakData(), ProgressLogger::GUI);
       }
     }
   }
@@ -1697,7 +1697,7 @@ namespace OpenMS
   {
     for (Size i = 0; i < getLayerCount(); ++i)
     {
-      if (layers_.getLayer(i).flipped)
+      if (layers_.getLayer(i)->getFlipped())
       {
         return true;
       }
@@ -1791,7 +1791,7 @@ namespace OpenMS
     }
     else if (m == Qt::ShiftModifier)
     { // jump to the next peak (useful for sparse data)
-      const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
+      const LayerDataBase::ExperimentType::SpectrumType& spec = getCurrentLayer()->getCurrentSpectrum();
       PeakType p_temp(visible_area_.minX(), 0);
       SpectrumConstIteratorType it_next = lower_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // find first peak in current range
       if (it_next != spec.begin()) --it_next; // move one peak left
@@ -1822,7 +1822,7 @@ namespace OpenMS
     }
     else if (m == Qt::ShiftModifier)
     { // jump to the next peak (useful for sparse data)
-      const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
+      const LayerDataBase::ExperimentType::SpectrumType& spec = getCurrentLayer()->getCurrentSpectrum();
       PeakType p_temp(visible_area_.maxX(), 0);
       SpectrumConstIteratorType it_next = upper_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // first right-sided peak outside the current range
       if (it_next == spec.end()) return;
@@ -1963,10 +1963,10 @@ namespace OpenMS
     {
       return;
     }
-    LayerData& layer_1 = getLayer(layer_index_1);
-    LayerData& layer_2 = getLayer(layer_index_2);
-    const ExperimentType::SpectrumType& spectrum_1 = layer_1.getCurrentSpectrum();
-    const ExperimentType::SpectrumType& spectrum_2 = layer_2.getCurrentSpectrum();
+    LayerDataBase* layer_1 = getLayer(layer_index_1);
+    LayerDataBase* layer_2 = getLayer(layer_index_2);
+    const ExperimentType::SpectrumType& spectrum_1 = layer_1->getCurrentSpectrum();
+    const ExperimentType::SpectrumType& spectrum_2 = layer_2->getCurrentSpectrum();
 
     SpectrumAlignment aligner;
     aligner.setParameters(param);
@@ -2050,7 +2050,7 @@ namespace OpenMS
     for (Size i = 0; i < getLayerCount(); ++i)
     {
       updatePercentageFactor_(i);
-      Annotations1DContainer& ann_1d = getLayer(i).getCurrentAnnotations();
+      Annotations1DContainer& ann_1d = getLayer(i)->getCurrentAnnotations();
       for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
       {
         (*it)->ensureWithinDataRange(this);
@@ -2070,11 +2070,13 @@ namespace OpenMS
     }
   }
 
+  // TODO: should maybe not be part of Canvas as it depends on if layer is flippable
   void Plot1DCanvas::flipLayer(Size index)
-  {
+  {    
     if (index < getLayerCount())
     {
-      getLayer(index).flipped = !getLayer(index).flipped;
+      PeakLayer* peak_layer = dynamic_cast<PeakLayer*>(getLayer(index)); // TODO: check if cast succeeds?
+      peak_layer->setFlipped(!peak_layer->getFlipped()); // toggle
     }
   }
 
@@ -2084,9 +2086,9 @@ namespace OpenMS
     // be an in-memory representation in the peak data structure. Using
     // setCurrentSpectrumIndex will select the appropriate spectrum and load it
     // into memory.
-    if (index < getCurrentLayer().getPeakData()->size())
+    if (index < getCurrentLayer()->getPeakData()->size())
     {
-      getCurrentLayer().setCurrentSpectrumIndex(index);
+      getCurrentLayer()->setCurrentSpectrumIndex(index);
       recalculateSnapFactor_();
       if (repaint)
       {

@@ -52,11 +52,11 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     
-    if (layer_data_.type == LayerData::DT_PEAK)
+    if (layer_data_->type == LayerDataBase::DT_PEAK)
     {
       computePeakStats_();
     }
-    else if (layer_data_.type == LayerData::DT_FEATURE)
+    else if (layer_data_->type == LayerDataBase::DT_FEATURE)
     {
       computeFeatureStats_();
 
@@ -103,7 +103,7 @@ namespace OpenMS
       ui_->table_->setItem(2, 3, item);
 
     }
-    else if (layer_data_.type == LayerData::DT_CONSENSUS)
+    else if (layer_data_->type == LayerDataBase::DT_CONSENSUS)
     {
       computeConsensusStats_();
 
@@ -169,7 +169,7 @@ namespace OpenMS
       ui_->table_->setItem(3, 3, item);
 
     }
-    else if (layer_data_.type == LayerData::DT_CHROMATOGRAM)
+    else if (layer_data_->type == LayerDataBase::DT_CHROMATOGRAM)
     {
       //TODO CHROM
     }
@@ -284,13 +284,14 @@ namespace OpenMS
 
   void LayerStatisticsDialog::computePeakStats_()
   {
+    const PeakLayer* peak_layer = dynamic_cast<const PeakLayer*>(layer_data_);
     min_intensity_ = canvas_->getCurrentMinIntensity();
     max_intensity_ = canvas_->getCurrentMaxIntensity();
     avg_intensity_ = 0;
     unsigned long divisor = 0;
-    for (LayerData::ExperimentType::ConstIterator it_rt = layer_data_.getPeakData()->begin(); it_rt != layer_data_.getPeakData()->end(); it_rt++)
+    for (auto it_rt = peak_layer->getPeakData()->begin(); it_rt != peak_layer->getPeakData()->end(); it_rt++)
     {
-      for (PeakIterator_ it_peak = it_rt->begin(); it_peak != it_rt->end(); it_peak++)
+      for (auto it_peak = it_rt->begin(); it_peak != it_rt->end(); it_peak++)
       {
         avg_intensity_ += it_peak->getIntensity();
         divisor++;
@@ -300,28 +301,31 @@ namespace OpenMS
       computeMetaDataArrayStats_(it_rt->getIntegerDataArrays().begin(), it_rt->getIntegerDataArrays().end());
     }
     if (divisor != 0)
+    {
       avg_intensity_ /= (double)divisor;
+    }
     computeMetaAverages_();
   }
 
   void LayerStatisticsDialog::computeFeatureStats_()
   {
+    const FeatureLayer* feature_layer = dynamic_cast<const FeatureLayer*>(layer_data_);
     min_intensity_ = canvas_->getCurrentMinIntensity();
     max_intensity_ = canvas_->getCurrentMaxIntensity();
     avg_intensity_ = 0;
-    if (!layer_data_.getFeatureMap()->empty())
+    if (!feature_layer->getFeatureMap()->empty())
     {
-      min_charge_ = layer_data_.getFeatureMap()->begin()->getCharge();
-      max_charge_ = layer_data_.getFeatureMap()->begin()->getCharge();
+      min_charge_ = feature_layer->getFeatureMap()->begin()->getCharge();
+      max_charge_ = feature_layer->getFeatureMap()->begin()->getCharge();
       avg_charge_ = 0;
 
-      min_quality_ = layer_data_.getFeatureMap()->begin()->getOverallQuality();
-      max_quality_ = layer_data_.getFeatureMap()->begin()->getOverallQuality();
+      min_quality_ = feature_layer->getFeatureMap()->begin()->getOverallQuality();
+      max_quality_ = feature_layer->getFeatureMap()->begin()->getOverallQuality();
       avg_quality_ = 0;
     }
 
     unsigned long divisor = 0;
-    for (FeatureIterator_ it = layer_data_.getFeatureMap()->begin(); it != layer_data_.getFeatureMap()->end(); it++)
+    for (auto it = feature_layer->getFeatureMap()->begin(); it != feature_layer->getFeatureMap()->end(); it++)
     {
       if (it->getCharge() < min_charge_)
         min_charge_ = it->getCharge();
@@ -338,6 +342,7 @@ namespace OpenMS
       const MetaInfoInterface & mii = static_cast<MetaInfoInterface>(*it);
       bringInMetaStats_(mii);
     }
+
     if (divisor != 0)
     {
       avg_intensity_ /= (double)divisor;
@@ -349,26 +354,27 @@ namespace OpenMS
 
   void LayerStatisticsDialog::computeConsensusStats_()
   {
+    const ConsensusLayer* consensus_layer = dynamic_cast<const ConsensusLayer*>(layer_data_);
     min_intensity_ = canvas_->getCurrentMinIntensity();
     max_intensity_ = canvas_->getCurrentMaxIntensity();
     avg_intensity_ = 0;
-    if (!layer_data_.getConsensusMap()->empty())
+    if (!consensus_layer->getConsensusMap()->empty())
     {
-      min_charge_ = layer_data_.getConsensusMap()->begin()->getCharge();
-      max_charge_ = layer_data_.getConsensusMap()->begin()->getCharge();
+      min_charge_ = consensus_layer->getConsensusMap()->begin()->getCharge();
+      max_charge_ = consensus_layer->getConsensusMap()->begin()->getCharge();
       avg_charge_ = 0;
 
-      min_quality_ = layer_data_.getConsensusMap()->begin()->getQuality();
-      max_quality_ = layer_data_.getConsensusMap()->begin()->getQuality();
+      min_quality_ = consensus_layer->getConsensusMap()->begin()->getQuality();
+      max_quality_ = consensus_layer->getConsensusMap()->begin()->getQuality();
       avg_quality_ = 0;
 
-      min_elements_ = layer_data_.getConsensusMap()->begin()->size();
-      max_elements_ = layer_data_.getConsensusMap()->begin()->size();
+      min_elements_ = consensus_layer->getConsensusMap()->begin()->size();
+      max_elements_ = consensus_layer->getConsensusMap()->begin()->size();
       avg_elements_ = 0;
     }
 
     unsigned long divisor = 0;
-    for (ConsensusIterator_ it = layer_data_.getConsensusMap()->begin(); it != layer_data_.getConsensusMap()->end(); it++)
+    for (auto it = consensus_layer->getConsensusMap()->begin(); it != consensus_layer->getConsensusMap()->end(); it++)
     {
       if (it->getCharge() < min_charge_)
         min_charge_ = it->getCharge();

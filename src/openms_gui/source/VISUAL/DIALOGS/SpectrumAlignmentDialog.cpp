@@ -61,15 +61,17 @@ namespace OpenMS
     Plot1DCanvas * cc = parent->canvas();
     for (UInt i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerData & layer = cc->getLayer(i);
-      if (layer.flipped)
+      const LayerDataBase* layer = cc->getLayer(i);
+      const PeakLayer* peak_layer = dynamic_cast<const PeakLayer*>(layer);
+
+      if (peak_layer->getFlipped())
       {
-        ui_->layer_list_2->addItem(layer.getName().toQString());
+        ui_->layer_list_2->addItem(peak_layer->getName().toQString());
         layer_indices_2_.push_back(i);
       }
       else
       {
-        ui_->layer_list_1->addItem(layer.getName().toQString());
+        ui_->layer_list_1->addItem(peak_layer->getName().toQString());
         layer_indices_1_.push_back(i);
       }
     }

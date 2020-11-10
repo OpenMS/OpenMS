@@ -53,19 +53,19 @@ protected:
     ///@name Type definitions
     //@{
     /// Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef FeatureLayer::FeatureMapType FeatureMapType;
     /// Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef FeatureLayer::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
     /// Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef ConsensusLayer::ConsensusMapType ConsensusMapType;
     /// Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef ConsensusLayer::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     /// Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef PeakLayer::ExperimentType ExperimentType;
     /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef PeakLayer::ExperimentSharedPtrType ExperimentSharedPtrType;
     /// Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}

@@ -87,32 +87,32 @@ namespace OpenMS
 
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerData& layer = cc->getLayer(i);
+      const LayerDataBase* layer = cc->getLayer(i);
 
       // add item
       QListWidgetItem* item = new QListWidgetItem(this);
-      QString name = layer.getDecoratedName().toQString();
+      QString name = layer->getDecoratedName().toQString();
 
       item->setText(name);
-      item->setToolTip(layer.filename.toQString());
+      item->setToolTip(layer->filename.toQString());
 
       if (is_1d_view)
       {
         QPixmap icon(7, 7);
-        icon.fill(QColor(layer.param.getValue("peak_color").toQString()));
+        icon.fill(QColor(layer->param.getValue("peak_color").toQString()));
         item->setIcon(icon);
       }
       else
       {  // 2D/3D map view
-        switch (layer.type)
+        switch (layer->type)
         {
-        case LayerData::DT_PEAK:
+        case LayerDataBase::DT_PEAK:
           item->setIcon(QIcon(":/peaks.png"));
           break;
-        case LayerData::DT_FEATURE:
+        case LayerDataBase::DT_FEATURE:
           item->setIcon(QIcon(":/convexhull.png"));
           break;
-        case LayerData::DT_CONSENSUS:
+        case LayerDataBase::DT_CONSENSUS:
           item->setIcon(QIcon(":/elements.png"));
           break;
         default:
@@ -120,7 +120,7 @@ namespace OpenMS
         }
       }
 
-      item->setCheckState(layer.visible ? Qt::Checked : Qt::Unchecked);
+      item->setCheckState(layer->visible ? Qt::Checked : Qt::Unchecked);
 
       // highlight active item
       if (i == cc->getCurrentLayerIndex())
@@ -141,7 +141,7 @@ namespace OpenMS
   void LayerListView::itemChangedAction_(QListWidgetItem* item)
   {
     int layer = this->row(item);
-    bool visible = spectrum_widget_->canvas()->getLayer(layer).visible;
+    bool visible = spectrum_widget_->canvas()->getLayer(layer)->visible;
 
     if (item->checkState() == Qt::Unchecked && visible)
     {
@@ -178,7 +178,9 @@ namespace OpenMS
     auto widget1D = qobject_cast<Plot1DWidget*>(spectrum_widget_);
     if (widget1D != nullptr)
     {
-      if (widget1D->canvas()->getLayer(layer_idx).flipped)
+      const LayerDataBase* layer = widget1D->canvas()->getLayer(layer_idx);
+      const PeakLayer* peak_layer = dynamic_cast<const PeakLayer*>(layer);
+      if (peak_layer->getFlipped())
       {
         context_menu->addAction("Flip upwards (1D)", [&]() {
           widget1D->canvas()->flipLayer(layer_idx);
