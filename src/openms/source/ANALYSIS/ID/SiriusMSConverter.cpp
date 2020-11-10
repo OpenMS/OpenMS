@@ -327,11 +327,11 @@ namespace OpenMS
               cmpinfo.fmz = feature_mz;
               cmpinfo.fid = feature_id;
             }
-            os << "##des " << String(v_description[k]) << "\n";
+            os << "##des " << String(des_wo_space) << "\n";
             os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
             os << "##source file " << ainfo.sf_path << endl;
             os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
-            cmpinfo.des = String(v_description[k]);
+            cmpinfo.des = String(des_wo_space);
             cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
             cmpinfo.source_file = ainfo.sf_path;
             cmpinfo.source_format = String("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );

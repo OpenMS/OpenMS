@@ -518,7 +518,7 @@ namespace OpenMS
 
     SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::~SiriusTemporaryFileSystemObjects()
     {
-      constexpr int debug_threshold = 2;
+      constexpr int debug_threshold = 9;
 
       // clean tmp directory if debug level < debug threshold
       if (debug_level_ >= debug_threshold)

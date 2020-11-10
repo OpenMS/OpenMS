@@ -297,11 +297,13 @@ protected:
     // iterate over all the files
     for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
     {
+      OPENMS_LOG_DEBUG << "Current mzML-file: " << in[file_counter] << std::endl;
       // load mzML
       MzMLFile mzml;
       PeakMap spectra;
       mzml.load(in[file_counter], spectra);
 
+      OPENMS_LOG_DEBUG << "Current featureXML-file: " << id[file_counter] << std::endl;
       // load featurexml
       FeatureXMLFile fxml;
       FeatureMap feature_map;
