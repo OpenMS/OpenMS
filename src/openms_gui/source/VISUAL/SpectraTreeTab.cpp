@@ -128,8 +128,8 @@ namespace OpenMS
     spectra_treewidget_->setDragEnabled(true);
     spectra_treewidget_->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraTreeTab::spectrumSelectionChange_);
-    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraTreeTab::spectrumDoubleClicked_);
+    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraTreeTab::itemSelectionChange_);
+    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraTreeTab::itemDoubleClicked_);
     connect(spectra_treewidget_, &QTreeWidget::customContextMenuRequested, this, &SpectraTreeTab::spectrumContextMenu_);
 
     spectra_widget_layout->addWidget(spectra_treewidget_);
@@ -182,7 +182,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraTreeTab::spectrumSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+  void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
   {
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
@@ -199,7 +199,7 @@ namespace OpenMS
     }
     else
     { // open several chromatograms at once
-      emit spectrumSelected(listToVec(ie.res));
+      emit chromsSelected(listToVec(ie.res));
     }
   }
 
@@ -208,10 +208,10 @@ namespace OpenMS
     spectrumSearchText_(); // update selection first (we might be in a new layer)
     QList<QTreeWidgetItem*> selected = spectra_treewidget_->selectedItems();
     // show the first selected item
-    if (selected.size() > 0) spectrumSelectionChange_(selected.first(), selected.first());
+    if (selected.size() > 0) itemSelectionChange_(selected.first(), selected.first());
   }
 
-  void SpectraTreeTab::spectrumDoubleClicked_(QTreeWidgetItem* current)
+  void SpectraTreeTab::itemDoubleClicked_(QTreeWidgetItem* current)
   {
     if (current == nullptr)
     {
@@ -224,7 +224,7 @@ namespace OpenMS
     }
     else
     { // open several chromatograms at once
-      emit spectrumDoubleClicked(listToVec(ie.res));
+      emit chromsDoubleClicked(listToVec(ie.res));
     }
   }
 

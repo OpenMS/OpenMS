@@ -71,12 +71,12 @@ namespace OpenMS
   {
     // Hook-up controller and views for spectra inspection
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAsNew1D, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAsNew1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showChromsAsNew1D, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showChromsAsNew1D, (const std::vector<int>&)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAsNew1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showChromsAsNew1D, (const std::vector<int>&)));
+    connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumAsNew1D, spectraview_controller_, &TVSpectraViewController::showSpectrumAsNew1D);
+    connect(spectra_view_widget_, &SpectraTreeTab::showChromsAsNew1D, spectraview_controller_, &TVSpectraViewController::showChromsAsNew1D);
+    connect(spectra_view_widget_, &SpectraTreeTab::spectrumSelected, spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
+    connect(spectra_view_widget_, &SpectraTreeTab::chromsSelected, spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
+    connect(spectra_view_widget_, &SpectraTreeTab::spectrumDoubleClicked, spectraview_controller_, &TVSpectraViewController::showSpectrumAsNew1D);
+    connect(spectra_view_widget_, &SpectraTreeTab::chromsDoubleClicked, spectraview_controller_, &TVSpectraViewController::showChromsAsNew1D);
 
     // Hook-up controller and views for identification inspection
     connect(id_view_widget_, &SpectraIDViewTab::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);

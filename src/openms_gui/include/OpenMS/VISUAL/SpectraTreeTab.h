@@ -74,9 +74,9 @@ public:
 
 signals:
     void spectrumSelected(int);
-    void spectrumSelected(std::vector<int> indices);
+    void chromsSelected(std::vector<int> indices);
     void spectrumDoubleClicked(int);
-    void spectrumDoubleClicked(std::vector<int> indices);
+    void chromsDoubleClicked(std::vector<int> indices);
     void showSpectrumAsNew1D(int);
     void showChromsAsNew1D(std::vector<int> indices);
     void showSpectrumMetaData(int);
@@ -94,12 +94,12 @@ private slots:
     void populateSearchBox_();
     /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
     void spectrumSearchText_();
-    /// emits spectrumSelected() for either PEAK or CHROM data)
-    void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
+    /// emits spectrumSelected() for PEAK or chromsSelected() for CHROM data
+    void itemSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
     /// searches using text box and plots the spectrum
     void searchAndShow_(); 
-    /// called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
-    void spectrumDoubleClicked_(QTreeWidgetItem *); 
+    /// called upon double click on an item; emits spectrumDoubleClicked() or chromsDoubleClicked() after some checking
+    void itemDoubleClicked_(QTreeWidgetItem *); 
     /// Display context menu; allows to open metadata window
     void spectrumContextMenu_(const QPoint &);
   };

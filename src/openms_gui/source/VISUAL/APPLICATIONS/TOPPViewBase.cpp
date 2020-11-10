@@ -1425,7 +1425,7 @@ namespace OpenMS
     {
       connect(sw2->getHorizontalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
-      connect(sw2, CONNECTCAST(Plot2DWidget, showSpectrumAsNew1D, (int)), selection_view_, CONNECTCAST(DataSelectionTabs, showSpectrumAsNew1D, (int)));
+      connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }
 
