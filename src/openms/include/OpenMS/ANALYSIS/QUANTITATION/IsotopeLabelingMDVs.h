@@ -45,13 +45,14 @@
 #include <OpenMS/KERNEL/Feature.h>
 
 //Standard library
- #include <cstddef> // for size_t & ptrdiff_t
- #include <vector>
- #include <string>
- #include <cmath>
- #include <unordered_map>
- #include <algorithm>
- #include <Eigen/Dense>
+#include <cstddef> // for size_t & ptrdiff_t
+#include <vector>
+#include <string>
+#include <cmath>
+#include <numeric>
+#include <unordered_map>
+#include <algorithm>
+#include <Eigen/Dense>
 
 namespace OpenMS
 {
