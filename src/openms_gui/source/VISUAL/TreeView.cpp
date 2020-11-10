@@ -54,7 +54,6 @@ namespace OpenMS
 
     this->header()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this->header(), &QHeaderView::customContextMenuRequested, this, &TreeView::headerContextMenu_);
-
   }
 
 

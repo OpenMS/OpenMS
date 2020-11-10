@@ -65,7 +65,6 @@ namespace OpenMS
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure
     static void openURL(const QString& target);
-    
   };
 
 }

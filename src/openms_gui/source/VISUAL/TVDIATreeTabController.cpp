@@ -103,7 +103,6 @@ namespace OpenMS
 
   void TVDIATreeTabController::showTransitionsAs1D(const std::vector<int>& indices)
   {
-
     // basic behavior 1
 
     // show multiple spectra together is only used for chromatograms directly

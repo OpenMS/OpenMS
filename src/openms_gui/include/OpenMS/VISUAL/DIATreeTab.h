@@ -89,7 +89,6 @@ namespace OpenMS
     void rowSelectionChange2_(QTreeWidgetItem*, int col);
     /// searches using text box and plots the spectrum
     void searchAndShow_();
-
   };
 }
 
