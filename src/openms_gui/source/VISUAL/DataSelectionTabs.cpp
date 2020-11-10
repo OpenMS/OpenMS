@@ -71,12 +71,12 @@ namespace OpenMS
   {
     // Hook-up controller and views for spectra inspection
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (const std::vector<int>&)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (int)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (std::vector<int>)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (const std::vector<int>&)));
 
     // Hook-up controller and views for identification inspection
     connect(id_view_widget_, &SpectraIDViewTab::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
@@ -157,7 +157,7 @@ namespace OpenMS
       diatab_controller_->deactivateBehavior();
       if (tv_->getActive2DWidget()) // currently 2D window is open
       {
-        showSpectrumAs1D(0);
+        idview_controller_->showSpectrumAs1D(0);
       }
       idview_controller_->activateBehavior();
       break;
@@ -227,7 +227,7 @@ namespace OpenMS
         spectraview_controller_->deactivateBehavior();
         if (tv_->getActive2DWidget()) // currently 2D window is open
         {
-          showSpectrumAs1D(0);
+          idview_controller_->showSpectrumAs1D(0);
         }
         idview_controller_->activateBehavior();
 
