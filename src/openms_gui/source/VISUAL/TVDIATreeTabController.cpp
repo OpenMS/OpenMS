@@ -179,20 +179,12 @@ namespace OpenMS
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
-    // If we have a chromatogram, we cannot just simply activate this spectrum.
-    // we have to do much more work, e.g. creating a new experiment with the
-    // new spectrum.
-    if (layer.chromatogram_flag_set())
+    if (layer.getChromatogramAnnotation().get())
     {
-      // first get raw data (the full experiment with all chromatograms), we
-      // only need to grab the ones with the desired indices
-      ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
-      auto ondisc_sptr = layer.getOnDiscPeakData();
-
       widget_1d->canvas()->removeLayers();
-
       widget_1d->canvas()->blockSignals(true);
       RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
+      /*
       String fname = layer.filename;
       for (const auto& index : indices)
       {
@@ -208,7 +200,7 @@ namespace OpenMS
         // add chromatogram data as peak spectrum
         widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, true);
       }
-
+           */
       tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
     }
   }

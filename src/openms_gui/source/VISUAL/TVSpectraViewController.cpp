@@ -101,7 +101,7 @@ namespace OpenMS
     return chrom_exp_sptr;
   }
 
-  void TVSpectraViewController::showSpectrumAs1D(int index)
+  void TVSpectraViewController::showSpectrumAsNew1D(int index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
@@ -184,7 +184,7 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  void TVSpectraViewController::showSpectrumAs1D(const std::vector<int>& indices)
+  void TVSpectraViewController::showChromsAsNew1D(const std::vector<int>& indices)
   {
 
     // basic behavior 1

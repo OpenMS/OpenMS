@@ -70,13 +70,13 @@ namespace OpenMS
   {
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int index)
   {
     // Show spectrum "index" without selecting an identification
-    showSpectrumAs1D(index, -1, -1);
+    showSpectrumAsNew1D(index, -1, -1);
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());

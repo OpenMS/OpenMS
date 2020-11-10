@@ -58,11 +58,11 @@ namespace OpenMS
     TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view_);
 
   public slots:
-    /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index);
+    /// Behavior for showSpectrumAsNew1D
+    virtual void showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index);
 
     /// Show spectrum without selecting an identification
-    virtual void showSpectrumAs1D(int index);
+    virtual void showSpectrumAsNew1D(int index);
 
     /// Behavior for activate1DSpectrum
     virtual void activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index);

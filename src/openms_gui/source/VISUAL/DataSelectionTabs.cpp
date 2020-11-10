@@ -71,12 +71,12 @@ namespace OpenMS
   {
     // Hook-up controller and views for spectra inspection
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAs1D, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (const std::vector<int>&)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showSpectrumAsNew1D, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAsNew1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, showChromsAsNew1D, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showChromsAsNew1D, (const std::vector<int>&)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumSelected, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, activate1DSpectrum, (const std::vector<int>&)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAs1D, (const std::vector<int>&)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (int)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showSpectrumAsNew1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraTreeTab, spectrumDoubleClicked, (std::vector<int>)), spectraview_controller_, CONNECTCAST(TVSpectraViewController, showChromsAsNew1D, (const std::vector<int>&)));
 
     // Hook-up controller and views for identification inspection
     connect(id_view_widget_, &SpectraIDViewTab::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
@@ -157,7 +157,7 @@ namespace OpenMS
       diatab_controller_->deactivateBehavior();
       if (tv_->getActive2DWidget()) // currently 2D window is open
       {
-        idview_controller_->showSpectrumAs1D(0);
+        idview_controller_->showSpectrumAsNew1D(0);
       }
       idview_controller_->activateBehavior();
       break;
@@ -173,7 +173,7 @@ namespace OpenMS
     update();
   }
 
-  void DataSelectionTabs::showSpectrumAs1D(int index)
+  void DataSelectionTabs::showSpectrumAsNew1D(int index)
   {
     Plot1DWidget* widget_1d = tv_->getActive1DWidget();
     Plot2DWidget* widget_2d = tv_->getActive2DWidget();
@@ -182,17 +182,17 @@ namespace OpenMS
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_controller_->showSpectrumAs1D(index);
+        spectraview_controller_->showSpectrumAsNew1D(index);
       }
 
       if (id_view_widget_->isVisible())
       {
-        idview_controller_->showSpectrumAs1D(index);
+        idview_controller_->showSpectrumAsNew1D(index);
       }
     }
   }
 
-  void DataSelectionTabs::showSpectrumAs1D(std::vector<int> indices)
+  void DataSelectionTabs::showChromsAsNew1D(const std::vector<int>& indices)
   {
     Plot1DWidget* widget_1d = tv_->getActive1DWidget();
     Plot2DWidget* widget_2d = tv_->getActive2DWidget();
@@ -201,14 +201,14 @@ namespace OpenMS
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_controller_->showSpectrumAs1D(indices);
+        spectraview_controller_->showChromsAsNew1D(indices);
       }
     }
     else if (widget_2d)
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_controller_->showSpectrumAs1D(indices);
+        spectraview_controller_->showChromsAsNew1D(indices);
       }
     }
   }
@@ -227,7 +227,7 @@ namespace OpenMS
         spectraview_controller_->deactivateBehavior();
         if (tv_->getActive2DWidget()) // currently 2D window is open
         {
-          idview_controller_->showSpectrumAs1D(0);
+          idview_controller_->showSpectrumAsNew1D(0);
         }
         idview_controller_->activateBehavior();
 

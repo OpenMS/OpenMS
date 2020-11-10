@@ -107,8 +107,8 @@ signals:
     /// Signal emitted when the projections are to be shown/hidden
     void toggleProjections();
     /// Requests to display the spectrum with index @p index in 1D
-    void showSpectrumAs1D(int index);
-    void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    void showSpectrumAsNew1D(int index);
+    void showChromsAsNew1D(std::vector<int, std::allocator<int> > indices);
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
 

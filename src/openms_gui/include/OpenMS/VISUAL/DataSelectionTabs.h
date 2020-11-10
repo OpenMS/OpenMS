@@ -78,10 +78,10 @@ namespace OpenMS
     void currentTabChanged(int tab_index);
     
     /// forwards to the TOPPView*Behaviour classes, to show a certain spectrum in 1D
-    void showSpectrumAs1D(int index);
+    void showSpectrumAsNew1D(int index);
     
     /// forwards to the TOPPView*Behaviour classes, to show a certain set of chromatograms in 1D
-    void showSpectrumAs1D(std::vector<int> indices);
+    void showChromsAsNew1D(const std::vector<int>& indices);
 
     /// double-click on disabled identification view
     /// --> enables it and creates an empty identification structure

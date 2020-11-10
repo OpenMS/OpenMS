@@ -240,11 +240,11 @@ namespace OpenMS
       {
         if (!ie.hasChromIndices())
         {
-          emit showSpectrumAs1D(ie.spectrum_index);
+          emit showSpectrumAsNew1D(ie.spectrum_index);
         }
         else
         { // open several chromatograms at once
-          emit showSpectrumAs1D(listToVec(ie.res));
+          emit showChromsAsNew1D(listToVec(ie.res));
         }
       });
       context_menu.addAction("Meta data", [&]() 
