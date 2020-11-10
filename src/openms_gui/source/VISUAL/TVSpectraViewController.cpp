@@ -224,6 +224,7 @@ namespace OpenMS
         w->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
 
         w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
+        w->canvas()->getCurrentLayer().getChromatogramAnnotation() = layer.getChromatogramAnnotation(); // copy over shared-ptr to OSW-sql data (if available)
 
         //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
         w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");

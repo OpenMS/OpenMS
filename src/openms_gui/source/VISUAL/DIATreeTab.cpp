@@ -246,7 +246,7 @@ namespace OpenMS
       return;
     }
 
-    OSWData& data = current_layer_->getChromatogramAnnotation();
+    OSWData& data = *current_layer_->getChromatogramAnnotation().get();
     std::vector<int> transitions_to_show;
 
     IndexTrace tr(current, data);
@@ -319,23 +319,31 @@ namespace OpenMS
       return;
     }
 
+    if (current_layer_ == &cl)
+    {
+      // layer data is still the same as last time ..
+      // do not repopulate the table for now, since the data should not have changed
+      // Note: If we ever need to redraw, the tree's state (which subtress are expanded, which items are selected) will need to be remembered and restored
+      return;
+    }
+
+    // remember layer, because we need the OSWData from it, once the user wants to see transition plots...
     current_layer_ = &cl;
 
     dia_treewidget_->blockSignals(true);
     RAIICleanup clean([&]() { dia_treewidget_->blockSignals(false); });
 
-    QTreeWidgetItem* toplevel_item = nullptr;
-    QTreeWidgetItem* selected_item = nullptr;
-    QList<QTreeWidgetItem*> toplevel_items;
-    bool more_than_one_spectrum = true;
-
     dia_treewidget_->clear();
 
     dia_treewidget_->setHeaders(Clmn::HEADER_NAMES);
 
-    const OSWData&  data = cl.getChromatogramAnnotation();
+    const OSWData&  data = *cl.getChromatogramAnnotation().get();
 
-    if (!data.getProteins().empty())
+    if (data.getProteins().empty())
+    {
+      dia_treewidget_->setHeaders(QStringList() << "No data");
+    }
+    else
     {
       for (int prot_index = 0; prot_index < data.getProteins().size(); ++prot_index)
       {
@@ -343,19 +351,9 @@ namespace OpenMS
         auto item_prot = createProt(prot, prot_index);
         dia_treewidget_->addTopLevelItem(item_prot);
       }
-
-      if (selected_item)
-      {
-        // now, select and scroll down to item
-        selected_item->setSelected(true);
-        dia_treewidget_->scrollToItem(selected_item);
-      }
-    }
-    else
-    {
-      dia_treewidget_->setHeaders(QStringList() << "No data");
     }
 
+    
     populateSearchBox_();
 
 
