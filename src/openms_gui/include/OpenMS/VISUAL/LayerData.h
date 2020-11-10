@@ -263,6 +263,10 @@ public:
     /// Not const, because we might have incomplete data, which needs to be loaded from sql source
     OSWDataSharedPtrType& getChromatogramAnnotation();
 
+    /// get annotation (e.g. to build a hierachical ID View)
+    /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
+    const OSWDataSharedPtrType& getChromatogramAnnotation() const;
+
     /// add annotation from an OSW sqlite file.
     void setChromatogramAnnotation(OSWData&& data);
 

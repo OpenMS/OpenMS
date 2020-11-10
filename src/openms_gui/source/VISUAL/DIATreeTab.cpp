@@ -337,7 +337,7 @@ namespace OpenMS
 
     dia_treewidget_->setHeaders(Clmn::HEADER_NAMES);
 
-    const OSWData&  data = *cl.getChromatogramAnnotation().get();
+    const OSWData& data = *cl.getChromatogramAnnotation().get();
 
     if (data.getProteins().empty())
     {

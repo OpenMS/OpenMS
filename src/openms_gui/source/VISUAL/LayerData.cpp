@@ -189,6 +189,11 @@ namespace OpenMS
     return chrom_annotation_;
   }
 
+  const LayerData::OSWDataSharedPtrType& LayerData::getChromatogramAnnotation() const
+  {
+    return chrom_annotation_;
+  }
+
   void LayerData::setChromatogramAnnotation(OSWData&& data)
   {
     chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
