@@ -87,7 +87,7 @@ namespace OpenMS
 
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerDataBase* layer = cc->getLayer(i);
+      const LayerBase* layer = cc->getLayer(i);
 
       // add item
       QListWidgetItem* item = new QListWidgetItem(this);
@@ -106,13 +106,13 @@ namespace OpenMS
       {  // 2D/3D map view
         switch (layer->type)
         {
-        case LayerDataBase::DT_PEAK:
+        case LayerBase::DT_PEAK:
           item->setIcon(QIcon(":/peaks.png"));
           break;
-        case LayerDataBase::DT_FEATURE:
+        case LayerBase::DT_FEATURE:
           item->setIcon(QIcon(":/convexhull.png"));
           break;
-        case LayerDataBase::DT_CONSENSUS:
+        case LayerBase::DT_CONSENSUS:
           item->setIcon(QIcon(":/elements.png"));
           break;
         default:
@@ -178,7 +178,7 @@ namespace OpenMS
     auto widget1D = qobject_cast<Plot1DWidget*>(spectrum_widget_);
     if (widget1D != nullptr)
     {
-      const LayerDataBase* layer = widget1D->canvas()->getLayer(layer_idx);
+      const LayerBase* layer = widget1D->canvas()->getLayer(layer_idx);
       const PeakLayer* peak_layer = dynamic_cast<const PeakLayer*>(layer);
       if (peak_layer->getFlipped())
       {

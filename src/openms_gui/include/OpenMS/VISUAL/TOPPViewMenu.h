@@ -68,9 +68,9 @@ namespace OpenMS
   /// allow + operations on the enum, e.g. 'HAS_CANVAS + HAS_LAYER + IS_1D_VIEW'
   FS_TV OPENMS_GUI_DLLAPI operator+(const TV_STATUS left, const TV_STATUS right);
 
-  using FS_LAYER = FlagSet<LayerDataBase::DataType>;
+  using FS_LAYER = FlagSet<LayerBase::DataType>;
   /// allow + operations on the enum, e.g. 'DT_PEAK + DT_FEATURE'
-  FS_LAYER OPENMS_GUI_DLLAPI operator+(const LayerDataBase::DataType left, const LayerDataBase::DataType right);
+  FS_LAYER OPENMS_GUI_DLLAPI operator+(const LayerBase::DataType left, const LayerBase::DataType right);
 
 
   /**
@@ -97,7 +97,7 @@ namespace OpenMS
 
   public slots:
     /// enable/disable entries according to a given state of TOPPViewBase
-    void update(const FS_TV status, const LayerDataBase::DataType layer_type);
+    void update(const FS_TV status, const LayerBase::DataType layer_type);
 
   private:
     struct ActionRequirement_
@@ -110,7 +110,7 @@ namespace OpenMS
       /// check if an ActionRequirement is fulfilled by the arguments
       /// i.e. @p status is a superset of needs_ and @p layer_type is a superset of layer_set_ (or layer_set_ is empty)
       /// If yes, the the action to enabled, or disable it otherwise
-      void enableAction(const FS_TV status, const LayerDataBase::DataType layer_type);
+      void enableAction(const FS_TV status, const LayerBase::DataType layer_type);
 
     private:
       QAction* action_;

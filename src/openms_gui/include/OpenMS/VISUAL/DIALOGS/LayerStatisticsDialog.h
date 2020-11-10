@@ -126,7 +126,7 @@ protected:
     /// The canvas of the layer
     PlotCanvas * canvas_;
     /// The LayerData object we compute statistics about
-    const LayerDataBase* layer_data_;
+    const LayerBase* layer_data_;
     /// Minimum intensity value
     double min_intensity_;
     /// Maximum intensity value

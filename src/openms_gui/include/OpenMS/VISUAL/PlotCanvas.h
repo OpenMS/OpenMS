@@ -72,15 +72,15 @@ namespace OpenMS
   {
     public:
       /// adds a new layer and makes it the current layer
-      void addLayer(LayerDataBase* new_layer);
+      void addLayer(LayerBase* new_layer);
 
-      const LayerDataBase* getLayer(const Size index) const;
+      const LayerBase* getLayer(const Size index) const;
 
-      LayerDataBase* getLayer(const Size index);
+      LayerBase* getLayer(const Size index);
 
-      const LayerDataBase* getCurrentLayer() const;
+      const LayerBase* getCurrentLayer() const;
 
-      LayerDataBase* getCurrentLayer();
+      LayerBase* getCurrentLayer();
 
       /// throws Exception::IndexOverflow unless @p index is smaller than getLayerCount()
       void setCurrentLayer(Size index);
@@ -96,7 +96,7 @@ namespace OpenMS
       void removeCurrentLayer();
   
   protected:
-      std::vector<LayerDataBase*> layers_;
+      std::vector<LayerBase*> layers_;
   private:
       Size current_layer_ = -1;
   };
@@ -267,23 +267,23 @@ public:
     }
 
     /// returns the layer data with index @p index
-    inline const LayerDataBase* getLayer(Size index) const
+    inline const LayerBase* getLayer(Size index) const
     {
       return layers_.getLayer(index);
     }
     /// returns the layer data with index @p index
-    inline LayerDataBase* getLayer(Size index)
+    inline LayerBase* getLayer(Size index)
     {
       return layers_.getLayer(index);
     }
 
     /// returns the layer data of the active layer
-    inline const LayerDataBase* getCurrentLayer() const
+    inline const LayerBase* getCurrentLayer() const
     {
       return layers_.getCurrentLayer();
     }
     /// returns the layer data of the active layer
-    inline LayerDataBase* getCurrentLayer()
+    inline LayerBase* getCurrentLayer()
     {
       return layers_.getCurrentLayer();
     }
@@ -295,25 +295,25 @@ public:
     }
 
     /// returns a layer flag of the current layer
-    bool getLayerFlag(LayerDataBase::Flags f) const
+    bool getLayerFlag(LayerBase::Flags f) const
     {
       return getLayerFlag(layers_.getCurrentLayerIndex(), f);
     }
 
     /// sets a layer flag of the current layer
-    void setLayerFlag(LayerDataBase::Flags f, bool value)
+    void setLayerFlag(LayerBase::Flags f, bool value)
     {
       setLayerFlag(layers_.getCurrentLayerIndex(), f, value);
     }
 
     /// returns a layer flag of the layer @p layer
-    bool getLayerFlag(Size layer, LayerDataBase::Flags f) const
+    bool getLayerFlag(Size layer, LayerBase::Flags f) const
     {
       return layers_.getLayer(layer)->flags.test(f);
     }
 
     /// sets a layer flag of the layer @p layer
-    void setLayerFlag(Size layer, LayerDataBase::Flags f, bool value)
+    void setLayerFlag(Size layer, LayerBase::Flags f, bool value)
     {
       //abort if there are no layers
       if (layers_.empty()) return;
@@ -323,7 +323,7 @@ public:
       update();
     }
 
-    inline void setLabel(LayerDataBase::LabelType label)
+    inline void setLabel(LayerBase::LabelType label)
     {
       //abort if there are no layers
       if (layers_.empty()) return;

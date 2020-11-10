@@ -88,7 +88,7 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataBase
+  class OPENMS_GUI_DLLAPI LayerBase
   {
 public:
     /** @name Type definitions */
@@ -139,22 +139,22 @@ public:
     //@}
 
     /// Default constructor
-    LayerDataBase() = default;
+    LayerBase() = default;
 
     /// no Copy-ctor (should not be needed)
-    LayerDataBase(const LayerDataBase& ld) = delete;
+    LayerBase(const LayerBase& ld) = delete;
 
     /// no assignment operator (should not be needed)
-    LayerDataBase& operator=(const LayerDataBase& ld) = delete;
+    LayerBase& operator=(const LayerBase& ld) = delete;
 
     /// move Ctor
-    LayerDataBase(LayerDataBase&& ld) = default;
+    LayerBase(LayerBase&& ld) = default;
 
     /// move assignment
-    LayerDataBase& operator=(LayerDataBase&& ld) = default;
+    LayerBase& operator=(LayerBase&& ld) = default;
 
     /// Destructor
-    virtual ~LayerDataBase() = default;
+    virtual ~LayerBase() = default;
 
     const String& getName() const
     {
@@ -220,7 +220,7 @@ public:
                   const std::vector<ProteinIdentification>& protein_identifications) = 0;
   };
 
-  class OPENMS_GUI_DLLAPI FeatureLayer : public LayerDataBase, public IDAnnotateableInterface
+  class OPENMS_GUI_DLLAPI FeatureLayer : public LayerBase, public IDAnnotateableInterface
   {
 public:
     /// features
@@ -261,7 +261,7 @@ protected:
     FeatureMapSharedPtrType features_;
   };
 
-  class OPENMS_GUI_DLLAPI IdLayer : public LayerDataBase
+  class OPENMS_GUI_DLLAPI IdLayer : public LayerBase
   {
 public:
     /// Default constructor
@@ -283,7 +283,7 @@ protected:
     std::vector<PeptideIdentification> peptides;
   };
 
-  class OPENMS_GUI_DLLAPI ConsensusLayer : public LayerDataBase, public IDAnnotateableInterface
+  class OPENMS_GUI_DLLAPI ConsensusLayer : public LayerBase, public IDAnnotateableInterface
   {
 public:
     /// consensus features
@@ -324,7 +324,7 @@ protected:
   };
 
 
-  class OPENMS_GUI_DLLAPI PeakLayer : public LayerDataBase, public IDAnnotateableInterface
+  class OPENMS_GUI_DLLAPI PeakLayer : public LayerBase, public IDAnnotateableInterface
   {
 public:
     PeakLayer() 
@@ -671,7 +671,7 @@ private:
   };
 
   /// Print the contents to a stream.
-  OPENMS_GUI_DLLAPI std::ostream& operator<<(std::ostream & os, const LayerDataBase & rhs);
+  OPENMS_GUI_DLLAPI std::ostream& operator<<(std::ostream & os, const LayerBase & rhs);
 
 } //namespace
 

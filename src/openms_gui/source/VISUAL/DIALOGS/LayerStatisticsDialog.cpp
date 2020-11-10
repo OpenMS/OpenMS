@@ -52,11 +52,11 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     
-    if (layer_data_->type == LayerDataBase::DT_PEAK)
+    if (layer_data_->type == LayerBase::DT_PEAK)
     {
       computePeakStats_();
     }
-    else if (layer_data_->type == LayerDataBase::DT_FEATURE)
+    else if (layer_data_->type == LayerBase::DT_FEATURE)
     {
       computeFeatureStats_();
 
@@ -103,7 +103,7 @@ namespace OpenMS
       ui_->table_->setItem(2, 3, item);
 
     }
-    else if (layer_data_->type == LayerDataBase::DT_CONSENSUS)
+    else if (layer_data_->type == LayerBase::DT_CONSENSUS)
     {
       computeConsensusStats_();
 
@@ -169,7 +169,7 @@ namespace OpenMS
       ui_->table_->setItem(3, 3, item);
 
     }
-    else if (layer_data_->type == LayerDataBase::DT_CHROMATOGRAM)
+    else if (layer_data_->type == LayerBase::DT_CHROMATOGRAM)
     {
       //TODO CHROM
     }

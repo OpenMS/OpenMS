@@ -61,7 +61,7 @@ namespace OpenMS
     Plot1DCanvas * cc = parent->canvas();
     for (UInt i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerDataBase* layer = cc->getLayer(i);
+      const LayerBase* layer = cc->getLayer(i);
       const PeakLayer* peak_layer = dynamic_cast<const PeakLayer*>(layer);
 
       if (peak_layer->getFlipped())

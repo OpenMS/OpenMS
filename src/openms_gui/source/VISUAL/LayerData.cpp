@@ -52,19 +52,19 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string LayerDataBase::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
+  const std::string LayerBase::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
 
-  std::ostream & operator<<(std::ostream & os, const LayerDataBase & rhs)
+  std::ostream & operator<<(std::ostream & os, const LayerBase & rhs)
   {
-    os << "--LayerDataBase BEGIN--" << std::endl;
+    os << "--LayerBase BEGIN--" << std::endl;
     os << "name: " << rhs.getName() << std::endl;
     os << "visible: " << rhs.visible << std::endl;
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
-    os << "--LayerDataBase END--" << std::endl;
+    os << "--LayerBase END--" << std::endl;
     return os;
   }
 
-  const LayerDataBase::ConstExperimentSharedPtrType LayerDataBase::getPeakData() const
+  const LayerBase::ConstExperimentSharedPtrType LayerBase::getPeakData() const
   {
     return boost::static_pointer_cast<const ExperimentType>(peak_map_);
   }
@@ -90,7 +90,7 @@ namespace OpenMS
   /// Returns the minimum intensity of the internal data, depending on type
   float PeakLayer::getMinIntensity() const
   {
-    if (type == LayerDataBase::DT_PEAK || type == LayerDataBase::DT_CHROMATOGRAM) // TODO: what about chromatogram?
+    if (type == LayerBase::DT_PEAK || type == LayerBase::DT_CHROMATOGRAM) // TODO: what about chromatogram?
     {
       return getPeakData()->getMinInt();
     }
@@ -109,7 +109,7 @@ namespace OpenMS
   /// Returns the maximum intensity of the internal data, depending on type
   float PeakLayer::getMaxIntensity() const
   {
-    if (type == LayerDataBase::DT_PEAK || type == LayerDataBase::DT_CHROMATOGRAM) // TODO: what about chromatogram?
+    if (type == LayerBase::DT_PEAK || type == LayerBase::DT_CHROMATOGRAM) // TODO: what about chromatogram?
     {
       return getPeakData()->getMaxInt();
     }
@@ -126,7 +126,7 @@ namespace OpenMS
   }
 
   /// get name augmented with attributes, e.g. [flipped], or '*' if modified
-  String LayerDataBase::getDecoratedName() const
+  String LayerBase::getDecoratedName() const
   {
     return name_;
   }
@@ -161,7 +161,7 @@ namespace OpenMS
     const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
-    if (this->type == LayerDataBase::DT_PEAK)
+    if (this->type == LayerBase::DT_PEAK)
     {
       Param p = mapper.getDefaults();
       p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
@@ -170,11 +170,11 @@ namespace OpenMS
       mapper.setParameters(p);
       mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
     }
-    else if (type == LayerDataBase::DT_FEATURE)
+    else if (type == LayerBase::DT_FEATURE)
     {
       mapper.annotate(*getFeatureMap(), identifications, protein_identifications);
     }
-    else if (type == LayerDataBase::DT_CONSENSUS)
+    else if (type == LayerBase::DT_CONSENSUS)
     {
       mapper.annotate(*getConsensusMap(), identifications, protein_identifications);
     }
@@ -186,14 +186,14 @@ namespace OpenMS
     return true;
   }
 
-  const LayerDataBase::ExperimentType::SpectrumType& LayerDataBase::getCurrentSpectrum() const
+  const LayerBase::ExperimentType::SpectrumType& LayerBase::getCurrentSpectrum() const
   {
     return cached_spectrum_;
   }
 
   /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
 
-  const LayerDataBase::ExperimentType::SpectrumType LayerDataBase::getSpectrum(Size spectrum_idx) const
+  const LayerBase::ExperimentType::SpectrumType LayerBase::getSpectrum(Size spectrum_idx) const
   {
     if (spectrum_idx == current_spectrum_) return cached_spectrum_;
 
@@ -208,10 +208,10 @@ namespace OpenMS
     return (*peak_map_)[spectrum_idx];
   }
 
-  void LayerDataBase::synchronizePeakAnnotations()
+  void LayerBase::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerBase::DT_PEAK) { return; }
 
     // get mutable access to the spectrum
     MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
@@ -289,7 +289,7 @@ namespace OpenMS
     }
   }
 
-  void LayerDataBase::updatePeptideHitAnnotations_(PeptideHit& hit)
+  void LayerBase::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
     const Annotations1DContainer & las = getCurrentAnnotations();
@@ -386,10 +386,10 @@ namespace OpenMS
     }
   }
 
-  void LayerDataBase::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
+  void LayerBase::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerBase::DT_PEAK) { return; }
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
@@ -449,7 +449,7 @@ namespace OpenMS
   {
   }
 
-  bool LayerAnnotatorBase::annotate(LayerDataBase& layer, LogWindow& log, const String& current_path) const
+  bool LayerAnnotatorBase::annotate(LayerBase& layer, LogWindow& log, const String& current_path) const
   {
     // warn if hidden layer => wrong layer selected...
     if (!layer.visible)
@@ -480,7 +480,7 @@ namespace OpenMS
     return success;
   }
 
-  bool LayerAnnotatorPeptideID::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& /*log*/) const
+  bool LayerAnnotatorPeptideID::annotateWorker_(LayerBase& layer, const String& filename, LogWindow& /*log*/) const
   {
     FileTypes::Type type = FileHandler::getType(filename);
     vector<PeptideIdentification> identifications;
@@ -499,7 +499,7 @@ namespace OpenMS
     return true;
   }
 
-  bool LayerAnnotatorAMS::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const
+  bool LayerAnnotatorAMS::annotateWorker_(LayerBase& layer, const String& filename, LogWindow& log) const
   {
     FeatureMap fm;
     FeatureXMLFile().load(filename, fm);
@@ -511,7 +511,7 @@ namespace OpenMS
       engine = fm.getProteinIdentifications().back().getSearchEngine();
       if (engine == AccurateMassSearchEngine::search_engine_identifier)
       {
-        if (layer.type != LayerDataBase::DT_PEAK)
+        if (layer.type != LayerBase::DT_PEAK)
         {
           QMessageBox::warning(nullptr, "Error", "Layer type is not DT_PEAK!");
           return false;
@@ -531,7 +531,7 @@ namespace OpenMS
     return false;
   }
 
-  bool LayerAnnotatorOSW::annotateWorker_(LayerDataBase &layer,
+  bool LayerAnnotatorOSW::annotateWorker_(LayerBase &layer,
                                           const String &filename,
                                           LogWindow &log) const
   {

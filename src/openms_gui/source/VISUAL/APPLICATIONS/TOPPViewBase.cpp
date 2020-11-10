@@ -334,10 +334,10 @@ namespace OpenMS
     //button menu
     group_label_2d_ = new QActionGroup(dm_label_2d_);
     QMenu* menu = new QMenu(dm_label_2d_);
-    for (Size i = 0; i < LayerDataBase::SIZE_OF_LABEL_TYPE; ++i)
+    for (Size i = 0; i < LayerBase::SIZE_OF_LABEL_TYPE; ++i)
     {
       QAction* temp = group_label_2d_->addAction(
-        QString(LayerDataBase::NamesOfLabelType[i].c_str()));
+        QString(LayerBase::NamesOfLabelType[i].c_str()));
       temp->setCheckable(true);
       if (i == 0) temp->setChecked(true);
       menu->addAction(temp);
@@ -563,7 +563,7 @@ namespace OpenMS
 
     vector<PeptideIdentification> peptides;
 
-    LayerDataBase::DataType data_type;
+    LayerBase::DataType data_type;
 
     ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
 
@@ -575,12 +575,12 @@ namespace OpenMS
       if (file_type == FileTypes::FEATUREXML)
       {
         FeatureXMLFile().load(abs_filename, *feature_map);
-        data_type = LayerDataBase::DT_FEATURE;
+        data_type = LayerBase::DT_FEATURE;
       }
       else if (file_type == FileTypes::CONSENSUSXML)
       {
         ConsensusXMLFile().load(abs_filename, *consensus_map);
-        data_type = LayerDataBase::DT_CONSENSUS;
+        data_type = LayerBase::DT_CONSENSUS;
       }
       else if (file_type == FileTypes::IDXML)
       {
@@ -613,7 +613,7 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
-        data_type = LayerDataBase::DT_IDENT;
+        data_type = LayerBase::DT_IDENT;
       }
       else if (file_type == FileTypes::MZIDENTML)
       {
@@ -646,7 +646,7 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
-        data_type = LayerDataBase::DT_IDENT;
+        data_type = LayerBase::DT_IDENT;
       }
       else
       {
@@ -706,10 +706,10 @@ namespace OpenMS
 
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in PlotCanvas::addLayer
-        data_type = LayerDataBase::DT_CHROMATOGRAM;
+        data_type = LayerBase::DT_CHROMATOGRAM;
         if (peak_map_sptr->containsScanOfLevel(1))
         {
-          data_type = LayerDataBase::DT_PEAK;
+          data_type = LayerBase::DT_PEAK;
         }
       }
     }
@@ -762,7 +762,7 @@ namespace OpenMS
                              vector<PeptideIdentification>& peptides,
                              ExperimentSharedPtrType peak_map,
                              ODExperimentSharedPtrType on_disc_peak_map,
-                             LayerDataBase::DataType data_type,
+                             LayerBase::DataType data_type,
                              bool show_as_1d,
                              bool show_options,
                              bool as_new_window,
@@ -778,9 +778,9 @@ namespace OpenMS
     bool is_dia_data = false;
 
     // feature, consensus feature and identifications can be merged
-    bool mergeable = ((data_type == LayerDataBase::DT_FEATURE) ||
-                      (data_type == LayerDataBase::DT_CONSENSUS) ||
-                      (data_type == LayerDataBase::DT_IDENT));
+    bool mergeable = ((data_type == LayerBase::DT_FEATURE) ||
+                      (data_type == LayerBase::DT_CONSENSUS) ||
+                      (data_type == LayerBase::DT_IDENT));
 
     // only one peak spectrum? disable 2D as default
     if (peak_map->size() == 1) { maps_as_2d = false; }
@@ -881,19 +881,19 @@ namespace OpenMS
 
     if (merge_layer == -1) //add layer to the window
     {
-      if (data_type == LayerDataBase::DT_FEATURE) //features
+      if (data_type == LayerBase::DT_FEATURE) //features
       {
         if (!target_window->canvas()->addLayer(feature_map, filename))
         {
           return;
         }
       }
-      else if (data_type == LayerDataBase::DT_CONSENSUS) //consensus features
+      else if (data_type == LayerBase::DT_CONSENSUS) //consensus features
       {
         if (!target_window->canvas()->addLayer(consensus_map, filename))
           return;
       }
-      else if (data_type == LayerDataBase::DT_IDENT)
+      else if (data_type == LayerBase::DT_IDENT)
       {
         if (!target_window->canvas()->addLayer(peptides, filename))
           return;
@@ -936,15 +936,15 @@ namespace OpenMS
     else //merge feature/ID data into feature layer
     {
       Plot2DCanvas* canvas = qobject_cast<Plot2DCanvas*>(target_window->canvas());
-      if (data_type == LayerDataBase::DT_CONSENSUS)
+      if (data_type == LayerBase::DT_CONSENSUS)
       {
         canvas->mergeIntoLayer(merge_layer, consensus_map);
       }
-      else if (data_type == LayerDataBase::DT_FEATURE)
+      else if (data_type == LayerBase::DT_FEATURE)
       {
         canvas->mergeIntoLayer(merge_layer, feature_map);
       }
-      else if (data_type == LayerDataBase::DT_IDENT)
+      else if (data_type == LayerBase::DT_IDENT)
       {
         canvas->mergeIntoLayer(merge_layer, peptides);
       }
@@ -1093,11 +1093,11 @@ namespace OpenMS
     bool set = false;
 
     //label type is selected
-    for (Size i = 0; i < LayerDataBase::SIZE_OF_LABEL_TYPE; ++i)
+    for (Size i = 0; i < LayerBase::SIZE_OF_LABEL_TYPE; ++i)
     {
-      if (action->text().toStdString() == LayerDataBase::NamesOfLabelType[i])
+      if (action->text().toStdString() == LayerBase::NamesOfLabelType[i])
       {
-        getActive2DWidget()->canvas()->setLabel(LayerDataBase::LabelType(i));
+        getActive2DWidget()->canvas()->setLabel(LayerBase::LabelType(i));
         set = true;
       }
     }
@@ -1105,14 +1105,14 @@ namespace OpenMS
     //button is simply pressed
     if (!set)
     {
-      if (getActive2DWidget()->canvas()->getCurrentLayer()->label == LayerDataBase::L_NONE)
+      if (getActive2DWidget()->canvas()->getCurrentLayer()->label == LayerBase::L_NONE)
       {
-        getActive2DWidget()->canvas()->setLabel(LayerDataBase::L_INDEX);
+        getActive2DWidget()->canvas()->setLabel(LayerBase::L_INDEX);
         dm_label_2d_->menu()->actions()[1]->setChecked(true);
       }
       else
       {
-        getActive2DWidget()->canvas()->setLabel(LayerDataBase::L_NONE);
+        getActive2DWidget()->canvas()->setLabel(LayerBase::L_NONE);
         dm_label_2d_->menu()->actions()[0]->setChecked(true);
       }
     }
@@ -1125,32 +1125,32 @@ namespace OpenMS
     // mass reference is selected
     if (action->text().toStdString() == "Don't show")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::F_UNASSIGNED, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_LABELS, false);
     }
     else if (action->text().toStdString() == "Show by precursor m/z")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_LABELS, false);
     }
     else if (action->text().toStdString() == "Show by peptide mass")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_PEPTIDEMZ, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_LABELS, false);
     }
     else if (action->text().toStdString() == "Show label meta data")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_LABELS, true);
     }
     else // button is simply pressed
     {
-      bool previous = getActive2DWidget()->canvas()->getLayerFlag(LayerDataBase::F_UNASSIGNED);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED,
+      bool previous = getActive2DWidget()->canvas()->getLayerFlag(LayerBase::F_UNASSIGNED);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::F_UNASSIGNED,
                                                   !previous);
       if (previous) // now: don't show
       {
@@ -1160,7 +1160,7 @@ namespace OpenMS
       {
         dm_unassigned_2d_->menu()->actions()[1]->setChecked(true);
       }
-      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerBase::I_PEPTIDEMZ, false);
     }
 
     updateToolBar();
@@ -1174,26 +1174,26 @@ namespace OpenMS
       //peaks
       if (action == dm_precursors_2d_)
       {
-        win->canvas()->setLayerFlag(LayerDataBase::P_PRECURSORS, on);
+        win->canvas()->setLayerFlag(LayerBase::P_PRECURSORS, on);
       }
       //features
       else if (action == dm_hulls_2d_)
       {
-        win->canvas()->setLayerFlag(LayerDataBase::F_HULLS, on);
+        win->canvas()->setLayerFlag(LayerBase::F_HULLS, on);
       }
       else if (action == dm_hull_2d_)
       {
-        win->canvas()->setLayerFlag(LayerDataBase::F_HULL, on);
+        win->canvas()->setLayerFlag(LayerBase::F_HULL, on);
       }
       //consensus features
       else if (action == dm_elements_2d_)
       {
-        win->canvas()->setLayerFlag(LayerDataBase::C_ELEMENTS, on);
+        win->canvas()->setLayerFlag(LayerBase::C_ELEMENTS, on);
       }
       // identifications
       else if (action == dm_ident_2d_)
       {
-        win->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, on);
+        win->canvas()->setLayerFlag(LayerBase::I_PEPTIDEMZ, on);
       }
     }
   }
@@ -1247,38 +1247,38 @@ namespace OpenMS
       {
 	const auto layer_type = w2->canvas()->getCurrentLayer()->type;
         //peak draw modes
-        if (layer_type == LayerDataBase::DT_PEAK)
+        if (layer_type == LayerBase::DT_PEAK)
         {
-          dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::P_PRECURSORS));
+          dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerBase::P_PRECURSORS));
           tool_bar_2d_peak_->show();
           tool_bar_2d_feat_->hide();
           tool_bar_2d_cons_->hide();
           tool_bar_2d_ident_->hide();
         }
         //feature draw modes
-        else if (layer_type == LayerDataBase::DT_FEATURE)
+        else if (layer_type == LayerBase::DT_FEATURE)
         {
-          dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_HULLS));
-          dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_HULL));
-          dm_unassigned_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_UNASSIGNED));
-          dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer()->label != LayerDataBase::L_NONE);
+          dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerBase::F_HULLS));
+          dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerBase::F_HULL));
+          dm_unassigned_2d_->setChecked(w2->canvas()->getLayerFlag(LayerBase::F_UNASSIGNED));
+          dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer()->label != LayerBase::L_NONE);
           tool_bar_2d_peak_->hide();
           tool_bar_2d_feat_->show();
           tool_bar_2d_cons_->hide();
           tool_bar_2d_ident_->hide();
         }
         //consensus feature draw modes
-        else if (layer_type == LayerDataBase::DT_CONSENSUS)
+        else if (layer_type == LayerBase::DT_CONSENSUS)
         {
-          dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::C_ELEMENTS));
+          dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerBase::C_ELEMENTS));
           tool_bar_2d_peak_->hide();
           tool_bar_2d_feat_->hide();
           tool_bar_2d_cons_->show();
           tool_bar_2d_ident_->hide();
         }
-        else if (layer_type == LayerDataBase::DT_IDENT)
+        else if (layer_type == LayerBase::DT_IDENT)
         {
-          dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::I_PEPTIDEMZ));
+          dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerBase::I_PEPTIDEMZ));
           tool_bar_2d_peak_->hide();
           tool_bar_2d_feat_->hide();
           tool_bar_2d_cons_->hide();
@@ -1313,7 +1313,7 @@ namespace OpenMS
   void TOPPViewBase::updateMenu()
   {
     FS_TV fs;
-    LayerDataBase::DataType layer_type = LayerDataBase::DT_UNKNOWN;
+    LayerBase::DataType layer_type = LayerBase::DT_UNKNOWN;
     // is there a canvas?
     if (getActiveCanvas() != nullptr)
     {  
@@ -1379,11 +1379,11 @@ namespace OpenMS
     PlotWidget* w = getActivePlotWidget();
     DRange<2> new_visible_area = w->canvas()->getVisibleArea();
 
-    const LayerDataBase* layer = w->canvas()->getCurrentLayer();
+    const LayerBase* layer = w->canvas()->getCurrentLayer();
     const PeakLayer* peak_layer = dynamic_cast<const PeakLayer*>(layer);
 
     // only zoom if other window is also (not) a chromatogram
-    bool sender_is_chrom = layer->type == LayerDataBase::DT_CHROMATOGRAM ||
+    bool sender_is_chrom = layer->type == LayerBase::DT_CHROMATOGRAM ||
                            (peak_layer && peak_layer->chromatogram_flag_set());
 
     // go through all windows, adjust the visible area where necessary
@@ -1392,10 +1392,10 @@ namespace OpenMS
       PlotWidget* specwidg = qobject_cast<PlotWidget*>(windows.at(i)->widget());
       if (!specwidg) continue;
 
-      const LayerDataBase* spec_layer = specwidg->canvas()->getCurrentLayer();
+      const LayerBase* spec_layer = specwidg->canvas()->getCurrentLayer();
       const PeakLayer* spec_peak_layer = dynamic_cast<const PeakLayer*>(layer);
 
-      bool is_chrom = spec_layer->type == LayerDataBase::DT_CHROMATOGRAM ||
+      bool is_chrom = spec_layer->type == LayerBase::DT_CHROMATOGRAM ||
                       (spec_peak_layer && spec_peak_layer->chromatogram_flag_set());
 
       if (is_chrom != sender_is_chrom) continue;
@@ -1643,7 +1643,7 @@ namespace OpenMS
   void TOPPViewBase::showTOPPDialog_(bool visible_area_only)
   {
     //warn if hidden layer => wrong layer selected...
-    const LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    const LayerBase* layer = getActiveCanvas()->getCurrentLayer();
     if (!layer->visible)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
@@ -1678,7 +1678,7 @@ namespace OpenMS
       return;
     }
     //warn if hidden layer => wrong layer selected...
-    const LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    const LayerBase* layer = getActiveCanvas()->getCurrentLayer();
     if (!layer->visible)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
@@ -1706,13 +1706,13 @@ namespace OpenMS
       return;
     }
 
-    LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    LayerBase* layer = getActiveCanvas()->getCurrentLayer();
 
     // Store data
     topp_.layer_name = layer->getName();
     topp_.window_id = getActivePlotWidget()->getWindowId();
 
-    if (layer->type == LayerDataBase::DT_PEAK && !(dynamic_cast<const PeakLayer*>(layer)->chromatogram_flag_set()))
+    if (layer->type == LayerBase::DT_PEAK && !(dynamic_cast<const PeakLayer*>(layer)->chromatogram_flag_set()))
     {
       const PeakLayer* peak_layer = dynamic_cast<const PeakLayer*>(layer);
       topp_.spectrum_id = peak_layer->getCurrentSpectrumIndex();
@@ -1730,7 +1730,7 @@ namespace OpenMS
         f.store(topp_.file_name + "_in", *peak_layer->getPeakData());
       }
     }
-    else if (layer->type == LayerDataBase::DT_CHROMATOGRAM || dynamic_cast<const PeakLayer*>(layer)->chromatogram_flag_set())
+    else if (layer->type == LayerBase::DT_CHROMATOGRAM || dynamic_cast<const PeakLayer*>(layer)->chromatogram_flag_set())
     {
       PeakLayer* peak_layer = dynamic_cast<PeakLayer*>(layer);
       MzMLFile f;
@@ -1754,7 +1754,7 @@ namespace OpenMS
         f.store(topp_.file_name + "_in", *peak_layer->getPeakData());
       }
     }
-    else if (layer->type == LayerDataBase::DT_FEATURE)
+    else if (layer->type == LayerBase::DT_FEATURE)
     {
       const FeatureLayer* feature_layer = dynamic_cast<const FeatureLayer*>(layer);
       if (topp_.visible_area_only)
@@ -1879,7 +1879,7 @@ namespace OpenMS
     }
   }
 
-  const LayerDataBase* TOPPViewBase::getCurrentLayer() const
+  const LayerBase* TOPPViewBase::getCurrentLayer() const
   {
     PlotCanvas* canvas = getActiveCanvas();
     if (canvas == nullptr)
@@ -1909,10 +1909,10 @@ namespace OpenMS
 
   void TOPPViewBase::annotateWithAMS()
   { // this should only be callable if current layer's type is of type DT_PEAK
-    LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    LayerBase* layer = getActiveCanvas()->getCurrentLayer();
     assert(log_ != nullptr);
 
-    if (layer->type != LayerDataBase::DT_PEAK)
+    if (layer->type != LayerBase::DT_PEAK)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Layer not compatible.",
           "Trying to annotate non-peak layer with AMS result. Please report to the developers.");
@@ -1931,13 +1931,13 @@ namespace OpenMS
 
   void TOPPViewBase::annotateWithID()
   { // this should only be callable if current layer's type is one of DT_PEAK, DT_FEATURE, DT_CONSENSUS
-    LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    LayerBase* layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorPeptideID annotator;
     assert(log_ != nullptr);
 
-    if (layer->type != LayerDataBase::DT_PEAK 
-     && layer->type != LayerDataBase::DT_FEATURE 
-     && layer->type != LayerDataBase::DT_CONSENSUS)
+    if (layer->type != LayerBase::DT_PEAK 
+     && layer->type != LayerBase::DT_FEATURE 
+     && layer->type != LayerBase::DT_CONSENSUS)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Layer not compatible.",
           "Trying to annotate incompatible layer with ID result. Please report to the developers.");
@@ -1955,11 +1955,11 @@ namespace OpenMS
 
   void TOPPViewBase::annotateWithOSW()
   { // this should only be callable if current layer's type is of type DT_CHROMATOGRAM
-    LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    LayerBase* layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorOSW annotator;
     assert(log_ != nullptr);
 
-    if (layer->type != LayerDataBase::DT_CHROMATOGRAM)
+    if (layer->type != LayerBase::DT_CHROMATOGRAM)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Layer not compatible.",
           "Trying to annotate non-chromatogram layer with OSW result. Please report to the developers.");
@@ -2062,7 +2062,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerBase::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2109,9 +2109,9 @@ namespace OpenMS
   
   void TOPPViewBase::showCurrentPeaksAs2D()
   {
-    LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    LayerBase* layer = getActiveCanvas()->getCurrentLayer();
 
-    if (layer->type != LayerDataBase::DT_PEAK)
+    if (layer->type != LayerBase::DT_PEAK)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Layer not compatible.",
           "Trying to open peak layer from non-peak data.");
@@ -2147,9 +2147,9 @@ namespace OpenMS
   {
     double IM_BINNING = 1e5;
 
-    const LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    const LayerBase* layer = getActiveCanvas()->getCurrentLayer();
 
-    if (layer->type != LayerDataBase::DT_PEAK) // TODO: check
+    if (layer->type != LayerBase::DT_PEAK) // TODO: check
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "No compatible layer",
           "No layer peak layer found.");
@@ -2225,9 +2225,9 @@ namespace OpenMS
 
   void TOPPViewBase::showCurrentPeaksAsDIA()
   {
-    const LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+    const LayerBase* layer = getActiveCanvas()->getCurrentLayer();
 
-    if (layer->type != LayerDataBase::DT_PEAK) // TODO: check
+    if (layer->type != LayerBase::DT_PEAK) // TODO: check
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "No compatible layer",
           "No layer found which is supported by DIA data.");
@@ -2327,7 +2327,7 @@ namespace OpenMS
     int best_candidate = BIGINDEX;
     for (int i = 0; i < (int) getActiveCanvas()->getLayerCount(); ++i)
     {
-      if ((LayerDataBase::DT_PEAK == getActiveCanvas()->getLayer(i)->type) && // supported type
+      if ((LayerBase::DT_PEAK == getActiveCanvas()->getLayer(i)->type) && // supported type
           (std::abs(i - target_layer) < std::abs(best_candidate - target_layer))) // & smallest distance to active layer
       {
         best_candidate = i;
@@ -2348,9 +2348,9 @@ namespace OpenMS
           "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
     }
 
-    LayerDataBase* layer = const_cast<LayerDataBase*>(getActiveCanvas()->getLayer(best_candidate));
+    LayerBase* layer = const_cast<LayerBase*>(getActiveCanvas()->getLayer(best_candidate));
 
-    if (layer->type != LayerDataBase::DT_PEAK)
+    if (layer->type != LayerBase::DT_PEAK)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
       return;
@@ -2563,7 +2563,7 @@ namespace OpenMS
       if (source == layers_view_)
       {
         // only the selected row can be dragged => the source layer is the selected layer
-        const LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
+        const LayerBase* layer = getActiveCanvas()->getCurrentLayer();
 
         // attach feature, consensus and peak data
         FeatureMapSharedPtrType features = layer->getFeatureMap();
@@ -2585,8 +2585,8 @@ namespace OpenMS
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
 
-	  const LayerDataBase* layer = getActiveCanvas()->getCurrentLayer();
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerDataBase::DT_PEAK : LayerDataBase::DT_CHROMATOGRAM, false, false, true, layer->filename, layer->getName(), new_id);
+	  const LayerBase* layer = getActiveCanvas()->getCurrentLayer();
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerBase::DT_PEAK : LayerBase::DT_CHROMATOGRAM, false, false, true, layer->filename, layer->getName(), new_id);
         }
       }
       else if (source == nullptr)
@@ -2702,10 +2702,10 @@ namespace OpenMS
       return;
     }
 
-    LayerDataBase* layer = const_cast<LayerDataBase*>(sw->canvas()->getLayer(layer_index));
+    LayerBase* layer = const_cast<LayerBase*>(sw->canvas()->getLayer(layer_index));
 
     // reload data
-    if (layer->type == LayerDataBase::DT_PEAK) //peak data
+    if (layer->type == LayerBase::DT_PEAK) //peak data
     {
       PeakLayer* peak_layer = dynamic_cast<PeakLayer*>(layer);
       try
@@ -2720,7 +2720,7 @@ namespace OpenMS
       peak_layer->getPeakDataMuteable()->sortSpectra(true);
       peak_layer->getPeakDataMuteable()->updateRanges(1);
     }
-    else if (layer->type == LayerDataBase::DT_FEATURE) //feature data
+    else if (layer->type == LayerBase::DT_FEATURE) //feature data
     {
       FeatureLayer* feature_layer = dynamic_cast<FeatureLayer*>(layer);
       try
@@ -2734,7 +2734,7 @@ namespace OpenMS
       }
       feature_layer->getFeatureMap()->updateRanges();
     }
-    else if (layer->type == LayerDataBase::DT_CONSENSUS) //consensus feature data
+    else if (layer->type == LayerBase::DT_CONSENSUS) //consensus feature data
     {
       ConsensusLayer* consensus_layer = dynamic_cast<ConsensusLayer*>(layer);
       try
@@ -2748,7 +2748,7 @@ namespace OpenMS
       }
       consensus_layer->getConsensusMap()->updateRanges();
     }
-    else if (layer->type == LayerDataBase::DT_CHROMATOGRAM) //chromatogram
+    else if (layer->type == LayerBase::DT_CHROMATOGRAM) //chromatogram
     {
       //TODO CHROM
       PeakLayer* peak_layer = dynamic_cast<PeakLayer*>(layer);

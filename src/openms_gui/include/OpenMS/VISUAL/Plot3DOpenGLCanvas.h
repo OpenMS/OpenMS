@@ -46,7 +46,7 @@
 namespace OpenMS
 {
   class Plot3DCanvas;
-  class LayerDataBase;
+  class LayerBase;
 
   /**
       @brief OpenGL Canvas for 3D-visualization of map data
@@ -148,7 +148,7 @@ protected:
     double scaledIntensity_(float intensity, Size layer_index);
     
     /// recalculates the dot gradient interpolation values.
-    void recalculateDotGradient_(LayerDataBase* layer);
+    void recalculateDotGradient_(LayerBase* layer);
     ///calculate the ticks for the gridlines
     void calculateGridLines_();
 

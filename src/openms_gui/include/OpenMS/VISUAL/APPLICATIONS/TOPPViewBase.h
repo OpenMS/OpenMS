@@ -191,7 +191,7 @@ public:
                  std::vector<PeptideIdentification>& peptides,
                  ExperimentSharedPtrType peak_map,
                  ODExperimentSharedPtrType on_disc_peak_map,
-                 LayerDataBase::DataType data_type,
+                 LayerBase::DataType data_type,
                  bool show_as_1d,
                  bool show_options,
                  bool as_new_window = true,
@@ -217,7 +217,7 @@ public:
     Param getSpectrumParameters(UInt dim);
 
     /// Returns the active Layer data (0 if no layer is active)
-    const LayerDataBase* getCurrentLayer() const;
+    const LayerBase* getCurrentLayer() const;
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
