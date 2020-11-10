@@ -155,7 +155,7 @@ namespace OpenMS
 
       if (delta > 0)
       {
-        if (bi < binNumber - 1)
+        if (bi < binNumber - 1 && !mzBins[bi + 1])
         {
           mzBins.set(bi + 1);
           mzBinIntensities[bi + 1] += p.intensity;
@@ -163,7 +163,7 @@ namespace OpenMS
       }
       else if (delta < 0)
       {
-        if (bi > 0)
+        if (bi > 0 && !mzBins[bi - 1])
         {
           mzBins.set(bi - 1);
           mzBinIntensities[bi - 1] += p.intensity;
