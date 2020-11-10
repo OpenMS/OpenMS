@@ -426,7 +426,7 @@ namespace OpenMS
 
   double DeconvolutedSpectrum::getCurrentMaxMass(double maxMass)
   {
-    if (spec.getMSLevel() == 1 || precursorPeakGroup->empty())
+    if (spec.getMSLevel() == 1 || precursorPeakGroup == nullptr || precursorPeakGroup->empty())
     {
       return maxMass;
     }
@@ -435,11 +435,10 @@ namespace OpenMS
 
   int DeconvolutedSpectrum::getCurrentMaxCharge(int maxCharge)
   {
-    if (spec.getMSLevel() == 1 || precursorPeakGroup->empty())
+    if (spec.getMSLevel() == 1 || precursorPeakGroup == nullptr || precursorPeakGroup->empty())
     {
       return maxCharge;
     }
     return precursorPeak.getCharge();
-
   }
 }

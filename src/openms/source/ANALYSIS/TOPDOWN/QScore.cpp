@@ -77,7 +77,6 @@ auto score =
               - 0.1885 * log10(pg->intensity + 1)
               + 1.9703;*/
     }
-
     return -score;
   }
 }

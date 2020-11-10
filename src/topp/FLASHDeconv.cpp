@@ -267,7 +267,7 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
     bool outPromex = getIntOption_("promex_out") > 0;
     bool writeDetail = getIntOption_("write_detail") > 0;
     //double rtWindow = getDoubleOption_("RT_window");
-    double ms1tol = getDoubleList_("tol")[0];
+    //    double ms1tol = getDoubleList_("tol")[0];
     int currentMaxMSLevel = 0;
 
     //double maxMass = getDoubleOption_("max_mass"); // from FLASHDeconvAlgorithm
@@ -419,7 +419,7 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
       mzml.load(infile, map);
       auto fileName = QFileInfo(infile).fileName().toStdString();
 
-      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
+      //      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
       auto ms1Cntr = 0;
       auto ms2Cntr = .0; // for debug...
       currentMaxMSLevel = 0;
@@ -509,16 +509,6 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
           topfdOut_MS2.open(outfilePath + outfileName + "_FD_ms2.msalign", fstream::out);
         }
       }
-
-        // parameter set for mass trace
-        // Param common_param = getParam_().copy("algorithm:common:", true);
-        // writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
-
-        // Param mtd_param = getParam_().copy("algorithm:mtd:", true);
-        // writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
-
-        // mtd_param.insert("", common_param);
-      // mtd_param.remove("chrom_fwhm");
 
       // finally run FLASHDeconv here
 

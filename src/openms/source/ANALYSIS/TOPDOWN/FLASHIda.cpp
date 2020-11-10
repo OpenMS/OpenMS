@@ -232,6 +232,4 @@ namespace OpenMS
   {
     //spec.clear
   }
-
-
 }

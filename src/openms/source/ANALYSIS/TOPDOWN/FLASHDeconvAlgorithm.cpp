@@ -97,11 +97,9 @@ namespace OpenMS
   {
     auto *spec = &(dspec.getOriginalSpectrum());
     int msLevel = spec->getMSLevel();
-
     //For MS2,3,.. max mass and charge ranges should be determined by precursors
     auto currentChargeRange = dspec.getCurrentMaxCharge(maxCharge) - minCharge;
     auto currentMaxMass = dspec.getCurrentMaxMass(maxMass);
-
     //Prepare spectrum deconvolution
     auto sd = SpectrumDeconvolution(spec,
                                     minCharge,
@@ -109,7 +107,6 @@ namespace OpenMS
                                     minMass,
                                     currentMaxMass,
                                     intensityThreshold);
-
     //Perform deconvolution and fill in deconvolutedSpectrum
     dspec.setPeakGroups(sd.getPeakGroupsFromSpectrum(prevMassBinVector,
                                                      prevMinBinLogMassVector,
@@ -120,7 +117,6 @@ namespace OpenMS
                                                      numOverlappedScans,
                                                      minChargeCosine, maxMassCount, minIsotopeCosine,
                                                      avg, msLevel));
-
     if (dspec.empty())
     {
       return;
@@ -182,5 +178,3 @@ namespace OpenMS
     avg = FLASHDeconvHelperStructs::calculateAveragines(maxMass, useRNAavg);
   }
 }
-
-

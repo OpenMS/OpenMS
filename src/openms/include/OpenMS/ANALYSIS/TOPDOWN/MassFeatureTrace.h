@@ -85,6 +85,3 @@ namespace OpenMS
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };
 }
-
-
-

@@ -617,8 +617,6 @@ namespace OpenMS
       {
         auto &binOffset = binOffsets[j];
         auto bi = massBinIndex - binOffset;
-        //std::cout<<chargeRanges.getValue(0, massBinIndex)<< " " << chargeRanges.getValue(1, massBinIndex)<<
-        //" " << chargeRanges.getValue(2, bi) << std::endl;
 
         if (bi >= mzBinSize || (chargeRanges.getValue(2, bi) < chargeRange && chargeRanges.getValue(2, bi) != j))
         {

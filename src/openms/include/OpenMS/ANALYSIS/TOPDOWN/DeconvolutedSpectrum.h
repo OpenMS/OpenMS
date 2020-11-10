@@ -151,4 +151,3 @@ namespace OpenMS
     int scanNumber, precursorScanNumber;
   };
 }
-

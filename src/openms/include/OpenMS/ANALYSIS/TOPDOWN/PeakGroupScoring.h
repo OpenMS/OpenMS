@@ -137,6 +137,4 @@ namespace OpenMS
     int minCharge;
     int chargeRange;
   };
-
-
 }

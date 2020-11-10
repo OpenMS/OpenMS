@@ -151,5 +151,3 @@ namespace OpenMS
     static double getChargeMass(bool positive);
   };
 }
-
-

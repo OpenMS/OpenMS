@@ -245,5 +245,4 @@ namespace OpenMS
   {
     return std::log(mz - getChargeMass(positive));
   }
-
 }

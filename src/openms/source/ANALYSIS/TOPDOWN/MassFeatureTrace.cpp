@@ -311,6 +311,4 @@ namespace OpenMS
     minChargeCosine = param_.getValue("min_charge_cosine");
     minIsotopeCosine = param_.getValue("min_isotope_cosine");
   }
-
-
 }
