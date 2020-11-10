@@ -194,7 +194,6 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
 
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
 
-
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     fd_defaults.setValue("min_charge", 1);
@@ -223,7 +222,7 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
     fd_defaults.addTag("num_overlapped_scans", "advanced");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
-    mf_defaults.setValue("mass_error_ppm", 10.0, "ppm tolerance, controlled by -tol option");
+    mf_defaults.setValue("mass_error_da", 1.5, "ppm tolerance, controlled by -tol option");
     mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
     mf_defaults.setValue("trace_termination_criterion", "outlier");
     mf_defaults.addTag("trace_termination_criterion", "advanced"); // hide entry
@@ -539,7 +538,7 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
       auto massTracer = MassFeatureTrace();
       Param mf_param = getParam_().copy("FeatureTracing:", true);
       DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
-      mf_param.setValue("mass_error_ppm", ms1tol);
+      //mf_param.setValue("mass_error_ppm", ms1tol);
       mf_param.setValue("trace_termination_outliers", fd_param.getValue("num_overlapped_scans"));
       mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);

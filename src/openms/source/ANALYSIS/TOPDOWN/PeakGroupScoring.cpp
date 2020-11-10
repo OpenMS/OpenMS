@@ -46,8 +46,8 @@ namespace OpenMS
                                      IntList &minContinuousChargePeakCount,
                                      DoubleList &minIsotopeCosine)
       :
-      peakGroups(pg), minCharge(minCharge), chargeRange(maxCharge - minCharge), minChargeCosine(minChargeCosine),
-      tolerance(tolerance), maxMassCount(maxMassCount), minContinuousChargePeakCount(minContinuousChargePeakCount),
+      peakGroups(pg), minCharge(minCharge), minChargeCosine(minChargeCosine), chargeRange(maxCharge - minCharge),
+      maxMassCount(maxMassCount), tolerance(tolerance), minContinuousChargePeakCount(minContinuousChargePeakCount),
       minIsotopeCosine(minIsotopeCosine)
   {
 
@@ -775,7 +775,6 @@ namespace OpenMS
 
   void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
   { // pgs are sorted
-    //return;
     int isoLength = 1; // inclusive
     sort(peakGroups.begin(), peakGroups.end());
     std::vector<PeakGroup> filtered;

@@ -219,10 +219,8 @@ namespace OpenMS
     int chargeRange = maxCharge - minCharge;
     int hChargeSize = (int) hCharges.size();
     int minPeakCntr = minContinuousChargePeakCount[msLevel - 1];
-
     long binEnd = (long) massBins.size();
     auto candidateMassBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
-
     // how many peaks of continuous charges per mass
     int *continuousChargePeakPairCount = new int[massBins.size()];
     std::fill_n(continuousChargePeakPairCount, massBins.size(), 0);
@@ -251,8 +249,8 @@ namespace OpenMS
     // intensity change ratio should not exceed the factor. factor2 just to reduce run time
     float factor = 4.0;
     float factor2 = (1 - 1.0f / factor);
-
     // scan through log mz peaks
+
     while (mzBinIndex != mzBins.npos)
     {
       auto &intensity = mzIntensities[mzBinIndex];
@@ -282,7 +280,8 @@ namespace OpenMS
         intensityRatio = intensityRatio < 1 ? 1.0f / intensityRatio : intensityRatio;
 
         // check if peaks of continuous charges are present
-        bool chargeNotContinous = prevCharges[massBinIndex] - j != 1;
+        auto &prevCharge = prevCharges[massBinIndex];
+        bool chargeNotContinous = prevCharge - j != 1;
         // if passFirstStep is true, harmonic peak filtration is done
         bool passFirstStep = false;
 
@@ -342,7 +341,7 @@ namespace OpenMS
           }
         }
           //for MS1, if charge not continuous and intensity change ratio is low it is noise
-        else if (prevCharges[massBinIndex] < chargeRange && chargeNotContinous && intensityRatio < factor)
+        else if (prevCharge < chargeRange && chargeNotContinous && intensityRatio < factor)
         {
           noise[hChargeSize][massBinIndex] += intensity;
         }
@@ -384,25 +383,25 @@ namespace OpenMS
             }
           }
 
+          auto &cc = continuousChargePeakPairCount[massBinIndex];
           if (maxHcharge >= 0) //
           {
             noise[maxHcharge][massBinIndex] += maxHint;
-            continuousChargePeakPairCount[massBinIndex] = 0;
+            cc = 0;
           }
           else
           {
-            if (continuousChargePeakPairCount[massBinIndex] == 0)
+            if (cc == 0)
             {
               massIntensitites[massBinIndex] += prevIntensity;
             }
 
             massIntensitites[massBinIndex] += intensity + isoIntensity;
-            candidateMassBinsForThisSpectrum[massBinIndex] =
-                (++continuousChargePeakPairCount[massBinIndex] >= minPeakCntr);
+            candidateMassBinsForThisSpectrum[massBinIndex] = (++cc >= minPeakCntr);
           }
         }
         prevIntensity = intensity;
-        prevCharges[massBinIndex] = j;
+        prevCharge = j;
       }
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
@@ -440,10 +439,10 @@ namespace OpenMS
   {
     //int chargeRange = param.currentChargeRange;
     auto chargeRange = maxCharge - minCharge;
-    Matrix<int> chargeRanges(3, massBins.size(), chargeRange + 1);
+    Matrix<int> chargeRanges(3, massBins.size(), INT_MAX);
     for (auto i = 0; i < massBins.size(); i++)
     {
-      chargeRanges.setValue(1, i, 0);
+      chargeRanges.setValue(1, i, INT_MIN);
     }
 
     auto mzBinIndex = mzBins.find_first();
@@ -548,7 +547,7 @@ namespace OpenMS
   void SpectrumDeconvolution::getCandidatePeakGroups(double &mzBinMinValue, double &massBinMinValue,
                                                      float *massIntensities,
                                                      DoubleList &tolerance, DoubleList &binWidth,
-                                                     Matrix<int> chargeRanges,
+                                                     Matrix<int> &chargeRanges,
                                                      FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                      unsigned int &msLevel)
   {
@@ -561,7 +560,6 @@ namespace OpenMS
     int logMzPeakSize = (int) logMzPeaks.size();
     int *currentPeakIndex = new int[chargeRange];
     std::fill_n(currentPeakIndex, chargeRange, 0);
-
     peakGroups.reserve(massBins.count());
     auto massBinIndex = massBins.find_first();
     Size *peakBinNumbers = new Size[logMzPeakSize];
@@ -614,10 +612,13 @@ namespace OpenMS
       pg.reserve(chargeRange * 30);
       Size rightIndex = avg.getRightIndex(mass);
       Size leftIndex = avg.getLeftIndex(mass);
+
       for (int j = chargeRanges.getValue(0, massBinIndex); j <= chargeRanges.getValue(1, massBinIndex); j++)
       {
         auto &binOffset = binOffsets[j];
         auto bi = massBinIndex - binOffset;
+        //std::cout<<chargeRanges.getValue(0, massBinIndex)<< " " << chargeRanges.getValue(1, massBinIndex)<<
+        //" " << chargeRanges.getValue(2, bi) << std::endl;
 
         if (bi >= mzBinSize || (chargeRanges.getValue(2, bi) < chargeRange && chargeRanges.getValue(2, bi) != j))
         {
@@ -625,7 +626,6 @@ namespace OpenMS
         }
 
         double maxIntensity = -1.0;
-        //double maxIntensityMass = -1;
         int charge = j + minCharge;
         auto &cpi = currentPeakIndex[j];
         int maxPeakIndex = -1;
@@ -857,7 +857,6 @@ namespace OpenMS
     {
       unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, binWidth, msLevel);
     }
-
     auto perMassChargeRanges = updateMassBins(massBinMinValue, mzBinMinValue, massIntensities,
                                               mzBinIntensities, binWidth, minContinuousChargePeakCount, msLevel);
 

@@ -103,7 +103,12 @@ namespace OpenMS
     auto currentMaxMass = dspec.getCurrentMaxMass(maxMass);
 
     //Prepare spectrum deconvolution
-    auto sd = SpectrumDeconvolution(spec, minCharge, currentMaxMass, minMass, currentMaxMass, intensityThreshold);
+    auto sd = SpectrumDeconvolution(spec,
+                                    minCharge,
+                                    currentChargeRange + minCharge,
+                                    minMass,
+                                    currentMaxMass,
+                                    intensityThreshold);
 
     //Perform deconvolution and fill in deconvolutedSpectrum
     dspec.setPeakGroups(sd.getPeakGroupsFromSpectrum(prevMassBinVector,
@@ -165,7 +170,6 @@ namespace OpenMS
     maxMassCount = param_.getValue("max_mass_count");
     numOverlappedScans = param_.getValue("num_overlapped_scans");
     //    std::cout << minCharge << " " << maxCharge << " " << minMass << " " << maxMass << std::endl;
-
   }
 
   FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvAlgorithm::getAveragine()

@@ -160,7 +160,7 @@ namespace OpenMS
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
                                 DoubleList &tolerance, DoubleList &binWidth,
-                                Matrix<int> chargeRanges,
+                                Matrix<int> &chargeRanges,
                                 FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                 unsigned int &msLevel);
 

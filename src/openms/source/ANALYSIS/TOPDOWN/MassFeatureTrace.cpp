@@ -43,8 +43,8 @@ namespace OpenMS
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
 
-    mtd_defaults.setValue("mass_error_ppm", 10.0);
-    mtd_defaults.remove("mass_error_da");
+    mtd_defaults.setValue("mass_error_da", 1.5);
+    //mtd_defaults.remove("mass_error_da");
     mtd_defaults.remove("chrom_peak_snr");
     defaults_.insert("", mtd_defaults);
 
