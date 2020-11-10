@@ -319,6 +319,16 @@ namespace OpenMS
           return transitions_;
         }
 
+        void setSqlSourceFile(const String& filename)
+        {
+          source_file_ = filename;
+        }
+
+        const String& getSqlSourceFile() const
+        {
+          return source_file_;
+        }
+
         /// forget all data
         void clear();
 
@@ -334,6 +344,7 @@ namespace OpenMS
       private:
         std::map<UInt32, OSWTransition> transitions_;
         std::vector<OSWProtein> proteins_;
+        String source_file_;
     };
     
 

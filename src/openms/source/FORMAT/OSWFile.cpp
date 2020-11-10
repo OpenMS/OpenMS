@@ -273,13 +273,15 @@ namespace OpenMS
 
     OSWFile::OSWFile(const String& filename)
       : filename_(filename),
-      conn_(filename)
+        conn_(filename)
     {
       has_SCOREMS2_ = conn_.tableExists("SCORE_MS2");
     }
 
     void OSWFile::readMinimal(OSWData& swath_result)
     {
+      swath_result.setSqlSourceFile(filename_);
+
       readTransitions_(swath_result);
 
       String select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession from PROTEIN order by prot_id";
@@ -330,6 +332,7 @@ namespace OpenMS
 
     void OSWFile::read(OSWData& swath_result)
     {
+      swath_result.setSqlSourceFile(filename_);
       readTransitions_(swath_result);
       getFullProteins_(swath_result);      
     }
