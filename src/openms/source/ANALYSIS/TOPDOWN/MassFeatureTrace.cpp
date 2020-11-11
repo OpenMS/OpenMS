@@ -159,7 +159,7 @@ namespace OpenMS
           maxMass = pg.monoisotopicMass;
         }
 
-        for (auto &p : pg.peaks)
+        for (auto &p : pg)
         {
           if (p.isotopeIndex < 0 || p.isotopeIndex >= averagines.maxIsotopeIndex || p.charge < minCharge ||
               p.charge >= chargeRange + minCharge + 1)

@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-  struct PeakGroup;
+  class PeakGroup;
 
   /**
        @brief A class representing a deconvoluted spectrum. Also contains deconvoluted precursro information for MSn n>1.

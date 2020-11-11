@@ -12,7 +12,6 @@ set(sources_list
 		PeakGroup.cpp
 		PeakGroupScoring.cpp
 		QScore.cpp
-		SpectrumDeconvolution.cpp
 		)
 
 ### add path to the filenames

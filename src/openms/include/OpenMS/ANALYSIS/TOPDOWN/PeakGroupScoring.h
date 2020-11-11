@@ -74,7 +74,7 @@ namespace OpenMS
                                                            FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
     //the main function of this class
-    std::vector<PeakGroup> &scoreAndFilterPeakGroups(unsigned int &msLevel,
+    std::vector<PeakGroup> &scoreAndFilterPeakGroups(int &msLevel,
                                                      FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
   protected:

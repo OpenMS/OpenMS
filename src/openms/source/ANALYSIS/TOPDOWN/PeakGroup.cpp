@@ -39,18 +39,7 @@ namespace OpenMS
 
   PeakGroup::~PeakGroup()
   {
-    std::vector<LogMzPeak>().swap(peaks);
     clearChargeInfo();
-  }
-
-  void PeakGroup::push_back(FLASHDeconvHelperStructs::LogMzPeak &p)
-  {
-    peaks.push_back(p);
-  }
-
-  void PeakGroup::reserve(Size n)
-  {
-    peaks.reserve(n);
   }
 
   void PeakGroup::clearChargeInfo()
@@ -97,8 +86,8 @@ namespace OpenMS
     if (offset != 0)
     {
       std::vector<LogMzPeak> tmpPeaks;
-      tmpPeaks.swap(peaks);
-      peaks.reserve(tmpPeaks.size());
+      tmpPeaks.swap(*this);
+      reserve(tmpPeaks.size());
 
       for (auto &p : tmpPeaks)
       {
@@ -107,14 +96,14 @@ namespace OpenMS
         {
           continue;
         }
-        peaks.push_back(p);
+        push_back(p);
       }
     }
 
     intensity = .0;
     double nominator = .0;
 
-    for (auto &p : peaks)
+    for (auto &p : *this)
     {
       double pi = p.intensity;
       intensity += pi;
@@ -124,10 +113,5 @@ namespace OpenMS
     auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
     avgMass = monoisotopicMass + massDelta;
 
-  }
-
-  bool PeakGroup::empty()
-  {
-    return peaks.empty();
   }
 }

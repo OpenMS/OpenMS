@@ -12,7 +12,6 @@ set(sources_list_h
     PeakGroup.h
     PeakGroupScoring.h
     QScore.h
-    SpectrumDeconvolution.h
     )
 
 ### add path to the filenames

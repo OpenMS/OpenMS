@@ -39,10 +39,13 @@
 #include <iostream>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES//Matrix.h>
+#include "boost/dynamic_bitset.hpp"
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
 
 namespace OpenMS
 {
-
   class DeconvolutedSpectrum;
 
   /**
@@ -61,7 +64,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm();
 
     /// default destructor
-    ~FLASHDeconvAlgorithm() = default;
+    ~FLASHDeconvAlgorithm() override;
 
     /// copy constructor
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &) = default;
@@ -106,6 +109,9 @@ namespace OpenMS
     int numOverlappedScans;
     // mass ranges of deconvolution
     double minMass, maxMass;
+    int currentMaxCharge;
+    double currentMaxMass;
+
     double intensityThreshold;
     // minimum number of peaks supporting a mass
     IntList minSupportPeakCount;
@@ -125,5 +131,75 @@ namespace OpenMS
     ///The data structures for spectra overlapping.
     std::vector<std::vector<Size>> prevMassBinVector;
     std::vector<double> prevMinBinLogMassVector;
+
+    std::vector<int> hCharges{2, 3, 5,};
+    //Stores log mz peaks
+    std::vector<LogMzPeak> logMzPeaks;
+    //Bins for mass and mz. Bin size is deteremine by Parameter.tolerance
+    //peakGroups stores the decovnoluted mass peak groups
+    std::vector<PeakGroup> peakGroups;
+
+    //massBinsForThisSpectrum stores the selected bins only for this spectrum
+    boost::dynamic_bitset<> massBinsForThisSpectrum;
+    //massBins stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
+    boost::dynamic_bitset<> massBins;
+    //mzBins stores the binned log mz peaks
+    boost::dynamic_bitset<> mzBins;
+
+
+    //This stores the "universal pattern"
+    std::vector<double> filter;
+    //This stores the patterns for harmonic reduction
+    Matrix<double> harmonicFilter;
+
+    //This stores the "universal pattern" in binned dimenstion
+    std::vector<int> binOffsets;
+    //This stores the patterns for harmonic reduction in binned dimenstion
+    Matrix<int> hBinOffsets;
+
+    double massBinMinValue;
+    double mzBinMinValue;
+    int msLevel;
+
+    //static fucntion that converts bin to value
+    static double getBinValue(Size bin, double minV, double binWidth);
+
+    //static function that converts value to bin
+    static Size getBinNumber(double v, double minV, double binWidth);
+
+    //generate log mz peaks from the input spectrum
+    void updateLogMzPeaks(MSSpectrum *spec);
+
+    //generate mz bins from log mz peaks
+    void updateMzBins(Size &binNumber, float *mzBinIntensities);
+
+    //this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
+    void unionPrevMassBins();
+
+    //Main function
+    void generatePeakGroupsFromSpectrum();
+
+    //Update mass bins from mz bins and universal pattern. It select candidate mass bins using the pattern, eliminate possible harmonic masses
+    Matrix<int> updateMassBins(float *massIntensities,
+                               float *mzIntensities);
+
+    //Subfunction of updateMassBins.
+    Matrix<int> updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
+                                float *massIntensities,
+                                long &binStart, long &binEnd);
+
+    //Subfunction of updateMassBins.
+    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites,
+                                                                float *mzIntensities);
+
+    //From selected candidate mass bins, reselect the peaks. It researches the original spectrum to select peaks.
+    //Also isotopic peaks are selected in this function.
+    void getCandidatePeakGroups(float *sumLogIntensities,
+                                Matrix<int> &chargeRanges);
+
+    bool empty();
+
+    //Make the universal pattern here..
+    void setFilters();
   };
 }

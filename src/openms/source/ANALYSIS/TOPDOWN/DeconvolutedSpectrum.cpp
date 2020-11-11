@@ -54,7 +54,7 @@ namespace OpenMS
     outSpec.clear(false);
     for (auto &pg : peakGroups)
     {
-      if (pg.peaks.empty())
+      if (pg.empty())
       {
         continue;
       }
@@ -83,7 +83,7 @@ namespace OpenMS
 
     for (auto &pg : peakGroups)
     {
-      if (pg.peaks.empty())
+      if (pg.empty())
       {
         continue;
       }
@@ -92,7 +92,7 @@ namespace OpenMS
       const double &intensity = pg.intensity;
       int minPgCharge = INT_MAX;
       int maxPgCharge = INT_MIN;
-      for (auto &p : pg.peaks)
+      for (auto &p : pg)
       {
         minPgCharge = minPgCharge < p.charge ? minPgCharge : p.charge;
         maxPgCharge = maxPgCharge > p.charge ? maxPgCharge : p.charge;
@@ -103,42 +103,42 @@ namespace OpenMS
          << peakGroups.size() << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
          << minPgCharge << "\t" << maxPgCharge << "\t"
-         << pg.peaks.size() << "\t";
+         << pg.size() << "\t";
 
       if (writeDetail)
       {
         fs << std::fixed << std::setprecision(2);
-        for (auto &p : pg.peaks)
+        for (auto &p : pg)
         {
           fs << p.mz << ";";
         }
         fs << "\t";
 
         fs << std::fixed << std::setprecision(1);
-        for (auto &p : pg.peaks)
+        for (auto &p : pg)
         {
           fs << p.intensity << ";";
         }
         fs << "\t";
         fs << std::setprecision(-1);
 
-        for (auto &p : pg.peaks)
+        for (auto &p : pg)
         {
           fs << p.charge << ";";
         }
         fs << "\t";
-        for (auto &p : pg.peaks)
+        for (auto &p : pg)
         {
           fs << p.getUnchargedMass() << ";";
         }
         fs << "\t";
-        for (auto &p : pg.peaks)
+        for (auto &p : pg)
         {
           fs << p.isotopeIndex << ";";
         }
         fs << "\t";
 
-        for (auto &p : pg.peaks)
+        for (auto &p : pg)
         {
           auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
           auto diff = (tm / abs(p.charge) + FLASHDeconvHelperStructs::getChargeMass(p.charge > 0) - p.mz) / p.mz;
@@ -343,7 +343,7 @@ namespace OpenMS
       double maxSumIntensity = 0.0;
       for (auto &pg: (precursorSpectrum.peakGroups))
       {
-        if (pg.peaks[0].mz > endMz || pg.peaks[pg.peaks.size() - 1].mz < startMz)
+        if (pg[0].mz > endMz || pg[pg.size() - 1].mz < startMz)
         {
           continue;
         }
@@ -351,7 +351,7 @@ namespace OpenMS
         double sumIntensity = .0;
         double maxIntensity = .0;
         LogMzPeak *tmp = nullptr;
-        for (auto &pt:pg.peaks)
+        for (auto &pt:pg)
         {
           if (pt.mz < startMz)
           {

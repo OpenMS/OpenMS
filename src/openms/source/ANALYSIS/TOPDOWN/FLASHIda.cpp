@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
-#include "OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h"
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -113,7 +112,7 @@ namespace OpenMS
       //TODO precursor infor here
     }
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
-    auto sd = SpectrumDeconvolution(&spec, minCharge, minCharge + chargeRange, minMass, maxMass, .0);
+/*    auto sd = SpectrumDeconvolution(&spec, minCharge, minCharge + chargeRange, minMass, maxMass, .0); // TODO modify ...
     IntList minContinuousChargePeakCount = {3, 1};
     double minChargeCosine = .5;
     DoubleList minIsotopeCosine = {.75, .85};
@@ -130,7 +129,7 @@ namespace OpenMS
                                               msLevel);
 
     FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
-    spec.clear(true);
+    spec.clear(true);*/
     return peakGroups.size();
   }
 

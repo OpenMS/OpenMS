@@ -34,10 +34,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <QDirIterator>
 #include <QFileInfo>

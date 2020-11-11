@@ -387,7 +387,7 @@ namespace OpenMS
     return false;
   }
 
-  std::vector<PeakGroup> &PeakGroupScoring::scoreAndFilterPeakGroups(unsigned int &msLevel,
+  std::vector<PeakGroup> &PeakGroupScoring::scoreAndFilterPeakGroups(int &msLevel,
                                                                      FLASHDeconvHelperStructs::PrecalculatedAveragine &avg)
   {
     std::vector<PeakGroup> filteredPeakGroups;
@@ -434,7 +434,7 @@ namespace OpenMS
 
       if (msLevel == 1)
       {
-        if (pg.peaks.empty() ||
+        if (pg.empty() ||
             pg.chargeCosineScore <= minChargeCosine)
         {
           // delete[] pg.perChargeSNR;
@@ -451,19 +451,19 @@ namespace OpenMS
       }
       else
       {
-        if (pg.peaks.empty() || pg.chargeCosineScore < 0.1)//
+        if (pg.empty() || pg.chargeCosineScore < 0.1)//
         {
           continue;
         }
       }
 
       int offset = 0;
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(),
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg[0].getUnchargedMass(),
                                                                        perIsotopeIntensity,
                                                                        offset,
                                                                        avg);
 
-      if (pg.peaks.empty() ||
+      if (pg.empty() ||
           (pg.isotopeCosineScore <=
            minIsotopeCosine[msLevel - 1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
       {
@@ -494,7 +494,7 @@ namespace OpenMS
         double sumIntensity = .0;
         double sp = .0;
 
-        for (auto &p:pg.peaks)
+        for (auto &p:pg)
         {
           if (p.charge != charge)
           {
@@ -586,7 +586,7 @@ namespace OpenMS
 
       pg.maxQScoreMzStart = pg.monoisotopicMass * 2;
       pg.maxQScoreMzEnd = 0;
-      for (auto &p:pg.peaks)
+      for (auto &p:pg)
       {
         if (p.charge != pg.maxQScoreCharge)
         {
@@ -876,7 +876,7 @@ namespace OpenMS
     //    double maxIntensity2 = -1;
     int maxIntIsoIndex = -1;
 
-    for (auto &p : pg.peaks)
+    for (auto &p : pg)
     {
       if (p.isotopeIndex < 0 || p.isotopeIndex >= maxIsotopeCount)
       {
