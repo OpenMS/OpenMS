@@ -459,6 +459,9 @@ protected:
         // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
         vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
 
+        // combine compound information (SiriusMSFile) with annotated Spectra (SiriusFragmentAnnotation)
+        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(v_cmpinfo, annotated_spectra);
+
         // should the sirius workspace be retained
         if (!sirius_workspace_directory.empty())
         {
@@ -477,10 +480,6 @@ protected:
             OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run AssayGeneratorMetabo with debug >= 2." << std::endl;
           }
         }
-
-        // combine compound information (SiriusMSFile) with annotated Spectra (SiriusFragmentAnnotation)
-        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(v_cmpinfo, annotated_spectra);
-
       }
       else // use heuristic
       {
