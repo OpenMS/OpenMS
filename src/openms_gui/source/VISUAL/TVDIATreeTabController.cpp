@@ -54,7 +54,7 @@ namespace OpenMS
   {  
   }
 
-  void TVDIATreeTabController::showTransitionsAs1D(const std::vector<int>& indices)
+  void TVDIATreeTabController::showTransitionsAs1D(const std::vector<int>& /*indices*/)
   {
     // basic behavior 1
 
