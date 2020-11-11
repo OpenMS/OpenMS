@@ -69,7 +69,7 @@ namespace OpenMS
     diatab_controller_(new TVDIATreeTabController(tv)),
     tv_(tv)
   {
-    // Hook-up controller and views for spectra inspection
+    // Hook-up controller and views for spectra
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumAsNew1D, spectraview_controller_, &TVSpectraViewController::showSpectrumAsNew1D);
     connect(spectra_view_widget_, &SpectraTreeTab::showChromatogramsAsNew1D, spectraview_controller_, &TVSpectraViewController::showChromatogramsAsNew1D);
@@ -78,10 +78,13 @@ namespace OpenMS
     connect(spectra_view_widget_, &SpectraTreeTab::spectrumDoubleClicked, spectraview_controller_, &TVSpectraViewController::showSpectrumAsNew1D);
     connect(spectra_view_widget_, &SpectraTreeTab::chromsDoubleClicked, spectraview_controller_, &TVSpectraViewController::showChromatogramsAsNew1D);
 
-    // Hook-up controller and views for identification inspection
+    // Hook-up controller and views for identification
     connect(id_view_widget_, &SpectraIDViewTab::spectrumDeselected, idview_controller_, &TVIdentificationViewController::deactivate1DSpectrum);
     connect(id_view_widget_, &SpectraIDViewTab::spectrumSelected, idview_controller_, CONNECTCAST(TVIdentificationViewController, activate1DSpectrum, (int, int, int)));
     connect(id_view_widget_, &SpectraIDViewTab::requestVisibleArea1D, idview_controller_, &TVIdentificationViewController::setVisibleArea1D);
+
+    // Hook-up controller and views for DIA
+    connect(dia_widget_, &DIATreeTab::dataSelected, diatab_controller_, &TVDIATreeTabController::showData);
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());

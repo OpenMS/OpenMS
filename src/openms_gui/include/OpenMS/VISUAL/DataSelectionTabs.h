@@ -50,6 +50,7 @@ namespace OpenMS
   class TVIdentificationViewController;
   class TVSpectraViewController;
   class TOPPViewBase;
+
   /**
     @brief A tabbed view, to browse lists of spectra or identifications
     

@@ -43,6 +43,8 @@ namespace OpenMS
 {
   class TOPPViewBase;
 
+  struct OSWIndexTrace;
+
   /**
   @brief Behavior of TOPPView in spectra view mode.
   */
@@ -56,13 +58,7 @@ public:
   TVDIATreeTabController(TOPPViewBase* parent);
 
 public slots:
-    /// Behavior for showTransitionsAs1D
-    virtual void showTransitionsAs1D(const std::vector<int>& indices);
-
-    /// Behavior for activate1DTransitions
-    virtual void activate1DTransitions(const std::vector<int>& indices);
-
-    /// Behavior for deactivate1DTransitions
-    virtual void deactivate1DTransitions(const std::vector<int>& indices);
+    /// shows all transitions from the given subtree
+    virtual void showData(const OSWIndexTrace& trace);
   };
 }

@@ -47,6 +47,8 @@ class QTreeWidgetItem;
 namespace OpenMS
 {
   class TreeView;
+  struct OSWIndexTrace;
+
   /**
     @brief Hierarchical visualization and selection of spectra.
 
@@ -69,14 +71,17 @@ namespace OpenMS
     void clear();
 
   signals:
-    void transitionSelected(std::vector<int> indices);
+    /// emitted when a protein, peptide, feature or transition was clicked
+    void dataSelected(const OSWIndexTrace& trace);
 
   private:
     QLineEdit* spectra_search_box_ = nullptr;
     QComboBox* spectra_combo_box_ = nullptr;
     TreeView* dia_treewidget_ = nullptr;
 
-    LayerData* current_layer_ = nullptr;
+    /// points to the data which is currently shown
+    /// Useful to avoid useless repaintings, which would loose the open/close state of internal tree nodes and selected items
+    OSWData* current_data_ = nullptr;
 
   private slots:
     /// fill the search-combo-box with current column header names

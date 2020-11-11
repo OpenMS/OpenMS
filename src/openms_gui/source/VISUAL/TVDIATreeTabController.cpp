@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/TVDIATreeTabController.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
@@ -54,23 +55,74 @@ namespace OpenMS
   {  
   }
 
-  void TVDIATreeTabController::showTransitionsAs1D(const std::vector<int>& /*indices*/)
+  void TVDIATreeTabController::showData(const OSWIndexTrace& /*trace*/)
   {
+  /*
     // basic behavior 1
 
     // show multiple spectra together is only used for chromatograms directly
     // where multiple (SRM) traces are shown together
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    auto ondisc_sptr = layer.getOnDiscPeakData();
+
+    OSWData* data = layer.getChromatogramAnnotation().get();
+    if (data == nullptr)
+    { // no OSWData available ... strange...
+      return;
+    }
+
+    //open new 1D widget
+    Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
 
     // string for naming the different chromatogram layers with their index
     String chromatogram_caption;
     // string for naming the tab title with the indices of the chromatograms
     String caption = layer.getName();
+    switch (trace.lowest)
+    {
+    case OSWHierarchy::Level::PROTEIN:
+      // do nothing else -- showing all transitions for a protein is overwhelming...      
+      break;
+    case OSWHierarchy::Level::PEPTIDE:
+    {
+      const auto& prot = data.getProteins()[tr.idx_prot];
+      const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
+      for (const auto& feat : pep.getFeatures())
+      {
+        const auto& trids = feat.getTransitionIDs();
+        transitions_to_show.insert(transitions_to_show.end(), trids.begin(), trids.end());
+      }
+      break;
+    }
+    case OSWHierarchy::Level::FEATURE:
+    {
+      const auto& prot = data.getProteins()[tr.idx_prot];
+      const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
+      const auto& feat = pep.getFeatures()[tr.idx_feat];
+      const auto& trids = feat.getTransitionIDs();
+      transitions_to_show.insert(transitions_to_show.end(), trids.begin(), trids.end());
+      break;
+    }
+    case OSWHierarchy::Level::TRANSITION:
+    {
+      const auto& prot = data.getProteins()[tr.idx_prot];
+      const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
+      const auto& feat = pep.getFeatures()[tr.idx_feat];
+      const auto& trid = feat.getTransitionIDs()[tr.idx_trans];
+      transitions_to_show.insert(transitions_to_show.end(), trid);
+      break;
+    }
+    default:
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    // add data and return if something went wrong
+    if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
+      || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+    {
+      return;
+    }
 
-    //open new 1D widget
-    Plot1DWidget * w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    
     // fix legend if its a chromatogram
     w->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
@@ -78,52 +130,12 @@ namespace OpenMS
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
-    // basic behavior 2
-
     tv_->showPlotWidgetInWindow(w, caption);
     tv_->updateBarsAndMenus();
+
+    */
   }
 
-  // called by SpectraTreeTab::chromsSelected()
-  void TVDIATreeTabController::activate1DTransitions(const std::vector<int>& /*indices*/)
-  {
-    Plot1DWidget * widget_1d = tv_->getActive1DWidget();
-
-    // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == nullptr) return;
-    if (widget_1d->canvas()->getLayerCount() == 0) return;
-
-    const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
-    if (layer.getChromatogramAnnotation().get())
-    {
-      widget_1d->canvas()->removeLayers();
-      widget_1d->canvas()->blockSignals(true);
-      RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
-      /*
-      String fname = layer.filename;
-      for (const auto& index : indices)
-      {
-        ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
-
-        // get caption (either chromatogram idx or peptide sequence, if available)
-        String caption = fname;
-        if (chrom_exp_sptr->metaValueExists("peptide_sequence"))
-        {
-          caption = String(chrom_exp_sptr->getMetaValue("peptide_sequence"));
-        }
-        ((caption += "[") += index) += "]";
-        // add chromatogram data as peak spectrum
-        widget_1d->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, fname, caption, exp_sptr, index, true);
-      }
-           */
-      tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
-    }
-  }
-
-  void TVDIATreeTabController::deactivate1DTransitions(const std::vector<int>& /*indices*/)
-  {
-    // no special handling of spectrum deactivation needed
-  }
 
 } // OpenMS
 

@@ -55,65 +55,43 @@ namespace OpenMS
     const QStringList HEADER_NAMES = QStringList()
       << "entity" << "index" << "charge" << "full name" << "rt delta" << "q-value";
   }
-
-  // hierachy levels of the tree
-  namespace Entity
-  {
-    enum Values
-    {
-      PROTEIN,
-      PEPTIDE,
-      FEATURE,
-      TRANSITION,
-      SIZE_OF_VALUES
-    };
-    const QStringList VALUES = { "protein", "peptide", "feature/peakgroup", "transition" };
-
-  }
- 
+                                       
   /// given an item, goes up the tree to the root and collects indices in to the OSWData for each level
-  struct IndexTrace
+  OSWIndexTrace getTrace(QTreeWidgetItem* current)
   {
-    int idx_prot = -1;
-    int idx_pep = -1;
-    int idx_feat = -1;
-    int idx_trans = -1;
-    Entity::Values lowest = Entity::Values::SIZE_OF_VALUES;
+    OSWIndexTrace trace;
 
-    /// CTor which collects all the information
-    IndexTrace(QTreeWidgetItem* current)
+    while (current != nullptr)
     {
-      while (current != nullptr)
-      {
-        Entity::Values entity = Entity::Values(current->data(Clmn::INDEX, Qt::UserRole).toInt());
-        int index = current->data(Clmn::INDEX, Qt::DisplayRole).toInt();
-        
-        if (lowest == Entity::Values::SIZE_OF_VALUES)
-        { // set to level of first current
-          lowest = entity;
-        }
-        switch (entity)
-        {
-          case Entity::Values::PROTEIN:
-            idx_prot = index;
-            break;
-          case Entity::Values::PEPTIDE:
-            idx_pep = index;
-            break;
-          case Entity::Values::FEATURE:
-            idx_feat = index;  
-            break;
-          case Entity::Values::TRANSITION:
-            idx_trans = index;
-            break;
-          default:
-            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
-        // up one level
-        current = current->parent();
+      OSWHierarchy::Level level = OSWHierarchy::Level(current->data(Clmn::INDEX, Qt::UserRole).toInt());
+      int index = current->data(Clmn::INDEX, Qt::DisplayRole).toInt();
+
+      if (trace.lowest == OSWHierarchy::Level::SIZE_OF_VALUES)
+      { // set to level of first current
+        trace.lowest = level;
       }
+      switch (level)
+      {
+      case OSWHierarchy::Level::PROTEIN:
+        trace.idx_prot = index;
+        break;
+      case OSWHierarchy::Level::PEPTIDE:
+        trace.idx_pep = index;
+        break;
+      case OSWHierarchy::Level::FEATURE:
+        trace.idx_feat = index;
+        break;
+      case OSWHierarchy::Level::TRANSITION:
+        trace.idx_trans = index;
+        break;
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      // up one level
+      current = current->parent();
     }
-  };
+    return trace;
+  }
 
   DIATreeTab::DIATreeTab(QWidget* parent) :
     QWidget(parent)
@@ -167,9 +145,9 @@ namespace OpenMS
     {
       const auto& pep = prot.getPeptidePrecursors()[idx_pep];
       QTreeWidgetItem* item_pep = new QTreeWidgetItem(item_prot);
-      item_pep->setData(Clmn::ENTITY, Qt::DisplayRole, Entity::VALUES[Entity::PEPTIDE]);
+      item_pep->setData(Clmn::ENTITY, Qt::DisplayRole, OSWHierarchy::LevelName[OSWHierarchy::PEPTIDE]);
       item_pep->setData(Clmn::INDEX, Qt::DisplayRole, (int)idx_pep);
-      item_pep->setData(Clmn::INDEX, Qt::UserRole, Entity::PEPTIDE); // mark as peptide, so we know how to interpret the display role
+      item_pep->setData(Clmn::INDEX, Qt::UserRole, OSWHierarchy::PEPTIDE); // mark as peptide, so we know how to interpret the display role
       item_pep->setData(Clmn::CHARGE, Qt::DisplayRole, pep.getCharge());
       item_pep->setText(Clmn::FULL_NAME, pep.getSequence().c_str());
 
@@ -177,18 +155,18 @@ namespace OpenMS
       {
         const auto& feat = pep.getFeatures()[idx_feat];
         QTreeWidgetItem* item_feat = new QTreeWidgetItem(item_pep);
-        item_feat->setData(Clmn::ENTITY, Qt::DisplayRole, Entity::VALUES[Entity::FEATURE]);
+        item_feat->setData(Clmn::ENTITY, Qt::DisplayRole, OSWHierarchy::LevelName[OSWHierarchy::FEATURE]);
         item_feat->setData(Clmn::INDEX, Qt::DisplayRole, (int)idx_feat);
-        item_feat->setData(Clmn::INDEX, Qt::UserRole, Entity::FEATURE); // mark as feature, so we know how to interpret the display role
+        item_feat->setData(Clmn::INDEX, Qt::UserRole, OSWHierarchy::FEATURE); // mark as feature, so we know how to interpret the display role
         item_feat->setData(Clmn::RT_DELTA, Qt::DisplayRole, feat.getRTDelta());
         item_feat->setData(Clmn::QVALUE, Qt::DisplayRole, feat.getQValue());
 
         for (size_t idx_trans = 0; idx_trans < feat.getTransitionIDs().size(); ++idx_trans)
         {
           QTreeWidgetItem* item_trans = new QTreeWidgetItem(item_feat);
-          item_trans->setData(Clmn::ENTITY, Qt::DisplayRole, Entity::VALUES[Entity::TRANSITION]);
+          item_trans->setData(Clmn::ENTITY, Qt::DisplayRole, OSWHierarchy::LevelName[OSWHierarchy::TRANSITION]);
           item_trans->setData(Clmn::INDEX, Qt::DisplayRole, (int)idx_trans);
-          item_trans->setData(Clmn::INDEX, Qt::UserRole, Entity::TRANSITION); // mark as transition, so we know how to interpret the display role
+          item_trans->setData(Clmn::INDEX, Qt::UserRole, OSWHierarchy::TRANSITION); // mark as transition, so we know how to interpret the display role
         }
       }
       //item_prot->addChild(item_pep);
@@ -201,7 +179,7 @@ namespace OpenMS
     QTreeWidgetItem* item_prot = new QTreeWidgetItem();
     item_prot->setData(Clmn::ENTITY, Qt::DisplayRole, "protein");
     item_prot->setData(Clmn::INDEX, Qt::DisplayRole, prot_index);
-    item_prot->setData(Clmn::INDEX, Qt::UserRole, Entity::PROTEIN); // mark as protein, so we know how to interpret the display role
+    item_prot->setData(Clmn::INDEX, Qt::UserRole, OSWHierarchy::PROTEIN); // mark as protein, so we know how to interpret the display role
     item_prot->setText(Clmn::FULL_NAME, prot.getAccession().c_str());
 
     // if possible, fill it already
@@ -233,64 +211,31 @@ namespace OpenMS
 
   void DIATreeTab::rowSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
   {
-    /*	test for previous == 0 is important - without it,
-        the wrong spectrum will be selected after finishing
-        the execution of a TOPP tool on the whole data */
-    if (current == nullptr || previous == nullptr)
+    if (current == nullptr || current_data_ == nullptr)
     {
       return;
     }
 
-    OSWData& data = *current_layer_->getChromatogramAnnotation().get();
-    std::vector<int> transitions_to_show;
-
-    IndexTrace tr(current);
+    OSWIndexTrace tr = getTrace(current);
     switch (tr.lowest)
     {
-      case Entity::Values::PROTEIN:
+      case OSWHierarchy::Level::PROTEIN:
         if (current->childCount() == 0)
         { // no peptides... load them
-          OSWFile f(data.getSqlSourceFile());
-          f.readProtein(data, tr.idx_prot);
+          OSWFile f(current_data_->getSqlSourceFile());
+          f.readProtein(*current_data_, tr.idx_prot);
         }
-        fillProt(data.getProteins()[tr.idx_prot], current);
+        fillProt(current_data_->getProteins()[tr.idx_prot], current);
         // do nothing else -- showing all transitions for a protein is overwhelming...      
         break;
-      case Entity::Values::PEPTIDE:
-        {
-          const auto& prot = data.getProteins()[tr.idx_prot];
-          const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
-          for (const auto& feat : pep.getFeatures())
-          {
-            const auto& trids = feat.getTransitionIDs();
-            transitions_to_show.insert(transitions_to_show.end(), trids.begin(), trids.end());
-          }
-          break;
-        }
-      case Entity::Values::FEATURE:
-        {
-          const auto& prot = data.getProteins()[tr.idx_prot];
-          const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
-          const auto& feat = pep.getFeatures()[tr.idx_feat];
-          const auto& trids = feat.getTransitionIDs();
-          transitions_to_show.insert(transitions_to_show.end(), trids.begin(), trids.end());
-          break;
-        }
-      case Entity::Values::TRANSITION:
-        {
-          const auto& prot = data.getProteins()[tr.idx_prot];
-          const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
-          const auto& feat = pep.getFeatures()[tr.idx_feat];
-          const auto& trid = feat.getTransitionIDs()[tr.idx_trans];
-          transitions_to_show.insert(transitions_to_show.end(), trid);
-          break;
-        }
+      case OSWHierarchy::Level::PEPTIDE:
+      case OSWHierarchy::Level::FEATURE:
+      case OSWHierarchy::Level::TRANSITION:
+        break;
       default:
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-
-    std::cerr << "Showing transitions: " << ListUtils::concatenate(transitions_to_show, ", ") << "\n";
-    emit transitionSelected(transitions_to_show);
+    emit dataSelected(tr);
   }
 
   void DIATreeTab::rowSelectionChange2_(QTreeWidgetItem* item, int /*col*/)
@@ -313,8 +258,10 @@ namespace OpenMS
     {
       return;
     }
+ 
+    OSWData* data = cl.getChromatogramAnnotation().get();
 
-    if (current_layer_ == &cl)
+    if (current_data_ == data)
     {
       // layer data is still the same as last time ..
       // do not repopulate the table for now, since the data should not have changed
@@ -322,8 +269,8 @@ namespace OpenMS
       return;
     }
 
-    // remember layer, because we need the OSWData from it, once the user wants to see transition plots...
-    current_layer_ = &cl;
+    // update last data pointer
+    current_data_ = data;
 
     dia_treewidget_->blockSignals(true);
     RAIICleanup clean([&]() { dia_treewidget_->blockSignals(false); });
@@ -332,7 +279,6 @@ namespace OpenMS
 
     dia_treewidget_->setHeaders(Clmn::HEADER_NAMES);
 
-    const OSWData* data = cl.getChromatogramAnnotation().get();
 
     if (data == nullptr  // DIA tab is active, but the layer has no data to show...
         || data->getProteins().empty())
@@ -344,7 +290,7 @@ namespace OpenMS
       for (size_t prot_index = 0; prot_index < data->getProteins().size(); ++prot_index)
       {
         const auto& prot = data->getProteins()[prot_index];
-        auto item_prot = createProt(prot, prot_index);
+        auto item_prot = createProt(prot, (int)prot_index);
         dia_treewidget_->addTopLevelItem(item_prot);
       }
     }
@@ -369,6 +315,7 @@ namespace OpenMS
   {
     dia_treewidget_->clear();
     spectra_combo_box_->clear();
+    current_data_ = nullptr;
   }
 
 }

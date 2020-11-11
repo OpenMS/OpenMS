@@ -177,14 +177,9 @@ namespace OpenMS
 
     // mass precision to match a peak's m/z to a feature m/z
     // m/z values of features are usually an average over multiple scans...
-    double ppm = 0.5;
+    constexpr double ppm = 0.5;
 
-    vector<QColor> cols;
-    cols.push_back(Qt::blue);
-    cols.push_back(Qt::green);
-    cols.push_back(Qt::red);
-    cols.push_back(Qt::gray);
-    cols.push_back(Qt::darkYellow);
+    vector<QColor> cols{ Qt::blue, Qt::green, Qt::red, Qt::gray, Qt::darkYellow };
 
     if (!current_layer.getCurrentSpectrum().isSorted())
     {
