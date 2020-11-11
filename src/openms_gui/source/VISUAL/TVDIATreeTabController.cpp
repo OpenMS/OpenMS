@@ -54,53 +54,6 @@ namespace OpenMS
   {  
   }
 
-  LayerData::ExperimentSharedPtrType prepareChromatogram(Size index, LayerData::ExperimentSharedPtrType exp_sptr, LayerData::ODExperimentSharedPtrType ondisc_sptr)
-  {
-    // create a managed pointer fill it with a spectrum containing the chromatographic data
-    LayerData::ExperimentSharedPtrType chrom_exp_sptr(new LayerData::ExperimentType());
-    chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
-    LayerData::ExperimentType::SpectrumType spectrum;
-
-    // retrieve chromatogram (either from in-memory or on-disc representation)
-    MSChromatogram current_chrom;
-    current_chrom = exp_sptr->getChromatograms()[index];
-    if (current_chrom.empty() )
-    {
-      current_chrom = ondisc_sptr->getChromatogram(index);
-    }
-
-    // fill "dummy" spectrum with chromatogram data
-    for (Size i = 0; i != current_chrom.size(); ++i)
-    {
-      const ChromatogramPeak & cpeak = current_chrom[i];
-      Peak1D peak1d;
-      peak1d.setMZ(cpeak.getRT());
-      peak1d.setIntensity(cpeak.getIntensity());
-      spectrum.push_back(peak1d);
-    }
-
-    spectrum.getFloatDataArrays() = current_chrom.getFloatDataArrays();
-    spectrum.getIntegerDataArrays() = current_chrom.getIntegerDataArrays();
-    spectrum.getStringDataArrays() = current_chrom.getStringDataArrays();
-
-    // Add at least one data point to the chromatogram, otherwise
-    // "addLayer" will fail and a segfault occurs later
-    if (current_chrom.empty()) 
-    {
-      Peak1D peak1d(-1, 0);
-      spectrum.push_back(peak1d);
-    }
-
-    // store peptide_sequence if available
-    if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))
-    {
-      chrom_exp_sptr->setMetaValue("peptide_sequence", current_chrom.getPrecursor().getMetaValue("peptide_sequence"));
-    }
-
-    chrom_exp_sptr->addSpectrum(spectrum);
-    return chrom_exp_sptr;
-  }
-
   void TVDIATreeTabController::showTransitionsAs1D(const std::vector<int>& indices)
   {
     // basic behavior 1
@@ -121,43 +74,6 @@ namespace OpenMS
     // fix legend if its a chromatogram
     w->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
-    for (const auto& index : indices)
-    {
-      if (layer.type == LayerData::DT_CHROMATOGRAM)
-      {
-        ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
-
-        // fix legend and set layer name
-        caption += String(" [") + index + "];";
-        chromatogram_caption = layer.getName() + "[" + index + "]";
-
-        // add chromatogram data as peak spectrum
-        if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
-        {
-          return;
-        }
-        w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), chromatogram_caption);
-        w->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-
-        w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
-
-        //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-        w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
-        w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "true");
-        w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
-
-        // set visible area to visible area in 2D view
-        // switch X/Y because now we want to have RT on the x-axis and not m/z
-        DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
-        int tmp_x1 = visible_area.minX();
-        int tmp_x2 = visible_area.maxX();
-        visible_area.setMinX(visible_area.minY());
-        visible_area.setMaxX(visible_area.maxY());
-        visible_area.setMinY(tmp_x1);
-        visible_area.setMaxY(tmp_x2);
-        w->canvas()->setVisibleArea(visible_area);
-      }
-    }
 
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
