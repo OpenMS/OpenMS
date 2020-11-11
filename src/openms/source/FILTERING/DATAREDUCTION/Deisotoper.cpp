@@ -36,6 +36,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -67,6 +68,9 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 		    OPENMS_PRETTY_FUNCTION,
 		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
+
+  const bool preserve_high_intensity_peaks = true;
+
   Size charge_index(0);
   Size iso_peak_count_index(0);
 
@@ -99,6 +103,29 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   std::vector<double> mono_iso_peak_intensity(old_spectrum.size(), 0);
   std::vector<Size> iso_peak_count(old_spectrum.size(), 1);
   int feature_number = 0;
+
+  MSSpectrum high_intensity_peaks;
+  if (preserve_high_intensity_peaks) // TODO: document what happens with keep_only_deisotoped=true as it might add high-intensity peaks without charge (=> might lead to surprises if that option is taken)
+  {
+    high_intensity_peaks = spec;
+    // find high intensity peaks
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 4.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 1, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+
+    // add peak indices so we know what is retained after filtering
+    high_intensity_peaks.getIntegerDataArrays().resize(high_intensity_peaks.getIntegerDataArrays().size() + 1);
+    high_intensity_peaks.getIntegerDataArrays().back().setName("index");
+    for (size_t index = 0; index != high_intensity_peaks.size(); ++index)
+    {
+      high_intensity_peaks.getIntegerDataArrays().back().push_back(index);
+    }
+    // filter peaks and integer data arrays
+    window_mower_filter.filterPeakSpectrum(high_intensity_peaks);
+  }
 
   std::vector<size_t> extensions;
 
@@ -141,7 +168,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
         }
 
         extensions.clear();
-        extensions.push_back(current_peak);
+        extensions.push_back(current_peak);  // add current peak as start of extensions
         for (unsigned int i = 1; i < max_isopeaks; ++i)
         {
           const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
@@ -163,14 +190,14 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
               has_min_isopeaks = (i >= min_isopeaks);
               break;
             }
-/*            
-            // ratio of first isotopic peak to monoisotopic peak may not be too large 
+            
+            // ratio of first isotopic peak to monoisotopic peak may not be too large otherwise it might be just a satelite peak (e.g, amidation)
             if (i == 1 && old_spectrum[p].getIntensity() / old_spectrum[extensions.back()].getIntensity() > 10.0)
             {
               has_min_isopeaks = (i >= min_isopeaks);
               break;
-            }
-*/
+            }            
+
             // averagine check passed or skipped
             extensions.push_back(p);
             if (annotate_iso_peak_count)
@@ -235,8 +262,21 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
       spec[i].setMZ(spec[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
     }
     select_idx.push_back(i);
-
   }
+
+  if (preserve_high_intensity_peaks)
+  {
+    // add peak index if we want to keep that peak
+    for (size_t i = 0; i != high_intensity_peaks.size(); ++i)
+    {
+      int peak_index = high_intensity_peaks.getIntegerDataArrays().back()[i];
+      if (std::find(select_idx.begin(), select_idx.end(), peak_index) == select_idx.end())
+      {
+        select_idx.push_back(peak_index);
+      }
+    }
+  }
+
   // properly subsets all datapoints (incl. dataArrays)
   spec.select(select_idx);
   spec.sortByPosition();
