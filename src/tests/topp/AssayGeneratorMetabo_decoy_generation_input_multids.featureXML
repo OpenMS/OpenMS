@@ -374,7 +374,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB0034915,HMDB:HMDB0036689,LMST02020117,LMPR0103090013,LMPR0104070003]"/>
-					<UserParam type="stringList" name="description" value="[Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oic acid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?]"/>
+					<UserParam type="stringList" name="description" value="[First,Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oic acid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?]"/>
 					<UserParam type="string" name="modifications" value="M+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C19H26O6"/>
 					<UserParam type="float" name="mz_error_ppm" value="-5.166758944165734"/>
@@ -382,7 +382,7 @@
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB0034915,HMDB:HMDB0036689,LMST02020117,LMPR0103090013,LMPR0104070003]"/>
-					<UserParam type="stringList" name="description" value="[Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oic acid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?]"/>
+					<UserParam type="stringList" name="description" value="[Second,Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oic acid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C14H17IN2O2"/>
 					<UserParam type="float" name="mz_error_ppm" value="2.026357224232459"/>

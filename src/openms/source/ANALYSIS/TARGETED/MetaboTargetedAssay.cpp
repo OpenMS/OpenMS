@@ -388,7 +388,7 @@ namespace OpenMS
       // check if annotated object exists
       const MetaboTargetedAssay::CompoundTargetDecoyPair &csp = it;
 
-      // iterate over both entries - targets and decoys (SiriusTargetDecoySepctra)
+      // iterate over both entries - targets and decoys (SiriusTargetDecoySpectra)
       // count target and decoy as on entry - to ensure same numbering of targets and decoys
       for (size_t i = 0; i < 2; ++i)
       {
@@ -455,12 +455,12 @@ namespace OpenMS
               if (explanation_array[spec_index] == sumformula)
               {
                 // save exact mass
-                if (use_exact_mass && decoy == 0) // only use for targets
+                if (use_exact_mass)
                 {
                   exact_mass_precursor = spec_it->getMZ();
                 }
                 // remove precursor ms2 entry
-                if (exclude_ms2_precursor || decoy) // always use for decoys
+                if (exclude_ms2_precursor)
                 {
                   transition_spectrum.erase(transition_spectrum.begin() + spec_index);
                   transition_spectrum.getStringDataArrays()[0]
