@@ -644,9 +644,9 @@ namespace OpenMS
       }
     }   
 
-    void SiriusAdapterAlgorithm::logFeatureSpectraNumber(const String &featureinfo,
-                                                         const FeatureMapping::FeatureToMs2Indices &feature_mapping,
-                                                         const MSExperiment &spectra)
+    void SiriusAdapterAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
+                                                         const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                                                         const MSExperiment& spectra)
     {
       // number of features to be processed
       if (isFeatureOnly() && !featureinfo.empty())
