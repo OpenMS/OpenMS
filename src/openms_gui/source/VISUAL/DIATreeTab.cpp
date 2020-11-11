@@ -56,6 +56,7 @@ namespace OpenMS
       << "entity" << "index" << "charge" << "full name" << "rt delta" << "q-value";
   }
 
+  // hierachy levels of the tree
   namespace Entity
   {
     enum Values
@@ -80,7 +81,7 @@ namespace OpenMS
     Entity::Values lowest = Entity::Values::SIZE_OF_VALUES;
 
     /// CTor which collects all the information
-    IndexTrace(QTreeWidgetItem* current, const OSWData& data)
+    IndexTrace(QTreeWidgetItem* current)
     {
       while (current != nullptr)
       {
@@ -162,7 +163,7 @@ namespace OpenMS
   /// adds a subtree (with peptides ...) to a given protein 
   void fillProt(const OSWProtein& prot, QTreeWidgetItem* item_prot)
   {
-    for (int idx_pep = 0; idx_pep < prot.getPeptidePrecursors().size(); ++idx_pep)
+    for (size_t idx_pep = 0; idx_pep < prot.getPeptidePrecursors().size(); ++idx_pep)
     {
       const auto& pep = prot.getPeptidePrecursors()[idx_pep];
       QTreeWidgetItem* item_pep = new QTreeWidgetItem(item_prot);
@@ -172,7 +173,7 @@ namespace OpenMS
       item_pep->setData(Clmn::CHARGE, Qt::DisplayRole, pep.getCharge());
       item_pep->setText(Clmn::FULL_NAME, pep.getSequence().c_str());
 
-      for (int idx_feat = 0; idx_feat < pep.getFeatures().size(); ++idx_feat)
+      for (size_t idx_feat = 0; idx_feat < pep.getFeatures().size(); ++idx_feat)
       {
         const auto& feat = pep.getFeatures()[idx_feat];
         QTreeWidgetItem* item_feat = new QTreeWidgetItem(item_pep);
@@ -182,9 +183,8 @@ namespace OpenMS
         item_feat->setData(Clmn::RT_DELTA, Qt::DisplayRole, feat.getRTDelta());
         item_feat->setData(Clmn::QVALUE, Qt::DisplayRole, feat.getQValue());
 
-        for (int idx_trans = 0; idx_trans < feat.getTransitionIDs().size(); ++idx_trans)
+        for (size_t idx_trans = 0; idx_trans < feat.getTransitionIDs().size(); ++idx_trans)
         {
-          const uint trid = feat.getTransitionIDs()[idx_trans];
           QTreeWidgetItem* item_trans = new QTreeWidgetItem(item_feat);
           item_trans->setData(Clmn::ENTITY, Qt::DisplayRole, Entity::VALUES[Entity::TRANSITION]);
           item_trans->setData(Clmn::INDEX, Qt::DisplayRole, idx_trans);
@@ -244,7 +244,7 @@ namespace OpenMS
     OSWData& data = *current_layer_->getChromatogramAnnotation().get();
     std::vector<int> transitions_to_show;
 
-    IndexTrace tr(current, data);
+    IndexTrace tr(current);
     switch (tr.lowest)
     {
       case Entity::Values::PROTEIN:
@@ -293,7 +293,7 @@ namespace OpenMS
     emit transitionSelected(transitions_to_show);
   }
 
-  void DIATreeTab::rowSelectionChange2_(QTreeWidgetItem* item, int col)
+  void DIATreeTab::rowSelectionChange2_(QTreeWidgetItem* item, int /*col*/)
   {
     rowSelectionChange_(item, nullptr);
   }
@@ -341,7 +341,7 @@ namespace OpenMS
     }
     else
     {
-      for (int prot_index = 0; prot_index < data->getProteins().size(); ++prot_index)
+      for (size_t prot_index = 0; prot_index < data->getProteins().size(); ++prot_index)
       {
         const auto& prot = data->getProteins()[prot_index];
         auto item_prot = createProt(prot, prot_index);

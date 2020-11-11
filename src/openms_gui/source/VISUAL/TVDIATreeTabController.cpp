@@ -169,7 +169,7 @@ namespace OpenMS
   }
 
   // called by SpectraTreeTab::chromsSelected()
-  void TVDIATreeTabController::activate1DTransitions(const std::vector<int>& indices)
+  void TVDIATreeTabController::activate1DTransitions(const std::vector<int>& /*indices*/)
   {
     Plot1DWidget * widget_1d = tv_->getActive1DWidget();
 
