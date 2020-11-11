@@ -168,7 +168,7 @@ namespace OpenMS
       const auto& pep = prot.getPeptidePrecursors()[idx_pep];
       QTreeWidgetItem* item_pep = new QTreeWidgetItem(item_prot);
       item_pep->setData(Clmn::ENTITY, Qt::DisplayRole, Entity::VALUES[Entity::PEPTIDE]);
-      item_pep->setData(Clmn::INDEX, Qt::DisplayRole, idx_pep);
+      item_pep->setData(Clmn::INDEX, Qt::DisplayRole, (int)idx_pep);
       item_pep->setData(Clmn::INDEX, Qt::UserRole, Entity::PEPTIDE); // mark as peptide, so we know how to interpret the display role
       item_pep->setData(Clmn::CHARGE, Qt::DisplayRole, pep.getCharge());
       item_pep->setText(Clmn::FULL_NAME, pep.getSequence().c_str());
@@ -178,7 +178,7 @@ namespace OpenMS
         const auto& feat = pep.getFeatures()[idx_feat];
         QTreeWidgetItem* item_feat = new QTreeWidgetItem(item_pep);
         item_feat->setData(Clmn::ENTITY, Qt::DisplayRole, Entity::VALUES[Entity::FEATURE]);
-        item_feat->setData(Clmn::INDEX, Qt::DisplayRole, idx_feat);
+        item_feat->setData(Clmn::INDEX, Qt::DisplayRole, (int)idx_feat);
         item_feat->setData(Clmn::INDEX, Qt::UserRole, Entity::FEATURE); // mark as feature, so we know how to interpret the display role
         item_feat->setData(Clmn::RT_DELTA, Qt::DisplayRole, feat.getRTDelta());
         item_feat->setData(Clmn::QVALUE, Qt::DisplayRole, feat.getQValue());
@@ -187,7 +187,7 @@ namespace OpenMS
         {
           QTreeWidgetItem* item_trans = new QTreeWidgetItem(item_feat);
           item_trans->setData(Clmn::ENTITY, Qt::DisplayRole, Entity::VALUES[Entity::TRANSITION]);
-          item_trans->setData(Clmn::INDEX, Qt::DisplayRole, idx_trans);
+          item_trans->setData(Clmn::INDEX, Qt::DisplayRole, (int)idx_trans);
           item_trans->setData(Clmn::INDEX, Qt::UserRole, Entity::TRANSITION); // mark as transition, so we know how to interpret the display role
         }
       }
