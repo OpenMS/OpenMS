@@ -50,90 +50,97 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
   {
-    /* FLASHDeconv parameter
-    struct OPENMS_DLLAPI Parameter
-    {
-      int minCharge = 1;
-      double minMass = 50;
-      double maxMass = 100000;
-      double currentMaxMass = 100000;
-      DoubleList tolerance;
-
-      double intensityThreshold = 0;// advanced parameters
-      DoubleList minIsotopeCosine = {.75, .75};
-      double minChargeCosine = .8;
-
-      IntList minContinuousChargePeakCount = {3, 2};
-      IntList maxMassCount = {-1, -1};
-      unsigned int maxMSLevel = 100;//maxMSL;
-      unsigned int currentMaxMSLevel = 100;//maxMSL;
-
-      double RTwindow = 60.0;
-      double minRTSpan = 10.0;
-
-      int chargeRange = 100;
-      int currentChargeRange = 100;
-
-      bool useRNAavg = false;
-
-      /// automatically set parameters...
-      std::vector<int> hCharges{2, 3, 5,};
-      DoubleList binWidth;
-      UInt minNumOverLappedScans = 15;
-      int numOverlappedScans = 15;
-
-      //void print();
-
-      double chargeMass = Constants::PROTON_MASS_U;
-    };*/
-
+    /// This struct contains the averagine patterns precalulated for speed up. Other variables are also calculated for fast cosine calculation
     struct OPENMS_DLLAPI PrecalculatedAveragine
     {
+      /// isotope distributions for different (binned) masses
       std::vector<IsotopeDistribution> isotopes;
+      /// L2 norms for masses
       std::vector<double> norms;
+      /// mass differences between average mass and monoisotopic mass
       std::vector<double> averageMassDelta;
-      std::vector<Size> leftIndices;
-      std::vector<Size> rightIndices;
-      int maxIsotopeCount;
+      /// Isotope start indices: isotopes of the indices less than them have very low intensities
+      std::vector<Size> isotopeStartIndices;
+      /// Isotope end indices: isotopes of the indices larger than them have very low intensities
+      std::vector<Size> isotopeEndIndices;
+      /// max isotope index
+      int maxIsotopeIndex;
 
+      /// mass interval for calculation
       double massInterval;
+      /// min mass for calculation
       double minMass;
 
-      PrecalculatedAveragine();
+      /// default constructor
+      PrecalculatedAveragine() = default;
 
+      /**
+       @brief constructor with parameters such as mass ranges and interval ( delta ).
+       @param m minMass
+       @param M maxMass
+       @param delta mass interval between m and M
+       @param generator generator by which the calulation is done
+       @param useRNAavg if set, nucleotide patters are calculated
+    */
       PrecalculatedAveragine(double m,
                              double M,
                              double delta,
                              CoarseIsotopePatternGenerator *generator,
                              bool useRNAavg);
 
+      /// get distribution for input mass
       IsotopeDistribution get(double mass);
+
+      /// get norm
       double getNorm(double mass);
-      Size getLeftIndex(double mass);
-      Size getRightIndex(double mass);
+
+      /// get isotope start index
+      Size getIsotopeStartIndex(double mass);
+
+      /// get isotope end index
+      Size getIsotopeEndIndex(double mass);
+
+      /// get mass difference between avg and mono masses
       double getAverageMassDelta(double mass);
 
     };
 
+    /// log transformed peak. After deconvolution, other information such as charge and isotope index are stored.
     struct OPENMS_DLLAPI LogMzPeak
     {
+      /// original peak mz
       double mz = 0;
+      /// original peak intensity
       double intensity = 0;
-      double logMz = 0;
+      /// log transformed mz
+      double logMz = -1000;
+      /// deteremined mass after deconvolution. NOT monoisotopic but only decharged
       double mass = .0;
+      /// charge
       int charge = 0;
+      /// isotope index
       int isotopeIndex = -1;
 
-      LogMzPeak();
+      /// default constructor
+      LogMzPeak() = default;
 
+      /**
+        //       @brief constructor from Peak1D.
+        //       @param positive determines the charge carrier mass*/
       explicit LogMzPeak(Peak1D &peak, bool positive);
 
+      /**
+       //       @brief constructor from mz.
+       //       @param positive determines the charge carrier mass*/
       explicit LogMzPeak(double mz, bool positive);
 
-      LogMzPeak(LogMzPeak &peak, int c, int i);
+      /// copy constructor
+      LogMzPeak(const LogMzPeak &) = default;
 
+      /// destructor
       ~LogMzPeak();
 
+      /// get uncharged mass of this peak. It is NOT monoisotopic mass. Valid only when charge is set
       double getUnchargedMass();
 
       bool operator<(const LogMzPeak &a) const;
@@ -144,10 +151,22 @@ namespace OpenMS
 
     };
 
+    /**
+        //       @brief calculate averagines
+        //       @param maxMass max mass
+        //       @param useRNAavg if set, nucleotides averagines are calculated */
     static PrecalculatedAveragine calculateAveragines(double maxMass, bool useRNAavg);
 
+    /**
+        //       @brief calculate log mzs from mzs
+        //       @param mz mz
+        //       @param positive determines the charge carrier mass
+       */
     static double getLogMz(double mz, bool positive);
 
+    /**
+            //       @brief get charge carrier mass
+            //       @param positive determines the charge carrier mass*/
     static double getChargeMass(bool positive);
   };
 }

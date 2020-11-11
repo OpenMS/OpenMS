@@ -39,17 +39,25 @@
 
 namespace OpenMS
 {
-  // class for real time flashdeconv..
+  /**
+   * @brief FLASHIda class for real time deconvolution
+   *
+   * @see FLASHIdaBridgeFunctions
+   * @reference: FeatureFinderAlgorithmPickedHelperStructs
+   */
   class OPENMS_DLLAPI FLASHIda
   {
   public:
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
+    /// constructor that takes string input argument
     FLASHIda(char *arg);
 
-    ~FLASHIda();
+    /// destructor
+    ~FLASHIda() = default;
 
+    ///
     int getPeakGroups(double *mzs,
                       double *ints,
                       int length,

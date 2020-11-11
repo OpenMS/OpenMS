@@ -54,15 +54,10 @@ namespace OpenMS
       public DefaultParamHandler
   {
   public:
-    //typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-    /**
-          @brief default constructor for FLASHDeconvAlgorithm
-          @param avg averagine distributions, precalculated
-          @param param FLASHDeconv parameters
-     */
 
+    /// default constructor
     FLASHDeconvAlgorithm();
 
     /// default destructor
@@ -89,8 +84,12 @@ namespace OpenMS
                        int &specIndex,
                        int &massIndex);
 
+    /// get calculated averagine
     FLASHDeconvHelperStructs::PrecalculatedAveragine getAveragine();
 
+    /** calculate averagine
+        @useRNAavg if set, averagine for RNA (nucleotides) is calcualted
+     */
     void calculateAveragine(bool useRNAavg);
 
     /// convert double to nominal mass
@@ -101,14 +100,24 @@ namespace OpenMS
 
   private:
     /// FLASHDeconv parameters
+    // min charge and max charge of deconvolution
     int minCharge, maxCharge;
+    // when a spectrum is deconvoluted, the deconvoluted masses in the spectra within the overlapped scans are favorably considered.
     int numOverlappedScans;
+    // mass ranges of deconvolution
     double minMass, maxMass;
     double intensityThreshold;
-    IntList minContinuousChargePeakCount;
-    DoubleList tolerance, binWidth;
+    // minimum number of peaks supporting a mass
+    IntList minSupportPeakCount;
+    // tolerance in ppm for each MS level
+    DoubleList tolerance;
+    // bin size for first stage of mass selection
+    DoubleList binWidth;
+    // cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList minIsotopeCosine;
+    // cosien thereshold between charge distribution and fit gaussian
     double minChargeCosine;
+    // max mass count per spectrum for each MS level
     IntList maxMassCount;
 
     /// precalculated averagine distributions

@@ -111,7 +111,7 @@ namespace OpenMS
     dspec.setPeakGroups(sd.getPeakGroupsFromSpectrum(prevMassBinVector,
                                                      prevMinBinLogMassVector,
                                                      tolerance, binWidth,
-                                                     minContinuousChargePeakCount,
+                                                     minSupportPeakCount,
                                                      currentChargeRange,
                                                      currentMaxMass,
                                                      numOverlappedScans,
@@ -151,7 +151,7 @@ namespace OpenMS
     minMass = param_.getValue("min_mass");
 
     intensityThreshold = param_.getValue("min_intensity");
-    minContinuousChargePeakCount = param_.getValue("min_peaks");
+    minSupportPeakCount = param_.getValue("min_peaks");
 
     tolerance = param_.getValue("tol");
 

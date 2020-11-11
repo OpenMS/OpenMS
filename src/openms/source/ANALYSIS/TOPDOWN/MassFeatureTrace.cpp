@@ -112,9 +112,9 @@ namespace OpenMS
     auto *perChargeIntensity = new double[chargeRange + 1];
     auto *perChargeMaxIntensity = new double[chargeRange + 1];
     auto *perChargeMz = new double[chargeRange + 1];
-    auto *perIsotopeIntensity = new double[averagines.maxIsotopeCount];
+    auto *perIsotopeIntensity = new double[averagines.maxIsotopeIndex];
 
-    //std::cout<<chargeRange << " " << averagines.maxIsotopeCount<<std::endl;
+    //std::cout<<chargeRange << " " << averagines.maxIsotopeIndex<<std::endl;
 
     for (auto &mt : m_traces)
     {
@@ -132,7 +132,7 @@ namespace OpenMS
       std::fill_n(perChargeIntensity, chargeRange + 1, 0);
       std::fill_n(perChargeMaxIntensity, chargeRange + 1, 0);
       std::fill_n(perChargeMz, chargeRange + 1, 0);
-      std::fill_n(perIsotopeIntensity, averagines.maxIsotopeCount, 0);
+      std::fill_n(perIsotopeIntensity, averagines.maxIsotopeIndex, 0);
 
       for (auto &p2 : mt)
       {
@@ -161,7 +161,7 @@ namespace OpenMS
 
         for (auto &p : pg.peaks)
         {
-          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagines.maxIsotopeCount || p.charge < minCharge ||
+          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagines.maxIsotopeIndex || p.charge < minCharge ||
               p.charge >= chargeRange + minCharge + 1)
           {
             continue;
@@ -197,7 +197,7 @@ namespace OpenMS
         continue;
       }
 
-      //perIsotopeIntensity, param.maxIsotopeCount
+      //perIsotopeIntensity, param.maxIsotopeIndex
 
 
       if (offset != 0)
@@ -253,7 +253,7 @@ namespace OpenMS
             << mt.getTraceLength() / 60.0 << "\t";
 
 
-        for (int j = 0; j < averagines.maxIsotopeCount; ++j)
+        for (int j = 0; j < averagines.maxIsotopeIndex; ++j)
         {
           if (perIsotopeIntensity[j] <= 0)
           {

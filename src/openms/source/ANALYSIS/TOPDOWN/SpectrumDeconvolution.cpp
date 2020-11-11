@@ -610,8 +610,8 @@ namespace OpenMS
       PeakGroup pg;
 
       pg.reserve(chargeRange * 30);
-      Size rightIndex = avg.getRightIndex(mass);
-      Size leftIndex = avg.getLeftIndex(mass);
+      Size rightIndex = avg.getIsotopeEndIndex(mass);
+      Size leftIndex = avg.getIsotopeStartIndex(mass);
 
       for (int j = chargeRanges.getValue(0, massBinIndex); j <= chargeRanges.getValue(1, massBinIndex); j++)
       {
@@ -694,7 +694,8 @@ namespace OpenMS
             const auto bin = peakBinNumbers[peakIndex] + binOffset;
             if (bin < massBinSize)
             {
-              LogMzPeak p(logMzPeaks[peakIndex], charge, 0);
+              LogMzPeak p(logMzPeaks[peakIndex]);
+              p.charge = charge;
               pg.peaks.push_back(p);
             }
             pi = i;
@@ -733,7 +734,8 @@ namespace OpenMS
 
             if (bin < massBinSize)
             {
-              LogMzPeak p(logMzPeaks[peakIndex], charge, 0);
+              LogMzPeak p(logMzPeaks[peakIndex]);
+              p.charge = charge;
               pg.peaks.push_back(p);
             }
 

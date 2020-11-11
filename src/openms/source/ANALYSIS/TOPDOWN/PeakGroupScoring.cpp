@@ -290,7 +290,7 @@ namespace OpenMS
     int isotopeLength = 0;
     int maxIsotopeIndex = 0, minIsotopeIndex = -1;
 
-    for (int i = 0; i < avg.maxIsotopeCount; i++)
+    for (int i = 0; i < avg.maxIsotopeIndex; i++)
     {
       if (perIsotopeIntensities[i] <= 0)
       {
@@ -414,7 +414,7 @@ namespace OpenMS
       std::vector<double>().swap(intensities);
     }
 
-    auto perIsotopeIntensity = new double[avg.maxIsotopeCount];
+    auto perIsotopeIntensity = new double[avg.maxIsotopeIndex];
     auto perChargeIntensity = new double[chargeRange];
     auto perChargeMaxIntensity = new double[chargeRange];
 
@@ -428,7 +428,7 @@ namespace OpenMS
 
       auto indices = updatePerChargeIsotopeIntensity(
           perIsotopeIntensity, perChargeIntensity,
-          avg.maxIsotopeCount, pg);
+          avg.maxIsotopeIndex, pg);
 
       pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, chargeRange);
 
@@ -470,7 +470,7 @@ namespace OpenMS
         continue;
       }
 
-      pg.updateMassesAndIntensity(avg, offset, avg.maxIsotopeCount);
+      pg.updateMassesAndIntensity(avg, offset, avg.maxIsotopeIndex);
 
       auto iso = avg.get(pg.monoisotopicMass);
       auto isoNorm = avg.getNorm(pg.monoisotopicMass);
@@ -482,10 +482,10 @@ namespace OpenMS
       for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
       {
         int j = charge - minCharge;
-        auto perIsotopeIntensities = new double[avg.maxIsotopeCount];
-        std::fill_n(perIsotopeIntensities, avg.maxIsotopeCount, .0);
+        auto perIsotopeIntensities = new double[avg.maxIsotopeIndex];
+        std::fill_n(perIsotopeIntensities, avg.maxIsotopeIndex, .0);
 
-        int minIsotopeIndex = avg.maxIsotopeCount;
+        int minIsotopeIndex = avg.maxIsotopeIndex;
         int maxIsotopeIndex = 0;
 
         double minMz = pg.monoisotopicMass * 2;
@@ -861,10 +861,10 @@ namespace OpenMS
     std::fill_n(perChargeIntensity, chargeRange, 0);
     /*for (int j = 0; j < param.currentChargeRange; ++j)
     {
-      std::fill_n(intensityGrid[j], param.maxIsotopeCount, 0);
+      std::fill_n(intensityGrid[j], param.maxIsotopeIndex, 0);
     }
 
-    for (int j = 0; j < param.maxIsotopeCount; ++j)
+    for (int j = 0; j < param.maxIsotopeIndex; ++j)
     {
       std::fill_n(intensityGrid2[j], param.currentChargeRange, 0);
     }*/

@@ -94,9 +94,6 @@ namespace OpenMS
     peakGroups = std::vector<PeakGroup>();
   }
 
-  FLASHIda::~FLASHIda()
-  {
-  }
 
   int FLASHIda::getPeakGroups(double *mzs,
                               double *ints,

@@ -132,8 +132,10 @@ namespace OpenMS
     /// size of peakGroups
     int size();
 
+    /// get max mass - which is min mass between max mass specified by users or mass determined by precursor mass for MSn
     double getCurrentMaxMass(double maxMass);
 
+    /// get max charge - which is min charge between max charge specified by users or charge determined by precursor charge for MSn
     int getCurrentMaxCharge(int maxCharge);
 
   private:

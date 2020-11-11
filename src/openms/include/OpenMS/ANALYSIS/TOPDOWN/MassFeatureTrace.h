@@ -46,7 +46,10 @@
 
 namespace OpenMS
 {
-  // feature trace in mass dimention for FLASHDeconv
+  /**
+  @brief Feature trace in mass dimention for FLASHDeconv
+  @ingroup Topdown
+  */
   class OPENMS_DLLAPI MassFeatureTrace :
       public DefaultParamHandler
   {
@@ -58,10 +61,20 @@ namespace OpenMS
     MassFeatureTrace();
 
     /// default destructor
-    ~MassFeatureTrace();
+    ~MassFeatureTrace() override;
 
+    /// add deconvolution spectrum after per spec deconvolution. Necessary info. such as peakGroups are stored so they can be used tracing afterwards
     void addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum);
 
+    /**
+       @brief Find features and write features in output files.
+       @param fileName file name prefix
+       @param featureCntr total number of features
+       @param featureIndex index to features
+       @param fsf file stream for regular output
+       @param fsp file stream for promex output
+       @param averagines precalculated averagines for cosine calculation
+       */
     void findFeatures(const String &fileName,
                       bool promexOut,
                       int &featureCntr,
@@ -70,18 +83,21 @@ namespace OpenMS
                       std::fstream &fsp,
                       PrecalculatedAveragine averagines);
 
+    /// write header line for regular file output
     static void writeHeader(std::fstream &fs);
 
+    /// write header lien for promex file output
     static void writePromexHeader(std::fstream &fs);
 
   protected:
     void updateMembers_() override;
 
   private:
+    /// MS1 tolerance
     double tol;
+    /// cosine thresholds for scoring and filtering
     double minChargeCosine, minIsotopeCosine;
-
-    //PrecalculatedAveragine averagines;
+    /// peak group information is stored in here for traicing
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };
 }
