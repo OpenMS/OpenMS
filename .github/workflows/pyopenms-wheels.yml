@@ -242,9 +242,8 @@ jobs:
         path: bld/pyopenms_whls
 
   build-lnx:
-    # TODO we have to make sure that this container is always updated with a push to contrib
     runs-on: ubuntu-latest
-    container: hroest/manylinux2014_qt59_contrib:v1.1
+    container: openms/manylinux:latest
 
     steps:
     # Cancels older builds if still running
