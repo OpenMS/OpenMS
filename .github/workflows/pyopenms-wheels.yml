@@ -264,16 +264,16 @@ jobs:
             patch -p0 $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyopenms/__init__.py < $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/dist-scripts/manylinux.patch
 
             # build an array based on the directories in the cp3* directory (python3)
-            i=0
-            for PYBIN in ./cp3*; do
-              cpd[$i]="$PYBIN"
-              (( i++ ))
-            done
+            #i=0
+            #for PYBIN in ./cp3*; do
+            #  cpd[$i]="$PYBIN"
+            #  (( i++ ))
+            #done
 
-            # install Python deps
-            #for PYBIN in /opt/python/cp3*; do
             # use the latest three python versions similar to macOS, windows 
-            for i in 0{1..3}; do
+            #for i in 0{1..3}; do
+            # install Python deps
+            for PYBIN in /opt/python/cp3*; do
               PYBIN="${cpd[${#cpd[@]}-i]}"
               "$PYBIN/bin/pip" install -U Cython
               "$PYBIN/bin/pip" install -U setuptools
@@ -294,9 +294,9 @@ jobs:
             make -j4 OpenMS SuperHirn
 
             # compile and configure OpenMS
-            #for PYBIN in /opt/python/cp3*; do
-            for i in 0{1..3}; do
-              PYBIN="${cpd[${#cpd[@]}-i]}"
+            for PYBIN in /opt/python/cp3*; do
+            #for i in 0{1..3}; do
+            #  PYBIN="${cpd[${#cpd[@]}-i]}"
 
               # configure
               cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
