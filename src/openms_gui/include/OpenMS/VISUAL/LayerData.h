@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/OSWData.h>
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -60,6 +60,7 @@ namespace OpenMS
 {
 
   class OnDiscMSExperiment;
+  class OSWData;
 
   /**
   @brief Class that stores the data for one layer
@@ -160,6 +161,9 @@ public:
     /// SharedPtr on On-Disc MSExperiment
     typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
+    /// SharedPtr on OSWData
+    typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+
     //@}
 
     /// Default constructor
@@ -256,16 +260,15 @@ public:
     }
 
     /// get annotation (e.g. to build a hierachical ID View)
-    const OSWData& getChromatogramAnnotation()
-    {
-      return chrom_annotation_;
-    }
+    /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+    OSWDataSharedPtrType& getChromatogramAnnotation();
+
+    /// get annotation (e.g. to build a hierachical ID View)
+    /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
+    const OSWDataSharedPtrType& getChromatogramAnnotation() const;
 
     /// add annotation from an OSW sqlite file.
-    void setChromatogramAnnotation(OSWData&& data)
-    {
-      chrom_annotation_ = std::move(data);
-    }
+    void setChromatogramAnnotation(OSWData&& data);
 
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
@@ -487,7 +490,7 @@ private:
     ExperimentSharedPtrType chromatogram_map_;
 
     /// Chromatogram annotation data
-    OSWData chrom_annotation_;
+    OSWDataSharedPtrType chrom_annotation_;
 
     /// Index of the current spectrum
     Size current_spectrum_;

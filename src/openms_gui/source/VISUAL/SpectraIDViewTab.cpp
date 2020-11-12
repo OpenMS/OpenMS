@@ -75,7 +75,7 @@ namespace OpenMS
     setObjectName("Identifications");
 
     // make sure they are in sync
-    assert(HEADER_NAMES.size() == HeaderNames::SIZE_OF_HEADERNAMES);
+    assert(Clmn::HEADER_NAMES.size() == Clmn::HeaderNames::SIZE_OF_HEADERNAMES);
 
     // id view
     defaults_.setValue("a_intensity", 1.0, "Default intensity of a-ions");

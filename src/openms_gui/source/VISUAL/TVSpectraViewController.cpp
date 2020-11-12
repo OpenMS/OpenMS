@@ -101,7 +101,7 @@ namespace OpenMS
     return chrom_exp_sptr;
   }
 
-  void TVSpectraViewController::showSpectrumAs1D(int index)
+  void TVSpectraViewController::showSpectrumAsNew1D(int index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
@@ -184,7 +184,7 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  void TVSpectraViewController::showSpectrumAs1D(const std::vector<int>& indices)
+  void TVSpectraViewController::showChromatogramsAsNew1D(const std::vector<int>& indices)
   {
 
     // basic behavior 1
@@ -224,6 +224,7 @@ namespace OpenMS
         w->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
 
         w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
+        w->canvas()->getCurrentLayer().getChromatogramAnnotation() = layer.getChromatogramAnnotation(); // copy over shared-ptr to OSW-sql data (if available)
 
         //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
         w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
@@ -295,7 +296,7 @@ namespace OpenMS
     }
   }
 
-  // called by SpectraTreeTab::spectrumSelected()
+  // called by SpectraTreeTab::chromsSelected()
   void TVSpectraViewController::activate1DSpectrum(const std::vector<int>& indices)
   {
     Plot1DWidget * widget_1d = tv_->getActive1DWidget();

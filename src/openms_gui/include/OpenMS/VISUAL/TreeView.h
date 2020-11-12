@@ -28,47 +28,52 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/VISUAL/LayerData.h>
-#include <OpenMS/VISUAL/TVControllerBase.h>
-#include <vector>
+#include <QTreeWidget>
+
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
 namespace OpenMS
 {
-  class TOPPViewBase;
-
   /**
-  @brief Behavior of TOPPView in spectra view mode.
+    @brief A better QTreeWidget for TOPPView, which supports header context menu and conveniently adding/getting headers names.
   */
-  class TVSpectraViewController
-    : public TVControllerBase
+  class TreeView :
+    public QTreeWidget
   {
     Q_OBJECT
+  public:
+    /// Constructor
+    TreeView(QWidget* parent = nullptr);
+    /// Destructor
+    virtual ~TreeView() = default;
 
-public:
-    /// Construct the behaviour with its parent
-    TVSpectraViewController(TOPPViewBase* parent);
+    /// sets the visible headers (and the number of columns)
+    void setHeaders(const QStringList& headers);
 
-public slots:
-    /// Behavior for showSpectrumAsNew1D
-    virtual void showSpectrumAsNew1D(int index);
+    /// hides columns with the given names
+    /// @throws Exception::InvalidParameter if a name is not matching the current column names
+    void hideColumns(const QStringList& header_names);
 
-    /// Behavior for showChromatogramsAsNew1D
-    virtual void showChromatogramsAsNew1D(const std::vector<int>& indices);
+    /**
+       @brief Obtain header names, either from all, or only the visible columns
 
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
+       @param which With or without invisible columns?
+       @return List of header names
+    */
+    QStringList getHeaderNames(const WidgetHeader which) const;
 
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(const std::vector<int>& indices);
+    /// get the displayed name of the header in column with index @p header_column
+    /// @throws Exception::ElementNotFound if header at index @p header_column is not valid
+    QString getHeaderName(const int header_column) const;
 
-    /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+  private slots:
+    /// Display header context menu; allows to show/hide columns
+    void headerContextMenu_(const QPoint& pos);
   };
 }

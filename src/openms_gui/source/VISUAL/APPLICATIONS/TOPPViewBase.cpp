@@ -1425,7 +1425,7 @@ namespace OpenMS
     {
       connect(sw2->getHorizontalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
-      connect(sw2, CONNECTCAST(Plot2DWidget, showSpectrumAs1D, (int)), selection_view_, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
+      connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }
 
@@ -1921,7 +1921,7 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(DataSelectionTabs::IDENT_IDX);
+    selection_view_->show(DataSelectionTabs::DIAOSW_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -2350,9 +2350,7 @@ namespace OpenMS
       updateMenu();
     }
   }
-
   
-
   void TOPPViewBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
   {
     static StringList colors = { "@bw", "@bg", "@b", "@r", "@g", "@m" };

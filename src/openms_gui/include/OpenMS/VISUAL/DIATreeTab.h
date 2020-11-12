@@ -28,47 +28,72 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/SpectrumSettings.h>
+#include <QtWidgets>
+
+
 #include <OpenMS/VISUAL/LayerData.h>
-#include <OpenMS/VISUAL/TVControllerBase.h>
-#include <vector>
+
+class QLineEdit;
+class QComboBox;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace OpenMS
 {
-  class TOPPViewBase;
+  class TreeView;
+  struct OSWIndexTrace;
 
   /**
-  @brief Behavior of TOPPView in spectra view mode.
+    @brief Hierarchical visualization and selection of spectra.
+
+    @ingroup PlotWidgets
   */
-  class TVSpectraViewController
-    : public TVControllerBase
+  class DIATreeTab :
+    public QWidget
   {
     Q_OBJECT
+  public:
+    /// Constructor
+    DIATreeTab(QWidget* parent = nullptr);
+    /// Destructor
+    ~DIATreeTab() = default;
 
-public:
-    /// Construct the behaviour with its parent
-    TVSpectraViewController(TOPPViewBase* parent);
+    /// refresh the table using data from @p cl
+    /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
+    void updateEntries(LayerData& cl);
+    /// remove all visible data
+    void clear();
 
-public slots:
-    /// Behavior for showSpectrumAsNew1D
-    virtual void showSpectrumAsNew1D(int index);
+  signals:
+    /// emitted when a protein, peptide, feature or transition was clicked
+    void dataSelected(const OSWIndexTrace& trace);
 
-    /// Behavior for showChromatogramsAsNew1D
-    virtual void showChromatogramsAsNew1D(const std::vector<int>& indices);
+  private:
+    QLineEdit* spectra_search_box_ = nullptr;
+    QComboBox* spectra_combo_box_ = nullptr;
+    TreeView* dia_treewidget_ = nullptr;
 
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
+    /// points to the data which is currently shown
+    /// Useful to avoid useless repaintings, which would loose the open/close state of internal tree nodes and selected items
+    OSWData* current_data_ = nullptr;
 
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(const std::vector<int>& indices);
-
-    /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+  private slots:
+    /// fill the search-combo-box with current column header names
+    void populateSearchBox_();
+    /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+    void spectrumSearchText_();
+    /// emits transitionSelected() for all subitems
+    void rowSelectionChange_(QTreeWidgetItem*, QTreeWidgetItem*);
+    /// emits transitionSelected() for all subitems
+    void rowSelectionChange2_(QTreeWidgetItem*, int col);
+    /// searches using text box and plots the spectrum
+    void searchAndShow_();
   };
 }
+

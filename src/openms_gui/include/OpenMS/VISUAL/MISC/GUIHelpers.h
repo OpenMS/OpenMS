@@ -42,14 +42,6 @@ class QStringList;
 
 namespace OpenMS
 {
-
-  /// Macro for Qt's connect() overload resolution (in case signals/slots are overloaded and we need to tell connect what overload to pick
-  /// without repeating ourselves.
-  /// This can be solved in Qt 5.7 by using qOverload<>
-  /// @note: provide the brackets for 'args' yourself, since there might be multiple arguments, separated by comma
-  /// Example: QObject::connect(spinBox, CONNECTCAST(QSpinBox, valueChanged, (double)), slider, &QSlider::setValue);
-  #define CONNECTCAST(class,func,args) static_cast<void(class::*)args>(&class::func)
-
   /**
     @brief Class which holds static GUI-related helper functions.
 
@@ -61,6 +53,8 @@ namespace OpenMS
   {
   public:
 
+    GUIHelpers() = delete;
+    
     /// Open a folder in file explorer
     /// Will show a message box on failure
     static void openFolder(const QString& folder);
@@ -71,10 +65,6 @@ namespace OpenMS
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure
     static void openURL(const QString& target);
-
-  private:
-    /// private C'tor
-    GUIHelpers();
   };
 
 }

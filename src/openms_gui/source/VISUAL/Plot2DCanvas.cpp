@@ -2294,7 +2294,7 @@ namespace OpenMS
       {
         if (result->parent() == ms1_scans  || result->parent() == msn_scans)
         {
-          emit showSpectrumAs1D(result->data().toInt());
+          emit showSpectrumAsNew1D(result->data().toInt());
         }
         else if (result->parent() == ms1_meta || result->parent() == msn_meta)
         {
@@ -2503,12 +2503,12 @@ namespace OpenMS
               chrom_indices.push_back(res[i].toInt());
               cout << "chrom_indices: " << res[i].toInt() << std::endl;
             }
-            emit showSpectrumAs1D(chrom_indices);
+            emit showChromatogramsAsNew1D(chrom_indices);
           }
           else   // Show single chromatogram
           {
             //cout << "Chromatogram result " << result->data().toInt() << endl;
-            emit showSpectrumAs1D(result->data().toInt());
+            emit showSpectrumAsNew1D(result->data().toInt());
           }
         }
         else if (result->parent() == msn_chromatogram_meta)

@@ -42,6 +42,34 @@
 
 namespace OpenMS
 {
+
+    /// hierarchy levels of the OSWData tree
+    struct OPENMS_DLLAPI OSWHierarchy
+    {
+      /// the actual levels
+      enum Level
+      {
+        PROTEIN,
+        PEPTIDE,
+        FEATURE,
+        TRANSITION,
+        SIZE_OF_VALUES
+      };
+      /// strings matching 'Level'
+      static const char* LevelName[SIZE_OF_VALUES];
+    };
+
+    /// Describes a node in the OSWData model tree. 
+    /// If a lower level, e.g. feature, is set, the upper levels need to be set as well.
+    struct OPENMS_DLLAPI OSWIndexTrace
+    {
+      int idx_prot = -1;
+      int idx_pep = -1;
+      int idx_feat = -1;
+      int idx_trans = -1;
+      OSWHierarchy::Level lowest = OSWHierarchy::Level::SIZE_OF_VALUES;
+    };
+
     /// high-level meta data of a transition
     struct OPENMS_DLLAPI OSWTransition
     {
@@ -319,6 +347,16 @@ namespace OpenMS
           return transitions_;
         }
 
+        void setSqlSourceFile(const String& filename)
+        {
+          source_file_ = filename;
+        }
+
+        const String& getSqlSourceFile() const
+        {
+          return source_file_;
+        }
+
         /// forget all data
         void clear();
 
@@ -334,6 +372,7 @@ namespace OpenMS
       private:
         std::map<UInt32, OSWTransition> transitions_;
         std::vector<OSWProtein> proteins_;
+        String source_file_;
     };
     
 

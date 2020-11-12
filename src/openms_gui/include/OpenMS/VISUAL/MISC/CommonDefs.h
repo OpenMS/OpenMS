@@ -28,47 +28,29 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/VISUAL/LayerData.h>
-#include <OpenMS/VISUAL/TVControllerBase.h>
-#include <vector>
 
 namespace OpenMS
 {
-  class TOPPViewBase;
 
-  /**
-  @brief Behavior of TOPPView in spectra view mode.
-  */
-  class TVSpectraViewController
-    : public TVControllerBase
+  /// Macro for Qt's connect() overload resolution (in case signals/slots are overloaded and we need to tell connect what overload to pick
+  /// without repeating ourselves.
+  /// This can be solved in Qt 5.7 by using qOverload<>
+  /// @note: provide the brackets for 'args' yourself, since there might be multiple arguments, separated by comma
+  /// Example: QObject::connect(spinBox, CONNECTCAST(QSpinBox, valueChanged, (double)), slider, &QSlider::setValue);
+  #define CONNECTCAST(class,func,args) static_cast<void(class::*)args>(&class::func)
+
+
+  /// Enum to decide which headers(=column) names should be get/set in a table/tree widget
+  enum class WidgetHeader
   {
-    Q_OBJECT
-
-public:
-    /// Construct the behaviour with its parent
-    TVSpectraViewController(TOPPViewBase* parent);
-
-public slots:
-    /// Behavior for showSpectrumAsNew1D
-    virtual void showSpectrumAsNew1D(int index);
-
-    /// Behavior for showChromatogramsAsNew1D
-    virtual void showChromatogramsAsNew1D(const std::vector<int>& indices);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(const std::vector<int>& indices);
-
-    /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+    VISIBLE_ONLY,
+    WITH_INVISIBLE,
   };
+
 }

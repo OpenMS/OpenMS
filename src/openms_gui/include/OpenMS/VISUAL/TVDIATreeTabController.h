@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -43,32 +43,22 @@ namespace OpenMS
 {
   class TOPPViewBase;
 
+  struct OSWIndexTrace;
+
   /**
   @brief Behavior of TOPPView in spectra view mode.
   */
-  class TVSpectraViewController
+  class TVDIATreeTabController
     : public TVControllerBase
   {
     Q_OBJECT
 
 public:
     /// Construct the behaviour with its parent
-    TVSpectraViewController(TOPPViewBase* parent);
+  TVDIATreeTabController(TOPPViewBase* parent);
 
 public slots:
-    /// Behavior for showSpectrumAsNew1D
-    virtual void showSpectrumAsNew1D(int index);
-
-    /// Behavior for showChromatogramsAsNew1D
-    virtual void showChromatogramsAsNew1D(const std::vector<int>& indices);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(int index);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(const std::vector<int>& indices);
-
-    /// Behavior for deactivate1DSpectrum
-    virtual void deactivate1DSpectrum(int index);
+    /// shows all transitions from the given subtree
+    virtual void showData(const OSWIndexTrace& trace);
   };
 }

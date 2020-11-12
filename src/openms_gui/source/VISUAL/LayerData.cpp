@@ -36,6 +36,7 @@
 
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h> // for AMS annotation
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -174,6 +175,28 @@ namespace OpenMS
     {
       cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
     }
+  }
+
+
+  /// add annotation from an OSW sqlite file.
+
+
+  /// get annotation (e.g. to build a hierachical ID View)
+  /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+
+  LayerData::OSWDataSharedPtrType& LayerData::getChromatogramAnnotation()
+  {
+    return chrom_annotation_;
+  }
+
+  const LayerData::OSWDataSharedPtrType& LayerData::getChromatogramAnnotation() const
+  {
+    return chrom_annotation_;
+  }
+
+  void LayerData::setChromatogramAnnotation(OSWData&& data)
+  {
+    chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
   }
 
   bool LayerData::annotate(const vector<PeptideIdentification>& identifications,
