@@ -222,20 +222,32 @@ namespace OpenMS
           << mt.begin()->getRT() << "\t"
           << mt.rbegin()->getRT() << "\t"
           << mt.getTraceLength() << "\t"
-          << mt[mt.findMaxByIntPeak()].getRT() << "\t"
-          << sumInt << "\t"
-          << mt.getMaxIntensity(false) << "\t"
-          << minFCharge << "\t"
-          << maxFCharge << "\t"
-          << charges.count() << "\t"
-          << isoScore << "\t"
-          << chargeScore << "\n";
+                                 << mt[mt.findMaxByIntPeak()].getRT() << "\t"
+                                 << sumInt << "\t"
+                                 << mt.getMaxIntensity(false) << "\t"
+                                 << minFCharge << "\t"
+                                 << maxFCharge << "\t"
+                                 << charges.count() << "\t"
+                                 << isoScore << "\t"
+                                 << chargeScore << "\n";
 
 
-      //if (abs(avgMass - 44086) < 2) tmp[0] = 1;
-      //if (abs(avgMass - 44166) < 2) tmp[1] = 1;
-      //if (abs(avgMass - 44328) < 2) tmp[2] = 1;
-      //if (abs(avgMass - 44369) < 2) tmp[3] = 1;
+      if (abs(avgMass - 44086) < 2)
+      {
+        tmp[0] = 1;
+      }
+      if (abs(avgMass - 44166) < 2)
+      {
+        tmp[1] = 1;
+      }
+      if (abs(avgMass - 44328) < 2)
+      {
+        tmp[2] = 1;
+      }
+      if (abs(avgMass - 44369) < 2)
+      {
+        tmp[3] = 1;
+      }
 
       if (promexOut)
       {
@@ -275,7 +287,7 @@ namespace OpenMS
       }
     }
 
-    //std::cout<<"**" << tmp[0]<<tmp[1]<<tmp[2]<<tmp[3]   <<std::endl;
+    std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
 
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;

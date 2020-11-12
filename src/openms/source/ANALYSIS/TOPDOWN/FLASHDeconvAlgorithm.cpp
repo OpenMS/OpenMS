@@ -1751,8 +1751,7 @@ namespace OpenMS
       maxPerChargeIntensity = std::max(maxPerChargeIntensity, perChargeIntensity[i]);
     }
 
-    double th = maxPerChargeIntensity * .02;// as recommended in the original paper...
-    //int first = -1, last = 0;
+    /*double th = maxPerChargeIntensity * .02;// as recommended in the original paper...
     for (int i = 0; i < chargeRange; i++)
     {
       if (perChargeIntensity[i] <= th)
@@ -1762,6 +1761,31 @@ namespace OpenMS
 
       xs.push_back(i);
       ys.push_back((1 + perChargeIntensity[i]));
+    }*/
+    double th = maxPerChargeIntensity * .02;// as recommended in the original paper...
+    int first = -1, last = 0;
+    for (int i = 0; i < chargeRange; i++)
+    {
+      if (perChargeIntensity[i] <= th)
+      {
+        continue;
+      }
+      if (first < 0)
+      {
+        first = i;
+      }
+
+      last = i;
+    }
+
+    for (int i = first; i <= last; i++)
+    {
+      if (perChargeIntensity[i] <= 0)
+      {
+        continue;
+      }
+      xs.push_back(i);
+      ys.push_back((perChargeIntensity[i]));
     }
 
     if (xs.size() <= 3)
@@ -1806,7 +1830,7 @@ namespace OpenMS
 
     if (omega <= 0)
     {
-      return 0;
+      return -.1;
     }
     std::vector<double> tys;
 

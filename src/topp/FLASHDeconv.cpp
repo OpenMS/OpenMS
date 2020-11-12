@@ -466,7 +466,7 @@ protected:
       auto massTracer = MassFeatureTrace();
       Param mf_param = getParam_().copy("FeatureTracing:", true);
       DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
-      mf_param.setValue("mass_error_ppm", 2 * ms1tol);
+      mf_param.setValue("mass_error_ppm", ms1tol);
       mf_param.setValue("trace_termination_outliers", fd_param.getValue("num_overlapped_scans"));
       mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
