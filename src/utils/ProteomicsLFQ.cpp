@@ -237,6 +237,8 @@ protected:
                                                                      " sequence as a candidate per feature in the same file.", false, true);
     setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("report_decoys", "<option>", "false", "If decoy PSMs and Proteins should be included in the report.", false, true);
+    setValidStrings_("report_decoys", ListUtils::create<String>("true,false"));
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -856,8 +858,11 @@ protected:
   
     // TODO we could think about removing this limitation 
     IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
-    IDFilter::removeDecoyHits(peptide_ids);
-    IDFilter::removeDecoyHits(protein_ids);
+    if (getStringOption_("report_decoys") == "false")
+    {
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeDecoyHits(protein_ids);
+    }
     IDFilter::removeEmptyIdentifications(peptide_ids);
     IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
@@ -1387,6 +1392,14 @@ protected:
     // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
+    if (getStringOption_("report_decoys") == "true")
+    {
+      Param fdr_param = fdr.getParameters();
+      fdr_param.setValue("add_decoy_peptides", "true");
+      fdr_param.setValue("add_decoy_proteins", "true");
+      fdr.setParameters(fdr_param);
+    }
+
     fdr.applyBasic(inferred_protein_ids[0]);
     if (max_psm_fdr < 1.)
     {
