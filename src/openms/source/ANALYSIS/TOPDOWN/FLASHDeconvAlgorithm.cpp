@@ -35,10 +35,11 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <Eigen/Dense>
 
 namespace OpenMS
 {
-
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() :
       DefaultParamHandler("FLASHDeconvAlgorithm")
   {
@@ -148,6 +149,7 @@ namespace OpenMS
     intensityThreshold = param_.getValue("min_intensity");
     minSupportPeakCount = param_.getValue("min_peaks");
 
+    binWidth.clear();
     tolerance = param_.getValue("tol");
 
     for (auto j = 0; j < (int) tolerance.size(); j++)
@@ -177,7 +179,9 @@ namespace OpenMS
   // generate filters
   void FLASHDeconvAlgorithm::setFilters()
   {
-    auto chargeRange = maxCharge - minCharge;
+    filter.clear();
+    harmonicFilter.clear();
+    auto chargeRange = maxCharge - minCharge + 1;
     for (int i = 0; i < chargeRange; i++)
     {
       filter.push_back(log(1.0 / abs(i + minCharge)));
@@ -250,7 +254,6 @@ namespace OpenMS
       }
       mzBins.set(bi);
       mzBinIntensities[bi] += p.intensity;
-
       auto delta = (p.logMz - getBinValue(bi, mzBinMinValue, binWidth[msLevel - 1]));
 
       if (delta > 0)
@@ -309,7 +312,7 @@ namespace OpenMS
   boost::dynamic_bitset<> FLASHDeconvAlgorithm::getCandidateMassBinsForThisSpectrum(float *massIntensitites,
                                                                                     float *mzIntensities)
   {
-    int chargeRange = currentMaxCharge - minCharge;
+    int chargeRange = currentMaxCharge - minCharge + 1;
     int hChargeSize = (int) hCharges.size();
     int minPeakCntr = minSupportPeakCount[msLevel - 1];
     long binEnd = (long) massBins.size();
@@ -531,7 +534,7 @@ namespace OpenMS
                                                     long &binStart, long &binEnd)
   {
     //int chargeRange = param.currentChargeRange;
-    auto chargeRange = currentMaxCharge - minCharge;
+    auto chargeRange = currentMaxCharge - minCharge + 1;
     Matrix<int> chargeRanges(3, massBins.size(), INT_MAX);
     for (auto i = 0; i < massBins.size(); i++)
     {
@@ -630,10 +633,10 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::getCandidatePeakGroups(float *massIntensities,
                                                     Matrix<int> &chargeRanges)
   {
-    auto maxMissingIsotope = 2;//msLevel == 1 ? 2 : 1;
+    const int maxMissingIsotope = 2;//msLevel == 1 ? 2 : 1;
     double bw = binWidth[msLevel - 1];
     double tol = tolerance[msLevel - 1];
-    int chargeRange = currentMaxCharge - minCharge;
+    int chargeRange = currentMaxCharge - minCharge + 1;
     auto mzBinSize = mzBins.size();
     auto massBinSize = massBins.size();
     int logMzPeakSize = (int) logMzPeaks.size();
@@ -652,40 +655,38 @@ namespace OpenMS
     {
       double logM = getBinValue(massBinIndex, massBinMinValue, bw);
       double mass = exp(logM);
-      if (msLevel == 1)
+      /*if (false)
       {
         double diff = Constants::ISOTOPE_MASSDIFF_55K_U / mass;
         double isoLogM1 = logM - diff;
         double isoLogM2 = logM + diff;
 
         auto b1 = getBinNumber(isoLogM1, massBinMinValue, bw);
-
-        if (b1 > 0 && b1 < massBinIndex)
-        {
-          if (massIntensities[massBinIndex] < massIntensities[b1])
-          {
-            massBinIndex = massBins.find_next(massBinIndex);
-            continue;
-          }
-        }
         auto b2 = getBinNumber(isoLogM2, massBinMinValue, bw);
-
-        if (b2 < massBinSize && b2 > massBinIndex)
+        if (b1 > 0 && b1 < massBinIndex && b2 < massBinSize && b2 > massBinIndex)
         {
-          if (massIntensities[massBinIndex] < massIntensities[b2])
+          if (massIntensities[b1] == 0 && massIntensities[b2] == 0) //
           {
             massBinIndex = massBins.find_next(massBinIndex);
             continue;
           }
-        }
+          if (massIntensities[massBinIndex] < massIntensities[b1]
+          || massIntensities[massBinIndex] < massIntensities[b2])
+          {
+            massBinIndex = massBins.find_next(massBinIndex);
+            continue;
+          }
+        }*/
 
-        if (massIntensities[b1] == 0 && massIntensities[b2] == 0) //
-        {
-          massBinIndex = massBins.find_next(massBinIndex);
-          continue;
-        }
-      }
-
+      /*
+              if (b2 < massBinSize && b2 > massBinIndex)
+              {
+                if (massIntensities[massBinIndex] < massIntensities[b2])
+                {
+                  massBinIndex = massBins.find_next(massBinIndex);
+                  continue;
+                }
+              }*/
       PeakGroup pg;
 
       pg.reserve(chargeRange * 30);
@@ -859,7 +860,6 @@ namespace OpenMS
           p.isotopeIndex -= minOff;
         }
 
-        pg.massBinIndex = massBinIndex;
         peakGroups.push_back(pg); //
       }
       massBinIndex = massBins.find_next(massBinIndex);
@@ -879,7 +879,7 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(peakGroups);
     auto minPeakCntr =
         minSupportPeakCount[msLevel - 1];
-    auto currentChargeRange = currentMaxCharge - minCharge;
+    auto currentChargeRange = currentMaxCharge - minCharge + 1;
     auto tmp = currentChargeRange - minPeakCntr;
     tmp = tmp < 0 ? 0 : tmp;
     double massBinMaxValue = std::min(
@@ -928,17 +928,7 @@ namespace OpenMS
     auto perMassChargeRanges = updateMassBins(massIntensities, mzBinIntensities);
 
     getCandidatePeakGroups(massIntensities, perMassChargeRanges);
-
-    PeakGroupScoring scorer = PeakGroupScoring(peakGroups,
-                                               minCharge,
-                                               currentMaxCharge,
-                                               minChargeCosine,
-                                               tolerance,
-                                               maxMassCount,
-                                               minSupportPeakCount,
-                                               minIsotopeCosine);
-
-    peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);
+    scoreAndFilterPeakGroups();
 
     if (msLevel == 1)
     {
@@ -953,10 +943,11 @@ namespace OpenMS
       for (auto &pg : peakGroups)//filteredPeakGroups
       {
         pg.shrink_to_fit();
-        if (massBinsForThisSpectrum[pg.massBinIndex])
-        {
-          mb.push_back(pg.massBinIndex);
-        }
+        //if (massBinsForThisSpectrum[pg.massBinIndex])
+        //{
+        auto pgBin = getBinNumber(pg.avgMass, massBinMinValue, binWidth[msLevel - 1]);
+        mb.push_back(pgBin);
+        //  }
       }
 
       prevMassBinVector.push_back(mb); //
@@ -967,6 +958,864 @@ namespace OpenMS
 
     delete[] mzBinIntensities;
     delete[] massIntensities;
+  }
+
+
+  double
+  FLASHDeconvAlgorithm::getCosine(const double *a,
+                                  int &aStart,
+                                  int &aEnd,
+                                  IsotopeDistribution &b,
+                                  int &bSize,
+                                  double &bNorm,
+                                  int offset)
+  {
+    double n = .0, d1 = .0;
+    //int c = 0;
+    for (int j = aStart; j <= aEnd; j++)
+    {
+      d1 += a[j] * a[j];
+      int i = j - offset;
+      if (i < 0 || i >= bSize)
+      {
+        continue;
+      }
+      n += a[j] * b[i].getIntensity(); //
+    }
+    double d = (d1 * bNorm);
+    if (d <= 0)
+    {
+      return 0;
+    }
+    return n / sqrt(d);
+  }
+
+  double FLASHDeconvAlgorithm::getCosine(const double *a, double *b, Size size)
+  {
+    double n = .0, d1 = .0, d2 = .0;
+    //int overlapCntr = 0;
+    for (Size j = 0; j < size; j++)
+    {
+      d1 += a[j] * a[j];
+      d2 += b[j] * b[j];
+      n += a[j] * b[j];
+      //  if(a[j] > 0 && b[j] > 0) overlapCntr++;
+    }
+
+    //if(overlapCntr < 2) return 0; //
+    double d = (d1 * d2);
+    if (d <= 0)
+    {
+      return 0;
+    }
+    return n / sqrt(d);
+  }
+
+
+  double FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(double mass,
+                                                                        double *perIsotopeIntensities,
+                                                                        int &offset,
+                                                                        PrecalculatedAveragine &avg)
+  {
+    auto iso = avg.get(mass);
+    auto isoNorm = avg.getNorm(mass);
+
+    int isoSize = (int) iso.size();
+
+    offset = 0;
+    double maxCosine = -1;
+    int isotopeLength = 0;
+    int maxIsotopeIndex = 0, minIsotopeIndex = -1;
+
+    for (int i = 0; i < avg.maxIsotopeIndex; i++)
+    {
+      if (perIsotopeIntensities[i] <= 0)
+      {
+        continue;
+      }
+      isotopeLength++;
+      maxIsotopeIndex = i;
+      if (minIsotopeIndex < 0)
+      {
+        minIsotopeIndex = i;
+      }
+    }
+
+
+    auto maxCntr = 0;
+    for (int f = -isoSize - minIsotopeIndex; f <= maxIsotopeIndex; f++)
+    {
+      auto cos = getCosine(perIsotopeIntensities,
+                           minIsotopeIndex,
+                           maxIsotopeIndex,
+                           iso,
+                           isoSize,
+                           isoNorm,
+                           f);
+
+      if (maxCosine <= cos)
+      {
+        if (maxCosine == cos)
+        {
+          maxCntr++;
+          offset += f;
+        }
+        else
+        {
+          maxCosine = cos;
+          maxCntr = 1;
+          offset = f;
+        }
+      }
+    }
+    offset /= maxCntr;
+    return maxCosine;
+  }
+
+
+  bool FLASHDeconvAlgorithm::checkChargeDistribution(double *perChargeIntensity)
+  {
+    double maxPerChargeIntensity = .0;
+    int nonZeroStart = -1, nonZeroEnd = 0;
+    auto chargeRange = currentMaxCharge - minCharge + 1;
+    for (int i = 0; i < chargeRange; i++)
+    {
+      if (perChargeIntensity[i] > 0)
+      {
+        maxPerChargeIntensity = std::max(maxPerChargeIntensity, perChargeIntensity[i]);
+        if (nonZeroStart < 0)
+        {
+          nonZeroStart = i;
+        }
+        nonZeroEnd = i;
+      }
+    }
+
+    int prevCharge = nonZeroStart;
+
+    int n_r = 0;
+    double factor = 4.0;
+    double intThreshold = maxPerChargeIntensity / factor;//intensities[intensities.size()*95/100] / 5.0;
+    for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
+    {
+      if (perChargeIntensity[k] <= intThreshold)
+      {
+        continue;
+      }
+
+      if (k - prevCharge == 1)
+      {
+        n_r++;
+      }
+      if (n_r >= minSupportPeakCount[0])
+      {
+        return true;
+      }
+      prevCharge = k;
+    }
+
+    return false;
+  }
+
+  void FLASHDeconvAlgorithm::scoreAndFilterPeakGroups()
+  {
+    std::vector<PeakGroup> filteredPeakGroups;
+    filteredPeakGroups.reserve(peakGroups.size());
+    double threshold = .0;
+    auto chargeRange = currentMaxCharge - minCharge + 1;
+
+    auto mc = maxMassCount.size() > msLevel - 1 ? maxMassCount[msLevel - 1] : -1;
+    if (mc > 0)
+    {
+      std::vector<double> intensities;
+      intensities.reserve(peakGroups.size());
+
+      for (auto &pg : peakGroups)
+      {
+        pg.updateMassesAndIntensity(avg);
+        intensities.push_back(pg.intensity);
+      }
+
+      if (intensities.size() > (Size) mc)
+      {
+        sort(intensities.begin(), intensities.end());
+        threshold = intensities[intensities.size() - mc];
+      }
+      std::vector<double>().swap(intensities);
+    }
+
+    auto perIsotopeIntensity = new double[avg.maxIsotopeIndex];
+    auto perChargeIntensity = new double[chargeRange];
+    auto perChargeMaxIntensity = new double[chargeRange];
+
+    for (auto &pg : peakGroups)
+    {
+      if (pg.intensity < threshold)
+      {
+        //delete[] pg.perChargeSNR;
+        continue; //
+      }
+
+      auto indices = updatePerChargeIsotopeIntensity(
+          perIsotopeIntensity, perChargeIntensity,
+          avg.maxIsotopeIndex, pg);
+
+      pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, chargeRange);
+
+      if (msLevel == 1)
+      {
+        if (pg.empty() ||
+            pg.chargeCosineScore <= minChargeCosine)
+        {
+          continue;
+        }
+
+        bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity);
+
+        if (!isChargeWellDistributed)
+        {
+          continue;
+        }
+
+      }
+      else
+      {
+        if (pg.empty() || pg.chargeCosineScore < 0.1)//
+        {
+          continue;
+        }
+      }
+
+      int offset = 0;
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg[0].getUnchargedMass(),
+                                                                       perIsotopeIntensity,
+                                                                       offset, avg);
+
+      if (pg.empty() ||
+          (pg.isotopeCosineScore <=
+           minIsotopeCosine[msLevel - 1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
+      {
+        continue;
+      }
+
+      pg.updateMassesAndIntensity(avg, offset, avg.maxIsotopeIndex);
+
+      auto iso = avg.get(pg.monoisotopicMass);
+      auto isoNorm = avg.getNorm(pg.monoisotopicMass);
+      int isoSize = (int) iso.size();
+      float totalNoise = .0;
+      float totalSignal = .0;
+      std::fill_n(perChargeMaxIntensity, chargeRange, 0);
+
+      for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
+      {
+        int j = charge - minCharge;
+        auto perIsotopeIntensities = new double[avg.maxIsotopeIndex];
+        std::fill_n(perIsotopeIntensities, avg.maxIsotopeIndex, .0);
+
+        int minIsotopeIndex = avg.maxIsotopeIndex;
+        int maxIsotopeIndex = 0;
+
+        double minMz = pg.monoisotopicMass * 2;
+        double maxMz = 0;
+        double maxIntensity = .0;
+        double sumIntensity = .0;
+        double sp = .0;
+
+        for (auto &p:pg)
+        {
+          if (p.charge != charge)
+          {
+            continue;
+          }
+
+          if (p.isotopeIndex > isoSize)
+          {
+            continue;
+          }
+
+          perIsotopeIntensities[p.isotopeIndex] += p.intensity;
+          sumIntensity += p.intensity;
+          minIsotopeIndex = minIsotopeIndex < p.isotopeIndex ? minIsotopeIndex : p.isotopeIndex;
+          maxIsotopeIndex = maxIsotopeIndex < p.isotopeIndex ? p.isotopeIndex : maxIsotopeIndex;
+
+          minMz = minMz < p.mz ? minMz : p.mz;
+          maxMz = maxMz > p.mz ? maxMz : p.mz;
+          if (maxIntensity < p.intensity)
+          {
+            maxIntensity = p.intensity;
+            perChargeMaxIntensity[j] = maxIntensity;
+          }
+          // sp += p.intensity * p.intensity;
+        }
+        if (maxIntensity <= 0)
+        {
+          delete[] perIsotopeIntensities;
+          continue;
+        }
+
+        for (int k = minIsotopeIndex; k <= maxIsotopeIndex; ++k)
+        {
+          if (k > isoSize)
+          {
+            break;
+          }
+          sp += perIsotopeIntensities[k] * perIsotopeIntensities[k];
+        }
+
+        auto cos = getCosine(perIsotopeIntensities,
+                             minIsotopeIndex,
+                             maxIsotopeIndex,
+                             iso,
+                             isoSize,
+                             isoNorm,
+                             0);
+
+        double cos2 = cos * cos;
+
+        if (pg.perChargeInfo.find(charge) == pg.perChargeInfo.end())
+        {
+          pg.perChargeInfo[charge] = std::vector<float>(3);
+          pg.perChargeInfo[charge][0] = 0;
+        }
+        pg.perChargeInfo[charge][1] = cos;
+        pg.perChargeInfo[charge][2] = sumIntensity;
+
+        auto dno = (1 - cos2) * sp + pg.perChargeInfo[charge][0] + 1;
+        auto no = cos2 * sp + 1;
+
+        pg.perChargeInfo[charge][0] = no / dno;
+
+        totalNoise += dno;
+        totalSignal += no;
+
+        delete[] perIsotopeIntensities;
+      }
+
+      pg.totalSNR = totalSignal / totalNoise;
+      pg.qScore = -10000;
+
+      for (auto &item : pg.perChargeInfo)
+      {
+        auto charge = item.first;
+        int j = charge - minCharge;
+
+        auto score = QScore::getQScore(&pg, perChargeMaxIntensity[j], charge);
+
+        if (score < pg.qScore)
+        {
+          continue;
+        }
+        //pg.maxScorePeakIntensity = pg.perChargeSNR[charge];
+        pg.maxQScoreCharge = charge;
+        pg.qScore = score;
+      }
+
+      pg.maxQScoreMzStart = pg.monoisotopicMass * 2;
+      pg.maxQScoreMzEnd = 0;
+      for (auto &p:pg)
+      {
+        if (p.charge != pg.maxQScoreCharge)
+        {
+          continue;
+        }
+        if (p.isotopeIndex > isoSize)
+        {
+          continue;
+        }
+
+        pg.maxQScoreMzStart = pg.maxQScoreMzStart < p.mz ? pg.maxQScoreMzStart : p.mz;
+        pg.maxQScoreMzEnd = pg.maxQScoreMzEnd > p.mz ? pg.maxQScoreMzEnd : p.mz;
+      }
+      if (pg.maxQScoreMzStart > pg.maxQScoreMzEnd)
+      {
+        continue;
+      }
+      if (msLevel == 1 || pg.totalSNR > 0.1) //
+        //if(msLevel == 1 || getPeakGroupScore(pg)>.5) //
+      {
+        filteredPeakGroups.push_back(pg);
+      }
+    }
+
+    peakGroups.swap(filteredPeakGroups);
+    std::vector<PeakGroup>().swap(filteredPeakGroups);
+
+    removeHarmonicPeakGroups(tolerance[msLevel - 1]); //
+    removeOverlappingPeakGroups(tolerance[msLevel - 1]);
+
+    if (msLevel > 1)
+    {
+      filterPeakGroupsByIsotopeCosine(mc);
+    }
+    else
+    {
+      filterPeakGroupsByQScore(mc);
+    }
+    delete[] perIsotopeIntensity;
+    delete[] perChargeIntensity;
+    delete[] perChargeMaxIntensity;
+  }
+
+
+  void FLASHDeconvAlgorithm::filterPeakGroupsByIsotopeCosine(int currentMaxMassCount)
+  {
+    if (currentMaxMassCount <= 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    {
+      return;
+    }
+
+    Size mc = (Size) currentMaxMassCount;
+    std::vector<double> scores;
+    scores.reserve(peakGroups.size());
+    for (auto &pg : peakGroups)
+    {
+      scores.push_back(pg.isotopeCosineScore);
+    }
+
+    sort(scores.begin(), scores.end());
+
+    auto newPeakGroups = std::vector<PeakGroup>();
+    newPeakGroups.reserve(peakGroups.size());
+    auto threshold = scores[scores.size() - mc];
+    for (auto &pg : peakGroups)
+    {
+      if (newPeakGroups.size() > mc)
+      {
+        break;
+      }
+
+      if (pg.isotopeCosineScore >= threshold)
+      {
+        newPeakGroups.push_back(pg);
+      }
+    }
+    std::vector<PeakGroup>().swap(peakGroups);
+    newPeakGroups.swap(peakGroups);
+  }
+
+  void FLASHDeconvAlgorithm::filterPeakGroupsByQScore(int currentMaxMassCount)
+  {
+    if (currentMaxMassCount <= 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    {
+      return;
+    }
+
+    Size mc = (Size) currentMaxMassCount;
+    std::vector<double> scores;
+    scores.reserve(peakGroups.size());
+    for (auto &pg : peakGroups)
+    {
+      scores.push_back(pg.qScore);
+    }
+
+    sort(scores.begin(), scores.end());
+
+    auto newPeakGroups = std::vector<PeakGroup>();
+    newPeakGroups.reserve(peakGroups.size());
+    auto threshold = scores[scores.size() - mc];
+    for (auto &pg : peakGroups)
+    {
+      if (newPeakGroups.size() > mc)
+      {
+        break;
+      }
+
+      if (pg.qScore >= threshold)
+      {
+        newPeakGroups.push_back(pg);
+      }
+    }
+    std::vector<PeakGroup>().swap(peakGroups);
+    newPeakGroups.swap(peakGroups);
+  }
+
+
+  void FLASHDeconvAlgorithm::removeHarmonicPeakGroups(double tol)
+  {
+    sort(peakGroups.begin(), peakGroups.end());
+    std::vector<PeakGroup> merged;
+    merged.reserve(peakGroups.size());
+
+    std::vector<double> masses;
+    masses.reserve(peakGroups.size());
+    for (auto &peakGroup : peakGroups)
+    {
+      masses.push_back(peakGroup.monoisotopicMass);
+    }
+    for (auto &pg : peakGroups)
+    {
+      bool select = true;
+      for (int h = 2; h <= 4; h++)
+      {
+        for (int k = 0; k < 2; k++)
+        {
+          for (int i = -1; i < 1; ++i)
+          {
+            auto omass = pg.monoisotopicMass + i * Constants::ISOTOPE_MASSDIFF_55K_U;
+            auto hmass = k == 0 ? omass * h : omass / h;
+            double massTol = hmass * tol;
+            auto iter = std::lower_bound(masses.begin(), masses.end(), hmass - massTol);
+            Size j = iter - masses.begin();
+
+            if (j >= 0 && j < peakGroups.size())
+            {
+              for (; j < peakGroups.size(); j++)
+              {
+                auto &pgo = peakGroups[j];
+                if (hmass - pgo.monoisotopicMass > massTol)
+                {
+                  continue;
+                }
+
+                if (!select || pgo.monoisotopicMass - hmass > massTol)
+                {
+                  break;
+                }
+                select &= pg.isotopeCosineScore >= pgo.isotopeCosineScore;
+                if (!select)
+                {
+                  break;
+                }
+              }
+              if (!select)
+              {
+                break;
+              }
+            }
+          }
+          if (!select)
+          {
+            break;
+          }
+        }
+      }
+      if (!select)
+      {
+        continue;
+      }
+      merged.push_back(pg);
+    }
+    std::vector<PeakGroup>().swap(peakGroups);
+    merged.swap(peakGroups);
+  }
+
+  void FLASHDeconvAlgorithm::removeOverlappingPeakGroups(double tol)
+  { // pgs are sorted
+    int isoLength = 2; // inclusive
+    sort(peakGroups.begin(), peakGroups.end());
+    std::vector<PeakGroup> filtered;
+    filtered.reserve(peakGroups.size());
+
+    for (Size i = 0; i < peakGroups.size(); i++)
+    {
+      bool select = true;
+      auto &pg = peakGroups[i];
+
+      if (pg.monoisotopicMass <= 0)
+      {
+        continue;
+      }
+      if (i > 0 && abs(pg.monoisotopicMass - peakGroups[i - 1].monoisotopicMass) < 1e-3)
+      {
+        continue;
+      }
+
+      double massTol = pg.monoisotopicMass * tol;
+
+      int j = i + 1;
+      for (int l = 0; l <= isoLength; l++)
+      {
+        auto off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
+        for (; j < peakGroups.size(); j++)
+        {
+          auto &pgo = peakGroups[j];
+
+          if (l != 0 && pgo.monoisotopicMass - pg.monoisotopicMass < off - massTol)
+          {
+            continue;
+          }
+
+          if (!select || pgo.monoisotopicMass - pg.monoisotopicMass > off + massTol)
+          {
+            break;
+          }
+          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
+        }
+      }
+
+      if (!select)
+      {
+        continue;
+      }
+
+      j = i - 1;
+      for (int l = 0; l <= isoLength; l++)
+      {
+        auto off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
+        for (; j >= 0; j--)
+        {
+          auto &pgo = peakGroups[j];
+
+          if (l != 0 && pg.monoisotopicMass - pgo.monoisotopicMass < off - massTol)
+          {
+            continue;
+          }
+
+          if (!select || pg.monoisotopicMass - pgo.monoisotopicMass > off + massTol)
+          {
+            break;
+          }
+          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
+        }
+      }
+      if (!select)
+      {
+        continue;
+      }
+      filtered.push_back(pg);
+    }
+    std::vector<PeakGroup>().swap(peakGroups);
+    filtered.swap(peakGroups);
+  }
+
+  std::vector<int> FLASHDeconvAlgorithm::updatePerChargeIsotopeIntensity(
+      double *perIsotopeIntensity,
+      double *perChargeIntensity,
+      int maxIsotopeCount,
+      PeakGroup &pg)
+  {
+    auto chargeRange = currentMaxCharge - minCharge + 1;
+    std::fill_n(perIsotopeIntensity, maxIsotopeCount, 0);
+    std::fill_n(perChargeIntensity, chargeRange, 0);
+    /*for (int j = 0; j < param.currentChargeRange; ++j)
+    {
+      std::fill_n(intensityGrid[j], param.maxIsotopeIndex, 0);
+    }
+
+    for (int j = 0; j < param.maxIsotopeIndex; ++j)
+    {
+      std::fill_n(intensityGrid2[j], param.currentChargeRange, 0);
+    }*/
+
+    int minPgCharge = chargeRange + minCharge + 1;
+    int maxPgCharge = minCharge - 1;
+    //    double maxIntensity = -1;
+    int maxIntChargeIndex = -1;
+    //    double maxIntensity2 = -1;
+    int maxIntIsoIndex = -1;
+
+    for (auto &p : pg)
+    {
+      if (p.isotopeIndex < 0 || p.isotopeIndex >= maxIsotopeCount)
+      {
+        continue;
+      }
+      minPgCharge = std::min(minPgCharge, p.charge);
+      maxPgCharge = std::max(maxPgCharge, p.charge);
+
+      int index = p.charge - minCharge;
+      perIsotopeIntensity[p.isotopeIndex] += p.intensity;
+      perChargeIntensity[index] += p.intensity;
+    }
+    pg.maxCharge = maxPgCharge;
+    pg.minCharge = minPgCharge;
+
+    return std::vector<int>{maxIntChargeIndex, maxIntIsoIndex};
+  }
+
+  double FLASHDeconvAlgorithm::getCosine(std::vector<double> &a, std::vector<double> &b, int off)
+  {
+    double n = .0, d1 = .0, d2 = .0;
+    Size size = a.size();
+    //int overlapCntr = 0;
+    for (Size j = off; j < size - off; j++)
+    {
+      d1 += a[j] * a[j];
+      d2 += b[j] * b[j];
+      n += a[j] * b[j];
+      //  if(a[j] > 0 && b[j] > 0) overlapCntr++;
+    }
+
+    //if(overlapCntr < 2) return 0; //
+    double d = (d1 * d2);
+    if (d <= 0)
+    {
+      return 0;
+    }
+    return n / sqrt(d);
+  }
+
+
+  /*double FLASHDeconvAlgorithm::getChargeFitScore(double *perChargeIntensity, int chargeRange)
+  {
+    double maxPerChargeIntensity = .0;
+    std::vector<double> xs;
+    std::vector<double> ys;
+
+    xs.reserve(+2);
+    ys.reserve(chargeRange + 2);
+
+    for (int i = 0; i < chargeRange; i++)
+    {
+      maxPerChargeIntensity = std::max(maxPerChargeIntensity, perChargeIntensity[i]);
+    }
+
+    double th = maxPerChargeIntensity * .02;// as recommended in the original paper...
+    int first = -1, last = 0;
+    for (int i = 0; i < chargeRange; i++)
+    {
+      if (perChargeIntensity[i] <= th)
+      {
+        continue;
+      }
+      if (first < 0)
+      {
+        first = i;
+      }
+
+      last = i;
+    }
+
+    for (int i = first; i <= last; i++)
+    {
+      xs.push_back(i);
+      ys.push_back((1 + perChargeIntensity[i]));
+    }
+
+    if (xs.size() <= 3)
+    {
+      return 0.5;
+    }
+
+    Eigen::Matrix3d m;
+    Eigen::Vector3d v;
+
+    double s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+    double t0 = 0, t1 = 0, t2 = 0;
+
+    for (Size i = 0; i < xs.size(); i++)
+    {
+      auto &x = xs[i];
+      auto y = log(ys[i]);
+      s0++;
+      s1 += x;
+      s2 += x * x;
+      s3 += x * x * x;
+      s4 += x * x * x * x;
+      t0 += y;
+      t1 += y * x;
+      t2 += y * x * x;
+    }
+    m(0, 0) = s0;
+    m(1, 0) = m(0, 1) = s1;
+    m(2, 0) = m(1, 1) = m(0, 2) = s2;
+    m(2, 1) = m(1, 2) = s3;
+    m(2, 2) = s4;
+
+    auto im = m.inverse();
+    v(0) = t0;
+    v(1) = t1;
+    v(2) = t2;
+    //cout<<v<<endl;
+    auto abc = im * v;
+    //cout<<abc<<endl;
+    double mu = -abc(1) / abc(2) / 2;
+    double omega = -1 / abc(2) / 2;
+
+    if (omega <= 0)
+    {
+      return 0;
+    }
+    std::vector<double> tys;
+
+    for (Size i = 0; i < ys.size(); i++)
+    {
+      double ty = exp(-(xs[i] - mu) * (xs[i] - mu) / 2 / omega);
+      tys.push_back(ty);
+    }
+    return getCosine(ys, tys);
+  }*/
+
+  double FLASHDeconvAlgorithm::getChargeFitScore(double *perChargeIntensity, int chargeRange)
+  {
+    double maxPerChargeIntensity = .0;
+    std::vector<double> xs;
+    std::vector<double> ys;
+
+    xs.reserve(chargeRange + 2);
+    ys.reserve(chargeRange + 2);
+
+    for (int i = 0; i < chargeRange; i++)
+    {
+      maxPerChargeIntensity = std::max(maxPerChargeIntensity, perChargeIntensity[i]);
+    }
+
+    double th = maxPerChargeIntensity * .02;// as recommended in the original paper...
+    //int first = -1, last = 0;
+    for (int i = 0; i < chargeRange; i++)
+    {
+      if (perChargeIntensity[i] <= th)
+      {
+        continue;
+      }
+
+      xs.push_back(i);
+      ys.push_back((1 + perChargeIntensity[i]));
+    }
+
+    if (xs.size() <= 3)
+    {
+      return 0.5;
+    }
+
+    Eigen::Matrix3d m;
+    Eigen::Vector3d v;
+
+    double s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+    double t0 = 0, t1 = 0, t2 = 0;
+
+    for (Size i = 0; i < xs.size(); i++)
+    {
+      auto &x = xs[i];
+      auto y = log(ys[i]);
+      s0++;
+      s1 += x;
+      s2 += x * x;
+      s3 += x * x * x;
+      s4 += x * x * x * x;
+      t0 += y;
+      t1 += y * x;
+      t2 += y * x * x;
+    }
+    m(0, 0) = s0;
+    m(1, 0) = m(0, 1) = s1;
+    m(2, 0) = m(1, 1) = m(0, 2) = s2;
+    m(2, 1) = m(1, 2) = s3;
+    m(2, 2) = s4;
+
+    auto im = m.inverse();
+    v(0) = t0;
+    v(1) = t1;
+    v(2) = t2;
+    //cout<<v<<endl;
+    auto abc = im * v;
+    //cout<<abc<<endl;
+    double mu = -abc(1) / abc(2) / 2;
+    double omega = -1 / abc(2) / 2;
+
+    if (omega <= 0)
+    {
+      return 0;
+    }
+    std::vector<double> tys;
+
+    for (Size i = 0; i < ys.size(); i++)
+    {
+      double ty = exp(-(xs[i] - mu) * (xs[i] - mu) / 2 / omega);
+      tys.push_back(ty);
+    }
+    return getCosine(ys, tys);
   }
 
 

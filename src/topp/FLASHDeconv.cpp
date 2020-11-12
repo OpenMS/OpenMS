@@ -93,66 +93,6 @@ protected:
                         "(e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)",
                         false);
 
-    /*    registerIntOption_("min_charge",
-                           "<min_charge>",
-                           1,
-                           "minimum charge state (can be negative for negative mode)",
-                           false,
-                           false);
-        registerIntOption_("max_charge",
-                           "<max_charge>",
-                           100,
-                           "maximum charge state (can be negative for negative mode)",
-                           false,
-                           false);
-
-        registerDoubleOption_("min_mass", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
-
-    */
-    /*registerDoubleList_("min_isotope_cosine",
-                        "<ms1_isotope_cos ms2_isotpe_cos, ...>",
-                        {.75, .85},
-                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... "
-                        "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
-                        false,
-                        true);
-
-    registerDoubleOption_("min_charge_cosine",
-                          "<charge_cosine>",
-                          .5,
-                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)",
-                          false,
-                          true);
-
-    registerIntList_("min_peaks",
-                     "<ms1_min_supporting_peaks ms2_min_supproting_peaks, ...>",
-                     {3, 1},
-                     "minimum number of supporting peaks for MS1, 2, ... "
-                     "(e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively",
-                     false,
-                     true);
-
-    registerIntList_("max_mass_count",
-                     "<ms1_max_mass_count, ms2_max_mass_count, ...>",
-                     {-1, -1},
-                     "maximum mass count per spec for MS1, 2, ..."
-                     "(e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)",
-                     false,
-                     true);
-    //
-    registerDoubleOption_("min_intensity", "<min_intensity>", 0, "intensity threshold (default 0.0)", false, true);
-registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
- registerDoubleOption_("RT_window",
-                          "<seconds>",
-                          0.0,
-                          "RT window duration in seconds. (if 0, RT window contains 15 MS1 spectra)",
-                          false,
-                          true);
-
-    */
-    //registerDoubleOption_("min_RT_span", "<seconds>", 10.0, "Min feature RT span", false, true);
-
-
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
@@ -209,18 +149,18 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.addTag("min_isotope_cosine", "advanced");
     fd_defaults.setValue("min_charge_cosine",
-                         .5,
+                         .9,
                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
     fd_defaults.addTag("min_charge_cosine", "advanced");
     fd_defaults.setValue("max_mass_count",
                          IntList{-1, -1},
                          "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
     fd_defaults.addTag("max_mass_count", "advanced");
-    fd_defaults.setValue("num_overlapped_scans", 15, "number of overlapped scans for MS1 deconvolution");
+    fd_defaults.setValue("num_overlapped_scans", 10, "number of overlapped scans for MS1 deconvolution");
     fd_defaults.addTag("num_overlapped_scans", "advanced");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
-    mf_defaults.setValue("mass_error_da", 1.5, "ppm tolerance, controlled by -tol option");
+    //mf_defaults.setValue("mass_error_da", 1.5, "da tolerance for feature tracing");
     mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
     mf_defaults.setValue("trace_termination_criterion", "outlier");
     mf_defaults.addTag("trace_termination_criterion", "advanced"); // hide entry
@@ -265,7 +205,7 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
     bool outPromex = getIntOption_("promex_out") > 0;
     bool writeDetail = getIntOption_("write_detail") > 0;
     //double rtWindow = getDoubleOption_("RT_window");
-    //    double ms1tol = getDoubleList_("tol")[0];
+    double ms1tol = getDoubleList_("tol")[0];
     int currentMaxMSLevel = 0;
 
     //double maxMass = getDoubleOption_("max_mass"); // from FLASHDeconvAlgorithm
@@ -526,7 +466,7 @@ registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", f
       auto massTracer = MassFeatureTrace();
       Param mf_param = getParam_().copy("FeatureTracing:", true);
       DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
-      //mf_param.setValue("mass_error_ppm", ms1tol);
+      mf_param.setValue("mass_error_ppm", 2 * ms1tol);
       mf_param.setValue("trace_termination_outliers", fd_param.getValue("num_overlapped_scans"));
       mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);

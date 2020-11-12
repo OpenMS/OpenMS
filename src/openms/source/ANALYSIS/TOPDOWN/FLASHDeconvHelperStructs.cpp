@@ -212,7 +212,7 @@ namespace OpenMS
     maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
 
     generator->setMaxIsotope(maxIso.size());
-    auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, maxMass, 50, generator, useRNAavg);
+    auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, maxMass, 25, generator, useRNAavg);
     avg.maxIsotopeIndex = maxIso.size() - 1;
     return avg;
   }

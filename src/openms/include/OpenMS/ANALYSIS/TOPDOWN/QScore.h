@@ -40,7 +40,7 @@
 
 namespace OpenMS
 {
-  struct PeakGroup;
+  class PeakGroup;
 
   // QScore : quality score for precursors
   class OPENMS_DLLAPI QScore

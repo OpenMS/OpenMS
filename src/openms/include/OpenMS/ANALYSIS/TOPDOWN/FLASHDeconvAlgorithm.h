@@ -42,7 +42,6 @@
 #include <OpenMS/DATASTRUCTURES//Matrix.h>
 #include "boost/dynamic_bitset.hpp"
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
 
 namespace OpenMS
 {
@@ -88,7 +87,7 @@ namespace OpenMS
                        int &massIndex);
 
     /// get calculated averagine
-    FLASHDeconvHelperStructs::PrecalculatedAveragine getAveragine();
+    PrecalculatedAveragine getAveragine();
 
     /** calculate averagine
         @useRNAavg if set, averagine for RNA (nucleotides) is calcualted
@@ -97,6 +96,16 @@ namespace OpenMS
 
     /// convert double to nominal mass
     static int getNominalMass(double m);
+
+    // examine intensity distribution over charges
+    static double getChargeFitScore(double *perChargeIntensity, int chargeRange);
+
+    // examine intensity distribution over iostope indices. Also determines the most plausible isotope index or, monoisotopic mass
+    static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
+                                                           double *perIsotopeIntensities,
+                                                           int &offset,
+                                                           PrecalculatedAveragine &avg);
+
 
   protected:
     void updateMembers_() override;
@@ -132,7 +141,7 @@ namespace OpenMS
     std::vector<std::vector<Size>> prevMassBinVector;
     std::vector<double> prevMinBinLogMassVector;
 
-    std::vector<int> hCharges{2, 3, 5,};
+    const std::vector<int> hCharges{2, 3, 5,};
     //Stores log mz peaks
     std::vector<LogMzPeak> logMzPeaks;
     //Bins for mass and mz. Bin size is deteremine by Parameter.tolerance
@@ -145,7 +154,6 @@ namespace OpenMS
     boost::dynamic_bitset<> massBins;
     //mzBins stores the binned log mz peaks
     boost::dynamic_bitset<> mzBins;
-
 
     //This stores the "universal pattern"
     std::vector<double> filter;
@@ -201,5 +209,48 @@ namespace OpenMS
 
     //Make the universal pattern here..
     void setFilters();
+
+    /////////
+
+
+    //the main function of this class
+    void scoreAndFilterPeakGroups();
+
+    //filter out overlapping masses
+    void removeOverlappingPeakGroups(double tol);
+
+    //filter out possible harmonics
+    void removeHarmonicPeakGroups(double tol);
+
+    //From peaks distributions over charge and isotope are calculated
+    std::vector<int> updatePerChargeIsotopeIntensity(
+        double *perIsotopeIntensity,
+        double *perChargeIntensity,
+        int maxIsotopeCount,
+        PeakGroup &pg);
+
+    //Filter out masses with low isotope cosine scores
+    void filterPeakGroupsByIsotopeCosine(int currentMaxMassCount);
+
+    //Filter out masses with low QScores
+    void filterPeakGroupsByQScore(int currentMaxMassCount);
+
+    //For MS1, check intensity ratio between charges.
+    bool checkChargeDistribution(double *perChargeIntensity);
+
+    //cosine function
+    static double getCosine(std::vector<double> &a, std::vector<double> &b, int off = 0);
+
+    //cosine function
+    static double getCosine(const double *a, double *b, Size size);
+
+    //cosine function for fast calculatoin
+    static double getCosine(const double *a,
+                            int &aStart,
+                            int &aEnd,
+                            IsotopeDistribution &b,
+                            int &bSize,
+                            double &bNorm,
+                            int offset);
   };
 }

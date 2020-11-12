@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include "OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h"
-
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <utility>
 
 namespace OpenMS
@@ -43,7 +43,9 @@ namespace OpenMS
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
 
-    mtd_defaults.setValue("mass_error_da", 1.5);
+    //mtd_defaults.setValue("mass_error_da", 1.5);
+    mtd_defaults.setValue("min_trace_length", 1.0);
+
     //mtd_defaults.remove("mass_error_da");
     mtd_defaults.remove("chrom_peak_snr");
     defaults_.insert("", mtd_defaults);
@@ -108,13 +110,14 @@ namespace OpenMS
 
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
-    int chargeRange = maxCharge - minCharge;
+    int chargeRange = maxCharge - minCharge + 1;
     auto *perChargeIntensity = new double[chargeRange + 1];
     auto *perChargeMaxIntensity = new double[chargeRange + 1];
     auto *perChargeMz = new double[chargeRange + 1];
     auto *perIsotopeIntensity = new double[averagines.maxIsotopeIndex];
 
     //std::cout<<chargeRange << " " << averagines.maxIsotopeIndex<<std::endl;
+    int tmp[] = {0, 0, 0, 0};
 
     for (auto &mt : m_traces)
     {
@@ -179,8 +182,8 @@ namespace OpenMS
         }
       }
 
-      double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity,
-                                                               chargeRange + 1);
+      double chargeScore = FLASHDeconvAlgorithm::getChargeFitScore(perChargeIntensity,
+                                                                   chargeRange);
       if (chargeScore < minChargeCosine) //
       {
         continue;
@@ -189,9 +192,9 @@ namespace OpenMS
       int offset = 0;
 
       double mass = mt.getCentroidMZ();
-      double isoScore = PeakGroupScoring::getIsotopeCosineAndDetermineIsotopeIndex(mass,
-                                                                                   perIsotopeIntensity,
-                                                                                   offset, averagines);
+      double isoScore = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
+                                                                                       perIsotopeIntensity,
+                                                                                       offset, averagines);
       if (isoScore < minIsotopeCosine)
       {
         continue;
@@ -211,10 +214,10 @@ namespace OpenMS
         sumInt += p.getIntensity();
       }
 
-      auto massDelta = averagines.getAverageMassDelta(mass);
+      auto avgMass = averagines.getAverageMassDelta(mass) + mass;
       ++featureCntr;
       fsf << featureIndex++ << "\t" << fileName << "\t" << std::to_string(mass) << "\t"
-          << std::to_string(mass + massDelta) << "\t" // massdiff
+          << std::to_string(avgMass) << "\t" // massdiff
           << mt.getSize() << "\t"
           << mt.begin()->getRT() << "\t"
           << mt.rbegin()->getRT() << "\t"
@@ -227,6 +230,12 @@ namespace OpenMS
           << charges.count() << "\t"
           << isoScore << "\t"
           << chargeScore << "\n";
+
+
+      //if (abs(avgMass - 44086) < 2) tmp[0] = 1;
+      //if (abs(avgMass - 44166) < 2) tmp[1] = 1;
+      //if (abs(avgMass - 44328) < 2) tmp[2] = 1;
+      //if (abs(avgMass - 44369) < 2) tmp[3] = 1;
 
       if (promexOut)
       {
@@ -261,16 +270,18 @@ namespace OpenMS
           }
           fsp << j << "," << perIsotopeIntensity[j] << ";";
         }
-        fsp << "\t"<<isoScore<<"\n";
+        fsp << "\t" << isoScore << "\n";
         fsp << std::setprecision(0);
       }
     }
-    //std::cout<<3<<std::endl;
+
+    //std::cout<<"**" << tmp[0]<<tmp[1]<<tmp[2]<<tmp[3]   <<std::endl;
+
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;
     delete[] perChargeMaxIntensity;
     delete[] perChargeIntensity;
-//    delete[] peakGroupMap;
+    //    delete[] peakGroupMap;
   }
 
   void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)

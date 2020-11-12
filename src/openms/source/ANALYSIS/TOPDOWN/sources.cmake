@@ -10,7 +10,6 @@ set(sources_list
 		FLASHIdaBridgeFunctions.cpp
 		MassFeatureTrace.cpp
 		PeakGroup.cpp
-		PeakGroupScoring.cpp
 		QScore.cpp
 		)
 
