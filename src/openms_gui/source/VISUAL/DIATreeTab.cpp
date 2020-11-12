@@ -209,7 +209,7 @@ namespace OpenMS
     }
   }
 
-  void DIATreeTab::rowSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+  void DIATreeTab::rowSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
   {
     if (current == nullptr || current_data_ == nullptr)
     {
