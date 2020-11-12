@@ -268,16 +268,18 @@ jobs:
             i=0
             for PYBIN in /opt/python/cp3*
             do
-              cpd[$i]="$PYBIN"
+              echo $PYBIN
+              eval cpd[$i]="$PYBIN"
               (( i++ ))
+              echo $i
             done
 
             echo "build array"
 
-            # use the latest three python versions similar to macOS, windows 
+            # use the latest three python versions similar to macOS, windows
             for i in 0{1..3}
             do
-              PYBIN="${cpd[${#cpd[@]}-i]}"
+              eval PYBIN="${cpd[${#cpd[@]}-i]}"
               "$PYBIN/bin/pip" install -U Cython
               "$PYBIN/bin/pip" install -U setuptools
               "$PYBIN/bin/pip" install -U wheel==0.31.1
@@ -299,12 +301,12 @@ jobs:
             # compile and configure OpenMS
             for i in 0{1..3}
             do
-              PYBIN="${cpd[${#cpd[@]}-i]}"
+              eval PYBIN="${cpd[${#cpd[@]}-i]}"
 
               # configure
               cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
-              
+  
               pushd pyOpenMS
                 # remove the libraries as auditwheel will take care of linked libs
                 rm -rf pyopenms/lib*
