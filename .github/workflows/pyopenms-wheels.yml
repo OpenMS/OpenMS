@@ -411,10 +411,9 @@ jobs:
           CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
           echo "Found wheel $CURRENT_WHL : Testing.."
 
-          # python -m pip install --upgrade pip
+          python -m pip install --upgrade pip
           # pip install all the stuff
-          pip install -U pip
-          pip install $CURRENT_WHL
+          python -m pip install $CURRENT_WHL
 
           # check if package was installed
           python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"
