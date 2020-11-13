@@ -36,7 +36,6 @@ jobs:
     - name: Install Miniconda
       shell: bash # uses git bash on windows
       run: |
-            echo $PATH
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
@@ -69,8 +68,8 @@ jobs:
           # Note: multiple --targets only supported by CMake 3.15+
           cmake --build . --config Release --target OpenMS SuperHirn
 
-          # Search for the latest 3 main python versions in the repository pkgs/main
-          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+          # Search for the latest 4 main python versions in the repository pkgs/main
+          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -1) # tail -4
 
           echo $SUPPORTED_PYTHONS
 
@@ -192,8 +191,8 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS SuperHirn
 
-          # Search for the latest 3 main python versions in the repository pkgs/main
-          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+          # Search for the latest 4 main python versions in the repository pkgs/main
+          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -1) #tail -4
 
           echo $SUPPORTED_PYTHONS
 
@@ -263,20 +262,16 @@ jobs:
             ## Do not load shared objects from root folder oft he package at import. Auditwheel handles dependencies.
             patch -p0 $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyopenms/__init__.py < $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/dist-scripts/manylinux.patch
 
-            echo "done - patch"
-
-            # build an array based on the directories in the cp3* directory (python3)
+            # build an array based the python versions in /opt/python
             py_paths=()
-            for PYBIN in /opt/python/cp3*
+            for PYBIN in /opt/python/cp*
             do
               echo $PYBIN
               py_paths+=("$PYBIN")
             done
 
-            echo "build array"
-
             # use the latest three python versions similar to macOS, windows
-            for i in 0{1..3}
+            for i in 0{1..1} #
             do
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
               "$PYBIN/bin/pip" install -U Cython
@@ -298,7 +293,7 @@ jobs:
             make -j4 OpenMS SuperHirn
 
             # compile and configure OpenMS
-            for i in 0{1..3} 
+            for i in 0{1..1} # 4
             do
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
 
@@ -335,21 +330,22 @@ jobs:
 
               # Somehow auditwheel is broken and we get the wrong libraries here for
               # libcrypto and libssl, lets go and fix it ...
-              #yum install -y zip
-              #pushd wheelhouse
-              #  for whl in pyopenms*.whl
-              #  do
-              #    mkdir -p fix
-              #    cp $whl fix/fix.zip
-              #    pushd fix
-              #      unzip fix.zip
-              #      /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
-              #      /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
-              #      zip -r ../$whl pyopenms/
-              #    popd
-              #    rm -rf fix
-              #  done
-              #popd
+              # auditwheel now adds the libraries to the root pyopenms.libs directory
+              yum install -y zip
+              pushd wheelhouse
+                for whl in pyopenms*.whl
+                do
+                  mkdir -p fix
+                  cp $whl fix/fix.zip
+                  pushd fix
+                    unzip fix.zip
+                    /usr/bin/cp /lib64/libssl.so.10  pyopenms.libs/libssl-*
+                    /usr/bin/cp /lib64/libcrypto.so.10  pyopenms.libs/libcrypto-*
+                    zip -r ../$whl pyopenms/
+                  popd
+                  rm -rf fix
+                done
+              popd
               mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
             popd
 
