@@ -254,7 +254,7 @@ namespace OpenMS
     if (param_.getValue("decoy").toBool() == true)
     {
       writeParameterHeader_("DECOY", os);
-      os << param_.getValue("decoy") << "\n";
+      os << 1 << "\n";
     }
 
     // search type
