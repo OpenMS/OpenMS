@@ -101,10 +101,11 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
           csi_hit.rank = sl[columnname_to_columnindex.at("rank")].toInt();
           csi_hit.formula_rank = sl[columnname_to_columnindex.at("formulaRank")].toInt();
           csi_hit.adduct = sl[columnname_to_columnindex.at("adduct")];
-          csi_hit.score = sl[columnname_to_columnindex.at("CSI:FingerID_Score")].toDouble();
+          csi_hit.score = sl[columnname_to_columnindex.at("CSI:FingerIDScore")].toDouble();
           csi_hit.name = sl[columnname_to_columnindex.at("name")];
           csi_hit.smiles = sl[columnname_to_columnindex.at("smiles")];
           csi_hit.xlogp = sl[columnname_to_columnindex.at("xlogp")];
+          csi_hit.dbflags = sl[columnname_to_columnindex.at("dbflags")];
           sl[columnname_to_columnindex.at("pubchemids")].split(';', csi_hit.pubchemids);
           sl[columnname_to_columnindex.at("links")].split(';', csi_hit.links);
 
@@ -125,11 +126,11 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-4.4.29"); 
+        md.description = MzTabString("CSI:FingerID-4.5");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
-        smallmolecule_search_engine_score[1].setName("CSI:FingerID_Score");
+        smallmolecule_search_engine_score[1].setName("CSI:FingerIDScore");
         md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
         result.setMetaData(md);
 
@@ -178,6 +179,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
             MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
             MzTabOptionalColumnEntry adduct = make_pair("opt_global_adduct", MzTabString(hit.adduct));
             MzTabOptionalColumnEntry xlogp = make_pair("opt_global_rank", MzTabString(hit.xlogp));
+            MzTabOptionalColumnEntry dbflags = make_pair("opt_global_dbflags", MzTabString(hit.dbflags));
 
             vector<MzTabString> m_native_ids;
             MzTabStringList ml_native_ids;
@@ -197,6 +199,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
             smsr.opt_.push_back(native_ids);
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(xlogp);
+            smsr.opt_.push_back(dbflags);
             smsd.push_back(smsr);
           } 
         }

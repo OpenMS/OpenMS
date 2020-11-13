@@ -88,13 +88,13 @@ namespace OpenMS
 
       parameter(
                   OpenMSName("precursor_mz_tolerance"),
-                  DefaultValue(0.005),
+                  DefaultValue(10),
                   Description("Tolerance window for precursor selection (Feature selection in regard to the precursor)")
                 );
 
       parameter(
                   OpenMSName("precursor_mz_tolerance_unit"),
-                  DefaultValue("Da"),
+                  DefaultValue("ppm"),
                   Description("Unit of the precursor_mz_tolerance")
                ).withValidStrings({"Da", "ppm"});
 

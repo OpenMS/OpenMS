@@ -144,7 +144,7 @@ namespace OpenMS
     // let SIRIUS sort it out using fragment annotation
     for (unsigned int k = 0; k != v_description.size(); ++k)
     {
-      if (v_description.size() > 1) { writecompound = true; }
+      if (v_description.size() > 1) { writecompound = true; } // write the same "entry" for each possible hit (different: description, adduct, sumformula)
       SiriusMSFile::CompoundInfo cmpinfo;
 
       for (const size_t& ind : ms2_spectra_index)
@@ -446,13 +446,13 @@ namespace OpenMS
     // Three different possible .ms formats
     // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
     if (!assigned_ms2.empty()) use_feature_information = true;
-    // feature information was provided and unassigend ms2 should be used (feature only parameter)
+    // feature information was provided and unassigend ms2 should be used in addition
     if (!unassigned_ms2.empty() && !feature_only) use_unassigned_ms2 = true;
     // no feature information was provided (mzml input only)
     if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feature_information = true;
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
-    int count_assume_mono = 0; // count if mono charge was assumend and set to current ion mode
+    int count_assume_mono = 0; // count if mono charge was assumed and set to current ion mode
     int count_no_ms1 = 0; // count if no precursor was found
     int count_skipped_features = 0; // features skipped due to charge
 
@@ -519,7 +519,6 @@ namespace OpenMS
     double feature_rt;
     double feature_mz;
     vector<pair<double, double>> f_isotopes;
-    f_isotopes.clear();
 
     // if feature information is available to this first (write features in one compound)
     if (use_feature_information)
@@ -528,11 +527,11 @@ namespace OpenMS
                 it != assigned_ms2.end();
                 ++it)
       {
-        const BaseFeature* feature = it->first;
-        const vector<size_t> feature_associated_ms2 = it->second;
-        
         // reset feature information with each iteration
         f_isotopes.clear();
+
+        const BaseFeature* feature = it->first;
+        const vector<size_t> feature_associated_ms2 = it->second;
 
         feature_id = feature->getUniqueId();
         feature_charge = feature->getCharge();
@@ -547,22 +546,22 @@ namespace OpenMS
         }
 
         // ffm featureXML
+        if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
+        {
           if (feature->metaValueExists("adducts"))
           {
             adducts = feature->getMetaValue("adducts");
           }
-          if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
+          vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
+          vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
+          if (masstrace_centroid_mz.size() == masstrace_intensity.size())
           {
-            vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
-            vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
-            if (masstrace_centroid_mz.size() == masstrace_intensity.size())
+            for (Size i = 0; i < masstrace_centroid_mz.size(); ++i)
             {
-              for (Size i = 0; i < masstrace_centroid_mz.size(); ++i)
-              {
-                pair<double, double> masstrace_mz_int(masstrace_centroid_mz[i],masstrace_intensity[i]);
-                f_isotopes.push_back(masstrace_mz_int);
-              }
+              pair<double, double> masstrace_mz_int(masstrace_centroid_mz[i], masstrace_intensity[i]);
+              f_isotopes.push_back(masstrace_mz_int);
             }
+          }
         }
 
         // prefer adducts from AccurateMassSearch if MetaboliteAdductDecharger and AccurateMassSearch were performed
@@ -612,7 +611,7 @@ namespace OpenMS
         }
         else
         {
-          // initialization with UNKNOWN in case no feature information is available.
+          // initialization with UNKNOWN in case no feature information was available
           v_description.push_back("UNKNOWN");
           v_sumformula.push_back("UNKNOWN");
         }
@@ -641,11 +640,12 @@ namespace OpenMS
         }
     }
 
-    // if not mappend information available (e.g. empty featurexml or only a few features)
+    // ms2 spectra without an associated feature based on the provided featureXML
     if (use_unassigned_ms2)
     {
-      // no feature information was provided
       bool writecompound = true;
+      v_description = {"UNKNOWN"};
+      v_sumformula = {"UNKNOWN"};
       f_isotopes.clear();
       adducts.clear();
       feature_charge = 0;
@@ -674,12 +674,12 @@ namespace OpenMS
                    v_cmpinfo);
     }
 
+    // no feature information was provided
     if (no_feature_information)
     {
-      // no feature information was provided
       bool writecompound = true;
-      v_description.push_back("UNKNOWN");
-      v_sumformula.push_back("UNKNOWN");
+      v_description = {"UNKNOWN"};
+      v_sumformula = {"UNKNOWN"};
       f_isotopes.clear();
       adducts.clear();
       feature_charge = 0;

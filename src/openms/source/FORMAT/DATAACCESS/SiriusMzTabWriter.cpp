@@ -180,12 +180,14 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
           sirius_hit.adduct = sl[columnname_to_columnindex.at("adduct")];
           sirius_hit.precursor_formula = sl[columnname_to_columnindex.at("precursorFormula")];
           sirius_hit.rank = sl[columnname_to_columnindex.at("rank")].toInt();
-          // sirius_hit.rank_score = sl[columnname_to_columnindex.at("rankingScore")].toDouble(); // removed SIRIUS 4.4.7
-          sirius_hit.iso_score = sl[columnname_to_columnindex.at("Isotope_Score")].toDouble();
-          sirius_hit.tree_score = sl[columnname_to_columnindex.at("Tree_Score")].toDouble();
-          sirius_hit.sirius_score = sl[columnname_to_columnindex.at("TreeIsotope_Score")].toDouble();
-          sirius_hit.explainedpeaks = sl[columnname_to_columnindex.at("explainedPeaks")].toInt();
+          sirius_hit.iso_score = sl[columnname_to_columnindex.at("IsotopeScore")].toDouble();
+          sirius_hit.tree_score = sl[columnname_to_columnindex.at("TreeScore")].toDouble();
+          sirius_hit.sirius_score = sl[columnname_to_columnindex.at("SiriusScore")].toDouble();
+          sirius_hit.explainedpeaks = sl[columnname_to_columnindex.at("numExplainedPeaks")].toInt();
           sirius_hit.explainedintensity = sl[columnname_to_columnindex.at("explainedIntensity")].toDouble();
+          sirius_hit.median_mass_error_fragment_peaks_ppm = sl[columnname_to_columnindex.at("medianMassErrorFragmentPeaks(ppm)")].toDouble();
+          sirius_hit.median_absolute_mass_error_fragment_peaks_ppm = sl[columnname_to_columnindex.at("medianAbsoluteMassErrorFragmentPeaks(ppm)")].toDouble();
+          sirius_hit.mass_error_precursor_ppm = sl[columnname_to_columnindex.at("massErrorPrecursor(ppm)")].toDouble();
 
           sirius_id.hits.push_back(sirius_hit);
         }
@@ -203,14 +205,13 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("Sirius-4.4.29");
+        md.description = MzTabString("Sirius-4.5");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
-        smallmolecule_search_engine_score[1].setName("sirius_score");
-        smallmolecule_search_engine_score[2].setName("tree_score");
-        smallmolecule_search_engine_score[3].setName("iso_score");
-        //smallmolecule_search_engine_score[4].setName("rank_score");
+        smallmolecule_search_engine_score[1].setName("SiriusScore");
+        smallmolecule_search_engine_score[2].setName("TreeScore");
+        smallmolecule_search_engine_score[3].setName("IsotopeScore");
         md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
         result.setMetaData(md);
 
@@ -228,7 +229,6 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
             engine_score[1] = MzTabDouble(hit.sirius_score);
             engine_score[2] = MzTabDouble(hit.tree_score);
             engine_score[3] = MzTabDouble(hit.iso_score);
-            //engine_score[4] = MzTabDouble(hit.rank_score);
             smsr.best_search_engine_score = engine_score;
 
             smsr.chemical_formula = MzTabString(hit.formula);
@@ -245,6 +245,9 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
             MzTabOptionalColumnEntry rank = make_pair("opt_global_rank", MzTabString(hit.rank));
             MzTabOptionalColumnEntry explainedPeaks = make_pair("opt_global_explainedPeaks", MzTabString(hit.explainedpeaks));
             MzTabOptionalColumnEntry explainedIntensity = make_pair("opt_global_explainedIntensity", MzTabString(hit.explainedintensity));
+            MzTabOptionalColumnEntry median_mass_error_fragment_peaks = make_pair("opt_global_median_mass_error_fragment_peaks_ppm", MzTabString(hit.median_mass_error_fragment_peaks_ppm));
+            MzTabOptionalColumnEntry median_absolute_mass_error_fragment_peaks = make_pair("opt_global_median_absolute_mass_error_fragment_peaks_ppm", MzTabString(hit.median_absolute_mass_error_fragment_peaks_ppm));
+            MzTabOptionalColumnEntry mass_error_precursor = make_pair("opt_global_mass_error_precursor_ppm", MzTabString(hit.mass_error_precursor_ppm));
             MzTabOptionalColumnEntry compoundId = make_pair("opt_global_compoundId", MzTabString(id.scan_index));
             MzTabOptionalColumnEntry compoundScanNumber = make_pair("opt_global_compoundScanNumber", MzTabString(id.scan_number));
             MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
@@ -265,6 +268,9 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(explainedPeaks);
             smsr.opt_.push_back(explainedIntensity);
+            smsr.opt_.push_back(median_mass_error_fragment_peaks);
+            smsr.opt_.push_back(median_absolute_mass_error_fragment_peaks);
+            smsr.opt_.push_back(mass_error_precursor);
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
             smsr.opt_.push_back(featureId);

@@ -80,12 +80,14 @@ namespace OpenMS
       OpenMS::String adduct;
       OpenMS::String precursor_formula;
       int rank = 0;
-      double rank_score = 0.0;
       double iso_score = 0.0;
       double tree_score = 0.0;
       double sirius_score = 0.0;
       int explainedpeaks = 0;
       double explainedintensity = 0.0;
+      double median_mass_error_fragment_peaks_ppm = 0.0;
+      double median_absolute_mass_error_fragment_peaks_ppm = 0.0;
+      double mass_error_precursor_ppm = 0.0;
     };
 
     class SiriusAdapterIdentification

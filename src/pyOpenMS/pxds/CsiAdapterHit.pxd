@@ -17,5 +17,6 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
         String name
         String smiles
         String xlogp
+        String dbflags
         libcpp_vector[ String ] pubchemids
         libcpp_vector[ String ] links

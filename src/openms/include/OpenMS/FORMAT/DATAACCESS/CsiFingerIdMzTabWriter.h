@@ -81,6 +81,7 @@ namespace OpenMS
             OpenMS::String name;
             OpenMS::String smiles;
             OpenMS::String xlogp;
+            OpenMS::String dbflags;
             std::vector<String> pubchemids;
             std::vector<String> links;
 

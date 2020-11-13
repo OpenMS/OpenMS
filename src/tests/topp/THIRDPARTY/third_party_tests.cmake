@@ -314,6 +314,22 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   add_test("TOPP_SiriusAdapter_6_out" ${DIFF} -in1 SiriusAdapter_6_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_6_output.ms)
   set_tests_properties("TOPP_SiriusAdapter_6" PROPERTIES DEPENDS "TOPP_SiriusAdapter_5")
   set_tests_properties("TOPP_SiriusAdapter_6_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_6")
+  # test internal .ms using assigned ms2
+  add_test("TOPP_SiriusAdapter_8" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML  -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out_sirius SiriusAdapter_8_output.tmp -preprocessing:feature_only -sirius:profile qtof -sirius:db all -project:processors 1)
+  add_test("TOPP_SiriusAdapter_8_out" ${DIFF} -in1 SiriusAdapter_8_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_8_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_8" PROPERTIES DEPENDS "TOPP_SiriusAdapter_7")
+  set_tests_properties("TOPP_SiriusAdapter_8_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_8")
+  # test internal .ms using assigned ms2 based and on a featureXML and unassigned ms2, without feature information
+  add_test("TOPP_SiriusAdapter_9" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML  -in_featureinfo ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out_sirius SiriusAdapter_9_output.tmp -sirius:profile qtof -sirius:db all -project:processors 1)
+  add_test("TOPP_SiriusAdapter_9_out" ${DIFF} -in1 SiriusAdapter_9_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_9_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_9" PROPERTIES DEPENDS "TOPP_SiriusAdapter_8")
+  set_tests_properties("TOPP_SiriusAdapter_9_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_9")
+  # test internal .ms using all ms2 (without feature information)
+  add_test("TOPP_SiriusAdapter_10" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML  -in_featureinfo -out_sirius SiriusAdapter_10_output.tmp -sirius:profile qtof -sirius:db all -project:processors 1)
+  add_test("TOPP_SiriusAdapter_10_out" ${DIFF} -in1 SiriusAdapter_10_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_10_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_10" PROPERTIES DEPENDS "TOPP_SiriusAdapter_9")
+  set_tests_properties("TOPP_SiriusAdapter_10_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_10")
+  
   # test mzML and featureXML negative
   add_test("TOPP_SiriusAdapter_7" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_input.featureXML -out_sirius SiriusAdapter_7_output.tmp -preprocessing:feature_only -sirius:profile qtof -sirius:db all -project:processors 1)
   add_test("TOPP_SiriusAdapter_7_out" ${DIFF} -in1 SiriusAdapter_7_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_7_output.mzTab -whitelist "MTD")
