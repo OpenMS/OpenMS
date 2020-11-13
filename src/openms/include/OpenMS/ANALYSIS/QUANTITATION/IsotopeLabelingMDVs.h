@@ -39,6 +39,7 @@
 //Kernal classes
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/FeatureMap.h>

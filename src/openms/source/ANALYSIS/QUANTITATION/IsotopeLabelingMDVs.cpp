@@ -183,19 +183,12 @@ namespace OpenMS
     std::vector<double> fragment_isotopomer_abs_diff;
     for (size_t i = 0; i < fragment_isotopomer_theoretical.size(); ++i)
     {
-      fragment_isotopomer_abs_diff.push_back(std::abs(fragment_isotopomer_theoretical[i] - fragment_isotopomer_measured[i]));
+      fragment_isotopomer_abs_diff.push_back(std::fabs(fragment_isotopomer_theoretical[i] - fragment_isotopomer_measured[i]));
     }
     
     double diff_mean = std::accumulate(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), 0.0) / fragment_isotopomer_abs_diff.size();
     
-    std::vector<double> fragment_isotopomer_abs_diff_;
-    for (size_t i = 0; i < fragment_isotopomer_abs_diff.size(); ++i)
-    {
-      fragment_isotopomer_abs_diff_.push_back(std::abs(fragment_isotopomer_abs_diff[i] - diff_mean));
-    }
-    
-    diff_mean = 0.0;
-    diff_mean = std::accumulate(fragment_isotopomer_abs_diff_.begin(), fragment_isotopomer_abs_diff_.end(), 0.0) / fragment_isotopomer_abs_diff_.size();
+    diff_mean = OpenMS::Math::MeanAD(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), diff_mean);
     
     feature_with_accuracy_info.setMetaValue("average_accuracy", diff_mean);
   }

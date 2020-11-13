@@ -205,6 +205,36 @@ namespace OpenMS
       }
       return median(diffs.begin(), diffs.end(), false);
     }
+    
+    /**
+      @brief mean absolute deviation (MeanAD)
+
+      Computes the MeanAD, defined as
+
+      MeanAD = mean( | x_i - mean(x) | ) for a vector x with indices i in [1,n].
+
+      For efficiency, you must provide the mean separately, in order to avoid potentially duplicate efforts (usually one
+      computes the mean anyway externally).
+      
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param mean_of_numbers The precomputed mean of range @p begin - @p end.
+      @return the MeanAD
+
+      @ingroup MathFunctionsStatistics
+
+    */
+    template <typename IteratorType>
+    double MeanAD(IteratorType begin, IteratorType end, double mean_of_numbers)
+    {
+      std::vector<double> diffs;
+      diffs.reserve(std::distance(begin, end));
+      for (IteratorType it = begin; it != end; ++it)
+      {
+        diffs.push_back(fabs(*it - mean_of_numbers));
+      }
+      return mean(diffs.begin(), diffs.end());
+    }
 
     /**
        @brief Calculates the first quantile of a range of values
