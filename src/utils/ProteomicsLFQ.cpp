@@ -886,13 +886,16 @@ protected:
       // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
       for (PeptideHit & ph : pid.getHits())
       {
-        // TODO: keep target_decoy information for QC
         // TODO: we only have super inefficient meta value removal
         vector<String> keys;
         ph.getKeys(keys);
         for (const auto& k : keys)
         {
-          if (!(k.hasSubstring("_score") || k.hasSubstring("q-value") || k.hasPrefix("Luciphor_global_flr")))
+          if (!(k.hasSubstring("_score") 
+            || k.hasSubstring("q-value") 
+            || k.hasPrefix("Luciphor_global_flr")
+            || k == "target_decoy") // keep target_decoy information for QC
+            )            
           {
             ph.removeMetaValue(k);
           }
@@ -975,6 +978,7 @@ protected:
         mz_file_abs_path,
         true);
     }
+
     return EXECUTION_OK;
   }
  
@@ -1109,12 +1113,13 @@ protected:
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
       FeatureMap tmp = fm;
+
       ffi.run(peptide_ids, 
         protein_ids, 
         ext_peptide_ids, 
         ext_protein_ids, 
         tmp,
-        seeds);
+        seeds);          
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)

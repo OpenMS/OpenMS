@@ -2947,6 +2947,47 @@ add_test("UTILS_ProteomicsLFQ_4_out_1" ${DIFF} -whitelist "spectra_data" "map id
 set_tests_properties("UTILS_ProteomicsLFQ_4_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_4")
 add_test("UTILS_ProteomicsLFQ_4_out_2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sc.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_4_out.mzTab )
 set_tests_properties("UTILS_ProteomicsLFQ_4_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_4")
+
+# test decoy report
+add_test("UTILS_ProteomicsLFQ_5" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1_decoys.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -report_decoys true
+         -targeted_only true
+         -transfer_ids false
+         -mass_recalibration false
+         -out_cxml BSA.consensusXML.tmp
+         -out_msstats BSA.csv.tmp
+         -out BSA.mzTab.tmp
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_5_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_5_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_5")
+add_test("UTILS_ProteomicsLFQ_5_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_5_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_5")
+add_test("UTILS_ProteomicsLFQ_5_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_5_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_5")
+
+
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
 add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
