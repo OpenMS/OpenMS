@@ -149,7 +149,7 @@ protected:
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.addTag("min_isotope_cosine", "advanced");
     fd_defaults.setValue("min_charge_cosine",
-                         .9,
+                         .75,
                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
     fd_defaults.addTag("min_charge_cosine", "advanced");
     fd_defaults.setValue("max_mass_count",
