@@ -44,15 +44,15 @@ namespace OpenMS
     Param mtd_defaults = MassTraceDetection().getDefaults();
 
     //mtd_defaults.setValue("mass_error_da", 1.5);
-    mtd_defaults.setValue("min_trace_length", 1.0);
+    mtd_defaults.setValue("min_trace_length", 10.0);
 
     //mtd_defaults.remove("mass_error_da");
     mtd_defaults.remove("chrom_peak_snr");
     defaults_.insert("", mtd_defaults);
 
-    defaults_.setValue("min_charge_cosine",
-                       .5,
-                       "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
+    //defaults_.setValue("min_charge_cosine",
+    //                   .5,
+    //                   "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
     defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
     defaultsToParam_();
   }
@@ -102,7 +102,7 @@ namespace OpenMS
     map.sortSpectra();
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
-    mtd_param.remove("min_charge_cosine");
+    //mtd_param.remove("min_charge_cosine");
     mtd_param.remove("min_isotope_cosine");
 
     mtdet.setParameters(mtd_param);
@@ -121,8 +121,12 @@ namespace OpenMS
 
     for (auto &mt : m_traces)
     {
-      int minFCharge = chargeRange + minCharge + 1; // min feature charge
-      int maxFCharge = minCharge - 1; // max feature charge
+      int minFCharge = INT_MAX; // min feature charge
+      int maxFCharge = INT_MIN; // max feature charge
+
+      int minFIso = INT_MAX; // min feature isotope index
+      int maxFIso = INT_MIN; // max feature isotope index
+
 
       int minScanNum = (int) map.size() + 1000;
       int maxScanNum = 0;
@@ -182,12 +186,12 @@ namespace OpenMS
         }
       }
 
-      double chargeScore = FLASHDeconvAlgorithm::getChargeFitScore(perChargeIntensity,
-                                                                   chargeRange);
-      if (chargeScore < minChargeCosine) //
-      {
-        continue;
-      }
+      //double chargeScore = FLASHDeconvAlgorithm::getChargeFitScore(perChargeIntensity,
+      //                                                            chargeRange);
+      //if (chargeScore < minChargeCosine) //
+      //{
+      //  continue;
+      //}
 
       int offset = 0;
 
@@ -209,11 +213,13 @@ namespace OpenMS
       }
 
       auto sumInt = .0;
+
       for (auto &p : mt)
       {
         sumInt += p.getIntensity();
       }
-
+      //mt.computeSmoothedPeakArea()
+      //mt.estimateFWHM(true);
       auto avgMass = averagines.getAverageMassDelta(mass) + mass;
       ++featureCntr;
       fsf << featureIndex++ << "\t" << fileName << "\t" << std::to_string(mass) << "\t"
@@ -222,15 +228,70 @@ namespace OpenMS
           << mt.begin()->getRT() << "\t"
           << mt.rbegin()->getRT() << "\t"
           << mt.getTraceLength() << "\t"
-                                 << mt[mt.findMaxByIntPeak()].getRT() << "\t"
-                                 << sumInt << "\t"
-                                 << mt.getMaxIntensity(false) << "\t"
-                                 << minFCharge << "\t"
-                                 << maxFCharge << "\t"
-                                 << charges.count() << "\t"
-                                 << isoScore << "\t"
-                                 << chargeScore << "\n";
+          << mt[mt.findMaxByIntPeak()].getRT() << "\t"
+          << sumInt << "\t"
+          << mt.getMaxIntensity(false) << "\t"
+          << mt.computePeakArea() << "\t"
+          << minFCharge << "\t"
+          << maxFCharge << "\t"
+          << charges.count() << "\t"
+          << isoScore << "\t";
 
+      for (int i = minFCharge; i <= maxFCharge; i++)
+      {
+        fsf << perChargeIntensity[i - minCharge];
+        if (i < maxFCharge)
+        {
+          fsf << ";";
+        }
+      }
+      fsf << "\t";
+      int isoEndIndex = 0;
+
+      for (int i = 0; i < averagines.maxIsotopeIndex; i++)
+      {
+        if (perIsotopeIntensity[i] == 0)
+        {
+          continue;
+        }
+        isoEndIndex = i;
+      }
+      for (int i = 0; i <= isoEndIndex; i++)
+      {
+        fsf << perIsotopeIntensity[i];
+        if (i < isoEndIndex)
+        {
+          fsf << ";";
+        }
+      }
+      /*fsf<< "\t";
+      double tmp2[maxFCharge + 1][isoEndIndex + 1];
+      for (int i = 0; i <= maxFCharge; i++)
+      {
+        for (int j = 0; j <= isoEndIndex; j++)
+        {
+          tmp2[i][j] = .0;
+        }
+      }
+      for (auto &p2 : mt)
+      {
+        auto &pgMap = peakGroupMap[p2.getRT()];
+        auto &pg = pgMap[p2.getMZ()];
+        for (auto &p: pg)
+        {
+          tmp2[p.charge][p.isotopeIndex] += p.intensity;
+        }
+      }
+      for (int i = 0; i <= maxFCharge; i++)
+      {
+        for (int j = 0; j <= isoEndIndex; j++)
+        {
+          fsf<<tmp2[i][j]<<",";
+        }
+        fsf<<";";
+      }*/
+
+      fsf << "\n";
 
       if (abs(avgMass - 44086) < 2)
       {
@@ -287,7 +348,7 @@ namespace OpenMS
       }
     }
 
-    std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
+    //std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
 
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;
@@ -315,7 +376,7 @@ namespace OpenMS
   {
     fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-          "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
+          "\tSumIntensity\tMaxIntensity\tFeatureArea\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tPerChargeIntensity\tPerIsotopeIntensity"
           "\n";
   }
 
@@ -331,7 +392,7 @@ namespace OpenMS
   void MassFeatureTrace::updateMembers_()
   {
     tol = param_.getValue("mass_error_ppm");
-    minChargeCosine = param_.getValue("min_charge_cosine");
+    //minChargeCosine = param_.getValue("min_charge_cosine");
     minIsotopeCosine = param_.getValue("min_isotope_cosine");
   }
 }

@@ -45,6 +45,11 @@ namespace OpenMS
   {
     prevMassBinVector = std::vector<std::vector<Size>>();
     prevMinBinLogMassVector = std::vector<double>();
+    defaults_.setValue("min_mz", -1.0, "if set to positive value, minimum m/z to deconvolute.");
+    defaults_.setValue("max_mz", -1.0, "if set to positive value, maximum m/z to deconvolute.");
+    defaults_.setValue("min_RT", -1.0, "if set to positive value, minimum RT to deconvolute.");
+    defaults_.setValue("max_RT", -1.0, "if set to positive value, maximum RT to deconvolute.");
+
     defaults_.setValue("min_charge", 1, "minimum charge state (can be negative for negative mode)");
     defaults_.setValue("max_charge", 100, "maximum charge state (can be negative for negative mode)");
     defaults_.setValue("min_mass", 50.0, "minimum mass (Da)");
@@ -59,9 +64,9 @@ namespace OpenMS
     defaults_.setValue("min_isotope_cosine",
                        DoubleList{.75, .85},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
-    defaults_.setValue("min_charge_cosine",
-                       .5,
-                       "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
+    //defaults_.setValue("min_charge_cosine",
+    //                   .5,
+    //                   "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
     defaults_.setValue("max_mass_count",
                        IntList{-1, -1},
                        "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
@@ -107,6 +112,15 @@ namespace OpenMS
                                            int &massIndex)
   {
     auto *spec = &(dspec.getOriginalSpectrum());
+    if (minRT > 0 && spec->getRT() < minRT)
+    {
+      return;
+    }
+    if (maxRT > 0 && spec->getRT() > maxRT)
+    {
+      return;
+    }
+
     updateLogMzPeaks(spec);
     msLevel = spec->getMSLevel();
     //For MS2,3,.. max mass and charge ranges should be determined by precursors
@@ -133,6 +147,12 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::updateMembers_()
   {
+    minMz = param_.getValue("min_mz");
+    maxMz = param_.getValue("max_mz");
+
+    minRT = param_.getValue("min_RT");
+    maxRT = param_.getValue("max_RT");
+
     minCharge = param_.getValue("min_charge");
     maxCharge = param_.getValue("max_charge");
 
@@ -159,7 +179,7 @@ namespace OpenMS
     }
 
     minIsotopeCosine = param_.getValue("min_isotope_cosine");
-    minChargeCosine = param_.getValue("min_charge_cosine");
+    //minChargeCosine = param_.getValue("min_charge_cosine");
     maxMassCount = param_.getValue("max_mass_count");
     numOverlappedScans = param_.getValue("num_overlapped_scans");
     setFilters();
@@ -213,6 +233,14 @@ namespace OpenMS
     logMzPeaks.reserve(spec->size());
     for (auto &peak: *spec)
     {
+      if (minMz > 0 && peak.getMZ() < minMz)
+      {
+        continue;
+      }
+      if (maxMz > 0 && peak.getMZ() > maxMz)
+      {
+        break;
+      }
       if (peak.getIntensity() <= intensityThreshold)//
       {
         continue;
@@ -929,6 +957,10 @@ namespace OpenMS
 
     getCandidatePeakGroups(massIntensities, perMassChargeRanges);
     scoreAndFilterPeakGroups();
+    removeHarmonicPeakGroups(tolerance[msLevel - 1]); //
+    removeOverlappingPeakGroups(tolerance[msLevel - 1]);
+    reassignPeaksinPeakGroups(tolerance[msLevel - 1]);
+    scoreAndFilterPeakGroups();
 
     if (msLevel == 1)
     {
@@ -1160,15 +1192,15 @@ namespace OpenMS
           perIsotopeIntensity, perChargeIntensity,
           avg.maxIsotopeIndex, pg);
 
-      pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, chargeRange);
+      //pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, chargeRange);
 
       if (msLevel == 1)
       {
-        if (pg.empty() ||
-            pg.chargeCosineScore <= minChargeCosine)
-        {
-          continue;
-        }
+        //if (pg.empty() ||
+        //    pg.chargeCosineScore <= minChargeCosine)
+        //{
+        //continue;
+        //}
 
         bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity);
 
@@ -1178,13 +1210,7 @@ namespace OpenMS
         }
 
       }
-      else
-      {
-        if (pg.empty() || pg.chargeCosineScore < 0.1)//
-        {
-          continue;
-        }
-      }
+
 
       int offset = 0;
       pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg[0].getUnchargedMass(),
@@ -1216,8 +1242,8 @@ namespace OpenMS
         int minIsotopeIndex = avg.maxIsotopeIndex;
         int maxIsotopeIndex = 0;
 
-        double minMz = pg.monoisotopicMass * 2;
-        double maxMz = 0;
+        //double minMz = pg.monoisotopicMass * 2;
+        //double maxMz = 0;
         double maxIntensity = .0;
         double sumIntensity = .0;
         double sp = .0;
@@ -1239,8 +1265,8 @@ namespace OpenMS
           minIsotopeIndex = minIsotopeIndex < p.isotopeIndex ? minIsotopeIndex : p.isotopeIndex;
           maxIsotopeIndex = maxIsotopeIndex < p.isotopeIndex ? p.isotopeIndex : maxIsotopeIndex;
 
-          minMz = minMz < p.mz ? minMz : p.mz;
-          maxMz = maxMz > p.mz ? maxMz : p.mz;
+          //minMz = minMz < p.mz ? minMz : p.mz;
+          // maxMz = maxMz > p.mz ? maxMz : p.mz;
           if (maxIntensity < p.intensity)
           {
             maxIntensity = p.intensity;
@@ -1340,9 +1366,6 @@ namespace OpenMS
 
     peakGroups.swap(filteredPeakGroups);
     std::vector<PeakGroup>().swap(filteredPeakGroups);
-
-    removeHarmonicPeakGroups(tolerance[msLevel - 1]); //
-    removeOverlappingPeakGroups(tolerance[msLevel - 1]);
 
     if (msLevel > 1)
     {
@@ -1579,6 +1602,48 @@ namespace OpenMS
     filtered.swap(peakGroups);
   }
 
+
+  void FLASHDeconvAlgorithm::reassignPeaksinPeakGroups(double tol)
+  {
+    std::map<double, double> peakPgmap;
+    for (auto &pg : peakGroups)
+    {
+      auto is = pg.isotopeCosineScore;
+      for (auto &p: pg)
+      {
+        if (peakPgmap.find(p.mz) != peakPgmap.end())
+        {
+          auto pis = peakPgmap[p.mz];
+          if (pis < is)
+          {
+            peakPgmap[p.mz] = is;
+          }
+        }
+        else
+        {
+          peakPgmap[p.mz] = is;
+        }
+      }
+    }
+
+    for (auto &pg : peakGroups)
+    {
+      auto is = pg.isotopeCosineScore;
+      std::vector<LogMzPeak> tmp;
+      tmp.swap(pg);
+      pg.reserve(tmp.size());
+      for (auto &p: tmp)
+      {
+        if (peakPgmap[p.mz] != is)
+        {
+          continue;
+        }
+        pg.push_back(p);
+      }
+    }
+  }
+
+
   std::vector<int> FLASHDeconvAlgorithm::updatePerChargeIsotopeIntensity(
       double *perIsotopeIntensity,
       double *perChargeIntensity,
@@ -1598,8 +1663,8 @@ namespace OpenMS
       std::fill_n(intensityGrid2[j], param.currentChargeRange, 0);
     }*/
 
-    int minPgCharge = chargeRange + minCharge + 1;
-    int maxPgCharge = minCharge - 1;
+    int minPgCharge = INT_MAX;
+    int maxPgCharge = INT_MIN;
     //    double maxIntensity = -1;
     int maxIntChargeIndex = -1;
     //    double maxIntensity2 = -1;
@@ -1841,6 +1906,5 @@ namespace OpenMS
     }
     return getCosine(ys, tys);
   }
-
 
 }

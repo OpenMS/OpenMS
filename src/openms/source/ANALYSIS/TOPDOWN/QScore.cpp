@@ -54,7 +54,7 @@ namespace OpenMS
           - 2.7199 * pg->perChargeInfo[charge][1]
           - 0.8385 * log10(pg->totalSNR + 1e-3)
           + 4.29 * pg->isotopeCosineScore
-          - 0.4913 * pg->chargeCosineScore
+//          - 0.4913 * pg->chargeCosineScore
           - 0.4561 * log10(pg->intensity + 1)
           + 1.424;
       /*

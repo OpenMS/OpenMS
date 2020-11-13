@@ -136,6 +136,10 @@ protected:
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     fd_defaults.setValue("min_charge", 1);
     fd_defaults.setValue("max_charge", 100);
+    fd_defaults.setValue("min_mz", -1.0);
+    fd_defaults.setValue("max_mz", -1.0);
+    fd_defaults.setValue("min_RT", -1.0);
+    fd_defaults.setValue("max_RT", -1.0);
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     fd_defaults.setValue("tol", DoubleList{10.0, 5.0}, "ppm tolerance, controlled by -tol option");
@@ -148,10 +152,10 @@ protected:
                          DoubleList{.75, .85},
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.addTag("min_isotope_cosine", "advanced");
-    fd_defaults.setValue("min_charge_cosine",
-                         .75,
-                         "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
-    fd_defaults.addTag("min_charge_cosine", "advanced");
+    //fd_defaults.setValue("min_charge_cosine",
+    //                     .75,
+    //                     "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
+    //fd_defaults.addTag("min_charge_cosine", "advanced");
     fd_defaults.setValue("max_mass_count",
                          IntList{-1, -1},
                          "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
@@ -160,8 +164,8 @@ protected:
     fd_defaults.addTag("num_overlapped_scans", "advanced");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
-    //mf_defaults.setValue("mass_error_da", 1.5, "da tolerance for feature tracing");
-    mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
+    mf_defaults.setValue("mass_error_da", 1.5, "da tolerance for feature tracing");
+    //mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
     mf_defaults.setValue("trace_termination_criterion", "outlier");
     mf_defaults.addTag("trace_termination_criterion", "advanced"); // hide entry
     mf_defaults.setValue("reestimate_mt_sd", "false", "");
@@ -175,9 +179,9 @@ protected:
     mf_defaults.addTag("trace_termination_outliers", "advanced"); // hide entry
     //mf_defaults.addTag("min_trace_length", "advanced"); // hide entry
     //mf_defaults.setValue("trace_termination_outliers", numOverlappedScans, "");
-    //mf_defaults.setValue("min_trace_length", minRTSpan, "");//min_RT_span
-    mf_defaults.setValue("min_charge_cosine", .5, "controlled by -min_charge_cosine option");
-    mf_defaults.addTag("min_charge_cosine", "advanced");
+    mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//min_RT_span
+    //mf_defaults.setValue("min_charge_cosine", .5, "controlled by -min_charge_cosine option");
+    //mf_defaults.addTag("min_charge_cosine", "advanced");
     mf_defaults.setValue("min_isotope_cosine", .75, "controlled by -min_isotope_cosine option");
     mf_defaults.addTag("min_isotope_cosine", "advanced");
 
@@ -468,7 +472,7 @@ protected:
       DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
       mf_param.setValue("mass_error_ppm", ms1tol);
       mf_param.setValue("trace_termination_outliers", fd_param.getValue("num_overlapped_scans"));
-      mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
+      //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
 
       massTracer.setParameters(mf_param);

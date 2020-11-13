@@ -61,7 +61,7 @@ public:
 
     // information on scoring
     float isotopeCosineScore;
-    float chargeCosineScore;
+    //float chargeCosineScore;
     int maxQScoreCharge;
     float qScore;
     float totalSNR;

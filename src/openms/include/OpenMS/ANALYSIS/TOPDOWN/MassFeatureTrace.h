@@ -95,7 +95,7 @@ namespace OpenMS
     /// MS1 tolerance
     double tol;
     /// cosine thresholds for scoring and filtering
-    double minChargeCosine, minIsotopeCosine;
+    double minIsotopeCosine;
     /// peak group information is stored in here for traicing
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };

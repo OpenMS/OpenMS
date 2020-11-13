@@ -112,6 +112,8 @@ namespace OpenMS
 
   private:
     /// FLASHDeconv parameters
+    double minRT, maxRT;
+    double minMz, maxMz;
     // min charge and max charge of deconvolution
     int minCharge, maxCharge;
     // when a spectrum is deconvoluted, the deconvoluted masses in the spectra within the overlapped scans are favorably considered.
@@ -131,7 +133,7 @@ namespace OpenMS
     // cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList minIsotopeCosine;
     // cosien thereshold between charge distribution and fit gaussian
-    double minChargeCosine;
+    //double minChargeCosine;
     // max mass count per spectrum for each MS level
     IntList maxMassCount;
 
@@ -221,6 +223,8 @@ namespace OpenMS
 
     //filter out possible harmonics
     void removeHarmonicPeakGroups(double tol);
+
+    void reassignPeaksinPeakGroups(double tol);
 
     //From peaks distributions over charge and isotope are calculated
     std::vector<int> updatePerChargeIsotopeIntensity(
