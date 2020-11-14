@@ -164,8 +164,10 @@ protected:
     fd_defaults.addTag("num_overlapped_scans", "advanced");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
-    mf_defaults.setValue("mass_error_da", 1.5, "da tolerance for feature tracing");
-    //mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
+    mf_defaults.setValue("mass_error_da",
+                         1.5,
+                         "da tolerance for feature tracing. Due to frequent isotope errer, 1.5 Da is recommended.");
+    mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
     mf_defaults.setValue("trace_termination_criterion", "outlier");
     mf_defaults.addTag("trace_termination_criterion", "advanced"); // hide entry
     mf_defaults.setValue("reestimate_mt_sd", "false", "");
@@ -179,7 +181,7 @@ protected:
     mf_defaults.addTag("trace_termination_outliers", "advanced"); // hide entry
     //mf_defaults.addTag("min_trace_length", "advanced"); // hide entry
     //mf_defaults.setValue("trace_termination_outliers", numOverlappedScans, "");
-    mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//min_RT_span
+    mf_defaults.setValue("min_trace_length", 15.0, "min feature trace length in second");//min_RT_span
     //mf_defaults.setValue("min_charge_cosine", .5, "controlled by -min_charge_cosine option");
     //mf_defaults.addTag("min_charge_cosine", "advanced");
     mf_defaults.setValue("min_isotope_cosine", .75, "controlled by -min_isotope_cosine option");
@@ -470,7 +472,7 @@ protected:
       auto massTracer = MassFeatureTrace();
       Param mf_param = getParam_().copy("FeatureTracing:", true);
       DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
-      mf_param.setValue("mass_error_ppm", ms1tol);
+      //mf_param.setValue("mass_error_ppm", ms1tol);
       mf_param.setValue("trace_termination_outliers", fd_param.getValue("num_overlapped_scans"));
       //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);

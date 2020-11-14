@@ -346,8 +346,8 @@ namespace OpenMS
     long binEnd = (long) massBins.size();
     auto candidateMassBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
     // how many peaks of continuous charges per mass
-    int *continuousChargePeakPairCount = new int[massBins.size()];
-    std::fill_n(continuousChargePeakPairCount, massBins.size(), 0);
+    int *supportPeakPairCount = new int[massBins.size()];
+    std::fill_n(supportPeakPairCount, massBins.size(), 0);
 
     auto mzBinIndex = mzBins.find_first();
     std::fill_n(massIntensitites, massBins.size(), 0);
@@ -361,12 +361,12 @@ namespace OpenMS
     std::fill_n(prevIntensities, massBins.size(), 1);
 
     // harmonic peak intensities contribute to noise
-    auto noise = new float *[hChargeSize + 1];
-    for (auto k = 0; k < hChargeSize + 1; k++)
-    {
-      noise[k] = new float[massBins.size()];
-      std::fill_n(noise[k], massBins.size(), 0);
-    }
+    //auto noise = new float *[hChargeSize + 1];
+    //for (auto k = 0; k < hChargeSize + 1; k++)
+    //{
+    //  noise[k] = new float[massBins.size()];
+    //  std::fill_n(noise[k], massBins.size(), 0);
+    // }
     // bin width per ms level
     auto bw = binWidth[msLevel - 1];
 
@@ -467,13 +467,13 @@ namespace OpenMS
           //for MS1, if charge not continuous and intensity change ratio is low it is noise
         else if (prevCharge < chargeRange && chargeNotContinous && intensityRatio < factor)
         {
-          noise[hChargeSize][massBinIndex] += intensity;
+          //noise[hChargeSize][massBinIndex] += intensity;
         }
 
         // if charge not continous or intensity ratio is too high reset continuousChargePeakPairCount
         if (chargeNotContinous || intensityRatio > factor)
         {
-          continuousChargePeakPairCount[massBinIndex] = 0;
+          supportPeakPairCount[massBinIndex] = 0;
         }
         else
         {
@@ -487,7 +487,7 @@ namespace OpenMS
           float maxHint = .0;
           auto highThreshold = intensity * factor;
           auto lowThreshold = intensity * factor2;// / factor;
-          for (auto k = 0; k < hChargeSize; k++)
+          for (auto k = 0; k < hChargeSize; k++)//hChargeSize
           {
             auto hmzBinIndex = massBinIndex - hBinOffsets.getValue(k, j);
             if (hmzBinIndex > 0 && hmzBinIndex < (long) mzBins.size() && mzBins[hmzBinIndex])
@@ -507,10 +507,11 @@ namespace OpenMS
             }
           }
 
-          auto &cc = continuousChargePeakPairCount[massBinIndex];
+          auto &cc = supportPeakPairCount[massBinIndex];
           if (maxHcharge >= 0) //
           {
-            noise[maxHcharge][massBinIndex] += maxHint;
+            massIntensitites[massBinIndex] -= intensity + isoIntensity;
+            //noise[maxHcharge][massBinIndex] += maxHint;
             cc = 0;
           }
           else
@@ -530,6 +531,7 @@ namespace OpenMS
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
 
+    /*
     // Subtract noise intensity from each mass
     auto mindex = candidateMassBinsForThisSpectrum.find_first();
     while (mindex != candidateMassBinsForThisSpectrum.npos)
@@ -543,15 +545,15 @@ namespace OpenMS
       s -= maxNoise;
       mindex = candidateMassBinsForThisSpectrum.find_next(mindex);
     }
-
+*/
     delete[] prevIntensities;
     delete[] prevCharges;
-    for (auto k = 0; k <= hChargeSize; k++)
-    {
-      delete[] noise[k];
-    }
-    delete[] noise;
-    delete[] continuousChargePeakPairCount;
+    //for (auto k = 0; k <= hChargeSize; k++)
+    //{
+    //  delete[] noise[k];
+    //}
+    //delete[] noise;
+    delete[] supportPeakPairCount;
     return candidateMassBinsForThisSpectrum;
   }
 
@@ -957,8 +959,10 @@ namespace OpenMS
 
     getCandidatePeakGroups(massIntensities, perMassChargeRanges);
     scoreAndFilterPeakGroups();
+
     removeHarmonicPeakGroups(tolerance[msLevel - 1]); //
     removeOverlappingPeakGroups(tolerance[msLevel - 1]);
+
     reassignPeaksinPeakGroups(tolerance[msLevel - 1]);
     scoreAndFilterPeakGroups();
 
@@ -1473,7 +1477,7 @@ namespace OpenMS
       {
         for (int k = 0; k < 2; k++)
         {
-          for (int i = -1; i < 1; ++i)
+          for (int i = -2; i < 2; ++i)
           {
             auto omass = pg.monoisotopicMass + i * Constants::ISOTOPE_MASSDIFF_55K_U;
             auto hmass = k == 0 ? omass * h : omass / h;
@@ -1495,7 +1499,7 @@ namespace OpenMS
                 {
                   break;
                 }
-                select &= pg.isotopeCosineScore >= pgo.isotopeCosineScore;
+                select &= pg.intensity >= pgo.intensity;
                 if (!select)
                 {
                   break;
@@ -1608,7 +1612,7 @@ namespace OpenMS
     std::map<double, double> peakPgmap;
     for (auto &pg : peakGroups)
     {
-      auto is = pg.isotopeCosineScore;
+      auto is = pg.intensity;
       for (auto &p: pg)
       {
         if (peakPgmap.find(p.mz) != peakPgmap.end())
@@ -1628,7 +1632,7 @@ namespace OpenMS
 
     for (auto &pg : peakGroups)
     {
-      auto is = pg.isotopeCosineScore;
+      auto is = pg.intensity;
       std::vector<LogMzPeak> tmp;
       tmp.swap(pg);
       pg.reserve(tmp.size());

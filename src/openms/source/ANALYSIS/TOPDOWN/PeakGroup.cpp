@@ -39,7 +39,7 @@ namespace OpenMS
 
   PeakGroup::~PeakGroup()
   {
-    clearChargeInfo();
+    //clearChargeInfo();
   }
 
   void PeakGroup::clearChargeInfo()
