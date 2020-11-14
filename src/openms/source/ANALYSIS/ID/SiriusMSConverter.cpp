@@ -546,12 +546,12 @@ namespace OpenMS
         }
 
         // ffm featureXML
+        if (feature->metaValueExists("adducts"))
+        {
+          adducts = feature->getMetaValue("adducts");
+        }
         if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
         {
-          if (feature->metaValueExists("adducts"))
-          {
-            adducts = feature->getMetaValue("adducts");
-          }
           vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
           vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
           if (masstrace_centroid_mz.size() == masstrace_intensity.size())

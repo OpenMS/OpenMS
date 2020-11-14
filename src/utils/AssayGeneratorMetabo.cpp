@@ -297,13 +297,11 @@ protected:
     // iterate over all the files
     for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
     {
-      OPENMS_LOG_DEBUG << "Current mzML-file: " << in[file_counter] << std::endl;
       // load mzML
       MzMLFile mzml;
       PeakMap spectra;
       mzml.load(in[file_counter], spectra);
 
-      OPENMS_LOG_DEBUG << "Current featureXML-file: " << id[file_counter] << std::endl;
       // load featurexml
       FeatureXMLFile fxml;
       FeatureMap feature_map;
@@ -313,20 +311,14 @@ protected:
       StringList featurexml_primary_path;
       feature_map.getPrimaryMSRunPath(featurexml_primary_path);
 
-      if (in != featurexml_primary_path)
+      if (in[file_counter] != featurexml_primary_path[0]) // featureXML should only have one primary path
       {
         OPENMS_LOG_WARN << "Warning: Original paths of the mzML files do not correspond to the featureXML files. Please check and provide the corresponding files." << std::endl;
 
-        OPENMS_LOG_WARN << "Input MzML: " << std::endl;
-                        for (const String& it_mzml : in)
-                            {
-                              OPENMS_LOG_WARN << " " << it_mzml << std::endl;
-                            }
-        OPENMS_LOG_WARN << "Input FeatureXML: " << std::endl;
-                        for (const String& it_fxml : id)
-                            {
-                              OPENMS_LOG_WARN << " " << it_fxml << std::endl;
-                            }
+        OPENMS_LOG_WARN << "Input MzML: " << in[file_counter] << std::endl;
+
+        OPENMS_LOG_WARN << "Input FeatureXML: " << id[file_counter] << std::endl;
+
         OPENMS_LOG_WARN << "Original paths: " << std::endl;
                         for (const String& it_fpp : featurexml_primary_path)
                             {
@@ -566,10 +558,8 @@ protected:
                                                                   exclude_ms2_precursor,
                                                                   file_counter);
       }
-
       // append potential transitions of one file to vector of all files
       v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
-
     } // end iteration over all files
 
     // resolve over all files and use first rank based on precursor intensity

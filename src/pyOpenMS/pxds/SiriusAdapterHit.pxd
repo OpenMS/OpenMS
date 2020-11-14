@@ -11,7 +11,6 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
         String adduct
         String precursor_formula
         int rank
-        double rank_score
         double iso_score
         double tree_score
         double sirius_score
