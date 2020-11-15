@@ -102,7 +102,7 @@ namespace OpenMS
 
     // examine intensity distribution over iostope indices. Also determines the most plausible isotope index or, monoisotopic mass
     static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
-                                                           double *perIsotopeIntensities,
+                                                           std::vector<double> &perIsotopeIntensities,
                                                            int &offset,
                                                            PrecalculatedAveragine &avg);
 
@@ -181,7 +181,7 @@ namespace OpenMS
     void updateLogMzPeaks(MSSpectrum *spec);
 
     //generate mz bins from log mz peaks
-    void updateMzBins(Size &binNumber, float *mzBinIntensities);
+    void updateMzBins(Size &binNumber, std::vector<float> &mzBinIntensities);
 
     //this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins();
@@ -190,22 +190,22 @@ namespace OpenMS
     void generatePeakGroupsFromSpectrum();
 
     //Update mass bins from mz bins and universal pattern. It select candidate mass bins using the pattern, eliminate possible harmonic masses
-    Matrix<int> updateMassBins(float *massIntensities,
-                               float *mzIntensities);
+    Matrix<int> updateMassBins(//float *massIntensities,
+        std::vector<float> &mzIntensities);
 
     //Subfunction of updateMassBins.
     Matrix<int> updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
-                                float *massIntensities,
+                                std::vector<float> &massIntensities,
                                 long &binStart, long &binEnd);
 
     //Subfunction of updateMassBins.
-    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites,
-                                                                float *mzIntensities);
+    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(std::vector<float> &massIntensitites,
+                                                                std::vector<float> &mzIntensities);
 
     //From selected candidate mass bins, reselect the peaks. It researches the original spectrum to select peaks.
     //Also isotopic peaks are selected in this function.
-    void getCandidatePeakGroups(float *sumLogIntensities,
-                                Matrix<int> &chargeRanges);
+    void getCandidatePeakGroups(//float *sumLogIntensities,
+        Matrix<int> &chargeRanges);
 
     bool empty();
 
@@ -224,12 +224,12 @@ namespace OpenMS
     //filter out possible harmonics
     void removeHarmonicPeakGroups(double tol);
 
-    void reassignPeaksinPeakGroups(double tol);
+    void reassignPeaksinPeakGroups();
 
     //From peaks distributions over charge and isotope are calculated
     std::vector<int> updatePerChargeIsotopeIntensity(
-        double *perIsotopeIntensity,
-        double *perChargeIntensity,
+        std::vector<double> &perIsotopeIntensity,
+        std::vector<double> &perChargeIntensity,
         int maxIsotopeCount,
         PeakGroup &pg);
 
@@ -240,7 +240,7 @@ namespace OpenMS
     void filterPeakGroupsByQScore(int currentMaxMassCount);
 
     //For MS1, check intensity ratio between charges.
-    bool checkChargeDistribution(double *perChargeIntensity);
+    bool checkChargeDistribution(std::vector<double> &perChargeIntensity);
 
     //cosine function
     static double getCosine(std::vector<double> &a, std::vector<double> &b, int off = 0);
@@ -249,7 +249,7 @@ namespace OpenMS
     static double getCosine(const double *a, double *b, Size size);
 
     //cosine function for fast calculatoin
-    static double getCosine(const double *a,
+    static double getCosine(std::vector<double> &a,
                             int &aStart,
                             int &aEnd,
                             IsotopeDistribution &b,

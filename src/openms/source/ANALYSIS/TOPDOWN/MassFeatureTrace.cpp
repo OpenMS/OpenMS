@@ -111,10 +111,6 @@ namespace OpenMS
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
     int chargeRange = maxCharge - minCharge + 1;
-    auto *perChargeIntensity = new double[chargeRange + 1];
-    auto *perChargeMaxIntensity = new double[chargeRange + 1];
-    auto *perChargeMz = new double[chargeRange + 1];
-    auto *perIsotopeIntensity = new double[averagines.maxIsotopeIndex];
 
     //std::cout<<chargeRange << " " << averagines.maxIsotopeIndex<<std::endl;
     int tmp[] = {0, 0, 0, 0};
@@ -127,6 +123,10 @@ namespace OpenMS
       int minFIso = INT_MAX; // min feature isotope index
       int maxFIso = INT_MIN; // max feature isotope index
 
+      auto perChargeIntensity = std::vector<double>(chargeRange + 1, 0);
+      auto perChargeMaxIntensity = std::vector<double>(chargeRange + 1, 0);
+      auto perChargeMz = std::vector<double>(chargeRange + 1, 0);
+      auto perIsotopeIntensity = std::vector<double>(averagines.maxIsotopeIndex, 0);
 
       int minScanNum = (int) map.size() + 1000;
       int maxScanNum = 0;
@@ -136,10 +136,6 @@ namespace OpenMS
       double maxMass = .0;
       double maxIso = 0;
       boost::dynamic_bitset<> charges(chargeRange + 1);
-      std::fill_n(perChargeIntensity, chargeRange + 1, 0);
-      std::fill_n(perChargeMaxIntensity, chargeRange + 1, 0);
-      std::fill_n(perChargeMz, chargeRange + 1, 0);
-      std::fill_n(perIsotopeIntensity, averagines.maxIsotopeIndex, 0);
 
       for (auto &p2 : mt)
       {
@@ -348,13 +344,7 @@ namespace OpenMS
       }
     }
 
-    //std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
-
-    delete[] perIsotopeIntensity;
-    delete[] perChargeMz;
-    delete[] perChargeMaxIntensity;
-    delete[] perChargeIntensity;
-    //    delete[] peakGroupMap;
+    std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
   }
 
   void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)

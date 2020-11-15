@@ -143,19 +143,19 @@ namespace OpenMS
     return isotopeEndIndices[i];
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak, bool positive) :
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak, int index, bool positive) :
       mz(peak.getMZ()),
       intensity(peak.getIntensity()),
       logMz(getLogMz(peak.getMZ(), positive)),
-      charge(0),
+      charge(0), index(index),
       isotopeIndex(0)
   {
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz, bool positive) :
-      mz(mz), logMz(getLogMz(mz, positive))
-  {
-  }
+  //FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz, bool positive) :
+  //    mz(mz), index(index), logMz(getLogMz(mz, positive))
+  //{
+  //}
 
 
   FLASHDeconvHelperStructs::LogMzPeak::~LogMzPeak()

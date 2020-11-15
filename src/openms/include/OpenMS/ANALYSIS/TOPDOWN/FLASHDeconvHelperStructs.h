@@ -121,18 +121,15 @@ namespace OpenMS
       /// isotope index
       int isotopeIndex = -1;
 
+      int index;
+
       /// default constructor
       LogMzPeak() = default;
 
       /**
         //       @brief constructor from Peak1D.
         //       @param positive determines the charge carrier mass*/
-      explicit LogMzPeak(Peak1D &peak, bool positive);
-
-      /**
-       //       @brief constructor from mz.
-       //       @param positive determines the charge carrier mass*/
-      explicit LogMzPeak(double mz, bool positive);
+      explicit LogMzPeak(Peak1D &peak, int index, bool positive);
 
       /// copy constructor
       LogMzPeak(const LogMzPeak &) = default;
