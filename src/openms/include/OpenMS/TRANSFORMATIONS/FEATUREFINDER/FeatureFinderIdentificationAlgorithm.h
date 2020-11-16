@@ -208,6 +208,8 @@ protected:
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
   TargetedExperiment library_; ///< accumulated assays for peptides
 
+  bool quantify_decoys_;
+
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):

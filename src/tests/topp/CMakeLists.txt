@@ -2969,7 +2969,7 @@ add_test("UTILS_ProteomicsLFQ_5" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -Alignment:align_algorithm:max_rt_shift 0
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
-         -report_decoys true
+         -PeptideQuantification:quantify_decoys
          -targeted_only true
          -transfer_ids false
          -mass_recalibration false

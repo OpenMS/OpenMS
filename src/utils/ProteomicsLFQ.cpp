@@ -237,9 +237,6 @@ protected:
                                                                      " sequence as a candidate per feature in the same file.", false, true);
     setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("report_decoys", "<option>", "false", "If decoy PSMs and Proteins should be included in the report.", false, true);
-    setValidStrings_("report_decoys", ListUtils::create<String>("true,false"));
-
     /// TODO: think about export of quality control files (qcML?)
 
     Param pp_defaults = PeakPickerHiRes().getDefaults();
@@ -252,7 +249,9 @@ protected:
     ffi_defaults.setValue("svm:samples", 10000); // restrict number of samples for training
     ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
     ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
+    ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness    
     ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
+
     // hide entries
     for (const auto& s : {"svm:samples", "svm:log2_C", "svm:log2_gamma", "svm:min_prob", "svm:no_selection", "svm:xval_out", "svm:kernel", "svm:xval", "candidates_out", "extract:n_isotopes", "model:type"} )
     {
@@ -858,7 +857,7 @@ protected:
   
     // TODO we could think about removing this limitation 
     IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
-    if (getStringOption_("report_decoys") == "false")
+    if (!getFlag_("PeptideQuantification:quantify_decoys"))
     {
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeDecoyHits(protein_ids);
@@ -1400,7 +1399,7 @@ protected:
     // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
-    if (getStringOption_("report_decoys") == "true")
+    if (getFlag_("PeptideQuantification:quantify_decoys"))
     {
       Param fdr_param = fdr.getParameters();
       fdr_param.setValue("add_decoy_peptides", "true");

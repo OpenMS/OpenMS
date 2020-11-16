@@ -370,6 +370,12 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
     {
       for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
       {
+        // skip decoys
+        if (pep_hit.metaValueExists("target_decoy") && pep_hit.getMetaValue("target_decoy") == "decoy") 
+        { 
+          continue;
+        }
+
         //TODO Really double check with Meena Choi (MSStats author) or make it an option! I can't find any info
         // on what is correct. For TMT we include them (since it is necessary) (see occurrence above as well when map is built!)
         const String & sequence = pep_hit.getSequence().toString(); // to modified string
@@ -599,6 +605,12 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
 
       for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
       {
+        // skip decoys
+        if (pep_hit.metaValueExists("target_decoy") && pep_hit.getMetaValue("target_decoy") == "decoy") 
+        { 
+          continue;
+        }
+
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
