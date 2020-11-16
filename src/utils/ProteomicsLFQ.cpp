@@ -1239,14 +1239,12 @@ protected:
   {
     // load the IDs again and merge
     IDMergerAlgorithm merger{String("all_merged")};
-
-    IdXMLFile f;
     
     for (const auto& idfile : in_ids)
     {
       vector<ProteinIdentification> protein_ids;
       vector<PeptideIdentification> peptide_ids;
-      f.load(idfile, protein_ids, peptide_ids);
+      IdXMLFile().load(idfile, protein_ids, peptide_ids);
 
       // Check if score types are valid.
       //TODO do that in the inference algorithms? Epifany only does it for consensusXML
@@ -1318,6 +1316,11 @@ protected:
           return UNKNOWN_ERROR;
         }
       }
+    }
+
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_mergedIDs_reindexed.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
     //-------------------------------------------------------------
