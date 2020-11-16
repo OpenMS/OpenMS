@@ -474,7 +474,7 @@ namespace OpenMS
     // add back peptide identification id if it got skipped (decoys)
     for (const auto& pep : peptides)
     {
-      if (p.getHits().empty()) continue;
+      if (pep.getHits().empty()) continue;
       PeptideIdentification p{pep}; 
       const PeptideHit& hit = p.getHits()[0];
       if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") 
