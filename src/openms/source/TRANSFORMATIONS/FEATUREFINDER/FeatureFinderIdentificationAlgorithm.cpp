@@ -471,13 +471,15 @@ namespace OpenMS
       hits.erase(it, hits.end());
     }
 
-    // add back peptide identification id if it got skipped
+    // add back peptide identification id if it got skipped (decoys)
     for (auto p : peptides)
     {
       if (p.getHits().empty()) continue;
       const PeptideHit& hit = p.getHits()[0];
-      // don't add decoy peptides
-      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") { features.getUnassignedPeptideIdentifications().push_back(p); }
+      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") 
+      { 
+        features.getUnassignedPeptideIdentifications().push_back(p); 
+      }
     }
 
     // remove empty PeptideIdentifications
