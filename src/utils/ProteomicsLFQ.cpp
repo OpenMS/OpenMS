@@ -237,8 +237,8 @@ protected:
                                                                      " sequence as a candidate per feature in the same file.", false, true);
     setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("report_decoys", "<option>", "false", "If decoy PSMs and Proteins should be included in the report.", false, true);
-    setValidStrings_("report_decoys", ListUtils::create<String>("true,false"));
+    registerStringOption_("quantify_decoys", "<option>", "false", "If decoy peptides and proteins should be quantified and included in the report.", false, true);
+    setValidStrings_("quantify_decoys", ListUtils::create<String>("true,false"));
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -253,7 +253,7 @@ protected:
     ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
     ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
     ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
-    if (getStringOption_("report_decoys" == "true")
+    if (getStringOption_("quantify_decoys") == "true")
     {
       ffi_defaults.setValue("quantify_decoys", "true");
     }
@@ -864,7 +864,7 @@ protected:
   
     // TODO we could think about removing this limitation 
     IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
-    if (getStringOption_("report_decoys") == "false")
+    if (getStringOption_("quantify_decoys") == "false")
     {
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeDecoyHits(protein_ids);
@@ -1406,7 +1406,7 @@ protected:
     // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
-    if (getStringOption_("report_decoys") == "true")
+    if (getStringOption_("quantify_decoys") == "true")
     {
       Param fdr_param = fdr.getParameters();
       fdr_param.setValue("add_decoy_peptides", "true");
