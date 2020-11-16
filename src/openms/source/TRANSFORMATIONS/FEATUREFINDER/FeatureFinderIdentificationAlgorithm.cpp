@@ -1252,6 +1252,7 @@ namespace OpenMS
     debug_level_ = param_.getValue("debug");
     candidates_out_ = param_.getValue("candidates_out");
 
+    // quantification of decoys
     quantify_decoys_ = param_.getValue("quantify_decoys").toBool();
   }
 
