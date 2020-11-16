@@ -132,6 +132,9 @@ namespace OpenMS
     defaults_.setValidStrings("svm:xval_out", ListUtils::create<String>("csv"));
     defaults_.insert("svm:", SimpleSVM().getParameters());
 
+    defaults_.setValue("quantify_decoys", "false", "Whether decoy peptides should be quantified (true) or skipped (false).");
+    defaults_.setValidStrings("quantify_decoys", ListUtils::create<String>("true,false"));
+
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
     // @TODO: intensity bias introduced by "peak_apices_sum"?
@@ -477,9 +480,12 @@ namespace OpenMS
       if (pep.getHits().empty()) continue;
       PeptideIdentification p{pep}; 
       const PeptideHit& hit = p.getHits()[0];
-      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") 
-      { 
-        features.getUnassignedPeptideIdentifications().push_back(p); 
+      if (!quantify_decoys_) // if decoys are not quantified we add them as unassigned peptide identification
+      {
+        if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") 
+        { 
+          features.getUnassignedPeptideIdentifications().push_back(p); 
+        }
       }
     }
 
@@ -1196,9 +1202,12 @@ namespace OpenMS
     peptide.sort();
     PeptideHit& hit = peptide.getHits()[0];
 
-    // don't add decoy peptides
-    if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") { return; }
-    
+    // if we don't quantify decoys we don't add them to the peptide list
+    if (!quantify_decoys_)
+    {
+      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") { return; }
+    }
+
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
@@ -1242,6 +1251,8 @@ namespace OpenMS
     // debug
     debug_level_ = param_.getValue("debug");
     candidates_out_ = param_.getValue("candidates_out");
+
+    quantify_decoys_ = param_.getValue("quantify_decoys").toBool();
   }
 
   void FeatureFinderIdentificationAlgorithm::getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
