@@ -181,10 +181,10 @@ protected:
     mf_defaults.addTag("trace_termination_outliers", "advanced"); // hide entry
     //mf_defaults.addTag("min_trace_length", "advanced"); // hide entry
     //mf_defaults.setValue("trace_termination_outliers", numOverlappedScans, "");
-    mf_defaults.setValue("min_trace_length", 15.0, "min feature trace length in second");//min_RT_span
+    mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     //mf_defaults.setValue("min_charge_cosine", .5, "controlled by -min_charge_cosine option");
     //mf_defaults.addTag("min_charge_cosine", "advanced");
-    mf_defaults.setValue("min_isotope_cosine", .75, "controlled by -min_isotope_cosine option");
+    mf_defaults.setValue("min_isotope_cosine", .8, "controlled by -min_isotope_cosine option");
     mf_defaults.addTag("min_isotope_cosine", "advanced");
 
     Param combined;
