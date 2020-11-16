@@ -470,6 +470,19 @@ namespace OpenMS
       });
       hits.erase(it, hits.end());
     }
+
+    // add back peptide identification id if it got skipped (decoys)
+    for (const auto& pep : peptides)
+    {
+      if (pep.getHits().empty()) continue;
+      PeptideIdentification p{pep}; 
+      const PeptideHit& hit = p.getHits()[0];
+      if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") 
+      { 
+        features.getUnassignedPeptideIdentifications().push_back(p); 
+      }
+    }
+
     // remove empty PeptideIdentifications
     auto it = remove_if(ids.begin(), ids.end(),
       [](const PeptideIdentification & pid)
@@ -1182,7 +1195,10 @@ namespace OpenMS
     if (peptide.getHits().empty()) return;
     peptide.sort();
     PeptideHit& hit = peptide.getHits()[0];
+
+    // don't add decoy peptides
     if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") { return; }
+    
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();

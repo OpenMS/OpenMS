@@ -353,7 +353,7 @@ namespace OpenMS
     if (min_peptides_per_protein > 0)
     {
       IDFilter::removeMatchingItems<std::vector<ProteinHit>>(prot_run.getHits(),
-          IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", min_peptides_per_protein));
+          IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", static_cast<int>(min_peptides_per_protein) - 1));
     }
     //TODO Allow count as aggregation method -> i.e. set as protein score?
   }

@@ -237,6 +237,8 @@ protected:
                                                                      " sequence as a candidate per feature in the same file.", false, true);
     setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("report_decoys", "<option>", "false", "If decoy PSMs and Proteins should be included in the report.", false, true);
+    setValidStrings_("report_decoys", ListUtils::create<String>("true,false"));
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -856,8 +858,11 @@ protected:
   
     // TODO we could think about removing this limitation 
     IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
-    IDFilter::removeDecoyHits(peptide_ids);
-    IDFilter::removeDecoyHits(protein_ids);
+    if (getStringOption_("report_decoys") == "false")
+    {
+      IDFilter::removeDecoyHits(peptide_ids);
+      IDFilter::removeDecoyHits(protein_ids);
+    }
     IDFilter::removeEmptyIdentifications(peptide_ids);
     IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
@@ -881,13 +886,16 @@ protected:
       // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
       for (PeptideHit & ph : pid.getHits())
       {
-        // TODO: keep target_decoy information for QC
         // TODO: we only have super inefficient meta value removal
         vector<String> keys;
         ph.getKeys(keys);
         for (const auto& k : keys)
         {
-          if (!(k.hasSubstring("_score") || k.hasSubstring("q-value") || k.hasPrefix("Luciphor_global_flr")))
+          if (!(k.hasSubstring("_score") 
+            || k.hasSubstring("q-value") 
+            || k.hasPrefix("Luciphor_global_flr")
+            || k == "target_decoy") // keep target_decoy information for QC
+            )            
           {
             ph.removeMetaValue(k);
           }
@@ -970,6 +978,7 @@ protected:
         mz_file_abs_path,
         true);
     }
+
     return EXECUTION_OK;
   }
  
@@ -1104,12 +1113,13 @@ protected:
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
       FeatureMap tmp = fm;
+
       ffi.run(peptide_ids, 
         protein_ids, 
         ext_peptide_ids, 
         ext_protein_ids, 
         tmp,
-        seeds);
+        seeds);          
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
@@ -1229,14 +1239,12 @@ protected:
   {
     // load the IDs again and merge
     IDMergerAlgorithm merger{String("all_merged")};
-
-    IdXMLFile f;
     
     for (const auto& idfile : in_ids)
     {
       vector<ProteinIdentification> protein_ids;
       vector<PeptideIdentification> peptide_ids;
-      f.load(idfile, protein_ids, peptide_ids);
+      IdXMLFile().load(idfile, protein_ids, peptide_ids);
 
       // Check if score types are valid.
       //TODO do that in the inference algorithms? Epifany only does it for consensusXML
@@ -1308,6 +1316,11 @@ protected:
           return UNKNOWN_ERROR;
         }
       }
+    }
+
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_mergedIDs_reindexed.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
     //-------------------------------------------------------------
@@ -1387,6 +1400,14 @@ protected:
     // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
+    if (getStringOption_("report_decoys") == "true")
+    {
+      Param fdr_param = fdr.getParameters();
+      fdr_param.setValue("add_decoy_peptides", "true");
+      fdr_param.setValue("add_decoy_proteins", "true");
+      fdr.setParameters(fdr_param);
+    }
+
     fdr.applyBasic(inferred_protein_ids[0]);
     if (max_psm_fdr < 1.)
     {
