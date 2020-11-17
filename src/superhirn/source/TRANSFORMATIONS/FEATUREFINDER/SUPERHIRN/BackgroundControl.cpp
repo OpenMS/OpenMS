@@ -82,7 +82,7 @@ namespace OpenMS
     while (trStart <= SuperHirnParameters::instance()->getMaxTR())
     {
 
-      // inner loop is the mzBins:
+      // inner loop is the mzBinsForEdgeEffect:
       map<double, BackgroundIntensityBin> mzArray;
       double mzStart = SuperHirnParameters::instance()->getMinFeatureMZ();
       while (mzStart <= SuperHirnParameters::instance()->getMaxFeatureMZ())

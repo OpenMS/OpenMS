@@ -289,19 +289,19 @@ namespace OpenMS
 
       fsf << "\n";
 
-      if (abs(avgMass - 44086) < 2)
+      if (abs(avgMass - 44086) < 3)
       {
         tmp[0] = 1;
       }
-      if (abs(avgMass - 44166) < 2)
+      if (abs(avgMass - 44166) < 3)
       {
         tmp[1] = 1;
       }
-      if (abs(avgMass - 44328) < 2)
+      if (abs(avgMass - 44328) < 3)
       {
         tmp[2] = 1;
       }
-      if (abs(avgMass - 44369) < 2)
+      if (abs(avgMass - 44369) < 3)
       {
         tmp[3] = 1;
       }

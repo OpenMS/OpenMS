@@ -216,7 +216,7 @@ namespace OpenMS
 
       for (int i = 0; i < chargeRange; i++)
       {
-        double factor = -1;
+        double factor = 1;
         //if (abs(i + minCharge) == 1)
         // {
         //  factor = 1;
@@ -274,6 +274,7 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::updateMzBins(Size &binNumber,
                                           std::vector<float> &mzBinIntensities)
   {
+    mzBinsForEdgeEffect = boost::dynamic_bitset<>(binNumber);
     mzBins = boost::dynamic_bitset<>(binNumber);
     //std::fill(mzBinIntensities.begin(), mzBinIntensities.end(), .0);
 
@@ -285,26 +286,31 @@ namespace OpenMS
         continue;
       }
       mzBins.set(bi);
+      mzBinsForEdgeEffect.set(bi);
       mzBinIntensities[bi] += p.intensity;
+    }
+    for (auto &p : logMzPeaks)
+    {
+      Size bi = getBinNumber(p.logMz, mzBinMinValue, binWidth[msLevel - 1]);
       auto delta = (p.logMz - getBinValue(bi, mzBinMinValue, binWidth[msLevel - 1]));
 
       if (delta > 0)
       {
         if (bi < binNumber - 1
-            && !mzBins[bi + 1]
+            && !mzBinsForEdgeEffect[bi + 1]
             )
         {
-          mzBins.set(bi + 1);
+          mzBinsForEdgeEffect.set(bi + 1);
           mzBinIntensities[bi + 1] += p.intensity;
         }
       }
       else if (delta < 0)
       {
         if (bi > 0
-            && !mzBins[bi - 1]
+            && !mzBinsForEdgeEffect[bi - 1]
             )
         {
-          mzBins.set(bi - 1);
+          mzBinsForEdgeEffect.set(bi - 1);
           mzBinIntensities[bi - 1] += p.intensity;
         }
       }
@@ -376,15 +382,20 @@ namespace OpenMS
     auto bw = binWidth[msLevel - 1];
 
     // intensity change ratio should not exceed the factor.
-    float factor = 4.0;
+    float factor = 10.0;
     //float factor2 = (1 - 1.0f / factor);
-    float hfactor = 8.0;
+    float hfactor = 10.0;
     //float hfactor2 = (1 - 1.0f / hfactor);
     // scan through log mz peaks
 
     while (mzBinIndex != mzBins.npos)
     {
       auto &intensity = mzIntensities[mzBinIndex];
+      //if (mzBinIndex  < mzBinsForEdgeEffect.size()-1 &&  intensity < mzIntensities[mzBinIndex + 1]){
+      //  mzBinIndex = mzBinsForEdgeEffect.find_next(mzBinIndex);
+      //  continue;
+      //}
+
       double mz = -1.0, logMz = 0;
 
       // scan through charges
@@ -430,7 +441,8 @@ namespace OpenMS
           auto nextIsoMz = logMz + diff;//log(mz + Constants::C13C12_MASSDIFF_U / charge);
           auto nextIsoBin = getBinNumber(nextIsoMz, mzBinMinValue, bw);
 
-          if (nextIsoBin < mzBins.size() && mzBins[nextIsoBin] && intensity > mzIntensities[nextIsoBin])
+          if (nextIsoBin < mzBinsForEdgeEffect.size() && mzBinsForEdgeEffect[nextIsoBin] &&
+              intensity > mzIntensities[nextIsoBin])
           {
             isoIntensity = mzIntensities[nextIsoBin];
             passFirstStep = true;
@@ -442,7 +454,7 @@ namespace OpenMS
             auto waterAddBin = getBinNumber(waterAddMz, mzBinMinValue, bw);
             float waterAddIntensity = .0;
 
-            if (waterAddBin < mzBins.size() && mzBins[waterAddBin])
+            if (waterAddBin < mzBinsForEdgeEffect.size() && mzBinsForEdgeEffect[waterAddBin])
             {
               waterAddIntensity = mzIntensities[waterAddBin];
             }
@@ -456,7 +468,7 @@ namespace OpenMS
             auto amoniaLossBin = getBinNumber(amoniaLossMz, mzBinMinValue, bw);
             float amoniaLossntensity = .0;
 
-            if (amoniaLossBin >= 0 && mzBins[amoniaLossBin])
+            if (amoniaLossBin >= 0 && mzBinsForEdgeEffect[amoniaLossBin])
             {
               amoniaLossntensity = mzIntensities[amoniaLossBin];
             }
@@ -492,30 +504,27 @@ namespace OpenMS
           //check harmonic
           // int maxHcharge = -1;
           float maxHint = .0;
+
           auto highThreshold = intensity * hfactor;
           auto lowThreshold = intensity / hfactor;// / factor;
           for (auto k = 0; k < hChargeSize; k++)//
           {
             auto hmzBinIndex = massBinIndex - hBinOffsets.getValue(k, j);
-            //for (auto l = -1; l <= 1; l++)
-            {//hChargeSize
-              //auto hmzBinIndex = _hmzBinIndex + l;
-              if (hmzBinIndex > 0 && hmzBinIndex < mzBins.size() && mzBins[hmzBinIndex])
+            if (hmzBinIndex > 0 && hmzBinIndex < mzBinsForEdgeEffect.size() && mzBinsForEdgeEffect[hmzBinIndex])
+            {
+              auto &hintensity = mzIntensities[hmzBinIndex];
+              if (hintensity > lowThreshold
+                  &&
+                  hintensity < highThreshold
+                  )
               {
-                auto &hintensity = mzIntensities[hmzBinIndex];
-                if (hintensity > lowThreshold
-                    &&
-                    hintensity < highThreshold
-                    )
-                {
-                  //if (hintensity < maxHint)
-                  //{
-                  //  continue;
-                  //}
-                  maxHint = hintensity;
-                  break;//
-                  //maxHcharge = k;
-                }
+                //if (hintensity < maxHint)
+                //{
+                //  continue;
+                //}
+                maxHint = hintensity;
+                break;//
+                //maxHcharge = k;
               }
             }
           }
@@ -537,6 +546,8 @@ namespace OpenMS
 
             massIntensitites[massBinIndex] += intensity + isoIntensity;
             candidateMassBinsForThisSpectrum[massBinIndex] = (++cc >= minPeakCntr);
+            //prevIntensity = intensity;
+            //prevCharge = j;
           }
         }
         prevIntensity = intensity;
@@ -544,27 +555,6 @@ namespace OpenMS
       }
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
-
-    /*
-    // Subtract noise intensity from each mass
-    auto mindex = candidateMassBinsForThisSpectrum.find_first();
-    while (mindex != candidateMassBinsForThisSpectrum.npos)
-    {
-      auto &s = massIntensitites[mindex];
-      float maxNoise = .0;
-      for (auto k = 0; k <= hChargeSize; k++)
-      {
-        maxNoise = std::max(maxNoise, noise[k][mindex]);
-      }
-      s -= maxNoise;
-      mindex = candidateMassBinsForThisSpectrum.find_next(mindex);
-    }
-*/
-    //for (auto k = 0; k <= hChargeSize; k++)
-    //{
-    //  delete[] noise[k];
-    //}
-    //delete[] noise;
     return candidateMassBinsForThisSpectrum;
   }
 
@@ -636,7 +626,7 @@ namespace OpenMS
           massBinsForThisSpectrum[maxIndex] = candidateMassBinsForThisSpectrum[maxIndex];
           if (msLevel == 1)
           {
-            chargeRanges.setValue(2, mzBinIndex, charge);
+            //chargeRanges.setValue(2, mzBinIndex, charge);
           }
           massBins[maxIndex] = true;
         }
@@ -676,7 +666,7 @@ namespace OpenMS
     double bw = binWidth[msLevel - 1];
     double tol = tolerance[msLevel - 1];
     int chargeRange = currentMaxCharge - minCharge + 1;
-    auto mzBinSize = mzBins.size();
+    auto mzBinSize = mzBinsForEdgeEffect.size();
     auto massBinSize = massBins.size();
     int logMzPeakSize = (int) logMzPeaks.size();
     auto currentPeakIndex = std::vector<int>(chargeRange, 0);
@@ -974,8 +964,6 @@ namespace OpenMS
     removeOverlappingPeakGroups(tolerance[msLevel - 1]);
     removeHarmonicPeakGroups(tolerance[msLevel - 1]); //
 
-
-
     if (msLevel == 1)
     {
       if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) numOverlappedScans)//
@@ -1137,7 +1125,7 @@ namespace OpenMS
     int prevCharge = nonZeroStart;
 
     int n_r = 0;
-    double factor = 4.0;
+    double factor = 5.0;
     double intThreshold = maxPerChargeIntensity / factor;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
@@ -1466,7 +1454,7 @@ namespace OpenMS
     masses.reserve(peakGroups.size());
     for (auto &peakGroup : peakGroups)
     {
-      masses.push_back(peakGroup.avgMass);
+      masses.push_back(peakGroup.monoisotopicMass);
     }
     for (auto &pg : peakGroups)
     {
@@ -1477,7 +1465,7 @@ namespace OpenMS
         {
           for (int i = -2; i <= 2; ++i)
           {
-            auto omass = pg.avgMass + i * Constants::ISOTOPE_MASSDIFF_55K_U;
+            auto omass = pg.monoisotopicMass + i * Constants::ISOTOPE_MASSDIFF_55K_U;
             auto hmass = k == 0 ? omass * h : omass / h;
             double massTol = 2 * hmass * tol;
             auto iter = std::lower_bound(masses.begin(), masses.end(), hmass - massTol);
@@ -1488,16 +1476,16 @@ namespace OpenMS
               for (; j < peakGroups.size(); j++)
               {
                 auto &pgo = peakGroups[j];
-                if (hmass - pgo.avgMass > massTol)
+                if (hmass - pgo.monoisotopicMass > massTol)
                 {
                   continue;
                 }
 
-                if (!select || pgo.avgMass - hmass > massTol)
+                if (!select || pgo.monoisotopicMass - hmass > massTol)
                 {
                   break;
                 }
-                select &= pg.totalSNR >= pgo.totalSNR;
+                select &= pg.intensity >= pgo.intensity;
                 if (!select)
                 {
                   break;
@@ -1526,27 +1514,33 @@ namespace OpenMS
   }
 
   void FLASHDeconvAlgorithm::removeOverlappingPeakGroups(double tol)
-  { // pgs are sorted
+  {
     int isoLength = 1; // inclusive
-    sort(peakGroups.begin(), peakGroups.end());
     std::vector<PeakGroup> filtered;
     filtered.reserve(peakGroups.size());
+    sort(peakGroups.begin(), peakGroups.end());
 
     for (Size i = 0; i < peakGroups.size(); i++)
     {
       bool select = true;
       auto &pg = peakGroups[i];
 
-      if (pg.avgMass <= 0)
-      {
-        continue;
-      }
-      if (i > 0 && abs(pg.avgMass - peakGroups[i - 1].avgMass) < 1e-3)
+      if (pg.monoisotopicMass <= 0)
       {
         continue;
       }
 
-      double massTol = pg.avgMass * tol;
+      //if (i > 0 &&  i < peakGroups.size()-1 &&
+      //    (pg.intensity < peakGroups[i - 1].intensity ||
+      //  pg.intensity < peakGroups[i + 1].intensity)
+      //abs(pg.avgMass - peakGroups[i - 1].avgMass) < 1e-3
+      //)
+      //{
+      //  filtered.push_back(pg);
+      //  continue;
+      //}
+
+      double massTol = pg.monoisotopicMass * tol * 2;
 
       int j = i + 1;
       for (int l = 0; l <= isoLength; l++)
@@ -1555,17 +1549,16 @@ namespace OpenMS
         for (; j < peakGroups.size(); j++)
         {
           auto &pgo = peakGroups[j];
-
-          if (l != 0 && pgo.avgMass - pg.avgMass < off - massTol)
+          if (l != 0 && pgo.monoisotopicMass - pg.monoisotopicMass < off - massTol)
           {
             continue;
           }
 
-          if (!select || pgo.avgMass - pg.avgMass > off + massTol)
+          if (!select || pgo.monoisotopicMass - pg.monoisotopicMass > off + massTol)
           {
             break;
           }
-          select &= pg.intensity > pgo.intensity;
+          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
         }
       }
 
@@ -1582,16 +1575,16 @@ namespace OpenMS
         {
           auto &pgo = peakGroups[j];
 
-          if (l != 0 && pg.avgMass - pgo.avgMass < off - massTol)
+          if (l != 0 && pg.monoisotopicMass - pgo.monoisotopicMass < off - massTol)
           {
             continue;
           }
 
-          if (!select || pg.avgMass - pgo.avgMass > off + massTol)
+          if (!select || pg.monoisotopicMass - pgo.monoisotopicMass > off + massTol)
           {
             break;
           }
-          select &= pg.intensity > pgo.intensity;
+          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
         }
       }
       if (!select)
@@ -1662,7 +1655,7 @@ namespace OpenMS
       int maxIsotopeCount,
       PeakGroup &pg)
   {
-    auto chargeRange = currentMaxCharge - minCharge + 1;
+    //    auto chargeRange = currentMaxCharge - minCharge + 1;
     std::fill(perIsotopeIntensity.begin(), perIsotopeIntensity.end(), 0);
     std::fill(perChargeIntensity.begin(), perChargeIntensity.end(), 0);
 

@@ -143,7 +143,7 @@ namespace OpenMS
     std::vector<std::vector<Size>> prevMassBinVector;
     std::vector<double> prevMinBinLogMassVector;
 
-    const std::vector<int> hCharges{2, 3, 5,};
+    const std::vector<int> hCharges{2, 3, 5};
     //Stores log mz peaks
     std::vector<LogMzPeak> logMzPeaks;
     //Bins for mass and mz. Bin size is deteremine by Parameter.tolerance
@@ -154,8 +154,11 @@ namespace OpenMS
     boost::dynamic_bitset<> massBinsForThisSpectrum;
     //massBins stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> massBins;
-    //mzBins stores the binned log mz peaks
+    //mzBinsForEdgeEffect stores the binned log mz peaks
+    boost::dynamic_bitset<> mzBinsForEdgeEffect;
+
     boost::dynamic_bitset<> mzBins;
+
 
     //This stores the "universal pattern"
     std::vector<double> filter;
