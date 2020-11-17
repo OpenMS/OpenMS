@@ -61,6 +61,7 @@ namespace OpenMS
 
     /// Describes a node in the OSWData model tree. 
     /// If a lower level, e.g. feature, is set, the upper levels need to be set as well.
+    /// The lowest level which is set, must be indicated by setting @p lowest.
     struct OPENMS_DLLAPI OSWIndexTrace
     {
       int idx_prot = -1;
@@ -68,6 +69,13 @@ namespace OpenMS
       int idx_feat = -1;
       int idx_trans = -1;
       OSWHierarchy::Level lowest = OSWHierarchy::Level::SIZE_OF_VALUES;
+
+      /// is the trace default constructed (=false), or does it point somewhere (=true)?
+      bool isSet() const
+      {
+        return lowest != OSWHierarchy::Level::SIZE_OF_VALUES;
+      }
+
     };
 
     /// high-level meta data of a transition

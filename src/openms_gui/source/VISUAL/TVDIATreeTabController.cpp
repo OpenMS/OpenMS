@@ -36,11 +36,15 @@
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
+
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
@@ -50,90 +54,189 @@ using namespace std;
 
 namespace OpenMS
 {
+
+
+  typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+  typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
+  typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+  typedef LayerData::OSWDataSharedPtrType OSWDataSharedPtrType;
+
+  /// represents all the information we need from a layer
+  /// We cannot use a full layer, because the original layer might get destroyed in the process...
+  struct MiniLayer
+  {
+    ExperimentSharedPtrType full_chrom_exp_sptr;
+    ODExperimentSharedPtrType ondisc_sptr;
+    OSWDataSharedPtrType annot_sptr;
+    String filename;
+    String layername;
+
+    MiniLayer(LayerData& layer)
+    : full_chrom_exp_sptr(getFullChromData(layer)),
+      ondisc_sptr(layer.getOnDiscPeakData()),
+      annot_sptr(layer.getChromatogramAnnotation()),
+      filename(layer.filename),
+      layername(layer.getName())
+    {
+    }
+
+    /// get the full chromExperiment
+    /// Could be backed up in layer.getChromatogramData() (if layer.getPeakDataMuteable() shows converted chroms already; as we will do below)
+    /// ... or layer.getChromatogramData() is empty and thus layer.getPeakDataMuteable() is the original chrom data
+    static ExperimentSharedPtrType getFullChromData(LayerData& layer)
+    {
+      ExperimentSharedPtrType exp_sptr(layer.getChromatogramData().get() == nullptr ||
+                                       layer.getChromatogramData().get()->getNrChromatograms() == 0
+                                       ? layer.getPeakDataMuteable() : layer.getChromatogramData());
+      return exp_sptr;
+    }
+  };
+
+  
+
   TVDIATreeTabController::TVDIATreeTabController(TOPPViewBase* parent):
     TVControllerBase(parent)
   {  
   }
 
-  void TVDIATreeTabController::showData(const OSWIndexTrace& /*trace*/)
+  bool addTransitionAsLayer(Plot1DWidget* w, 
+                            MiniLayer ml,
+                            const int chrom_index,
+                            const OSWPeakGroup* feature = nullptr)
   {
-  /*
-    // basic behavior 1
+    String chrom_caption = FileHandler::stripExtension(File::basename(ml.filename)) + "[" + chrom_index + "]";
 
-    // show multiple spectra together is only used for chromatograms directly
-    // where multiple (SRM) traces are shown together
-    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-
-    OSWData* data = layer.getChromatogramAnnotation().get();
-    if (data == nullptr)
-    { // no OSWData available ... strange...
-      return;
+    // add data and return if something went wrong
+    if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr, chrom_index, ml.filename, chrom_caption, false))
+    {
+      return false;
+    }
+    // add boundaries
+    if (feature)
+    {
+      double width = feature->getRTRightWidth() - feature->getRTLeftWidth();
+      double center = feature->getRTLeftWidth() + width / 2;
+      Annotation1DItem* item = new Annotation1DVerticalLineItem(center, width, 30);
+      item->setSelected(false);
+      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
     }
 
-    //open new 1D widget
-    Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
 
-    // string for naming the different chromatogram layers with their index
-    String chromatogram_caption;
-    // string for naming the tab title with the indices of the chromatograms
-    String caption = layer.getName();
+    w->canvas()->activateSpectrum(0, false);
+    return true;
+  }
+
+
+  void TVDIATreeTabController::showChromatogramsAsNew1D(const OSWIndexTrace& trace)
+  {
+    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    MiniLayer ml(layer);
+    // create new 1D widget; if we return due to error, the widget will be cleaned up
+    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace()));
+
+    if (showChromatogramsInCanvas_(trace, ml, w.get()))
+    { // success!
+      tv_->showPlotWidgetInWindow(w.get(), ml.layername);
+      w.release(); // do NOT delete the widget; tv_ owns it now ...
+      tv_->updateBarsAndMenus();
+    }
+  }
+
+  void TVDIATreeTabController::showChromatograms(const OSWIndexTrace& trace)
+  {
+    Plot1DWidget* w = tv_->getActive1DWidget();
+    if (w == nullptr)
+    { // currently not a 1d widget... ignore the signal
+      return;
+    }
+    MiniLayer ml(w->canvas()->getCurrentLayer());
+    // clear all layers
+    w->canvas()->removeLayers();
+    // add new layers
+    if (showChromatogramsInCanvas_(trace, ml, w))
+    {
+      tv_->updateBarsAndMenus();
+    }
+  }
+
+  bool TVDIATreeTabController::showChromatogramsInCanvas_(const OSWIndexTrace& trace, MiniLayer& ml, Plot1DWidget* w)
+  {
+
+    OSWData* data = ml.annot_sptr.get();
+    if (data == nullptr)
+    { // no OSWData available ... strange...
+      return false;
+    }
+
     switch (trace.lowest)
     {
     case OSWHierarchy::Level::PROTEIN:
-      // do nothing else -- showing all transitions for a protein is overwhelming...      
-      break;
-    case OSWHierarchy::Level::PEPTIDE:
     {
-      const auto& prot = data.getProteins()[tr.idx_prot];
-      const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
+      const auto& prot = data->getProteins()[trace.idx_prot];
+      // show only the first peptide for now...
+      const auto& pep = prot.getPeptidePrecursors()[0];
       for (const auto& feat : pep.getFeatures())
       {
         const auto& trids = feat.getTransitionIDs();
-        transitions_to_show.insert(transitions_to_show.end(), trids.begin(), trids.end());
+        for (UInt trid : trids)
+        {
+          if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+          { // something went wrong. abort
+            return false;
+          }
+        }
+      }
+      break;
+    }
+    case OSWHierarchy::Level::PEPTIDE:
+    {
+      const auto& prot = data->getProteins()[trace.idx_prot];
+      const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
+      for (const auto& feat : pep.getFeatures())
+      {
+        const auto& trids = feat.getTransitionIDs();
+        for (UInt trid : trids)
+        {
+          if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+          { // something went wrong. abort
+            return false;
+          }
+        }
       }
       break;
     }
     case OSWHierarchy::Level::FEATURE:
     {
-      const auto& prot = data.getProteins()[tr.idx_prot];
-      const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
-      const auto& feat = pep.getFeatures()[tr.idx_feat];
+      const auto& prot = data->getProteins()[trace.idx_prot];
+      const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
+      const auto& feat = pep.getFeatures()[trace.idx_feat];
       const auto& trids = feat.getTransitionIDs();
-      transitions_to_show.insert(transitions_to_show.end(), trids.begin(), trids.end());
+      for (UInt trid : trids)
+      {
+        if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+        { // something went wrong. abort
+          return false;
+        }
+      }
       break;
     }
     case OSWHierarchy::Level::TRANSITION:
     {
-      const auto& prot = data.getProteins()[tr.idx_prot];
-      const auto& pep = prot.getPeptidePrecursors()[tr.idx_pep];
-      const auto& feat = pep.getFeatures()[tr.idx_feat];
-      const auto& trid = feat.getTransitionIDs()[tr.idx_trans];
-      transitions_to_show.insert(transitions_to_show.end(), trid);
+      const auto& prot = data->getProteins()[trace.idx_prot];
+      const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
+      const auto& feat = pep.getFeatures()[trace.idx_feat];
+      const auto& trid = feat.getTransitionIDs()[trace.idx_trans];
+      if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+      { // something went wrong. abort
+        return false;
+      }
       break;
     }
     default:
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    // add data and return if something went wrong
-    if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
-      || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
-    {
-      return;
-    }
 
-    
-    // fix legend if its a chromatogram
-    w->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
-
-
-    // set relative (%) view of visible area
-    w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-
-    tv_->showPlotWidgetInWindow(w, caption);
-    tv_->updateBarsAndMenus();
-
-    */
+    return true;
   }
 
 
