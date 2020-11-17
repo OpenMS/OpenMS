@@ -76,6 +76,7 @@ TextFile.cpp
 ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
+TriqlerFile.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp
