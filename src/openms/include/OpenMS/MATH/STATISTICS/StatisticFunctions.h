@@ -207,11 +207,11 @@ namespace OpenMS
     }
     
     /**
-      @brief mean absolute deviation (MeanAD)
+      @brief mean absolute deviation (MeanAbsoluteDeviation)
 
-      Computes the MeanAD, defined as
+      Computes the MeanAbsoluteDeviation, defined as
 
-      MeanAD = mean( | x_i - mean(x) | ) for a vector x with indices i in [1,n].
+      MeanAbsoluteDeviation = mean( | x_i - mean(x) | ) for a vector x with indices i in [1,n].
 
       For efficiency, you must provide the mean separately, in order to avoid potentially duplicate efforts (usually one
       computes the mean anyway externally).
@@ -219,13 +219,13 @@ namespace OpenMS
       @param begin Start of range
       @param end End of range (past-the-end iterator)
       @param mean_of_numbers The precomputed mean of range @p begin - @p end.
-      @return the MeanAD
+      @return the MeanAbsoluteDeviation
 
       @ingroup MathFunctionsStatistics
 
     */
     template <typename IteratorType>
-    double MeanAD(IteratorType begin, IteratorType end, double mean_of_numbers)
+    double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)
     {
       std::vector<double> diffs;
       diffs.reserve(std::distance(begin, end));

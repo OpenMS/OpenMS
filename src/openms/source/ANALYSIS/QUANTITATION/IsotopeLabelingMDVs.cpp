@@ -186,11 +186,14 @@ namespace OpenMS
       fragment_isotopomer_abs_diff.push_back(std::fabs(fragment_isotopomer_theoretical[i] - fragment_isotopomer_measured[i]));
     }
     
-    double diff_mean = std::accumulate(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), 0.0) / fragment_isotopomer_abs_diff.size();
+    if (!fragment_isotopomer_abs_diff.empty())
+    {
+      double diff_mean = std::accumulate(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), 0.0) / fragment_isotopomer_abs_diff.size();
     
-    diff_mean = OpenMS::Math::MeanAD(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), diff_mean);
+      diff_mean = OpenMS::Math::MeanAbsoluteDeviation(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), diff_mean);
     
-    feature_with_accuracy_info.setMetaValue("average_accuracy", diff_mean);
+      feature_with_accuracy_info.setMetaValue("average_accuracy", diff_mean);
+    }
   }
 
   void IsotopeLabelingMDVs::calculateMDVAccuracies(

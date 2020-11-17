@@ -165,7 +165,7 @@ namespace OpenMS
 
     /**
       @brief This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
-      using average deviation to the mean.
+      using average deviation to the mean. The result is mapped to the meta value "average_accuracy" in the updated Feature.
    
       @param[in]  normalized_feature Feature with normalized values for each component and the chemical formula of the component group.
       @param[in]  fragment_isotopomer_measured Measured scan values.
