@@ -129,7 +129,7 @@ namespace OpenMS
       /**
         //       @brief constructor from Peak1D.
         //       @param positive determines the charge carrier mass*/
-      explicit LogMzPeak(Peak1D &peak, int index, bool positive);
+      explicit LogMzPeak(const Peak1D &peak, int index, bool positive);
 
       /// copy constructor
       LogMzPeak(const LogMzPeak &) = default;

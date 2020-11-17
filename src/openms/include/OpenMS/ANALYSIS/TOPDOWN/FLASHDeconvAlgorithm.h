@@ -97,12 +97,20 @@ namespace OpenMS
     /// convert double to nominal mass
     static int getNominalMass(double m);
 
-    // examine intensity distribution over charges
-    static double getChargeFitScore(double *perChargeIntensity, int chargeRange);
+    /** Examine charge intensity distribution of each peak group
+        @perChargeIntensity per charge intensity - aggregated through isotope indices
+        @chargeRange max charge range (currentMaxCharge - minCharge)
+     */
+    static double getChargeFitScore(const std::vector<double> &perChargeIntensity, const int chargeRange);
 
-    // examine intensity distribution over iostope indices. Also determines the most plausible isotope index or, monoisotopic mass
+    /** examine intensity distribution over iostope indices. Also determines the most plausible isotope index or, monoisotopic mass
+        @mass monoisotopic mass
+        @perIsotopeIntensities per isotope intensity - aggregated through charges
+        @offset output offset between input monoisotopic mass and determined monoisotopic mass
+        @avg precalculated averagine
+     */
     static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
-                                                           std::vector<double> &perIsotopeIntensities,
+                                                           const std::vector<double> &perIsotopeIntensities,
                                                            int &offset,
                                                            PrecalculatedAveragine &avg);
 
@@ -112,150 +120,180 @@ namespace OpenMS
 
   private:
     /// FLASHDeconv parameters
-    double minRT, maxRT;
-    double minMz, maxMz;
-    // min charge and max charge of deconvolution
-    int minCharge, maxCharge;
-    // when a spectrum is deconvoluted, the deconvoluted masses in the spectra within the overlapped scans are favorably considered.
-    int numOverlappedScans;
-    // mass ranges of deconvolution
-    double minMass, maxMass;
-    int currentMaxCharge;
-    double currentMaxMass;
 
+    /// range of RT subject to analysis (in seconds)
+    double minRT, maxRT;
+    /// range of mz subject to analysis
+    double minMz, maxMz;
+    /// min charge and max charge subject to analysis
+    int minCharge, maxCharge;
+    /// when a spectrum is deconvoluted, the deconvoluted masses in the spectra within the overlapped scans are favorably considered.
+    int numOverlappedScans;
+    /// mass ranges of deconvolution
+    double minMass, maxMass;
+    /// max charge is controlled by precursor charge for MSn
+    int currentMaxCharge;
+    /// max mass is controlled by precursor mass for MSn
+    double currentMaxMass;
+    /// peak intensity threshold subject to analysis
     double intensityThreshold;
-    // minimum number of peaks supporting a mass
+    /// minimum number of peaks supporting a mass
     IntList minSupportPeakCount;
-    // tolerance in ppm for each MS level
+    /// tolerance in ppm for each MS level
     DoubleList tolerance;
-    // bin size for first stage of mass selection
+    /// bin size for first stage of mass selection
     DoubleList binWidth;
-    // cosine threshold between observed and theoretical isotope patterns for each MS level
+    /// cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList minIsotopeCosine;
-    // cosien thereshold between charge distribution and fit gaussian
-    //double minChargeCosine;
-    // max mass count per spectrum for each MS level
+    /// max mass count per spectrum for each MS level
     IntList maxMassCount;
 
     /// precalculated averagine distributions
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
-    ///The data structures for spectra overlapping.
+    /// The data structures for spectra overlapping.
     std::vector<std::vector<Size>> prevMassBinVector;
     std::vector<double> prevMinBinLogMassVector;
 
+    /// harmonic charge factors that will be considered. For example, 2 is for 1/2 charge harmonic component
     const std::vector<int> hCharges{2, 3, 5};
-    //Stores log mz peaks
+    /// Stores log mz peaks
     std::vector<LogMzPeak> logMzPeaks;
-    //Bins for mass and mz. Bin size is deteremine by Parameter.tolerance
-    //peakGroups stores the decovnoluted mass peak groups
+    /// peakGroups stores the decovnoluted mass peak groups
     std::vector<PeakGroup> peakGroups;
 
-    //massBinsForThisSpectrum stores the selected bins only for this spectrum
+    /// massBinsForThisSpectrum stores the selected bins only for this spectrum
     boost::dynamic_bitset<> massBinsForThisSpectrum;
-    //massBins stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
+    /// massBins stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> massBins;
-    //mzBinsForEdgeEffect stores the binned log mz peaks
+    /// mzBins stores the binned log mz peaks
+    boost::dynamic_bitset<> mzBins;
+    /// mzBinsForEdgeEffect stores the bins to consider edge effect of log mz peak binning
     boost::dynamic_bitset<> mzBinsForEdgeEffect;
 
-    boost::dynamic_bitset<> mzBins;
-
-
-    //This stores the "universal pattern"
+    /// This stores the "universal pattern"
     std::vector<double> filter;
-    //This stores the patterns for harmonic reduction
+    /// This stores the patterns for harmonic reduction
     Matrix<double> harmonicFilter;
 
-    //This stores the "universal pattern" in binned dimenstion
+    /// This stores the "universal pattern" in binned dimenstion
     std::vector<int> binOffsets;
-    //This stores the patterns for harmonic reduction in binned dimenstion
+    /// This stores the patterns for harmonic reduction in binned dimenstion
     Matrix<int> hBinOffsets;
 
+    /// minimum mass and mz values representing the first bin of massBin and mzBin, respectively
     double massBinMinValue;
     double mzBinMinValue;
+
+    /// current ms Level
     int msLevel;
 
-    //static fucntion that converts bin to value
+    ///static fucntion that converts bin to value
     static double getBinValue(Size bin, double minV, double binWidth);
 
-    //static function that converts value to bin
+    ///static function that converts value to bin
     static Size getBinNumber(double v, double minV, double binWidth);
 
-    //generate log mz peaks from the input spectrum
-    void updateLogMzPeaks(MSSpectrum *spec);
+    ///generate log mz peaks from the input spectrum
+    void updateLogMzPeaks(const MSSpectrum *spec);
 
-    //generate mz bins from log mz peaks
+    /** Generate mz bins and intensity per mz bin from log mz peaks
+        @binNumber number of mz bins
+        @mzBinIntensities intensity per mz bin
+     */
     void updateMzBins(Size &binNumber, std::vector<float> &mzBinIntensities);
 
-    //this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
+    ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins();
 
-    //Main function
+    ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum();
 
-    //Update mass bins from mz bins and universal pattern. It select candidate mass bins using the pattern, eliminate possible harmonic masses
-    Matrix<int> updateMassBins(//float *massIntensities,
-        std::vector<float> &mzIntensities);
+    /** Update mass bins. It select candidate mass bins using the universal pattern, eliminate possible harmonic masses
+        @mzIntensities per mz bin intensity
+        Returns charge range per mass
+     */
+    Matrix<int> updateMassBins(const std::vector<float> &mzIntensities);
 
-    //Subfunction of updateMassBins.
-    Matrix<int> updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
-                                std::vector<float> &massIntensities,
-                                long &binStart, long &binEnd);
+    /** Subfunction of updateMassBins.
+        @candidateMassBinsForThisSpectrum first candidate mass bins. They are updated using mass intensities in this function
+        @massIntensities per mass bin intensity
+        Returns charge range per mass
+     */
+    Matrix<int> updateMassBins_(const boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
+                                const std::vector<float> &massIntensities);
 
-    //Subfunction of updateMassBins.
+    /** Update mass bins and mass bin intensities. It select candidate mass bins using the universal pattern, eliminate possible harmonic masses
+        @massIntensitites mass bin intensities
+        @mzIntensities mz bin intensities
+     */
     boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(std::vector<float> &massIntensitites,
-                                                                std::vector<float> &mzIntensities);
+                                                                const std::vector<float> &mzIntensities);
 
-    //From selected candidate mass bins, reselect the peaks. It researches the original spectrum to select peaks.
-    //Also isotopic peaks are selected in this function.
-    void getCandidatePeakGroups(//float *sumLogIntensities,
-        Matrix<int> &chargeRanges);
+    /** From selected candidate mass bins, select the peaks. It searches the original spectrum to select peaks. Also isotopic peaks are selected in this function.
+        @chargeRanges charge range per mass
+     */
+    void getCandidatePeakGroups(const Matrix<int> &chargeRanges);
 
+    /// if the logmz peaks are empty..
     bool empty();
 
-    //Make the universal pattern here..
+    /// Make the universal pattern..
     void setFilters();
 
-    /////////
-
-
-    //the main function of this class
+    /// function for peak group scoring and filtering
     void scoreAndFilterPeakGroups();
 
-    //filter out overlapping masses
+    /// filter out overlapping masses
     void removeOverlappingPeakGroups(double tol);
 
-    //filter out possible harmonics
+    /// filter out possible harmonics
     void removeHarmonicPeakGroups(double tol);
 
+    /// test function to assign a peak to a single mass
     void reassignPeaksinPeakGroups();
 
-    //From peaks distributions over charge and isotope are calculated
-    std::vector<int> updatePerChargeIsotopeIntensity(
+    /** calculate per charge and per isotope intensites from peak groups
+     * @perIsotopeIntensity per isotope intensities
+     * @perChargeIntensity per charge intensities
+     * @maxIsotopeCount maximum isotope count
+     * @pg peak groups
+     */
+    std::vector<int> calculatePerChargeIsotopeIntensity(
         std::vector<double> &perIsotopeIntensity,
         std::vector<double> &perChargeIntensity,
         int maxIsotopeCount,
         PeakGroup &pg);
 
-    //Filter out masses with low isotope cosine scores
+    ///Filter out masses with low isotope cosine scores
     void filterPeakGroupsByIsotopeCosine(int currentMaxMassCount);
 
-    //Filter out masses with low QScores
+    ///Filter out masses with low QScores
     void filterPeakGroupsByQScore(int currentMaxMassCount);
 
-    //For MS1, check intensity ratio between charges.
-    bool checkChargeDistribution(std::vector<double> &perChargeIntensity);
+    ///For MS1, check intensity ratio between charges.
+    bool checkChargeDistribution(const std::vector<double> &perChargeIntensity);
 
-    //cosine function
-    static double getCosine(std::vector<double> &a, std::vector<double> &b, int off = 0);
+    /** calculate cosine between two vectors a and b with index offset off
+     * @a vector a
+     * @b vector b
+     * @off index offset
+     */
+    static double getCosine(const std::vector<double> &a, const std::vector<double> &b, int off = 0);
 
-    //cosine function
-    static double getCosine(const double *a, double *b, Size size);
 
-    //cosine function for fast calculatoin
-    static double getCosine(std::vector<double> &a,
+    /** calculate cosine between two vectors a and b with additional parameters for fast calculation
+     * @a vector a
+     * @aStart non zero start index of a
+     * @aEnd non zero end index of a
+     * @b vector b
+     * @bSize size of b
+     * @bNorm precalculated L2 norm of b
+     * @index offset
+     */
+    static double getCosine(const std::vector<double> &a,
                             int &aStart,
                             int &aEnd,
-                            IsotopeDistribution &b,
+                            const IsotopeDistribution &b,
                             int &bSize,
                             double &bNorm,
                             int offset);

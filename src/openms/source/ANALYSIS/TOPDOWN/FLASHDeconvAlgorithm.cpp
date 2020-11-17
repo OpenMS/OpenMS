@@ -230,7 +230,7 @@ namespace OpenMS
   }
 
   //Generate uncharged log mz transformated peaks
-  void FLASHDeconvAlgorithm::updateLogMzPeaks(MSSpectrum *spec)
+  void FLASHDeconvAlgorithm::updateLogMzPeaks(const MSSpectrum *spec)
   {
     std::vector<LogMzPeak>().swap(logMzPeaks);
     logMzPeaks.reserve(spec->size());
@@ -255,12 +255,12 @@ namespace OpenMS
   }
 
 
-  double FLASHDeconvAlgorithm::getBinValue(Size bin, double minV, double binWidth)
+  double FLASHDeconvAlgorithm::getBinValue(const Size bin, const double minV, const double binWidth)
   {
     return minV + bin / binWidth;
   }
 
-  Size FLASHDeconvAlgorithm::getBinNumber(double v, double minV, double binWidth)
+  Size FLASHDeconvAlgorithm::getBinNumber(const double v, const double minV, const double binWidth)
   {
     if (v < minV)
     {
@@ -352,7 +352,7 @@ namespace OpenMS
 
   //Find candidate mass bins from the current spectrum. The runtime of FLASHDeconv is deteremined by this function..
   boost::dynamic_bitset<> FLASHDeconvAlgorithm::getCandidateMassBinsForThisSpectrum(std::vector<float> &massIntensitites,
-                                                                                    std::vector<float> &mzIntensities)
+                                                                                    const std::vector<float> &mzIntensities)
   {
     int chargeRange = currentMaxCharge - minCharge + 1;
     int hChargeSize = (int) hCharges.size();
@@ -546,8 +546,6 @@ namespace OpenMS
 
             massIntensitites[massBinIndex] += intensity + isoIntensity;
             candidateMassBinsForThisSpectrum[massBinIndex] = (++cc >= minPeakCntr);
-            //prevIntensity = intensity;
-            //prevCharge = j;
           }
         }
         prevIntensity = intensity;
@@ -559,13 +557,12 @@ namespace OpenMS
   }
 
   // Subfunction of updateMassBins. If a peak corresponds to multiple masses, only one mass is selected baed on intensities..
-  Matrix<int> FLASHDeconvAlgorithm::updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
-                                                    std::vector<float> &massIntensities,
-                                                    long &binStart, long &binEnd)
+  Matrix<int> FLASHDeconvAlgorithm::updateMassBins_(const boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
+                                                    const std::vector<float> &massIntensities)
   {
     //int chargeRange = param.currentChargeRange;
     auto chargeRange = currentMaxCharge - minCharge + 1;
-    Matrix<int> chargeRanges(3, massBins.size(), INT_MAX);
+    Matrix<int> chargeRanges(2, massBins.size(), INT_MAX);
     for (auto i = 0; i < massBins.size(); i++)
     {
       chargeRanges.setValue(1, i, INT_MIN);
@@ -618,16 +615,16 @@ namespace OpenMS
 
       }
 
-      if (maxIndex > binStart && maxIndex < binEnd)
+      if (maxIndex >= 0 && maxIndex < binSize)
       {
         {
           chargeRanges.setValue(0, maxIndex, std::min(chargeRanges.getValue(0, maxIndex), charge));
           chargeRanges.setValue(1, maxIndex, std::max(chargeRanges.getValue(1, maxIndex), charge));
           massBinsForThisSpectrum[maxIndex] = candidateMassBinsForThisSpectrum[maxIndex];
-          if (msLevel == 1)
-          {
-            //chargeRanges.setValue(2, mzBinIndex, charge);
-          }
+          //if (msLevel == 1)
+          //{
+          //chargeRanges.setValue(2, mzBinIndex, charge);
+          //}
           massBins[maxIndex] = true;
         }
       }
@@ -638,29 +635,26 @@ namespace OpenMS
 
   //update mass bins which will be used to select peaks in the input spectrum...
   Matrix<int> FLASHDeconvAlgorithm::updateMassBins(//float *massIntensities,
-      std::vector<float> &mzIntensities)
+      const std::vector<float> &mzIntensities)
   {
     auto bw = binWidth[msLevel - 1];
-    long binThresholdMinMass = (long) getBinNumber(log(minMass), massBinMinValue, bw);
-    long binThresholdMaxMass = (long) std::min(massBins.size(),
-                                               1 + getBinNumber(log(currentMaxMass),
-                                                                massBinMinValue,
-                                                                bw));
+    //long binThresholdMinMass = (long) getBinNumber(log(minMass), massBinMinValue, bw);
+    //long binThresholdMaxMass = (long) std::min(massBins.size(),
+    //                                          1 + getBinNumber(log(currentMaxMass),
+    //                                                           massBinMinValue,
+    //                                                           bw));
 
     auto massIntensities = std::vector<float>(massBins.size(), 0);
     auto candidateMassBins = getCandidateMassBinsForThisSpectrum(massIntensities,
                                                                  mzIntensities);
 
-    auto perMassChargeRanges = updateMassBins_(candidateMassBins,
-                                               massIntensities,
-                                               binThresholdMinMass,
-                                               binThresholdMaxMass);
+    auto perMassChargeRanges = updateMassBins_(candidateMassBins, massIntensities);
+
     return perMassChargeRanges;
   }
 
   //With massBins, select peaks from the same mass in the original input spectrum
-  void FLASHDeconvAlgorithm::getCandidatePeakGroups(//float *massIntensities,
-      Matrix<int> &chargeRanges)
+  void FLASHDeconvAlgorithm::getCandidatePeakGroups(const Matrix<int> &chargeRanges)
   {
     const int maxMissingIsotope = 2;//msLevel == 1 ? 2 : 1;
     double bw = binWidth[msLevel - 1];
@@ -726,10 +720,10 @@ namespace OpenMS
         auto &binOffset = binOffsets[j];
         auto bi = massBinIndex - binOffset;
 
-        if (bi >= mzBinSize || (chargeRanges.getValue(2, bi) < chargeRange && chargeRanges.getValue(2, bi) != j))
-        {
-          continue;
-        }
+        //if (bi >= mzBinSize || (chargeRanges.getValue(2, bi) < chargeRange && chargeRanges.getValue(2, bi) != j))
+        //{
+        //  continue;
+        //}
 
         double maxIntensity = -1.0;
         int charge = j + minCharge;
@@ -993,10 +987,10 @@ namespace OpenMS
 
 
   double
-  FLASHDeconvAlgorithm::getCosine(std::vector<double> &a,
+  FLASHDeconvAlgorithm::getCosine(const std::vector<double> &a,
                                   int &aStart,
                                   int &aEnd,
-                                  IsotopeDistribution &b,
+                                  const IsotopeDistribution &b,
                                   int &bSize,
                                   double &bNorm,
                                   int offset)
@@ -1021,6 +1015,7 @@ namespace OpenMS
     return n / sqrt(d);
   }
 
+  /*
   double FLASHDeconvAlgorithm::getCosine(const double *a, double *b, Size size)
   {
     double n = .0, d1 = .0, d2 = .0;
@@ -1040,11 +1035,11 @@ namespace OpenMS
       return 0;
     }
     return n / sqrt(d);
-  }
+  }*/
 
 
   double FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(double mass,
-                                                                        std::vector<double> &perIsotopeIntensities,
+                                                                        const std::vector<double> &perIsotopeIntensities,
                                                                         int &offset,
                                                                         PrecalculatedAveragine &avg)
   {
@@ -1104,7 +1099,7 @@ namespace OpenMS
   }
 
 
-  bool FLASHDeconvAlgorithm::checkChargeDistribution(std::vector<double> &perChargeIntensity)
+  bool FLASHDeconvAlgorithm::checkChargeDistribution(const std::vector<double> &perChargeIntensity)
   {
     double maxPerChargeIntensity = .0;
     int nonZeroStart = -1, nonZeroEnd = 0;
@@ -1185,7 +1180,7 @@ namespace OpenMS
         continue; //
       }
 
-      auto indices = updatePerChargeIsotopeIntensity(
+      auto indices = calculatePerChargeIsotopeIntensity(
           perIsotopeIntensity, perChargeIntensity,
           avg.maxIsotopeIndex, pg);
 
@@ -1649,7 +1644,7 @@ namespace OpenMS
   }
 
 
-  std::vector<int> FLASHDeconvAlgorithm::updatePerChargeIsotopeIntensity(
+  std::vector<int> FLASHDeconvAlgorithm::calculatePerChargeIsotopeIntensity(
       std::vector<double> &perIsotopeIntensity,
       std::vector<double> &perChargeIntensity,
       int maxIsotopeCount,
@@ -1685,7 +1680,7 @@ namespace OpenMS
     return std::vector<int>{maxIntChargeIndex, maxIntIsoIndex};
   }
 
-  double FLASHDeconvAlgorithm::getCosine(std::vector<double> &a, std::vector<double> &b, int off)
+  double FLASHDeconvAlgorithm::getCosine(const std::vector<double> &a, const std::vector<double> &b, const int off)
   {
     double n = .0, d1 = .0, d2 = .0;
     Size size = a.size();
@@ -1798,7 +1793,7 @@ namespace OpenMS
     return getCosine(ys, tys);
   }*/
 
-  double FLASHDeconvAlgorithm::getChargeFitScore(double *perChargeIntensity, int chargeRange)
+  double FLASHDeconvAlgorithm::getChargeFitScore(const std::vector<double> &perChargeIntensity, const int chargeRange)
   {
     double maxPerChargeIntensity = .0;
     std::vector<double> xs;
