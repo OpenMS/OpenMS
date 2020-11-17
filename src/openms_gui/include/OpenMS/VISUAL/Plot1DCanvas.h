@@ -88,13 +88,21 @@ public:
     ~Plot1DCanvas() override;
 
     /// add a chromatogram layer
+    /// @param chrom_exp_sptr An MSExperiment with chromatograms
+    /// @param ondisc_sptr OnDisk experiment, as fallback to read the chromatogram from, should @p chrom_exp_sptr.getChromatograms(index) be empty
+    /// @param OSWDataSharedPtrType If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
+    /// @param index Index of the chromatogram to show
+    /// @param filename For file change watcher (can be empty, if need be)
+    /// @param caption Name of layer
+    /// @param multiple_select .... not sure ...
+    /// @return true on success, false if data was missing etc
     /// @note: this does NOT trigger layerActivated signal for efficiency-reasons. Do it manually afterwards!
     bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
                        ODExperimentSharedPtrType ondisc_sptr, 
+                       OSWDataSharedPtrType chrom_annotation,
+                       const int index,
                        const String& filename, 
                        const String& caption, 
-                       ExperimentSharedPtrType exp_sptr,
-                       const int index,
                        const bool multiple_select);
 
     
