@@ -36,6 +36,8 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 
 namespace OpenMS
 {
@@ -68,22 +70,22 @@ namespace OpenMS
 
     void getIsolationWindows(double *wstart, double *wend, double *qScores, int *charges, double *avgMasses);
 
-  protected:
+  private:
     std::map<int, std::vector<double>> selected; // int mass, rt, qscore
     PrecalculatedAveragine avg;
 
     std::vector<std::vector<Size>> prevMassBinVector;
     std::vector<double> prevMinBinLogMassVector;
-    std::vector<PeakGroup> peakGroups;
 
     void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
                                             double qScoreThreshold);
 
-    MSSpectrum makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);
+    MSSpectrum makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name) const;
 
     void deepClearSpectrum(MSSpectrum &spec);
 
-  private:
+    DeconvolutedSpectrum deconvolutedSpectrum;
+    FLASHDeconvAlgorithm *fd;
     double qScoreThreshold;
     int minCharge;
     int currentChargeRange;
@@ -95,6 +97,8 @@ namespace OpenMS
     double RTwindow;
     IntList maxMassCount;
     int numOverlappedScans;
+
+
     // all information to keep track of
     // parameter
     // averagine results

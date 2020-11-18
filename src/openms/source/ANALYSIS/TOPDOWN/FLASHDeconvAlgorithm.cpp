@@ -82,7 +82,6 @@ namespace OpenMS
       return;
     }
     std::vector<LogMzPeak>().swap(logMzPeaks);
-    std::vector<PeakGroup>().swap(peakGroups);
   }
 
 
@@ -106,12 +105,14 @@ namespace OpenMS
   //This function is the main function for the deconvolution. Takes empty DeconvolutedSpectrum and fill it up with peakGroups.
   // DeconvolutedSpectrum contains the recursor peak group for MSn.
   //A peakGroup is the collection of peaks from a single mass (monoisotopic mass). Thus it contains peaks from different charges and iostope indices.
-  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec,
-                                           int scanNumber,
-                                           int &specIndex,
-                                           int &massIndex)
+  void FLASHDeconvAlgorithm::fillPeakGroupsInDeconvolutedSpectrum(DeconvolutedSpectrum &dspec,
+                                                                  int scanNumber,
+                                                                  int &specIndex,
+                                                                  int &massIndex)
   {
     auto *spec = &(dspec.getOriginalSpectrum());
+    deconvolutedSpectrum = &dspec;
+    //std::vector<PeakGroup> _peakGroups;
     if (minRT > 0 && spec->getRT() < minRT)
     {
       return;
@@ -124,17 +125,16 @@ namespace OpenMS
     updateLogMzPeaks(spec);
     msLevel = spec->getMSLevel();
     //For MS2,3,.. max mass and charge ranges should be determined by precursors
-    currentMaxCharge = dspec.getCurrentMaxCharge(maxCharge);
-    currentMaxMass = dspec.getCurrentMaxMass(maxMass);
+    currentMaxCharge = deconvolutedSpectrum->getCurrentMaxCharge(maxCharge);
+    currentMaxMass = deconvolutedSpectrum->getCurrentMaxMass(maxMass);
     //Perform deconvolution and fill in deconvolutedSpectrum
     generatePeakGroupsFromSpectrum();
-    dspec.setPeakGroups(peakGroups);
-    if (dspec.empty())
+    if (deconvolutedSpectrum->empty())
     {
       return;
     }
     //Update peakGroup information after deconvolution
-    for (auto &pg : dspec)
+    for (auto &pg : *deconvolutedSpectrum)
     {
       sort(pg.begin(), pg.end());
       pg.spec = spec;
@@ -664,7 +664,7 @@ namespace OpenMS
     auto massBinSize = massBins.size();
     int logMzPeakSize = (int) logMzPeaks.size();
     auto currentPeakIndex = std::vector<int>(chargeRange, 0);
-    peakGroups.reserve(massBins.count());
+    deconvolutedSpectrum->reserve(massBins.count());
     auto massBinIndex = massBins.find_first();
     auto peakBinNumbers = std::vector<Size>(logMzPeakSize);
 
@@ -882,7 +882,7 @@ namespace OpenMS
           p.isotopeIndex -= minOff;
         }
         pg.updateMassesAndIntensity(avg);
-        peakGroups.push_back(pg); //
+        deconvolutedSpectrum->push_back(pg); //
       }
       massBinIndex = massBins.find_next(massBinIndex);
     }
@@ -896,7 +896,7 @@ namespace OpenMS
   //spectral deconvolution main function
   void FLASHDeconvAlgorithm::generatePeakGroupsFromSpectrum()
   {
-    std::vector<PeakGroup>().swap(peakGroups);
+    std::vector<PeakGroup>().swap(*deconvolutedSpectrum);
     auto minPeakCntr =
         minSupportPeakCount[msLevel - 1];
     auto currentChargeRange = currentMaxCharge - minCharge + 1;
@@ -967,8 +967,8 @@ namespace OpenMS
       }
 
       std::vector<Size> mb;
-      mb.reserve(peakGroups.size());
-      for (auto &pg : peakGroups)//filteredPeakGroups
+      mb.reserve(deconvolutedSpectrum->size());
+      for (auto &pg : *deconvolutedSpectrum)//filteredPeakGroups
       {
         pg.shrink_to_fit();
         //if (massBinsForThisSpectrum[pg.massBinIndex])
@@ -1146,7 +1146,7 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::scoreAndFilterPeakGroups()
   {
     std::vector<PeakGroup> filteredPeakGroups;
-    filteredPeakGroups.reserve(peakGroups.size());
+    filteredPeakGroups.reserve(deconvolutedSpectrum->size());
     double threshold = .0;
     auto chargeRange = currentMaxCharge - minCharge + 1;
 
@@ -1154,9 +1154,9 @@ namespace OpenMS
     if (mc > 0)
     {
       std::vector<double> intensities;
-      intensities.reserve(peakGroups.size());
+      intensities.reserve(deconvolutedSpectrum->size());
 
-      for (auto &pg : peakGroups)
+      for (auto &pg : *deconvolutedSpectrum)
       {
         //pg.updateMassesAndIntensity(avg);
         intensities.push_back(pg.intensity);
@@ -1173,7 +1173,7 @@ namespace OpenMS
     auto perIsotopeIntensity = std::vector<double>(avg.maxIsotopeIndex);
     auto perChargeIntensity = std::vector<double>(chargeRange);
 
-    for (auto &pg : peakGroups)
+    for (auto &pg : *deconvolutedSpectrum)
     {
       if (pg.intensity < threshold)
       {
@@ -1352,7 +1352,7 @@ namespace OpenMS
       }
     }
 
-    peakGroups.swap(filteredPeakGroups);
+    deconvolutedSpectrum->swap(filteredPeakGroups);
     std::vector<PeakGroup>().swap(filteredPeakGroups);
 
     if (msLevel > 1)
@@ -1368,15 +1368,15 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::filterPeakGroupsByIsotopeCosine(int currentMaxMassCount)
   {
-    if (currentMaxMassCount <= 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    if (currentMaxMassCount <= 0 || deconvolutedSpectrum->size() <= (Size) currentMaxMassCount)
     {
       return;
     }
 
     Size mc = (Size) currentMaxMassCount;
     std::vector<double> scores;
-    scores.reserve(peakGroups.size());
-    for (auto &pg : peakGroups)
+    scores.reserve(deconvolutedSpectrum->size());
+    for (auto &pg : *deconvolutedSpectrum)
     {
       scores.push_back(pg.isotopeCosineScore);
     }
@@ -1384,9 +1384,9 @@ namespace OpenMS
     sort(scores.begin(), scores.end());
 
     auto newPeakGroups = std::vector<PeakGroup>();
-    newPeakGroups.reserve(peakGroups.size());
+    newPeakGroups.reserve(deconvolutedSpectrum->size());
     auto threshold = scores[scores.size() - mc];
-    for (auto &pg : peakGroups)
+    for (auto &pg : *deconvolutedSpectrum)
     {
       if (newPeakGroups.size() > mc)
       {
@@ -1398,21 +1398,21 @@ namespace OpenMS
         newPeakGroups.push_back(pg);
       }
     }
-    std::vector<PeakGroup>().swap(peakGroups);
-    newPeakGroups.swap(peakGroups);
+    std::vector<PeakGroup>().swap(*deconvolutedSpectrum);
+    newPeakGroups.swap(*deconvolutedSpectrum);
   }
 
   void FLASHDeconvAlgorithm::filterPeakGroupsByQScore(int currentMaxMassCount)
   {
-    if (currentMaxMassCount <= 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    if (currentMaxMassCount <= 0 || deconvolutedSpectrum->size() <= (Size) currentMaxMassCount)
     {
       return;
     }
 
     Size mc = (Size) currentMaxMassCount;
     std::vector<double> scores;
-    scores.reserve(peakGroups.size());
-    for (auto &pg : peakGroups)
+    scores.reserve(deconvolutedSpectrum->size());
+    for (auto &pg : *deconvolutedSpectrum)
     {
       scores.push_back(pg.qScore);
     }
@@ -1420,9 +1420,9 @@ namespace OpenMS
     sort(scores.begin(), scores.end());
 
     auto newPeakGroups = std::vector<PeakGroup>();
-    newPeakGroups.reserve(peakGroups.size());
+    newPeakGroups.reserve(deconvolutedSpectrum->size());
     auto threshold = scores[scores.size() - mc];
-    for (auto &pg : peakGroups)
+    for (auto &pg : *deconvolutedSpectrum)
     {
       if (newPeakGroups.size() > mc)
       {
@@ -1434,24 +1434,24 @@ namespace OpenMS
         newPeakGroups.push_back(pg);
       }
     }
-    std::vector<PeakGroup>().swap(peakGroups);
-    newPeakGroups.swap(peakGroups);
+    std::vector<PeakGroup>().swap(*deconvolutedSpectrum);
+    newPeakGroups.swap(*deconvolutedSpectrum);
   }
 
 
   void FLASHDeconvAlgorithm::removeHarmonicPeakGroups(double tol)
   {
-    sort(peakGroups.begin(), peakGroups.end());
+    sort(deconvolutedSpectrum->begin(), deconvolutedSpectrum->end());
     std::vector<PeakGroup> merged;
-    merged.reserve(peakGroups.size());
+    merged.reserve(deconvolutedSpectrum->size());
 
     std::vector<double> masses;
-    masses.reserve(peakGroups.size());
-    for (auto &peakGroup : peakGroups)
+    masses.reserve(deconvolutedSpectrum->size());
+    for (auto &peakGroup : *deconvolutedSpectrum)
     {
       masses.push_back(peakGroup.monoisotopicMass);
     }
-    for (auto &pg : peakGroups)
+    for (auto &pg : *deconvolutedSpectrum)
     {
       bool select = true;
       for (int h = 2; h <= 3; h++)
@@ -1466,11 +1466,11 @@ namespace OpenMS
             auto iter = std::lower_bound(masses.begin(), masses.end(), hmass - massTol);
             Size j = iter - masses.begin();
 
-            if (j >= 0 && j < peakGroups.size())
+            if (j >= 0 && j < deconvolutedSpectrum->size())
             {
-              for (; j < peakGroups.size(); j++)
+              for (; j < deconvolutedSpectrum->size(); j++)
               {
-                auto &pgo = peakGroups[j];
+                auto &pgo = (*deconvolutedSpectrum)[j];
                 if (hmass - pgo.monoisotopicMass > massTol)
                 {
                   continue;
@@ -1504,21 +1504,21 @@ namespace OpenMS
       }
       merged.push_back(pg);
     }
-    std::vector<PeakGroup>().swap(peakGroups);
-    merged.swap(peakGroups);
+    std::vector<PeakGroup>().swap(*deconvolutedSpectrum);
+    merged.swap(*deconvolutedSpectrum);
   }
 
   void FLASHDeconvAlgorithm::removeOverlappingPeakGroups(double tol)
   {
     int isoLength = 1; // inclusive
     std::vector<PeakGroup> filtered;
-    filtered.reserve(peakGroups.size());
-    sort(peakGroups.begin(), peakGroups.end());
+    filtered.reserve(deconvolutedSpectrum->size());
+    sort(deconvolutedSpectrum->begin(), deconvolutedSpectrum->end());
 
-    for (Size i = 0; i < peakGroups.size(); i++)
+    for (Size i = 0; i < deconvolutedSpectrum->size(); i++)
     {
       bool select = true;
-      auto &pg = peakGroups[i];
+      auto &pg = (*deconvolutedSpectrum)[i];
 
       if (pg.monoisotopicMass <= 0)
       {
@@ -1541,9 +1541,9 @@ namespace OpenMS
       for (int l = 0; l <= isoLength; l++)
       {
         auto off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
-        for (; j < peakGroups.size(); j++)
+        for (; j < deconvolutedSpectrum->size(); j++)
         {
-          auto &pgo = peakGroups[j];
+          auto &pgo = (*deconvolutedSpectrum)[j];
           if (l != 0 && pgo.monoisotopicMass - pg.monoisotopicMass < off - massTol)
           {
             continue;
@@ -1568,7 +1568,7 @@ namespace OpenMS
         auto off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
         for (; j >= 0; j--)
         {
-          auto &pgo = peakGroups[j];
+          auto &pgo = (*deconvolutedSpectrum)[j];
 
           if (l != 0 && pg.monoisotopicMass - pgo.monoisotopicMass < off - massTol)
           {
@@ -1588,8 +1588,8 @@ namespace OpenMS
       }
       filtered.push_back(pg);
     }
-    std::vector<PeakGroup>().swap(peakGroups);
-    filtered.swap(peakGroups);
+    std::vector<PeakGroup>().swap(*deconvolutedSpectrum);
+    filtered.swap(*deconvolutedSpectrum);
   }
 
 
@@ -1599,7 +1599,7 @@ namespace OpenMS
     auto maxIntensity = std::vector<double>(logMzPeaks.size(), 0);
     //auto maxIntensityCharge = std::vector<int>(logMzPeaks.size() , 0);
 
-    for (auto &pg : peakGroups)
+    for (auto &pg : *deconvolutedSpectrum)
     {
       //auto snr = pg.totalSNR;
       auto intensity = pg.intensity / (pg.maxCharge - pg.minCharge + 1);
@@ -1619,7 +1619,7 @@ namespace OpenMS
       }
     }
 
-    for (auto &pg : peakGroups)
+    for (auto &pg : *deconvolutedSpectrum)
     {
       //auto snr = pg.totalSNR;
       auto intensity = pg.intensity / (pg.maxCharge - pg.minCharge + 1);
@@ -1897,5 +1897,4 @@ namespace OpenMS
     }
     return getCosine(ys, tys);
   }
-
 }

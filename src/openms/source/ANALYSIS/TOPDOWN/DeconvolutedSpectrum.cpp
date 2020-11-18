@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h"
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 
 namespace OpenMS
 {
@@ -43,16 +42,11 @@ namespace OpenMS
     spec = s;
   }
 
-  bool DeconvolutedSpectrum::empty() const
-  {
-    return peakGroups.empty();
-  }
-
   MSSpectrum DeconvolutedSpectrum::toSpectrum()
   {
     auto outSpec = MSSpectrum(spec);
     outSpec.clear(false);
-    for (auto &pg : peakGroups)
+    for (auto &pg : *this)
     {
       if (pg.empty())
       {
@@ -81,7 +75,7 @@ namespace OpenMS
       return;
     }
 
-    for (auto &pg : peakGroups)
+    for (auto &pg : *this)
     {
       if (pg.empty())
       {
@@ -93,7 +87,7 @@ namespace OpenMS
 
       fs << pg.massIndex << "\t" << pg.specIndex << "\t" << fileName << "\t" << pg.scanNumber << "\t"
          << std::to_string(spec.getRT()) << "\t"
-         << peakGroups.size() << "\t"
+         << size() << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
          << pg.minCharge << "\t" << pg.maxCharge << "\t"
          << pg.size() << "\t";
@@ -268,7 +262,7 @@ namespace OpenMS
 
   void DeconvolutedSpectrum::clearPeakGroupsChargeInfo()
   {
-    for (auto &pg: peakGroups)
+    for (auto &pg: *this)
     {
       pg.clearChargeInfo();
     }
@@ -314,10 +308,10 @@ namespace OpenMS
     double scoreThreshold = 0;
     std::vector<double> scores;
 
-    if (peakGroups.size() > 500)// max peak count for TopPic
+    if (size() > 500)// max peak count for TopPic
     {
-      scores.reserve(peakGroups.size());
-      for (auto &pg : peakGroups)
+      scores.reserve(size());
+      for (auto &pg : *this)
       {
         scores.push_back(pg.isotopeCosineScore);
       }
@@ -327,7 +321,7 @@ namespace OpenMS
     }
 
     int size = 0;
-    for (auto &pg : peakGroups)
+    for (auto &pg : *this)
     {
       if (pg.isotopeCosineScore < scoreThreshold)
       {
@@ -370,7 +364,7 @@ namespace OpenMS
                    p.getIsolationWindowUpperOffset() + p.getMZ();
 
       double maxSumIntensity = 0.0;
-      for (auto &pg: (precursorSpectrum.peakGroups))
+      for (auto &pg: precursorSpectrum)
       {
         if (pg[0].mz > endMz || pg[pg.size() - 1].mz < startMz)
         {
@@ -414,24 +408,9 @@ namespace OpenMS
     return precursorPeakGroup != nullptr;
   }
 
-  void DeconvolutedSpectrum::setPeakGroups(std::vector<PeakGroup> &pg)
-  {
-    peakGroups = pg;
-  }
-
   MSSpectrum &DeconvolutedSpectrum::getOriginalSpectrum()
   {
     return spec;
-  }
-
-  std::__wrap_iter<std::vector<PeakGroup, std::allocator<PeakGroup>>::pointer> DeconvolutedSpectrum::begin()
-  {
-    return peakGroups.begin();
-  }
-
-  std::__wrap_iter<std::vector<PeakGroup, std::allocator<PeakGroup>>::pointer> DeconvolutedSpectrum::end()
-  {
-    return peakGroups.end();
   }
 
   PeakGroup DeconvolutedSpectrum::getPrecursorPeakGroup()
@@ -446,11 +425,6 @@ namespace OpenMS
   int DeconvolutedSpectrum::getPrecursorCharge()
   {
     return precursorPeak.getCharge();
-  }
-
-  int DeconvolutedSpectrum::size()
-  {
-    return peakGroups.size();
   }
 
   double DeconvolutedSpectrum::getCurrentMaxMass(double maxMass)

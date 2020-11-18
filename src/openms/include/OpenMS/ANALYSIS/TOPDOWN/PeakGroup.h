@@ -39,22 +39,22 @@
 namespace OpenMS
 {
   // data structure for peak group. A mass contains multiple peaks of different charges and isotope indices
-class OPENMS_DLLAPI PeakGroup :
-    public std::vector<FLASHDeconvHelperStructs::LogMzPeak>
-{
-  typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-  typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-public:
-  // the spectrum from which a peak group is generated
-  MSSpectrum *spec;
-  // the peaks contained in this peak group
-  //std::vector<LogMzPeak> peaks;
-  // information for identity
-  int scanNumber, specIndex;
+  class OPENMS_DLLAPI PeakGroup :
+      public std::vector<FLASHDeconvHelperStructs::LogMzPeak>
+  {
+    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
+  public:
+    // the spectrum from which a peak group is generated
+    MSSpectrum *spec;
+    // the peaks contained in this peak group
+    //std::vector<LogMzPeak> peaks;
+    // information for identity
+    int scanNumber, specIndex;
 
-  // information on the deconvouted mass
-  double monoisotopicMass;
-  double avgMass;
+    // information on the deconvouted mass
+    double monoisotopicMass;
+    double avgMass;
     double intensity;// total intensity
     Size massBinIndex;
     int massIndex;

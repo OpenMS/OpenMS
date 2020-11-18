@@ -75,16 +75,16 @@ namespace OpenMS
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
 
     /**
-      @brief main deconvolution function
-      @param spec spectrum
+      @brief main deconvolution function.
+      @param dspec spectrum
       @param scanNumber scan number
       @param specIndex index for each spectrum, for file output
       @param massIndex index for each mass, for file output
  */
-    void getPeakGroups(DeconvolutedSpectrum &spec,
-                       int scanNumber,
-                       int &specIndex,
-                       int &massIndex);
+    void fillPeakGroupsInDeconvolutedSpectrum(DeconvolutedSpectrum &dspec,
+                                              int scanNumber,
+                                              int &specIndex,
+                                              int &massIndex);
 
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();
@@ -158,8 +158,8 @@ namespace OpenMS
     const std::vector<int> hCharges{2, 3, 5};
     /// Stores log mz peaks
     std::vector<LogMzPeak> logMzPeaks;
-    /// peakGroups stores the decovnoluted mass peak groups
-    std::vector<PeakGroup> peakGroups;
+    /// dspec stores the decovnoluted mass peak groups
+    DeconvolutedSpectrum *deconvolutedSpectrum;
 
     /// massBinsForThisSpectrum stores the selected bins only for this spectrum
     boost::dynamic_bitset<> massBinsForThisSpectrum;

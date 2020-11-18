@@ -507,7 +507,7 @@ protected:
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         // per spec deconvolution
-        fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
+        fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
 
         if (outMzml)
         {

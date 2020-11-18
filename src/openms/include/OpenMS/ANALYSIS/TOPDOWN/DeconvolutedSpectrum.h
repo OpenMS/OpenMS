@@ -47,13 +47,15 @@ namespace OpenMS
   /**
        @brief A class representing a deconvoluted spectrum. Also contains deconvoluted precursro information for MSn n>1.
   */
-  class OPENMS_DLLAPI DeconvolutedSpectrum
+  class OPENMS_DLLAPI DeconvolutedSpectrum :
+      public std::vector<PeakGroup>
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
     DeconvolutedSpectrum() = default;
+
     /**
        @brief Constructor for DeconvolutedSpectrum
        @param s spectrum
@@ -99,9 +101,6 @@ namespace OpenMS
     /// write the header for Thermo Inclusion List header format
     static void writeThermoInclusionHeader(std::fstream &fs);
 
-    /// check if empty
-    bool empty() const;
-
     /// for memory save... clear unnecessary information in mass tracing
     void clearPeakGroupsChargeInfo();
 
@@ -110,15 +109,6 @@ namespace OpenMS
      @param precursorSpectrum the precursor DeconvolutedSpectrum
      */
     bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
-
-    /// begin for iterator over peakGroups (or masses)
-    std::__wrap_iter<std::vector<PeakGroup, std::allocator<PeakGroup>>::pointer> begin();
-
-    /// end for iterator over peakGroups (or masses)
-    std::__wrap_iter<std::vector<PeakGroup, std::allocator<PeakGroup>>::pointer> end();
-
-    /// peakGroups setter
-    void setPeakGroups(std::vector<PeakGroup> &peakGroups);
 
     /// original spectrum setter
     MSSpectrum &getOriginalSpectrum();
@@ -129,9 +119,6 @@ namespace OpenMS
     /// precursor charge getter : set in registerPrecursor
     int getPrecursorCharge();
 
-    /// size of peakGroups
-    int size();
-
     /// get max mass - which is min mass between max mass specified by users or mass determined by precursor mass for MSn
     double getCurrentMaxMass(double maxMass);
 
@@ -141,8 +128,6 @@ namespace OpenMS
   private:
     /// the original spectrum from which this is generated
     MSSpectrum spec;
-    /// the list of peakGorups (or masses)
-    std::vector<PeakGroup> peakGroups;
     /// precursor peakGroup (or mass)
     PeakGroup *precursorPeakGroup = nullptr;
     /// precursor peak (not deconvoluted one)
