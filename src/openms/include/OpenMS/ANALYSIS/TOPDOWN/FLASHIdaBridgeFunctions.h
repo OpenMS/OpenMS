@@ -46,5 +46,4 @@ namespace OpenMS
 	extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda * pObject,  double* wstart, double* wend, double* qScores, int* charges, double* avgMasses);
 
 	static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
-	static double qScoreThreshold = -1;
 }

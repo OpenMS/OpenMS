@@ -62,33 +62,29 @@ namespace OpenMS
       token = std::strtok(nullptr, " ");
     }
 
-    qScoreThreshold = inputs["score_threshold"][0];
-    minCharge = inputs["min_charge"][0];
-    currentChargeRange = chargeRange = inputs["max_charge"][0] - minCharge;
-    minMass = inputs["min_mass"][0];
-    currentMaxMass = maxMass = inputs["max_mass"][0];
-    tolerance = inputs["tol"];
-    RTwindow = inputs["RT_window"][0];
+    fd = FLASHDeconvAlgorithm();
+    Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
+    // overwrite algorithm default so we export everything (important for copying back MSstats results)
+    fd_defaults.setValue("min_charge", inputs["min_charge"][0]);
+    fd_defaults.setValue("max_charge", inputs["max_charge"][0]);
+    fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
+    fd_defaults.setValue("maxMass", inputs["maxMass"][0]);
+    fd_defaults.setValue("tol", inputs["tol"]);
+    fd_defaults.setValue("num_overlapped_scans", 10, "number of overlapped scans for MS1 deconvolution");
+    fd.setParameters(fd_defaults);
+
     auto maxMassCountd = inputs["max_mass_count"];
-    for (auto j = 0; j < (int) maxMassCountd.size(); j++)
+
+    for (double j : maxMassCountd)
     {
-      maxMassCount.push_back((int) maxMassCountd[j]);
+      maxMassCount.push_back((int) j);
     }
+    RTwindow = inputs["RTwindow"][0];
 
-    numOverlappedScans = 10;
+    qScoreThreshold = inputs["score_threshold"][0];
 
-    for (auto j = 0; j < (int) tolerance.size(); j++)
-    {
-      tolerance[j] *= 1e-6;
-      binWidth.push_back(.5 / tolerance[j]);
-    }
-
-    avg = FLASHDeconvHelperStructs::calculateAveragines(maxMass, false);
-    //prevRT = -1;
+    avg = FLASHDeconvHelperStructs::calculateAveragines(inputs["maxMass"][0], false);
     selected = std::map<int, std::vector<double>>(); // int mass, rt, qscore
-    prevMassBinVector = std::vector<std::vector<Size>>();
-    prevMinBinLogMassVector = std::vector<double>();
-    //deconvolutedSpectrum
   }
 
 
@@ -97,33 +93,32 @@ namespace OpenMS
                               int length,
                               double rt,
                               int msLevel,
-                              char *name,
-                              double qScoreThreshold)
+                              char *name)
   {
+
+    auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
+    deconvolutedSpectrum = DeconvolutedSpectrum(spec, 1);
     if (msLevel == 1)
     {
-      currentMaxMass = maxMass;
-      currentChargeRange = chargeRange;
+      //currentMaxMass = maxMass;
+      //currentChargeRange = chargeRange;
     }
     else
     {
       //TODO precursor infor here
     }
-    auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
-    deconvolutedSpectrum = DeconvolutedSpectrum(spec, 1);
 
     // per spec deconvolution
     int specIndex = 0, massIndex = 0; // meaningless..
-    fd->fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, 0, specIndex, massIndex);
+    fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, 0, specIndex, massIndex);
 
-    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
+    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel);
     //spec.clear(true);
 
     return deconvolutedSpectrum.size();
   }
 
-  void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
-                                                    double qScoreThreshold)
+  void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel)
   {
     double rt = spec.getRT();
 
@@ -142,7 +137,6 @@ namespace OpenMS
     std::vector<PeakGroup> filtered;
     for (auto &pg : deconvolutedSpectrum)
     {
-      //std::cout << param.maxMassCount.size() << " " << param.maxMassCount[msLevel - 1]<< std::endl;
       if (maxMassCount.size() >= msLevel && maxMassCount[msLevel - 1] > 0 &&
           filtered.size() > maxMassCount[msLevel - 1])
       {
@@ -199,7 +193,7 @@ namespace OpenMS
   }
 
 
-  MSSpectrum FLASHIda::makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name) const
+  MSSpectrum FLASHIda::makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name)
   {
     auto spec = MSSpectrum();
     for (auto i = 0; i < length; i++)
@@ -213,8 +207,4 @@ namespace OpenMS
     return spec;
   }
 
-  void FLASHIda::deepClearSpectrum(MSSpectrum &spec)
-  {
-    //spec.clear
-  }
 }

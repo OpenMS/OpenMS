@@ -54,7 +54,7 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// constructor that takes string input argument
-    FLASHIda(char *arg);
+    explicit FLASHIda(char *arg);
 
     /// destructor
     ~FLASHIda() = default;
@@ -65,8 +65,7 @@ namespace OpenMS
                       int length,
                       double rt,
                       int msLevel,
-                      char *name,
-                      double qScoreThreshold);
+                      char *name);
 
     void getIsolationWindows(double *wstart, double *wend, double *qScores, int *charges, double *avgMasses);
 
@@ -74,29 +73,15 @@ namespace OpenMS
     std::map<int, std::vector<double>> selected; // int mass, rt, qscore
     PrecalculatedAveragine avg;
 
-    std::vector<std::vector<Size>> prevMassBinVector;
-    std::vector<double> prevMinBinLogMassVector;
+    void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel);
 
-    void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
-                                            double qScoreThreshold);
-
-    MSSpectrum makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name) const;
-
-    void deepClearSpectrum(MSSpectrum &spec);
+    static MSSpectrum makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);
 
     DeconvolutedSpectrum deconvolutedSpectrum;
-    FLASHDeconvAlgorithm *fd;
+    FLASHDeconvAlgorithm fd;
     double qScoreThreshold;
-    int minCharge;
-    int currentChargeRange;
-    int chargeRange;
-    double minMass;
-    double currentMaxMass;
-    double maxMass;
-    DoubleList tolerance, binWidth;
     double RTwindow;
     IntList maxMassCount;
-    int numOverlappedScans;
 
 
     // all information to keep track of
