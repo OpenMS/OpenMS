@@ -344,7 +344,7 @@ namespace OpenMS
       }
     }
 
-    std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
+    //std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
   }
 
   void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)
