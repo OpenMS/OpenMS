@@ -2839,7 +2839,7 @@ set_tests_properties("UTILS_ProteomicsLFQ_1_out_2" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
 set_tests_properties("UTILS_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1")
 
-# regression test
+# regression test (decoys in ID files)
 add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -2849,7 +2849,7 @@ add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
          -ids
-         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1_decoys.idXML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
