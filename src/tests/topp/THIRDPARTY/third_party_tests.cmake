@@ -396,6 +396,7 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   
   # use AccurateMassSearch data + fragment mass restriction + decoy generation (both).
   # whitelist Guthion_decoy, since fragmentation tree re-rooting has multiple possible solutions.
+  
   add_test("UTILS_AssayGeneratorMetabo_16" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_multids.featureXML -out AssayGeneratorMetabo_decoy_generation_output_both_multids.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
   add_test("UTILS_AssayGeneratorMetabo_16_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_both_multids.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_both_multids.tsv -whitelist "0_2_Second,Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oicacid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?_decoy_[M+H]+_0")
   set_tests_properties("UTILS_AssayGeneratorMetabo_16" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_15")

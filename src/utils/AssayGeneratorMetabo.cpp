@@ -142,6 +142,12 @@ protected:
     registerStringOption_("fragment_annotation", "<choice>", "none", "Fragment annotation method",false);
     setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
 
+    registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10, "Mz tolerance for the resolution of identification ambiguity over multiple files [ppm]", false);
+    registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
+    setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm, Da"));
+    registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10, "Rz tolerance for the resolution of identification ambiguity over multiple files", false);
+    registerDoubleOption_("compound_occurrence_threshold", "<num>", 50.0, "The compound has to occur in at least x % of the input files to be used for library generation", false);
+
     registerDoubleOption_("fragment_annotation_score_threshold", "<num>", 0.80, "Filters annotations based on the explained intensity of the peaks in a spectrum", false);
     setMinFloat_("fragment_annotation_score_threshold", 0.0);
     setMaxFloat_("fragment_annotation_score_threshold", 1.0);
@@ -154,7 +160,7 @@ protected:
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
-    registerFlag_("use_exact_mass", "Use exact mass for fragment annotation", false);
+    registerFlag_("use_exact_mass", "Use exact mass for precursor and fragment annotations", false);
     registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
 
     // preprocessing
@@ -167,7 +173,7 @@ protected:
 
     // transition extraction 
     registerIntOption_("min_transitions", "<int>", 3, "Minimal number of transitions", false);
-    registerIntOption_("max_transitions", "<int>", 3, "Maximal number of transitions", false);
+    registerIntOption_("max_transitions", "<int>", 6, "Maximal number of transitions", false);
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
     registerDoubleOption_("transition_threshold", "<num>", 5, "Further transitions need at least x% of the maximum intensity (default 5%)", false);
     registerDoubleOption_("min_fragment_mz", "<num>", 0.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
@@ -194,6 +200,128 @@ protected:
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
 
+  static void filterBasedOnOccurrence(vector<MetaboTargetedAssay>& mta)
+  {
+    std::map<std::pair<String, String>, int> occ_map;
+    for (const auto& t_it : mta)
+    {
+      std::pair<String, String> current_key = std::make_pair(t_it.molecular_formula, t_it.compound_adduct);
+      if (occ_map.count(current_key) == 0)
+      {
+        occ_map[current_key] = 1;
+      }
+      else
+      {
+        occ_map[current_key]++;
+      }
+    }
+
+    // find max element in map
+    using pair_type = decltype(occ_map)::value_type;
+    auto pr = std::max_element(std::begin(occ_map),
+                               std::end(occ_map),
+                               [](const pair_type &p1, const pair_type &p2) { return p1.second < p2.second; });
+
+    // filter vector down to the compound with sumformula and adduct based on the highest occurence
+    mta.erase(remove_if(begin(mta),
+                        end(mta),
+                        [&pr](MetaboTargetedAssay assay)
+                        {
+                          return assay.molecular_formula != pr->first.first && assay.compound_adduct != pr->first.second;
+                        }), end(mta));
+  }
+
+  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, bool ar_mz_tol_unit)
+  {
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter;
+    for (const auto &it : v_mta)
+    {
+      bool added = false;
+      for (auto &map_it : map_mta_filter)
+      {
+        // if there is already an entry within a mz and rt tolerance add the ambiguous compound.
+        std::pair<double, double> mz_tolerance_window = Math::getTolWindow(it.precursor_mz,
+                                                                           ar_mz_tol,
+                                                                           ar_mz_tol_unit);
+        std::pair<double, double> rt_tolerance_window = Math::getTolWindow(it.compound_rt, ar_rt_tol, false);
+        bool mz_in_window =
+            !(map_it.first.first < mz_tolerance_window.first) && (map_it.first.first < mz_tolerance_window.second);
+        bool rt_in_window =
+            !(map_it.first.second < rt_tolerance_window.first) && (map_it.first.second < rt_tolerance_window.second);
+        if (mz_in_window && rt_in_window)
+        {
+          map_it.second.push_back(it);
+          added = true;
+          continue;
+        }
+      }
+      if (!added)
+      {
+        std::pair<double, double> pair_mta = make_pair(it.precursor_mz, it.compound_rt);
+        vector<MetaboTargetedAssay> current_v_mta;
+        current_v_mta.push_back(it);
+        map_mta_filter[pair_mta] = current_v_mta;
+      }
+    }
+    return map_mta_filter;
+  }
+
+  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > resolveAmbiguityGroup( std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter, size_t input_size, double compound_occurrence_threshold)
+  {
+    std::map<std::pair<double, double>, vector<MetaboTargetedAssay> > map_mta;
+    for (const auto &map_it : map_mta_filter)
+    {
+      // split the vector in targets and decoys
+      vector<MetaboTargetedAssay> targets;
+      vector<MetaboTargetedAssay> decoys;
+      vector<MetaboTargetedAssay> targetdecoy;
+      for (const auto &it : map_it.second)
+      {
+        if (it.potential_rmts[0].getDecoyTransitionType() == OpenMS::ReactionMonitoringTransition::TARGET)
+        {
+          targets.push_back(it);
+        }
+        else
+        {
+          decoys.push_back(it);
+        }
+      }
+
+      filterBasedOnOccurrence(targets);
+      filterBasedOnOccurrence(decoys);
+
+      // compound has to be found in at least % of input files.
+      if ((targets.size() / input_size) * 100 < compound_occurrence_threshold)
+      {
+        continue;
+      }
+
+      // sort by precursor intensity
+      if (!targets.empty())
+      {
+        sort(targets.begin(),
+             targets.end(),
+             [](const MetaboTargetedAssay &a, const MetaboTargetedAssay &b) -> bool
+             {
+               return a.precursor_int > b.precursor_int;
+             });
+        targetdecoy.push_back(targets[0]);
+      }
+      if (!decoys.empty())
+      {
+        sort(decoys.begin(),
+             decoys.end(),
+             [](const MetaboTargetedAssay &a, const MetaboTargetedAssay &b) -> bool
+             {
+               return a.precursor_int > b.precursor_int;
+             });
+        targetdecoy.push_back(decoys[0]);
+      }
+      map_mta[map_it.first] = targetdecoy;
+    }
+    return map_mta;
+  }
+
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -207,6 +335,11 @@ protected:
     String fragment_annotation = getStringOption_("fragment_annotation");
     String method = getStringOption_("method");
     bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
+    double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
+    String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
+    bool ar_mz_tol_unit = ar_mz_tol_unit_res == "ppm" ? true : false;
+    double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
+    double compound_occurrence_threshold = getDoubleOption_("compound_occurrence_threshold");
     double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
     bool decoy_generation = getFlag_("decoy_generation");
     if (decoy_generation && !use_fragment_annotation)
@@ -562,35 +695,25 @@ protected:
       v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
     } // end iteration over all files
 
-    // resolve over all files and use first rank based on precursor intensity
-    std::map< std::pair <String,String>, MetaboTargetedAssay > map_mta;
-    for (const auto& it : v_mta)
-    {
-      std::pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
-      // check if value in map with key k does not exists and fill with current pair
-      if (map_mta.count(pair_mta) == 0)
-      {
-        map_mta[pair_mta] = it;
-      }
-      else
-      {
-        // check which on has the higher intensity precursor and if replace the current value
-        double map_precursor_int = map_mta.at(pair_mta).precursor_int;
-        double current_precursor_int = it.precursor_int;
-        if (map_precursor_int < current_precursor_int)
-        {
-          map_mta[pair_mta] = it;
-        }
-      }
-    }
+
+    // group ambiguous identification based on precursor_mz and feature retention time
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter = buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit);
+
+    // resolve identification ambiguity based on highest occurrence
+    // filter compounds for library generation based on total occurrence threshold (in % of the files)
+    // use the filtered compound with the highest intensity of all files for library generation
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(map_mta_filter, in.size(), compound_occurrence_threshold);
 
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
-    for (const auto& it : map_mta)
+    for (const auto &it : map_mta)
     {
-      v_cmp.push_back(it.second.potential_cmp);
-      v_rmt_all.insert(v_rmt_all.end(), it.second.potential_rmts.begin(), it.second.potential_rmts.end());
+      for (const auto &comp_it : it.second)
+      {
+        v_cmp.push_back(comp_it.potential_cmp);
+        v_rmt_all.insert(v_rmt_all.end(), comp_it.potential_rmts.begin(), comp_it.potential_rmts.end());
+      }
     }
 
     // convert possible transitions to TargetedExperiment
@@ -607,7 +730,7 @@ protected:
 
     // remove decoys which do not have a respective target after min/max transition filtering
     // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")
-    if (decoy_generation)
+    if (use_fragment_annotation && decoy_generation)
     {
       assay.filterUnreferencedDecoysCompound(t_exp);
     }
@@ -616,7 +739,7 @@ protected:
     // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
     // the intensities based on the previous fragmentation tree), overlapping masses between targets
     // and decoys of one respective metabolite_adduct combination can be resolved by adding a CH2 mass
-    if (decoy_generation && !original)
+    if (use_fragment_annotation && decoy_generation && !original)
     {
       const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
       vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);

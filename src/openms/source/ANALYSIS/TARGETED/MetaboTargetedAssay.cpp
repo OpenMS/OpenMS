@@ -354,6 +354,7 @@ namespace OpenMS
           description = ListUtils::concatenate(v_description, ",");
           rmt.setCompoundRef (String(transition_group_counter) + "_" + description + "_" + file_counter);
           rmt.setNativeID (String(transition_group_counter)+ "_" + String(transition_counter)+ "_" + description + "_" + file_counter);
+          rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET); // no decoys are generated without SIRIUS
 
           v_rmt.push_back(std::move(rmt));
           transition_counter += 1;
@@ -364,6 +365,10 @@ namespace OpenMS
       mta.precursor_int = highest_precursor_int;
       mta.compound_name = description;
       mta.compound_adduct = adduct;
+      mta.precursor_mz = v_rmt[0].getPrecursorMZ();
+      mta.molecular_formula = sumformula;
+      mta.compound_rt = feature_rt;
+      mta.compound_file = file_counter;
       mta.potential_cmp = cmp;
       mta.potential_rmts = v_rmt;
       v_mta.push_back(std::move(mta));
@@ -530,6 +535,7 @@ namespace OpenMS
           cmp.setMetaValue("sirius_workspace_identifier", csp.compound_info.cmp);
         }
 
+
         // threshold should be at x % of the maximum intensity
         // hard minimal threshold of min_int * 1.1
         float threshold_transition = max_int * (transition_threshold / 100);
@@ -596,6 +602,12 @@ namespace OpenMS
         mta.precursor_int = precursor_int;
         mta.compound_name = description;
         mta.compound_adduct = adduct;
+
+        mta.precursor_mz = v_rmt[0].getPrecursorMZ();
+        mta.molecular_formula = sumformula;
+        mta.compound_rt = feature_rt;
+        mta.compound_file = file_counter;
+
         mta.potential_cmp = cmp;
         mta.potential_rmts = v_rmt;
         v_mta.push_back(std::move(mta));
@@ -623,6 +635,9 @@ namespace OpenMS
     }
     return v_cmp_spec;
   }
+
+
+
 
 } // namespace OpenMS
 
