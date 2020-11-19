@@ -365,7 +365,7 @@ namespace OpenMS
       mta.precursor_int = highest_precursor_int;
       mta.compound_name = description;
       mta.compound_adduct = adduct;
-      mta.precursor_mz = v_rmt[0].getPrecursorMZ();
+      mta.precursor_mz = highest_precursor_mz;
       mta.molecular_formula = sumformula;
       mta.compound_rt = feature_rt;
       mta.compound_file = file_counter;
@@ -535,7 +535,6 @@ namespace OpenMS
           cmp.setMetaValue("sirius_workspace_identifier", csp.compound_info.cmp);
         }
 
-
         // threshold should be at x % of the maximum intensity
         // hard minimal threshold of min_int * 1.1
         float threshold_transition = max_int * (transition_threshold / 100);
@@ -603,7 +602,15 @@ namespace OpenMS
         mta.compound_name = description;
         mta.compound_adduct = adduct;
 
-        mta.precursor_mz = v_rmt[0].getPrecursorMZ();
+        if (use_exact_mass)
+        {
+          mta.precursor_mz = exact_mass_precursor;
+        }
+        else
+        {
+          mta.precursor_mz = csp.compound_info.pmass;
+        }
+
         mta.molecular_formula = sumformula;
         mta.compound_rt = feature_rt;
         mta.compound_file = file_counter;
