@@ -323,6 +323,7 @@ jobs:
               # Bundle stripped plus external shared libraries into the wheels
               for whl in wheelhouse_tmp/pyopenms*.whl; do
                 auditwheel repair "$whl" -w wheelhouse/
+                auditwheel show wheelhouse/$whl
               done
 
               # Note: Uncomment this line if you want to test the wheels before our fix
