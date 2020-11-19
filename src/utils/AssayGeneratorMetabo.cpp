@@ -146,7 +146,6 @@ protected:
     registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
     setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm, Da"));
     registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10, "Rz tolerance for the resolution of identification ambiguity over multiple files", false);
-    registerDoubleOption_("compound_occurrence_threshold", "<num>", 50.0, "The compound has to occur in at least x % of the input files to be used for library generation", false);
 
     registerDoubleOption_("fragment_annotation_score_threshold", "<num>", 0.80, "Filters annotations based on the explained intensity of the peaks in a spectrum", false);
     setMinFloat_("fragment_annotation_score_threshold", 0.0);
@@ -266,7 +265,7 @@ protected:
     return map_mta_filter;
   }
 
-  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > resolveAmbiguityGroup( std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter, size_t input_size, double compound_occurrence_threshold)
+  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > resolveAmbiguityGroup( std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter)
   {
     std::map<std::pair<double, double>, vector<MetaboTargetedAssay> > map_mta;
     for (const auto &map_it : map_mta_filter)
@@ -289,12 +288,6 @@ protected:
 
       filterBasedOnOccurrence(targets);
       filterBasedOnOccurrence(decoys);
-
-      // compound has to be found in at least % of input files.
-      if ((targets.size() / input_size) * 100 < compound_occurrence_threshold)
-      {
-        continue;
-      }
 
       // sort by precursor intensity
       if (!targets.empty())
@@ -339,7 +332,6 @@ protected:
     String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
     bool ar_mz_tol_unit = ar_mz_tol_unit_res == "ppm" ? true : false;
     double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
-    double compound_occurrence_threshold = getDoubleOption_("compound_occurrence_threshold");
     double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
     bool decoy_generation = getFlag_("decoy_generation");
     if (decoy_generation && !use_fragment_annotation)
@@ -702,7 +694,7 @@ protected:
     // resolve identification ambiguity based on highest occurrence
     // filter compounds for library generation based on total occurrence threshold (in % of the files)
     // use the filtered compound with the highest intensity of all files for library generation
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(map_mta_filter, in.size(), compound_occurrence_threshold);
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(map_mta_filter);
 
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
