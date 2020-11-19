@@ -371,7 +371,12 @@ namespace OpenMS
       mta.compound_file = file_counter;
       mta.potential_cmp = cmp;
       mta.potential_rmts = v_rmt;
-      v_mta.push_back(std::move(mta));
+
+      // do not report if no valid transitions are found after filtering
+      if (!mta.potential_rmts.empty())
+      {
+        v_mta.push_back(std::move(mta));
+      }
     }
     return v_mta;
   }
@@ -617,7 +622,11 @@ namespace OpenMS
 
         mta.potential_cmp = cmp;
         mta.potential_rmts = v_rmt;
-        v_mta.push_back(std::move(mta));
+
+        if (!mta.potential_rmts.empty())
+        {
+          v_mta.push_back(std::move(mta));
+        }
       }
       ++entry_counter;
     }
