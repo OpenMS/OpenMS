@@ -37,7 +37,11 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+
+// export formats of results
 #include <OpenMS/FORMAT/MSstatsFile.h>
+#include <OpenMS/FORMAT/TriqlerFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -69,11 +73,10 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/FORMAT/MzTab.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -178,6 +181,9 @@ protected:
 
     registerOutputFile_("out_msstats", "<file>", "", "output MSstats input file", false, false);
     setValidFormats_("out_msstats", ListUtils::create<String>("csv"));
+
+    registerOutputFile_("out_triqler", "<file>", "", "output Triqler input file", false, false);
+    setValidFormats_("out_triqler", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
     setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
@@ -603,10 +609,11 @@ protected:
 
       double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
               [](TrafoStat a, TrafoStat b) 
-              { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
+              { return a.percentiles_after[100] < b.percentiles_after[100]; })->percentiles_after[100];
       // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
       OPENMS_LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
-      max_alignment_diff = std::max(max_alignment_diff, 120.0);
+      max_alignment_diff = std::max(max_alignment_diff, 120.0); // minimum 2 minutes
+      max_alignment_diff = std::min(max_alignment_diff, 600.0); // maximum 10 minutes
       return max_alignment_diff;
     }
     return 0;
@@ -1214,7 +1221,8 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization (basic)
     //-------------------------------------------------------------
-    if (getStringOption_("out_msstats").empty())  // only normalize if no MSstats output is generated
+    if (getStringOption_("out_msstats").empty() 
+    && getStringOption_("out_triqler").empty())  // only normalize if no MSstats/Triqler output is generated
     {
       ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(
         consensus_fraction, 
@@ -1222,6 +1230,8 @@ protected:
         "", 
         "");
     }
+
+
 
     // max_alignment_diff returned by reference
     return EXECUTION_OK;
@@ -1491,6 +1501,7 @@ protected:
     StringList in = getStringList_("in");
     String out = getStringOption_("out");
     String out_msstats = getStringOption_("out_msstats");
+    String out_triqler = getStringOption_("out_triqler");
     StringList in_ids = getStringList_("ids");
     String design_file = getStringOption_("design");
     String in_db = getStringOption_("fasta");
@@ -1502,10 +1513,18 @@ protected:
         OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
     }
 
-    if (getStringOption_("quantification_method") == "spectral_counting" && !out_msstats.empty())
+    if (getStringOption_("quantification_method") == "spectral_counting")
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "MSstats export for spectral counting data not supported. Please remove output file.");
+      if (!out_msstats.empty())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "MSstats export for spectral counting data not supported. Please remove output file.");
+      }
+      if (!out_triqler.empty())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Triqler export for spectral counting data not supported. Please remove output file.");
+      }
     }
 
     //-------------------------------------------------------------
@@ -1945,6 +1964,23 @@ protected:
         "MSstats_Condition", 
         "max");
     }
+
+
+    if (!out_triqler.empty())
+    {
+      TriqlerFile tf;
+
+      // shrink protein runs to the one containing the inference data
+      consensus.getProteinIdentifications().resize(1);
+
+      tf.storeLFQ(
+        out_triqler, 
+        consensus, 
+        design, 
+        StringList(), 
+        "MSstats_Condition" // TODO: choose something more generic like "Condition" for both MSstats and Triqler export
+        );
+    }    
 
     return EXECUTION_OK;
   }
