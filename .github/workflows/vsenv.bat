@@ -12,6 +12,6 @@ for /f "usebackq delims=*" %%i in (`%VSWHERE% -latest -property installationPath
 :: See: https://stackoverflow.com/questions/39183272/loop-through-all-environmental-variables-and-take-actions-depending-on-prefix
 setlocal
 for /f "delims== tokens=1,2" %%a in ('set') do (
-  echo echo "PATH=%%a::%%b" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+  echo "%%a=%%b" >> %GITHUB_ENV%
 )
 endlocal
