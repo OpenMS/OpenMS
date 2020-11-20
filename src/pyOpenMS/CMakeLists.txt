@@ -371,13 +371,13 @@ endif()
 # If we only could get rid of distutils in general and do everything with CMake..
 if(NOT WIN32)
   find_boost(regex) ## variables are not global -> find again
-  
+  find_package(XercesC)
   # the following does not work since the FindBoost does not annotate all target_properties,
   # when run without BOOST_USE_STATIC On or Off.
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
   
   # the logic for static vs dynamic is in setup.py
-  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>")
+  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
   
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
