@@ -289,7 +289,7 @@ jobs:
 
             mkdir openms-build
             cd openms-build
-            cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
+            cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
             make -j4 OpenMS SuperHirn
 
             # compile and configure OpenMS
@@ -298,7 +298,7 @@ jobs:
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
 
               # configure
-              cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
+              cmake -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
   
               pushd pyOpenMS
