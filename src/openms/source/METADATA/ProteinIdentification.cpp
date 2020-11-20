@@ -685,8 +685,11 @@ namespace OpenMS
     const std::vector<PeptideIdentification>& pep_ids,
     const StringList& skip_modifications)
   {
-    // map protein accession to observed position,modifications pairs
-    map<String, set<pair<Size, ResidueModification>>> prot2mod;
+    // map protein accession to observed position -> modifications -> statistics (e.g., counts)
+    map<String, ProteinModificationSummary> prot2mod;
+
+    // total count how often evidence for a protein was observed (both unmodified + modified)
+    map<String, size_t> prot2count;
 
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
@@ -700,7 +703,16 @@ namespace OpenMS
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // skip unmodified peptides
-        if (aas.isModified() == false) { continue; }
+        if (aas.isModified() == false) 
+        { 
+          // count unmodified protein
+          for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+          {
+            const String& acc = ph_evidences[phe_i].getProteinAccession();
+            prot2count[acc]++; // count protein evidence
+          }
+          continue; 
+        }
 
         if (aas.isModified())
         {
@@ -715,7 +727,8 @@ namespace OpenMS
               {
                 const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getStart(); // mod at N terminus
-                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein
+                prot2count[acc]++; // count protein evidence
               }
             }
           }
@@ -733,7 +746,8 @@ namespace OpenMS
                 {
                   const String& acc = ph_evidences[phe_i].getProteinAccession();
                   const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai
-                  prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                  prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein    
+                  prot2count[acc]++; // count protein evidence              
                 }
               }
             }
@@ -750,7 +764,8 @@ namespace OpenMS
               {
                 const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getEnd(); // mod at C terminus
-                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein
+                prot2count[acc]++; // count protein evidence           
               }
             }
           }
@@ -759,11 +774,28 @@ namespace OpenMS
     }
 
     for (Size i = 0; i < protein_hits_.size(); ++i)
-    {
-      const String& accession = protein_hits_[i].getAccession();
-      if (prot2mod.find(accession) != prot2mod.end())
-      {
-        protein_hits_[i].setModifications(prot2mod[accession]);
+    { // for all proteins
+      const String& acc = protein_hits_[i].getAccession();
+      if (prot2mod.find(acc) != prot2mod.end())
+      { // if the protein is modified
+        const size_t total_count = prot2count[acc]; // # modified + unmodified evidences (PSMs) for this protein 
+
+        if (total_count == 0) { continue; }
+
+        for (auto& m : prot2mod[acc].AALevelSummary)
+        { // iterate over all modified positions
+          ProteinModificationSummary::ModificationsToStatistics& m2ss = m.second;
+          for (auto & stat : m2ss)
+          { // iterate over all modifications (key) and statistics (value) at this position
+            ProteinModificationSummary::Statistics& s = stat.second;
+            // calculate frequency for this modification at this position as: 
+            //   number of PSMs that support that modification at that position divided by
+            //   all PSMs of that protein
+            s.frequency = static_cast<double>(s.count) / total_count; 
+          }          
+        }
+        // store modifications and statistics
+        protein_hits_[i].setModifications(prot2mod[acc]);
       }
     }
   }

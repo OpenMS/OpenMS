@@ -47,6 +47,35 @@
 
 namespace OpenMS
 {
+
+  /**
+   * @brief Maps a protein position to all observed modifications and associated statistics 
+   * 
+   * For example, to store that position 10 maps to Oxidation (M) which was observed in 123 PSMs.
+   * 
+   */
+  struct OPENMS_DLLAPI ProteinModificationSummary
+  {
+    /// basic modification statistic
+    struct OPENMS_DLLAPI Statistics : public MetaInfoInterface
+    {
+      size_t count = 0;
+      double frequency = 0.0;
+    };
+
+    /// compare map
+    bool operator==(const ProteinModificationSummary& rhs) const
+    {
+      return AALevelSummary == rhs.AALevelSummary;
+    }
+
+    using ModificationsToStatistics =  std::map<ResidueModification, Statistics>;
+    using AALevelModificationSummary = std::map<size_t, ModificationsToStatistics>;
+
+    /// position -> modification -> statistic (counts, etc.)
+    AALevelModificationSummary AALevelSummary;
+  };
+
   /**
     @brief Representation of a protein hit
 
@@ -197,11 +226,11 @@ public:
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);
 
-    /// returns the set of modified protein positions
-    const std::set<std::pair<Size, ResidueModification> >& getModifications() const;
+    /// returns the set of modified protein positions and associated statistics
+    const ProteinModificationSummary& getModifications() const;
 
-    /// sets the set of modified protein positions
-    void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
+    /// sets modified protein positions and associated statistics (e.g., counts=PSMs that provided evidance for the modification at this position)
+    void setModifications(const ProteinModificationSummary& mods);
     //@}
 
 protected:
@@ -210,7 +239,7 @@ protected:
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
-    std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
+    ProteinModificationSummary modifications_; ///< modified positions in a protein
   };
 
   /// Stream operator
