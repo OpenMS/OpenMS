@@ -227,8 +227,8 @@ namespace OpenMS
       { // no peptides... load them
         OSWFile f(current_data_->getSqlSourceFile());
         f.readProtein(*current_data_, tr.idx_prot);
+        fillProt(current_data_->getProteins()[tr.idx_prot], item);
       }
-      fillProt(current_data_->getProteins()[tr.idx_prot], item);
       // do nothing else -- showing all transitions for a protein is overwhelming...      
       break;
     case OSWHierarchy::Level::PEPTIDE:
