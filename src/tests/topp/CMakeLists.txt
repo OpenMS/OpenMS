@@ -2924,7 +2924,7 @@ set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_3_out_4" ${DIFF}  -in1 BSA_plusSeeds_plusTransfer.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_3_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_3")
 
-# spectral counting
+# spectral counting (+ regression test with decoys in BSA1_F1)
 add_test("UTILS_ProteomicsLFQ_4" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -2934,7 +2934,7 @@ add_test("UTILS_ProteomicsLFQ_4" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
          -ids
-         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1_decoys.idXML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
