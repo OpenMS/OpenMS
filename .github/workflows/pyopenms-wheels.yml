@@ -40,9 +40,11 @@ jobs:
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
 
-    - name: Configure x64 environment
-      if: runner.os == 'Windows'
-      run: OpenMS\.github\workflows\vsenv.bat -arch=x64 -host_arch=x64
+    # https://github.com/marketplace/actions/visual-studio-shell
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
 
     - name: Load contrib build
       run: |
