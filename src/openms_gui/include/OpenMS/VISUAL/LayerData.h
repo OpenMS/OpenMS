@@ -329,6 +329,18 @@ public:
       updateCache_();
     }
 
+
+    /// get the full chromExperiment
+    /// Could be backed up in layer.getChromatogramData() (if layer.getPeakDataMuteable() shows converted chroms already)
+    /// ... or layer.getChromatogramData() is empty and thus layer.getPeakDataMuteable() is the original chrom data
+    ExperimentSharedPtrType getFullChromData()
+    {
+      ExperimentSharedPtrType exp_sptr(getChromatogramData().get() == nullptr ||
+          getChromatogramData().get()->getNrChromatograms() == 0
+             ? getPeakDataMuteable() : getChromatogramData());
+      return exp_sptr;
+    }
+
     /// Check whether the current layer should be represented as ion mobility
     bool isIonMobilityData() const
     {

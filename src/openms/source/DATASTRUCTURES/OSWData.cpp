@@ -35,6 +35,7 @@
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
@@ -56,6 +57,40 @@ namespace OpenMS
   void OSWData::clearProteins()
   {
     proteins_.clear();
+  }
+
+  void OSWData::buildNativeIDResolver(const MSExperiment& chrom_traces)
+  {
+    Size chrom_count = chrom_traces.getChromatograms().size();
+    for (Size i = 0; i < chrom_count; ++i)
+    {
+      const auto& chrom = chrom_traces.getChromatograms()[i];
+      UInt32 nid;
+      try
+      {
+        nid = chrom.getNativeID().toInt();
+      }
+      catch (...)
+      {
+        // probably a precursor native ID, e.g. 5543_precursor_i0 .. currently not handled.
+        continue;
+      }
+      if (transitions_.find(nid) == transitions_.end())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with nativeID " + (String(nid)) + " not found in OSW data. Make sure the OSW data was loaded!");
+      }
+      transID_to_index_[nid] = i;
+    }
+  }
+
+  UInt OSWData::fromNativeID(int transition_id) const
+  {
+    auto it = transID_to_index_.find(transition_id);
+    if (it == transID_to_index_.end())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Native ID not found in sqMass file. Did you load the correct file (corresponding sqMass + OSW file)?", String(transition_id));
+    }
+    return it->second;
   }
 
   void OSWData::checkTransitions_(const OSWProtein& prot) const
