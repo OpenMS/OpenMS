@@ -63,6 +63,7 @@ StaticModification
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
+TriqlerConverter
 XMLValidator
 )
 

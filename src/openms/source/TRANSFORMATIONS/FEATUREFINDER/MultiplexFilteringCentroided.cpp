@@ -39,6 +39,10 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // #define DEBUG
 
 using namespace std;
@@ -96,12 +100,15 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over m/z
-        for (MSSpectrum::ConstIterator it_mz = it_rt.begin(); it_mz != it_rt.end(); ++it_mz)
+        //for (MSSpectrum::ConstIterator it_mz = it_rt.begin(); it_mz != it_rt.end(); ++it_mz)
+        #pragma omp parallel for
+        for (SignedSize s = 0; s < (SignedSize) it_rt.size(); s++)
         {
-          double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][it_mz - it_rt.begin()], idx_rt);
+          auto& it_mz = it_rt[s];
+          double mz = it_mz.getMZ();
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][s], idx_rt);
           
-          if (!(filterPeakPositions_(it_mz, exp_centroided_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
           {
             continue;
           }
@@ -120,8 +127,11 @@ namespace OpenMS
            * All filters passed.
            */
 
-          result.addPeak(peak);
-          blacklistPeak_(peak, pattern_idx);
+          #pragma omp critical
+          {
+            result.addPeak(peak);
+            blacklistPeak_(peak, pattern_idx);
+          };
         }
       }
       

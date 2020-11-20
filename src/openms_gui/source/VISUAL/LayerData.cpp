@@ -36,13 +36,14 @@
 
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h> // for AMS annotation
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-
 
 //#include <iostream>
 #include <QtWidgets/QFileDialog>
@@ -62,6 +63,38 @@ namespace OpenMS
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
     os << "--LayerData END--" << std::endl;
     return os;
+  }
+
+
+  /// Default constructor
+
+  LayerData::LayerData() :
+    flags(),
+    visible(true),
+    flipped(false),
+    type(DT_UNKNOWN),
+    name_(),
+    filename(),
+    peptides(),
+    param(),
+    gradient(),
+    filters(),
+    annotations_1d(),
+    peak_colors_1d(),
+    modifiable(false),
+    modified(false),
+    label(L_NONE),
+    peptide_id_index(-1),
+    peptide_hit_index(-1),
+    features_(new FeatureMapType()),
+    consensus_map_(new ConsensusMapType()),
+    peak_map_(new ExperimentType()),
+    on_disc_peaks(new OnDiscMSExperiment()),
+    chromatogram_map_(new ExperimentType()),
+    current_spectrum_(0),
+    cached_spectrum_()
+  {
+    annotations_1d.resize(1);
   }
 
   const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
@@ -144,6 +177,28 @@ namespace OpenMS
     }
   }
 
+
+  /// add annotation from an OSW sqlite file.
+
+
+  /// get annotation (e.g. to build a hierachical ID View)
+  /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+
+  LayerData::OSWDataSharedPtrType& LayerData::getChromatogramAnnotation()
+  {
+    return chrom_annotation_;
+  }
+
+  const LayerData::OSWDataSharedPtrType& LayerData::getChromatogramAnnotation() const
+  {
+    return chrom_annotation_;
+  }
+
+  void LayerData::setChromatogramAnnotation(OSWData&& data)
+  {
+    chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
+  }
+
   bool LayerData::annotate(const vector<PeptideIdentification>& identifications,
     const vector<ProteinIdentification>& protein_identifications)
   {
@@ -173,9 +228,26 @@ namespace OpenMS
     return true;
   }
 
-  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
+  const LayerData::ExperimentType::SpectrumType& LayerData::getCurrentSpectrum() const
   {
     return cached_spectrum_;
+  }
+
+  /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
+
+  const LayerData::ExperimentType::SpectrumType LayerData::getSpectrum(Size spectrum_idx) const
+  {
+    if (spectrum_idx == current_spectrum_) return cached_spectrum_;
+
+    if ((*peak_map_)[spectrum_idx].size() > 0)
+    {
+      return (*peak_map_)[spectrum_idx];
+    }
+    else if (!on_disc_peaks->empty())
+    {
+      return on_disc_peaks->getSpectrum(spectrum_idx);
+    }
+    return (*peak_map_)[spectrum_idx];
   }
 
   void LayerData::synchronizePeakAnnotations()

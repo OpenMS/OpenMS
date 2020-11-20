@@ -28,79 +28,72 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerData.h>
-#include <OpenMS/VISUAL/TableView.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
 #include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTableWidget>
-#include <QCheckBox>
+
+
+#include <OpenMS/VISUAL/LayerData.h>
+
+class QLineEdit;
+class QComboBox;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace OpenMS
 {
-  /**
-    @brief Tabular visualization / selection of identified spectra.
+  class TreeView;
+  struct OSWIndexTrace;
 
-    @htmlinclude OpenMS_DigestSimulation.parameters
+  /**
+    @brief Hierarchical visualization and selection of spectra.
+
+    @ingroup PlotWidgets
   */
-  class SpectraIdentificationViewWidget :
-    public QWidget,
-    public DefaultParamHandler
+  class DIATreeTab :
+    public QWidget
   {
     Q_OBJECT
   public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
+    DIATreeTab(QWidget* parent = nullptr);
     /// Destructor
-    ~SpectraIdentificationViewWidget() override = default;
+    ~DIATreeTab() = default;
 
-    /// set layer data and create table anew
-    void setLayer(LayerData* model);
-    /// get layer data
-    LayerData* getLayer();
-
-    /// clears all visible data from table widget and void the layer
+    /// refresh the table using data from @p cl
+    /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
+    void updateEntries(LayerData& cl);
+    /// remove all visible data
     void clear();
 
-    /// Helper member to block outgoing signals
-    bool ignore_update = false; 
-  
-  protected slots:
-    /// Rebuild table entries
-    void updateEntries();
   signals:
-    /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
-    void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
-    /// request to unshow a spectrum
-    void spectrumDeselected(int spectrum_index);
-    /// request to zoom into a 1D spec
-    void requestVisibleArea1D(double lower_mz, double upper_mz);
+    /// emitted when a protein, peptide, feature or transition was clicked
+    void dataSelected(const OSWIndexTrace& trace);
 
   private:
-   /// partially fill the bottom-most row  
-   void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
+    QLineEdit* spectra_search_box_ = nullptr;
+    QComboBox* spectra_combo_box_ = nullptr;
+    TreeView* dia_treewidget_ = nullptr;
 
-    LayerData* layer_ = nullptr;
-    QCheckBox* hide_no_identification_ = nullptr;
-    QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
-    TableView* table_widget_ = nullptr;
-    QTableWidget* fragment_window_ = nullptr;
-    bool is_ms1_shown_ = false;
-  
+    /// points to the data which is currently shown
+    /// Useful to avoid useless repaintings, which would loose the open/close state of internal tree nodes and selected items
+    OSWData* current_data_ = nullptr;
+
   private slots:
-    /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
-    void saveIDs_();
-    /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
-    void updatedSingleCell_(QTableWidgetItem* item);
-    /// Cell clicked in table_widget; emits which spectrum (row) was clicked, and may show additional data
-    void currentCellChanged_(int row, int column, int old_row, int old_column);
+    /// fill the search-combo-box with current column header names
+    void populateSearchBox_();
+    /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+    void spectrumSearchText_();
+    /// emits transitionSelected() for all subitems
+    void rowSelectionChange_(QTreeWidgetItem*, QTreeWidgetItem*);
+    /// emits transitionSelected() for all subitems
+    void rowSelectionChange2_(QTreeWidgetItem*, int col);
+    /// searches using text box and plots the spectrum
+    void searchAndShow_();
   };
 }
+

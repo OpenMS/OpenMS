@@ -43,11 +43,14 @@
 
 namespace OpenMS
 {
-  class SpectraViewWidget;
-  class SpectraIdentificationViewWidget;
+  class DIATreeTab;
+  class SpectraTreeTab;
+  class SpectraIDViewTab;
+  class TVDIATreeTabController;
   class TVIdentificationViewController;
   class TVSpectraViewController;
   class TOPPViewBase;
+
   /**
     @brief A tabbed view, to browse lists of spectra or identifications
     
@@ -62,6 +65,7 @@ namespace OpenMS
     {
       SPECTRA_IDX = 0,  ///< first tab
       IDENT_IDX = 1,    ///< second tab
+      DIAOSW_IDX = 2,   ///< third tab
       AUTO_IDX          ///< automatically decide which tab to show (i.e. prefer IDENT_IDX if it has data)
     };
 
@@ -75,10 +79,10 @@ namespace OpenMS
     void currentTabChanged(int tab_index);
     
     /// forwards to the TOPPView*Behaviour classes, to show a certain spectrum in 1D
-    void showSpectrumAs1D(int index);
+    void showSpectrumAsNew1D(int index);
     
     /// forwards to the TOPPView*Behaviour classes, to show a certain set of chromatograms in 1D
-    void showSpectrumAs1D(std::vector<int> indices);
+    void showChromatogramsAsNew1D(const std::vector<int>& indices);
 
     /// double-click on disabled identification view
     /// --> enables it and creates an empty identification structure
@@ -87,20 +91,24 @@ namespace OpenMS
     /// enable and show the @p which tab
     void show(TAB_INDEX which);
 
-    SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
+    SpectraIDViewTab* getSpectraIDViewTab();
   signals:
 
   private:
     ///@name Spectrum selection widgets
     //@{
-    SpectraViewWidget* spectra_view_widget_;
-    SpectraIdentificationViewWidget* id_view_widget_;
+    SpectraTreeTab* spectra_view_widget_;
+    SpectraIDViewTab* id_view_widget_;
+    DIATreeTab* dia_widget_;
     //@}
 
     /// TOPPView behavior for the spectra view
     TVSpectraViewController* spectraview_controller_;
     /// TOPPView behavior for the identification view
     TVIdentificationViewController* idview_controller_;
+    /// TOPPView behavior for the DIA view
+    TVDIATreeTabController* diatab_controller_;
+
     /// pointer to base class to access some members (going signal/slot would be cleaner)
     TOPPViewBase* tv_;
   };

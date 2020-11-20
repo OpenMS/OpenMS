@@ -81,8 +81,8 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-#include <OpenMS/VISUAL/SpectraViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -491,7 +491,7 @@ namespace OpenMS
     defaults_.insert("preferences:3d:", Plot3DCanvas(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:3d", "Settings for 3D map view.");
     // identification view
-    defaults_.insert("preferences:idview:", SpectraIdentificationViewWidget(Param()).getDefaults());
+    defaults_.insert("preferences:idview:", SpectraIDViewTab(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
     subsections_.push_back("preferences:RecentFiles");
@@ -1425,7 +1425,7 @@ namespace OpenMS
     {
       connect(sw2->getHorizontalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
-      connect(sw2, CONNECTCAST(Plot2DWidget, showSpectrumAs1D, (int)), selection_view_, CONNECTCAST(DataSelectionTabs, showSpectrumAs1D, (int)));
+      connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }
 
@@ -1720,7 +1720,7 @@ namespace OpenMS
       // This means we have chromatogram data, either as DT_CHROMATOGRAM or as
       // DT_PEAK with the chromatogram flag set. To run the TOPPTool we need to
       // remove the flag and add the newly generated layer as spectrum data
-      // (otherwise we run into problems with SpectraViewWidget::updateEntries
+      // (otherwise we run into problems with SpectraTreeTab::updateEntries
       // which assumes that all chromatogram data has chromatograms).
       getActiveCanvas()->getCurrentLayer().remove_chromatogram_flag(); // removing the flag is not constant
       //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true");
@@ -1921,7 +1921,7 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(DataSelectionTabs::IDENT_IDX);
+    selection_view_->show(DataSelectionTabs::DIAOSW_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -2350,9 +2350,7 @@ namespace OpenMS
       updateMenu();
     }
   }
-
   
-
   void TOPPViewBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
   {
     static StringList colors = { "@bw", "@bg", "@b", "@r", "@g", "@m" };
@@ -2460,7 +2458,7 @@ namespace OpenMS
 
   void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
   {
-    SpectraViewWidget* spec_view = (source ? qobject_cast<SpectraViewWidget*>(source->parentWidget()) : nullptr);
+    SpectraTreeTab* spec_view = (source ? qobject_cast<SpectraTreeTab*>(source->parentWidget()) : nullptr);
     try
     {
       //NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
@@ -2494,19 +2492,15 @@ namespace OpenMS
       }
       else if (spec_view != nullptr)
       {
-        QTreeWidgetItem* item = spec_view->getTreeWidget()->currentItem();
-        if (item != nullptr)
+        ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
+        if (spec_view->getSelectedScan(*new_exp_sptr))
         {
-          const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          Size index = (Size)(item->text(3).toInt());       // todo: wtf...
-          const ExperimentType::SpectrumType spectrum = (*layer.getPeakData())[index];
-          ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-          new_exp_sptr->addSpectrum(spectrum);
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
+          const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerData::DT_PEAK : LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)

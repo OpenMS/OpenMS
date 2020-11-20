@@ -32,23 +32,16 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+
 #include <OpenMS/VISUAL/TableView.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
 #include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QTreeWidget>
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QMenu>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QFileDialog>
-#include <QtCore/QTextStream>
-
 
 #include <vector>
 
@@ -75,14 +68,14 @@ namespace Clmn
 
 namespace OpenMS
 {
-  SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param&, QWidget* parent) :
+  SpectraIDViewTab::SpectraIDViewTab(const Param&, QWidget* parent) :
     QWidget(parent),
-    DefaultParamHandler("SpectraIdentificationViewWidget")
+    DefaultParamHandler("SpectraIDViewTab")
   {
     setObjectName("Identifications");
 
     // make sure they are in sync
-    assert(HEADER_NAMES.size() == HeaderNames::SIZE_OF_HEADERNAMES);
+    assert(Clmn::HEADER_NAMES.size() == Clmn::HeaderNames::SIZE_OF_HEADERNAMES);
 
     // id view
     defaults_.setValue("a_intensity", 1.0, "Default intensity of a-ions");
@@ -122,7 +115,7 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
 
     QPushButton* save_IDs = new QPushButton("Save IDs", this);
-    connect(save_IDs, &QPushButton::clicked, this, &SpectraIdentificationViewWidget::saveIDs_);
+    connect(save_IDs, &QPushButton::clicked, this, &SpectraIDViewTab::saveIDs_);
 
     QPushButton* export_table = new QPushButton("Export table", this);
 
@@ -132,20 +125,20 @@ namespace OpenMS
     tmp_hbox_layout->addWidget(export_table);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
 
-    connect(table_widget_, &QTableWidget::currentCellChanged, this, &SpectraIdentificationViewWidget::currentCellChanged_);
-    connect(table_widget_, &QTableWidget::itemChanged, this, &SpectraIdentificationViewWidget::updatedSingleCell_);
-    connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIdentificationViewWidget::updateEntries);
-    connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIdentificationViewWidget::updateEntries);
+    connect(table_widget_, &QTableWidget::currentCellChanged, this, &SpectraIDViewTab::currentCellChanged_);
+    connect(table_widget_, &QTableWidget::itemChanged, this, &SpectraIDViewTab::updatedSingleCell_);
+    connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries);
+    connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries);
     connect(export_table, &QPushButton::clicked, table_widget_, &TableView::exportEntries);
   }
 
-  void SpectraIdentificationViewWidget::clear()
+  void SpectraIDViewTab::clear()
   {
     // remove all entries
     setLayer(nullptr);
   }
 
-  void SpectraIdentificationViewWidget::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
+  void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // sometimes Qt calls this function when table empty during refreshing
     if (row < 0 || column < 0) return;
@@ -263,7 +256,7 @@ namespace OpenMS
     } // PeakAnnotation cell clicked
   }
 
-  void SpectraIdentificationViewWidget::setLayer(LayerData* cl)
+  void SpectraIDViewTab::setLayer(LayerData* cl)
   {
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
@@ -271,7 +264,7 @@ namespace OpenMS
     updateEntries();
   }
 
-  LayerData* SpectraIdentificationViewWidget::getLayer()
+  LayerData* SpectraIDViewTab::getLayer()
   {
     return layer_;
   }
@@ -288,7 +281,7 @@ namespace OpenMS
     };
   }
 
-  void SpectraIdentificationViewWidget::updateEntries()
+  void SpectraIDViewTab::updateEntries()
   {
     // no valid peak layer attached
     if (layer_ == nullptr
@@ -526,7 +519,7 @@ namespace OpenMS
     table_widget_->setUpdatesEnabled(true);
   }
  
-  void SpectraIdentificationViewWidget::saveIDs_()
+  void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
     if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
@@ -584,7 +577,7 @@ namespace OpenMS
 
   // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
   // update the corresponding PeptideIdentification / PeptideHits by adding a metavalue: 'selected'
-  void SpectraIdentificationViewWidget::updatedSingleCell_(QTableWidgetItem* item)
+  void SpectraIDViewTab::updatedSingleCell_(QTableWidgetItem* item)
   {
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int row = item->row();
@@ -612,7 +605,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIdentificationViewWidget::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color)
+  void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color)
   {
     const vector<Precursor>& precursors = spectrum.getPrecursors();
 

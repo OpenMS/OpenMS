@@ -8,6 +8,7 @@ AxisPainter.h
 AxisWidget.h
 ColorSelector.h
 DataSelectionTabs.h
+DIATreeTab.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
@@ -35,8 +36,8 @@ Plot3DWidget.h
 PlotCanvas.h
 PlotWidget.h
 RecentFilesMenu.h
-SpectraViewWidget.h
-SpectraIdentificationViewWidget.h
+SpectraTreeTab.h
+SpectraIDViewTab.h
 SwathLibraryStats.h
 TableView.h
 TOPPASEdge.h
@@ -52,8 +53,9 @@ TOPPASTreeView.h
 TOPPASVertex.h
 TOPPASWidget.h
 TOPPViewMenu.h
-#TOPPViewPreferences.h
+TreeView.h
 TVControllerBase.h
+TVDIATreeTabController.h
 TVIdentificationViewController.h
 TVSpectraViewController.h
 )

@@ -34,72 +34,73 @@
 
 #pragma once
 
+#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/TableView.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <QtWidgets>
 #include <QLineEdit>
 #include <QComboBox>
-#include <QTreeWidget>
-
-#include <OpenMS/VISUAL/LayerData.h>
+#include <QTableWidget>
+#include <QCheckBox>
 
 namespace OpenMS
 {
   /**
-    @brief Hierarchical visualization and selection of spectra.
+    @brief Tabular visualization / selection of identified spectra.
 
-    @ingroup PlotWidgets
+    @htmlinclude OpenMS_DigestSimulation.parameters
   */
-  class SpectraViewWidget :
-    public QWidget
+  class SpectraIDViewTab :
+    public QWidget,
+    public DefaultParamHandler
   {
     Q_OBJECT
-public:
+  public:
     /// Constructor
-    SpectraViewWidget(QWidget * parent = nullptr);
+    SpectraIDViewTab(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
-    ~SpectraViewWidget() = default;
+    ~SpectraIDViewTab() override = default;
 
-    QTreeWidget* getTreeWidget();
-    QComboBox* getComboBox();
-    void updateEntries(const LayerData & cl);
-    /// remove all visible data
+    /// set layer data and create table anew
+    void setLayer(LayerData* model);
+    /// get layer data
+    LayerData* getLayer();
+
+    /// clears all visible data from table widget and void the layer
     void clear();
-    /// do we have data to show?
-    bool hasData() const
-    {
-      return has_data_;
-    }
-signals:
-    void spectrumSelected(int);
-    void spectrumSelected(std::vector<int> indices);
-    void spectrumDoubleClicked(int);
-    void spectrumDoubleClicked(std::vector<int> indices);
-    void showSpectrumAs1D(int);
-    void showSpectrumAs1D(std::vector<int> indices);
-    void showSpectrumMetaData(int);
-private:
-    QLineEdit * spectra_search_box_;
-    QComboBox * spectra_combo_box_;
-    QTreeWidget * spectra_treewidget_;
-    /// cache to store mapping of chromatogram precursors to chromatogram indices
-    std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
 
-    /// do we currently show data? 
-    bool has_data_ = false;
+    /// Helper member to block outgoing signals
+    bool ignore_update = false; 
+  
+  protected slots:
+    /// Rebuild table entries
+    void updateEntries();
+  signals:
+    /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
+    void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
+    /// request to unshow a spectrum
+    void spectrumDeselected(int spectrum_index);
+    /// request to zoom into a 1D spec
+    void requestVisibleArea1D(double lower_mz, double upper_mz);
 
-    /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
-    const PeakMap* last_peakmap_ = nullptr;
+  private:
+   /// partially fill the bottom-most row  
+   void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
 
-private slots:
-   /// fill the search-combo-box with current column header names
-    void populateSearchBox_();
-    /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
-    void spectrumSearchText_();
-    /// allows to show/hide columns
-    void spectrumBrowserHeaderContextMenu_(const QPoint &);
-    void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
-    void searchAndShow_(); ///< searches using text box and plots the spectrum
-    void spectrumDoubleClicked_(QTreeWidgetItem *); ///< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
-    void spectrumContextMenu_(const QPoint &);
+    LayerData* layer_ = nullptr;
+    QCheckBox* hide_no_identification_ = nullptr;
+    QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
+    TableView* table_widget_ = nullptr;
+    QTableWidget* fragment_window_ = nullptr;
+    bool is_ms1_shown_ = false;
+  
+  private slots:
+    /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
+    void saveIDs_();
+    /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
+    void updatedSingleCell_(QTableWidgetItem* item);
+    /// Cell clicked in table_widget; emits which spectrum (row) was clicked, and may show additional data
+    void currentCellChanged_(int row, int column, int old_row, int old_column);
   };
 }
-

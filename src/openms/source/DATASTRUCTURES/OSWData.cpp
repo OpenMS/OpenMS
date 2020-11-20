@@ -38,7 +38,9 @@
 
 namespace OpenMS
 {
-  void OpenMS::OSWData::addProtein(OSWProtein&& prot)
+  const char* OSWHierarchy::LevelName[] = { "protein", "peptide", "feature/peakgroup", "transition" };
+
+  void OSWData::addProtein(OSWProtein&& prot)
   {
     // check if transitions are known
     checkTransitions_(prot);

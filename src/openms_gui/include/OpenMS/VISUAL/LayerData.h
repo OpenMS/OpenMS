@@ -38,10 +38,10 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/OSWData.h>
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -58,6 +58,9 @@
 
 namespace OpenMS
 {
+
+  class OnDiscMSExperiment;
+  class OSWData;
 
   /**
   @brief Class that stores the data for one layer
@@ -158,37 +161,13 @@ public:
     /// SharedPtr on On-Disc MSExperiment
     typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
+    /// SharedPtr on OSWData
+    typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+
     //@}
 
     /// Default constructor
-    LayerData() :
-      flags(),
-      visible(true),
-      flipped(false),
-      type(DT_UNKNOWN),
-      name_(),
-      filename(),
-      peptides(),
-      param(),
-      gradient(),
-      filters(),
-      annotations_1d(),
-      peak_colors_1d(),
-      modifiable(false),
-      modified(false),
-      label(L_NONE),
-      peptide_id_index(-1),
-      peptide_hit_index(-1),
-      features_(new FeatureMapType()),
-      consensus_map_(new ConsensusMapType()),
-      peak_map_(new ExperimentType()),
-      on_disc_peaks(new OnDiscMSExperiment()),
-      chromatogram_map_(new ExperimentType()),
-      current_spectrum_(0),
-      cached_spectrum_()
-    {
-      annotations_1d.resize(1);
-    }
+    LayerData();
 
     /// no Copy-ctor (should not be needed)
     LayerData(const LayerData& ld) = delete;
@@ -281,16 +260,15 @@ public:
     }
 
     /// get annotation (e.g. to build a hierachical ID View)
-    const OSWData& getChromatogramAnnotation()
-    {
-      return chrom_annotation_;
-    }
+    /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+    OSWDataSharedPtrType& getChromatogramAnnotation();
+
+    /// get annotation (e.g. to build a hierachical ID View)
+    /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
+    const OSWDataSharedPtrType& getChromatogramAnnotation() const;
 
     /// add annotation from an OSW sqlite file.
-    void setChromatogramAnnotation(OSWData&& data)
-    {
-      chrom_annotation_ = std::move(data);
-    }
+    void setChromatogramAnnotation(OSWData&& data);
 
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
@@ -336,20 +314,7 @@ public:
     }
 
     /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
-    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
-    {
-      if (spectrum_idx == current_spectrum_) return cached_spectrum_;
-
-      if ((*peak_map_)[spectrum_idx].size() > 0)
-      {
-        return (*peak_map_)[spectrum_idx];
-      }
-      else if (!on_disc_peaks->empty())
-      {
-        return on_disc_peaks->getSpectrum(spectrum_idx);
-      }
-      return (*peak_map_)[spectrum_idx];
-    }
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const;
       
     /// Get the index of the current spectrum (1D view)
     Size getCurrentSpectrumIndex() const
@@ -525,7 +490,7 @@ private:
     ExperimentSharedPtrType chromatogram_map_;
 
     /// Chromatogram annotation data
-    OSWData chrom_annotation_;
+    OSWDataSharedPtrType chrom_annotation_;
 
     /// Index of the current spectrum
     Size current_spectrum_;
