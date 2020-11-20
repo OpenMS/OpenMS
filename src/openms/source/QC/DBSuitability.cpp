@@ -116,9 +116,15 @@ namespace OpenMS
     debug_out += "subsampled suitability data:\ntop db: " + String(suitability_data_sampled.num_top_db) + "\ntop novo: " + String(suitability_data_sampled.num_top_novo) + "\n\n";
 
     // slopes of db and deNovo hits
-    double db_slope = (int(suitability_data_sampled.num_top_db) - int(suitability_data_full.num_top_db)) / (1 - subsampling_rate);
-    double deNovo_slope = (int(suitability_data_sampled.num_top_novo) - int(suitability_data_full.num_top_novo)) / (1 - subsampling_rate);
+    double db_slope = (int(suitability_data_sampled.num_top_db) - int(suitability_data_full.num_top_db)) / (subsampling_rate - 1);
+    double deNovo_slope = (int(suitability_data_sampled.num_top_novo) - int(suitability_data_full.num_top_novo)) / (subsampling_rate - 1);
 
+    debug_out += "extrapolation data:\ndeNovo slope: " + String(deNovo_slope) + "\ndb_slope: " + String(db_slope) + "\n";
+
+    double factor = -(db_slope) / (deNovo_slope);
+
+    debug_out += "correction factor:\n- db_slope / deNovo_slope = " + String(factor) + "\n";
+    /*
     // calculate deNovo intercept (maximum deNovo ids)
     appendDecoys_(novo_fasta);
     Int deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
@@ -131,8 +137,12 @@ namespace OpenMS
 
     debug_out += "extrapolation data:\ndeNovo slope: " + String(deNovo_slope) + "\ndeNovo Intercept: " + String(deNovo_intercept) + "\ndb_slope: " + String(db_slope) + "\n";
     debug_out += "ratio for y = 0 (-deNovo_intercept / deNovo_slope): " + String(target_ratio) + "\ndb hits at that ratio (db_slope * ratio): " + String(db_hits_at_ratio) + "\ncorrection factor (db_hits_at_ratio / deNovo_intercept): " + String(factor) + "\n";
-
+    */
     OPENMS_LOG_DEBUG << debug_out << endl;
+
+    //std::ofstream debug_file("C:\\Development\\debugging_corrected_suitability.txt", std::ios_base::app);
+    //debug_file << debug_out;
+    //debug_file.close();
 
     suitability_data_full.setCorrectionFactor(factor);
   }
@@ -225,10 +235,11 @@ namespace OpenMS
 
   bool DBSuitability::isNovoHit_(const PeptideHit& hit) const
   {
+    const boost::regex decoy_pattern(DecoyHelper::getPrefixRegex() + "|" + DecoyHelper::getSuffixRegex());
     const set<String>& accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
     {
-      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
+      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(acc, decoy_pattern))
       {
         return false;
       }
