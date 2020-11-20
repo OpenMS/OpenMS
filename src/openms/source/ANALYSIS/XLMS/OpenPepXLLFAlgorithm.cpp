@@ -510,9 +510,14 @@ using namespace OpenMS;
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, spectrum, exp_charges);
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_beta, spectrum, exp_charges);
 
-        // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
-        Size n_xlink_charges = (precursor_charge - 1) - 2;
-        if (n_xlink_charges < 1) n_xlink_charges = 1;
+        // the maximal xlink ion charge is (precursor charge - 1) and the minimal xlink ion charge is 2.
+        // we need the difference between min and max here, which is (precursor_charge - 3) in most cases
+        // but we also need a number > 0, we set 1 as the minimum, in case the precursor charge is only 3 or smaller
+        Size n_xlink_charges = 1;
+        if (precursor_charge > 3)
+        {
+          n_xlink_charges = precursor_charge - 3;
+        }
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
         double match_odds_c_alpha = XQuestScores::matchOddsScoreSimpleSpec(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
@@ -696,10 +701,6 @@ using namespace OpenMS;
         // compute weighted TIC
         double wTIC = XQuestScores::weightedTICScore(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
         double wTICold = XQuestScores::weightedTICScoreXQuest(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
-
-        // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
-        Size n_xlink_charges = (precursor_charge - 1) - 2;
-        if (n_xlink_charges < 1) n_xlink_charges = 1;
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
         double log_occu_c_alpha = XQuestScores::logOccupancyProb(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
