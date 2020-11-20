@@ -53,7 +53,7 @@ namespace OpenMS
 
       @param pos X-coordinate as show on the axis
       @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
-      @param text Optional text displayed next to the line
+      @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
     **/ 
     Annotation1DVerticalLineItem(const double x_pos, const QColor& color = QColor("as_before"), const QString& text = "");
     /**
@@ -63,7 +63,7 @@ namespace OpenMS
       @param width Full width of the band
       @param fill_alpha255 A transparency value from 0 (no visible band), to 255 (fully opaque band)
       @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
-      @param text Optional text displayed next to the line
+      @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
     **/
     Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int fill_alpha255 = 128, const QColor& color = QColor("as_before"), const QString& text = "");
     /// Copy constructor

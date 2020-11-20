@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtCore/QPoint>
 #include <QtGui/QPainter>
@@ -106,7 +107,8 @@ namespace OpenMS
     // 5 pixel to x() was added to give some space between the line and the text
     if (!text_.isEmpty())
     {
-      painter.drawText(end_p_right.x() + 5, 20.0, text_);
+      // randomize the y-coordinate to avoid overlaps
+      GUIHelpers::drawText(painter, text_.split('\n'), { end_p_right.x() + 5, 20 }, Qt::black);
     }
 
     if (color_.isValid())

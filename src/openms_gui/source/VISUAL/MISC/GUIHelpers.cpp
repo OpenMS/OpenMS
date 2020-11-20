@@ -43,6 +43,8 @@
 #include <QMessageBox>
 #include <QString>
 #include <QStringList>
+#include <QPainter>
+#include <QPoint>
 #include <QProcess>
 
 namespace OpenMS
@@ -141,6 +143,45 @@ namespace OpenMS
                            QObject::tr("Unable to open\n") + target + 
                            QObject::tr("\n\nPossible reason: security settings or misconfigured Operating System"));
     }
+  }
+
+  /**
+  @brief draw a multi-line text at coordinates XY using a specific font and color
+  @param painter Where to draw
+  @param text Each item is a new line
+  @param where Coordinates where to start drawing (upper left corner of text)
+  @param col_fg Optional text color; if invalid (=default) will use the current painter's color
+  @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
+  @param Optional font; will use Courier by default
+  */
+  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg, const QColor col_bg, QFont f)
+  {
+    painter.save();
+
+    // font
+    painter.setFont(f);
+
+    //d etermine width and height of the box we need
+    QFontMetrics metrics(painter.font());
+    int line_spacing = metrics.lineSpacing();
+    int height = 6 + text.size() * line_spacing;
+    int width = 4;
+    for (int i = 0; i < text.size(); ++i)
+    {
+      width = std::max(width, 4 + metrics.width(text[i]));
+    }
+
+    // draw background for text
+    if (col_bg.isValid()) painter.fillRect(where.x(), where.y(), width, height, col_bg);
+
+    // draw text
+    if (col_fg.isValid()) painter.setPen(col_fg);
+
+    for (int i = 0; i < text.size(); ++i)
+    {
+      painter.drawText(where.x() + 1, where.y() + (i + 1) * line_spacing, text[i]);
+    }
+    painter.restore();
   }
 
 } //namespace OpenMS

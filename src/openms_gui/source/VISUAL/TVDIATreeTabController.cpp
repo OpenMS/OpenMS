@@ -116,7 +116,8 @@ namespace OpenMS
     {
       double width = feature->getRTRightWidth() - feature->getRTLeftWidth();
       double center = feature->getRTLeftWidth() + width / 2;
-      Annotation1DItem* item = new Annotation1DVerticalLineItem(center, width, 30);
+      String ann = String("RT: ") + String(feature->getRTExperimental(), false) + "\ndRT: " + String(feature->getRTDelta(), false) + "\nQ-Value: " + String(feature->getQValue(), false);
+      Annotation1DItem* item = new Annotation1DVerticalLineItem(center, width, 30, QColor("invalid"), ann.toQString());
       item->setSelected(false);
       w->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
     }
