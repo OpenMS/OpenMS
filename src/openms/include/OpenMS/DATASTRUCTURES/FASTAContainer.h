@@ -348,6 +348,22 @@ public:
     bool is_prefix; //< on success, was it a prefix or suffix
   };
 
+  // common decoy strings in FASTA files
+  // note: decoy prefixes/suffices must be provided in lower case
+  static const std::vector<std::string> affixes;
+
+  // returns a regex string to find decoy prefixes
+  static std::string getPrefixRegex()
+  {
+    return std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
+  }
+
+  // returns regex string to find decoy suffixes
+  static std::string getSuffixRegex()
+  {
+    return std::string("(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)$";
+  }
+
   /**
     @brief Heuristic to determine the decoy string given a set of protein names
 
@@ -358,22 +374,16 @@ public:
   template<typename T>
   static Result findDecoyString(FASTAContainer<T>& proteins)
   {
-    // common decoy strings in FASTA files
-    // note: decoy prefixes/suffices must be provided in lower case
-    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+    //const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
     // map case insensitive strings back to original case (as used in fasta)
     CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
 
-    // setup prefix- and suffix regex strings
-    const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
-    const std::string regexstr_suffix = std::string("(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)$";
-
     // setup regexes
-    const boost::regex pattern_prefix(regexstr_prefix);
-    const boost::regex pattern_suffix(regexstr_suffix);
+    const boost::regex pattern_prefix(getPrefixRegex());
+    const boost::regex pattern_suffix(getSuffixRegex());
 
     int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
 
