@@ -1,5 +1,8 @@
 @echo off
 
+chcp
+chcp 65001
+
 SET VSWHERE="C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere"
 
 :: See https://github.com/microsoft/vswhere/wiki/Find-VC
