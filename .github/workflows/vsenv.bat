@@ -16,4 +16,5 @@ for /f "delims== tokens=1,2" %%a in ('set') do (
   echo "%%b" 
   echo "%%a=%%b" >> %GITHUB_ENV%
 )
+echo %GITHUB_ENV%
 endlocal
