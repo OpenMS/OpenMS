@@ -235,31 +235,70 @@ protected:
     std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter;
     for (const auto &it : v_mta)
     {
-      bool added = false;
+      vector <std::pair <double,double>> ambiguity_groups_in_windows;
+      ambiguity_groups_in_windows.clear();
       for (auto &map_it : map_mta_filter)
       {
-        // if there is already an entry within a mz and rt tolerance add the ambiguous compound.
-        std::pair<double, double> mz_tolerance_window = Math::getTolWindow(it.precursor_mz,
-                                                                           ar_mz_tol,
-                                                                           ar_mz_tol_unit);
+        // find all possible ambiguity groups in mass and rt window.
+        std::pair<double, double> mz_tolerance_window = Math::getTolWindow(it.precursor_mz, ar_mz_tol, ar_mz_tol_unit);
         std::pair<double, double> rt_tolerance_window = Math::getTolWindow(it.compound_rt, ar_rt_tol, false);
-        bool mz_in_window =
-            !(map_it.first.first < mz_tolerance_window.first) && (map_it.first.first < mz_tolerance_window.second);
-        bool rt_in_window =
-            !(map_it.first.second < rt_tolerance_window.first) && (map_it.first.second < rt_tolerance_window.second);
+        bool mz_in_window = !(map_it.first.first < mz_tolerance_window.first) && (map_it.first.first < mz_tolerance_window.second);
+        bool rt_in_window = !(map_it.first.second < rt_tolerance_window.first) && (map_it.first.second < rt_tolerance_window.second);
         if (mz_in_window && rt_in_window)
         {
-          map_it.second.push_back(it);
-          added = true;
-          continue;
+          ambiguity_groups_in_windows.push_back(std::make_pair(map_it.first.first, map_it.first.second));
         }
       }
-      if (!added)
+      if (ambiguity_groups_in_windows.empty())
       {
         std::pair<double, double> pair_mta = make_pair(it.precursor_mz, it.compound_rt);
         vector<MetaboTargetedAssay> current_v_mta;
         current_v_mta.push_back(it);
         map_mta_filter[pair_mta] = current_v_mta;
+      }
+      else if (ambiguity_groups_in_windows.size() == 1) // only one possible ambiguity group
+      {
+        std::map< std::pair <double,double>, vector<MetaboTargetedAssay> >::iterator mit;
+        mit = map_mta_filter.find(ambiguity_groups_in_windows[0]);
+        if (mit == map_mta_filter.end())
+        {
+          OPENMS_LOG_WARN << "" << std::endl;
+        }
+        else
+        {
+          mit->second.push_back(it);
+        }
+      }
+      else // multiple possible ambiguity groups
+      {
+        // find the entry which is closest to the mz and rt
+        std::pair<double, double> min_dist_ambi_group;
+        double min_distance_mz(1e11);
+        double min_distance_rt(1e11);
+        for (auto const& a_idx : ambiguity_groups_in_windows)
+        {
+          const double a_mz = a_idx.first;
+          const double a_rt = a_idx.second;
+          const double distance_mz = fabs(a_mz - it.precursor_mz);
+          const double distance_rt = fabs(a_rt - it.compound_rt);
+          if (distance_mz <= min_distance_mz && distance_rt < min_distance_rt) // if mz_distance == 0, rt key consideration
+          {
+            min_distance_mz = distance_mz;
+            min_distance_rt = distance_rt;
+            min_dist_ambi_group = a_idx;
+          }
+        }
+        std::map< std::pair <double,double>, vector<MetaboTargetedAssay> >::iterator mit;
+        mit = map_mta_filter.find(min_dist_ambi_group);
+        if (mit == map_mta_filter.end())
+        {
+          OPENMS_LOG_WARN << "" << std::endl;
+        }
+        else
+        {
+          mit->second.push_back(it);
+          continue;
+        }
       }
     }
     return map_mta_filter;
