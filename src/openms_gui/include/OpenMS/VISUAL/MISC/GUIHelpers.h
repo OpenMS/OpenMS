@@ -39,32 +39,42 @@
 
 class QString; // declare this OUTSIDE of namespace OpenMS!
 class QStringList;
+class QPainter;
+class QPoint;
+
+#include <QColor>
+#include <QFont>
 
 namespace OpenMS
 {
   /**
-    @brief Class which holds static GUI-related helper functions.
-
-    Since all methods are static, the c'tor is private.
-    
-    @ingroup Visual
+    Namespace which holds static GUI-related helper functions.
   */
-  class OPENMS_GUI_DLLAPI GUIHelpers
+  namespace GUIHelpers
   {
-  public:
-
-    GUIHelpers() = delete;
     
     /// Open a folder in file explorer
     /// Will show a message box on failure
-    static void openFolder(const QString& folder);
+    void openFolder(const QString& folder);
 
     /// Open TOPPView (e.g. from within TOPPAS)
-    static void startTOPPView(const QStringList& args);
+    void startTOPPView(const QStringList& args);
 
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure
-    static void openURL(const QString& target);
+    void openURL(const QString& target);
+
+    /**
+       @brief draw a multi-line text at coordinates XY using a specific font and color
+       @param painter Where to draw
+       @param text Each item is a new line
+       @param where Coordinates where to start drawing (upper left corner of text)
+       @param col_fg Optional text color; if invalid (=default) will use the current painter's color
+       @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
+       @param Optional font; will use Courier by default
+    */
+    void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), QFont f = QFont("Courier"));
+
   };
 
 }
