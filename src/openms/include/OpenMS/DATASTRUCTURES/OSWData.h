@@ -305,7 +305,6 @@ namespace OpenMS
     class OPENMS_DLLAPI OSWData
     {
       public:
-
         /// Adds a transition; do this before adding Proteins
         void addTransition(const OSWTransition& tr)
         {

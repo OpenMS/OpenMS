@@ -71,7 +71,7 @@ namespace OpenMS
     String filename;
     String layername;
 
-    MiniLayer(LayerData& layer)
+    explicit MiniLayer(LayerData& layer)
     : full_chrom_exp_sptr(layer.getFullChromData()),
       ondisc_sptr(layer.getOnDiscPeakData()),
       annot_sptr(layer.getChromatogramAnnotation()),
@@ -153,7 +153,6 @@ namespace OpenMS
 
   bool TVDIATreeTabController::showChromatogramsInCanvas_(const OSWIndexTrace& trace, MiniLayer& ml, Plot1DWidget* w)
   {
-
     OSWData* data = ml.annot_sptr.get();
     if (data == nullptr)
     { // no OSWData available ... strange...

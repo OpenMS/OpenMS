@@ -79,7 +79,7 @@ namespace OpenMS
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition with nativeID " + (String(nid)) + " not found in OSW data. Make sure the OSW data was loaded!");
       }
-      transID_to_index_[nid] = i;
+      transID_to_index_[nid] = (UInt32)i;
     }
   }
 
