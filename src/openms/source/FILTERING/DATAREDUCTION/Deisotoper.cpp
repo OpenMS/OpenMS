@@ -104,6 +104,17 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   std::vector<Size> iso_peak_count(old_spectrum.size(), 1);
   int feature_number = 0;
 
+  std::vector<size_t> extensions;
+
+  bool has_precursor_data(false);
+  double precursor_mass(0);
+  if (old_spectrum.getPrecursors().size() == 1)
+  {
+    has_precursor_data = true;
+    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
+    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
+  }
+
   MSSpectrum high_intensity_peaks;
   if (preserve_high_intensity_peaks) // TODO: document what happens with keep_only_deisotoped=true as it might add high-intensity peaks without charge (=> might lead to surprises if that option is taken)
   {
@@ -125,19 +136,103 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
     }
     // filter peaks and integer data arrays
     window_mower_filter.filterPeakSpectrum(high_intensity_peaks);
+
+    // use high intensity peaks as seeds
+    for (size_t i = 0; i != high_intensity_peaks.size(); ++i)
+    {
+      size_t current_peak = high_intensity_peaks.getIntegerDataArrays().back()[i];
+
+      // deconvolve with high intensity peaks as seed
+      // TODO: remove duplication
+      const double current_mz = old_spectrum[current_peak].getMZ();
+      if (add_up_intensity)
+      {
+        mono_iso_peak_intensity[current_peak] = old_spectrum[current_peak].getIntensity();
+      }
+
+      for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
+      {
+        // try to extend isotopes from mono-isotopic peak
+        // if extension larger then min_isopeaks possible:
+        //   - save charge q in mono_isotopic_peak[]
+        //   - annotate_charge all isotopic peaks with feature number
+        if (features[current_peak] == -1) // only process peaks which have no assigned feature number
+        {
+          bool has_min_isopeaks = true;
+          const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
+
+          // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
+          if (has_precursor_data)
+          {
+            double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
+            if (current_theo_mass > (precursor_mass + tolerance_dalton))
+            {
+              continue;
+            }
+          }
+
+          extensions.clear();
+          extensions.push_back(current_peak);  // add current peak as start of extensions
+          for (unsigned int i = 1; i < max_isopeaks; ++i)
+          {
+            const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
+            const int p = old_spectrum.findNearest(expected_mz, tolerance_dalton);
+            if (p == -1) // test for missing peak
+            {
+              has_min_isopeaks = (i >= min_isopeaks);
+              break;
+            }
+            else
+            {
+              // Possible improvement: include proper averagine model filtering
+              // for now start at the peak with i = start_intensity_check to test hypothesis
+              // if start_intensity_check = 0 or 1, start checking by comparing monoisotopic and second isotopic peak
+              // if start_intensity_check = 2, start checking by comparing second isotopic peak with the third, etc.
+              // Note: this is a common approach used in several other search engines
+              if (use_decreasing_model && (i >= start_intensity_check) && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
+              {
+                has_min_isopeaks = (i >= min_isopeaks);
+                break;
+              }
+              
+              // ratio of first isotopic peak to monoisotopic peak may not be too large otherwise it might be just a satelite peak (e.g, amidation)
+              if (i == 1 && old_spectrum[p].getIntensity() / old_spectrum[extensions.back()].getIntensity() > 10.0)
+              {
+                has_min_isopeaks = (i >= min_isopeaks);
+                break;
+              }            
+
+              // averagine check passed or skipped
+              extensions.push_back(p);
+              if (annotate_iso_peak_count)
+              {
+                iso_peak_count[current_peak] = i + 1; // with "+ 1" the monoisotopic peak is counted as well
+              }
+            }
+          }
+
+          if (has_min_isopeaks)
+          {
+            // std::cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << std::endl;
+            mono_isotopic_peak[current_peak] = q;
+            for (unsigned int i = 0; i != extensions.size(); ++i)
+            {
+              features[extensions[i]] = feature_number;
+              // monoisotopic peak intensity is already set above, add up the other intensities here
+              if (add_up_intensity && (i != 0))
+              {
+                mono_iso_peak_intensity[current_peak] += old_spectrum[extensions[i]].getIntensity();
+              }
+            }
+            ++feature_number;
+          }
+        }
+      }      
+    }
   }
 
-  std::vector<size_t> extensions;
 
-  bool has_precursor_data(false);
-  double precursor_mass(0);
-  if (old_spectrum.getPrecursors().size() == 1)
-  {
-    has_precursor_data = true;
-    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
-    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
-  }
-
+  // deisotope on all peaks
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
   {
     const double current_mz = old_spectrum[current_peak].getMZ();

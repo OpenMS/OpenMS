@@ -2987,6 +2987,13 @@ static void scoreXLIons_(
           exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX], 
           ppm_error_array);
 
+        #ifdef OPENUXL_DEBUG
+        for (size_t i = 0; i != exp_spectrum.size(); ++i)
+        {
+          OPENMS_LOG_DEBUG << "exp: " << exp_spectrum[i].getMZ() << "\t" << exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX][i] << endl;
+        }
+        #endif
+
         const PeakSpectrum::StringDataArray& partial_loss_annotations = partial_loss_spectrum.getStringDataArrays()[0];
         const PeakSpectrum::IntegerDataArray& partial_loss_charges = partial_loss_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX];
 
@@ -2995,6 +3002,13 @@ static void scoreXLIons_(
           a.fragment_annotations = fas;
           continue;
         }
+
+        /* uncomment to write all annotations to a file(only makes sense if a single spectrum is searched)
+        MSExperiment tmp_exp;
+        tmp_exp.addSpectrum(total_loss_spectrum);
+        tmp_exp.addSpectrum(partial_loss_spectrum);
+        MzMLFile().store("theoretical_loss_spectrum.mzML", tmp_exp);
+        */
 
         for (auto pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
         {
@@ -3007,6 +3021,7 @@ static void scoreXLIons_(
           const double & fragment_intensity = fragment.getIntensity(); // in percent (%)
           const double & fragment_mz = fragment.getMZ();
           const int & fragment_charge = exp_spectrum.getIntegerDataArrays()[IA_CHARGE_INDEX][fragment_index];
+          
           #ifdef DEBUG_OpenNuXL
             OPENMS_LOG_DEBUG << "fragment_mz:" << fragment_mz << " fragment_charge:" << fragment_charge << endl; 
           #endif
@@ -4369,7 +4384,11 @@ static void scoreXLIons_(
                        << "-post-processing-tdc"
                        << "-weights" << weights_out.toQString()
                        << "-nested-xval-bins" << "3";
-                       //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
+
+          if (getStringOption_("peptide:enzyme") == "Lys-C")
+          {
+            process_params << "-enzyme" << "lys-c";
+          }
                        
           TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
 
@@ -4846,6 +4865,9 @@ static void scoreXLIons_(
           std::string s = aas.toUnmodifiedString();
           auto last = --s.end();
           std::reverse(s.begin(), last);
+
+          // switch cleavage sites (like in Andromeda or DecoyPyrate)
+          // if (s.size() >= 2) std::swap(s[s.size() - 1], s[s.size() - 2]); 
           e.sequence += s;
         }
 
@@ -5986,9 +6008,13 @@ static void scoreXLIons_(
                        << "-unitnorm"
                        << "-post-processing-tdc"
 //                       << "-nested-xval-bins" << "3"
-                       //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
                        << "-weights" << weights_out.toQString()
                        << "-out_pin" << pin.toQString();
+
+        if (getStringOption_("peptide:enzyme") == "Lys-C")
+        {
+          process_params << "-enzyme" << "lys-c";
+        }
 //        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
 
         TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
