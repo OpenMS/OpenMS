@@ -38,6 +38,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QDesktopServices>
+#include <QGUIApplication>
 #include <QDir>
 #include <QUrl>
 #include <QMessageBox>
@@ -184,4 +185,37 @@ namespace OpenMS
     painter.restore();
   }
 
+
+  GUIHelpers::GUILock::GUILock(QWidget* gui)
+    : locked_widget_(gui)
+  {
+    lock();
+  }
+
+  GUIHelpers::GUILock::~GUILock()
+  {
+    unlock();
+  }
+
+  void GUIHelpers::GUILock::lock()
+  {
+    if (currently_locked_) return;
+
+    was_enabled_ = locked_widget_->isEnabled();
+    locked_widget_->setEnabled(false);
+    QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    locked_widget_->setCursor(Qt::WaitCursor);
+    currently_locked_ = true;
+  }
+
+  void GUIHelpers::GUILock::unlock()
+  {
+    if (!currently_locked_) return;
+
+    locked_widget_->setEnabled(was_enabled_);
+    QGuiApplication::restoreOverrideCursor(); 
+    currently_locked_ = false;
+  }
+
 } //namespace OpenMS
+

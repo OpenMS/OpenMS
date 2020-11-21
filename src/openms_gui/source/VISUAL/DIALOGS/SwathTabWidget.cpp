@@ -59,20 +59,19 @@ namespace OpenMS
   namespace Internal
   {
 
-    GUILock::GUILock(SwathTabWidget* stw)
+    SwathGUILock::SwathGUILock(SwathTabWidget* stw)
       : 
       stw_(stw),
       old_(stw->currentWidget()),
-      was_enabled_(stw->isEnabled())
+      glock_(stw)
     {
       stw->setCurrentWidget(stw->ui->tab_log);
-      stw->setEnabled(false);
+      
     }
 
-    GUILock::~GUILock()
+    SwathGUILock::~SwathGUILock()
     {
       stw_->setCurrentWidget(old_);
-      stw_->setEnabled(was_enabled_);
     }
 
     String getOSWExe()
@@ -174,7 +173,7 @@ namespace OpenMS
     {
       if (!checkOSWInputReady_()) return;
       
-      GUILock lock(this); // forbid user interaction
+      SwathGUILock lock(this); // forbid user interaction
 
       updateSwathParamFromWidgets_();
       Param tmp_param;
@@ -449,7 +448,7 @@ namespace OpenMS
         QMessageBox::warning(this, "Error", "Could not find all requirements for 'pyprophet & tric' (see 'Config' tab). Install modules via 'pip install <modulename>' and make sure it's available in $PATH");
         return;
       }
-      GUILock lock(this); // forbid user interaction
+      SwathGUILock lock(this); // forbid user interaction
 
       auto inputs = getPyProphetInputFiles();
       if (inputs.empty())

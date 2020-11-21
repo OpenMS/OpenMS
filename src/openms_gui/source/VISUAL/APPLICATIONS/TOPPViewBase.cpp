@@ -522,9 +522,6 @@ namespace OpenMS
 
   void TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
   {
-    setCursor(Qt::WaitCursor);
-    RAIICleanup cl([&]() { setCursor(Qt::ArrowCursor); }); // revert to ArrowCursor on exit
-
     String abs_filename = File::absolutePath(filename);
 
     // check if the file exists
@@ -566,6 +563,9 @@ namespace OpenMS
     LayerData::DataType data_type;
 
     ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
+
+    // lock the GUI - no interaction possible when loading...
+    GUIHelpers::GUILock glock(this);
 
     bool cache_ms2_on_disc = ((String)param_.getValue("preferences:use_cached_ms2") == "true");
     bool cache_ms1_on_disc = ((String)param_.getValue("preferences:use_cached_ms1") == "true");
@@ -732,6 +732,8 @@ namespace OpenMS
     {
       abs_filename = "";
     }
+
+    glock.unlock();
 
     addData(feature_map_sptr, 
       consensus_map_sptr, 

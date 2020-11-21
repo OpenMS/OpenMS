@@ -37,12 +37,14 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-class QString; // declare this OUTSIDE of namespace OpenMS!
+// declare Qt classes OUTSIDE of namespace OpenMS!
+class QString; 
 class QStringList;
 class QPainter;
 class QPoint;
 
 #include <QColor>
+#include <QCursor>
 #include <QFont>
 
 namespace OpenMS
@@ -75,6 +77,34 @@ namespace OpenMS
     */
     void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), QFont f = QFont("Courier"));
 
+
+    /**
+      @brief RAII class to disable the GUI and set a busy cursor and go back to the orignal state when this class is destroyed
+    */
+    class GUILock
+    {
+    public:
+      /// C'tor receives the widget to lock
+      GUILock(QWidget* gui);
+
+      /// no copy/assignment allowed
+      GUILock(const GUILock& rhs) = delete;
+      GUILock(GUILock&& rhs) = delete;
+      GUILock& operator=(const GUILock& rhs) = delete;
+
+      /// D'tor: unlocks the GUI (does nothing if already unlocked)
+      ~GUILock();
+      
+      /// manually lock the GUI (does nothing if already locked)
+      void lock();
+      /// manually unlock the GUI (does nothing if already unlocked)
+      void unlock();
+
+    private:
+      QWidget* locked_widget_{ nullptr };
+      bool currently_locked_{ false };
+      bool was_enabled_{ true };
+    };
   };
 
 }
