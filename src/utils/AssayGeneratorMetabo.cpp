@@ -687,7 +687,6 @@ protected:
       v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
     } // end iteration over all files
 
-
     // group ambiguous identification based on precursor_mz and feature retention time
     std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter = buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit);
 

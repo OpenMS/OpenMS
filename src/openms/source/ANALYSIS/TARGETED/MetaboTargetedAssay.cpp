@@ -504,19 +504,24 @@ namespace OpenMS
         v_cmp_rt.push_back(std::move(cmp_rt));
         cmp.rts = std::move(v_cmp_rt);
         cmp.setChargeState(charge);
+        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + file_counter;
+
         if (description == "UNKNOWN")
         {
           description = String(description + "_" + entry_counter);
         }
+        // compoundID has to be unique over all the files
+        // file_counter unique per file
+        // feature_rt if the same ID was detected twice at different retention times in the same file
         if (decoy == 0)
         {
-          cmp.id = String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter;
+          cmp.id = String(entry_counter) + "_" + description + "_" + identifier_suffix;
           cmp.setMetaValue("CompoundName", description);
         }
         if (decoy == 1)
         {
           description = String(description + "_decoy");
-          cmp.id = String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter;
+          cmp.id = String(entry_counter) + "_" + description + "_" + identifier_suffix;
           cmp.setMetaValue("CompoundName", description);
         }
 
@@ -579,8 +584,8 @@ namespace OpenMS
             }
             rmt.setProduct(product);
             rmt.setLibraryIntensity(rel_int);
-            rmt.setCompoundRef(String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter);
-            rmt.setNativeID(String(entry_counter) + "_" + String(transition_counter) + "_" + description + "_" + adduct + "_" + file_counter);
+            rmt.setCompoundRef(cmp.id);
+            rmt.setNativeID(String(entry_counter) + "_" + String(transition_counter) + "_" + description + "_" + identifier_suffix);
             rmt.setMetaValue("annotation", DataValue(current_explanation));
             if (!csp.compound_info.native_ids_id.empty())
             {
