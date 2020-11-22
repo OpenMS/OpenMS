@@ -1417,9 +1417,18 @@ protected:
     }
 
     fdr.applyBasic(inferred_protein_ids[0]);
+
     if (max_psm_fdr < 1.)
     {
       fdr.applyBasic(inferred_peptide_ids);
+    }
+
+    if (!getFlag_("PeptideQuantification:quantify_decoys"))
+    { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
+      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
     }
 
     if (debug_level_ >= 666)
@@ -1434,15 +1443,17 @@ protected:
     }
 
     // FDR filtering
-    if (max_psm_fdr < 1.)
+    if (max_psm_fdr < 1.) // PSM level
     {
       IDFilter::filterHitsByScore(inferred_peptide_ids, max_psm_fdr);
     }
-    if (max_fdr < 1.)
+
+    if (max_fdr < 1.) // protein level
     {
       IDFilter::filterHitsByScore(inferred_protein_ids, max_fdr);
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-    }
+    } 
+
     if (max_psm_fdr < 1.)
     {
       IDFilter::removeUnreferencedProteins(inferred_protein_ids,
