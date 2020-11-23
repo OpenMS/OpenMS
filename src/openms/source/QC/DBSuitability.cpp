@@ -99,37 +99,23 @@ namespace OpenMS
     calculateSuitability_(pep_ids, suitability_data_full);
 
     // calculate correction of suitability with extrapolation
-    String debug_out = "\n";
-    debug_out += "original suitability data:\ntop db: " + String(suitability_data_full.num_top_db) + "\ntop novo: " + String(suitability_data_full.num_top_novo) + "\n\n";
+
     // sampled run
-    // maybe multiple runs? could be controlled with a parameter
+    // TODO: maybe multiple runs? could be controlled with a parameter
     double subsampling_rate = 0.5;
     vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, subsampling_rate);
     sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
-    debug_out += "fasta: " + String(original_fasta.size()) + ", subsampled: " + String(sampled_db.size());
     appendDecoys_(sampled_db);
-    debug_out += ", subsampled with decoys: " + String(sampled_db.size()) + "\n\n";
     vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
 
     SuitabilityData suitability_data_sampled;
     calculateSuitability_(subsampled_ids, suitability_data_sampled);
-    debug_out += "subsampled suitability data:\ntop db: " + String(suitability_data_sampled.num_top_db) + "\ntop novo: " + String(suitability_data_sampled.num_top_novo) + "\n\n";
 
     // slopes of db and deNovo hits
     double db_slope = (int(suitability_data_sampled.num_top_db) - int(suitability_data_full.num_top_db)) / (subsampling_rate - 1);
     double deNovo_slope = (int(suitability_data_sampled.num_top_novo) - int(suitability_data_full.num_top_novo)) / (subsampling_rate - 1);
 
-    debug_out += "extrapolation data:\ndeNovo slope: " + String(deNovo_slope) + "\ndb_slope: " + String(db_slope) + "\n";
-
     double factor = -(db_slope) / (deNovo_slope);
-
-    debug_out += "correction factor:\n- db_slope / deNovo_slope = " + String(factor) + "\n";
-    
-    OPENMS_LOG_DEBUG << debug_out << endl;
-
-    //std::ofstream debug_file("C:\\Development\\debugging_corrected_suitability.txt", std::ios_base::app);
-    //debug_file << debug_out;
-    //debug_file.close();
 
     suitability_data_full.setCorrectionFactor(factor);
   }
