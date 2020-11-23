@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
@@ -230,80 +231,96 @@ protected:
                         }), end(mta));
   }
 
-  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, bool ar_mz_tol_unit)
+
+
+  // Use FeatureGroupingAlgorithmQT
+  // based on mz and rt (minimum feature) - MetaValue index to vector<MetaboTargetedAssay>
+
+  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size)
   {
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter;
-    for (const auto &it : v_mta)
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > ambiguity_groups;
+    vector <FeatureMap> feature_maps;
+
+    size_t loop_size;
+    if ( in_files_size > 1)
     {
-      vector <std::pair <double,double>> ambiguity_groups_in_windows;
-      ambiguity_groups_in_windows.clear();
-      for (auto &map_it : map_mta_filter)
+      loop_size = in_files_size;
+    }
+    else
+    {
+      loop_size = 2; // needs at least two FeatureMaps to compare - if not available add an empty one.
+    }
+
+    for (size_t i = 0; i < loop_size; i++)
+    {
+      feature_maps.emplace_back(FeatureMap());
+    }
+
+    for (size_t i = 0; i < v_mta.size(); i++)
+    {
+      // create minimal feature (mz,rt) with reference back to vector
+      Feature f;
+      PeptideIdentification pep;
+      vector<PeptideIdentification> v_pep;
+
+      f.setRT(v_mta[i].precursor_mz);
+      f.setMZ(v_mta[i].compound_rt);
+      DPosition<2> pt(v_mta[i].compound_rt, v_mta[i].precursor_mz);
+      f.setPosition(pt);
+
+      pep.setMetaValue("v_mta_index", DataValue(i));
+      v_pep.push_back(pep);
+      f.setPeptideIdentifications(v_pep);
+
+      size_t cfile = v_mta[i].compound_file;
+      feature_maps[cfile].push_back(f);
+    }
+
+    ConsensusMap c_map;
+    FeatureGroupingAlgorithmQT fgaqt;
+    Param param = fgaqt.getDefaults();
+    param.setValue("distance_RT:max_difference", ar_rt_tol);
+    param.setValue("distance_MZ:max_difference", ar_mz_tol);
+    param.setValue("distance_MZ:unit", ar_mz_tol_unit_res);
+    fgaqt.setParameters(param);
+    // build ambiguity groups based on FeatureGroupingAlgorithmQt
+    fgaqt.group(feature_maps, c_map);
+
+    // build ambiguity groups based on consensus entries
+
+    for (const auto& c_it : c_map)
+    {
+      // TODO: add filter based on total occurrence
+      vector <PeptideIdentification> v_pep;
+      v_pep = c_it.getPeptideIdentifications();
+      vector <MetaboTargetedAssay> ambi_group;
+      for (const auto& p_it : v_pep)
       {
-        // find all possible ambiguity groups in mass and rt window.
-        std::pair<double, double> mz_tolerance_window = Math::getTolWindow(it.precursor_mz, ar_mz_tol, ar_mz_tol_unit);
-        std::pair<double, double> rt_tolerance_window = Math::getTolWindow(it.compound_rt, ar_rt_tol, false);
-        bool mz_in_window = !(map_it.first.first < mz_tolerance_window.first) && (map_it.first.first < mz_tolerance_window.second);
-        bool rt_in_window = !(map_it.first.second < rt_tolerance_window.first) && (map_it.first.second < rt_tolerance_window.second);
-        if (mz_in_window && rt_in_window)
-        {
-          ambiguity_groups_in_windows.push_back(std::make_pair(map_it.first.first, map_it.first.second));
-        }
+        int index = p_it.getMetaValue("v_mta_index");
+        ambi_group.push_back(v_mta[index]);
       }
-      if (ambiguity_groups_in_windows.empty())
+      std::pair <double, double> entry = std::make_pair(c_it.getMZ(), c_it.getRT());
+      std::map< std::pair <double,double>, vector<MetaboTargetedAssay> >::iterator mit;
+      mit = ambiguity_groups.find(entry);
+      // allow to add targets and decoys, since they are grouped independent
+      // targets and decoys have the exact mz and rt
+      if (!(mit == ambiguity_groups.end()))
       {
-        std::pair<double, double> pair_mta = make_pair(it.precursor_mz, it.compound_rt);
-        vector<MetaboTargetedAssay> current_v_mta;
-        current_v_mta.push_back(it);
-        map_mta_filter[pair_mta] = current_v_mta;
+        vector <MetaboTargetedAssay> tmp_mta;
+        tmp_mta = mit->second;
+        tmp_mta.insert(tmp_mta.end(), ambi_group.begin(), ambi_group.end());
+        ambiguity_groups[entry] = (tmp_mta);
       }
-      else if (ambiguity_groups_in_windows.size() == 1) // only one possible ambiguity group
+      else
       {
-        std::map< std::pair <double,double>, vector<MetaboTargetedAssay> >::iterator mit;
-        mit = map_mta_filter.find(ambiguity_groups_in_windows[0]);
-        if (mit == map_mta_filter.end())
-        {
-          OPENMS_LOG_WARN << "" << std::endl;
-        }
-        else
-        {
-          mit->second.push_back(it);
-        }
-      }
-      else // multiple possible ambiguity groups
-      {
-        // find the entry which is closest to the mz and rt
-        std::pair<double, double> min_dist_ambi_group;
-        double min_distance_mz(1e11);
-        double min_distance_rt(1e11);
-        for (auto const& a_idx : ambiguity_groups_in_windows)
-        {
-          const double a_mz = a_idx.first;
-          const double a_rt = a_idx.second;
-          const double distance_mz = fabs(a_mz - it.precursor_mz);
-          const double distance_rt = fabs(a_rt - it.compound_rt);
-          if (distance_mz <= min_distance_mz && distance_rt < min_distance_rt) // if mz_distance == 0, rt key consideration
-          {
-            min_distance_mz = distance_mz;
-            min_distance_rt = distance_rt;
-            min_dist_ambi_group = a_idx;
-          }
-        }
-        std::map< std::pair <double,double>, vector<MetaboTargetedAssay> >::iterator mit;
-        mit = map_mta_filter.find(min_dist_ambi_group);
-        if (mit == map_mta_filter.end())
-        {
-          OPENMS_LOG_WARN << "" << std::endl;
-        }
-        else
-        {
-          mit->second.push_back(it);
-          continue;
-        }
+        ambiguity_groups[entry] = ambi_group;
       }
     }
-    return map_mta_filter;
+    return ambiguity_groups;
   }
 
+  // resolve IDs based on the consensusXML
+  // use the one with the highest intensity
   std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > resolveAmbiguityGroup( std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter)
   {
     std::map<std::pair<double, double>, vector<MetaboTargetedAssay> > map_mta;
@@ -369,7 +386,7 @@ protected:
     bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
     double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
     String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
-    bool ar_mz_tol_unit = ar_mz_tol_unit_res == "ppm" ? true : false;
+    // bool ar_mz_tol_unit = ar_mz_tol_unit_res == "ppm" ? true : false;
     double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
     double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
     bool decoy_generation = getFlag_("decoy_generation");
@@ -727,12 +744,11 @@ protected:
     } // end iteration over all files
 
     // group ambiguous identification based on precursor_mz and feature retention time
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter = buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit);
+    // Use featureMap and use FeatureGroupingAlgorithmQT
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > ambiguity_groups = buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, in.size());
 
-    // resolve identification ambiguity based on highest occurrence
-    // filter compounds for library generation based on total occurrence threshold (in % of the files)
-    // use the filtered compound with the highest intensity of all files for library generation
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(map_mta_filter);
+    // resolve identification ambiguity based on highest occurrence and highest intensity
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(ambiguity_groups);
 
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;

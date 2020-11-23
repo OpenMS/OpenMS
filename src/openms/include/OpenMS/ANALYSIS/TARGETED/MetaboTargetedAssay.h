@@ -65,7 +65,7 @@ namespace OpenMS
     double precursor_mz;
     double compound_rt;
     String molecular_formula;
-    String compound_file;
+    int compound_file;
     String compound_name;
     String compound_adduct;
     TargetedExperiment::Compound potential_cmp;
