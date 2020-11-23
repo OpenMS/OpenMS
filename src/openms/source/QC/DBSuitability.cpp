@@ -124,20 +124,7 @@ namespace OpenMS
     double factor = -(db_slope) / (deNovo_slope);
 
     debug_out += "correction factor:\n- db_slope / deNovo_slope = " + String(factor) + "\n";
-    /*
-    // calculate deNovo intercept (maximum deNovo ids)
-    appendDecoys_(novo_fasta);
-    Int deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
-    // db_intercept is estimated to be 0
-
-    // calculate correction factor
-    double target_ratio = (-deNovo_intercept) / deNovo_slope; // ratio that corresponds to suitability of 1
-    double db_hits_at_ratio = db_slope * target_ratio; // db hits for suitability 1
-    double factor = db_hits_at_ratio / deNovo_intercept;
-
-    debug_out += "extrapolation data:\ndeNovo slope: " + String(deNovo_slope) + "\ndeNovo Intercept: " + String(deNovo_intercept) + "\ndb_slope: " + String(db_slope) + "\n";
-    debug_out += "ratio for y = 0 (-deNovo_intercept / deNovo_slope): " + String(target_ratio) + "\ndb hits at that ratio (db_slope * ratio): " + String(db_hits_at_ratio) + "\ncorrection factor (db_hits_at_ratio / deNovo_intercept): " + String(factor) + "\n";
-    */
+    
     OPENMS_LOG_DEBUG << debug_out << endl;
 
     //std::ofstream debug_file("C:\\Development\\debugging_corrected_suitability.txt", std::ios_base::app);
