@@ -44,38 +44,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/ProteinModificationSummary.h>
 
 namespace OpenMS
 {
-
-  /**
-   * @brief Maps a protein position to all observed modifications and associated statistics 
-   * 
-   * For example, to store that position 10 maps to Oxidation (M) which was observed in 123 PSMs.
-   * 
-   */
-  struct OPENMS_DLLAPI ProteinModificationSummary
-  {
-    /// basic modification statistic
-    struct OPENMS_DLLAPI Statistics : public MetaInfoInterface
-    {
-      size_t count = 0;
-      double frequency = 0.0;
-    };
-
-    /// compare map
-    bool operator==(const ProteinModificationSummary& rhs) const
-    {
-      return AALevelSummary == rhs.AALevelSummary;
-    }
-
-    using ModificationsToStatistics =  std::map<ResidueModification, Statistics>;
-    using AALevelModificationSummary = std::map<size_t, ModificationsToStatistics>;
-
-    /// position -> modification -> statistic (counts, etc.)
-    AALevelModificationSummary AALevelSummary;
-  };
-
   /**
     @brief Representation of a protein hit
 
