@@ -95,12 +95,14 @@ namespace OpenMS
       double cut_off = DBL_MAX;
 
       /// #IDs with only deNovo search / #IDs with only database search
+      /// used for correcting the number of deNovo hits
       /// worse databases will have less IDs then good databases
-      /// this should push the suitability more down for the worse ones
+      /// this punishes worse databases more than good ones and will result in
+      /// a worse suitability
       double corr_factor;
 
       /// the suitability of the database used for identification search, calculated with:
-      ///               #db_hits / (#db_hits + #deNovo_hit)
+      ///               #db_hits / (#db_hits + #deNovo_hits)
       /// can reach from 0 -> the database was not at all suited to 1 -> the perfect database was used
       ///
       /// Preliminary tests have shown that databases of the right organism or close related organisms
@@ -110,9 +112,15 @@ namespace OpenMS
       /// Note that these test were only performed for one mzML and your results might differ.
       double suitability = 0;
 
-      /// suitability after correcting the top deNovo hits to impact worse databases more
+      /// Suitability after correcting the top deNovo hits to impact worse databases more
+      ///
+      /// The corrected suitability has a more linear behaviour. It basicly translates to the ratio
+      /// of the theoretical perfect database the used database corresponds to. (i.e. a corrected
+      /// suitability of 0.5 means the used database contains half the proteins of the 'perfect' database)
       double suitability_corr = 0;
 
+      /// apply a correction factor to the already calculated suitability
+      /// only works if num_top_db and num_top_novo contain a non-zero value
       void setCorrectionFactor(double factor);
     };
 
@@ -142,13 +150,17 @@ namespace OpenMS
     *                                         Preliminary tests have shown that database suitability
     *                                         is rather stable across common FDR thresholds from 0 - 5 %
     *
-    * After this, a correction factor for the number of found top deNovo hits is calculated.
+    * The calculated suitability is then tried to be corrected. For this a correction factor for the number of found top
+    * deNovo hits is calculated.
     * This is done by perfoming an additional combined identification search with a smaller sample of the database.
-    * It was observed that the number of top deNovo and db hits behave linear according the sampling of the
+    * It was observed that the number of top deNovo and db hits behave linear according to the sampling ratio of the
     * database. This can be used to extrapolate the number of database hits that would be needed to get a suitability
     * of 1. This number in combination with the maximum number of deNovo hits (found with an identification search
     * where only deNovo is used as a database) can be used to calculate a correction factor like this:
     *                     #database hits for suitability of 1 / #maximum deNovo hits
+    * This formular can be simplified in a way that the maximum number of deNovo hits isn't needed:
+    *                     - (database hits slope) / deNovo hits slope
+    * Both of these values can easily be calculated with the original suitability data in conjunction with the one sampled search.
     * 
     * Correcting the number of found top deNovo hits with this factor results in them being more comparable to the top
     * database hits. This in return results in a more linear behaviour of the suitability according to the sampling ratio.
@@ -162,22 +174,20 @@ namespace OpenMS
     *
     * Result is appended to the result member. This allows for multiple usage.
     *
-    * @param pep_ids        vector containing pepIDs with target/decoy annotation coming from a deNovo+database
-    *                       identification search (currently only Comet-support) without FDR
-    *                       vector is modified internally, and is thus copied
-    * @param exp            MSExperiment that was searched to produce the identifications
-    *                       given in @p pep_ids
-    * @param fasta_data     FASTAEntries of the database used for the ID search (without decoys)
-    * @param novo_fasta     FASTAEntry derived from a deNovo peptides
-    * @param search_params  SearchParameters object containing information which adapter
-    *                       was used with which settings for the identification search
-    *                       that resulted in @p pep_ids
-    * @throws               MissingInformation if no target/decoy annotation is found on @p pep_ids
-    * @throws               MissingInformation if no xcorr is found,
-    *                       this happends when another adapter than CometAdapter was used
-    * @throws               MissingInformation if no target/decoy annotation is found
-    * @throws               MissingInformation if no xcorr is found
-    * @throws               Precondition if a q-value is found in @p pep_ids
+    * @param pep_ids            vector containing pepIDs with target/decoy annotation coming from a deNovo+database
+    *                           identification search (currently only Comet-support) without FDR
+    *                           vector is modified internally, and is thus copied
+    * @param exp                MSExperiment that was searched to produce the identifications
+    *                           given in @p pep_ids
+    * @param original_fasta     FASTAEntries of the database used for the ID search (without decoys)
+    * @param novo_fasta         FASTAEntry derived from deNovo peptides
+    * @param search_params      SearchParameters object containing information which adapter
+    *                           was used with which settings for the identification search
+    *                           that resulted in @p pep_ids
+    * @throws                   MissingInformation if no target/decoy annotation is found on @p pep_ids
+    * @throws                   MissingInformation if no xcorr is found,
+    *                           this happends when another adapter than CometAdapter was used
+    * @throws                   Precondition if a q-value is found in @p pep_ids
     */
     void compute(std::vector<PeptideIdentification> pep_ids, const MSExperiment& exp, std::vector<FASTAFile::FASTAEntry> original_fasta, std::vector<FASTAFile::FASTAEntry> novo_fasta, const ProteinIdentification::SearchParameters& search_params);
 
@@ -232,6 +242,9 @@ namespace OpenMS
     * If only the deNovo protein is found, 'true' is returned.
     * If at least one database protein is found, 'false' is returned.
     *
+    * This function also uses boost::regex_search to make sure the deNovo accession doesn't contain a decoy string.
+    * This is needed for 'target+decoy' hits.
+    *
     * @param hit      PepHit in question
     * @returns        true/false
     */
@@ -272,7 +285,9 @@ namespace OpenMS
     /**
     * @brief Executes the workflow from search adapter, followed by PeptideIndexer and finished with FDR
     *
-    * Which adapter should run which which parameters can be controled.
+    * Which adapter should run with which parameters can be controlled.
+    * Make sure the search adapter you wish to use is build on your system and the executable is on your PATH variable.
+    *
     * Indexing and FDR are always done the same way.
     *
     * The inputs are stored in temporary files to execute the Adapter.
@@ -283,17 +298,53 @@ namespace OpenMS
     * @param adapter_name   name of the adapter to search with
     * @param parameters     parameters for the adapter
     * @returns              peptide identifications with annotated q-values
-    * @throws               UnableToCreateFile if any error occures while running the adapter
-    * @throws               UnableToCreateFile if any error occures while running PeptideIndexer functionalities
+    * @throws               MissingInformation if no adapter name is given
+    * @throws               InvalidParameter if a not supported adapter name is given
+    * @throws               InternalToolError if any error occures while running the adapter
+    * @throws               InternalToolError if any error occures while running PeptideIndexer functionalities
+    * @throws               InvalidParameter if the needed FDR parameters are not found
     */
     std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
-    Size countIdentifications_(const std::vector<PeptideIdentification>& pep_ids) const;
+    /**
+    * @brief Creates a subsampled fasta with the given subsampling rate
+    *
+    * The subsampling is based on the number of amino acides and not on the number of fasta entries.
+    *
+    * @param fasta_data         fasta of which the subsampling should be done
+    * @param subsampling_rate   subsampling rate to be used [0,1]
+    * @returns                  fasta entries with total number of AA = original number of AA * subsampling_rate
+    * @throws                   IllegalArgument if subsampling rate is not between 0 and 1
+    */
+    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double subsampling_rate) const;
 
-    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio) const;
-
+    /**
+    * @brief Calculates all suitability data from a combined deNovo+database search
+    *
+    * Counts top database and top deNovo hits.
+    *
+    * Calculates a decoy score cut-off to compare high scoring deNovo hits with lower scoring database hits.
+    * If the score difference is smaller than the cut-off the database hit is counted and the deNovo hit ignored.
+    *
+    * Suitability is calculated: # database hits / # all hits
+    *
+    * @param pep_ids    peptide identifications coming from the combined search
+    * @param data       SuitabilityData object where the result should be written into
+    * @throws           MissingInformation if no target/decoy annotation is found on @p pep_ids
+    * @throws           MissingInformation if no xcorr is found,
+    *                   this happends when another adapter than CometAdapter was used
+    */
     void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const;
 
+    /**
+    * @brief Calculates and appends decoys to a given vector of FASTAEntry
+    *
+    * Each sequence is digested with Trypsin. The resulting peptides are reversed and appended to one another.
+    * This results in the decoy sequences.
+    * The idetifier is given a 'DECOY_' prefix.
+    *
+    * @param fasta     reference to fasta vector where the decoys are needed
+    */
     void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const;
   };
 }

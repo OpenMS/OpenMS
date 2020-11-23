@@ -381,50 +381,30 @@ namespace OpenMS
     return pep_ids;
   }
 
-  Size DBSuitability::countIdentifications_(const std::vector<PeptideIdentification>& pep_ids) const
-  {
-    Size count{};
-    double FDR = this->getParameters().getValue("FDR");
-    for (const auto& pep_id : pep_ids)
-    {
-      const vector<PeptideHit>& hits = pep_id.getHits();
-      if (hits.empty()) continue;
-      if (!hits[0].metaValueExists("target_decoy"))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. Make sure PeptideIndexer ran beforehand.");
-      }
-      if (hits[0].getMetaValue("target_decoy") == "decoy") continue;
-      if (!passesFDR_(hits[0], FDR)) continue;
-
-      ++count;
-    }
-    return count;
-  }
-
   std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double subsampling_rate) const
   {
     if (subsampling_rate < 0 || subsampling_rate > 1)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Subsampling rate has to be between 0 and 1. Aborting!");
     }
-    Size num_AS{};
+    Size num_AA{};
     for (const auto& entry : fasta_data)
     {
-      num_AS += entry.sequence.size();
+      num_AA += entry.sequence.size();
     }
-    double num_AS_written = num_AS * subsampling_rate;
+    double num_AS_written = num_AA * subsampling_rate;
 
     random_device rd;
     mt19937 g(rd());
     shuffle(fasta_data.begin(), fasta_data.end(), g);
 
-    Size curr_AS{};
+    Size curr_AA{};
     vector<FASTAFile::FASTAEntry> sampled_fasta;
     for (const auto& entry : fasta_data)
     {
-      if (curr_AS >= num_AS_written) break;
+      if (curr_AA >= num_AS_written) break;
       sampled_fasta.push_back(entry);
-      curr_AS += entry.sequence.size();
+      curr_AA += entry.sequence.size();
     }
     return sampled_fasta;
   }
@@ -563,6 +543,10 @@ namespace OpenMS
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)
   {
+    if (num_top_db == 0 || num_top_novo == 0)
+    {
+      throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No suitability data found. Can't apply correction factor."));
+    }
     corr_factor = factor;
     num_top_novo_corr = num_top_novo * factor;
     suitability_corr = num_top_db / (num_top_db + num_top_novo_corr);
