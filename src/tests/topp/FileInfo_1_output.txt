@@ -1,22 +1,30 @@
 
 -- General information --
 
-File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_1_input.dta
+File name: C:/dev/openms_test/src/tests/topp/FileInfo_1_input.dta
 File type: dta
+
+Instrument: 
 
 MS levels: 2
 Total number of peaks: 57
 Number of spectra: 1
 
-Number of spectra per MS level:
-  level 2: 1
-
 Ranges:
-  retention time: -1.00 .. -1.00
+  retention time: -1.00 .. -1.00 sec (0.0 min)
   mass-to-charge: 261.30 .. 783.50
   intensity:      3672.00 .. 272411.00
 
-Peak type metadata (estimated)
+Number of spectra per MS level:
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
   level 2: Unknown (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 2: 1x
+
 
 

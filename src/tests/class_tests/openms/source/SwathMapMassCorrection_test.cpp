@@ -59,7 +59,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
 {
   OpenSwath::LightTargetedExperiment exp;
   {
-    String native_id = "tr2";
+    String native_id = "tr1";
     TransitionType tr;
     tr.product_mz = 500.00;
     tr.precursor_mz = 412;

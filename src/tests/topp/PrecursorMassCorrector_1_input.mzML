@@ -43,7 +43,7 @@
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
 		</software>
 		<software id="so_dp_sp_0_pm_4" version="1.6.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
 		</software>
 		<software id="so_dp_sp_0_pm_5" version="1.7.0" >
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
@@ -64,7 +64,7 @@
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
 		</software>
 		<software id="so_dp_sp_1_pm_5" version="1.6.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
 		</software>
 		<software id="so_dp_sp_1_pm_6" version="1.7.0" >
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />

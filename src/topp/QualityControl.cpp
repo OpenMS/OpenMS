@@ -126,7 +126,7 @@ protected:
     setValidFormats_("in_raw", {"mzML"});
     registerInputFileList_("in_postFDR", "<files>", {}, "FeatureXMLs after FDR filtering", false);
     setValidFormats_("in_postFDR", {"featureXML"});
-    registerOutputFile_("out", "<file>", "", "Output mzTab with QC information", true);
+    registerOutputFile_("out", "<file>", "", "Output mzTab with QC information", false);
     setValidFormats_("out", { "mzTab" });
     registerOutputFile_("out_cm", "<file>", "", "ConsensusXML with QC information (as metavalues)", false);
     setValidFormats_("out_cm", { "consensusXML" });
@@ -141,7 +141,7 @@ protected:
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
-    registerFlag_("MS2_id_rate:force_no_fdr", "Forces the metric to run if FDR is missing (accepts all pep_ids as target hits).", false);
+    registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
     //TODO get ProteinQuantifier output for PRT section
   }
 
@@ -227,7 +227,7 @@ protected:
 
 
     // check flags
-    bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
+    bool all_target_flag = getFlag_("MS2_id_rate:assume_all_target");
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
     auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
@@ -299,7 +299,7 @@ protected:
 
       if (qc_ms2ir.isRunnable(status))
       {
-        qc_ms2ir.compute(*fmap, exp, fdr_flag);
+        qc_ms2ir.compute(*fmap, exp, all_target_flag);
       }
 
       if (qc_mz_calibration.isRunnable(status))
@@ -411,14 +411,19 @@ protected:
       ConsensusXMLFile().store(out_cm, cmap);
     }
 
-    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
-    MzTabMetaData meta = mztab.getMetaData();
-    qc_tic.addMetaDataMetricsToMzTab(meta);
-    qc_ms2ir.addMetaDataMetricsToMzTab(meta);
-    mztab.setMetaData(meta);
+    String out = getStringOption_("out");
+    if (!out.empty())
+    {
+      MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
+      MzTabMetaData meta = mztab.getMetaData();
+      qc_tic.addMetaDataMetricsToMzTab(meta);
+      qc_ms2ir.addMetaDataMetricsToMzTab(meta);
+      mztab.setMetaData(meta);
 
-    MzTabFile mztab_out;
-    mztab_out.store(getStringOption_("out"), mztab);
+      MzTabFile mztab_out;
+      mztab_out.store(out, mztab);
+    }
+
     return EXECUTION_OK;
   }
 

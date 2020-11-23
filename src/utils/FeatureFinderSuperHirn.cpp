@@ -74,7 +74,7 @@ class TOPPFeatureFinderSH :
 {
 public:
   TOPPFeatureFinderSH() :
-    TOPPBase("FeatureFinderSuperHirn", "Finds mass spectrometric features in mass spectra.")
+    TOPPBase("FeatureFinderSuperHirn", "Finds mass spectrometric features in mass spectra.", false)
   {
   }
 

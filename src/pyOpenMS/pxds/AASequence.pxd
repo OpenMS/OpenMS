@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         AASequence operator+(AASequence)    nogil except +
         AASequence iadd(AASequence)   nogil except + # wrap-as:operator+=
 
+        # Note that this is a const-ref, so we cannot easily set residues
         Residue operator[](int) nogil except + # wrap-upper-limit:size()
 
         # check if sequence is empty
@@ -75,6 +76,10 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns the mono isotopic weight of the peptide
         double getMonoWeight() nogil except +
         double getMonoWeight(ResidueType type_, Int charge) nogil except +
+
+        # returns the mass-to-charge ratio of the peptide
+        double getMZ(Int charge) nogil except +
+        double getMZ(Int charge, ResidueType type_) nogil except +
 
         # returns the number of residues
         Size size() nogil except +

@@ -192,9 +192,9 @@ int main(int argc, const char** argv)
     {
       mw->loadFiles(param.getValue("misc"), &splash_screen);
     }
-    else // remember this new window as obsolete once a real workflow is loaded without this window being touched
-    {    // if this is not desired, simply call newPipeline() without arguments
-      mw->newPipeline(mw->IDINITIALUNTITLED);
+    else 
+    {
+      mw->newPipeline();
     }
 
     // We are about to show the application.

@@ -108,12 +108,18 @@ namespace OpenMS
 #endif
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
+  String TOPPBase::getToolPrefix() const
+  {
+    return tool_name_ + ":" + instance_number_ + ":";
+  }
+
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations, bool toolhandler_test) :
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
     official_(official),
     citations_(citations),
+    toolhandler_test_(toolhandler_test),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
@@ -127,10 +133,38 @@ namespace OpenMS
       verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
     }
 
-    //check if tool is in official tools list
-    if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+    // can be disabled to allow unit tests
+    if (toolhandler_test_)
     {
-      writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
+      // check if tool entries are in Utils and TOPP (duplication)
+      if (ToolHandler::checkDuplicated(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("The '" + tool_name_ + "' has entries in the UTILS and TOPP category. Please add it to the correct category in the ToolHandler."),
+                                      tool_name_);
+      }
+
+      // check if tool is in official tools list
+      if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("If '" + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false."),
+                                      tool_name_);
+      }
+
+      // check if tool is in util list
+      if (!official_ && !ToolHandler::getUtilList().count(tool_name_))
+      {
+        throw Exception::InvalidValue(__FILE__,
+                                      __LINE__,
+                                      OPENMS_PRETTY_FUNCTION,
+                                      String("If '" + tool_name_ + "' is a Util, add it to the util list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to true."),
+                                      tool_name_);
+      }
     }
   }
 
@@ -191,7 +225,7 @@ namespace OpenMS
     writeDebug_(String("Instance: ") + String(instance_number_), 1);
 
     // assign ini location
-    *const_cast<String*>(&ini_location_) = tool_name_ + ':' + String(instance_number_) + ':';
+    *const_cast<String*>(&ini_location_) = this->getToolPrefix();
     writeDebug_(String("Ini_location: ") + getIniLocation_(), 1);
 
     // set debug level
@@ -1513,17 +1547,25 @@ namespace OpenMS
 
   TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
   {
-    String sstdout, sstderr; // collect all output (might be useful if program crashes, see below)
+    String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
+    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir);
+  }
+
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir) const
+  {
+    proc_stdout.clear();
+    proc_stderr.clear();
+
     // callbacks: invoked whenever output is available.
-    auto lam_out = [&](const String& out) { sstdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
-    auto lam_err = [&](const String& out) { sstderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    auto lam_out = [&](const String& out) { proc_stdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    auto lam_err = [&](const String& out) { proc_stderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
     ExternalProcess ep(lam_out, lam_err);
 
     const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
     if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occured: if not written already in callback, do it now
-      writeLog_("Standard output: " + sstdout);
-      writeLog_("Standard error: " + sstderr);
+      writeLog_("Standard output: " + proc_stdout);
+      writeLog_("Standard error: " + proc_stderr);
     }
     if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     {
@@ -1905,7 +1947,7 @@ namespace OpenMS
   Param TOPPBase::getDefaultParameters_() const
   {
     Param tmp;
-    String loc = tool_name_ + ":" + String(instance_number_) + ":";
+    String loc = this->getToolPrefix();
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
@@ -2177,19 +2219,18 @@ namespace OpenMS
 
   String TOPPBase::getDocumentationURL() const
   {
-    if (official_) // we use a different URL for the TOPP (official) and UTILS (unofficial) tools
+    VersionInfo::VersionDetails ver = VersionInfo::getVersionStruct();
+    String tool_prefix = official_ ? "TOPP_" : "UTILS_";
+    // it is only empty if the GIT_BRANCH inferred or set during CMake config was release/* or master
+    // see https://github.com/OpenMS/OpenMS/blob/develop/CMakeLists.txt#L122
+    if (ver.pre_release_identifier.empty())
     {
-      return String("http://www.openms.de/documentation/TOPP_") + tool_name_ + ".html";
-    }
-    else if (ToolHandler::getUtilList().count(tool_name_))
-    {
-      return String("http://www.openms.de/documentation/UTILS_") + tool_name_ + ".html";
+      String release_version = String(ver.version_major) + "." + String(ver.version_minor) + "." + String(ver.version_patch);
+      return String("http://www.openms.de/doxygen/release/") + release_version + "/html/"+ tool_prefix + tool_name_ + ".html";
     }
     else
     {
-      // TODO: Fix tests first
-      // throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A tool either needs to be an official tool or registered as util (TOPP tool not registered)");
-      return "";
+      return String("http://www.openms.de/doxygen/nightly/html/") + tool_prefix + tool_name_ + ".html";
     }
   }
 

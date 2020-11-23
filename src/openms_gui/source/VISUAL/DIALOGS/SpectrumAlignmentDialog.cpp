@@ -37,7 +37,7 @@
 #include <ui_SpectrumAlignmentDialog.h>
 
 
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
 
 // QT includes
 #include <QtWidgets/QButtonGroup>
@@ -46,7 +46,7 @@
 
 namespace OpenMS
 {
-  SpectrumAlignmentDialog::SpectrumAlignmentDialog(Spectrum1DWidget * parent) :
+  SpectrumAlignmentDialog::SpectrumAlignmentDialog(Plot1DWidget * parent) :
     layer_indices_1_(),
     layer_indices_2_(),
     ui_(new Ui::SpectrumAlignmentDialogTemplate)
@@ -58,18 +58,18 @@ namespace OpenMS
     button_group->addButton(ui_->da);
     ui_->da->setChecked(true);
 
-    Spectrum1DCanvas * cc = parent->canvas();
+    Plot1DCanvas * cc = parent->canvas();
     for (UInt i = 0; i < cc->getLayerCount(); ++i)
     {
       const LayerData & layer = cc->getLayer(i);
       if (layer.flipped)
       {
-        ui_->layer_list_2->addItem(layer.name.toQString());
+        ui_->layer_list_2->addItem(layer.getName().toQString());
         layer_indices_2_.push_back(i);
       }
       else
       {
-        ui_->layer_list_1->addItem(layer.name.toQString());
+        ui_->layer_list_1->addItem(layer.getName().toQString());
         layer_indices_1_.push_back(i);
       }
     }

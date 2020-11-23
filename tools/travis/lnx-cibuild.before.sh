@@ -34,7 +34,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U numpy
   pip install -U wheel
   pip install -U Cython==0.25
-  pip install -U autowrap==0.18.1
+  pip install -U autowrap==0.22.0
 fi
 
 # move to automatically cloned contrib submodule

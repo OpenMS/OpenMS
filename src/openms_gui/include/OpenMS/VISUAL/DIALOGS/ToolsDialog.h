@@ -78,9 +78,10 @@ public:
         @param parent Qt parent widget
         @param ini_file The file name of the temporary INI file created by this dialog
         @param default_dir The default directory for loading and storing INI files
-        @param layertype The type of data (determines the applicable tools)
+        @param layer_type The type of data (determines the applicable tools)
+        @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layertype);
+    ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
     ///Destructor
     ~ToolsDialog() override;
 

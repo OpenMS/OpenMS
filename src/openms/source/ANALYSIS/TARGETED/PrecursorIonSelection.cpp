@@ -428,7 +428,6 @@ namespace OpenMS
     std::cout << "mapped ids" << std::endl;
 #endif
     PSProteinInference protein_inference;
-    protein_inference.setSolver(solver_);
     protein_inference.findMinimalProteinList(filtered_pep_ids);
     // make the rescoring
     rescore_(features, filtered_pep_ids, preprocessed_db, protein_inference);
@@ -714,7 +713,6 @@ namespace OpenMS
     mapper.setParameters(p);
     mapper.annotate(features, filtered_pep_ids, param_prot_ids, true);
     PSProteinInference protein_inference;
-    protein_inference.setSolver(solver_);
 
     double protein_id_threshold = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
 
@@ -1031,7 +1029,6 @@ namespace OpenMS
     mapper.annotate(features, filtered_pep_ids, prot_ids);
 
     PSProteinInference protein_inference;
-    protein_inference.setSolver(solver_);
 
     sortByTotalScore(features);
 

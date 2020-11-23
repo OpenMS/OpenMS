@@ -42,8 +42,6 @@ class QStringList;
 
 namespace OpenMS
 {
-
-
   /**
     @brief Class which holds static GUI-related helper functions.
 
@@ -55,6 +53,8 @@ namespace OpenMS
   {
   public:
 
+    GUIHelpers() = delete;
+    
     /// Open a folder in file explorer
     /// Will show a message box on failure
     static void openFolder(const QString& folder);
@@ -65,10 +65,6 @@ namespace OpenMS
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure
     static void openURL(const QString& target);
-
-  private:
-    /// private C'tor
-    GUIHelpers();
   };
 
 }

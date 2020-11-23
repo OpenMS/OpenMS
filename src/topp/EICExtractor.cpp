@@ -338,7 +338,7 @@ public:
           {
             Peak1D peak;
             peak.setMZ(tic[is].getMZ());
-            peak.setIntensity(snt.getSignalToNoise(tics[is]));
+            peak.setIntensity(snt.getSignalToNoise(is));
             tics_sn.push_back(peak);
           }
           out_debug.addChromatogram(toChromatogram(tics_sn));

@@ -203,54 +203,58 @@ namespace OpenMS
   {
     std::pair<int,int> result{0,0};
 
-    if (charges.hasSubstring(',')) //it's probably a list
+    try // is there only one number (min = max)?
     {
-      StringList chgs;
-      charges.split(',', chgs);
-      for (String& chg : chgs)
-      {
-        int val = getChargeValue_(chg);
-        if (val < result.first) result.first = val;
-        if (val > result.second) result.second = val;
-      }
+      result.first = charges.toInt();
+      result.second = result.first;
     }
-    else if (charges.hasSubstring(':')) //it's probably a range
+    catch (Exception::ConversionError&) // nope, something else
     {
-      StringList chgs;
-      charges.split(':', chgs);
-      if (chgs.size() > 2)
+      if (charges.hasSubstring(',')) // it's probably a list
       {
-        throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Charge string in SearchParameters not parseable.");
+        IntList chgs = ListUtils::create<Int>(charges);
+        auto minmax = minmax_element(chgs.begin(), chgs.end());
+        result.first = *minmax.first;
+        result.second = *minmax.second;
       }
-      result.first = getChargeValue_(chgs[0]);
-      result.second = getChargeValue_(chgs[1]);
-    }
-    else
-    {
-      size_t pos = charges.find('-', 0);
-      std::vector<size_t> minus_positions;
-      while (pos != string::npos)
+      else if (charges.hasSubstring(':')) // it's probably a range
       {
-        minus_positions.push_back(pos);
-        pos = charges.find('-', pos+1);
+        StringList chgs;
+        charges.split(':', chgs);
+        if (chgs.size() > 2)
+        {
+          throw OpenMS::Exception::MissingInformation(
+            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Charge string in SearchParameters not parseable.");
+        }
+        result.first = getChargeValue_(chgs[0]);
+        result.second = getChargeValue_(chgs[1]);
       }
-      if (!minus_positions.empty() && minus_positions.size() <= 3) // it's probably a range with '-'
+      else
       {
-        Size split_pos(0);
-        if (minus_positions.size() <= 1)
+        size_t pos = charges.find('-', 0);
+        std::vector<size_t> minus_positions;
+        while (pos != string::npos)
         {
-          //split at first minus
-          split_pos = minus_positions[0];
+          minus_positions.push_back(pos);
+          pos = charges.find('-', pos + 1);
         }
-        else
+        if (!minus_positions.empty() && minus_positions.size() <= 3) // it's probably a range with '-'
         {
-          split_pos = minus_positions[1];
+          Size split_pos(0);
+          if (minus_positions.size() <= 1) // split at first minus
+          {
+            split_pos = minus_positions[0];
+          }
+          else
+          {
+            split_pos = minus_positions[1];
+          }
+          String first = charges.substr(0, split_pos);
+          String second = charges.substr(split_pos + 1, string::npos);
+          result.first = getChargeValue_(first);
+          result.second = getChargeValue_(second);
         }
-        String first = charges.substr(0, split_pos);
-        String second = charges.substr(split_pos + 1, string::npos);
-        result.first = getChargeValue_(first);
-        result.second = getChargeValue_(second);
-
       }
     }
     return result;
@@ -681,8 +685,11 @@ namespace OpenMS
     const std::vector<PeptideIdentification>& pep_ids,
     const StringList& skip_modifications)
   {
-    // map protein accession to observed position,modifications pairs
-    map<String, set<pair<Size, ResidueModification>>> prot2mod;
+    // map protein accession to observed position -> modifications -> statistics (e.g., counts)
+    map<String, ProteinModificationSummary> prot2mod;
+
+    // total count how often evidence for a protein was observed (both unmodified + modified)
+    map<String, size_t> prot2count;
 
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
@@ -696,7 +703,16 @@ namespace OpenMS
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // skip unmodified peptides
-        if (aas.isModified() == false) { continue; }
+        if (aas.isModified() == false) 
+        { 
+          // count unmodified protein
+          for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+          {
+            const String& acc = ph_evidences[phe_i].getProteinAccession();
+            prot2count[acc]++; // count protein evidence
+          }
+          continue; 
+        }
 
         if (aas.isModified())
         {
@@ -711,7 +727,8 @@ namespace OpenMS
               {
                 const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getStart(); // mod at N terminus
-                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein
+                prot2count[acc]++; // count protein evidence
               }
             }
           }
@@ -729,7 +746,8 @@ namespace OpenMS
                 {
                   const String& acc = ph_evidences[phe_i].getProteinAccession();
                   const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai
-                  prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                  prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein    
+                  prot2count[acc]++; // count protein evidence              
                 }
               }
             }
@@ -746,7 +764,8 @@ namespace OpenMS
               {
                 const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getEnd(); // mod at C terminus
-                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein
+                prot2count[acc]++; // count protein evidence           
               }
             }
           }
@@ -755,11 +774,28 @@ namespace OpenMS
     }
 
     for (Size i = 0; i < protein_hits_.size(); ++i)
-    {
-      const String& accession = protein_hits_[i].getAccession();
-      if (prot2mod.find(accession) != prot2mod.end())
-      {
-        protein_hits_[i].setModifications(prot2mod[accession]);
+    { // for all proteins
+      const String& acc = protein_hits_[i].getAccession();
+      if (prot2mod.find(acc) != prot2mod.end())
+      { // if the protein is modified
+        const size_t total_count = prot2count[acc]; // # modified + unmodified evidences (PSMs) for this protein 
+
+        if (total_count == 0) { continue; }
+
+        for (auto& m : prot2mod[acc].AALevelSummary)
+        { // iterate over all modified positions
+          ProteinModificationSummary::ModificationsToStatistics& m2ss = m.second;
+          for (auto & stat : m2ss)
+          { // iterate over all modifications (key) and statistics (value) at this position
+            ProteinModificationSummary::Statistics& s = stat.second;
+            // calculate frequency for this modification at this position as: 
+            //   number of PSMs that support that modification at that position divided by
+            //   all PSMs of that protein
+            s.frequency = static_cast<double>(s.count) / total_count; 
+          }          
+        }
+        // store modifications and statistics
+        protein_hits_[i].setModifications(prot2mod[acc]);
       }
     }
   }
@@ -884,4 +920,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

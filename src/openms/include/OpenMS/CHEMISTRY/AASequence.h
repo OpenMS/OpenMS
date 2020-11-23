@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -39,15 +39,13 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iosfwd>
 
 namespace OpenMS
 {
-
-  // forward declarations
-  class ResidueModification;
 
   /**
       @brief Representation of a peptide/protein sequence
@@ -507,6 +505,13 @@ protected:
     /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
     /// supplementing/deduction of the sequence to its ionic form.
     double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+
+    /// returns mass-to-charge ratio of the peptide in the given ionic form
+    /// @note will not (and cannot) control whether the required ion can exist
+    /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
+    /// supplementing/deduction of the sequence to its ionic form.
+    /// @throws Exception::InvalidValue if @p charge==0
+    double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const;
 
     /// returns a pointer to the residue at given position
     const Residue& operator[](Size index) const;

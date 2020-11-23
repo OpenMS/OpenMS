@@ -319,7 +319,20 @@ if(ENABLE_DOCS)
 
     #------------------------------------------------------------------------------
     # Install documentation
-    install_directory(${PROJECT_BINARY_DIR}/html ${INSTALL_DOC_DIR} doc)
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/html
+      DESTINATION ${INSTALL_DOC_DIR}
+      COMPONENT doc
+      FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                            GROUP_READ
+                            WORLD_READ
+      DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                            GROUP_EXECUTE GROUP_READ
+                            WORLD_EXECUTE WORLD_READ
+      REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+      REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+      REGEX ".*\\.map\$" EXCLUDE ## Exclude temporary map files
+      REGEX ".*\\.md5\$" EXCLUDE ## Exclude temporary md5 files
+    )
     install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
 
     #------------------------------------------------------------------------------

@@ -32,6 +32,7 @@
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -318,8 +319,12 @@ protected:
     //-------------------------------------------------------------
 
     vector<ProteinIdentification> prot_ids;
+    prot_id.setPrimaryMSRunPath({ in }, exp);
     prot_ids.push_back(prot_id);
-    prot_id.setPrimaryMSRunPath({in}, exp);
+
+    // write all (!) parameters as metavalues to the search parameters
+    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), prot_ids[0].getSearchParameters(), this->getToolPrefix());
+
     IdXMLFile().store(out, prot_ids, pep_ids);
     
     return EXECUTION_OK;

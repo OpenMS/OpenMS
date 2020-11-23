@@ -57,7 +57,7 @@ class TOPPBaseTest
 {
   public:
     TOPPBaseTest()
-      : TOPPBase("TOPPBaseTest", "A test class", false)
+      : TOPPBase("TOPPBaseTest", "A test class", false, {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -69,7 +69,7 @@ class TOPPBaseTest
     }
 
     TOPPBaseTest(int argc ,const char** argv)
-      : TOPPBase("TOPPBaseTest", "A test class", false)
+      : TOPPBase("TOPPBaseTest", "A test class", false, {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -193,7 +193,7 @@ class TOPPBaseTestNOP
 {
   public:
     TOPPBaseTestNOP()
-      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
+      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false, {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -205,7 +205,7 @@ class TOPPBaseTestNOP
     }
 
     TOPPBaseTestNOP(int argc , const char** argv)
-      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
+      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false, {}, false)
     {
       char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -267,7 +267,7 @@ class TOPPBaseTestParam: public TOPPBase
 {
   public:
     TOPPBaseTestParam(const Param& param):
-			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false), test_param_(param)
+			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false, {}, false), test_param_(param)
     {
       static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -304,7 +304,7 @@ class TOPPBaseCmdParseTest
 
 public:
   TOPPBaseCmdParseTest()
-    : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false)
+    : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false, {}, false)
   {}
 
   void registerOptionsAndFlags_() override
@@ -341,7 +341,7 @@ class TOPPBaseCmdParseSubsectionsTest
 
 public:
   TOPPBaseCmdParseSubsectionsTest()
-  : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false)
+  : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false, {}, false)
   {}
 
   void registerOptionsAndFlags_() override
@@ -406,7 +406,7 @@ public:
 
 TOPPBaseTest* ptr = nullptr;
 TOPPBaseTest* nullPointer = nullptr;
-START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}))
+START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION

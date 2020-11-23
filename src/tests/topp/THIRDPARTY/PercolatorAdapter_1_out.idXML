@@ -19,18 +19,18 @@
 				<UserParam type="string" name="Comet:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="COMET:deltCn,COMET:deltLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
-				<UserParam type="int" name="Percolator:peptide-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:protein-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:generic-feature-set" value="0"/>
+				<UserParam type="int" name="Percolator:peptide_level_fdrs" value="0"/>
+				<UserParam type="int" name="Percolator:protein_level_fdrs" value="0"/>
+				<UserParam type="int" name="Percolator:generic_feature_set" value="0"/>
 				<UserParam type="float" name="Percolator:testFDR" value="0.5"/>
 				<UserParam type="float" name="Percolator:trainFDR" value="0.5"/>
 				<UserParam type="int" name="Percolator:maxiter" value="10"/>
-				<UserParam type="int" name="Percolator:subset-max-train" value="0"/>
-				<UserParam type="int" name="Percolator:quick-validation" value="0"/>
+				<UserParam type="int" name="Percolator:subset_max_train" value="0"/>
+				<UserParam type="int" name="Percolator:quick_validation" value="0"/>
 				<UserParam type="int" name="Percolator:static" value="0"/>
 				<UserParam type="string" name="Percolator:weights" value=""/>
-				<UserParam type="string" name="Percolator:init-weights" value=""/>
-				<UserParam type="string" name="Percolator:default-direction" value=""/>
+				<UserParam type="string" name="Percolator:init_weights" value=""/>
+				<UserParam type="string" name="Percolator:default_direction" value=""/>
 				<UserParam type="float" name="Percolator:cpos" value="0.0"/>
 				<UserParam type="float" name="Percolator:cneg" value="0.0"/>
 				<UserParam type="int" name="Percolator:unitnorm" value="0"/>
@@ -39,11 +39,11 @@
 				<UserParam type="int" name="Percolator:doc" value="0"/>
 				<UserParam type="int" name="Percolator:klammer" value="0"/>
 				<UserParam type="string" name="Percolator:fasta" value=""/>
-				<UserParam type="string" name="Percolator:decoy-pattern" value="random"/>
-				<UserParam type="int" name="Percolator:post-processing-tdc" value="0"/>
-				<UserParam type="int" name="Percolator:train-best-positive" value="0"/>
+				<UserParam type="string" name="Percolator:decoy_pattern" value="random"/>
+				<UserParam type="string" name="Percolator:post_processing_tdc" value="false"/>
+				<UserParam type="int" name="Percolator:train_best_positive" value="0"/>
 	</SearchParameters>
-	<IdentificationRun date="2020-03-21T14:06:04" search_engine="Percolator" search_engine_version="3.02" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-08-24T19:40:30" search_engine="Percolator" search_engine_version="3.02" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q02952|AKA12_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -137,7 +137,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.951"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
-				<UserParam type="float" name="COMET:lnExpect" value="0.009950330853168"/>
+				<UserParam type="float" name="COMET:lnExpect" value="9.95033085316809e-03"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="8.49902922078857"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
@@ -220,7 +220,7 @@
 				<UserParam type="string" name="MS:1002259" value="22"/>
 				<UserParam type="string" name="num_matched_peptides" value="10184"/>
 				<UserParam type="float" name="MS:1002252" value="0.424"/>
-				<UserParam type="float" name="MS:1002253" value="0.006"/>
+				<UserParam type="float" name="MS:1002253" value="6.0e-03"/>
 				<UserParam type="float" name="MS:1002255" value="8.699999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="2.0"/>
 				<UserParam type="float" name="MS:1002257" value="2.02"/>
@@ -342,7 +342,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="COMET:deltCn" value="0.951"/>
 				<UserParam type="float" name="COMET:deltLCn" value="0.0"/>
-				<UserParam type="float" name="COMET:lnExpect" value="0.009950330853168"/>
+				<UserParam type="float" name="COMET:lnExpect" value="9.95033085316809e-03"/>
 				<UserParam type="float" name="COMET:lnNumSP" value="8.49902922078857"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
@@ -425,7 +425,7 @@
 				<UserParam type="string" name="MS:1002259" value="22"/>
 				<UserParam type="string" name="num_matched_peptides" value="10184"/>
 				<UserParam type="float" name="MS:1002252" value="0.424"/>
-				<UserParam type="float" name="MS:1002253" value="0.006"/>
+				<UserParam type="float" name="MS:1002253" value="6.0e-03"/>
 				<UserParam type="float" name="MS:1002255" value="8.699999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="2.0"/>
 				<UserParam type="float" name="MS:1002257" value="2.02"/>

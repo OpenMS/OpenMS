@@ -47,6 +47,8 @@
 namespace OpenMS
 {
 
+  const char* AccurateMassSearchEngine::search_engine_identifier = "AccurateMassSearch";
+
   AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier)
     :
     name_(name),
@@ -831,8 +833,8 @@ namespace OpenMS
     }
     // add dummy protein identification which is required to keep peptidehits alive during store()
     fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
-    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
-    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
+    fmap.getProteinIdentifications().back().setIdentifier(search_engine_identifier);
+    fmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
     fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     if (fmap.empty())
@@ -852,7 +854,7 @@ namespace OpenMS
   void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
   {
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
-    f.getPeptideIdentifications().back().setIdentifier("AccurateMassSearch");
+    f.getPeptideIdentifications().back().setIdentifier(search_engine_identifier);
     for (std::vector<AccurateMassSearchResult>::const_iterator it_row  = amr.begin();
          it_row != amr.end();
          ++it_row)
@@ -913,8 +915,8 @@ namespace OpenMS
     }
     // add dummy protein identification which is required to keep peptidehits alive during store()
     cmap.getProteinIdentifications().resize(cmap.getProteinIdentifications().size() + 1);
-    cmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
-    cmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
+    cmap.getProteinIdentifications().back().setIdentifier(search_engine_identifier);
+    cmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
     cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     exportMzTab_(overall_results, num_of_maps, mztab_out);

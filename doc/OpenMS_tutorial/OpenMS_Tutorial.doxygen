@@ -260,7 +260,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
  <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
- <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues, Modifications, Isotope distributions and amino acid sequences</td></tr>
+ <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues/Amino Acids, Modifications, Isotope distributions and amino acid sequences</td></tr>
  <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
  <tr><td>CONCEPT</td><td>%OpenMS concepts (types, macros, ...)</td></tr>
  <tr><td>DATASTRUCTURES</td><td>Auxiliary data structures</td></tr>
@@ -498,7 +498,7 @@ Extract isotope distribution and monoisotopic weight of an EmpiricalFormula obje
 
 \snippet Tutorial_EmpiricalFormula.cpp EmpiricalFormula
 
-@subsection tutorial_aaseq AASequence - Representing a Peptide 
+@subsection tutorial_aaseq AASequence - Representing a Peptide (amino acid sequence)
 An AASequence object stores a (potentially chemically modified) peptide.
 It can conveniently be constructed from the amino acid sequence (e.g., a string or a string literal “DEFIANGR”). Modifications may be encoded using the unimod name.
 Once constructed, many convenient functions are available to calculate peptide or ion properties.
@@ -511,8 +511,8 @@ Compute and output basic AASequence properties
 
 Internally, an AASequence object is composed of Residues.
 
-@subsection tutorial_residue Residue, ResidueDB
-Residues are the building blocks of AASequence objects. They store physico-chemical properties of specific amino acids. ResidueDB stores that data and is initialized from the file “data/CHEMISTRY/residues.xml”.
+@subsection tutorial_residue Residue and ResidueDB - Dealing with residues / amino acids
+Residues are the building blocks of AASequence objects. They store physico-chemical properties of amino acids. ResidueDB provides access to different residue sets (e.g. all natural AAs).
 <br><br>
 <b>Example: Tutorial_Residue.cpp</b>
 <br>
