@@ -171,8 +171,8 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
-    registerInputFile_("in", "<file>", "", "input file ");
+    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", in_types);

@@ -573,14 +573,16 @@ namespace OpenMS
     return false;
   }
 
-  bool LayerAnnotatorOSW::annotateWorker_(LayerData &layer,
-                                          const String &filename,
-                                          LogWindow &log) const
+  bool LayerAnnotatorOSW::annotateWorker_(LayerData& layer,
+                                          const String& filename,
+                                          LogWindow& log) const
   {
     OSWFile oswf(filename);
     OSWData data;
     log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Reading OSW data ...");
     oswf.readMinimal(data);
+    // allow data to map from transition.id (=native.id) to a chromatogram index
+    data.buildNativeIDResolver(*layer.getFullChromData().get());
     layer.setChromatogramAnnotation(std::move(data));
     log.appendText(" done");
     return true;

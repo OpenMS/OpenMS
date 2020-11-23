@@ -2899,6 +2899,8 @@ set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_2_out_4" ${DIFF}  -in1 BSA_plusTransfer.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_2_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
 
+
+
 add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -3014,6 +3016,37 @@ set_tests_properties("UTILS_ProteomicsLFQ_5_out_3" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_5_out_4" ${DIFF} -in1 BSA_decoys.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_5_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_5_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_5")
 
+# spectral counting (regression test with target + decoys)
+add_test("UTILS_ProteomicsLFQ_6" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1_msgf_idx_fdr_idpep_switched_filter.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2_msgf_idx_fdr_idpep_switched_filter.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1_msgf_idx_fdr_idpep_switched_filter.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2_msgf_idx_fdr_idpep_switched_filter.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1_msgf_idx_fdr_idpep_switched_filter.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2_msgf_idx_fdr_idpep_switched_filter.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -quantification_method spectral_counting
+         -out_cxml BSA_sc_decoys.consensusXML.tmp
+         -out BSA_sc_decoys.mzTab.tmp
+         -threads 1
+         -proteinFDR 1.0 # disable FDR filtering to ensure we keep all decoys for testing purpose
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_6_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sc_decoys.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_6_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_6_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_6")
+add_test("UTILS_ProteomicsLFQ_6_out_2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sc_decoys.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_6_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_6_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_6")
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
