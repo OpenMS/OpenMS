@@ -44,6 +44,8 @@ using namespace std;
 namespace OpenMS
 {
 
+  QFont default_text_font = QFont("Courier");
+
   Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double x_pos, const QColor& color, const QString& text) :
       Annotation1DItem(text),
       x_(x_pos),
@@ -107,8 +109,7 @@ namespace OpenMS
     // 5 pixel to x() was added to give some space between the line and the text
     if (!text_.isEmpty())
     {
-      // randomize the y-coordinate to avoid overlaps
-      GUIHelpers::drawText(painter, text_.split('\n'), { end_p_right.x() + 5, 20 }, Qt::black);
+      GUIHelpers::drawText(painter, text_.split('\n'), { start_p_left.x() + 5, 20 + y_text_offset_ }, Qt::black, "invalid", default_text_font);
     }
 
     if (color_.isValid())
@@ -130,6 +131,17 @@ namespace OpenMS
   const double & Annotation1DVerticalLineItem::getPosition() const
   {
     return x_;
+  }
+
+  QRectF Annotation1DVerticalLineItem::getTextRect() const
+  {
+    int dummy;
+    return GUIHelpers::getTextDimension(getText().split('\n'), default_text_font, dummy);
+  }
+
+  void Annotation1DVerticalLineItem::setTextYOffset(int y_offset)
+  {
+    y_text_offset_ = y_offset;
   }
 
   void Annotation1DVerticalLineItem::ensureWithinDataRange(Plot1DCanvas* const)

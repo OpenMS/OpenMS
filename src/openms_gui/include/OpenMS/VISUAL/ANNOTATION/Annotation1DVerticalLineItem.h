@@ -79,11 +79,20 @@ namespace OpenMS
     /// Sets the uppermost position of the line
     void setPosition(const double& x);
     /// Returns the position
-    const double & getPosition() const;
+    const double& getPosition() const;
+
+    /// size of the painted text (width and height of the rectangle)
+    QRectF getTextRect() const;
+
+    /// offset the text by this much downwards (to avoid overlaps etc)
+    void setTextYOffset(int y_offset);
 
   protected:
     /// The position of the vertical line
     double x_ = -1;
+    /// offset in y for the text (to avoid overlaps)
+    int y_text_offset_{0};
+
     /// width of the item (allowing to show a 'band')
     float width_ = 0;
     /// transparency 0...255 of the band (only used when width_ > 0)
