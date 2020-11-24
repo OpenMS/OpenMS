@@ -727,7 +727,7 @@ namespace OpenMS
               {
                 const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getStart(); // mod at N terminus
-                prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein
+                prot2mod[acc].AALevelSummary[mod_pos][res_mod].count++; // count modified residue in protein
                 prot2count[acc]++; // count protein evidence
               }
             }
@@ -746,7 +746,7 @@ namespace OpenMS
                 {
                   const String& acc = ph_evidences[phe_i].getProteinAccession();
                   const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai
-                  prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein    
+                  prot2mod[acc].AALevelSummary[mod_pos][res_mod].count++; // count modified residue in protein    
                   prot2count[acc]++; // count protein evidence              
                 }
               }
@@ -764,7 +764,7 @@ namespace OpenMS
               {
                 const String& acc = ph_evidences[phe_i].getProteinAccession();
                 const Size mod_pos = ph_evidences[phe_i].getEnd(); // mod at C terminus
-                prot2mod[acc].AALevelSummary[mod_pos][*res_mod].count++; // count modified residue in protein
+                prot2mod[acc].AALevelSummary[mod_pos][res_mod].count++; // count modified residue in protein
                 prot2count[acc]++; // count protein evidence           
               }
             }

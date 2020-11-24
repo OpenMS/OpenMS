@@ -35,8 +35,6 @@
 #pragma once
 
 #include <map>
-
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 namespace OpenMS
@@ -50,8 +48,9 @@ namespace OpenMS
   struct OPENMS_DLLAPI ProteinModificationSummary
   {
     /// basic modification statistic
-    struct OPENMS_DLLAPI Statistics : public MetaInfoInterface
+    struct OPENMS_DLLAPI Statistics
     {
+      bool operator==(const Statistics& rhs) const;
       size_t count = 0;
       double frequency = 0.0;
     };
@@ -59,7 +58,7 @@ namespace OpenMS
     /// comparison operator
     bool operator==(const ProteinModificationSummary& rhs) const;
 
-    using ModificationsToStatistics = std::map<ResidueModification, Statistics>;
+    using ModificationsToStatistics = std::map<const ResidueModification*, Statistics>;
     using AALevelModificationSummary = std::map<size_t, ModificationsToStatistics>;
 
     /// position -> modification -> statistic (counts, etc.)
