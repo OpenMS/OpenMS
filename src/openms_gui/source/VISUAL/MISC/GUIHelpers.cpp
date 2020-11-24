@@ -200,6 +200,7 @@ namespace OpenMS
   void GUIHelpers::GUILock::lock()
   {
     if (currently_locked_) return;
+    if (locked_widget_ == nullptr) return;
 
     was_enabled_ = locked_widget_->isEnabled();
     locked_widget_->setEnabled(false);
@@ -210,6 +211,7 @@ namespace OpenMS
   void GUIHelpers::GUILock::unlock()
   {
     if (!currently_locked_) return;
+    if (locked_widget_ == nullptr) return;
 
     locked_widget_->setEnabled(was_enabled_);
     QGuiApplication::restoreOverrideCursor(); 

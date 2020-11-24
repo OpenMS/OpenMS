@@ -85,6 +85,7 @@ namespace OpenMS
     {
     public:
       /// C'tor receives the widget to lock
+      /// @param gui QWidget to lock(including all children); can be nullptr (nothing will be locked)
       GUILock(QWidget* gui);
 
       /// no copy/assignment allowed
