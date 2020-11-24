@@ -75,8 +75,7 @@ namespace OpenMS
         && this->intensity == a.intensity;
   }
 
-  void PeakGroup::updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines,
-                                           int offset,
+  void PeakGroup::updateMassesAndIntensity(int offset,
                                            int maxIsoIndex)
   {
     //
@@ -108,13 +107,13 @@ namespace OpenMS
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
     }
     monoisotopicMass = nominator / intensity;
-    auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
-    avgMass = monoisotopicMass + massDelta;
+    // auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
+    //avgMass = monoisotopicMass + massDelta;
 
   }
 
 
-  float PeakGroup::getChargeSNR(int charge)
+  float PeakGroup::getChargeSNR(int charge) const
   {
     if (maxCharge < charge)
     {
@@ -123,7 +122,7 @@ namespace OpenMS
     return perChargeSNR[charge];
   }
 
-  float PeakGroup::getChargeIsotopeCosine(int charge)
+  float PeakGroup::getChargeIsotopeCosine(int charge) const
   {
     if (maxCharge < charge)
     {
@@ -132,7 +131,7 @@ namespace OpenMS
     return perChargeCos[charge];
   }
 
-  float PeakGroup::getChargeIntensity(int charge)
+  float PeakGroup::getChargeIntensity(int charge) const
   {
     if (maxCharge < charge)
     {
@@ -182,12 +181,12 @@ namespace OpenMS
     maxQScoreMzEnd = max;
   }
 
-  std::tuple<double, double> PeakGroup::getMzxQScoreMzRange()
+  std::tuple<double, double> PeakGroup::getMzxQScoreMzRange() const
   {
     return std::tuple<double, double>{maxQScoreMzStart, maxQScoreMzEnd};
   }
 
-  std::tuple<int, int> PeakGroup::getChargeRange()
+  std::tuple<int, int> PeakGroup::getChargeRange() const
   {
     return std::tuple<int, int>{minCharge, maxCharge};
   }
@@ -196,6 +195,76 @@ namespace OpenMS
   {
     minCharge = min;
     maxCharge = max;
+  }
+
+  void PeakGroup::setScanNumber(int sn)
+  {
+    scanNumber = sn;
+  }
+
+  int PeakGroup::getScanNumber() const
+  {
+    return scanNumber;
+  }
+
+  void PeakGroup::setMonoMass(double m)
+  {
+    monoisotopicMass = m;
+  }
+
+  double PeakGroup::getMonoMass() const
+  {
+    return monoisotopicMass;
+  }
+
+  void PeakGroup::setIntensity(double i)
+  {
+    intensity = i;
+  }
+
+  double PeakGroup::getIntensity() const
+  {
+    return intensity;
+  }
+
+  void PeakGroup::setIsotopeCosine(float cos)
+  {
+    isotopeCosineScore = cos;
+  }
+
+  void PeakGroup::setRepCharge(int c)
+  {
+    maxQScoreCharge = c;
+  }
+
+  float PeakGroup::getIsotopeCosine() const
+  {
+    return isotopeCosineScore;
+  }
+
+  int PeakGroup::getRepCharge() const
+  {
+    return maxQScoreCharge;
+  }
+
+  void PeakGroup::setQScore(float q)
+  {
+    qScore = q;
+  }
+
+  float PeakGroup::getQScore() const
+  {
+    return qScore;
+  }
+
+  void PeakGroup::setSNR(float snr)
+  {
+    totalSNR = snr;
+  }
+
+  float PeakGroup::getSNR() const
+  {
+    return totalSNR;
   }
 
 

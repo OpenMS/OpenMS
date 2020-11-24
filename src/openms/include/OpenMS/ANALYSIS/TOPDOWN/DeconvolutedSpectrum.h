@@ -81,6 +81,7 @@ namespace OpenMS
     */
     void writeDeconvolutedMasses(std::fstream &fs,
                                  const String &fileName,
+                                 const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                  bool writeDetail);
 
     //void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold, int numMaxMS2);

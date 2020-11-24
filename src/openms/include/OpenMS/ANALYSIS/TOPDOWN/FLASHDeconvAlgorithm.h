@@ -82,9 +82,7 @@ namespace OpenMS
       @param massIndex index for each mass, for file output
  */
     void fillPeakGroupsInDeconvolutedSpectrum(DeconvolutedSpectrum &dspec,
-                                              int scanNumber,
-                                              int &specIndex,
-                                              int &massIndex);
+                                              int scanNumber);
 
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();

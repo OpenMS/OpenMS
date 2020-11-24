@@ -53,6 +53,7 @@ namespace OpenMS
     /// This struct contains the averagine patterns precalulated for speed up. Other variables are also calculated for fast cosine calculation
     struct OPENMS_DLLAPI PrecalculatedAveragine
     {
+    private:
       /// isotope distributions for different (binned) masses
       std::vector<IsotopeDistribution> isotopes;
       /// L2 norms for masses
@@ -70,7 +71,7 @@ namespace OpenMS
       double massInterval;
       /// min mass for calculation
       double minMass;
-
+    public:
       /// default constructor
       PrecalculatedAveragine() = default;
 
@@ -89,19 +90,25 @@ namespace OpenMS
                              bool useRNAavg);
 
       /// get distribution for input mass
-      IsotopeDistribution get(double mass);
+      IsotopeDistribution get(double mass) const;
+
+      /// get max isotope index
+      int getMaxIsotopeIndex() const;
+
+      /// get max isotope index
+      void setMaxIsotopeIndex(int index);
 
       /// get norm
-      double getNorm(double mass);
+      double getNorm(double mass) const;
 
       /// get isotope start index
-      Size getIsotopeStartIndex(double mass);
+      Size getIsotopeStartIndex(double mass) const;
 
       /// get isotope end index
-      Size getIsotopeEndIndex(double mass);
+      Size getIsotopeEndIndex(double mass) const;
 
       /// get mass difference between avg and mono masses
-      double getAverageMassDelta(double mass);
+      double getAverageMassDelta(double mass) const;
 
     };
 
@@ -121,15 +128,13 @@ namespace OpenMS
       /// isotope index
       int isotopeIndex = -1;
 
-      int index;
-
       /// default constructor
       LogMzPeak() = default;
 
       /**
         //       @brief constructor from Peak1D.
         //       @param positive determines the charge carrier mass*/
-      explicit LogMzPeak(const Peak1D &peak, int index, bool positive);
+      explicit LogMzPeak(const Peak1D &peak, bool positive);
 
       /// copy constructor
       LogMzPeak(const LogMzPeak &) = default;

@@ -89,7 +89,7 @@ namespace OpenMS
         maxCharge = maxCharge > std::get<1>(crange) ? maxCharge : std::get<1>(crange);
         minCharge = minCharge < std::get<0>(crange) ? minCharge : std::get<0>(crange);
 
-        Peak1D tp(pg.first, (float) pg.second.intensity);
+        Peak1D tp(pg.first, (float) pg.second.getIntensity());
         deconvSpec.push_back(tp);
       }
       map.addSpectrum(deconvSpec);
@@ -127,7 +127,7 @@ namespace OpenMS
       auto perChargeIntensity = std::vector<double>(chargeRange + 1, 0);
       auto perChargeMaxIntensity = std::vector<double>(chargeRange + 1, 0);
       auto perChargeMz = std::vector<double>(chargeRange + 1, 0);
-      auto perIsotopeIntensity = std::vector<double>(averagines.maxIsotopeIndex, 0);
+      auto perIsotopeIntensity = std::vector<double>(averagines.getMaxIsotopeIndex(), 0);
 
       int minScanNum = (int) map.size() + 1000;
       int maxScanNum = 0;
@@ -142,7 +142,7 @@ namespace OpenMS
       {
         auto &pgMap = peakGroupMap[p2.getRT()];
         auto &pg = pgMap[p2.getMZ()];
-        auto scanNumber = pg.scanNumber;
+        auto scanNumber = pg.getScanNumber();
         auto crange = pg.getChargeRange();
 
         minFCharge = minFCharge < std::get<0>(crange) ? minFCharge : std::get<0>(crange);
@@ -151,22 +151,22 @@ namespace OpenMS
         minScanNum = minScanNum < scanNumber ? minScanNum : scanNumber;
         maxScanNum = maxScanNum > scanNumber ? maxScanNum : scanNumber;
 
-        if (pg.intensity > maxIntensity)
+        if (pg.getIntensity() > maxIntensity)
         {
-          maxIntensity = pg.intensity;
+          maxIntensity = pg.getIntensity();
           repScan = scanNumber;
 
         }
 
-        if (pg.isotopeCosineScore > maxIso)
+        if (pg.getIsotopeCosine() > maxIso)
         {
-          maxIso = pg.isotopeCosineScore;
-          maxMass = pg.monoisotopicMass;
+          maxIso = pg.getIsotopeCosine();
+          maxMass = pg.getMonoMass();
         }
 
         for (auto &p : pg)
         {
-          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagines.maxIsotopeIndex || p.charge < minCharge ||
+          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagines.getMaxIsotopeIndex() || p.charge < minCharge ||
               p.charge >= chargeRange + minCharge + 1)
           {
             continue;
@@ -246,7 +246,7 @@ namespace OpenMS
       fsf << "\t";
       int isoEndIndex = 0;
 
-      for (int i = 0; i < averagines.maxIsotopeIndex; i++)
+      for (int i = 0; i < averagines.getMaxIsotopeIndex(); i++)
       {
         if (perIsotopeIntensity[i] == 0)
         {
@@ -328,13 +328,13 @@ namespace OpenMS
         fsp << featureIndex << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minFCharge << "\t"
             << maxFCharge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
             << repScan << "\t" << repCharge << "\t" << perChargeMz[repCharge] << "\t" << sumInt << "\t"
-            << spg.scanNumber << "\t" << spg.intensity << "\t"
+            << spg.getScanNumber() << "\t" << spg.getIntensity() << "\t"
             << mt.begin()->getRT() / 60.0 << "\t"
             << mt.rbegin()->getRT() / 60.0 << "\t"
             << mt.getTraceLength() / 60.0 << "\t";
 
 
-        for (int j = 0; j < averagines.maxIsotopeIndex; ++j)
+        for (int j = 0; j < averagines.getMaxIsotopeIndex(); ++j)
         {
           if (perIsotopeIntensity[j] <= 0)
           {
@@ -360,7 +360,7 @@ namespace OpenMS
     auto &subMap = peakGroupMap[rt];
     for (auto &pg : deconvolutedSpectrum)
     {
-      subMap[pg.monoisotopicMass] = pg;
+      subMap[pg.getMonoMass()] = pg;
     }
   }
 

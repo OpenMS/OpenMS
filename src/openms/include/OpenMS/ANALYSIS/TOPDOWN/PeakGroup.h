@@ -59,31 +59,14 @@ namespace OpenMS
 
     bool operator==(const PeakGroup &a) const;
 
-    void updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines,
-                                  int offset = 0,
+    void updateMassesAndIntensity(int offset = 0,
                                   int maxIsoIndex = 0);
 
-    // indexing information
-    int scanNumber, specIndex, massIndex;
+    void setScanNumber(int sn);
 
-    // information on the deconvouted mass
-    double monoisotopicMass;
-    double avgMass;
-    double intensity;// total intensity
+    void setMonoMass(double m);
 
-    // information on scoring
-    float isotopeCosineScore;
-    int maxQScoreCharge;
-    float qScore;
-    float totalSNR;
-
-    // other information appeared on the output file
-
-    float getChargeSNR(int charge);
-
-    float getChargeIsotopeCosine(int charge);
-
-    float getChargeIntensity(int charge);
+    void setIntensity(double i);
 
     void setChargeSNR(int charge, float snr);
 
@@ -93,11 +76,40 @@ namespace OpenMS
 
     void setMaxQScoreMzRange(double min, double max);
 
-    std::tuple<double, double> getMzxQScoreMzRange();
-
     void setChargeRange(int min, int max);
 
-    std::tuple<int, int> getChargeRange();
+    void setIsotopeCosine(float cos);
+
+    void setRepCharge(int c);
+
+    void setQScore(float q);
+
+    void setSNR(float snr);
+
+    int getScanNumber() const;
+
+    double getMonoMass() const;
+
+    double getIntensity() const;
+
+    float getChargeSNR(int charge) const;
+
+    float getChargeIsotopeCosine(int charge) const;
+
+    float getChargeIntensity(int charge) const;
+
+    std::tuple<double, double> getMzxQScoreMzRange() const;
+
+    std::tuple<int, int> getChargeRange() const;
+
+    float getIsotopeCosine() const;
+
+    int getRepCharge() const;
+
+    float getQScore() const;
+
+    float getSNR() const;
+    // information on scoring
 
   private:  // the spectrum from which a peak group is generated
     // the peaks contained in this peak group
@@ -107,5 +119,17 @@ namespace OpenMS
 
     double maxQScoreMzEnd, maxQScoreMzStart;
     int maxCharge, minCharge;
+
+    // indexing information
+    int scanNumber;
+
+    // information on the deconvouted mass
+    double monoisotopicMass;
+    double intensity;// total intensity
+
+    int maxQScoreCharge;
+    float isotopeCosineScore;
+    float qScore;
+    float totalSNR;
   };
 }

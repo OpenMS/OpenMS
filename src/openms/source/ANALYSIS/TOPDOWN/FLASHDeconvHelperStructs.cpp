@@ -108,55 +108,60 @@ namespace OpenMS
     }
   }
 
-  IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(double mass)
+  IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(double mass) const
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return isotopes[i];
   }
 
-  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(double mass)
+  int FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
+  {
+    return maxIsotopeIndex;
+  }
+
+
+  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(double mass) const
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return norms[i];
   }
 
-  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeStartIndex(double mass)
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeStartIndex(double mass) const
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return isotopeStartIndices[i];
   }
 
-  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(double mass)
+  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(double mass) const
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return averageMassDelta[i];
   }
 
-  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeEndIndex(double mass)
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeEndIndex(double mass) const
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return isotopeEndIndices[i];
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D &peak, int index, bool positive) :
+  void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(int index)
+  {
+    maxIsotopeIndex = index;
+  }
+
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D &peak, bool positive) :
       mz(peak.getMZ()),
       intensity(peak.getIntensity()),
       logMz(getLogMz(peak.getMZ(), positive)),
-      charge(0), index(index),
+      charge(0),
       isotopeIndex(0)
   {
   }
-
-  //FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz, bool positive) :
-  //    mz(mz), index(index), logMz(getLogMz(mz, positive))
-  //{
-  //}
-
 
   FLASHDeconvHelperStructs::LogMzPeak::~LogMzPeak()
   {
@@ -213,7 +218,7 @@ namespace OpenMS
 
     generator->setMaxIsotope(maxIso.size());
     auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, maxMass, 25, generator, useRNAavg);
-    avg.maxIsotopeIndex = maxIso.size() - 1;
+    avg.setMaxIsotopeIndex(maxIso.size() - 1);
     return avg;
   }
 

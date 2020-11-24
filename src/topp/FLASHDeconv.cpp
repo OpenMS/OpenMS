@@ -211,13 +211,10 @@ protected:
     bool outPromex = getIntOption_("promex_out") > 0;
     bool writeDetail = getIntOption_("write_detail") > 0;
     //double rtWindow = getDoubleOption_("RT_window");
-    double ms1tol = getDoubleList_("tol")[0];
+    //    double ms1tol = getDoubleList_("tol")[0];
     int currentMaxMSLevel = 0;
 
     //double maxMass = getDoubleOption_("max_mass"); // from FLASHDeconvAlgorithm
-
-    // precalculate averagines for quick deconvolution
-    //auto avgine = FLASHDeconvHelperStructs::calculateAveragines(maxMass, useRNAavg);
 
     // spectrum number per ms level per input file
     auto specCntr = new int[maxMSLevel];
@@ -231,10 +228,6 @@ protected:
     // feature number per input file
     auto featureCntr = 0;
 
-    // spectrum index written in the output file
-    int specIndex = 1;
-    // mass index written in the output file
-    int massIndex = 1;
     // feature index written in the output file
     int featureIndex = 1;
 
@@ -340,8 +333,6 @@ protected:
         fill_n(massCntr, maxMSLevel, 0);
 
         featureCntr = 0;
-        specIndex = 1;
-        massIndex = 1;
         featureIndex = 1;
       }
       MSExperiment map;
@@ -468,7 +459,7 @@ protected:
       fd_param.setValue("tol", getParam_().getValue("tol"));
       fd.setParameters(fd_param);
       fd.calculateAveragine(useRNAavg);
-
+      auto avg = fd.getAveragine();
       auto massTracer = MassFeatureTrace();
       Param mf_param = getParam_().copy("FeatureTracing:", true);
       DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
@@ -507,7 +498,7 @@ protected:
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         // per spec deconvolution
-        fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
+        fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber);
 
         if (outMzml)
         {
@@ -532,11 +523,11 @@ protected:
         qspecCntr[msLevel - 1]++;
         massCntr[msLevel - 1] += deconvolutedSpectrum.size();
         deconvolutedSpectrum
-            .writeDeconvolutedMasses(specOut[msLevel - 1], fileName, writeDetail);
+            .writeDeconvolutedMasses(specOut[msLevel - 1], fileName, avg, writeDetail);
 
         if (outTopfd)
         {
-          deconvolutedSpectrum.writeTopFD(msLevel == 1 ? topfdOut_MS1 : topfdOut_MS2, specIndex - 1);
+          deconvolutedSpectrum.writeTopFD(msLevel == 1 ? topfdOut_MS1 : topfdOut_MS2, scanNumber);
         }
 
         deconvolutedSpectrum.clearPeakGroupsChargeInfo();

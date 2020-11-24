@@ -105,10 +105,7 @@ namespace OpenMS
   //This function is the main function for the deconvolution. Takes empty DeconvolutedSpectrum and fill it up with peakGroups.
   // DeconvolutedSpectrum contains the recursor peak group for MSn.
   //A peakGroup is the collection of peaks from a single mass (monoisotopic mass). Thus it contains peaks from different charges and iostope indices.
-  void FLASHDeconvAlgorithm::fillPeakGroupsInDeconvolutedSpectrum(DeconvolutedSpectrum &dspec,
-                                                                  int scanNumber,
-                                                                  int &specIndex,
-                                                                  int &massIndex)
+  void FLASHDeconvAlgorithm::fillPeakGroupsInDeconvolutedSpectrum(DeconvolutedSpectrum &dspec, int scanNumber)
   {
     auto *spec = &(dspec.getOriginalSpectrum());
     deconvolutedSpectrum = &dspec;
@@ -138,11 +135,8 @@ namespace OpenMS
     for (auto &pg : *deconvolutedSpectrum)
     {
       sort(pg.begin(), pg.end());
-      pg.specIndex = specIndex;
-      pg.scanNumber = scanNumber;
-      pg.massIndex = massIndex++;
+      pg.setScanNumber(scanNumber);
     }
-    specIndex++;
   }
 
   void FLASHDeconvAlgorithm::updateMembers_()
@@ -234,7 +228,7 @@ namespace OpenMS
   {
     std::vector<LogMzPeak>().swap(logMzPeaks);
     logMzPeaks.reserve(spec->size());
-    int index = 0;
+    //int index = 0;
     for (auto &peak : *spec)
     {
       if (minMz > 0 && peak.getMZ() < minMz)
@@ -249,7 +243,7 @@ namespace OpenMS
       {
         continue;
       }
-      LogMzPeak logMzPeak(peak, index++, minCharge > 0);
+      LogMzPeak logMzPeak(peak, minCharge > 0);
       logMzPeaks.push_back(logMzPeak);
     }
   }
@@ -587,7 +581,7 @@ namespace OpenMS
   Matrix<int> FLASHDeconvAlgorithm::updateMassBins(//float *massIntensities,
       const std::vector<float> &mzIntensities)
   {
-    auto bw = binWidth[msLevel - 1];
+    //auto bw = binWidth[msLevel - 1];
     auto massIntensities = std::vector<float>(massBins.size(), 0);
     auto candidateMassBins = getCandidateMassBinsForThisSpectrum(massIntensities,
                                                                  mzIntensities);
@@ -604,7 +598,7 @@ namespace OpenMS
     double bw = binWidth[msLevel - 1];
     double tol = tolerance[msLevel - 1];
     int chargeRange = currentMaxCharge - minCharge + 1;
-    auto mzBinSize = mzBinsForEdgeEffect.size();
+    //    auto mzBinSize = mzBinsForEdgeEffect.size();
     auto massBinSize = massBins.size();
     int logMzPeakSize = (int) logMzPeaks.size();
     auto currentPeakIndex = std::vector<int>(chargeRange, 0);
@@ -785,7 +779,7 @@ namespace OpenMS
         {
           p.isotopeIndex -= minOff;
         }
-        pg.updateMassesAndIntensity(avg);
+        pg.updateMassesAndIntensity();
         deconvolutedSpectrum->push_back(pg); //
       }
       massBinIndex = massBins.find_next(massBinIndex);
@@ -875,7 +869,8 @@ namespace OpenMS
         pg.shrink_to_fit();
         //if (massBinsForThisSpectrum[pg.massBinIndex])
         //{
-        auto pgBin = getBinNumber(pg.avgMass, massBinMinValue, binWidth[msLevel - 1]);
+        auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
+        auto pgBin = getBinNumber(pg.getMonoMass() + massDelta, massBinMinValue, binWidth[msLevel - 1]);
         mb.push_back(pgBin);
         //  }
       }
@@ -955,7 +950,7 @@ namespace OpenMS
     int isotopeLength = 0;
     int maxIsotopeIndex = 0, minIsotopeIndex = -1;
 
-    for (int i = 0; i < avg.maxIsotopeIndex; i++)
+    for (int i = 0; i < avg.getMaxIsotopeIndex(); i++)
     {
       if (perIsotopeIntensities[i] <= 0)
       {
@@ -1061,7 +1056,7 @@ namespace OpenMS
       for (auto &pg : *deconvolutedSpectrum)
       {
         //pg.updateMassesAndIntensity(avg);
-        intensities.push_back(pg.intensity);
+        intensities.push_back(pg.getIntensity());
       }
 
       if (intensities.size() > (Size) mc)
@@ -1071,19 +1066,19 @@ namespace OpenMS
       }
     }
 
-    auto perIsotopeIntensity = std::vector<double>(avg.maxIsotopeIndex);
+    auto perIsotopeIntensity = std::vector<double>(avg.getMaxIsotopeIndex());
     auto perChargeIntensity = std::vector<double>(chargeRange);
 
     for (auto &pg : *deconvolutedSpectrum)
     {
-      if (pg.intensity < threshold)
+      if (pg.getIntensity() < threshold)
       {
         continue; //
       }
 
       auto indices = calculatePerChargeIsotopeIntensity(
           perIsotopeIntensity, perChargeIntensity,
-          avg.maxIsotopeIndex, pg);
+          avg.getMaxIsotopeIndex(), pg);
 
       if (msLevel == 1)
       {
@@ -1110,21 +1105,22 @@ namespace OpenMS
 
 
       int offset = 0;
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg[0].getUnchargedMass(),
-                                                                       perIsotopeIntensity,
-                                                                       offset, avg);
+      auto cos = getIsotopeCosineAndDetermineIsotopeIndex(pg[0].getUnchargedMass(),
+                                                          perIsotopeIntensity,
+                                                          offset, avg);
+      pg.setIsotopeCosine(cos);
 
       if (pg.empty() ||
-          (pg.isotopeCosineScore <=
+          (pg.getIsotopeCosine() <=
            minIsotopeCosine[msLevel - 1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
       {
         continue;
       }
 
-      pg.updateMassesAndIntensity(avg, offset, avg.maxIsotopeIndex);
+      pg.updateMassesAndIntensity(offset, avg.getMaxIsotopeIndex());
 
-      auto iso = avg.get(pg.monoisotopicMass);
-      auto isoNorm = avg.getNorm(pg.monoisotopicMass);
+      auto iso = avg.get(pg.getMonoMass());
+      auto isoNorm = avg.getNorm(pg.getMonoMass());
       int isoSize = (int) iso.size();
       float totalNoise = .0;
       float totalSignal = .0;
@@ -1134,9 +1130,9 @@ namespace OpenMS
       for (auto charge = std::get<0>(crange); charge <= std::get<1>(crange); charge++)
       {
         int j = charge - minCharge;
-        auto perIsotopeIntensities = std::vector<double>(avg.maxIsotopeIndex, 0);
+        auto perIsotopeIntensities = std::vector<double>(avg.getMaxIsotopeIndex(), 0);
 
-        int minIsotopeIndex = avg.maxIsotopeIndex;
+        int minIsotopeIndex = avg.getMaxIsotopeIndex();
         int maxIsotopeIndex = 0;
 
         //double minMz = pg.monoisotopicMass * 2;
@@ -1207,8 +1203,8 @@ namespace OpenMS
         totalSignal += no;
       }
 
-      pg.totalSNR = totalSignal / totalNoise;
-      pg.qScore = -10000;
+      pg.setSNR(totalSignal / totalNoise);
+      pg.setQScore(-10000);
 
       for (auto charge = std::get<0>(crange); charge <= std::get<1>(crange); charge++)
       {
@@ -1219,20 +1215,20 @@ namespace OpenMS
         }
         auto score = QScore::getQScore(&pg, perChargeMaxIntensity[j], charge);
 
-        if (score < pg.qScore)
+        if (score < pg.getQScore())
         {
           continue;
         }
         //pg.maxScorePeakIntensity = pg.perChargeSNR[charge];
-        pg.maxQScoreCharge = charge;
-        pg.qScore = score;
+        pg.setRepCharge(charge);
+        pg.setQScore(score);
       }
 
-      auto maxQScoreMzStart = pg.monoisotopicMass * 2;
+      auto maxQScoreMzStart = pg.getMonoMass() * 2;
       auto maxQScoreMzEnd = .0;
       for (auto &p:pg)
       {
-        if (p.charge != pg.maxQScoreCharge)
+        if (p.charge != pg.getRepCharge())
         {
           continue;
         }
@@ -1248,11 +1244,8 @@ namespace OpenMS
       {
         continue;
       }
-      if (msLevel == 1 || pg.totalSNR > .1) // TODO
-      {
-        pg.setMaxQScoreMzRange(maxQScoreMzStart, maxQScoreMzEnd);
-        filteredPeakGroups.push_back(pg);
-      }
+      pg.setMaxQScoreMzRange(maxQScoreMzStart, maxQScoreMzEnd);
+      filteredPeakGroups.push_back(pg);
     }
     deconvolutedSpectrum->swap(filteredPeakGroups);
     //std::vector<PeakGroup>().swap(filteredPeakGroups);
@@ -1279,7 +1272,7 @@ namespace OpenMS
     scores.reserve(deconvolutedSpectrum->size());
     for (auto &pg : *deconvolutedSpectrum)
     {
-      scores.push_back(pg.isotopeCosineScore);
+      scores.push_back(pg.getIsotopeCosine());
     }
 
     sort(scores.begin(), scores.end());
@@ -1294,7 +1287,7 @@ namespace OpenMS
         break;
       }
 
-      if (pg.isotopeCosineScore >= threshold)
+      if (pg.getIsotopeCosine() >= threshold)
       {
         newPeakGroups.push_back(pg);
       }
@@ -1314,7 +1307,7 @@ namespace OpenMS
     scores.reserve(deconvolutedSpectrum->size());
     for (auto &pg : *deconvolutedSpectrum)
     {
-      scores.push_back(pg.qScore);
+      scores.push_back(pg.getQScore());
     }
 
     sort(scores.begin(), scores.end());
@@ -1329,7 +1322,7 @@ namespace OpenMS
         break;
       }
 
-      if (pg.qScore >= threshold)
+      if (pg.getQScore() >= threshold)
       {
         newPeakGroups.push_back(pg);
       }
@@ -1348,7 +1341,7 @@ namespace OpenMS
     masses.reserve(deconvolutedSpectrum->size());
     for (auto &peakGroup : *deconvolutedSpectrum)
     {
-      masses.push_back(peakGroup.monoisotopicMass);
+      masses.push_back(peakGroup.getMonoMass());
     }
     for (auto &pg : *deconvolutedSpectrum)
     {
@@ -1359,7 +1352,7 @@ namespace OpenMS
         {
           for (int i = -2; i <= 2; ++i)
           {
-            auto omass = pg.monoisotopicMass + i * Constants::ISOTOPE_MASSDIFF_55K_U;
+            auto omass = pg.getMonoMass() + i * Constants::ISOTOPE_MASSDIFF_55K_U;
             auto hmass = k == 0 ? omass * h : omass / h;
             double massTol = 2 * hmass * tol;
             auto iter = std::lower_bound(masses.begin(), masses.end(), hmass - massTol);
@@ -1370,16 +1363,16 @@ namespace OpenMS
               for (; j < deconvolutedSpectrum->size(); j++)
               {
                 auto &pgo = (*deconvolutedSpectrum)[j];
-                if (hmass - pgo.monoisotopicMass > massTol)
+                if (hmass - pgo.getMonoMass() > massTol)
                 {
                   continue;
                 }
 
-                if (!select || pgo.monoisotopicMass - hmass > massTol)
+                if (!select || pgo.getMonoMass() - hmass > massTol)
                 {
                   break;
                 }
-                select &= pg.intensity >= pgo.intensity;
+                select &= pg.getIntensity() >= pgo.getIntensity();
                 if (!select)
                 {
                   break;
@@ -1418,7 +1411,7 @@ namespace OpenMS
       bool select = true;
       auto &pg = (*deconvolutedSpectrum)[i];
 
-      if (pg.monoisotopicMass <= 0)
+      if (pg.getMonoMass() <= 0)
       {
         continue;
       }
@@ -1433,7 +1426,7 @@ namespace OpenMS
       //  continue;
       //}
 
-      double massTol = pg.monoisotopicMass * tol * 2;
+      double massTol = pg.getMonoMass() * tol * 2;
 
       int j = i + 1;
       for (int l = 0; l <= isoLength; l++)
@@ -1442,16 +1435,16 @@ namespace OpenMS
         for (; j < deconvolutedSpectrum->size(); j++)
         {
           auto &pgo = (*deconvolutedSpectrum)[j];
-          if (l != 0 && pgo.monoisotopicMass - pg.monoisotopicMass < off - massTol)
+          if (l != 0 && pgo.getMonoMass() - pg.getMonoMass() < off - massTol)
           {
             continue;
           }
 
-          if (!select || pgo.monoisotopicMass - pg.monoisotopicMass > off + massTol)
+          if (!select || pgo.getMonoMass() - pg.getMonoMass() > off + massTol)
           {
             break;
           }
-          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
+          select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
         }
       }
 
@@ -1468,16 +1461,16 @@ namespace OpenMS
         {
           auto &pgo = (*deconvolutedSpectrum)[j];
 
-          if (l != 0 && pg.monoisotopicMass - pgo.monoisotopicMass < off - massTol)
+          if (l != 0 && pg.getMonoMass() - pgo.getMonoMass() < off - massTol)
           {
             continue;
           }
 
-          if (!select || pg.monoisotopicMass - pgo.monoisotopicMass > off + massTol)
+          if (!select || pg.getMonoMass() - pgo.getMonoMass() > off + massTol)
           {
             break;
           }
-          select &= pg.isotopeCosineScore > pgo.isotopeCosineScore;
+          select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
         }
       }
       if (!select)

@@ -109,8 +109,8 @@ namespace OpenMS
     }
 
     // per spec deconvolution
-    int specIndex = 0, massIndex = 0; // meaningless..
-    fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, 0, specIndex, massIndex);
+    //    int specIndex = 0, massIndex = 0; // ..
+    fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, 0);
 
     FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel);
     //spec.clear(true);
@@ -143,13 +143,14 @@ namespace OpenMS
         break;
       }
       //std::cout << pg.qScore << " " << qScoreThreshold << std::endl;
-      if (pg.qScore < qScoreThreshold)
+      if (pg.getQScore() < qScoreThreshold)
       {
         continue;
       }
 
-      auto m = FLASHDeconvAlgorithm::getNominalMass(pg.avgMass);
-      auto qScore = pg.qScore;
+      auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
+      auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
+      auto qScore = pg.getQScore();
       if (nselected.find(m) != nselected.end())
       {
         if (rt - nselected[m][0] < shorRTwindow)
@@ -186,9 +187,10 @@ namespace OpenMS
       wstart[i] = std::get<0>(qrange) - .2;
       wend[i] = std::get<1>(qrange) + .2;
 
-      qScores[i] = deconvolutedSpectrum[i].qScore;
-      charges[i] = deconvolutedSpectrum[i].maxQScoreCharge;
-      avgMasses[i] = deconvolutedSpectrum[i].avgMass;
+      qScores[i] = deconvolutedSpectrum[i].getQScore();
+      charges[i] = deconvolutedSpectrum[i].getRepCharge();
+      auto massDelta = avg.getAverageMassDelta(deconvolutedSpectrum[i].getMonoMass());
+      avgMasses[i] = massDelta + deconvolutedSpectrum[i].getMonoMass();
     }
     std::vector<PeakGroup>().swap(deconvolutedSpectrum);
   }
