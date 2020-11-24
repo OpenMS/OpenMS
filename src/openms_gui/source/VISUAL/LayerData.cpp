@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 //#include <iostream>
 #include <QtWidgets/QFileDialog>
@@ -485,9 +486,10 @@ namespace OpenMS
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
 
-  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text)
+  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock)
     : supported_types_(supported_types),
-      file_dialog_text_(file_dialog_text)
+      file_dialog_text_(file_dialog_text),
+      gui_lock_(gui_lock)
   {
   }
 
@@ -515,6 +517,7 @@ namespace OpenMS
       return false;
     }
 
+    GUIHelpers::GUILock glock(gui_lock_);
     bool success = annotateWorker_(layer, fname, log);
     
     if (success) log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
@@ -581,7 +584,7 @@ namespace OpenMS
     OSWData data;
     log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Reading OSW data ...");
     oswf.readMinimal(data);
-    // allow data to map from transition.id (=native.id) to a chromatogram index
+    // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
     data.buildNativeIDResolver(*layer.getFullChromData().get());
     layer.setChromatogramAnnotation(std::move(data));
     log.appendText(" done");

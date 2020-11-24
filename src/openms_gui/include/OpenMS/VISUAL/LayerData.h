@@ -56,6 +56,8 @@
 #include <vector>
 #include <bitset>
 
+class QWidget;
+
 namespace OpenMS
 {
 
@@ -520,8 +522,9 @@ private:
         
         @param supported_types Which identification data types are allowed to be opened by the user in annotate()
         @param file_dialog_text The header text of the file dialog shown to the user
+        @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
-      LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text);
+      LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
       
       /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
       /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
@@ -536,6 +539,7 @@ private:
       
       const FileTypes::FileTypeList supported_types_;
       const String file_dialog_text_;
+      QWidget* gui_lock_ = nullptr; ///< optional widget which will be locked when calling annotateWorker_() in child-classes
   };
 
   /// Annotate a layer with PeptideIdentifications using Layer::annotate(pepIDs, protIDs).
@@ -544,9 +548,9 @@ private:
     : public LayerAnnotatorBase
   {
     public:
-      LayerAnnotatorPeptideID()
+      LayerAnnotatorPeptideID(QWidget* gui_lock)
        : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::IDXML, FileTypes::MZIDENTML },
-                            "Select peptide identification data")
+                            "Select peptide identification data", gui_lock)
       {}
 
   protected:
@@ -561,9 +565,9 @@ private:
     : public LayerAnnotatorBase
   {
   public:
-    LayerAnnotatorAMS()
+    LayerAnnotatorAMS(QWidget* gui_lock)
       : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::FEATUREXML },
-                           "Select AccurateMassSearch's featureXML file")
+                           "Select AccurateMassSearch's featureXML file", gui_lock)
     {}
 
   protected:
@@ -578,9 +582,9 @@ private:
     : public LayerAnnotatorBase
   {
   public:
-    LayerAnnotatorOSW()
+    LayerAnnotatorOSW(QWidget* gui_lock)
       : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::OSW },
-                           "Select OpenSwath/pyProphet output file")
+                           "Select OpenSwath/pyProphet output file", gui_lock)
     {}
 
   protected:
