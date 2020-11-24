@@ -68,6 +68,9 @@ namespace OpenMS
 
     /**
        @brief draw a multi-line text at coordinates XY using a specific font and color
+
+       Internally used getTextDimension() to figure out the size of the text-block/background which needs to be painted.
+
        @param painter Where to draw
        @param text Each item is a new line
        @param where Coordinates where to start drawing (upper left corner of text)
@@ -75,8 +78,14 @@ namespace OpenMS
        @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
        @param Optional font; will use Courier by default
     */
-    void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), QFont f = QFont("Courier"));
+    void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), const QFont& f = QFont("Courier"));
 
+
+    /**
+      @brief Obtains the bounding rectangle of a text (useful to determine overlaps etc)
+    
+    */
+    QRectF getTextDimension(const QStringList& text, const QFont& font, int& line_spacing);
 
     /**
       @brief RAII class to disable the GUI and set a busy cursor and go back to the orignal state when this class is destroyed
