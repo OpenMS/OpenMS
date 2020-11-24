@@ -147,6 +147,9 @@ protected:
     registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
     setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm, Da"));
     registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10, "Rz tolerance for the resolution of identification ambiguity over multiple files", false);
+    registerDoubleOption_("total_occurrence_filter", "<num>", 0.1, "Filter compound based on total occurrence in analysed samples", false);
+    setMinFloat_("total_occurrence_filter", 0.0);
+    setMaxFloat_("total_occurrence_filter", 1.0);
 
     registerDoubleOption_("fragment_annotation_score_threshold", "<num>", 0.80, "Filters annotations based on the explained intensity of the peaks in a spectrum", false);
     setMinFloat_("fragment_annotation_score_threshold", 0.0);
@@ -200,38 +203,52 @@ protected:
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
 
-  static void filterBasedOnOccurrence(vector<MetaboTargetedAssay>& mta)
+  static void filterBasedOnTotalOccurrence(vector<MetaboTargetedAssay>& mta, double total_occurrence_filter, size_t in_files_size)
   {
-    std::map<std::pair<String, String>, int> occ_map;
-    for (const auto& t_it : mta)
+    if (in_files_size > 1 && mta.size() >= 1)
     {
-      std::pair<String, String> current_key = std::make_pair(t_it.molecular_formula, t_it.compound_adduct);
-      if (occ_map.count(current_key) == 0)
+      double total_occurrence = double(mta.size())/double(in_files_size);
+      if (!(total_occurrence >= total_occurrence_filter))
       {
-        occ_map[current_key] = 1;
-      }
-      else
-      {
-        occ_map[current_key]++;
+        mta.clear(); // return emtpy vector
       }
     }
-
-    // find max element in map
-    using pair_type = decltype(occ_map)::value_type;
-    auto pr = std::max_element(std::begin(occ_map),
-                               std::end(occ_map),
-                               [](const pair_type &p1, const pair_type &p2) { return p1.second < p2.second; });
-
-    // filter vector down to the compound with sumformula and adduct based on the highest occurence
-    mta.erase(remove_if(begin(mta),
-                        end(mta),
-                        [&pr](MetaboTargetedAssay assay)
-                        {
-                          return assay.molecular_formula != pr->first.first && assay.compound_adduct != pr->first.second;
-                        }), end(mta));
   }
 
+  static void filterBasedOnIdentificationOccurrence(vector<MetaboTargetedAssay>& mta)
+  {
+    std::map<std::pair<String, String>, int> occ_map;
+    if (mta.size() >= 1)
+    {
+      for (const auto &t_it : mta)
+      {
+        std::pair<String, String> current_key = std::make_pair(t_it.molecular_formula, t_it.compound_adduct);
+        if (occ_map.count(current_key) == 0)
+        {
+          occ_map[current_key] = 1;
+        }
+        else
+        {
+          occ_map[current_key]++;
+        }
+      }
 
+      // find max element in map
+      using pair_type = decltype(occ_map)::value_type;
+      auto pr = std::max_element(std::begin(occ_map),
+                                 std::end(occ_map),
+                                 [](const pair_type &p1, const pair_type &p2) { return p1.second < p2.second; });
+
+      // filter vector down to the compound with sumformula and adduct based on the highest occurence
+      mta.erase(remove_if(begin(mta),
+                          end(mta),
+                          [&pr](MetaboTargetedAssay assay)
+                          {
+                            return assay.molecular_formula != pr->first.first &&
+                                   assay.compound_adduct != pr->first.second;
+                          }), end(mta));
+    }
+  }
 
   // Use FeatureGroupingAlgorithmQT
   // based on mz and rt (minimum feature) - MetaValue index to vector<MetaboTargetedAssay>
@@ -290,7 +307,6 @@ protected:
 
     for (const auto& c_it : c_map)
     {
-      // TODO: add filter based on total occurrence
       vector <PeptideIdentification> v_pep;
       v_pep = c_it.getPeptideIdentifications();
       vector <MetaboTargetedAssay> ambi_group;
@@ -321,7 +337,7 @@ protected:
 
   // resolve IDs based on the consensusXML
   // use the one with the highest intensity
-  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > resolveAmbiguityGroup( std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter)
+  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > resolveAmbiguityGroup(std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter, double total_occurrence_filter, size_t in_files_size)
   {
     std::map<std::pair<double, double>, vector<MetaboTargetedAssay> > map_mta;
     for (const auto &map_it : map_mta_filter)
@@ -342,8 +358,11 @@ protected:
         }
       }
 
-      filterBasedOnOccurrence(targets);
-      filterBasedOnOccurrence(decoys);
+      filterBasedOnTotalOccurrence(targets, total_occurrence_filter, in_files_size);
+      filterBasedOnTotalOccurrence(decoys, total_occurrence_filter, in_files_size);
+
+      filterBasedOnIdentificationOccurrence(targets);
+      filterBasedOnIdentificationOccurrence(decoys);
 
       // sort by precursor intensity
       if (!targets.empty())
@@ -356,7 +375,7 @@ protected:
              });
         targetdecoy.push_back(targets[0]);
       }
-      if (!decoys.empty())
+       if (!decoys.empty())
       {
         sort(decoys.begin(),
              decoys.end(),
@@ -386,8 +405,8 @@ protected:
     bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
     double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
     String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
-    // bool ar_mz_tol_unit = ar_mz_tol_unit_res == "ppm" ? true : false;
     double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
+    double total_occurrence_filter = getDoubleOption_("total_occurrence_filter");
     double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
     bool decoy_generation = getFlag_("decoy_generation");
     if (decoy_generation && !use_fragment_annotation)
@@ -748,7 +767,7 @@ protected:
     std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > ambiguity_groups = buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, in.size());
 
     // resolve identification ambiguity based on highest occurrence and highest intensity
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(ambiguity_groups);
+    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter ,in.size());
 
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
