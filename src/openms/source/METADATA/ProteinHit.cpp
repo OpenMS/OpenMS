@@ -168,6 +168,11 @@ namespace OpenMS
     return modifications_;
   }
 
+  ProteinModificationSummary& ProteinHit::getModifications()
+  {
+    return modifications_;
+  }  
+
   void ProteinHit::setModifications(const ProteinModificationSummary& mods)
   {
     modifications_ = mods;
