@@ -88,7 +88,7 @@ namespace OpenMS
 
       auto crange = pg.getChargeRange();
 
-      fs << "\t" << fileName << "\t" << pg.getScanNumber() << "\t"
+      fs << fileName << "\t" << pg.getScanNumber() << "\t"
          << std::to_string(spec.getRT()) << "\t"
          << size() << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"

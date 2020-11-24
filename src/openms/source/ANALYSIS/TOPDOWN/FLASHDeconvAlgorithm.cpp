@@ -803,12 +803,14 @@ namespace OpenMS
     double massBinMaxValue = std::min(
         logMzPeaks[logMzPeaks.size() - 1].logMz -
         filter[tmp],
-        log(currentMaxMass));
+        log(currentMaxMass + 1));
+    massBinMaxValue += avg.getAverageMassDelta(massBinMaxValue);
 
     auto bw = binWidth[msLevel - 1];
     tmp = minPeakCntr - 1;
     tmp = tmp < 0 ? 0 : tmp;
-    massBinMinValue = logMzPeaks[0].logMz - filter[tmp];
+    massBinMinValue = std::max(log(std::max(1.0, minMass - avg.getAverageMassDelta(minMass))),
+                               logMzPeaks[0].logMz - filter[tmp]);
     mzBinMinValue = logMzPeaks[0].logMz;
 
     double mzBinMaxValue = logMzPeaks[logMzPeaks.size() - 1].logMz;
