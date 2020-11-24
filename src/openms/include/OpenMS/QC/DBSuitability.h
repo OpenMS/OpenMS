@@ -346,6 +346,14 @@ namespace OpenMS
     * @param fasta     reference to fasta vector where the decoys are needed
     */
     void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const;
+
+    /**
+    * @brief Returns the cross correlation score (if existing), else the current main score is returned
+    *
+    * @param pep_hit    PeptideHit of which the score is needed
+    * @returns          cross correlation score or current score
+    */
+    double getRightScore_(const PeptideHit& pep_hit) const;
   };
 }
 

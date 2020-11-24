@@ -441,7 +441,7 @@ namespace OpenMS
       }
 
       // find the second target hit, skip all decoy or novo hits inbetween
-      const PeptideHit* second_hit = nullptr;
+      const PeptideHit* second_hit_ptr = nullptr;
       for (UInt i = 1; i < hits.size(); ++i)
       {
         // check for FDR
@@ -454,14 +454,16 @@ namespace OpenMS
         // check if hit is novo hit
         if (isNovoHit_(hits[i])) continue;
 
-        second_hit = &hits[i];
+        second_hit_ptr = &hits[i];
         break;
       }
-      if (second_hit == nullptr) // no second target hit with given FDR found
+      if (second_hit_ptr == nullptr) // no second target hit with given FDR found
       {
         ++data.num_top_novo;
         continue;
       }
+
+      const PeptideHit second_hit(*second_hit_ptr);
 
       // second hit is db hit
       ++data.num_interest;
@@ -473,14 +475,11 @@ namespace OpenMS
         continue;
       }
 
-      // check for xcorr score
-      if (!top_hit.metaValueExists("MS:1002252") || !second_hit->metaValueExists("MS:1002252"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
-      }
+      // get normalized scores
+      double top_xscore_mw = double(getRightScore_(top_hit)) / top_hit.getSequence().getMonoWeight();
+      double second_xscore_mw = double(getRightScore_(second_hit)) / second_hit.getSequence().getMonoWeight();
 
-      double top_xscore_mw = double(top_hit.getMetaValue("MS:1002252")) / top_hit.getSequence().getMonoWeight();
-      double second_xscore_mw = double(second_hit->getMetaValue("MS:1002252")) / second_hit->getSequence().getMonoWeight();
+      // re-ranking
       if (top_xscore_mw - second_xscore_mw <= data.cut_off)
       {
         ++data.num_top_db;
@@ -525,6 +524,16 @@ namespace OpenMS
       decoy_entry.identifier = "DECOY_" + entry.identifier;
       fasta.push_back(decoy_entry);
     }
+  }
+
+  double DBSuitability::getRightScore_(const PeptideHit& pep_hit) const
+  {
+    if (!pep_hit.metaValueExists("MS:1002252"))
+    {
+      OPENMS_LOG_WARN << "No cross correlation score found at peptide hit. Using the default score. This might result in inaccurate results. Use Comet to ensure the perfect results." << endl;
+      return pep_hit.getScore();
+    }
+    return pep_hit.getMetaValue("MS:1002252");
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)
