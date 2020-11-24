@@ -36,5 +36,4 @@
 
 namespace OpenMS
 {
-	const std::vector<std::string> DecoyHelper::affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 }

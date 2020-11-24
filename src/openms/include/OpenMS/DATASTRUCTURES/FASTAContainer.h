@@ -350,18 +350,21 @@ public:
 
   // common decoy strings in FASTA files
   // note: decoy prefixes/suffices must be provided in lower case
-  static const std::vector<std::string> affixes;
+  static std::vector<std::string> getAffixes()
+  {
+    return { "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+  }
 
   // returns a regex string to find decoy prefixes
   static std::string getPrefixRegex()
   {
-    return std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
+    return std::string("^(") + ListUtils::concatenate<std::string>(getAffixes(), "_*|") + "_*)";
   }
 
   // returns regex string to find decoy suffixes
   static std::string getSuffixRegex()
   {
-    return std::string("(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)$";
+    return std::string("(") + ListUtils::concatenate<std::string>(getAffixes(), "_*|") + "_*)$";
   }
 
   /**
@@ -374,8 +377,6 @@ public:
   template<typename T>
   static Result findDecoyString(FASTAContainer<T>& proteins)
   {
-    //const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
-
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
     // map case insensitive strings back to original case (as used in fasta)
