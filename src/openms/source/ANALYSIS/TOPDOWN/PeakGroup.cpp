@@ -36,19 +36,17 @@
 
 namespace OpenMS
 {
-
-  PeakGroup::~PeakGroup()
-  {
-    //clearChargeInfo();
-  }
-
   void PeakGroup::clearChargeInfo()
   {
-    for (auto& item : perChargeInfo)
-    {
-      std::vector<float>().swap(item.second);
-    }
-    std::unordered_map<int, std::vector<float>>().swap(perChargeInfo);
+    std::vector<float>().swap(perChargeSNR);
+    std::vector<float>().swap(perChargeCos);
+    std::vector<float>().swap(perChargeInt);
+
+    //for (auto& item : perChargeInfo)
+    //{
+    //  std::vector<float>().swap(item.second);
+    //}
+    // std::unordered_map<int, std::vector<float>>().swap(perChargeInfo);
   }
 
   bool PeakGroup::operator<(const PeakGroup &a) const
@@ -114,4 +112,91 @@ namespace OpenMS
     avgMass = monoisotopicMass + massDelta;
 
   }
+
+
+  float PeakGroup::getChargeSNR(int charge)
+  {
+    if (maxCharge < charge)
+    {
+      return 0;
+    }
+    return perChargeSNR[charge];
+  }
+
+  float PeakGroup::getChargeIsotopeCosine(int charge)
+  {
+    if (maxCharge < charge)
+    {
+      return 0;
+    }
+    return perChargeCos[charge];
+  }
+
+  float PeakGroup::getChargeIntensity(int charge)
+  {
+    if (maxCharge < charge)
+    {
+      return 0;
+    }
+    return perChargeInt[charge];
+  }
+
+  void PeakGroup::setChargeSNR(int charge, float snr)
+  {
+    if (maxCharge < charge)
+    {
+      return;
+    }
+    perChargeSNR[charge] = snr;
+  }
+
+  void PeakGroup::setChargeIsotopeCosine(int charge, float cos)
+  {
+    if (maxCharge < charge)
+    {
+      return;
+    }
+    perChargeCos[charge] = cos;
+  }
+
+  void PeakGroup::setChargeIntensity(int charge, float i)
+  {
+    if (maxCharge < charge)
+    {
+      return;
+    }
+    perChargeInt[charge] = i;
+  }
+
+  PeakGroup::PeakGroup(int maxCharge) :
+      maxCharge(maxCharge)
+  {
+    perChargeSNR = std::vector<float>(1 + maxCharge, .0);
+    perChargeInt = std::vector<float>(1 + maxCharge, .0);
+    perChargeCos = std::vector<float>(1 + maxCharge, .0);
+  }
+
+  void PeakGroup::setMaxQScoreMzRange(double min, double max)
+  {
+    maxQScoreMzStart = min;
+    maxQScoreMzEnd = max;
+  }
+
+  std::tuple<double, double> PeakGroup::getMzxQScoreMzRange()
+  {
+    return std::tuple<double, double>{maxQScoreMzStart, maxQScoreMzEnd};
+  }
+
+  std::tuple<int, int> PeakGroup::getChargeRange()
+  {
+    return std::tuple<int, int>{minCharge, maxCharge};
+  }
+
+  void PeakGroup::setChargeRange(int min, int max)
+  {
+    minCharge = min;
+    maxCharge = max;
+  }
+
+
 }

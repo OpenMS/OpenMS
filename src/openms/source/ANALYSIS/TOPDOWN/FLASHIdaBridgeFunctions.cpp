@@ -60,7 +60,6 @@ namespace OpenMS
     return 0;
   }
 
-
   void GetIsolationWindows(FLASHIda *pObject,
                            double *wstart,
                            double *wend,

@@ -182,8 +182,9 @@ namespace OpenMS
   {
     for (auto i = 0; i < deconvolutedSpectrum.size(); i++)
     {
-      wstart[i] = deconvolutedSpectrum[i].maxQScoreMzStart - .2;
-      wend[i] = deconvolutedSpectrum[i].maxQScoreMzEnd + .2;
+      auto qrange = deconvolutedSpectrum[i].getMzxQScoreMzRange();
+      wstart[i] = std::get<0>(qrange) - .2;
+      wend[i] = std::get<1>(qrange) + .2;
 
       qScores[i] = deconvolutedSpectrum[i].qScore;
       charges[i] = deconvolutedSpectrum[i].maxQScoreCharge;
@@ -191,7 +192,6 @@ namespace OpenMS
     }
     std::vector<PeakGroup>().swap(deconvolutedSpectrum);
   }
-
 
   MSSpectrum FLASHIda::makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name)
   {
@@ -206,5 +206,4 @@ namespace OpenMS
     spec.setRT(rt);//
     return spec;
   }
-
 }

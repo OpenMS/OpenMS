@@ -88,9 +88,9 @@ protected:
 
     registerDoubleList_("tol",
                         "<ms1_tol, ms2_tol, ...>",
-                        {10.0, 5.0},
+                        {10.0, 10.0},
                         "ppm tolerance for MS1, 2, ...  "
-                        "(e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)",
+                        "(e.g., -tol 10.0 15.0 to specify 10.0 and 15.0 ppm for MS1 and MS2, respectively)",
                         false);
 
     registerIntOption_("write_detail",
@@ -142,14 +142,14 @@ protected:
     fd_defaults.setValue("max_RT", -1.0);
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
-    fd_defaults.setValue("tol", DoubleList{10.0, 5.0}, "ppm tolerance, controlled by -tol option");
+    fd_defaults.setValue("tol", DoubleList{10.0, 10.0}, "ppm tolerance, controlled by -tol option");
     fd_defaults.addTag("tol", "advanced"); // hide entry
     fd_defaults.setValue("min_peaks", IntList{3, 1});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", .0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
-                         DoubleList{.75, .85},
+                         DoubleList{.75, .90},
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.addTag("min_isotope_cosine", "advanced");
     //fd_defaults.setValue("min_charge_cosine",
@@ -184,7 +184,7 @@ protected:
     mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     //mf_defaults.setValue("min_charge_cosine", .5, "controlled by -min_charge_cosine option");
     //mf_defaults.addTag("min_charge_cosine", "advanced");
-    mf_defaults.setValue("min_isotope_cosine", .8, "controlled by -min_isotope_cosine option");
+    mf_defaults.setValue("min_isotope_cosine", .75, "controlled by -min_isotope_cosine option");
     mf_defaults.addTag("min_isotope_cosine", "advanced");
 
     Param combined;

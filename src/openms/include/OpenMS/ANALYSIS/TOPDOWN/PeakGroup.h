@@ -45,35 +45,11 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
-    // the spectrum from which a peak group is generated
-    MSSpectrum *spec;
-    // the peaks contained in this peak group
-    //std::vector<LogMzPeak> peaks;
-    // information for identity
-    int scanNumber, specIndex;
+    PeakGroup() = default;
 
-    // information on the deconvouted mass
-    double monoisotopicMass;
-    double avgMass;
-    double intensity;// total intensity
-    Size massBinIndex;
-    int massIndex;
+    explicit PeakGroup(int maxChargeRange);
 
-    // information on scoring
-    float isotopeCosineScore;
-    //float chargeCosineScore;
-    int maxQScoreCharge;
-    float qScore;
-    float totalSNR;
-
-    // other information appeared on the output file
-    int maxCharge, minCharge;
-    double maxQScoreMzEnd, maxQScoreMzStart;
-
-    // necessary temp information for scoring.
-    std::unordered_map<int, std::vector<float>> perChargeInfo; // charge -> SNR, ICos, SumInt
-
-    ~PeakGroup();
+    ~PeakGroup() = default;
 
     void clearChargeInfo();
 
@@ -86,5 +62,50 @@ namespace OpenMS
     void updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines,
                                   int offset = 0,
                                   int maxIsoIndex = 0);
+
+    // indexing information
+    int scanNumber, specIndex, massIndex;
+
+    // information on the deconvouted mass
+    double monoisotopicMass;
+    double avgMass;
+    double intensity;// total intensity
+
+    // information on scoring
+    float isotopeCosineScore;
+    int maxQScoreCharge;
+    float qScore;
+    float totalSNR;
+
+    // other information appeared on the output file
+
+    float getChargeSNR(int charge);
+
+    float getChargeIsotopeCosine(int charge);
+
+    float getChargeIntensity(int charge);
+
+    void setChargeSNR(int charge, float snr);
+
+    void setChargeIsotopeCosine(int charge, float cos);
+
+    void setChargeIntensity(int charge, float intensity);
+
+    void setMaxQScoreMzRange(double min, double max);
+
+    std::tuple<double, double> getMzxQScoreMzRange();
+
+    void setChargeRange(int min, int max);
+
+    std::tuple<int, int> getChargeRange();
+
+  private:  // the spectrum from which a peak group is generated
+    // the peaks contained in this peak group
+    std::vector<float> perChargeSNR;
+    std::vector<float> perChargeCos;
+    std::vector<float> perChargeInt;
+
+    double maxQScoreMzEnd, maxQScoreMzStart;
+    int maxCharge, minCharge;
   };
 }

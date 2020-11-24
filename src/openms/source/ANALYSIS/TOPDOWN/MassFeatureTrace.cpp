@@ -85,8 +85,9 @@ namespace OpenMS
       deconvSpec.setRT(rt);
       for (auto &pg : item.second)
       {
-        maxCharge = maxCharge > pg.second.maxCharge ? maxCharge : pg.second.maxCharge;
-        minCharge = minCharge < pg.second.minCharge ? minCharge : pg.second.minCharge;
+        auto crange = pg.second.getChargeRange();
+        maxCharge = maxCharge > std::get<1>(crange) ? maxCharge : std::get<1>(crange);
+        minCharge = minCharge < std::get<0>(crange) ? minCharge : std::get<0>(crange);
 
         Peak1D tp(pg.first, (float) pg.second.intensity);
         deconvSpec.push_back(tp);
@@ -120,8 +121,8 @@ namespace OpenMS
       int minFCharge = INT_MAX; // min feature charge
       int maxFCharge = INT_MIN; // max feature charge
 
-      int minFIso = INT_MAX; // min feature isotope index
-      int maxFIso = INT_MIN; // max feature isotope index
+      //int minFIso = INT_MAX; // min feature isotope index
+      //int maxFIso = INT_MIN; // max feature isotope index
 
       auto perChargeIntensity = std::vector<double>(chargeRange + 1, 0);
       auto perChargeMaxIntensity = std::vector<double>(chargeRange + 1, 0);
@@ -142,9 +143,10 @@ namespace OpenMS
         auto &pgMap = peakGroupMap[p2.getRT()];
         auto &pg = pgMap[p2.getMZ()];
         auto scanNumber = pg.scanNumber;
+        auto crange = pg.getChargeRange();
 
-        minFCharge = minFCharge < pg.minCharge ? minFCharge : pg.minCharge;
-        maxFCharge = maxFCharge > pg.maxCharge ? maxFCharge : pg.maxCharge;
+        minFCharge = minFCharge < std::get<0>(crange) ? minFCharge : std::get<0>(crange);
+        maxFCharge = maxFCharge > std::get<1>(crange) ? maxFCharge : std::get<1>(crange);
 
         minScanNum = minScanNum < scanNumber ? minScanNum : scanNumber;
         maxScanNum = maxScanNum > scanNumber ? maxScanNum : scanNumber;
@@ -318,6 +320,7 @@ namespace OpenMS
           }
         }
         auto apex = mt[mt.findMaxByIntPeak()];
+
         //int si = rtSpecMap[(float) apex.getRT()];
         auto &spgMap = peakGroupMap[apex.getRT()];
         auto &spg = spgMap[apex.getMZ()];
@@ -343,7 +346,7 @@ namespace OpenMS
         fsp << std::setprecision(0);
       }
     }
-    //std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
+    std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
   }
 
   void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)

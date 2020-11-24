@@ -101,7 +101,7 @@ namespace OpenMS
         @perChargeIntensity per charge intensity - aggregated through isotope indices
         @chargeRange max charge range (currentMaxCharge - minCharge)
      */
-    static double getChargeFitScore(const std::vector<double> &perChargeIntensity, const int chargeRange);
+    static double getChargeFitScore(const std::vector<double> &perChargeIntensity, int chargeRange);
 
     /** examine intensity distribution over iostope indices. Also determines the most plausible isotope index or, monoisotopic mass
         @mass monoisotopic mass
@@ -297,5 +297,6 @@ namespace OpenMS
                             int &bSize,
                             double &bNorm,
                             int offset);
+
   };
 }

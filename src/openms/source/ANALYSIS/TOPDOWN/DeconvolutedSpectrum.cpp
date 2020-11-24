@@ -60,7 +60,7 @@ namespace OpenMS
       precursor.setCharge(precursorPeakGroup->maxQScoreCharge);
       precursor.setMZ(precursorPeakGroup->monoisotopicMass);
       precursor.setIntensity(precursorPeakGroup->intensity);
-
+      outSpec.getPrecursors().clear();
       outSpec.getPrecursors().emplace_back(precursor);
     }
     return outSpec;
@@ -85,11 +85,13 @@ namespace OpenMS
       const double &am = pg.avgMass;
       const double &intensity = pg.intensity;
 
+      auto crange = pg.getChargeRange();
+
       fs << pg.massIndex << "\t" << pg.specIndex << "\t" << fileName << "\t" << pg.scanNumber << "\t"
          << std::to_string(spec.getRT()) << "\t"
          << size() << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
-         << pg.minCharge << "\t" << pg.maxCharge << "\t"
+         << std::get<0>(crange) << "\t" << std::get<1>(crange) << "\t"
          << pg.size() << "\t";
 
       if (writeDetail)
@@ -153,22 +155,18 @@ namespace OpenMS
       }
       fs << pg.isotopeCosineScore << "\t";
 
+      auto qrange = pg.getMzxQScoreMzRange();
       fs << pg.totalSNR << "\t"
-         << pg.maxQScoreCharge << "\t" << std::to_string(pg.maxQScoreMzStart) << "\t"
-         << std::to_string(pg.maxQScoreMzEnd) << "\t"
+         << pg.maxQScoreCharge << "\t" << std::to_string(std::get<0>(qrange)) << "\t"
+         << std::to_string(std::get<1>(qrange)) << "\t"
          << pg.qScore << "\t" << std::setprecision(-1); //
 
-      for (int i = pg.minCharge; i <= pg.maxCharge; i++)
+      for (int i = std::get<0>(crange); i <= std::get<1>(crange); i++)
       {
-        if (pg.perChargeInfo.find(i) == pg.perChargeInfo.end())
-        {
-          fs << 0;
-        }
-        else
-        {
-          fs << pg.perChargeInfo[i][2];
-        }
-        if (i < pg.maxCharge)
+
+        fs << pg.getChargeIntensity(i);
+
+        if (i < std::get<1>(crange))
         {
           fs << ";";
         }
@@ -444,4 +442,5 @@ namespace OpenMS
     }
     return precursorPeak.getCharge();
   }
+
 }
