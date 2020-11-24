@@ -1894,13 +1894,13 @@ endif()
 #------------------------------------------------------------------------------
 # OpenNuXL
 add_test("TOPP_OpenNuXL_1" ${TOPP_BIN_PATH}/OpenNuXL -test -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_1_output.tmp -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_1_output.tmp -RNPxl:decoys "false" -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini)
 add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_1_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
 set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
 # test internal decoy generation
 add_test("TOPP_OpenNuXL_2" ${TOPP_BIN_PATH}/OpenNuXL -test -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_2_output.tmp -RNPxl:decoys -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_2_output.tmp -RNPxl:decoys "true" -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini)
 add_test("TOPP_OpenNuXL_2_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_2_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
 set_tests_properties("TOPP_OpenNuXL_2_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_2")
@@ -1916,7 +1916,7 @@ set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3"
 
 # reporting of multiple hits and tsv output and decoy generation
 add_test("TOPP_OpenNuXL_4" ${TOPP_BIN_PATH}/OpenNuXL -test -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -RNPxl:decoys -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_4_output.tmp -report:top_hits 2 -out_tsv OpenNuXL_4_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -RNPxl:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_4_output.tmp -report:top_hits 2 -out_tsv OpenNuXL_4_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast)
 add_test("TOPP_OpenNuXL_4_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_4_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output.idXML )
 add_test("TOPP_OpenNuXL_4_out2" ${DIFF} -in1 OpenNuXL_4_output2.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output2.tsv )
@@ -1925,14 +1925,14 @@ set_tests_properties("TOPP_OpenNuXL_4_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_4"
 
 # test internal decoy generation - slow scoring
 add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_5_output.tmp -RNPxl:decoys -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini -RNPxl:scoring slow)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_5_output.tmp -RNPxl:decoys "true" -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini -RNPxl:scoring slow)
 add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_5_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
 set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
 
 # reporting of multiple hits and tsv output and decoy generation with huge mass window so that all candidates are scored
 add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -RNPxl:decoys -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_6_output.tmp -report:top_hits 2 -out_tsv OpenNuXL_6_output2.tmp -precursor:mass_tolerance 1e9 -RNPxl:scoring slow)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -RNPxl:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_6_output.tmp -report:top_hits 2 -out_tsv OpenNuXL_6_output2.tmp -precursor:mass_tolerance 1e9 -RNPxl:scoring slow)
 add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_6_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
 add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 OpenNuXL_6_output2.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )

@@ -409,8 +409,9 @@ class AnnotatedHit
   float sequence_score = 0;
 
   float best_localization_score = 0;
-  String localization_scores;
-  String best_localization;  
+  String localization_scores = 0;
+  String best_localization;
+  int best_localization_position = -1; // UNKNOWN
   std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 
   size_t tag_unshifted = 0;
@@ -600,7 +601,8 @@ protected:
     registerStringOption_("RNPxl:scoring", "<method>", "fast", "Scoring algorithm used in prescoring (fast: total-loss, slow: all losses).", false, false);
     setValidStrings_("RNPxl:scoring", {"fast", "slow"});
 
-    registerFlag_("RNPxl:decoys", "Generate decoy sequences and spectra.");
+    registerStringOption_("RNPxl:decoys", "<bool>", "true", "Generate decoys internally (recommended).", false, false);
+    setValidStrings_("RNPxl:decoys", {"true", "false"});
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.", true);
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.", true);
@@ -3243,6 +3245,7 @@ static void scoreXLIons_(
 #endif
 
         String best_localization = unmodified_sequence;
+        int best_localization_position = -1; // UNKNOWN
         double best_localization_score = 0;
         String localization_scores;
         for (Size i = 0; i != sites_sum_score.size(); ++i)
@@ -3269,6 +3272,7 @@ static void scoreXLIons_(
           if (best_localization_score > 0.0 && sites_sum_score[i] >= best_localization_score - 1e-6)
           {
             best_localization[i] = tolower(best_localization[i]);
+            best_localization_position = i; // Note: check if there are situations where multiple have the same score
           }
         }
         #ifdef DEBUG_OpenNuXL
@@ -3288,6 +3292,7 @@ static void scoreXLIons_(
         a.localization_scores = localization_scores;
         a.best_localization = best_localization;
         a.best_localization_score = best_localization_score;
+        a.best_localization_position = best_localization_position;
         a.fragment_annotations = fas;
 
         #ifdef DEBUG_OpenNuXL
@@ -3474,21 +3479,22 @@ static void scoreXLIons_(
         ph.setMetaValue(String("NuXL:NA_length"), NA_length);
       }
 
-      ph.setMetaValue(String("NuXL:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
-      ph.setMetaValue(String("NuXL:NA_MASS_z0"), na_mass_z0); // NA uncharged mass via empirical formula
-      ph.setMetaValue(String("NuXL:isXL"), na_mass_z0 > 0); 
-      ph.setMetaValue(String("NuXL:isPhospho"), is_phospho); 
+      ph.setMetaValue("NuXL:NT", String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
+      ph.setMetaValue("NuXL:NA_MASS_z0", na_mass_z0); // NA uncharged mass via empirical formula
+      ph.setMetaValue("NuXL:isXL", na_mass_z0 > 0); 
+      ph.setMetaValue("NuXL:isPhospho", is_phospho); 
 
-      ph.setMetaValue(String("NuXL:best_localization_score"), ah.best_localization_score);
+      ph.setMetaValue("NuXL:best_localization_score", ah.best_localization_score);
       if (!ah.localization_scores.empty())
       {
-        ph.setMetaValue(String("NuXL:localization_scores"), ah.localization_scores);
+        ph.setMetaValue("NuXL:localization_scores", ah.localization_scores);
       }
       else
       {
-        ph.setMetaValue(String("NuXL:localization_scores"), "NA");
+        ph.setMetaValue("NuXL:localization_scores", "NA");
       }
-      ph.setMetaValue(String("NuXL:best_localization"), ah.best_localization);
+      ph.setMetaValue("NuXL:best_localization", ah.best_localization);
+      ph.setMetaValue("NuXL:best_localization_position", ah.best_localization_position);
 
       // one-hot encoding of cross-linked nucleotide
       const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
@@ -4267,6 +4273,179 @@ static void scoreXLIons_(
     return EXECUTION_OK;
   }
 
+  void annotateProteinModificationForTopHits_(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file)
+  {
+    assert(prots.size() == 1); // support for one run only
+
+    ProteinIdentification& prot_id = prot_ids[0];
+    vector<ProteinHit>& proteins = prot_id.getHits();
+
+    // create a user defined modification
+    ResidueModification* xl = new ResidueModification();
+    xl->setFullId("x"); // something not used in ResidueDB
+    xl->setOrigin('X'); // any AA
+
+    // create lookup accession -> protein
+    map<String, ProteinHit*> acc2protein_targets;
+    map<String, ProteinHit*> acc2protein_decoys;
+    for (ProteinHit& protein : proteins)
+    {
+      if (protein.getMetaValue("target_decoy").toString().hasPrefix("target"))
+      {
+        acc2protein_targets[protein.getAccession()] = &protein;
+      }
+      else
+      {
+        acc2protein_decoys[protein.getAccession()] = &protein;
+      }
+    }
+
+    // store modification statistic for every protein    
+    for (const PeptideIdentification& pep : peps)
+    {
+      auto& hits = pep.getHits();
+      for (const PeptideHit& ph : hits)
+      {
+        const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
+        const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
+        for (auto& ph_evidence : ph_evidences)
+        {
+          const String& acc = ph_evidence.getProteinAccession();
+          const int peptide_start_in_protein = ph_evidence.getStart();
+
+          if (peptide_start_in_protein < 0 || best_localization < 0) continue;
+
+          const int xl_pos_in_protein = peptide_start_in_protein + best_localization;
+
+          bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+
+          // retrieve protein the evidence points to
+          ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
+          if (xl_pos_in_protein < protein->getSequence().size())
+          {
+            auto mods = protein->getModifications();  // TODO: add mutable reference access
+            mods.AALevelSummary[xl_pos_in_protein][*xl].count++;
+            protein->setModifications(mods);
+          }
+        }
+      }
+    }
+   
+    map<char, size_t> aa2protein_count_targets; // how many proteins have that AA cross-linked
+    map<char, size_t> aa2psm_count_targets; // how many PSMs have that AA cross-linked
+    map<char, size_t> aa2protein_count_decoys; // how many proteins have that AA cross-linked
+    map<char, size_t> aa2psm_count_decoys; // how many PSMs have that AA cross-linked
+ 
+    for (const ProteinIdentification& prot_id : prot_ids)
+    {
+      const vector<ProteinHit>& proteins = prot_id.getHits();
+      for (const ProteinHit& protein : proteins)
+      {
+        const String& seq = protein.getSequence();
+        const String& acc = protein.getAccession();        
+        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+        auto mods = protein.getModifications();
+
+        tsv_file.addLine(acc);
+
+        // count how many PSMs support XL-ed position in a protein
+        map<size_t, size_t> position2psm_count;
+        for (const auto& p2ms : mods.AALevelSummary)
+        {
+          size_t position = p2ms.first;
+          for (const auto& m2s : p2ms.second)
+          {
+            const auto stat = m2s.second;
+            position2psm_count[position] += stat.count;            
+          }
+        }
+
+        // put string with AA, position, PSM count in sequence: e.g.: [Y123,2]
+        String annotated_sequence;
+        size_t p{0};
+        for (const auto p2psm : position2psm_count)
+        {
+          while (p < p2psm.first) { annotated_sequence += seq[p]; ++p; }
+          annotated_sequence += "[" +  String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
+        }       
+        tsv_file.addLine(annotated_sequence);
+
+        set<char> already_counted_at_protein_level;
+        for (const auto& p2ms : mods.AALevelSummary)
+        {
+          size_t position = p2ms.first;
+
+          // retrieve AA a xl position
+          char AA_at_position = '?';
+          if (seq.size() > position)
+          {
+            AA_at_position = seq[position];
+          }
+
+          // count a modified AA only once per protein for protein count
+          if (already_counted_at_protein_level.count(AA_at_position) == 0)
+          {        
+            if (is_target)
+            {
+              aa2protein_count_targets[AA_at_position]++;
+            }
+            else
+            {
+              aa2protein_count_decoys[AA_at_position]++;
+            }
+            already_counted_at_protein_level.insert(AA_at_position);
+          }
+
+          for (const auto& m2s : p2ms.second)
+          {
+            auto stat = m2s.second;
+            size_t count = stat.count;
+            if (is_target)
+            {
+              aa2psm_count_targets[AA_at_position] += count;
+            }
+            else
+            {
+              aa2psm_count_decoys[AA_at_position] += count;
+            }
+            tsv_file.addLine(m2s.first.getFullId() + ":" + AA_at_position + String(position) + "(" + String(count) + ")");
+          }
+        }
+      }  
+    }
+
+    tsv_file.addLine("=============================================================");
+    tsv_file.addLine("Protein summary for decoy proteins:");
+    tsv_file.addLine("AA:proteins");
+    for (const auto& a2p : aa2protein_count_decoys)
+    {
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+    }
+
+    tsv_file.addLine("=============================================================");
+    tsv_file.addLine("PSM summary for decoy PSMs:");
+    tsv_file.addLine("AA:PSMs");
+    for (const auto& a2p : aa2psm_count_decoys)
+    {
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+    }
+    tsv_file.addLine("=============================================================");
+    tsv_file.addLine("Protein summary for target proteins:");
+    tsv_file.addLine("AA:proteins");
+    for (const auto& a2p : aa2protein_count_targets)
+    {
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+    }
+
+    tsv_file.addLine("=============================================================");
+    tsv_file.addLine("PSM summary for target PSMs:");
+    tsv_file.addLine("AA:PSMs");
+    for (const auto& a2p : aa2psm_count_targets)
+    {
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+    }
+  }
+
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -4294,7 +4473,7 @@ static void scoreXLIons_(
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
-    bool generate_decoys = getFlag_("RNPxl:decoys");
+    bool generate_decoys = getStringOption_("RNPxl:decoys") == "true";
 
     StringList filter = getStringList_("filter");
     bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
@@ -4379,11 +4558,11 @@ static void scoreXLIons_(
           process_params << "-in" << out_idxml.toQString()
                        << "-out" << perc_out.toQString()
                        << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train-best-positive" 
+                       << "-train_best_positive" 
                        << "-score_type" << "q-value"
-                       << "-post-processing-tdc"
+                       << "-post_processing_tdc"
                        << "-weights" << weights_out.toQString()
-                       << "-nested-xval-bins" << "3";
+                       << "-nested_xval_bins" << "3";
 
           if (getStringOption_("peptide:enzyme") == "Lys-C")
           {
@@ -4669,6 +4848,7 @@ static void scoreXLIons_(
     // calculate FDR
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
+    p.setValue("add_decoy_proteins", "true"); // we still want decoys in the result (e.g., to run percolator)
     p.setValue("add_decoy_peptides", "true"); // we still want decoys in the result (e.g., to run percolator)
     if (report_top_hits >= 2)
     {
@@ -4800,8 +4980,10 @@ static void scoreXLIons_(
 
     progresslogger.startProgress(0, 1, "Calculate Nucleotide Tags...");
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
+    progresslogger.endProgress();
 
     // build multimap of precursor mass to scan index (and perform some mass and length based filtering)
+    progresslogger.startProgress(0, 1, "Mapping precursors to scan...");
     using MassToScanMultiMap = multimap<double, pair<Size, int>>;
     MassToScanMultiMap multimap_mass_2_scan_index;  // map precursor mass to scan index and (potential) isotopic missassignment
     mapPrecursorMassesToScans(min_precursor_charge,
@@ -4811,6 +4993,7 @@ static void scoreXLIons_(
                               peptide_min_size,
                               spectra,
                               multimap_mass_2_scan_index);
+    progresslogger.endProgress();
 
     // preallocate storage for PSMs
     vector<size_t> nr_candidates(spectra.size(), 0);
@@ -4844,10 +5027,10 @@ static void scoreXLIons_(
     // generate decoy protein sequences by reversing them
     if (generate_decoys)
     {
+      progresslogger.startProgress(0, 1, "Generating decoys...");
       ProteaseDigestion digestor;
       digestor.setEnzyme(getStringOption_("peptide:enzyme"));
       digestor.setMissedCleavages(0);  // for decoy generation disable missed cleavages
-      progresslogger.startProgress(0, 1, "Generate decoys...");
 
       // append decoy proteins
       const size_t old_size = fasta_db.size();
@@ -5465,7 +5648,7 @@ static void scoreXLIons_(
 
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
-    progresslogger.startProgress(0, 1, "Post-processing PSMs...");
+    progresslogger.startProgress(0, 1, "Post-processing PSMs... (spectra filtering)");
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Localization
@@ -5483,9 +5666,9 @@ static void scoreXLIons_(
                        true, window_size, peak_count); // annotate charge (true)
 
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
-    progresslogger.startProgress(0, 1, "localization...");
+    progresslogger.endProgress();
 
-
+    progresslogger.startProgress(0, 1, "Post-processing PSMs... (localization of cross-links)");
     assert(spectra.size() == annotated_XLs.size());
     assert(spectra.size() == annotated_peptides.size());
 
@@ -5504,8 +5687,9 @@ static void scoreXLIons_(
                    fragment_mass_tolerance_unit_ppm, 
                    all_feasible_fragment_adducts);
 
-    progresslogger.startProgress(0, 1, "Post-processing and annotation...");
+    progresslogger.endProgress();
 
+    progresslogger.startProgress(0, 1, "Post-processing PSMs... (annotation)");
     // remove all but top n scoring PSMs again
     // Note: this is currently necessary as postScoreHits_ might reintroduce nucleotide specific hits for fast scoring
     filterTopNAnnotations_(annotated_XLs, report_top_hits);
@@ -5522,6 +5706,7 @@ static void scoreXLIons_(
                      max_variable_mods_per_peptide,
                      purities,
                      nr_candidates);
+
     progresslogger.endProgress();
 
     protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_mzml)});
@@ -5533,6 +5718,8 @@ static void scoreXLIons_(
     param_pi.setValue("enzyme:name", getStringOption_("peptide:enzyme"));
     param_pi.setValue("enzyme:specificity", "full");
     param_pi.setValue("missing_decoy_action", "silent");
+    param_pi.setValue("write_protein_sequence", "true");
+    param_pi.setValue("write_protein_description", "true");
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
@@ -5592,14 +5779,8 @@ static void scoreXLIons_(
           ph.setMetaValue("NuXL:QQ_TIC", QQ_TIC[scan_index].quantileOfValue(ph.getMetaValue("NuXL:total_MIC")));
           ph.setMetaValue("NuXL:QQ_EXPLAINED_FRACTION", QQ_EXPLAINED_FRACTION[scan_index].quantileOfValue(ph.getMetaValue("NuXL:explained_peak_fraction")));
         }
-
-
-
-
       }
 #endif
-
-
 
 
 /*
@@ -5983,7 +6164,18 @@ static void scoreXLIons_(
           out2.substitute(".idXML", "_");
           vector<ProteinIdentification> tmp_prots = protein_ids;
           IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
+          // PSM result
           IdXMLFile().store(out2 + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
+
+          // protein result
+          if (!out_tsv.empty())
+          {
+            out2 = out_tsv;
+            out2.substitute(".tsv", "_proteins");
+            TextFile tsv_file;
+            annotateProteinModificationForTopHits_(tmp_prots, xl_pi, tsv_file);
+            tsv_file.store(out2 + String::number(xlFDR, 4) + "_XLs.tsv");
+          }
         }
       }
      
@@ -6003,11 +6195,11 @@ static void scoreXLIons_(
         process_params << "-in" << out_idxml.toQString()
                        << "-out" << perc_out.toQString()
                        << "-percolator_executable" << percolator_executable.toQString()
-                       << "-train-best-positive" 
+                       << "-train_best_positive" 
                        << "-score_type" << "svm"
                        << "-unitnorm"
-                       << "-post-processing-tdc"
-//                       << "-nested-xval-bins" << "3"
+                       << "-post_processing_tdc"
+//                       << "-nested_xval_bins" << "3"
                        << "-weights" << weights_out.toQString()
                        << "-out_pin" << pin.toQString();
 
@@ -6103,7 +6295,18 @@ static void scoreXLIons_(
               out2.substitute(".idXML", "_perc_");
               vector<ProteinIdentification> tmp_prots = protein_ids;
               IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
+
+              // store PSM results
               IdXMLFile().store(out2 + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
+              // store protein results
+              if (!out_tsv.empty())
+              {
+                out2 = out_tsv;
+                out2.substitute(".tsv", "_perc_proteins");
+                TextFile tsv_file;
+                annotateProteinModificationForTopHits_(tmp_prots, xl_pi, tsv_file);
+                tsv_file.store(out2 + String::number(xlFDR, 4) + "_XLs.tsv");
+              }
             }
           }
         }
@@ -6130,6 +6333,7 @@ static void scoreXLIons_(
       }
       csv_file.store(out_tsv);
     }
+
  
  #ifdef _OPENMP
     // free locks
