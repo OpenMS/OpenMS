@@ -204,7 +204,6 @@ namespace OpenMS
     was_enabled_ = locked_widget_->isEnabled();
     locked_widget_->setEnabled(false);
     QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    locked_widget_->setCursor(Qt::WaitCursor);
     currently_locked_ = true;
   }
 
