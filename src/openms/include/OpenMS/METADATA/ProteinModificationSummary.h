@@ -51,8 +51,9 @@ namespace OpenMS
     struct OPENMS_DLLAPI Statistics
     {
       bool operator==(const Statistics& rhs) const;
-      size_t count = 0;
-      double frequency = 0.0;
+      size_t count = 0;  /// total number of PSMs supporting the modification at this position
+      double frequency = 0.0; /// PSMs with modification / total number of PSMs
+      double FLR = 0.0; /// false localization rate
     };
 
     /// comparison operator
