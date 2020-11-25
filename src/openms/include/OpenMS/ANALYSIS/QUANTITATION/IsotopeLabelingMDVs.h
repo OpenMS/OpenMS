@@ -76,7 +76,8 @@ namespace OpenMS
     enum class DerivatizationAgent
     {
       NOT_SELECTED,
-      TBDMS
+      TBDMS,
+      SIZE_OF_DERIVATIZATIONAGENT
     };
     
     enum class FeatureName
