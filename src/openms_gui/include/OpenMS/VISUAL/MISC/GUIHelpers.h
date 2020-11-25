@@ -87,6 +87,30 @@ namespace OpenMS
     */
     QRectF getTextDimension(const QStringList& text, const QFont& font, int& line_spacing);
 
+
+    /**
+      @brief Given a set of levels (rows), try to add items at to topmost row which does not overlap an already placed item in this row (according to its x-coordinate)
+
+      If a collision occurs, try the row below.
+      If no row is collision-free, pick the one with the smallest overlap.
+
+      X coordinates should always be positive.
+    */
+    class OverlapDetector
+    {
+    public:
+      
+      /// C'tor: number of @p levels must be >=1
+      explicit OverlapDetector(int levels);
+
+      /// try to put an item which spans from @p x_start to @p x_end in the topmost row possible
+      /// @return the smallest row index (starting at 0) which has none (or the least) overlap
+      int placeItem(double x_start, double x_end);
+
+    private:
+      std::vector<double> rows_;
+    };
+
     /**
       @brief RAII class to disable the GUI and set a busy cursor and go back to the orignal state when this class is destroyed
     */
