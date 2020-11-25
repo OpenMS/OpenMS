@@ -1797,13 +1797,14 @@ protected:
    
     // references from PSM to Protein that got removed during inference need to be also removed in the consensus map
     {
-      set<String> protein_inferred;
+      unordered_map<String,set<String>> pep2prot_inferred;
       // determine all inferred proteins
-      for (auto& p : inferred_protein_ids)
+      for (auto& p : inferred_peptide_ids)
       {
         for (auto& ph : p.getHits())
         {
-          protein_inferred.insert(ph.getAccession());
+          //TODO if we ever support modified proteins, mapping via unmodified sequence will not work
+          pep2prot_inferred.emplace(ph.getSequence().toUnmodifiedString(), ph.extractProteinAccessionsSet());
         }
       }
 
@@ -1819,7 +1820,10 @@ protected:
             std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
             pes.erase(std::remove_if(pes.begin(), 
                                 pes.end(),
-                                [&protein_inferred](PeptideEvidence& x){ return protein_inferred.find(x.getProteinAccession()) == protein_inferred.end(); }),
+                                [&pep2prot_inferred,&ph](PeptideEvidence& x){ 
+                                  const auto accs = pep2prot_inferred.at(ph.getSequence().toUnmodifiedString());
+                                  return accs.find(x.getProteinAccession()) == accs.end();
+                                }),
                  pes.end());
             ph.setPeptideEvidences(std::move(pes));
           }
@@ -1842,10 +1846,13 @@ protected:
         for (auto& ph : hits)
         {
           std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
-          pes.erase(std::remove_if(pes.begin(), 
-                              pes.end(),
-                              [&protein_inferred](PeptideEvidence& x){ return protein_inferred.find(x.getProteinAccession()) == protein_inferred.end(); }),
-               pes.end());
+            pes.erase(std::remove_if(pes.begin(), 
+                                pes.end(),
+                                [&pep2prot_inferred,&ph](PeptideEvidence& x){ 
+                                  const auto accs = pep2prot_inferred.at(ph.getSequence().toUnmodifiedString());
+                                  return accs.find(x.getProteinAccession()) == accs.end();
+                                }),
+                 pes.end());
           ph.setPeptideEvidences(std::move(pes));
         }
 
