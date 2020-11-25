@@ -398,26 +398,22 @@ namespace OpenMS
       // check if annotated object exists
       const MetaboTargetedAssay::CompoundTargetDecoyPair &csp = it;
 
+      vector<MSSpectrum> non_empty_spectra;
+      if (!csp.target_decoy_spectra.target.empty())
+      {
+        MSSpectrum target = csp.target_decoy_spectra.target;
+        non_empty_spectra.push_back(target);
+      }
+      if (!csp.target_decoy_spectra.decoy.empty())
+      {
+        MSSpectrum decoy = csp.target_decoy_spectra.decoy;
+        non_empty_spectra.push_back(decoy);
+      }
+
       // iterate over both entries - targets and decoys (SiriusTargetDecoySpectra)
       // count target and decoy as on entry - to ensure same numbering of targets and decoys
-      for (size_t i = 0; i < 2; ++i)
+      for (auto& transition_spectrum : non_empty_spectra)
       {
-        MSSpectrum transition_spectrum;
-        if (i == 0)
-        {
-          transition_spectrum = csp.target_decoy_spectra.target;
-        }
-        else
-        {
-          transition_spectrum = csp.target_decoy_spectra.decoy;
-        }
-
-        if (transition_spectrum.empty())
-        {
-          OPENMS_LOG_DEBUG << "The annotated spectrum was empty: " << csp.compound_info.cmp << std::endl;
-          continue;
-        }
-
         TargetedExperiment::Compound cmp;
         cmp.clearMetaInfo();
         vector <ReactionMonitoringTransition> v_rmt;
@@ -525,8 +521,10 @@ namespace OpenMS
           cmp.setMetaValue("CompoundName", description);
         }
 
-        OPENMS_LOG_DEBUG << "Processed annotated Spectra - mapping of the description and the SIRIUS identifier." << " Description: " << description << " SIRIUS_workspace_identifier: " << csp.compound_info.cmp << std::endl;
-        OPENMS_LOG_DEBUG << "Compound identifier." << cmp.id << std::endl;
+        OPENMS_LOG_DEBUG << "Processed annotated Spectra - mapping of the description and the SIRIUS identifier." << std::endl;
+        OPENMS_LOG_DEBUG << "Description: " << description << std::endl;
+        OPENMS_LOG_DEBUG << "SIRIUS_workspace_identifier: " << csp.compound_info.cmp << std::endl;
+        OPENMS_LOG_DEBUG << "Compound identifier: " << cmp.id << std::endl;
 
         cmp.smiles_string = "NA";
         cmp.molecular_formula = sumformula;
@@ -604,7 +602,7 @@ namespace OpenMS
               rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET);
             }
             v_rmt.push_back(std::move(rmt));
-            ++transition_counter;
+            transition_counter += 1;
           }
         }
         MetaboTargetedAssay mta;
@@ -633,7 +631,7 @@ namespace OpenMS
           v_mta.push_back(std::move(mta));
         }
       }
-      ++entry_counter;
+      entry_counter += 1;
     }
     return v_mta;
   }

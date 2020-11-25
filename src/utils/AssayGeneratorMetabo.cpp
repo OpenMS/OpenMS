@@ -299,7 +299,9 @@ protected:
     param.setValue("distance_RT:max_difference", ar_rt_tol);
     param.setValue("distance_MZ:max_difference", ar_mz_tol);
     param.setValue("distance_MZ:unit", ar_mz_tol_unit_res);
+    param.setValue("ignore_charge", true);
     fgaqt.setParameters(param);
+
     // build ambiguity groups based on FeatureGroupingAlgorithmQt
     fgaqt.group(feature_maps, c_map);
 
