@@ -4366,7 +4366,9 @@ static void scoreXLIons_(
         for (const auto p2psm : position2psm_count)
         {
           while (p < p2psm.first) { annotated_sequence += seq[p]; ++p; }
-          annotated_sequence += "[" +  String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
+          // p now points to the modified AA
+          annotated_sequence += String("[") + seq[p] + String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
+          ++p;
         }       
         tsv_file.addLine(annotated_sequence);
 

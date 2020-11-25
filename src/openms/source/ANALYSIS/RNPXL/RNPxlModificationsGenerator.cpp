@@ -82,7 +82,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   RNPxlModificationMassesResult result;
 
-  // read nucleotides and empirical formula of monophosphate
+  // read nucleotides and empirical formula of monophosphate. 
+  // create map target->formula e.g., U->C10H14N5O7P
   map<String, EmpiricalFormula> map_target_to_formula;
   for (auto const & s : target_nucleotides)
   {
@@ -247,7 +248,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   {
     // Append precursor modifications (e.g., "-H2O") 
-    // to generate modified nucleotides: e.g.: "U" -> "U", "U-H2O", ...
+    // to generate modified nucleotides: e.g.: "U" -> "U", "U-H2O", ... 
     vector<EmpiricalFormula> actual_combinations;
     for (map<String, EmpiricalFormula>::const_iterator mit = map_target_to_formula.begin(); mit != map_target_to_formula.end(); ++mit)
     {
@@ -256,12 +257,14 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       EmpiricalFormula target_nucleotide_formula = mit->second;
 
+      // get all precursor modifications for current nucleotide
       NucleotideModifications nt_mods = map_to_nucleotide_modifications[target_nucleotide];
 
-      for (NucleotideModification const & nt_mod : nt_mods) // loop over list of nucleotide specific modifications
+      set<String> formulas_of_modified_nucleotide;
+      for (const NucleotideModification & nt_mod : nt_mods) // loop over list of nucleotide specific modifications
       {
         EmpiricalFormula e(target_nucleotide_formula);
-        String s(target_nucleotide);
+        String nt(target_nucleotide);
         for (NucleotideModificationSubFormula const & sf : nt_mod) // loop over subformulae
         {
           // concatenate additive / subtractive substrings (e.g., "+H2O", "-H3PO")
@@ -269,26 +272,27 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
           String mod(sf.first.toString());
           if (sf.second) 
           {  // subtractive
-            e = e - mod_ef;
-            s += "-" + mod;
+            nt += "-" + mod; // e.g., U-H2O
+            e = e - mod_ef;  // sum formula of e.g. U-H2O
            }
           else 
           {  // additive
-            e = e + mod_ef;
-            s += "+" + mod;;
+            nt += "+" + mod; // e.g., U+H3PO4
+            e = e + mod_ef;  // sum formula
           }
         }
- 
-        if (find(actual_combinations.begin(), actual_combinations.end(), e) == actual_combinations.end())
+
+        String sum_formula_string = e.toString();
+        if (find(formulas_of_modified_nucleotide.begin(), formulas_of_modified_nucleotide.end(), sum_formula_string) == formulas_of_modified_nucleotide.end())
         {
           actual_combinations.push_back(e);
-          result.mod_combinations[e.toString()].insert(s);
-          OPENMS_LOG_INFO << "\t" << "modifications: " << s << "\t\t" << e.toString() << endl;
+          result.mod_combinations[sum_formula_string].insert(nt);  // add sum formula -> nucleotide
+          OPENMS_LOG_INFO << "\t" << "modifications: " << nt << "\t\t" << sum_formula_string << endl;
         }
         else
         {
-          OPENMS_LOG_WARN << "WARNING:\tNucleotide combination: " << s << "\t\t" << e.toString() 
-            << " occured several times. Did you specify it multiple times in the ini file?. Will consider only once." << endl;
+          OPENMS_LOG_WARN << "WARNING:\tNucleotide + formula combination: " << nt << "\t\t" << sum_formula_string 
+            << " occured several times. Did you specify it multiple times in the ini file?. Will consider skip this entry." << endl;
         }        
       }
     }
