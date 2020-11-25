@@ -1804,7 +1804,7 @@ protected:
         for (auto& ph : p.getHits())
         {
           //TODO if we ever support modified proteins, mapping via unmodified sequence will not work
-          const auto emplaced_it = pep2prot_inferred.emplace(ph.getSequence().toUnmodifiedString(), ph.extractProteinAccessionsSet());
+          pep2prot_inferred.emplace(ph.getSequence().toUnmodifiedString(), ph.extractProteinAccessionsSet());
         }
       }
 
