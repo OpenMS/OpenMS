@@ -62,10 +62,11 @@ namespace OpenMS
       @param pos X-coordinate of the center as show on the axis
       @param width Full width of the band
       @param fill_alpha255 A transparency value from 0 (no visible band), to 255 (fully opaque band)
+      @param dashed_line Should the line (or the two lines of the band) be dashed?
       @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
       @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
     **/
-    Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int fill_alpha255 = 128, const QColor& color = QColor("as_before"), const QString& text = "");
+    Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int fill_alpha255 = 128, const bool dashed_line = false, const QColor& color = QColor("as_before"), const QString& text = "");
     /// Copy constructor
     Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem& rhs) = default;
     /// Destructor
@@ -97,6 +98,8 @@ namespace OpenMS
     float width_ = 0;
     /// transparency 0...255 of the band (only used when width_ > 0)
     float fill_alpha255_ = 128;
+    /// is the line dashed?
+    bool dashed_{false};
 
     /// The color of the line; if invalid, the current painter color will be used
     QColor color_ = Qt::black;

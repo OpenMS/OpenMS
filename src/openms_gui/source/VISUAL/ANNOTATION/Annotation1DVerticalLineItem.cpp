@@ -53,69 +53,62 @@ namespace OpenMS
   {
   }
 
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int fill_alpha255, const QColor& color, const QString& text) :
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int fill_alpha255, const bool dashed_line, const QColor& color, const QString& text) :
     Annotation1DItem(text),
     x_(x_center_pos),
     width_(width),
     fill_alpha255_(fill_alpha255),
+    dashed_(dashed_line),
     color_(color)
   {
   }
 
   void Annotation1DVerticalLineItem::draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
+    painter.save();
+    auto pen = painter.pen();
+
+    QColor col = pen.color();
     if (color_.isValid())
     {
-      painter.save();
-      auto pen = painter.pen();
-      pen.setColor(color_);
-      painter.setPen(pen);
+      col = color_;
+    }
+    col.setAlpha(fill_alpha255_);
+    pen.setColor(col);
+    if (dashed_)
+    {
+      pen.setDashPattern({ 5, 5, 1, 5 });
     }
 
-    //translate mz/intensity to pixel coordinates
-    QPoint start_p_left, start_p_right, end_p_left, end_p_right;
-    if (width_ == 0)
-    { // draw a single stick
-      canvas->dataToWidget(x_, 0, start_p_left, flipped, true);
-      canvas->dataToWidget(x_, canvas->getDataRange().maxY(), end_p_right, flipped, true);
-      painter.drawLine(start_p_left, end_p_right);
+    // translate mz/intensity to pixel coordinates
+    float width_px = 0;
+    if (width_ != 0)
+    { // prepare to draw a band
+      QPoint left, right;
+      canvas->dataToWidget(x_ - width_ / 2, 0, left, flipped, true);
+      canvas->dataToWidget(x_ + width_ / 2, 0, right, flipped, true);
+      width_px = right.x() - left.x();
+      pen.setWidth(width_px);
     }
-    else
-    { // draw a band
-      canvas->dataToWidget(x_ - width_ / 2, 0, start_p_left, flipped, true);
-      canvas->dataToWidget(x_ - width_ / 2, canvas->getDataRange().maxY(), end_p_left, flipped, true);
-      canvas->dataToWidget(x_ + width_ / 2, 0, start_p_right, flipped, true);
-      canvas->dataToWidget(x_ + width_ / 2, canvas->getDataRange().maxY(), end_p_right, flipped, true);
-      
-      QPainterPath path;
-      auto w = start_p_right.x() - start_p_left.x();
-      auto h = end_p_left.y() - start_p_left.y();
-      path.addRect(start_p_left.x(), start_p_left.y(), w, h);
-      auto color = painter.pen().color();
-      color.setAlpha(fill_alpha255_);
-      painter.fillPath(path, color);
-      painter.drawPath(path);
-
-      painter.drawLine(start_p_left, end_p_left);
-      painter.drawLine(start_p_right, end_p_right);
-    }
+    painter.setPen(pen);
+    QPoint start_low, end_high;
+    canvas->dataToWidget(x_, 0, start_low, flipped, true);
+    canvas->dataToWidget(x_, canvas->getDataRange().maxY(), end_high, flipped, true);
+    painter.drawLine(start_low, end_high);
 
     // compute bounding box on the specified painter
     // TODO: implement proper bounding box calculation
     // currently not needed as we don't support selection or moving
-    bounding_box_ = QRectF(QPointF(start_p_left), QPointF(end_p_right));
+    bounding_box_ = QRectF(QPointF(start_low), QPointF(end_high));
 
     // TODO: draw according to proper bounding box to support switching axis and flipping
     // 5 pixel to x() was added to give some space between the line and the text
     if (!text_.isEmpty())
     {
-      GUIHelpers::drawText(painter, text_.split('\n'), { start_p_left.x() + 5, 20 + y_text_offset_ }, Qt::black, "invalid", default_text_font);
+      GUIHelpers::drawText(painter, text_.split('\n'), { start_low.x() + 5 - (int)width_px / 2, 20 + y_text_offset_ }, Qt::black, "invalid", default_text_font);
     }
 
-    if (color_.isValid())
-    {
-      painter.restore();
-    }
+    painter.restore();
   }
 
   void Annotation1DVerticalLineItem::move(const PointType& delta)
