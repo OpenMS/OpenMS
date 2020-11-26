@@ -70,6 +70,14 @@ namespace OpenMS
     void getIsolationWindows(double *wstart, double *wend, double *qScores, int *charges, double *avgMasses);
 
   private:
+    struct
+    {
+      bool operator()(PeakGroup a, PeakGroup b) const
+      {
+        return a.getQScore() > b.getQScore();
+      }
+    } QscoreComparator;
+
     std::map<int, std::vector<double>> selected; // int mass, rt, qscore
     PrecalculatedAveragine avg;
 

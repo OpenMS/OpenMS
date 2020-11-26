@@ -185,6 +185,8 @@ namespace OpenMS
 
   void FLASHIda::getIsolationWindows(double *wstart, double *wend, double *qScores, int *charges, double *avgMasses)
   {
+    std::sort(deconvolutedSpectrum.begin(), deconvolutedSpectrum.end(), QscoreComparator);
+
     for (auto i = 0; i < deconvolutedSpectrum.size(); i++)
     {
       auto qrange = deconvolutedSpectrum[i].getMzxQScoreMzRange();
