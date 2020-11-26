@@ -72,7 +72,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm(FLASHDeconvAlgorithm &&other) = default;
 
     /// assignment operator
-    FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
+    FLASHDeconvAlgorithm& operator= (const FLASHDeconvAlgorithm &fd);
 
     /**
       @brief main deconvolution function.

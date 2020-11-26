@@ -37,7 +37,12 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include "OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h"
 
-// C++ to C# bridge functions
+/**
+  * @brief FLASHIda C++ to C# bridge functions
+  *
+  * @see FLASHIda
+  */
+
 namespace OpenMS
 {
 	extern "C" OPENMS_DLLAPI FLASHIda * CreateFLASHIda(char* arg);

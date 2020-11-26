@@ -163,11 +163,6 @@ namespace OpenMS
   {
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::~LogMzPeak()
-  {
-  }
-
-
   double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (charge == 0)

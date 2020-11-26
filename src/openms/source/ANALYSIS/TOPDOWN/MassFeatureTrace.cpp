@@ -42,17 +42,11 @@ namespace OpenMS
       DefaultParamHandler("MassFeatureTrace")
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
-
     //mtd_defaults.setValue("mass_error_da", 1.5);
     mtd_defaults.setValue("min_trace_length", 10.0);
-
     //mtd_defaults.remove("mass_error_da");
     mtd_defaults.remove("chrom_peak_snr");
     defaults_.insert("", mtd_defaults);
-
-    //defaults_.setValue("min_charge_cosine",
-    //                   .5,
-    //                   "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
     defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
     defaultsToParam_();
   }
@@ -103,7 +97,6 @@ namespace OpenMS
     map.sortSpectra();
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
-    //mtd_param.remove("min_charge_cosine");
     mtd_param.remove("min_isotope_cosine");
 
     mtdet.setParameters(mtd_param);
@@ -112,9 +105,6 @@ namespace OpenMS
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
     int chargeRange = maxCharge - minCharge + 1;
-
-    //std::cout<<chargeRange << " " << averagines.maxIsotopeIndex<<std::endl;
-    int tmp[] = {0, 0, 0, 0};
 
     for (auto &mt : m_traces)
     {
@@ -201,18 +191,10 @@ namespace OpenMS
       {
         continue;
       }
-
-      //perIsotopeIntensity, param.maxIsotopeIndex
-
-
       if (offset != 0)
       {
         mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
       }
-
-      //if (mass < minMass || mass > maxMass){
-      //  continue;
-      //}
 
       auto sumInt = .0;
 
@@ -220,8 +202,6 @@ namespace OpenMS
       {
         sumInt += p.getIntensity();
       }
-      //mt.computeSmoothedPeakArea()
-      //mt.estimateFWHM(true);
       auto avgMass = averagines.getAverageMassDelta(mass) + mass;
       ++featureCntr;
       fsf << featureIndex++ << "\t" << fileName << "\t" << std::to_string(mass) << "\t"
@@ -266,51 +246,8 @@ namespace OpenMS
           fsf << ";";
         }
       }
-      /*fsf<< "\t";
-      double tmp2[maxFCharge + 1][isoEndIndex + 1];
-      for (int i = 0; i <= maxFCharge; i++)
-      {
-        for (int j = 0; j <= isoEndIndex; j++)
-        {
-          tmp2[i][j] = .0;
-        }
-      }
-      for (auto &p2 : mt)
-      {
-        auto &pgMap = peakGroupMap[p2.getRT()];
-        auto &pg = pgMap[p2.getMZ()];
-        for (auto &p: pg)
-        {
-          tmp2[p.charge][p.isotopeIndex] += p.intensity;
-        }
-      }
-      for (int i = 0; i <= maxFCharge; i++)
-      {
-        for (int j = 0; j <= isoEndIndex; j++)
-        {
-          fsf<<tmp2[i][j]<<",";
-        }
-        fsf<<";";
-      }*/
 
       fsf << "\n";
-
-      if (abs(avgMass - 44086) < 3)
-      {
-        tmp[0] = 1;
-      }
-      if (abs(avgMass - 44166) < 3)
-      {
-        tmp[1] = 1;
-      }
-      if (abs(avgMass - 44328) < 3)
-      {
-        tmp[2] = 1;
-      }
-      if (abs(avgMass - 44369) < 3)
-      {
-        tmp[3] = 1;
-      }
 
       if (promexOut)
       {
@@ -350,7 +287,6 @@ namespace OpenMS
         fsp << std::setprecision(0);
       }
     }
-    std::cout << "**" << tmp[0] << tmp[1] << tmp[2] << tmp[3] << std::endl;
   }
 
   void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)

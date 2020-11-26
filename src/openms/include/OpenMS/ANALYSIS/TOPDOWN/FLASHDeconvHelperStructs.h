@@ -140,7 +140,7 @@ namespace OpenMS
       LogMzPeak(const LogMzPeak &) = default;
 
       /// destructor
-      ~LogMzPeak();
+      ~LogMzPeak() = default;
 
       /// get uncharged mass of this peak. It is NOT monoisotopic mass. Valid only when charge is set
       double getUnchargedMass();

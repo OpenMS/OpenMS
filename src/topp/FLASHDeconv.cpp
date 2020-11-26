@@ -81,10 +81,14 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<input_file/input_dir>", "", "Input file or directory");
+    //setValidFormats_("in", ListUtils::create<String>("mzML"));
+
     registerOutputFile_("out", "<output_file_prefix/output_dir>", "",
                         "output file prefix or output dir. "
                         "If prefix, [prefix].tsv (feature deconvolution results), [prefix]_MSn_spec.tsv (spectral deconvolution results) will be generated. "
                         "If dir, [dir]/[inputfile].tsv and [dir]/[inputfile]_MSn_spec.tsv will be generated per [inputfile].");
+
+    //setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerDoubleList_("tol",
                         "<ms1_tol, ms2_tol, ...>",

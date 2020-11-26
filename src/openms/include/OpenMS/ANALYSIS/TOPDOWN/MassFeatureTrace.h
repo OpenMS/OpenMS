@@ -46,7 +46,7 @@
 namespace OpenMS
 {
   /**
-  @brief Feature trace in mass dimention for FLASHDeconv
+  @brief Feature trace in mass dimension for FLASHDeconv
   @ingroup Topdown
   */
   class OPENMS_DLLAPI MassFeatureTrace :
@@ -61,6 +61,15 @@ namespace OpenMS
 
     /// default destructor
     ~MassFeatureTrace() override;
+
+    /// copy constructor
+    MassFeatureTrace(const MassFeatureTrace &) = default;
+
+    /// move constructor
+    MassFeatureTrace(MassFeatureTrace &&other) = default;
+
+    /// assignment operator
+    MassFeatureTrace &operator=(const MassFeatureTrace &fd) = default;
 
     /// add deconvolution spectrum after per spec deconvolution. Necessary info. such as peakGroups are stored so they can be used tracing afterwards
     void addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum);

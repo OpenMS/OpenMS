@@ -46,6 +46,7 @@ namespace OpenMS
    *
    * @see FLASHIdaBridgeFunctions
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
+   * @reference: https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
    */
   class OPENMS_DLLAPI FLASHIda
   {
@@ -58,6 +59,15 @@ namespace OpenMS
 
     /// destructor
     ~FLASHIda() = default;
+
+    /// copy constructor
+    FLASHIda(const FLASHIda &) = default;
+
+    /// move constructor
+    FLASHIda(FLASHIda &&other) = default;
+
+    /// assignment operator
+    FLASHIda &operator=(const FLASHIda &fd) = default;
 
     ///
     int getPeakGroups(double *mzs,
@@ -92,12 +102,7 @@ namespace OpenMS
     IntList maxMassCount;
 
 
-    // all information to keep track of
-    // parameter
-    // averagine results
-    // exclusion list mass
-    // refer to the deconv'd spectrum. two exclusion durations
-    // https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
+
 
   };
 }

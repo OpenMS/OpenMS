@@ -60,10 +60,7 @@ namespace OpenMS
       }
       token = std::strtok(nullptr, " ");
     }
-  
-    fd = FLASHDeconvAlgorithm();
-   
-    
+
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);

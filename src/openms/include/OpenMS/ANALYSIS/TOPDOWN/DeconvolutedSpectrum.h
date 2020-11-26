@@ -39,7 +39,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <iomanip>
 
-
 namespace OpenMS
 {
   class PeakGroup;
@@ -66,6 +65,15 @@ namespace OpenMS
     /// default deconstructor
     ~DeconvolutedSpectrum() = default;
 
+    /// copy constructor
+    DeconvolutedSpectrum(const DeconvolutedSpectrum &) = default;
+
+    /// move constructor
+    DeconvolutedSpectrum(DeconvolutedSpectrum &&other) = default;
+
+    /// assignment operator
+    DeconvolutedSpectrum &operator=(const DeconvolutedSpectrum &fd) = default;
+
     /**
         @brief write the header in the output file (spectrum level)
         @param fs file stream to the output file
@@ -84,9 +92,6 @@ namespace OpenMS
                                  const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                  bool writeDetail);
 
-    //void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold, int numMaxMS2);
-    //void writeMassList(std::fstream &fs, double retDelta, double qScoreThreshold, int numMaxMS2);
-
     /**
       @brief write the deconvoluted masses TopFD format
       @param fs file stream to the output file
@@ -96,8 +101,6 @@ namespace OpenMS
 
     /// cast DeconvolutedSpectrum into MSSpectrum object to write mzml format
     MSSpectrum toSpectrum();
-
-    //static void writeAttCsvHeader(std::fstream &fs);
 
     /// write the header for Thermo Inclusion List header format
     static void writeThermoInclusionHeader(std::fstream &fs);

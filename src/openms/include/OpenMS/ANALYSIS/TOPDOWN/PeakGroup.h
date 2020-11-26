@@ -38,100 +38,122 @@
 
 namespace OpenMS
 {
-  // data structure for peak group. A mass contains multiple peaks of different charges and isotope indices
+  /**
+@brief  A mass contains multiple peaks of different charges and isotope indices. PeakGroup is the set of such peaks representing a single monoisotopic mass
+@ingroup Topdown
+*/
+
   class OPENMS_DLLAPI PeakGroup :
       public std::vector<FLASHDeconvHelperStructs::LogMzPeak>
   {
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
+    /// default constructor
     PeakGroup() = default;
 
+    /**
+           @brief Constructor specifying charge range
+           @param minCharge min Charge
+           @param maxCharge max Charge
+      */
     explicit PeakGroup(int minCharge, int maxCharge);
 
+    /// default destructor
     ~PeakGroup() = default;
 
+    /// copy constructor
+    PeakGroup(const PeakGroup &) = default;
+
+    /// move constructor
+    PeakGroup(PeakGroup &&other) = default;
+
+    /// clear per charge vectors to save memory
     void clearChargeInfo();
 
+    /// comparison operators
     bool operator<(const PeakGroup &a) const;
 
     bool operator>(const PeakGroup &a) const;
 
     bool operator==(const PeakGroup &a) const;
 
+    /// assignment operator
+    PeakGroup& operator = (const PeakGroup &t) = default;
+
+    /**
+           @brief adjust monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
+           @param offset isotope index offset
+           @param maxIsoIndex max isotopic index
+      */
     void updateMassesAndIntensity(int offset = 0,
                                   int maxIsoIndex = 0);
-
+    /// set scan number
     void setScanNumber(int sn);
-
-    void setMonoMass(double m);
-
-    void setIntensity(double i);
-
+    /// set per charge SNR
     void setChargeSNR(int charge, float snr);
-
+    /// set per charge isotope cosine
     void setChargeIsotopeCosine(int charge, float cos);
-
+    /// set per charge intensity
     void setChargeIntensity(int charge, float intensity);
-
+    /// set mz range that results in max Qscore
     void setMaxQScoreMzRange(double min, double max);
-
+    /// set min and max charge range
     void setChargeRange(int min, int max);
-
+    /// set isotope cosine score
     void setIsotopeCosine(float cos);
-
+    /// set representative charge
     void setRepCharge(int c);
-
+    /// set Q score
     void setQScore(float q);
-
+    /// set total SNR
     void setSNR(float snr);
-
+    /// get scan number
     int getScanNumber() const;
-
+    /// get monoisotoopic mass
     double getMonoMass() const;
-
+    /// get intensity
     double getIntensity() const;
-
+    /// get per charge SNR
     float getChargeSNR(int charge) const;
-
+    /// get per charge isotope cosine
     float getChargeIsotopeCosine(int charge) const;
-
+    /// get per charge intenstiy
     float getChargeIntensity(int charge) const;
-
+    /// get mz range that results in max Qscore
     std::tuple<double, double> getMzxQScoreMzRange() const;
-
+    /// get charge range
     std::tuple<int, int> getChargeRange() const;
-
+    /// get isotopic cosine score
     float getIsotopeCosine() const;
-
+    /// get representative chrage
     int getRepCharge() const;
-
+    /// get Q score
     float getQScore() const;
-
+    /// get total SNR
     float getSNR() const;
-    // information on scoring
 
-  private:  // the spectrum from which a peak group is generated
-    // the peaks contained in this peak group
+  private:
+    /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> perChargeSNR;
     std::vector<float> perChargeCos;
     std::vector<float> perChargeInt;
 
+    /// mz range resulting in maximum Q score
     double maxQScoreMzEnd, maxQScoreMzStart;
+    /// charge range
     int maxCharge, minCharge;
-
-    // indexing information
+    /// scan number
     int scanNumber;
 
-    // information on the deconvouted mass
+    /// information on the deconvouted mass
     double monoisotopicMass;
     double intensity;// total intensity
 
+    /// scoring variables
     int maxQScoreCharge;
     float isotopeCosineScore;
     float qScore;
     float totalSNR;
-
-
   };
 }

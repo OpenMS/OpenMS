@@ -201,19 +201,9 @@ namespace OpenMS
     return scanNumber;
   }
 
-  void PeakGroup::setMonoMass(double m)
-  {
-    monoisotopicMass = m;
-  }
-
   double PeakGroup::getMonoMass() const
   {
     return monoisotopicMass;
-  }
-
-  void PeakGroup::setIntensity(double i)
-  {
-    intensity = i;
   }
 
   double PeakGroup::getIntensity() const
