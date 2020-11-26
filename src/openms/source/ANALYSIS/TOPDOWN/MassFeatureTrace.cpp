@@ -210,6 +210,10 @@ namespace OpenMS
         mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
       }
 
+      //if (mass < minMass || mass > maxMass){
+      //  continue;
+      //}
+
       auto sumInt = .0;
 
       for (auto &p : mt)

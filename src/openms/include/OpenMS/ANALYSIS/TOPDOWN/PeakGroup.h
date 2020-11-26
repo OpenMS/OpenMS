@@ -47,7 +47,7 @@ namespace OpenMS
   public:
     PeakGroup() = default;
 
-    explicit PeakGroup(int maxChargeRange);
+    explicit PeakGroup(int minCharge, int maxCharge);
 
     ~PeakGroup() = default;
 
@@ -131,5 +131,7 @@ namespace OpenMS
     float isotopeCosineScore;
     float qScore;
     float totalSNR;
+
+
   };
 }

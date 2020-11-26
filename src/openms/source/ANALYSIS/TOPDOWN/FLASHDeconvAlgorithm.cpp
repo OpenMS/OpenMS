@@ -518,7 +518,6 @@ namespace OpenMS
     {
       chargeRanges.setValue(1, i, INT_MIN);
     }
-
     auto mzBinIndex = mzBins.find_first();
     long binSize = (long) massBins.size();
 
@@ -615,7 +614,7 @@ namespace OpenMS
     {
       double logM = getBinValue(massBinIndex, massBinMinValue, bw);
       double mass = exp(logM);
-      PeakGroup pg(chargeRanges.getValue(1, massBinIndex) + minCharge);
+      PeakGroup pg(minCharge, chargeRanges.getValue(1, massBinIndex) + minCharge);
 
       pg.reserve(chargeRange * 30);
       Size rightIndex = avg.getIsotopeEndIndex(mass);
@@ -659,7 +658,7 @@ namespace OpenMS
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / abs(charge);
         double mzDelta = tol * mz * 2; //
 
-        auto np = pg.getChargeSNR(charge);
+        double np = .0;
 
         int pi = 0;
         // int peakcntr = 0;
@@ -740,8 +739,10 @@ namespace OpenMS
             pi = i;
           }
         }
-
-        pg.setChargeSNR(charge, np);
+        if (np > 0)
+        {
+          pg.setChargeSNR(charge, np);
+        }
       }
 
       if (!pg.empty())
@@ -803,8 +804,7 @@ namespace OpenMS
     double massBinMaxValue = std::min(
         logMzPeaks[logMzPeaks.size() - 1].logMz -
         filter[tmp],
-        log(currentMaxMass + 1));
-    massBinMaxValue += avg.getAverageMassDelta(massBinMaxValue);
+        log(currentMaxMass + avg.getAverageMassDelta(currentMaxMass) + 1));
 
     auto bw = binWidth[msLevel - 1];
     tmp = minPeakCntr - 1;
@@ -1120,7 +1120,10 @@ namespace OpenMS
       }
 
       pg.updateMassesAndIntensity(offset, avg.getMaxIsotopeIndex());
-
+      if (pg.getMonoMass() < minMass || pg.getMonoMass() > maxMass)
+      {
+        continue;
+      }
       auto iso = avg.get(pg.getMonoMass());
       auto isoNorm = avg.getNorm(pg.getMonoMass());
       int isoSize = (int) iso.size();
@@ -1183,17 +1186,17 @@ namespace OpenMS
           sp += perIsotopeIntensities[k] * perIsotopeIntensities[k];
         }
 
-        auto cos = getCosine(perIsotopeIntensities,
-                             minIsotopeIndex,
-                             maxIsotopeIndex,
-                             iso,
-                             isoSize,
-                             isoNorm,
-                             0);
+        auto _cos = getCosine(perIsotopeIntensities,
+                              minIsotopeIndex,
+                              maxIsotopeIndex,
+                              iso,
+                              isoSize,
+                              isoNorm,
+                              0);
 
-        double cos2 = cos * cos;
+        double cos2 = _cos * _cos;
 
-        pg.setChargeIsotopeCosine(charge, cos);
+        pg.setChargeIsotopeCosine(charge, _cos);
         pg.setChargeIntensity(charge, perChargeIntensity[charge - minCharge]);
 
         auto dno = (1 - cos2) * sp + pg.getChargeSNR(charge) + 1;

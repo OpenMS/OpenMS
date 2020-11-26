@@ -36,17 +36,20 @@
 
 namespace OpenMS
 {
+  PeakGroup::PeakGroup(int minCharge, int maxCharge) :
+      minCharge(minCharge),
+      maxCharge(maxCharge)
+  {
+    perChargeSNR = std::vector<float>(1 + maxCharge, .0);
+    perChargeInt = std::vector<float>(1 + maxCharge, .0);
+    perChargeCos = std::vector<float>(1 + maxCharge, .0);
+  }
+
   void PeakGroup::clearChargeInfo()
   {
     std::vector<float>().swap(perChargeSNR);
     std::vector<float>().swap(perChargeCos);
     std::vector<float>().swap(perChargeInt);
-
-    //for (auto& item : perChargeInfo)
-    //{
-    //  std::vector<float>().swap(item.second);
-    //}
-    // std::unordered_map<int, std::vector<float>>().swap(perChargeInfo);
   }
 
   bool PeakGroup::operator<(const PeakGroup &a) const
@@ -78,8 +81,6 @@ namespace OpenMS
   void PeakGroup::updateMassesAndIntensity(int offset,
                                            int maxIsoIndex)
   {
-    //
-
     if (offset != 0)
     {
       std::vector<LogMzPeak> tmpPeaks;
@@ -167,13 +168,6 @@ namespace OpenMS
     perChargeInt[charge] = i;
   }
 
-  PeakGroup::PeakGroup(int maxCharge) :
-      maxCharge(maxCharge)
-  {
-    perChargeSNR = std::vector<float>(1 + maxCharge, .0);
-    perChargeInt = std::vector<float>(1 + maxCharge, .0);
-    perChargeCos = std::vector<float>(1 + maxCharge, .0);
-  }
 
   void PeakGroup::setMaxQScoreMzRange(double min, double max)
   {
@@ -266,6 +260,5 @@ namespace OpenMS
   {
     return totalSNR;
   }
-
 
 }
