@@ -91,7 +91,7 @@ jobs:
             pip install -U pip
             pip install -U autowrap
             pip install -U nose
-            pip install -U numpy
+            pip install -U numpy==1.19.3
             pip install -U wheel
 
             #conda deactivate
