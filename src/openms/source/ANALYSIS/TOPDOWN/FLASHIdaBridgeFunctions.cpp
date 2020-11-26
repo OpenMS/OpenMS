@@ -38,7 +38,7 @@ namespace OpenMS
 {
   FLASHIda *CreateFLASHIda(char *arg)
   {
-    std::cout << " FLASHIda creating .. " << std::endl;
+    std::cout << " FLASHIda creating ... " << std::endl;
     return new FLASHIda(arg);
   }
 

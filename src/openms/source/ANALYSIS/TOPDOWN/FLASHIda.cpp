@@ -44,7 +44,6 @@ namespace OpenMS
     std::unordered_map<std::string, std::vector<double>> inputs;
     char *token = std::strtok(arg, " ");
     std::string key;
-
     while (token != nullptr)
     {
       auto tokenString = std::string(token);
@@ -61,30 +60,35 @@ namespace OpenMS
       }
       token = std::strtok(nullptr, " ");
     }
-
+  
     fd = FLASHDeconvAlgorithm();
+   
+    
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
-    fd_defaults.setValue("min_charge", inputs["min_charge"][0]);
-    fd_defaults.setValue("max_charge", inputs["max_charge"][0]);
+    fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
+    fd_defaults.setValue("max_charge", (int) inputs["max_charge"][0]);
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
-    fd_defaults.setValue("maxMass", inputs["maxMass"][0]);
+    fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
+   
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("num_overlapped_scans", 10, "number of overlapped scans for MS1 deconvolution");
     fd.setParameters(fd_defaults);
+    fd.calculateAveragine(false);
 
     auto maxMassCountd = inputs["max_mass_count"];
+    
 
     for (double j : maxMassCountd)
-    {
+    { 
       maxMassCount.push_back((int) j);
     }
-    RTwindow = inputs["RTwindow"][0];
-
+    RTwindow = inputs["RT_window"][0];
     qScoreThreshold = inputs["score_threshold"][0];
 
-    avg = FLASHDeconvHelperStructs::calculateAveragines(inputs["maxMass"][0], false);
+    avg = fd.getAveragine();
     selected = std::map<int, std::vector<double>>(); // int mass, rt, qscore
+    std::cout << fd_defaults << std::endl;
   }
 
 
@@ -107,13 +111,13 @@ namespace OpenMS
     {
       //TODO precursor infor here
     }
-
+   
     // per spec deconvolution
     //    int specIndex = 0, massIndex = 0; // ..
     fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, 0);
-
     FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel);
-    //spec.clear(true);
+
+   // spec.clear(true);
 
     return deconvolutedSpectrum.size();
   }
