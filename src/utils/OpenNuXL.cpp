@@ -4304,29 +4304,28 @@ static void scoreXLIons_(
     for (const PeptideIdentification& pep : peps)
     {
       auto& hits = pep.getHits();
-      for (const PeptideHit& ph : hits)
+      if (hits.empty()) continue;
+      const PeptideHit& ph = hits[0]; // only consider top hit
+      const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
+      const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
+      for (auto& ph_evidence : ph_evidences)
       {
-        const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
-        const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
-        for (auto& ph_evidence : ph_evidences)
+        const String& acc = ph_evidence.getProteinAccession();
+        const int peptide_start_in_protein = ph_evidence.getStart();
+
+        if (peptide_start_in_protein < 0 || best_localization < 0) continue;
+
+        const int xl_pos_in_protein = peptide_start_in_protein + best_localization;
+
+        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+
+        // retrieve protein the evidence points to
+        ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
+        if (xl_pos_in_protein < protein->getSequence().size())
         {
-          const String& acc = ph_evidence.getProteinAccession();
-          const int peptide_start_in_protein = ph_evidence.getStart();
-
-          if (peptide_start_in_protein < 0 || best_localization < 0) continue;
-
-          const int xl_pos_in_protein = peptide_start_in_protein + best_localization;
-
-          bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
-
-          // retrieve protein the evidence points to
-          ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
-          if (xl_pos_in_protein < protein->getSequence().size())
-          {
-            auto mods = protein->getModifications();  // TODO: add mutable reference access
-            mods.AALevelSummary[xl_pos_in_protein][*xl].count++;
-            protein->setModifications(mods);
-          }
+          auto mods = protein->getModifications();  // TODO: add mutable reference access
+          mods.AALevelSummary[xl_pos_in_protein][*xl].count++;
+          protein->setModifications(mods);
         }
       }
     }
@@ -4335,13 +4334,17 @@ static void scoreXLIons_(
     map<char, size_t> aa2psm_count_targets; // how many PSMs have that AA cross-linked
     map<char, size_t> aa2protein_count_decoys; // how many proteins have that AA cross-linked
     map<char, size_t> aa2psm_count_decoys; // how many PSMs have that AA cross-linked
+
+    map<char, double> aa2background_freq; // AA background distribution for normalization
  
     for (const ProteinIdentification& prot_id : prot_ids)
     {
-      const vector<ProteinHit>& proteins = prot_id.getHits();
       for (const ProteinHit& protein : proteins)
       {
         const String& seq = protein.getSequence();
+
+        for (const char c : seq) { aa2background_freq[c] += 1.0; }
+
         const String& acc = protein.getAccession();        
         bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
         auto mods = protein.getModifications();
@@ -4363,14 +4366,22 @@ static void scoreXLIons_(
         // put string with AA, position, PSM count in sequence: e.g.: [Y123,2]
         String annotated_sequence;
         size_t p{0};
-        for (const auto p2psm : position2psm_count)
+
+        if (!position2psm_count.empty())
+        {       
+          for (const auto p2psm : position2psm_count)
+          {
+            while (p < p2psm.first) { annotated_sequence += seq[p]; ++p; }
+            // p now points to the modified AA
+            annotated_sequence += String("[") + seq[p] + String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
+            ++p;
+          }
+          tsv_file.addLine(annotated_sequence);
+        }
+        else
         {
-          while (p < p2psm.first) { annotated_sequence += seq[p]; ++p; }
-          // p now points to the modified AA
-          annotated_sequence += String("[") + seq[p] + String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
-          ++p;
-        }       
-        tsv_file.addLine(annotated_sequence);
+          tsv_file.addLine(seq);
+        }
 
         set<char> already_counted_at_protein_level;
         for (const auto& p2ms : mods.AALevelSummary)
@@ -4415,6 +4426,10 @@ static void scoreXLIons_(
         }
       }  
     }
+ 
+    double sum{};
+    for (const auto& m : aa2background_freq) { sum += m.second; }
+    for (auto& m : aa2background_freq) { m.second /= sum; }
 
     tsv_file.addLine("=============================================================");
     tsv_file.addLine("Protein summary for decoy proteins:");
@@ -4436,7 +4451,7 @@ static void scoreXLIons_(
     tsv_file.addLine("AA:proteins");
     for (const auto& a2p : aa2protein_count_targets)
     {
-      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
     }
 
     tsv_file.addLine("=============================================================");
@@ -4444,7 +4459,7 @@ static void scoreXLIons_(
     tsv_file.addLine("AA:PSMs");
     for (const auto& a2p : aa2psm_count_targets)
     {
-      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
     }
   }
 
