@@ -142,7 +142,7 @@ namespace OpenMS
     for (auto &pg : deconvolutedSpectrum)
     {
       if (maxMassCount.size() >= msLevel && maxMassCount[msLevel - 1] > 0 &&
-          filtered.size() > maxMassCount[msLevel - 1])
+          filtered.size() >= maxMassCount[msLevel - 1])
       {
         break;
       }
