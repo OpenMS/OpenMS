@@ -89,6 +89,14 @@ namespace OpenMS
 
     */
     static void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add);
+
+  protected:
+    /**
+    @brief Generate a TransitionMap based on Compound_Ref and ReactionMonitoringTransitions
+
+    @param t_exp TransitionExperiment holds compound and transition information
+    */
+    static Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > constructTransitionsMap_(const TargetedExperiment& t_exp);
   };
 
 } // namespace OpenMS

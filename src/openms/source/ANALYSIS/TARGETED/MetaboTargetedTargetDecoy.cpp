@@ -40,6 +40,21 @@
 namespace OpenMS
 {
 
+  Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > MetaboTargetedTargetDecoy::constructTransitionsMap_(const TargetedExperiment& t_exp)
+  {
+    // mapping of the transitions to a specific compound reference
+    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
+    for (const auto& tr_it : t_exp.getTransitions())
+    {
+      if (TransitionsMap.find(tr_it.getCompoundRef()) == TransitionsMap.end())
+      {
+        TransitionsMap[tr_it.getCompoundRef()];
+      }
+      TransitionsMap[tr_it.getCompoundRef()].push_back(tr_it);
+    }
+    return TransitionsMap;
+  }
+
   std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(const TargetedExperiment& t_exp)
   {
     std::vector<String> identifier;
@@ -108,7 +123,7 @@ namespace OpenMS
                        intersection.end(),
                        std::back_inserter(replace_intersection),
                        [mass_to_add](double d) -> double { return d + mass_to_add; });
-        for (unsigned int i = 0; i < replace_intersection.size(); i++)
+        for (Size i = 0; i < replace_intersection.size(); ++i)
         {
           std::replace(it.decoy_product_masses.begin(),
                        it.decoy_product_masses.end(),
@@ -118,45 +133,37 @@ namespace OpenMS
       }
     }
 
-    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
-    // mapping of the transitions to a specific compound reference
-    for (Size i = 0; i < t_exp.getTransitions().size(); ++i)
-    {
-      ReactionMonitoringTransition tr = t_exp.getTransitions()[i];
+    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
 
-      if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getCompoundRef()];
-      }
-
-      TransitionsMap[tr.getCompoundRef()].push_back(tr);
-    }
-
+    // resolve mappings and add to current TargetedExperiment
+    std::vector<OpenMS::TargetedExperiment::Compound> compounds;
+    compounds = t_exp.getCompounds();
     std::vector<OpenMS::ReactionMonitoringTransition> transitions;
-    for (Map<String, std::vector<OpenMS::ReactionMonitoringTransition> >::iterator m = TransitionsMap.begin();
-        m != TransitionsMap.end(); ++m)
+
+    for (const auto& it_tmap : TransitionsMap)
     {
-      for (const auto &it : mappings)
+      for (const auto& it : mappings)
       {
-        if (it.decoy_compound_ref == m->first)
+        if (it.decoy_compound_ref == it_tmap.first)
         {
           // replace the resolved decoy transitions with the previous ones
-          if (it.decoy_product_masses.size() == m->second.size())
+          if (it.decoy_product_masses.size() == it_tmap.second.size())
           {
             for (size_t i = 0; i < it.decoy_product_masses.size(); ++i)
             {
-              ReactionMonitoringTransition tr = m->second[i];
-              tr.setProductMZ(it.decoy_product_masses[i]);
+              ReactionMonitoringTransition tr = it_tmap.second[i]; // old
+              tr.setProductMZ(it.decoy_product_masses[i]); // new
               transitions.push_back(tr);
             }
           }
         }
-        else if (it.target_compound_ref == m->first)
+        else if (it.target_compound_ref == it_tmap.first)
         {
-          transitions.insert(transitions.end(), m->second.begin(), m->second.end());
+          transitions.insert(transitions.end(), it_tmap.second.begin(), it_tmap.second.end());
         }
       }
     }
+    t_exp.setCompounds(compounds);
     t_exp.setTransitions(transitions);
   }
 
@@ -180,19 +187,7 @@ namespace OpenMS
       }
     }
 
-    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
-    // mapping of the transitions to a specific compound reference
-    for (Size i = 0; i < t_exp.getTransitions().size(); ++i)
-    {
-      ReactionMonitoringTransition tr = t_exp.getTransitions()[i];
-
-      if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr.getCompoundRef()];
-      }
-
-      TransitionsMap[tr.getCompoundRef()].push_back(tr);
-    }
+    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
 
     std::vector<TargetedExperiment::Compound> compounds;
     std::vector<ReactionMonitoringTransition> transitions;

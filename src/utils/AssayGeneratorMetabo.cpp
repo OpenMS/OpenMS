@@ -55,6 +55,7 @@
 #include <QDir>
 #include <algorithm>
 #include <map>
+#include <regex>
 
 using namespace OpenMS;
 
@@ -253,8 +254,78 @@ protected:
   // Use FeatureGroupingAlgorithmQT
   // based on mz and rt (minimum feature) - MetaValue index to vector<MetaboTargetedAssay>
 
+  struct Intermediate
+  {
+    int target_index = -1;
+    int decoy_index = -1;
+    double target_mz = 0.0;
+    double target_rt = 0.0;
+    double decoy_mz = 0.0;
+    double decoy_rt = 0.0;
+    int target_file_number;
+    int decoy_file_number;
+  };
+
   std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size)
   {
+    // group target and decoy position in vector based on CompoundID
+    std::map<String, Intermediate> target_decoy_groups;
+    for (Size i = 0; i < v_mta.size(); ++i)
+    {
+      MetaboTargetedAssay current_entry = v_mta[i];
+      if (!current_entry.potential_rmts.empty()) // should never be empty
+      {
+        // remove "decoy" tag from compound id for correct mapping
+        if (current_entry.potential_rmts[0].getDecoyTransitionType() ==
+            ReactionMonitoringTransition::DecoyTransitionType::DECOY)
+        {
+          String compoundId = current_entry.potential_cmp.id;
+          compoundId = std::regex_replace(compoundId, std::regex("decoy_"), "");
+          if (target_decoy_groups.find(compoundId) != target_decoy_groups.end())
+          {
+            Intermediate map_entry = target_decoy_groups[compoundId];
+            map_entry.decoy_index = i;
+            map_entry.decoy_mz = current_entry.precursor_mz;
+            map_entry.decoy_rt = current_entry.compound_rt;
+            map_entry.decoy_file_number = current_entry.compound_file;
+            target_decoy_groups[compoundId] = map_entry;
+          }
+          else
+          {
+            Intermediate inter;
+            inter.decoy_index = i;
+            inter.decoy_mz = current_entry.precursor_mz;
+            inter.decoy_rt = current_entry.compound_rt;
+            inter.decoy_file_number = current_entry.compound_file;
+            target_decoy_groups[compoundId] = inter;
+          }
+        }
+        if (current_entry.potential_rmts[0].getDecoyTransitionType() ==
+            ReactionMonitoringTransition::DecoyTransitionType::TARGET)
+        {
+          String compoundId = current_entry.potential_cmp.id;
+          if (target_decoy_groups.find(compoundId) != target_decoy_groups.end()) // not in map
+          {
+            Intermediate map_entry = target_decoy_groups[compoundId];
+            map_entry.target_index = i;
+            map_entry.target_mz = current_entry.precursor_mz;
+            map_entry.target_rt = current_entry.compound_rt;
+            map_entry.target_file_number = current_entry.compound_file;
+            target_decoy_groups[compoundId] = map_entry;
+          }
+          else // not in map
+          {
+            Intermediate inter;
+            inter.target_index = i;
+            inter.target_mz = current_entry.precursor_mz;
+            inter.target_rt = current_entry.compound_rt;
+            inter.target_file_number = current_entry.compound_file;
+            target_decoy_groups[compoundId] = inter;
+          }
+        }
+      }
+    }
+
     std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > ambiguity_groups;
     vector <FeatureMap> feature_maps;
 
@@ -270,26 +341,48 @@ protected:
 
     for (size_t i = 0; i < loop_size; i++)
     {
-      feature_maps.emplace_back(FeatureMap());
+      FeatureMap fmap;
+      String internal_file_path = "File" + std::to_string(i);
+      fmap.setPrimaryMSRunPath({internal_file_path});
+      feature_maps.emplace_back(fmap);
     }
 
-    for (size_t i = 0; i < v_mta.size(); i++)
+    for (const auto& it : target_decoy_groups)
     {
       // create minimal feature (mz,rt) with reference back to vector
       Feature f;
+      f.setUniqueId();
+      f.ensureUniqueId();
       PeptideIdentification pep;
       vector<PeptideIdentification> v_pep;
 
-      f.setRT(v_mta[i].precursor_mz);
-      f.setMZ(v_mta[i].compound_rt);
-      DPosition<2> pt(v_mta[i].compound_rt, v_mta[i].precursor_mz);
+      if (it.second.target_mz != 0.0 && it.second.decoy_mz != 0.0) // both target and decoys are available
+      {
+        if (!(it.second.target_mz == it.second.decoy_mz &&
+              it.second.target_rt == it.second.decoy_rt &&
+              it.second.target_file_number == it.second.decoy_file_number))
+        {
+          OPENMS_LOG_WARN << "There seems to be something wrong - mz, rt!" << std::endl;
+          continue;
+        }
+      }
+
+      DPosition<2> pt(it.second.target_rt, it.second.target_mz);
       f.setPosition(pt);
 
-      pep.setMetaValue("v_mta_index", DataValue(i));
+      if (it.second.target_index != -1)
+      {
+        pep.setMetaValue("v_mta_target_index", DataValue(it.second.target_index));
+      }
+
+      if (it.second.decoy_index != -1)
+      {
+        pep.setMetaValue("v_mta_decoy_index", DataValue(it.second.decoy_index));
+      }
       v_pep.push_back(pep);
       f.setPeptideIdentifications(v_pep);
 
-      size_t cfile = v_mta[i].compound_file;
+      size_t cfile = it.second.target_file_number;
       feature_maps[cfile].push_back(f);
     }
 
@@ -306,7 +399,6 @@ protected:
     fgaqt.group(feature_maps, c_map);
 
     // build ambiguity groups based on consensus entries
-
     for (const auto& c_it : c_map)
     {
       vector <PeptideIdentification> v_pep;
@@ -314,8 +406,16 @@ protected:
       vector <MetaboTargetedAssay> ambi_group;
       for (const auto& p_it : v_pep)
       {
-        int index = p_it.getMetaValue("v_mta_index");
-        ambi_group.push_back(v_mta[index]);
+        if (p_it.metaValueExists("v_mta_target_index"))
+        {
+          int index = p_it.getMetaValue("v_mta_target_index");
+          ambi_group.push_back(v_mta[index]);
+        }
+        if (p_it.metaValueExists("v_mta_decoy_index"))
+        {
+          int index = p_it.getMetaValue("v_mta_decoy_index");
+          ambi_group.push_back(v_mta[index]);
+        }
       }
       std::pair <double, double> entry = std::make_pair(c_it.getMZ(), c_it.getRT());
       std::map< std::pair <double,double>, vector<MetaboTargetedAssay> >::iterator mit;
@@ -734,7 +834,6 @@ protected:
 
       // potential transitions of one file
       vector<MetaboTargetedAssay> tmp_mta;
-      vector<MetaboTargetedAssay> tmp_decoy;
       if (use_fragment_annotation)
       {
         tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,

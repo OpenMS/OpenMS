@@ -1015,7 +1015,6 @@ namespace OpenMS
     Map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of compounds to transitions for easy access
-    // Generate a map of compounds to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
     {
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
