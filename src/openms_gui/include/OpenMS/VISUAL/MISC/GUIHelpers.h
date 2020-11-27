@@ -47,6 +47,8 @@ class QPoint;
 #include <QCursor>
 #include <QFont>
 
+#include <array>
+
 namespace OpenMS
 {
   /**
@@ -139,6 +141,59 @@ namespace OpenMS
       bool currently_locked_{ false };
       bool was_enabled_{ true };
     };
-  };
 
+    /// color palette for certain purposes
+    /// Currently, only a set of distinct colors is supported
+    class ColorBrewer
+    {
+    public:
+      struct Distinct
+      {
+        enum NAMES
+        {
+          Red,
+          Blue,
+          Green,
+          Brown,
+          Purple,
+          LightGrey,
+          LightGreen,
+          LightBlue,
+          Cyan,
+          Orange,
+          Yellow,
+          Tan,
+          Pink,
+          DarkGrey,
+          SIZE_OF_NAMES
+        };
+
+        const std::array<QColor, NAMES::SIZE_OF_NAMES> values = { Qt::red,
+                                                                  Qt::blue,
+                                                                  Qt::green,
+                                                                  QColor(129, 74, 25) /*brown*/,
+                                                                  QColor(129, 38, 192) /*purple*/,
+                                                                  Qt::lightGray,
+                                                                  QColor(129,197,122) /*lightGreen*/,
+                                                                  QColor(157,175,255) /*lightBlue*/,
+                                                                  Qt::cyan,
+                                                                  QColor(255,146,51) /*orange*/,
+                                                                  Qt::yellow,
+                                                                  QColor(233,222,187) /*tan*/,
+                                                                  QColor(255,205,243) /*pink*/,
+                                                                  Qt::darkGray };
+      };
+
+      /// get a certain color. If @p index is larger than the maximum color, modulo operator will applied (cycling through colors)
+      template<class COLOR_CLASS>
+      static QColor getColor(uint32_t index)
+      {
+        // cycle if neccessary
+        if (index >= COLOR_CLASS::NAMES::SIZE_OF_NAMES) index = index % COLOR_CLASS::NAMES::SIZE_OF_NAMES;
+        return COLOR_CLASS().values[index];
+      }
+
+    }; // ColorBrewer
+
+  }; // GUIHelpers
 }
