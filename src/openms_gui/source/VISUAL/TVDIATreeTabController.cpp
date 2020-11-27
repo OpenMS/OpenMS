@@ -109,35 +109,52 @@ namespace OpenMS
 
   void addFeatures(Plot1DWidget* w, std::vector<OSWPeakGroup>& features)
   {
+    // nothing to do...
+    if (features.empty()) return;
+
     // sort features by left RT
     std::sort(features.begin(), features.end(), [](const OSWPeakGroup& a, const OSWPeakGroup& b)
     {
       return a.getRTLeftWidth() < b.getRTLeftWidth();
     });
-
+    const OSWPeakGroup* best_feature = &features[0];
+    auto findBestFeature = [&features, &best_feature](const OSWPeakGroup& f)
+    {
+      if (best_feature->getQValue() > f.getQValue()) best_feature = &f;
+    };
+    if (best_feature->getQValue() == -1)
+    { // no q-values are annotated. make them all grey.
+      best_feature = nullptr;
+    }
     GUIHelpers::OverlapDetector od(3); // three y-levels for showing annotation
+
 
     // show feature boundaries
     for (const auto& feature : features)
     {
       double width = feature.getRTRightWidth() - feature.getRTLeftWidth();
       double center = feature.getRTLeftWidth() + width / 2;
-      String ann = String("RT: ") + String(feature.getRTExperimental(), false) + "\ndRT: " + String(feature.getRTDelta(), false) + "\nQ-Value: " + String(feature.getQValue(), false);
-      Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 30, false, QColor("invalid"), ann.toQString());
+      String ann = String("RT:\n ") + String(feature.getRTExperimental(), false) + "\ndRT:\n " + String(feature.getRTDelta(), false) + "\nQ:\n " + String(feature.getQValue(), false);
+      QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
+                          ? GUIHelpers::ColorBrewer::Distinct::LightGreen
+                          : GUIHelpers::ColorBrewer::Distinct::LightGrey];
+      Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 150, false, col, ann.toQString());
       item->setSelected(false);
-      auto text_size = item->getTextRect();
-      int chunk = od.placeItem(feature.getRTLeftWidth(), feature.getRTLeftWidth() + text_size.width());
+      auto text_size = item->getTextRect(); // this is in px units (Qt widget coordinates)
+      // translate to axis units (our native 'data'):
+      auto p_text = w->canvas()->widgetToDataDistance(text_size.width(), 0);
+      int chunk = od.placeItem(feature.getRTLeftWidth(), feature.getRTLeftWidth() + p_text.getX());
       item->setTextYOffset(chunk * text_size.height());
 
-      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
     }
     // paint the expected RT once
     if (!features.empty())
     {
       double expected_RT = features[0].getRTExperimental() - features[0].getRTDelta();
-      Annotation1DItem* item = new Annotation1DVerticalLineItem(expected_RT, 1, 200, true, Qt::darkGreen, "lib");
+      Annotation1DItem* item = new Annotation1DVerticalLineItem(expected_RT, 3, 200, true, Qt::darkGreen, "");
       item->setSelected(false);
-      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
     }
   }
 
