@@ -48,12 +48,14 @@ namespace OpenMS
   struct OPENMS_DLLAPI ProteinModificationSummary
   {
     /// basic modification statistic
+    /// values are constructed as unknown/NA and equal -1
     struct OPENMS_DLLAPI Statistics
     {
       bool operator==(const Statistics& rhs) const;
-      size_t count = 0;  /// total number of PSMs supporting the modification at this position
-      double frequency = 0.0; /// PSMs with modification / total number of PSMs
-      double FLR = 0.0; /// false localization rate
+      size_t count = -1;  ///< total number of PSMs supporting the modification at this position
+      double frequency = -1.0; ///< PSMs with modification / total number of PSMs
+      double FLR = -1.0; ///< false localization rate
+      double probability = -1.0; ///< (localization) probability
     };
 
     /// comparison operator
