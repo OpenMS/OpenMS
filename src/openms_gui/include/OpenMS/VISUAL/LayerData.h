@@ -514,6 +514,7 @@ private:
   };
 
   /// A base class to annotate layers of specific types with (identification) data
+  /// @hint Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView 
   class LayerAnnotatorBase
   {
     public:
@@ -530,7 +531,20 @@ private:
       /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
       /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
       /// as implemented by the derived classes
-      bool annotate(LayerData& layer, LogWindow& log, const String& current_path) const;
+      bool annotateWithFileDialog(LayerData& layer, LogWindow& log, const String& current_path) const;
+
+      /// Annotates a @p layer, given a filename from which to load the data.
+      /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
+      /// as implemented by the derived classes
+      bool annotateWithFilename(LayerData& layer, LogWindow& log, const String& filename) const;
+
+      /// get a derived annotator class, which supports annotation of the given filetype.
+      /// If multiple class support this type (currently not the case) an Exception::IllegalSelfOperation will be thrown
+      /// If NO class supports this type, the unique_ptr points to nothing (.get() == nullptr).
+      static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const FileTypes::Type& type);
+
+      /// see getAnnotatorWhichSupports(const FileTypes::Type& type). Filetype is queried from filename
+      static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const String& filename);
 
     protected:
       /// abstract virtual worker function to annotate a layer using content from the @p filename

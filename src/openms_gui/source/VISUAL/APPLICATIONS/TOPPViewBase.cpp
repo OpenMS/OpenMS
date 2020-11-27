@@ -520,7 +520,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
+  TOPPViewBase::LOAD_RESULT TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
   {
     String abs_filename = File::absolutePath(filename);
 
@@ -528,7 +528,7 @@ namespace OpenMS
     if (!File::exists(abs_filename))
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The file '") + abs_filename + "' does not exist!");
-      return;
+      return LOAD_RESULT::FILE_NOT_FOUND;
     }
 
     // determine file type
@@ -537,14 +537,14 @@ namespace OpenMS
     if (file_type == FileTypes::UNKNOWN)
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("Could not determine file type of '") + abs_filename + "'!");
-      return;
+      return LOAD_RESULT::FILETYPE_UNKNOWN;
     }
 
     // abort if file type unsupported
     if (!supported_types.contains(file_type))
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported!");
-      return;
+      return LOAD_RESULT::FILETYPE_UNSUPPORTED;
     }
 
     //try to load data and determine if it's 1D or 2D data
@@ -716,7 +716,7 @@ namespace OpenMS
     catch (Exception::BaseException& e)
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Error while loading file:", e.what());
-      return;
+      return LOAD_RESULT::LOAD_ERROR;
     }
 
     // sort for mz and update ranges of newly loaded data
@@ -757,6 +757,8 @@ namespace OpenMS
 
     // watch file contents for changes
     watcher_->addFile(abs_filename);
+
+    return LOAD_RESULT::OK;
   }
 
   void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map,
@@ -1874,6 +1876,16 @@ namespace OpenMS
     return &(canvas->getCurrentLayer());
   }
 
+  LayerData* TOPPViewBase::getCurrentLayer()
+  {
+    PlotCanvas* canvas = getActiveCanvas();
+    if (canvas == nullptr)
+    {
+      return nullptr;
+    }
+    return &(canvas->getCurrentLayer());
+  }
+
   void TOPPViewBase::toggleProjections()
   {
     Plot2DWidget* w = getActive2DWidget();
@@ -1897,7 +1909,7 @@ namespace OpenMS
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorAMS annotator(this);
     assert(log_ != nullptr);
-    if (!annotator.annotate(layer, *log_, current_path_))
+    if (!annotator.annotateWithFileDialog(layer, *log_, current_path_))
     {
       return;
     }
@@ -1909,7 +1921,7 @@ namespace OpenMS
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorPeptideID annotator(this);
     assert(log_ != nullptr);
-    if (!annotator.annotate(layer, *log_, current_path_))
+    if (!annotator.annotateWithFileDialog(layer, *log_, current_path_))
     {
       return;
     }
@@ -1921,7 +1933,7 @@ namespace OpenMS
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorOSW annotator(this);
     assert(log_ != nullptr);
-    if (!annotator.annotate(layer, *log_, current_path_))
+    if (!annotator.annotateWithFileDialog(layer, *log_, current_path_))
     {
       return;
     }
@@ -2361,6 +2373,7 @@ namespace OpenMS
     static StringList gradients = { "Linear|0,#ffffff;100,#000000" , "Linear|0,#dddddd;100,#000000" , "Linear|0,#000000;100,#000000",
                                     "Linear|0,#ff0000;100,#ff0000" , "Linear|0,#00ff00;100,#00ff00" , "Linear|0,#ff00ff;100,#ff00ff" };
     bool last_was_plus = false;
+    bool last_was_annotation = false;
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
       if (*it == "+")
@@ -2368,29 +2381,75 @@ namespace OpenMS
         last_was_plus = true;
         continue;
       }
-      else if (std::find(colors.begin(), colors.end(), *it) != colors.end())
+      if (*it == "!")
       {
+        last_was_annotation = true;
+        continue;
+      }
+
+      // no matter what the current item is, after we are done with it, 
+      // we need to reset the 'glue' symbols
+      RAIICleanup reset([&]() {
+        last_was_plus = false;
+        last_was_annotation = false;
+      });
+
+      if (std::find(colors.begin(), colors.end(), *it) != colors.end())
+      { // its a color!
         if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
           tmp.setValue("dot:gradient", gradients[Helpers::indexOf(colors, *it)]);
           getActiveCanvas()->setCurrentLayerParameters(tmp);
         }
+        continue;
       }
-      else if (!last_was_plus || !getActivePlotWidget())
-      { // create new tab
-        splash_screen->showMessage((String("Loading file: ") + *it).toQString());
-        splash_screen->repaint();
-        QApplication::processEvents();
+      
+      splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+      splash_screen->repaint();
+      QApplication::processEvents();
+
+      if (!getActivePlotWidget())
+      {
+        if (last_was_annotation)
+        {
+          log_->appendNewHeader(LogWindow::LogState::WARNING, "Error", "Cannot annotate without having added layers before.");
+          continue;
+        }
+        // create new tab (also in case of last_was_plus)...
         addDataFile(*it, false, true); // add data file but don't show options
+        continue;
       }
-      else
+
+      // we have an active widget
+      if (last_was_plus)
       { // add to current tab
-        splash_screen->showMessage((String("Loading file: ") + *it).toQString());
-        splash_screen->repaint();
-        QApplication::processEvents();
-        last_was_plus = false;
         addDataFile(*it, false, true, "", getActivePlotWidget()->getWindowId());
+        continue;
+      }
+      else if (last_was_annotation)
+      { // try to treat file as annotation file and annotate current layer
+        auto l = getCurrentLayer();
+        if (l)
+        {
+          auto annotator = LayerAnnotatorBase::getAnnotatorWhichSupports(*it);
+          if (annotator.get() == nullptr)
+          {
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + *it + "' has unsupported file type. No annotation performed.").toQString());
+          }
+          else
+          { // we have an annotator ...
+            if (annotator->annotateWithFilename(*l, *log_, *it))
+            { // enable ID tabs (we don't know which one because the annotator cannot know ... so do both for now)
+              selection_view_->show(DataSelectionTabs::IDENT_IDX);
+              selection_view_->show(DataSelectionTabs::DIAOSW_IDX);
+            }
+          }
+        }
+      }        
+      else
+      { // create new tab
+        addDataFile(*it, false, true); // add data file but don't show options
       }
     }
   }
