@@ -870,7 +870,7 @@ namespace OpenMS
           pro_id_->back().setMetaValue("spectra_data", spectra_data_list);
           if (!spectrumIdentification_date.empty())
           {
-            pro_id_->back().setDateTime(DateTime::fromString(spectrumIdentification_date.toQString(), "yyyy-MM-ddThh:mm:ss"));
+            pro_id_->back().setDateTime(DateTime::fromString(spectrumIdentification_date, "yyyy-MM-ddThh:mm:ss"));
           }
           else
           {

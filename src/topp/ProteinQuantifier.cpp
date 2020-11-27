@@ -788,7 +788,7 @@ protected:
       IdXMLFile().load(in, proteins, peptides);
       for (Size i = 0; i < proteins.size(); ++i)
       {
-        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString(Qt::ISODate);
+        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString("yyyy-MM-ddTHH:mm:ss");
       }
 
       ed = getExperimentalDesignIds_(design_file, proteins);
