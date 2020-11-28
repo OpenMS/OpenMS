@@ -178,7 +178,7 @@ public:
     void clear();
 
     /// Returns a string representation of date and time in the provided format
-    std::string toString(const std::string& format) const;
+    String toString(const std::string& format) const;
 
     /// Returns a DateTime object from string representation
     static DateTime fromString(const std::string& date, const std::string& format);
