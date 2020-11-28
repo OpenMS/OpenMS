@@ -241,13 +241,13 @@ protected:
                                  [](const pair_type &p1, const pair_type &p2) { return p1.second < p2.second; });
 
       // filter vector down to the compound with sumformula and adduct based on the highest occurence
-      mta.erase(remove_if(begin(mta),
-                          end(mta),
+      mta.erase(remove_if(mta.begin(),
+                          mta.end(),
                           [&pr](MetaboTargetedAssay assay)
                           {
-                            return assay.molecular_formula != pr->first.first &&
+                            return assay.molecular_formula != pr->first.first ||
                                    assay.compound_adduct != pr->first.second;
-                          }), end(mta));
+                          }), mta.end());
     }
   }
 
