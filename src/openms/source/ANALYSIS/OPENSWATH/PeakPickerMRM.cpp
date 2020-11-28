@@ -220,8 +220,8 @@ namespace OpenMS
       right_width_.push_back(right_idx);
       integrated_intensities_.push_back(0);
 
-      OPENMS_LOG_DEBUG << "Found peak at " << central_peak_rt << " and "  << picked_chrom[i].getIntensity()
-                << " with borders " << chromatogram[left_width_[i]].getRT() << " " << chromatogram[right_width_[i]].getRT() <<
+      OPENMS_LOG_DEBUG << "Found peak at " << central_peak_rt << " with intensity "  << picked_chrom[i].getIntensity()
+                << " and borders " << chromatogram[left_width_[i]].getRT() << " " << chromatogram[right_width_[i]].getRT() <<
         " (" << chromatogram[right_width_[i]].getRT() - chromatogram[left_width_[i]].getRT() << ") "
                 << 0 << " weighted RT " << /* weighted_mz << */ std::endl;
     }

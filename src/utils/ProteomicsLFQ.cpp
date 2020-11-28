@@ -690,7 +690,7 @@ protected:
 
       transform_(feature_maps, transformations);
 
-      link_(feature_maps, 
+      link_(feature_maps,
         median_fwhm, 
         max_alignment_diff, 
         consensus_fraction);
