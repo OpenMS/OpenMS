@@ -109,7 +109,7 @@ namespace OpenMS
       String time = attributeAsString_(attributes, "time");
       String version = attributeAsString_(attributes, "version");
 
-      DateTime date = DateTime::fromString(time, "ddd MMM d yyyy");
+      DateTime date = DateTime::fromString(time, "dddMMM d yyyy");
       if (!date.isValid())
         date = DateTime::fromString(time, "yyyy-MM-ddTHH:mm:ss");
       if (!date.isValid())
