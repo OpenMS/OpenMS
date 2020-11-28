@@ -151,7 +151,7 @@ namespace OpenMS
       }
     }
 
-    if (!dt_.isValid)
+    if (!dt_.isValid())
     {
       dt_ = QDateTime::fromString(date.c_str());  // ddd MMM d YYYY format as found in (old?) protXML files
     }
