@@ -870,6 +870,8 @@ protected:
     // resolve identification ambiguity based on highest occurrence and highest intensity
     std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter ,in.size());
 
+
+
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;

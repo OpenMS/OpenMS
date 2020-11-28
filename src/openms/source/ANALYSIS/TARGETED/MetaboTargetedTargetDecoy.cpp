@@ -69,7 +69,7 @@ namespace OpenMS
 
     std::vector<ReactionMonitoringTransition> rmts = t_exp.getTransitions();
     std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings;
-    for (const auto &it : identifier)
+    for (const auto& it : identifier)
     {
       MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping mapping;
       mapping.identifier = it;
@@ -84,7 +84,7 @@ namespace OpenMS
       {
         mapping.target_product_masses.emplace_back(it_target->getProductMZ());
         mapping.target_compound_ref = it_target->getCompoundRef();
-        it_target++;
+        ++it_target;
       }
       auto it_decoy = rmts.begin();
       while ((it_decoy = find_if(it_decoy,
@@ -97,7 +97,7 @@ namespace OpenMS
       {
         mapping.decoy_product_masses.emplace_back(it_decoy->getProductMZ());
         mapping.decoy_compound_ref = it_decoy->getCompoundRef();
-        it_decoy++;
+        ++it_decoy;
       }
       mappings.emplace_back(mapping);
     }
@@ -111,10 +111,15 @@ namespace OpenMS
     {
       std::vector<double> intersection;
       std::vector<double> replace_intersection;
-      std::set_intersection(it.target_product_masses.begin(),
-                            it.target_product_masses.end(),
-                            it.decoy_product_masses.begin(),
-                            it.decoy_product_masses.end(),
+      std::vector<double> target_product_masses = it.target_product_masses;
+      std::vector<double> decoy_product_masses = it.decoy_product_masses;
+      std::sort(target_product_masses.begin(), target_product_masses.end());
+      std::sort(decoy_product_masses.begin(), decoy_product_masses.end());
+
+      std::set_intersection(target_product_masses.begin(),
+                            target_product_masses.end(),
+                            decoy_product_masses.begin(),
+                            decoy_product_masses.end(),
                             std::back_inserter(intersection));
 
       if (!intersection.empty())
@@ -123,6 +128,7 @@ namespace OpenMS
                        intersection.end(),
                        std::back_inserter(replace_intersection),
                        [mass_to_add](double d) -> double { return d + mass_to_add; });
+
         for (Size i = 0; i < replace_intersection.size(); ++i)
         {
           std::replace(it.decoy_product_masses.begin(),
@@ -136,34 +142,29 @@ namespace OpenMS
     Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
 
     // resolve mappings and add to current TargetedExperiment
-    std::vector<OpenMS::TargetedExperiment::Compound> compounds;
-    compounds = t_exp.getCompounds();
     std::vector<OpenMS::ReactionMonitoringTransition> transitions;
 
-    for (const auto& it_tmap : TransitionsMap)
+    for (const auto& it: mappings)
     {
-      for (const auto& it : mappings)
+      if (!it.target_compound_ref.empty())
       {
-        if (it.decoy_compound_ref == it_tmap.first)
+        std::vector<OpenMS::ReactionMonitoringTransition> target_transitions = TransitionsMap[it.target_compound_ref];
+        transitions.insert(transitions.end(), target_transitions.begin(), target_transitions.end());
+      }
+      if (!it.decoy_compound_ref.empty())
+      {
+        std::vector<OpenMS::ReactionMonitoringTransition> current_decoy_transitions = TransitionsMap[it.decoy_compound_ref];
+        if (it.decoy_product_masses.size() == current_decoy_transitions.size())
         {
-          // replace the resolved decoy transitions with the previous ones
-          if (it.decoy_product_masses.size() == it_tmap.second.size())
+          for (size_t i = 0; i < it.decoy_product_masses.size(); ++i)
           {
-            for (size_t i = 0; i < it.decoy_product_masses.size(); ++i)
-            {
-              ReactionMonitoringTransition tr = it_tmap.second[i]; // old
-              tr.setProductMZ(it.decoy_product_masses[i]); // new
-              transitions.push_back(tr);
-            }
+            ReactionMonitoringTransition tr = current_decoy_transitions[i]; // old
+            tr.setProductMZ(it.decoy_product_masses[i]); // new
+            transitions.push_back(tr);
           }
-        }
-        else if (it.target_compound_ref == it_tmap.first)
-        {
-          transitions.insert(transitions.end(), it_tmap.second.begin(), it_tmap.second.end());
         }
       }
     }
-    t_exp.setCompounds(compounds);
     t_exp.setTransitions(transitions);
   }
 

@@ -329,11 +329,11 @@ namespace OpenMS
             }
             os << "##des " << String(des_wo_space) << "\n";
             os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
-            os << "##source file " << ainfo.sf_path << endl;
+            os << "##source file " << ainfo.sf_path << ainfo.sf_filename << endl;
             os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
             cmpinfo.des = String(des_wo_space);
             cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
-            cmpinfo.source_file = ainfo.sf_path;
+            cmpinfo.source_file = String(ainfo.sf_path + ainfo.sf_filename);
             cmpinfo.source_format = String("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
 
             // use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
@@ -395,9 +395,9 @@ namespace OpenMS
             os << ">collision" << " " << collision << "\n";
           }
           os << "##n_id " << native_id << endl;
-          // "m_id" annotation for multiple possible identifications (description_native_id_k)
+          // "m_id" annotation for multiple possible identifications (description_filepath_native_id_k)
           // fragment mapping will be done using the m_id
-          String m_id = cmpinfo.des + "_" + native_id + "_" + k;
+          String m_id = cmpinfo.des + "_" + ainfo.sf_filename + "_" + native_id + "_" + k;
           os << "##m_id " << m_id << endl;
           os << "##scan " << ind << endl;
           os << "##specref " << "ms_run[1]:" << native_id << endl;
@@ -486,6 +486,7 @@ namespace OpenMS
     else
     {
       ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
+      ainfo.sf_filename = spectra.getSourceFiles()[0].getNameOfFile();
       ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
 
       // native_id

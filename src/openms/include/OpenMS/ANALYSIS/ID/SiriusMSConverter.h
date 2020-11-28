@@ -52,6 +52,7 @@ public:
   public:
     String sf_path; ///< sourcefile path for mztab-m
     String sf_type; ///< sourcefile type for mztab-m
+    String sf_filename; ///< sourcefile name for mztab-m
     String sf_accession; ///< sourcefile accessions for mztab-m
     String native_id_accession; ///< nativeID accession for mztab-m
     String native_id_type; ///< nativeID type for mztab-m
