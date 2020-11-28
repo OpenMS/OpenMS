@@ -314,7 +314,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         {
           new_combinations.push_back(target_nucleotide_formula + ac - EmpiricalFormula("H2O")); // -H2O because of condensation reaction
           all_combinations.push_back(target_nucleotide_formula + ac - EmpiricalFormula("H2O")); // " "
-          const set<String>& ambiguities = result.mod_combinations[ac.toString()];
+          const auto& ambiguities = result.mod_combinations[ac.toString()];
           for (auto const & s : ambiguities)
           {
             result.mod_combinations[all_combinations.back().toString()].insert(target_nucleotide + s);
@@ -346,7 +346,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
-    const set<String>& ambiguities = result.mod_combinations[mit->first];
+    const RNPxlModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[mit->first];
     for (String const & s : ambiguities)
     {
       String nucleotide_style_formula(s);
@@ -434,7 +434,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   }
 
   // standard associative-container erase idiom
-  for (map<String, set<String> >::iterator mcit = result.mod_combinations.begin(); mcit != result.mod_combinations.end(); )
+  for (auto mcit = result.mod_combinations.begin(); mcit != result.mod_combinations.end(); )
   {
     if (mcit->second.empty())
     {
@@ -468,7 +468,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
     OPENMS_LOG_INFO << "Precursor adduct " << index++ << "\t:\t" << m.first << " " << m.second << " ( ";
 
-    const set<String>& ambiguities = result.mod_combinations[m.first];
+    const RNPxlModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[m.first];
     set<String> printed;
 
     // for all ambiguities (same empirical formula)

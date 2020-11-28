@@ -2692,7 +2692,7 @@ static void scoreXLIons_(
         const double fixed_and_variable_modified_peptide_weight = fixed_and_variable_modified_peptide.getMonoWeight();
 
         // determine NA on precursor from index in map
-        std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
+        auto mod_combinations_it = mm.mod_combinations.cbegin();
         std::advance(mod_combinations_it, a.rna_mod_index);
         const String precursor_rna_adduct = *mod_combinations_it->second.begin();
         const double precursor_rna_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
@@ -3428,7 +3428,7 @@ static void scoreXLIons_(
       ph.setMetaValue(String("variable_modifications"), n_var_mods);
 
       // determine NA modification from index in map
-      std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
+      auto mod_combinations_it = mm.mod_combinations.cbegin();
       std::advance(mod_combinations_it, ah.rna_mod_index);
       ph.setMetaValue(String("NuXL:mass_error_p"), ah.mass_error_p);
       ph.setMetaValue(String("NuXL:total_loss_score"), ah.total_loss_score);
@@ -4280,11 +4280,6 @@ static void scoreXLIons_(
     ProteinIdentification& prot_id = prot_ids[0];
     vector<ProteinHit>& proteins = prot_id.getHits();
 
-    // create a user defined modification
-    ResidueModification* xl = new ResidueModification();
-    xl->setFullId("x"); // something not used in ResidueDB
-    xl->setOrigin('X'); // any AA
-
     // create lookup accession -> protein
     map<String, ProteinHit*> acc2protein_targets;
     map<String, ProteinHit*> acc2protein_decoys;
@@ -4308,6 +4303,12 @@ static void scoreXLIons_(
       const PeptideHit& ph = hits[0]; // only consider top hit
       const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
       const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
+
+      // create a user defined modification
+      ResidueModification* xl = new ResidueModification();
+      xl->setFullId(ph.getMetaValue("NuXL:NA")); // something not used in ResidueDB
+      xl->setOrigin('X'); // any AA
+
       for (auto& ph_evidence : ph_evidences)
       {
         const String& acc = ph_evidence.getProteinAccession();
@@ -4346,10 +4347,10 @@ static void scoreXLIons_(
         for (const char c : seq) { aa2background_freq[c] += 1.0; }
 
         const String& acc = protein.getAccession();        
+        tsv_file.addLine(acc);
+
         bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
         auto mods = protein.getModifications();
-
-        tsv_file.addLine(acc);
 
         // count how many PSMs support XL-ed position in a protein
         map<size_t, size_t> position2psm_count;
@@ -4357,7 +4358,7 @@ static void scoreXLIons_(
         {
           size_t position = p2ms.first;
           for (const auto& m2s : p2ms.second)
-          {
+          { 
             const auto stat = m2s.second;
             position2psm_count[position] += stat.count;            
           }
@@ -4421,7 +4422,7 @@ static void scoreXLIons_(
             {
               aa2psm_count_decoys[AA_at_position] += count;
             }
-            tsv_file.addLine(m2s.first.getFullId() + ":" + AA_at_position + String(position) + "(" + String(count) + ")");
+            tsv_file.addLine(m2s.first.getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
           }
         }
       }  

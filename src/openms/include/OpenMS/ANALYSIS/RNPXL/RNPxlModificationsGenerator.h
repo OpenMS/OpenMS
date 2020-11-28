@@ -49,8 +49,26 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI RNPxlModificationMassesResult
   {
+    struct MyStringLengthCompare
+    {
+      bool operator () (const std::string & p_lhs, const std::string & p_rhs)
+      {
+        const size_t lhsLength = p_lhs.length() ;
+        const size_t rhsLength = p_rhs.length() ;
+        if(lhsLength == rhsLength)
+        {
+            return (p_lhs < p_rhs) ; // when two strings have the same
+                                     // length, defaults to the normal
+                                     // string comparison
+        }
+        return (lhsLength < rhsLength) ; // compares with the length
+      }
+    };
     std::map<String, double> mod_masses; ///< empirical formula -> mass
-    std::map<String, std::set<String> > mod_combinations; ///< empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
+
+    using NucleotideFormulas = std::set<String, MyStringLengthCompare>;
+    using MapSumFormulaToNucleotideFormulas = std::map<String, NucleotideFormulas>;
+    MapSumFormulaToNucleotideFormulas mod_combinations; ///< empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
   };
 
   class OPENMS_DLLAPI RNPxlModificationsGenerator
@@ -69,5 +87,4 @@ namespace OpenMS
       static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
     };
 }
-
 

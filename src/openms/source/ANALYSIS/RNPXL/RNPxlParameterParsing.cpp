@@ -65,7 +65,7 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
     // get all precursor nucleotide formulas matching current empirical formula/mass
     const String& ef = pa.first;
     const double pc_mass = pa.second;
-    const set<String>& ambiguities = precursor_adducts.mod_combinations.at(ef);
+    const auto& ambiguities = precursor_adducts.mod_combinations.at(ef);
 
     if (ambiguities.size() >= 2)
     {
