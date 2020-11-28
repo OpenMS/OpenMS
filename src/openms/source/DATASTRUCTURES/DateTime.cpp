@@ -99,7 +99,7 @@ namespace OpenMS
     return dt_.isValid();
   }
 
-  std::string DateTime::toString(const std::string& format) const
+  String DateTime::toString(const std::string& format) const
   {
     return dt_.toString(QString::fromStdString(format)).toStdString();
   }
@@ -149,6 +149,11 @@ namespace OpenMS
       {
         dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-dd hh:mm:ss"));
       }
+    }
+
+    if (!dt_.isValid)
+    {
+      dt_ = QDateTime::fromString(date.c_str());  // ddd MMM d YYYY format as found in (old?) protXML files
     }
 
     if (!dt_.isValid())

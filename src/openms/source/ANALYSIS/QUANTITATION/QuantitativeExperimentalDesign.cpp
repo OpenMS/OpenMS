@@ -162,8 +162,8 @@ namespace OpenMS
           OPENMS_LOG_INFO << "Warning: The identifier '" + id + "' was used before!" << endl;
           // generate a new ID:
           DateTime date_time = prot_it->getDateTime();
-          std::string new_id;
-          std::string search_engine = prot_it->getSearchEngine();          
+          String new_id;
+          String search_engine = prot_it->getSearchEngine();          
           do
           {
             date_time = date_time.addSecs(1);

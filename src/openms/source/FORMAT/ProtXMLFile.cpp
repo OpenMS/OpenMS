@@ -109,9 +109,9 @@ namespace OpenMS
       String time = attributeAsString_(attributes, "time");
       String version = attributeAsString_(attributes, "version");
 
-      DateTime date = DateTime::fromString(time, "dddMMM d yyyy");
-      if (!date.isValid())
-        date = DateTime::fromString(time, "yyyy-MM-ddTHH:mm:ss");
+      DateTime date;
+      date.set(time);
+
       if (!date.isValid())
         OPENMS_LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
       prot_id_->setDateTime(date);
