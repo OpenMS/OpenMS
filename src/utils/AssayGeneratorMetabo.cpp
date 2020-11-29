@@ -240,7 +240,7 @@ protected:
                                  std::end(occ_map),
                                  [](const pair_type &p1, const pair_type &p2) { return p1.second < p2.second; });
 
-      // filter vector down to the compound with sumformula and adduct based on the highest occurence
+      // filter vector down to the compound with sumformula and adduct based on the highest occurrence
       mta.erase(remove_if(mta.begin(),
                           mta.end(),
                           [&pr](MetaboTargetedAssay assay)
@@ -342,7 +342,7 @@ protected:
     for (size_t i = 0; i < loop_size; i++)
     {
       FeatureMap fmap;
-      String internal_file_path = "File" + std::to_string(i);
+      String internal_file_path = "File" + std::to_string(i) + ".mzML" ;
       fmap.setPrimaryMSRunPath({internal_file_path});
       feature_maps.emplace_back(fmap);
     }
@@ -356,13 +356,25 @@ protected:
       PeptideIdentification pep;
       vector<PeptideIdentification> v_pep;
 
-      if (it.second.target_mz != 0.0 && it.second.decoy_mz != 0.0) // both target and decoys are available
+      // check - no target and decoy available
+      if (it.second.target_mz == 0.0 && it.second.decoy_mz == 0.0)
+      {
+        continue;
+      }
+      // target and decoy available - check correspondence
+      else if (it.second.target_mz != 0.0 && it.second.decoy_mz != 0.0)
       {
         if (!(it.second.target_mz == it.second.decoy_mz &&
               it.second.target_rt == it.second.decoy_rt &&
               it.second.target_file_number == it.second.decoy_file_number))
         {
-          OPENMS_LOG_WARN << "There seems to be something wrong - mz, rt!" << std::endl;
+          OPENMS_LOG_DEBUG << "The decoy and target do not correspond: " <<
+                           " target_mz: " << it.second.target_mz <<
+                           " decoy_mz: " << it.second.decoy_mz <<
+                           " target_rt: " << it.second.target_rt  <<
+                           " decoy_rt: " << it.second.decoy_rt  <<
+                           " target_file_number: " << it.second.target_file_number <<
+                           " decoy_file_number: " << it.second.decoy_file_number << std::endl;
           continue;
         }
       }
