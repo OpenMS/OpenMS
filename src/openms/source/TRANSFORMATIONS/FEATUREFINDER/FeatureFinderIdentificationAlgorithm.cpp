@@ -337,7 +337,7 @@ namespace OpenMS
         peptides.back().setMZ(f_it->getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
         peptides.back().setMetaValue("FromUntargeted", "true");
-        peptides.back().setMetaValue("SeedFeatureID", f_it->getUniqueId());
+        peptides.back().setMetaValue("SeedFeatureID", String(f_it->getUniqueId()));
         addPeptideToMap_(peptides.back(), peptide_map_);
         ++seeds_added;
       }
@@ -684,10 +684,10 @@ namespace OpenMS
             //cout << peptide.sequence << " " << charge << endl;
             double mz = rt_pep.second->getMZ();
             double rt = rt_pep.second->getRT();
-            UInt64 uid = rt_pep.second->getMetaValue("SeedFeatureID");
+            String uid = rt_pep.second->getMetaValue("SeedFeatureID");
 
             // UID should be enough, but let's add the seed count to be sure.
-            String peptide_id = peptide.sequence + "[" + String(uid) + "][" + String(seedcount) + "]/" + String(charge);
+            String peptide_id = peptide.sequence + "[" + uid + "][" + String(seedcount) + "]/" + String(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
             peptide.protein_refs = {"not_available"};
