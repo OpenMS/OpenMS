@@ -476,21 +476,6 @@ namespace OpenMS
       hits.erase(it, hits.end());
     }
 
-    // add back peptide identification id if it got skipped (decoys)
-    for (const auto& pep : peptides)
-    {
-      if (pep.getHits().empty()) continue;
-      PeptideIdentification p{pep}; 
-      const PeptideHit& hit = p.getHits()[0];
-      if (!quantify_decoys_) // if decoys are not quantified we add them as unassigned peptide identification
-      {
-        if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") 
-        { 
-          features.getUnassignedPeptideIdentifications().push_back(p); 
-        }
-      }
-    }
-
     // remove empty PeptideIdentifications
     auto it = remove_if(ids.begin(), ids.end(),
       [](const PeptideIdentification & pid)

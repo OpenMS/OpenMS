@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 // QT
 #include <QPainter>
@@ -964,32 +965,7 @@ namespace OpenMS
 
   void PlotCanvas::drawText_(QPainter & painter, QStringList text)
   {
-    painter.save();
-
-    //font
-    QFont font("Courier");
-    painter.setFont(font);
-
-    //determine width and height of the box we need
-    QFontMetrics metrics(painter.font());
-    int line_spacing = metrics.lineSpacing();
-    int height = 6 + text.size() * line_spacing;
-    int width = 4;
-    for (int i = 0; i < text.size(); ++i)
-    {
-      width = max(width, 4 + metrics.width(text[i]));
-    }
-
-    //draw background for text
-    painter.fillRect(2, 3, width, height, QColor(255, 255, 255, 200));
-
-    //draw text
-    painter.setPen(Qt::black);
-    for (int i = 0; i < text.size(); ++i)
-    {
-      painter.drawText(3, 3 + (i + 1) * line_spacing, text[i]);
-    }
-    painter.restore();
+    GUIHelpers::drawText(painter, text, {2, 3}, Qt::black, QColor(255, 255, 255, 200));
   }
 
   double PlotCanvas::getIdentificationMZ_(const Size layer_index,

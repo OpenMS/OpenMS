@@ -1317,7 +1317,9 @@ namespace OpenMS
       if (getActiveCanvas()->getLayerCount() != 0) 
       {
         fs |= TV_STATUS::HAS_LAYER;
-        layer_type = getCurrentLayer()->type;
+        layer_type = getCurrentLayer()->getChromatogramData().get()->getNrChromatograms() > 0
+                             ? LayerData::DT_CHROMATOGRAM // chrom data in 1D view is shown as DT_PEAK...
+                             : getCurrentLayer()->type;
       }
     }
     // is this a 1D view

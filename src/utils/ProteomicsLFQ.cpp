@@ -37,7 +37,11 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+
+// export formats of results
 #include <OpenMS/FORMAT/MSstatsFile.h>
+#include <OpenMS/FORMAT/TriqlerFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -69,11 +73,10 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/FORMAT/MzTab.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -179,6 +182,9 @@ protected:
     registerOutputFile_("out_msstats", "<file>", "", "output MSstats input file", false, false);
     setValidFormats_("out_msstats", ListUtils::create<String>("csv"));
 
+    registerOutputFile_("out_triqler", "<file>", "", "output Triqler input file", false, false);
+    setValidFormats_("out_triqler", ListUtils::create<String>("tsv"));
+
     registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
     setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
 
@@ -250,7 +256,6 @@ protected:
     ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
     ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
     ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness    
-    ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
 
     // hide entries
     for (const auto& s : {"svm:samples", "svm:log2_C", "svm:log2_gamma", "svm:min_prob", "svm:no_selection", "svm:xval_out", "svm:kernel", "svm:xval", "candidates_out", "extract:n_isotopes", "model:type"} )
@@ -604,10 +609,11 @@ protected:
 
       double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
               [](TrafoStat a, TrafoStat b) 
-              { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
+              { return a.percentiles_after[100] < b.percentiles_after[100]; })->percentiles_after[100];
       // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
       OPENMS_LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
-      max_alignment_diff = std::max(max_alignment_diff, 120.0);
+      max_alignment_diff = std::max(max_alignment_diff, 120.0); // minimum 2 minutes
+      max_alignment_diff = std::min(max_alignment_diff, 600.0); // maximum 10 minutes
       return max_alignment_diff;
     }
     return 0;
@@ -1216,7 +1222,8 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization (basic)
     //-------------------------------------------------------------
-    if (getStringOption_("out_msstats").empty())  // only normalize if no MSstats output is generated
+    if (getStringOption_("out_msstats").empty() 
+    && getStringOption_("out_triqler").empty())  // only normalize if no MSstats/Triqler output is generated
     {
       ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(
         consensus_fraction, 
@@ -1224,6 +1231,8 @@ protected:
         "", 
         "");
     }
+
+
 
     // max_alignment_diff returned by reference
     return EXECUTION_OK;
@@ -1409,9 +1418,18 @@ protected:
     }
 
     fdr.applyBasic(inferred_protein_ids[0]);
+
     if (max_psm_fdr < 1.)
     {
       fdr.applyBasic(inferred_peptide_ids);
+    }
+
+    if (!getFlag_("PeptideQuantification:quantify_decoys"))
+    { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
+      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
     }
 
     if (debug_level_ >= 666)
@@ -1426,15 +1444,17 @@ protected:
     }
 
     // FDR filtering
-    if (max_psm_fdr < 1.)
+    if (max_psm_fdr < 1.) // PSM level
     {
       IDFilter::filterHitsByScore(inferred_peptide_ids, max_psm_fdr);
     }
-    if (max_fdr < 1.)
+
+    if (max_fdr < 1.) // protein level
     {
       IDFilter::filterHitsByScore(inferred_protein_ids, max_fdr);
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-    }
+    } 
+
     if (max_psm_fdr < 1.)
     {
       IDFilter::removeUnreferencedProteins(inferred_protein_ids,
@@ -1483,6 +1503,43 @@ protected:
     return EXECUTION_OK;
   }
 
+  void syncIDAndQuant_(vector<PeptideIdentification>& pids, const unordered_map<String,set<String>>& pep2prot_inferred)
+  {
+    for (auto& pid : pids)
+    {
+      auto& hits = pid.getHits();
+      for (auto& ph : hits)
+      {
+        std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
+        auto pep2prot_it = pep2prot_inferred.find(ph.getSequence().toUnmodifiedString());
+        if (pep2prot_it != pep2prot_inferred.end())
+        {
+          const auto accs = pep2prot_it->second;
+          pes.erase(std::remove_if(pes.begin(), 
+                              pes.end(),
+                              [&pep2prot_inferred,&accs](PeptideEvidence& x){
+                                return accs.find(x.getProteinAccession()) == accs.end();
+                              }),
+              pes.end());
+          ph.setPeptideEvidences(std::move(pes));
+        }
+        else
+        {
+          ph.setPeptideEvidences({});
+        }
+      }
+      // erase hits without references to proteins
+      hits.erase(std::remove_if(hits.begin(), hits.end(),
+                            [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
+            hits.end());
+    }
+    // erase peptide ids without peptide hits
+    pids.erase(std::remove_if(pids.begin(), 
+                    pids.end(),
+                    [](PeptideIdentification& x){ return x.getHits().empty(); }),
+          pids.end());
+  }
+
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -1493,6 +1550,7 @@ protected:
     StringList in = getStringList_("in");
     String out = getStringOption_("out");
     String out_msstats = getStringOption_("out_msstats");
+    String out_triqler = getStringOption_("out_triqler");
     StringList in_ids = getStringList_("ids");
     String design_file = getStringOption_("design");
     String in_db = getStringOption_("fasta");
@@ -1504,10 +1562,18 @@ protected:
         OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
     }
 
-    if (getStringOption_("quantification_method") == "spectral_counting" && !out_msstats.empty())
+    if (getStringOption_("quantification_method") == "spectral_counting")
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "MSstats export for spectral counting data not supported. Please remove output file.");
+      if (!out_msstats.empty())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "MSstats export for spectral counting data not supported. Please remove output file.");
+      }
+      if (!out_triqler.empty())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Triqler export for spectral counting data not supported. Please remove output file.");
+      }
     }
 
     //-------------------------------------------------------------
@@ -1769,13 +1835,14 @@ protected:
    
     // references from PSM to Protein that got removed during inference need to be also removed in the consensus map
     {
-      set<String> protein_inferred;
+      unordered_map<String,set<String>> pep2prot_inferred;
       // determine all inferred proteins
-      for (auto& p : inferred_protein_ids)
+      for (auto& p : inferred_peptide_ids)
       {
         for (auto& ph : p.getHits())
         {
-          protein_inferred.insert(ph.getAccession());
+          //TODO if we ever support modified proteins, mapping via unmodified sequence will not work
+          pep2prot_inferred.emplace(ph.getSequence().toUnmodifiedString(), ph.extractProteinAccessionsSet());
         }
       }
 
@@ -1783,55 +1850,11 @@ protected:
       for (auto& c : consensus)
       {
         auto& pids = c.getPeptideIdentifications();
-        for (auto& pid : pids)
-        {
-          auto& hits = pid.getHits();
-          for (auto& ph : hits)
-          {
-            std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
-            pes.erase(std::remove_if(pes.begin(), 
-                                pes.end(),
-                                [&protein_inferred](PeptideEvidence& x){ return protein_inferred.find(x.getProteinAccession()) == protein_inferred.end(); }),
-                 pes.end());
-            ph.setPeptideEvidences(std::move(pes));
-          }
-        // erase hits without reference to proteins
-        hits.erase(std::remove_if(hits.begin(), hits.end(),
-                              [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
-               hits.end());
-        }
-        // erase peptide ids without peptide hits
-        pids.erase(std::remove_if(pids.begin(), 
-                         pids.end(),
-                         [](PeptideIdentification& x){ return x.getHits().empty(); }),
-               pids.end());
+        syncIDAndQuant_(pids, pep2prot_inferred);
       }
 
       auto& pids = consensus.getUnassignedPeptideIdentifications();
-      for (auto& pid : pids)
-      {
-        auto& hits = pid.getHits();
-        for (auto& ph : hits)
-        {
-          std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
-          pes.erase(std::remove_if(pes.begin(), 
-                              pes.end(),
-                              [&protein_inferred](PeptideEvidence& x){ return protein_inferred.find(x.getProteinAccession()) == protein_inferred.end(); }),
-               pes.end());
-          ph.setPeptideEvidences(std::move(pes));
-        }
-
-        // erase hits without reference to proteins
-        hits.erase(std::remove_if(hits.begin(), hits.end(),
-                              [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
-               hits.end());
-      }
-
-     // erase peptide ids without peptide hits
-     pids.erase(std::remove_if(pids.begin(), 
-                         pids.end(),
-                         [](PeptideIdentification& x){ return x.getHits().empty(); }),
-          pids.end());
+      syncIDAndQuant_(pids, pep2prot_inferred);
     }
 
     // clean up references (assigned and unassigned)
@@ -1947,6 +1970,23 @@ protected:
         "MSstats_Condition", 
         "max");
     }
+
+
+    if (!out_triqler.empty())
+    {
+      TriqlerFile tf;
+
+      // shrink protein runs to the one containing the inference data
+      consensus.getProteinIdentifications().resize(1);
+
+      tf.storeLFQ(
+        out_triqler, 
+        consensus, 
+        design, 
+        StringList(), 
+        "MSstats_Condition" // TODO: choose something more generic like "Condition" for both MSstats and Triqler export
+        );
+    }    
 
     return EXECUTION_OK;
   }

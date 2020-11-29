@@ -84,7 +84,8 @@ namespace OpenMS
     connect(id_view_widget_, &SpectraIDViewTab::requestVisibleArea1D, idview_controller_, &TVIdentificationViewController::setVisibleArea1D);
 
     // Hook-up controller and views for DIA
-    connect(dia_widget_, &DIATreeTab::dataSelected, diatab_controller_, &TVDIATreeTabController::showData);
+    connect(dia_widget_, &DIATreeTab::entityClicked, diatab_controller_, &TVDIATreeTabController::showChromatograms);
+    connect(dia_widget_, &DIATreeTab::entityDoubleClicked, diatab_controller_, &TVDIATreeTabController::showChromatogramsAsNew1D);
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());

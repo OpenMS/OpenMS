@@ -48,8 +48,24 @@ namespace OpenMS
       public Annotation1DItem
   {
   public:
-    /// Constructor
-    Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString& text="");
+    /**
+      Constructor for a single vertical line.
+
+      @param pos X-coordinate as show on the axis
+      @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
+      @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
+    **/ 
+    Annotation1DVerticalLineItem(const double x_pos, const QColor& color = QColor("as_before"), const QString& text = "");
+    /**
+      Constructor for a single vertical band, with a slightly transparent middle, flanked by two solid vertical lines.
+
+      @param pos X-coordinate of the center as show on the axis
+      @param width Full width of the band
+      @param fill_alpha255 A transparency value from 0 (no visible band), to 255 (fully opaque band)
+      @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
+      @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
+    **/
+    Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int fill_alpha255 = 128, const QColor& color = QColor("as_before"), const QString& text = "");
     /// Copy constructor
     Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem& rhs) = default;
     /// Destructor
@@ -67,9 +83,13 @@ namespace OpenMS
 
   protected:
     /// The position of the vertical line
-    double x_;
+    double x_ = -1;
+    /// width of the item (allowing to show a 'band')
+    float width_ = 0;
+    /// transparency 0...255 of the band (only used when width_ > 0)
+    float fill_alpha255_ = 128;
 
-    /// The color of the line
-    QColor color_;
+    /// The color of the line; if invalid, the current painter color will be used
+    QColor color_ = Qt::black;
   };
 } // namespace OpenMS

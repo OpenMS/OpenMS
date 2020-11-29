@@ -26,7 +26,7 @@
 			<VariableModification name="Carbamidomethyl (C)" />
 			<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-plfq-decoys-2020-11-16"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-triqler-2020-11-18"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -844,7 +844,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="2935923263525422257"/>
 		</consensusElement>
-		<consensusElement id="e_10409195546240342212" quality="0.4906" charge="3">
+		<consensusElement id="e_10409195546240342212" quality="0.491247" charge="3">
 			<centroid rt="1552.032972717137454" mz="358.174576486337685" it="9.099985e05"/>
 			<groupedElementList>
 				<element map="0" id="14317784148091680644" rt="1558.221639541818604" mz="358.174576486337685" it="1.358151e06" charge="3"/>
@@ -870,7 +870,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="10409195546240342212"/>
 		</consensusElement>
-		<consensusElement id="e_2477368416748083016" quality="0.420485" charge="2">
+		<consensusElement id="e_2477368416748083016" quality="0.432693" charge="2">
 			<centroid rt="1641.742577455876472" mz="508.247494448271027" it="1.592066e05"/>
 			<groupedElementList>
 				<element map="1" id="16616557306000669869" rt="1524.941088971155523" mz="508.247494448271027" it="2.140242e05" charge="2"/>
@@ -912,7 +912,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="8563167430029240731"/>
 		</consensusElement>
-		<consensusElement id="e_17879691353184002386" quality="0.968095" charge="2">
+		<consensusElement id="e_17879691353184002386" quality="0.971702" charge="2">
 			<centroid rt="1725.33974575468369" mz="569.752618393021066" it="1.176551e07"/>
 			<groupedElementList>
 				<element map="0" id="4835329514588776807" rt="1759.95224833795146" mz="569.752618393021066" it="2.056782e07" charge="2"/>
@@ -948,7 +948,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="17879691353184002386"/>
 		</consensusElement>
-		<consensusElement id="e_17757401347613427925" quality="0.956186" charge="2">
+		<consensusElement id="e_17757401347613427925" quality="0.961813" charge="2">
 			<centroid rt="1726.141157089023409" mz="449.744389900420913" it="2.278309e06"/>
 			<groupedElementList>
 				<element map="0" id="7276556891837796968" rt="1781.642176761832616" mz="449.74438990042097" it="1.971638e06" charge="2"/>
@@ -984,7 +984,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="17757401347613427925"/>
 		</consensusElement>
-		<consensusElement id="e_4349546871070693707" quality="0.464827" charge="3">
+		<consensusElement id="e_4349546871070693707" quality="0.470464" charge="3">
 			<centroid rt="1727.822072080827638" mz="300.165352089204305" it="1.325325e07"/>
 			<groupedElementList>
 				<element map="0" id="893904610286969204" rt="1781.755160501302271" mz="300.165352089204305" it="1.292532e07" charge="3"/>
@@ -1010,7 +1010,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="4349546871070693707"/>
 		</consensusElement>
-		<consensusElement id="e_3725296011092108785" quality="0.976134" charge="2">
+		<consensusElement id="e_3725296011092108785" quality="0.978511" charge="2">
 			<centroid rt="1728.548430910764864" mz="443.711267907820911" it="3.678042e07"/>
 			<groupedElementList>
 				<element map="0" id="15004869347769368353" rt="1749.175535582311113" mz="443.711267907820911" it="6.20244e07" charge="2"/>
@@ -1062,7 +1062,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="4287466236848599457"/>
 		</consensusElement>
-		<consensusElement id="e_3103608995878612024" quality="0.479435" charge="3">
+		<consensusElement id="e_3103608995878612024" quality="0.481718" charge="3">
 			<centroid rt="1743.8775182170275" mz="431.20554824377092" it="7.502512e06"/>
 			<groupedElementList>
 				<element map="0" id="2684106197423007927" rt="1765.721442974537695" mz="431.20554824377092" it="1.240657e07" charge="3"/>
@@ -1104,7 +1104,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="5494749430262800962"/>
 		</consensusElement>
-		<consensusElement id="e_9283548542228005819" quality="0.974473" charge="2">
+		<consensusElement id="e_9283548542228005819" quality="0.977655" charge="2">
 			<centroid rt="1755.020224719759426" mz="722.324660331071186" it="2.377318e07"/>
 			<groupedElementList>
 				<element map="0" id="7539502987715517688" rt="1788.385620876663324" mz="722.324660331071073" it="3.697848e07" charge="2"/>
@@ -1156,7 +1156,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14976954448023685397"/>
 		</consensusElement>
-		<consensusElement id="e_4052294204879239723" quality="0.962518" charge="2">
+		<consensusElement id="e_4052294204879239723" quality="0.96763" charge="2">
 			<centroid rt="1791.525739926758661" mz="487.732534471620966" it="6.794489e07"/>
 			<groupedElementList>
 				<element map="0" id="474525871221756682" rt="1850.125288661992272" mz="487.732534471620966" it="9.063513e07" charge="2"/>
@@ -1208,7 +1208,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14278822580076064845"/>
 		</consensusElement>
-		<consensusElement id="e_2523775179728812781" quality="0.472916" charge="3">
+		<consensusElement id="e_2523775179728812781" quality="0.476996" charge="3">
 			<centroid rt="1811.235115636034379" mz="325.490781803337597" it="5.915498e07"/>
 			<groupedElementList>
 				<element map="0" id="2927519776102075938" rt="1850.265747616082535" mz="325.490781803337597" it="6.698248e07" charge="3"/>
@@ -1250,7 +1250,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="8737956799617760608"/>
 		</consensusElement>
-		<consensusElement id="e_1479160453569602855" quality="0.491104" charge="2">
+		<consensusElement id="e_1479160453569602855" quality="0.492373" charge="2">
 			<centroid rt="1837.250853030021062" mz="693.813928283221003" it="2.815806e05"/>
 			<groupedElementList>
 				<element map="1" id="2067209405782217684" rt="1849.395393003333538" mz="693.813928283221003" it="2.620175e05" charge="2"/>
@@ -1292,7 +1292,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14086301720075657476"/>
 		</consensusElement>
-		<consensusElement id="e_17798533385406028685" quality="0.486907" charge="2">
+		<consensusElement id="e_17798533385406028685" quality="0.488223" charge="2">
 			<centroid rt="1932.984969951018456" mz="751.810528712020982" it="9.588147e05"/>
 			<groupedElementList>
 				<element map="1" id="11630589982317102322" rt="1920.390701033215009" mz="751.810528712020982" it="1.376247e06" charge="2"/>
@@ -1334,7 +1334,7 @@
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="4877407491526870466"/>
 		</consensusElement>
-		<consensusElement id="e_5634796270667792442" quality="0.495959" charge="2">
+		<consensusElement id="e_5634796270667792442" quality="0.496035" charge="2">
 			<centroid rt="1951.959204506901415" mz="461.747653035420967" it="6.930613e07"/>
 			<groupedElementList>
 				<element map="1" id="17287849381738438716" rt="1951.23183628886045" mz="461.747653035420967" it="8.861719e07" charge="2"/>

@@ -28,53 +28,28 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Lukas Heumos $
+// $Authors: Lukas Heumos $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <OpenMS/FORMAT/TriqlerFile.h>
 
-class QString; // declare this OUTSIDE of namespace OpenMS!
-class QStringList;
-class QPainter;
-class QPoint;
+using namespace OpenMS;
 
-#include <QColor>
-#include <QFont>
+START_TEST(MSstatsFile, "$Id$")
 
-namespace OpenMS
+START_SECTION(void OpenMS::TriqlerFile::storeLFQ( const OpenMS::String &filename, 
+                                                  ConsensusMap &consensus_map,
+                                                  const OpenMS::ExperimentalDesign& design, 
+                                                  const StringList& reannotate_filenames,
+                                                  const String& condition,
+                                                  const String& retention_time_summarization_method))
 {
-  /**
-    Namespace which holds static GUI-related helper functions.
-  */
-  namespace GUIHelpers
-  {
-    
-    /// Open a folder in file explorer
-    /// Will show a message box on failure
-    void openFolder(const QString& folder);
-
-    /// Open TOPPView (e.g. from within TOPPAS)
-    void startTOPPView(const QStringList& args);
-
-    /// Open a certain URL (in a browser)
-    /// Will show a message box on failure
-    void openURL(const QString& target);
-
-    /**
-       @brief draw a multi-line text at coordinates XY using a specific font and color
-       @param painter Where to draw
-       @param text Each item is a new line
-       @param where Coordinates where to start drawing (upper left corner of text)
-       @param col_fg Optional text color; if invalid (=default) will use the current painter's color
-       @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
-       @param Optional font; will use Courier by default
-    */
-    void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), QFont f = QFont("Courier"));
-
-  };
-
+  // tested via TriqlerConverter tool
 }
+END_SECTION
+
+END_TEST

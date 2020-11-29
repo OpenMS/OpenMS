@@ -16,6 +16,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 
 Adapters/Third-party support:
 - Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
+- Added basic Triqler export
 
 
 ------------------------------------------------------------------------------------------

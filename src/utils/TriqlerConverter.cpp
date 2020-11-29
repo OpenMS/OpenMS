@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
-// $Authors: Lukas Zimmermann $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -45,7 +45,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <boost/regex.hpp>
-#include <OpenMS/FORMAT/MSstatsFile.h>
+#include <OpenMS/FORMAT/TriqlerFile.h>
 
 
 using namespace OpenMS;
@@ -56,29 +56,29 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MSstatsConverter MSstatsConverter
+    @page UTILS_TriqlerConverter TriqlerConverter
 
-    @brief Converter to input for MSstats
+    @brief Converter to input for Triqler
 
-    This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a CSV file which can subsequently be used as input for the R package MSstats [1].
+    This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a CSV file which can subsequently be used as input for the python tool Triqler [1].
 
-    [1] M. Choi et al. MSstats: an R package for statistical analysis for quantitative mass spectrometry-based proteomic experiments. Bioinformatics (2014), 30 (17): 2524-2526
+    [1] The, M. & Käll, L. (2019). Integrated identification and quantification error probabilities for shotgun proteomics. Molecular & Cellular Proteomics, 18 (3), 561-570.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MSstatsConverter.cli
+    @verbinclude UTILS_TriqlerConverter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MSstatsConverter.html
+    @htmlinclude UTILS_TriqlerConverter.html
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPMSstatsConverter final :
+class TOPPTriqlerConverter final :
   public TOPPBase
 {
 public:
-  TOPPMSstatsConverter() :
-          TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
+  TOPPTriqlerConverter() :
+          TOPPBase("TriqlerConverter", "Converter to input for Triqler", false)
   {
   }
 
@@ -96,46 +96,16 @@ protected:
                          false);
       setValidFormats_(param_in_design, ListUtils::create<String>("tsv"), true);
 
-      registerStringOption_(param_method, "<method>",
-                            "LFQ",
-                            "Method used in the experiment(label free [LFQ], isobaric labeling [ISO]))", false,
-                            false);
-      setValidStrings_(param_method,
-                       ListUtils::create<String>("LFQ,ISO"));
-
-      registerStringOption_(param_msstats_bioreplicate, "<msstats_bioreplicate>",
-                            "MSstats_BioReplicate",
-                            "Which column in the condition table should be used for MSstats 'BioReplicate'", false,
-                            false);
-      registerStringOption_(param_msstats_condition, "<msstats_condition>", "MSstats_Condition",
-                            "Which column in the condition table should be used for MSstats 'Condition'", false, false);
-
-      registerStringOption_(param_msstats_mixture, "msstats_mixture", "MSstats_Mixture",
-                            "Which column in the condition table should be used for MSstats 'Mixture'", false, false);
+      registerStringOption_(param_Triqler_condition, "<Triqler_condition>", "Triqler_Condition",
+                            "Which column in the condition table should be used for Triqler 'Condition'", false, false);
 
       // advanced option to overwrite MS file annotations in consensusXML
       registerInputFileList_(param_reannotate_filenames, "<file(s)>", StringList(),
                              "Overwrite MS file names in consensusXML", false, true);
-      setValidFormats_(param_reannotate_filenames, ListUtils::create<String>("mzML"), true);
-                             
-
-      // Isotope label type
-      registerFlag_(param_labeled_reference_peptides,
-                    "If set, IsotopeLabelType is 'H', else 'L'");
-
-      // Specifies how peptide ions eluding at different retention times should be resolved
-      registerStringOption_(param_retention_time_summarization_method,
-                            "<retention_time_summarization_method>", "max",
-                            "How indistinguishable peptidoforms at different retention times should be treated."
-                            " This is usually necessary for LFQ experiments and therefore defaults to 'max'."
-                            " In case of TMT/iTRAQ, MSstatsTMT"
-                            " does the aggregation itself later and the parameter always resets to manual (i.e. is unused).", false,
-                            true);
-      setValidStrings_(param_retention_time_summarization_method,
-                       ListUtils::create<String>("manual,max,min,mean,sum"));
+      setValidFormats_(param_reannotate_filenames, ListUtils::create<String>("mzML"), true);                             
 
       // Output CSV file
-      registerOutputFile_(param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
+      registerOutputFile_(param_out, "<out>", "", "Input CSV file for Triqler.", true, false);
       setValidFormats_(param_out, ListUtils::create<String>("csv"));
     }
 
@@ -165,26 +135,16 @@ protected:
         ConsensusXMLFile().load(arg_in, consensus_map);
 
         StringList reannotate_filenames = getStringList_(param_reannotate_filenames);
-        bool is_isotope_label_type = getFlag_(param_labeled_reference_peptides);
-        String bioreplicate = getStringOption_(param_msstats_bioreplicate);
-        String condition = getStringOption_(param_msstats_condition);
-        String mixture = getStringOption_(param_msstats_mixture);
+        String condition = getStringOption_(param_Triqler_condition);
         String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
 
-        MSstatsFile msStatsFile;
+        TriqlerFile TriqlerFile;
 
-        if (arg_method == "LFQ")
-        {
-            msStatsFile.storeLFQ(arg_out, consensus_map, design,
-                                 reannotate_filenames, is_isotope_label_type,
-                                 bioreplicate, condition, retention_time_summarization_method);
-        }
-        else if (arg_method == "ISO")
-        {
-            msStatsFile.storeISO(arg_out, consensus_map, design,
-                                 reannotate_filenames, bioreplicate, condition, 
-                                 mixture, retention_time_summarization_method);
-        }
+        TriqlerFile.storeLFQ(arg_out, consensus_map, 
+                              design,
+                              reannotate_filenames,
+                              condition);
+
         return EXECUTION_OK;
       }
       catch (const ExitCodes &exit_code)
@@ -197,11 +157,8 @@ protected:
     static const String param_in;
     static const String param_in_design;
     static const String param_method;
-    static const String param_msstats_bioreplicate;
-    static const String param_msstats_condition;
-    static const String param_msstats_mixture;
-    static const String param_out;
-    static const String param_labeled_reference_peptides;
+    static const String param_Triqler_condition;
+    static const String param_out;    
     static const String param_retention_time_summarization_method;
     static const String param_reannotate_filenames;
 
@@ -216,21 +173,18 @@ private:
     }
 };
 
-const String TOPPMSstatsConverter::param_in = "in";
-const String TOPPMSstatsConverter::param_in_design = "in_design";
-const String TOPPMSstatsConverter::param_method = "method";
-const String TOPPMSstatsConverter::param_msstats_bioreplicate = "msstats_bioreplicate";
-const String TOPPMSstatsConverter::param_msstats_condition = "msstats_condition";
-const String TOPPMSstatsConverter::param_msstats_mixture = "msstats_mixture";
-const String TOPPMSstatsConverter::param_out = "out";
-const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
-const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
-const String TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_filenames";
+const String TOPPTriqlerConverter::param_in = "in";
+const String TOPPTriqlerConverter::param_in_design = "in_design";
+const String TOPPTriqlerConverter::param_method = "method";
+const String TOPPTriqlerConverter::param_Triqler_condition = "Triqler_condition";
+const String TOPPTriqlerConverter::param_out = "out";
+const String TOPPTriqlerConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
+const String TOPPTriqlerConverter::param_reannotate_filenames = "reannotate_filenames";
 
 // the actual main function needed to create an executable
 int main(int argc, const char **argv)
 {
-  TOPPMSstatsConverter tool;
+  TOPPTriqlerConverter tool;
   return tool.main(argc, argv);
 }
 /// @endcond
