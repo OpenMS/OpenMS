@@ -59,10 +59,11 @@ using namespace std;
 @dot
 digraph sample_workflow {
   node [ style="solid,filled", color=black, fillcolor=grey90, width=1.5, fixedsize=true, shape=square, fontname=Helvetica, fontsize=10 ];
-  edge [ arrowhead="open", style="solid" ];
+  edge [ style="solid" ];
   rankdir="LR";
   splines=ortho;
   mzml [ label="mzML file(s)" shape=oval fillcolor=white group=1];
+  db [ label="database in question" shape=oval fillcolor=white ];
   novor [ label="NovorAdapter" URL="\ref OpenMS::NovorAdapter" group=2];
   id_filter [ label="IDFilter" URL="\ref OpenMS::IDFilter" group=2];
   id_convert [ label="IDFileConverter" URL="\ref OpenMS::IDFileConverter" group=2];
@@ -75,13 +76,16 @@ digraph sample_workflow {
   mzml -> novor;
   mzml -> comet;
   comet -> pep_ind;
-  pep_ind -> db_suit [ xlabel="in_id" ];
+  pep_ind -> db_suit [ xlabel="in_id" fontsize=10 ];
   novor -> id_filter;
   id_filter -> id_convert;
+  id_convert -> db_suit [ xlabel="novo_database" fontsize=10 ];
   id_convert -> decoy_db;
+  decoy_db -> db [ dir=back ];
+  db_suit -> db [ dir=back xlabel="database" fontsize=10 ];
   decoy_db -> comet;
-  mzml -> db_suit [ xlabel="in_spec" ];
-  novor -> db_suit [ xlabel="in_novor" ];
+  mzml -> db_suit [ xlabel="in_spec" fontsize=10 ];
+  novor -> db_suit [ xlabel="in_novo" fontsize=10 ];
   db_suit -> tsv;
 }
 @enddot
@@ -96,8 +100,8 @@ To generate the de novo "database":
 For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p reranking_cutoff_percentile.@n
 For this to work it is important @ref TOPP_PeptideIndexer ran before. However it is also crucial that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
 
-@note For identification search the only supported search engine for the time being is Comet because the Comet cross-correlation score is needed for re-ranking.@n
-You can still uses other search engines and disable the re-ranking via the @p no_rerank flag in this tool. This will probably result in an underestimated suitability though.@n
+@note For identification search the recommended search engine is Comet because the Comet cross-correlation score is needed for re-ranking.@n
+You can still uses other search engines. In this case the tool will use the default score of your search engine. This can result in undefined behaviour and is not recommended.@n
 
 
 The results are written directly into the console. But you can provide an optional tsv output file where the most important results will be exported to.
