@@ -378,7 +378,6 @@ namespace OpenMS
       const Size id_count = pi.size();
       const vector<Precursor> & precursors = spectrum.getPrecursors();
 
-
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
       if (ms_level != 2 && id_count == 0) { continue; }
 

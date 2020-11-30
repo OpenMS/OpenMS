@@ -66,7 +66,6 @@ namespace OpenMS
       glock_(stw)
     {
       stw->setCurrentWidget(stw->ui->tab_log);
-      
     }
 
     SwathGUILock::~SwathGUILock()

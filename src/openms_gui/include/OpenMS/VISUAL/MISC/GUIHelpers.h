@@ -101,7 +101,6 @@ namespace OpenMS
     class OverlapDetector
     {
     public:
-      
       /// C'tor: number of @p levels must be >=1
       explicit OverlapDetector(int levels);
 
@@ -192,7 +191,6 @@ namespace OpenMS
         if (index >= COLOR_CLASS::NAMES::SIZE_OF_NAMES) index = index % COLOR_CLASS::NAMES::SIZE_OF_NAMES;
         return COLOR_CLASS().values[index];
       }
-
     }; // ColorBrewer
 
   }; // GUIHelpers

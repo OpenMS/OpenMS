@@ -152,7 +152,6 @@ namespace OpenMS
 
     // update the currently visible tab (might be disabled if no data is shown)
     tab_ptrs_[current_index]->updateEntries(layer_ptr);
-
   }
 
   void DataSelectionTabs::currentTabChanged(int tab_index)
