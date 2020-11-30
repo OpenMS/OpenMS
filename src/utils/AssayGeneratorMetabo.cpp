@@ -379,6 +379,13 @@ protected:
         }
       }
 
+      // feature is based on target
+      // check if target is valid before generating feature
+      if (it.second.target_mz == 0.0 && it.second.target_rt == 0.0)
+      {
+        continue;
+      }
+
       DPosition<2> pt(it.second.target_rt, it.second.target_mz);
       f.setPosition(pt);
 
