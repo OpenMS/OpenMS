@@ -65,6 +65,8 @@ namespace OpenMS
     defaults_.setValue("FDR", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)");
     defaults_.setMinFloat("FDR", 0.);
     defaults_.setMaxFloat("FDR", 1.);
+    defaults_.setValue("force", "false", "Set this flag to enforce re-ranking when no cross correlation score is present. For re-ranking the default score found at each peptide hit is used. Use with care!");
+    defaults_.setValidStrings("force", { "true", "false" });
     defaultsToParam_();
   }
   
@@ -72,18 +74,34 @@ namespace OpenMS
   {
     pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
 
-    if (pep_ids[0].getScoreType() == "q-value")
+    if (pep_ids[0].getScoreType() == "q-value") // q-value as score?
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
     }
+
     for (const auto& id : pep_ids)
     {
       if (id.getHits().empty()) continue;
-      if (id.getHits()[0].metaValueExists("q-value"))
+      if (id.getHits()[0].metaValueExists("q-value")) // q-value at meta values?
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
       }
+
+      if (!id.getHits()[0].metaValueExists("MS:1002252")) // no xcorr at meta values?
+      {
+        if (!param_.getValue("force").toBool())
+        {
+          OPENMS_LOG_WARN << "No cross correlation score found. Make sure Comet is used for identification search. Re-ranking will be turned off. Set the 'force' flag to re-enable re-ranking. Use with care!" << endl;
+          param_.setValue("no_rerank", "true");
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "'force' flag is set. Re-ranking (if not disabled) will be done with the default score. Be aware that this may result in undefined behaviour." << endl;
+        }
+      }
+      break;
     }
+
     Param p;
     p.setValue("use_all_hits", "true");
     p.setValue("add_decoy_peptides", "true");
@@ -111,13 +129,15 @@ namespace OpenMS
     SuitabilityData suitability_data_sampled;
     calculateSuitability_(subsampled_ids, suitability_data_sampled);
 
-    // slopes of db and deNovo hits
-    double db_slope = (int(suitability_data_sampled.num_top_db) - int(suitability_data_full.num_top_db)) / (subsampling_rate - 1);
-    double deNovo_slope = (int(suitability_data_sampled.num_top_novo) - int(suitability_data_full.num_top_novo)) / (subsampling_rate - 1);
+    suitability_data_full.setCorrectionFactor(calculateCorrectionFactor_(suitability_data_full, suitability_data_sampled, subsampling_rate));
 
-    double factor = -(db_slope) / (deNovo_slope);
+    // fill in theoretical suitability if re-ranking hadn't happen
+    SuitabilityData no_rerank = simulateNoReRanking_(suitability_data_full);
+    SuitabilityData no_rerank_sampled = simulateNoReRanking_(suitability_data_sampled);
 
-    suitability_data_full.setCorrectionFactor(factor);
+    double factor_no_rerank = calculateCorrectionFactor_(no_rerank, no_rerank_sampled, subsampling_rate);
+
+    suitability_data_full.suitability_corr_no_rerank = double(no_rerank.num_top_db) / (no_rerank.num_top_novo * factor_no_rerank + no_rerank.num_top_db);
   }
 
   const std::vector<DBSuitability::SuitabilityData>& DBSuitability::getResults() const
@@ -144,26 +164,21 @@ namespace OpenMS
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
 
-      if (!hit.metaValueExists("MS:1002252"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
-      }
-
       if (decoy_1 == DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
       {
-        decoy_1 = hit.getMetaValue("MS:1002252");
+        decoy_1 = getRightScore_(hit);
         continue;
       }
       if (decoy_1 < DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
       {
-        decoy_2 = hit.getMetaValue("MS:1002252");
+        decoy_2 = getRightScore_(hit);
         break;
       }
     }
 
     if (decoy_2 < DBL_MAX) // if there are two decoy hits
     {
-      diff = abs(decoy_1 - decoy_2) / pep_id.getHits()[0].getSequence().getMonoWeight(); // normalized by mw
+      diff = abs(decoy_1 - decoy_2);
     }
 
     // if there aren't two decoy hits DBL_MAX is returned
@@ -475,12 +490,8 @@ namespace OpenMS
         continue;
       }
 
-      // get normalized scores
-      double top_xscore_mw = double(getRightScore_(top_hit)) / top_hit.getSequence().getMonoWeight();
-      double second_xscore_mw = double(getRightScore_(second_hit)) / second_hit.getSequence().getMonoWeight();
-
       // re-ranking
-      if (top_xscore_mw - second_xscore_mw <= data.cut_off)
+      if (getRightScore_(top_hit) - getRightScore_(second_hit) <= data.cut_off)
       {
         ++data.num_top_db;
         ++data.num_re_ranked;
@@ -499,6 +510,8 @@ namespace OpenMS
     }
 
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
+
+    data.suitability_no_rerank = double(data.num_top_db - data.num_re_ranked) / (data.num_top_db + data.num_top_novo);
   }
 
   void DBSuitability::appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const
@@ -528,12 +541,40 @@ namespace OpenMS
 
   double DBSuitability::getRightScore_(const PeptideHit& pep_hit) const
   {
-    if (!pep_hit.metaValueExists("MS:1002252"))
+    if (pep_hit.metaValueExists("MS:1002252")) // use xcorr
     {
-      OPENMS_LOG_WARN << "No cross correlation score found at peptide hit. Using the default score. This might result in inaccurate results. Use Comet to ensure the perfect results." << endl;
+      return double(pep_hit.getMetaValue("MS:1002252")) / pep_hit.getSequence().getMonoWeight(); // normalized by mw
+    }
+    else
+    {
+      if (!param_.getValue("force").toBool()) // without xcorr, need to force re-ranking
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported for re-ranking. Set 'force' flag to use the default score for this. This may result in undefined behaviour and is not advised."));
+      }
+
       return pep_hit.getScore();
     }
-    return pep_hit.getMetaValue("MS:1002252");
+  }
+
+  DBSuitability::SuitabilityData DBSuitability::simulateNoReRanking_(const SuitabilityData& data) const
+  {
+    SuitabilityData simulated_data;
+    simulated_data.num_top_db = data.num_top_db - data.num_re_ranked;
+    simulated_data.num_top_novo = data.num_top_novo + data.num_re_ranked;    
+    return simulated_data;
+  }
+
+  double DBSuitability::calculateCorrectionFactor_(const SuitabilityData& data_full, const SuitabilityData& data_sampled, double sampling_rate) const
+  {
+    if (sampling_rate >= 1 || sampling_rate < 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The sampling rate has to be element of [0,1).");
+    }
+
+    double db_slope = (int(data_sampled.num_top_db) - int(data_full.num_top_db)) / (sampling_rate - 1);
+    double deNovo_slope = (int(data_sampled.num_top_novo) - int(data_full.num_top_novo)) / (sampling_rate - 1);
+
+    return -(db_slope) / (deNovo_slope);
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)

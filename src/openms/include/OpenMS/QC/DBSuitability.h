@@ -112,12 +112,19 @@ namespace OpenMS
       /// Note that these test were only performed for one mzML and your results might differ.
       double suitability = 0;
 
-      /// Suitability after correcting the top deNovo hits to impact worse databases more
+      /// the suitability if re-ranking would have been turned off
+      /// if re-ranking is actually turned off, this will be the same as the normal suitability
+      double suitability_no_rerank = 0;
+
+      /// the suitability after correcting the top deNovo hits to impact worse databases more
       ///
       /// The corrected suitability has a more linear behaviour. It basicly translates to the ratio
       /// of the theoretical perfect database the used database corresponds to. (i.e. a corrected
       /// suitability of 0.5 means the used database contains half the proteins of the 'perfect' database)
       double suitability_corr = 0;
+
+      /// the suitability after correcting the top deNovo hits, if re-ranking would have been disabled
+      double suitability_corr_no_rerank = 0;
 
       /// apply a correction factor to the already calculated suitability
       /// only works if num_top_db and num_top_novo contain a non-zero value
@@ -144,11 +151,14 @@ namespace OpenMS
     * 
     * Parameters can be set using the functionality of DefaultParamHandler.
     * Parameters are:
-    *           no_rerank                   - re-ranking can be turned off with this
+    *           no_rerank                   - re-ranking can be turned off with this (will be set automatically
+    *                                         if no cross correlation score is found)
     *           reranking_cutoff_percentile - percentile that determines which cut-off will be returned
     *           FDR                         - q-value that should be filtered for
     *                                         Preliminary tests have shown that database suitability
     *                                         is rather stable across common FDR thresholds from 0 - 5 %
+    *           force                       - forces re-ranking to be done even without a cross correlation score,
+    *                                         in which case the default main score is used
     *
     * The calculated suitability is then tried to be corrected. For this a correction factor for the number of found top
     * deNovo hits is calculated.
@@ -348,12 +358,39 @@ namespace OpenMS
     void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const;
 
     /**
-    * @brief Returns the cross correlation score (if existing), else the current main score is returned
+    * @brief Returns the cross correlation score normalized by MW (if existing), else if the 'force' flag is set the current main score is returned
     *
     * @param pep_hit    PeptideHit of which the score is needed
-    * @returns          cross correlation score or current score
+    * @returns          cross correlation score normalized by MW or current score
+    * @throws           MissingInformation if no xcorr is found and 'force' flag isn't set
     */
     double getRightScore_(const PeptideHit& pep_hit) const;
+
+    /**
+    * @brief Returns a SuitabilityData object containing the data if re-ranking didn't happen
+    *
+    * Cases that are re-ranked are already counted. To get the 'no re-ranking' data these cases need to be
+    * subtracted from the number of top database hits and added to the number of top deNovo hits.
+    *
+    * @param data    actual suitability data
+    * @returns       simulated suitability data where re-ranking didn't happen
+    */
+    SuitabilityData simulateNoReRanking_(const SuitabilityData& data) const;
+
+    /**
+    * @brief Calculates the correction factor from two suitability calculations
+    *
+    * Two suitability calculations need to be done for this. One with the original data and one with data from a search with a sampled database.
+    * The number of db hits and deNovo hits behaves linear. The two searches can than be used to calculate the
+    * corresponding linear functions.
+    * The factor is calculated with the negative ratio of the db slope and the deNovo slope.
+    *
+    * @param data            suitability data from the original search
+    * @param data_sampled    suitability data from the sampled search
+    * @param sampling_rate   the sampling rate used for sampled db [0,1)
+    * @returns               correction factor
+    */
+    double calculateCorrectionFactor_(const SuitabilityData& data, const SuitabilityData& data_sampled, double sampling_rate) const;
   };
 }
 
