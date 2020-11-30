@@ -60,7 +60,7 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
   map<PrecursorAdductMassAndMS2Fragments, vector<PrecursorAdductAndXLNucleotide>> mass_frags2pc_xlnuc;
   
   // for all distinct precursor adduct formulas/masses
-  for (auto const & pa : precursor_adducts.mod_masses)
+  for (auto const & pa : precursor_adducts.formula2mass)
   {
     // get all precursor nucleotide formulas matching current empirical formula/mass
     const String& ef = pa.first;

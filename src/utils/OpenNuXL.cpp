@@ -234,7 +234,7 @@ class AnnotatedHit
    */
   StringView sequence;
   SignedSize peptide_mod_index = 0; // enumeration index of the non-NA peptide modification
-  Size rna_mod_index = 0; // index of the NA modification
+  Size NA_mod_index = 0; // index of the NA modification
 
   int isotope_error = 0; // wheter the hit has been matched with isotopic misassignment
 
@@ -2477,8 +2477,8 @@ static void scoreXLIons_(
       {
         // determine NA on precursor from index in map
         auto mod_combinations_it = mm.mod_combinations.begin();
-        std::advance(mod_combinations_it, annotated_hits[scan_index][i].rna_mod_index);
-        const String precursor_rna_adduct = *mod_combinations_it->second.begin();
+        std::advance(mod_combinations_it, annotated_hits[scan_index][i].NA_mod_index); // advance to sum formula at index NA_mod_index
+        const String precursor_rna_adduct = *mod_combinations_it->second.begin(); // get first nucleotide formula e.g. UU-H2O  TODO:is this correct? only handle the first?????????????????????????????????????????????????????????????????????
         const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
         
         if (precursor_rna_adduct == "none") 
@@ -2518,7 +2518,7 @@ static void scoreXLIons_(
 
         // determine NA on precursor from index in map
         auto mod_combinations_it = mm.mod_combinations.begin();
-        std::advance(mod_combinations_it, ah.rna_mod_index);
+        std::advance(mod_combinations_it, ah.NA_mod_index);
         const String precursor_rna_adduct = *mod_combinations_it->second.begin();
         const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
         const vector<RNPxlFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
@@ -2693,8 +2693,8 @@ static void scoreXLIons_(
 
         // determine NA on precursor from index in map
         auto mod_combinations_it = mm.mod_combinations.cbegin();
-        std::advance(mod_combinations_it, a.rna_mod_index);
-        const String precursor_rna_adduct = *mod_combinations_it->second.begin();
+        std::advance(mod_combinations_it, a.NA_mod_index);
+        const String precursor_rna_adduct = *mod_combinations_it->second.begin(); // TODO: check if it is enough to consider only first precursor adduct ????????????????????????????????????????????????????????
         const double precursor_rna_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
 
         // we don't localize on non-cross-links
@@ -3429,7 +3429,7 @@ static void scoreXLIons_(
 
       // determine NA modification from index in map
       auto mod_combinations_it = mm.mod_combinations.cbegin();
-      std::advance(mod_combinations_it, ah.rna_mod_index);
+      std::advance(mod_combinations_it, ah.NA_mod_index);
       ph.setMetaValue(String("NuXL:mass_error_p"), ah.mass_error_p);
       ph.setMetaValue(String("NuXL:total_loss_score"), ah.total_loss_score);
       ph.setMetaValue(String("NuXL:immonium_score"), ah.immonium_score);
@@ -3457,7 +3457,7 @@ static void scoreXLIons_(
       
       ph.setMetaValue(String("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
-      String NA = *mod_combinations_it->second.begin();
+      String NA = *mod_combinations_it->second.begin(); // TODO: consider only first (potentially ambigious one) ??????????????????????????????????????
       ph.setMetaValue(String("NuXL:NA"), NA); // return first nucleotide formula matching the index of the empirical formula
 
       double na_mass_z0 = EmpiricalFormula(mod_combinations_it->first).getMonoWeight(); // NA uncharged mass via empirical formula
@@ -3841,7 +3841,7 @@ static void scoreXLIons_(
 
     ah.total_MIC = tlss_total_MIC;
 
-    ah.rna_mod_index = rna_mod_idx;
+    ah.NA_mod_index = rna_mod_idx;
     ah.isotope_error = isotope_error;
 
     auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
@@ -4851,7 +4851,7 @@ static void scoreXLIons_(
 
     if (!getFlag_("RNPxl:only_xl"))
     {
-      mm.mod_masses[""] = 0; // insert "null" modification otherwise peptides without NA will not be searched
+      mm.formula2mass[""] = 0; // insert "null" modification otherwise peptides without NA will not be searched
       mm.mod_combinations[""].insert("none");
     }
 
@@ -5170,11 +5170,11 @@ static void scoreXLIons_(
           PeakSpectrum marker_ions_sub_score_spectrum;
 
           // iterate over all NA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
-          Size rna_mod_index = 0;
+          Size NA_mod_index = 0;
 
-          for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); 
-            rna_mod_it != mm.mod_masses.end(); 
-            ++rna_mod_it, ++rna_mod_index)
+          for (std::map<String, double>::const_iterator rna_mod_it = mm.formula2mass.begin(); 
+            rna_mod_it != mm.formula2mass.end(); 
+            ++rna_mod_it, ++NA_mod_index)
           {            
             const double precursor_rna_mass = rna_mod_it->second;
             const double current_peptide_mass = current_peptide_mass_without_NA + precursor_rna_mass; // add NA mass
@@ -5211,8 +5211,8 @@ static void scoreXLIons_(
             {
               // retrieve NA adduct name
               auto mod_combinations_it = mm.mod_combinations.begin();
-              std::advance(mod_combinations_it, rna_mod_index);
-              const String& precursor_rna_adduct = *mod_combinations_it->second.begin();
+              std::advance(mod_combinations_it, NA_mod_index);
+              const String& precursor_rna_adduct = *mod_combinations_it->second.begin(); // TODO: check if sufficient to consider only first NA adduct here ?????????????????????????????????????????????????????????????????????
 
               if (precursor_rna_adduct == "none")
               {
@@ -5295,7 +5295,7 @@ static void scoreXLIons_(
                   ah.precursor_score = pc_MIC;
                   ah.total_MIC = tlss_total_MIC;
 
-                  ah.rna_mod_index = rna_mod_index;
+                  ah.NA_mod_index = NA_mod_index;
                   ah.isotope_error = isotope_error;
 
                   auto range = make_pair(intensity_linear.begin(), intensity_linear.end());
@@ -5542,7 +5542,7 @@ static void scoreXLIons_(
                     ah.marker_ions_score = marker_ions_sub_score;
                     ah.partial_loss_score = partial_loss_sub_score;
 
-                    ah.rna_mod_index = rna_mod_index;
+                    ah.NA_mod_index = NA_mod_index;
                     ah.isotope_error = isotope_error;
 
                     auto range = make_pair(intensity_linear.begin(), intensity_linear.end());
@@ -5609,8 +5609,8 @@ static void scoreXLIons_(
               {
                 const Size & scan_index = l->second.first;
                 auto mod_combinations_it = mm.mod_combinations.begin();
-                std::advance(mod_combinations_it, rna_mod_index);
-                const String& precursor_rna_adduct = *mod_combinations_it->second.begin();
+                std::advance(mod_combinations_it, NA_mod_index);
+                const String& precursor_rna_adduct = *mod_combinations_it->second.begin(); // For fast scoring it should be sufficient to only consider any of the adducts for this mass and formula (e.g., C-H3N vs U-H2O)
                 MSSpectrum& exp_spectrum = spectra[scan_index];
 
                 if (precursor_rna_adduct != "none" && skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) continue;
@@ -5635,7 +5635,7 @@ static void scoreXLIons_(
                   spectra[scan_index],
                   *cit, // string view on unmodified sequence
                   mod_pep_idx, // index of peptide mod
-                  rna_mod_index, // index of RNA mod
+                  NA_mod_index, // index of NA mod
                   current_peptide_mass,
                   current_peptide_mass_without_NA,
                   exp_pc_mass,

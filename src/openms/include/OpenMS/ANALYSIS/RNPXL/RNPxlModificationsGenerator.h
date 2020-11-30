@@ -47,6 +47,15 @@ namespace OpenMS
 {  
   class AASequence;
 
+  /*
+      formula2mass holds the map from empirical formula to mass
+
+      mod_combinations holds the map from empirical formula to (potentially ambigious) nucleotide formulae
+      e.g.,: 
+       C10H14N5O7P   -> {A}
+       C10H14N5O8P   -> {G}
+       C18H22N4O16P2 -> { CU-H3N1, UU-H2O1 }
+   */
   struct OPENMS_DLLAPI RNPxlModificationMassesResult
   {
     struct MyStringLengthCompare
@@ -64,7 +73,7 @@ namespace OpenMS
         return (lhsLength < rhsLength) ; // compares with the length
       }
     };
-    std::map<String, double> mod_masses; ///< empirical formula -> mass
+    std::map<String, double> formula2mass; ///< empirical formula -> mass
 
     using NucleotideFormulas = std::set<String, MyStringLengthCompare>;
     using MapSumFormulaToNucleotideFormulas = std::map<String, NucleotideFormulas>;
@@ -74,16 +83,27 @@ namespace OpenMS
   class OPENMS_DLLAPI RNPxlModificationsGenerator
   {
     public:
+      /* @brief generate all combinations of precursor adducts
+         @param target_nucleotides the list of nucleotides: e.g., "U", "C", "G", "A" or "U", "T", "G", "A"
+         @param can_xl the set of cross-linkable nucleotides
+         @param mappings
+         @param modifications additional losses associated with the precursor adduct: e.g., "-H2O"
+         @param sequence_restriction only precursor adducts that are substrings of this NA sequence are generated
+         @param cysteine_adduct special DTT adduct
+         @param max_length maximum oligo length
+      */
       static RNPxlModificationMassesResult initModificationMassesNA(StringList target_nucleotides,
                                                                      StringList nt_groups,
                                                                      std::set<char> can_xl,
                                                                      StringList mappings,
                                                                      StringList modifications,
-                                                                     String sequence_restriction,
-                                                                     bool cysteine_adduct,
+                                                                     String sequence_restriction = "",
+                                                                     bool cysteine_adduct = false,
                                                                      Int max_length = 4);
     private:
+      /// return true if qery is not in sequence
       static bool notInSeq(String res_seq, String query);
+
       static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
     };
 }
