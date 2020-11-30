@@ -1913,7 +1913,6 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::annotateWithID()
@@ -1925,7 +1924,6 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::annotateWithOSW()
@@ -1937,7 +1935,6 @@ namespace OpenMS
     {
       return;
     }
-    selection_view_->show(DataSelectionTabs::DIAOSW_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -2439,11 +2436,7 @@ namespace OpenMS
           }
           else
           { // we have an annotator ...
-            if (annotator->annotateWithFilename(*l, *log_, *it))
-            { // enable ID tabs (we don't know which one because the annotator cannot know ... so do both for now)
-              selection_view_->show(DataSelectionTabs::IDENT_IDX);
-              selection_view_->show(DataSelectionTabs::DIAOSW_IDX);
-            }
+            annotator->annotateWithFilename(*l, *log_, *it); // ID tabs are automatically enabled
           }
         }
       }        
