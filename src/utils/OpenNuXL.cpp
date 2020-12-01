@@ -4273,7 +4273,7 @@ static void scoreXLIons_(
     return EXECUTION_OK;
   }
 
-  void annotateProteinModificationForTopHits_(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file)
+  void annotateProteinModificationForTopHits_(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file, bool output_decoys = false)
   {
     assert(prots.size() == 1); // support for one run only
 
@@ -4432,21 +4432,25 @@ static void scoreXLIons_(
     for (const auto& m : aa2background_freq) { sum += m.second; }
     for (auto& m : aa2background_freq) { m.second /= sum; }
 
-    tsv_file.addLine("=============================================================");
-    tsv_file.addLine("Protein summary for decoy proteins:");
-    tsv_file.addLine("AA:proteins");
-    for (const auto& a2p : aa2protein_count_decoys)
+    if (output_decoys)
     {
-      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+      tsv_file.addLine("=============================================================");
+      tsv_file.addLine("Protein summary for decoy proteins:");
+      tsv_file.addLine("AA:proteins");
+      for (const auto& a2p : aa2protein_count_decoys)
+      {
+        tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+      }
+
+      tsv_file.addLine("=============================================================");
+      tsv_file.addLine("PSM summary for decoy PSMs:");
+      tsv_file.addLine("AA:PSMs");
+      for (const auto& a2p : aa2psm_count_decoys)
+      {
+        tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+      }
     }
 
-    tsv_file.addLine("=============================================================");
-    tsv_file.addLine("PSM summary for decoy PSMs:");
-    tsv_file.addLine("AA:PSMs");
-    for (const auto& a2p : aa2psm_count_decoys)
-    {
-      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
-    }
     tsv_file.addLine("=============================================================");
     tsv_file.addLine("Protein summary for target proteins:");
     tsv_file.addLine("AA:proteins");
