@@ -228,14 +228,14 @@ OpenMS::GUIHelpers::OverlapDetector::OverlapDetector(int levels)
 /// try to put an item which spans from @p x_start to @p x_end in the topmost row possible
 /// @return the smallest row index (starting at 0) which has none (or the least) overlap
 
-int OpenMS::GUIHelpers::OverlapDetector::placeItem(double x_start, double x_end)
+size_t OpenMS::GUIHelpers::OverlapDetector::placeItem(double x_start, double x_end)
 {
   if (x_start < 0) OPENMS_LOG_WARN << "Warning: x coordinates should be positive!\n";
   if (x_start > x_end) OPENMS_LOG_WARN << "Warning: x-end is larger than x-start!\n";
 
-  int best_index = 0;
+  size_t best_index = 0;
   double best_distance = -std::numeric_limits<double>::max();
-  for (int i = 0; i < rows_.size(); ++i)
+  for (size_t i = 0; i < rows_.size(); ++i)
   {
     if (rows_[i] < x_start)
     { // easy win; row[i] does not overlap; take it

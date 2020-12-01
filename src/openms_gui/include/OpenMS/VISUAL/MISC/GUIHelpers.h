@@ -106,7 +106,7 @@ namespace OpenMS
 
       /// try to put an item which spans from @p x_start to @p x_end in the topmost row possible
       /// @return the smallest row index (starting at 0) which has none (or the least) overlap
-      int placeItem(double x_start, double x_end);
+      size_t placeItem(double x_start, double x_end);
 
     private:
       std::vector<double> rows_;

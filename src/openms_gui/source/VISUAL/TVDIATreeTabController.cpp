@@ -144,7 +144,7 @@ namespace OpenMS
       auto text_size = item->getTextRect(); // this is in px units (Qt widget coordinates)
       // translate to axis units (our native 'data'):
       auto p_text = w->canvas()->widgetToDataDistance(text_size.width(), 0);
-      int chunk = od.placeItem(feature.getRTLeftWidth(), feature.getRTLeftWidth() + p_text.getX());
+      auto chunk = od.placeItem(feature.getRTLeftWidth(), feature.getRTLeftWidth() + p_text.getX());
       item->setTextYOffset(chunk * text_size.height());
 
       w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
