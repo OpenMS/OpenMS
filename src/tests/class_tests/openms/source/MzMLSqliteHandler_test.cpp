@@ -139,8 +139,8 @@ START_TEST(MzMLSqliteHandler, "$Id$")
 
 MzMLSqliteHandler* ptr = nullptr;
 MzMLSqliteHandler* nullPointer = nullptr;
-START_SECTION((MzMLSqliteHandler()))
-  ptr = new MzMLSqliteHandler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+START_SECTION((MzMLSqliteHandler(const String& filename, const UInt64 run_id)))
+  ptr = new MzMLSqliteHandler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -152,7 +152,7 @@ TOLERANCE_RELATIVE(1.0005)
 
 START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   MSExperiment exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
@@ -201,21 +201,21 @@ END_SECTION
 
 START_SECTION( Size getNrSpectra() const )
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
   TEST_EQUAL(handler.getNrSpectra(), 2)
 }
 END_SECTION
 
 START_SECTION( Size getNrChromatograms() const )
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
   TEST_EQUAL(handler.getNrChromatograms(), 1)
 }
 END_SECTION
 
 START_SECTION( void readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only = false) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   MSExperiment exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp2);
@@ -286,7 +286,7 @@ END_SECTION
 
 START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only = false) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   MSExperiment exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp2);
@@ -330,13 +330,13 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
     chroms.back().setNativeID("second");
 
     {
-      MzMLSqliteHandler handler(tmp_filename);
+      MzMLSqliteHandler handler(tmp_filename, 0);
       handler.setConfig(true, false, 0.0001);
       handler.createTables();
       handler.writeChromatograms(chroms);
     }
 
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 0);
     {
       std::vector<MSChromatogram> exp;
       std::vector<int> indices = {0};
@@ -372,7 +372,7 @@ END_SECTION
 
 START_SECTION(std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const)
 {
-  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   {
     std::vector<int> indices = {};
@@ -448,7 +448,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   file.remove();
 
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeExperiment(exp_orig));
 
@@ -465,7 +465,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
     TEST_EQUAL(handler.getNrSpectra(), 2)
   }
 
-  MzMLSqliteHandler handler(tmp_filename);
+  MzMLSqliteHandler handler(tmp_filename, 12345);
   MSExperiment exp2 = exp_orig;
 
   // read in meta data only
@@ -521,7 +521,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
   file.remove();
 
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeSpectra(exp_orig.getSpectra()));
 
@@ -569,7 +569,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   file.remove();
 
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     handler.setConfig(true, false, 0.0001);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeChromatograms(exp_orig.getChromatograms()));
@@ -605,7 +605,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
   // delete file if present
   file.remove();
   {
-    MzMLSqliteHandler handler(tmp_filename);
+    MzMLSqliteHandler handler(tmp_filename, 12345);
     handler.setConfig(true, true, 0.0001);
     // writing without creating the tables / indices won't work
     TEST_EXCEPTION(Exception::IllegalArgument, handler.writeChromatograms(exp_orig.getChromatograms()));

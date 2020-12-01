@@ -247,11 +247,11 @@ namespace OpenMS
     // the cost for initialization and copy should be minimal
     //  - a single C string is created
     //  - two ints
-    MzMLSqliteHandler::MzMLSqliteHandler(String filename) :
+    MzMLSqliteHandler::MzMLSqliteHandler(const String& filename, const UInt64 run_id) :
       filename_(filename),
       spec_id_(0),
       chrom_id_(0),
-      run_id_(0),
+      run_id_(static_cast<int64_t>(run_id & ~(1ULL << 63))), // conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
       use_lossy_compression_(true),
       linear_abs_mass_acc_(0.0001), // set the desired mass accuracy = 1ppm at 100 m/z
       write_full_meta_(true)
@@ -713,26 +713,25 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::writeExperiment(const MSExperiment & exp)
+    void MzMLSqliteHandler::writeExperiment(const MSExperiment& exp)
     {
       // write run level information
-      writeRunLevelInformation(exp, write_full_meta_, run_id_);
+      writeRunLevelInformation(exp, write_full_meta_);
 
       // write data
       writeChromatograms(exp.getChromatograms());
       writeSpectra(exp.getSpectra());
     }
 
-    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id)
+    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta)
     {
       SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
-
       std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
-          run_id << ",'" << native_id << "','" << native_id << "'); ";
+            run_id_ << ",'" << native_id << "','" << native_id << "'); ";
       conn.executeStatement("BEGIN TRANSACTION");
       conn.executeStatement(insert_run_sql.str());
       conn.executeStatement("END TRANSACTION");
@@ -758,7 +757,7 @@ namespace OpenMS
           meta.addChromatogram(c);
         }
         String prepare_statement = "INSERT INTO RUN_EXTRA (RUN_ID, DATA) VALUES ";
-        prepare_statement += String("(") + run_id + ", ?)";
+        prepare_statement += String("(") + run_id_ + ", ?)";
         std::vector<String> data;
 
         std::string output;

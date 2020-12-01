@@ -83,8 +83,9 @@ public:
           @brief Constructor of sqMass file
 
           @param filename The sqMass filename
+          @param run_id Unique identifier which links the sqMass and OSW file. It is currently only used for storing and ignored when reading an sqMass file.
       */
-      MzMLSqliteHandler(String filename);
+      MzMLSqliteHandler(const String& filename, const UInt64 run_id);
 
       /**@name Functions for reading files 
        *
@@ -225,7 +226,7 @@ public:
           @param exp The result data structure
           @param meta_only Only read the meta data
       */
-      void writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id);
+      void writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta);
 
 protected:
 
@@ -244,7 +245,7 @@ protected:
       */
       Int spec_id_;
       Int chrom_id_;
-      Int run_id_;
+      UInt64 run_id_;
 
       bool use_lossy_compression_;
       double linear_abs_mass_acc_; 
