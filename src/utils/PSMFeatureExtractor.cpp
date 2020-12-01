@@ -144,15 +144,20 @@ protected:
     String in = ggetStringOption_("in");
     StringList in_list = getStringList_("in_list");
     bool multiple_search_engines = getFlag_("multiple_search_engines");
-    if (in == "" && in_list.size() < 1){
+    if (in == "" && in_list.size() < 1)
+    {
       writeLog_("Fatal error: either -in or -in_list must be given");
       printUsage_();
       return ILLEGAL_PARAMETERS;
-    }else if(in != "" && in_list.size() > 1){
+    }
+    else if(in != "" && in_list.size() > 1)
+    {
       writeLog_("Fatal error: -in or -in_list must not be given at the same time");
       printUsage_();
       return ILLEGAL_PARAMETERS;
-    }else if (in != "" && in_list.size() < 1){
+    }
+    else if (in != "" && in_list.size() < 1)
+    {
       in_list.push_back(in);
     }
 
