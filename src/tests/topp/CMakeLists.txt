@@ -3174,7 +3174,7 @@ add_test("UTILS_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVe
 add_test("UTILS_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type mzid -out PSMFeatureExtractor_2_out.tmp)
 add_test("UTILS_PSMFeatureExtractor_2_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 PSMFeatureExtractor_2_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_2_out.mzid)
 
-add_test("UTILS_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in_single ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_3_out.tmp)
+add_test("UTILS_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_3_out.tmp)
 add_test("UTILS_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 PSMFeatureExtractor_3_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
 
 add_test("UTILS_PSMFeatureExtractor_4" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in_single ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_4_out.tmp)
