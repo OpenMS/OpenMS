@@ -146,7 +146,7 @@ namespace OpenMS
 
         if (precursorPeakGroup == nullptr)
         {
-          fs << "N/A\tN/A\t";
+          fs << "nan\tnan\t";
         }
         else
         {
