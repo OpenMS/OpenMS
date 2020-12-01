@@ -63,13 +63,14 @@ public:
     DateTime();
 
     /// Copy constructor
-    DateTime(const DateTime& date);
+    DateTime(const DateTime& date) noexcept = default;
 
     /// Move constructor
-    DateTime(DateTime&&) noexcept;
+    DateTime(DateTime&&) noexcept = default;
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
+	  
     /// Move assignment operator
     DateTime& operator=(DateTime&&) & noexcept;
 
@@ -176,12 +177,16 @@ public:
 
     /// Sets the undefined date: 00/00/0000 00:00:00
     void clear();
+    
+    /* @brief Returns a string representation of the DateTime object.
+       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.	   
+	*/
+	String toString(std::string format = "yyyy-MM-ddThh:mm:ss") const;
 
-    /// Returns a string representation of date and time in the provided format
-    String toString(const std::string& format) const;
-
-    /// Returns a DateTime object from string representation
-    static DateTime fromString(const std::string& date, const std::string& format);
+    /* @brief Creates a DateTime object from string representation.
+       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+	*/
+    static DateTime fromString(const std::string& date, std::string format = "yyyy-MM-ddThh:mm:ss");
 
     /**
         @brief Returns a string representation of the date and time

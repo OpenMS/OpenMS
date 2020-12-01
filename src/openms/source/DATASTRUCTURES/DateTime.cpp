@@ -45,15 +45,6 @@ namespace OpenMS
   {
   }
 
-  DateTime::DateTime(const DateTime& date)
-  {
-    dt_ = date.dt_;
-  }
-
-  DateTime::DateTime(DateTime&& date) noexcept 
-  {
-    dt_ = std::move(date.dt_); // use Qt implementation if available
-  }
 
   DateTime& DateTime::operator=(const DateTime& source)
   {
@@ -99,7 +90,7 @@ namespace OpenMS
     return dt_.isValid();
   }
 
-  String DateTime::toString(const std::string& format) const
+  String DateTime::toString(std::string format) const
   {
     return dt_.toString(QString::fromStdString(format)).toStdString();
   }
@@ -322,7 +313,7 @@ namespace OpenMS
   }
 
   // static
-  DateTime DateTime::fromString(const std::string& date, const std::string& format)
+  DateTime DateTime::fromString(const std::string& date, std::string format)
   {
     DateTime d;
     d.dt_ = QDateTime::fromString(QString::fromStdString(date), QString::fromStdString(format));

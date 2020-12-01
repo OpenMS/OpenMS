@@ -357,8 +357,7 @@ namespace OpenMS
     else out << "lower-score-better";
     // using ISODate ensures that TOPP tests will run through regardless of
     // locale setting
-    out << pid.getDateTime().toString("yyyy-MM-ddTHH:mm:ss")
-        << pid.getSearchEngineVersion();
+    out << pid.getDateTime().toString() << pid.getSearchEngineVersion();
     // search parameters
     ProteinIdentification::SearchParameters sp = pid.getSearchParameters();
     out << sp << nl;

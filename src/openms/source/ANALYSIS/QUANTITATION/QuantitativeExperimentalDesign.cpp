@@ -167,7 +167,7 @@ namespace OpenMS
           do
           {
             date_time = date_time.addSecs(1);
-            new_id = search_engine + "_" + date_time.toString("yyyy-MM-ddTHH:mm:ss");
+            new_id = search_engine + "_" + date_time.toString();
           } while (used_ids.find(new_id) != used_ids.end());
 
           OPENMS_LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
