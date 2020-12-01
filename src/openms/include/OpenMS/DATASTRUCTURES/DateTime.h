@@ -63,10 +63,10 @@ public:
     DateTime();
 
     /// Copy constructor
-    DateTime(const DateTime& date) noexcept = default;
+    DateTime(const DateTime& date) = default;
 
     /// Move constructor
-    DateTime(DateTime&&) noexcept = default;
+    DateTime(DateTime&&) = default;
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
