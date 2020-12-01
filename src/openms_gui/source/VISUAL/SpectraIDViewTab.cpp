@@ -135,7 +135,7 @@ namespace OpenMS
   void SpectraIDViewTab::clear()
   {
     table_widget_->clear();
-    layer_ == nullptr;
+    layer_ = nullptr;
   }
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)

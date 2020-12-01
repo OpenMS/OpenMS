@@ -118,10 +118,11 @@ namespace OpenMS
       return a.getRTLeftWidth() < b.getRTLeftWidth();
     });
     const OSWPeakGroup* best_feature = &features[0];
-    auto findBestFeature = [&features, &best_feature](const OSWPeakGroup& f)
+    auto findBestFeature = [&best_feature](const OSWPeakGroup& f)
     {
       if (best_feature->getQValue() > f.getQValue()) best_feature = &f;
     };
+    std::for_each(features.begin(), features.end(), findBestFeature);
     if (best_feature->getQValue() == -1)
     { // no q-values are annotated. make them all grey.
       best_feature = nullptr;
@@ -132,8 +133,8 @@ namespace OpenMS
     // show feature boundaries
     for (const auto& feature : features)
     {
-      double width = feature.getRTRightWidth() - feature.getRTLeftWidth();
-      double center = feature.getRTLeftWidth() + width / 2;
+      auto width = feature.getRTRightWidth() - feature.getRTLeftWidth();
+      auto center = feature.getRTLeftWidth() + width / 2;
       String ann = String("RT:\n ") + String(feature.getRTExperimental(), false) + "\ndRT:\n " + String(feature.getRTDelta(), false) + "\nQ:\n " + String(feature.getQValue(), false);
       QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
                           ? GUIHelpers::ColorBrewer::Distinct::LightGreen
@@ -149,13 +150,10 @@ namespace OpenMS
       w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
     }
     // paint the expected RT once
-    if (!features.empty())
-    {
-      double expected_RT = features[0].getRTExperimental() - features[0].getRTDelta();
-      Annotation1DItem* item = new Annotation1DVerticalLineItem(expected_RT, 3, 200, true, Qt::darkGreen, "");
-      item->setSelected(false);
-      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
-    }
+    auto expected_RT = features[0].getRTExperimental() - features[0].getRTDelta();
+    Annotation1DItem* item = new Annotation1DVerticalLineItem(expected_RT, 3, 200, true, Qt::darkGreen, "");
+    item->setSelected(false);
+    w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
   }
 
 

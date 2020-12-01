@@ -38,15 +38,15 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QDesktopServices>
-#include <QGUIApplication>
 #include <QDir>
-#include <QUrl>
+#include <QGuiApplication>
 #include <QMessageBox>
-#include <QString>
-#include <QStringList>
 #include <QPainter>
 #include <QPoint>
 #include <QProcess>
+#include <QString>
+#include <QStringList>
+#include <QUrl>
 
 namespace OpenMS
 {
