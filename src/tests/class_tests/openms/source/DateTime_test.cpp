@@ -127,6 +127,7 @@ START_SECTION((void clear()))
   date1.set("2006-12-12 11:59:59");
   date1.clear();
   TEST_EQUAL(date1 == date2, true)
+  TEST_EQUAL(date1.isNull(), true)
 }
 END_SECTION
 
