@@ -167,20 +167,20 @@ namespace OpenMS
           SIZE_OF_NAMES
         };
 
-        const std::array<QColor, NAMES::SIZE_OF_NAMES> values = { Qt::red,
-                                                                  Qt::blue,
-                                                                  Qt::green,
-                                                                  QColor(129, 74, 25) /*brown*/,
-                                                                  QColor(129, 38, 192) /*purple*/,
-                                                                  Qt::lightGray,
-                                                                  QColor(129,197,122) /*lightGreen*/,
-                                                                  QColor(157,175,255) /*lightBlue*/,
-                                                                  Qt::cyan,
-                                                                  QColor(255,146,51) /*orange*/,
-                                                                  Qt::yellow,
-                                                                  QColor(233,222,187) /*tan*/,
-                                                                  QColor(255,205,243) /*pink*/,
-                                                                  Qt::darkGray };
+        const std::array<QColor, NAMES::SIZE_OF_NAMES> values = { { Qt::red,
+                                                                    Qt::blue,
+                                                                    Qt::green,
+                                                                    QColor(129, 74, 25) /*brown*/,
+                                                                    QColor(129, 38, 192) /*purple*/,
+                                                                    Qt::lightGray,
+                                                                    QColor(129,197,122) /*lightGreen*/,
+                                                                    QColor(157,175,255) /*lightBlue*/,
+                                                                    Qt::cyan,
+                                                                    QColor(255,146,51) /*orange*/,
+                                                                    Qt::yellow,
+                                                                    QColor(233,222,187) /*tan*/,
+                                                                    QColor(255,205,243) /*pink*/,
+                                                                    Qt::darkGray } };
       };
 
       /// get a certain color. If @p index is larger than the maximum color, modulo operator will applied (cycling through colors)
