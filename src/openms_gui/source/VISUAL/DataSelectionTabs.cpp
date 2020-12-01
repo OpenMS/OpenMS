@@ -107,7 +107,7 @@ namespace OpenMS
   {
     PlotCanvas* cc = tv->getActiveCanvas();
     if (cc == nullptr) return nullptr;
-    if (cc->getCurrentLayerIndex() == -1) return nullptr;
+    if (cc->getCurrentLayerIndex() == Size(-1)) return nullptr;
     return &(cc->getCurrentLayer());
   }
 
