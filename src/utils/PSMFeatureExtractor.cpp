@@ -111,10 +111,10 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "Input file (exactly one of -in or -in_list is required)", false);
+    registerInputFile_("in_single", "<file>", "", "Input file (exactly one of -in or -in_list is required)", false);
+    setValidFormats_("in_single", ListUtils::create<String>("idXML,mzid"));
+    registerInputFileList_("in", "<files>", StringList(), "Input files (exactly one of -in or -in_list is required)", true);
     setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
-    registerInputFileList_("in_list", "<files>", StringList(), "Input files (exactly one of -in or -in_list is required)", true);
-    setValidFormats_("in_list", ListUtils::create<String>("idXML,mzid"));
     registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
     setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));    
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
