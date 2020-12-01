@@ -111,8 +111,10 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
+    registerInputFile_("in", "<file>", "", "Input file (exactly one of -in or -in_list is required)", false);
     setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
+    registerInputFileList_("in_list", "<files>", StringList(), "Input files (exactly one of -in or -in_list is required)", true);
+    setValidFormats_("in_list", ListUtils::create<String>("idXML,mzid"));
     registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
     setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));    
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
@@ -139,8 +141,21 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const StringList in_list = getStringList_("in");
+    String in = ggetStringOption_("in");
+    StringList in_list = getStringList_("in_list");
     bool multiple_search_engines = getFlag_("multiple_search_engines");
+    if (in == "" && in_list.size() < 1){
+      writeLog_("Fatal error: either -in or -in_list must be given");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }else if(in != "" && in_list.size() > 1){
+      writeLog_("Fatal error: -in or -in_list must not be given at the same time");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }else if (in != "" && in_list.size() < 1){
+      in_list.push_back(in);
+    }
+
     OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
     if (in_list.size() > 1 && !multiple_search_engines)
     {

@@ -3165,3 +3165,14 @@ set_tests_properties("UTILS_QCCalculator_1_out" PROPERTIES DEPENDS "UTILS_QCCalc
 add_test("UTILS_QCCalculator_2" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -label label -name name -address address -description description -out QCCalculator_2.mzQC -feature ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML -id ${DATA_DIR_TOPP}/OpenPepXL_output.idXML)
 add_test("UTILS_QCCalculator_2_out" ${DIFF} -whitelist "creationDate" "location" "version" -in1 QCCalculator_2.mzQC -in2 ${DATA_DIR_TOPP}/QCCalculator_2_output.mzQC)
 set_tests_properties("UTILS_QCCalculator_2_out" PROPERTIES DEPENDS "UTILS_QCCalculator_2")
+
+#------------------------------------------------------------------------------
+# PSMFeatureExtractor
+add_test("UTILS_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in_list ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type idXML -out PSMFeatureExtractor_1_out.tmp)
+add_test("UTILS_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 PSMFeatureExtractor_1_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
+
+add_test("UTILS_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in_list ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type mzid -out PSMFeatureExtractor_2_out.tmp)
+add_test("UTILS_PSMFeatureExtractor_2_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 PSMFeatureExtractor_2_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_2_out.mzid)
+
+add_test("UTILS_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_3_out.tmp)
+add_test("UTILS_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 PSMFeatureExtractor_3_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
