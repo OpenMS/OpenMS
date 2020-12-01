@@ -64,6 +64,7 @@ namespace OpenMS
     spectra_view_widget_(new SpectraTreeTab(this)),
     id_view_widget_(new SpectraIDViewTab(Param(), this)),
     dia_widget_(new DIATreeTab(this)),
+    tab_ptrs_{ spectra_view_widget_, id_view_widget_, dia_widget_ },   // make sure to add new tabs here!
     spectraview_controller_(new TVSpectraViewController(tv)),
     idview_controller_(new TVIdentificationViewController(tv, id_view_widget_)),
     diatab_controller_(new TVDIATreeTabController(tv)),
@@ -94,15 +95,24 @@ namespace OpenMS
     if (index != IDENT_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 1");
     index = addTab(dia_widget_, dia_widget_->objectName());
     if (index != DIAOSW_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 2");
-    setTabEnabled(SPECTRA_IDX, true);
-    setTabEnabled(IDENT_IDX, false);
-    setTabEnabled(DIAOSW_IDX, false);
+    // make sure initialization was correct
+    assert(tabBar()->count() == tab_ptrs_.size());
 
     // switch between different view tabs
     connect(this, &QTabWidget::currentChanged, this, &DataSelectionTabs::currentTabChanged);
     connect(this, &QTabWidget::tabBarDoubleClicked, this, &DataSelectionTabs::tabBarDoubleClicked);
   }
 
+  LayerData* getCurrentLayerData(TOPPViewBase* tv)
+  {
+    PlotCanvas* cc = tv->getActiveCanvas();
+    if (cc == nullptr) return nullptr;
+    if (cc->getCurrentLayerIndex() == Size(-1)) return nullptr;
+    return &(cc->getCurrentLayer());
+  }
+
+  // called externally
+  // and internally by signals
   void DataSelectionTabs::update()
   {
     // prevent infinite loop when calling 'setTabEnabled' -> currentTabChanged() -> update()
@@ -112,38 +122,36 @@ namespace OpenMS
       this->blockSignals(false);
     });
 
-    PlotCanvas* cc = tv_->getActiveCanvas();
-    Size layer_row = (cc == nullptr 
-                          ? -1 
-                          : cc->getCurrentLayerIndex() /* may return -1 as well */);
+    auto layer_ptr = getCurrentLayerData(tv_); // can be nullptr
 
-    if (layer_row == (Size)-1)
+    // becomes true if the currently visible tab has no data
+    bool auto_select = false; 
+    // the order is important here. On auto-select, we will pick the highest one which has data to show!
+    Size highest_data_index = 0; // will pick spectra_view_widget_ if layer_ptr==nullptr
+    for (Size i = 0; i < tab_ptrs_.size(); ++i)
     {
-      spectra_view_widget_->clear();
-      id_view_widget_->clear();
-      setTabEnabled(SPECTRA_IDX, true);
-      setTabEnabled(IDENT_IDX, false);
-      return;
-    }
-
-
-    if (spectra_view_widget_->isVisible())
-    {
-      spectra_view_widget_->updateEntries(cc->getCurrentLayer());
-    }
-
-    if (id_view_widget_->isVisible())
-    {
-      if (&cc->getCurrentLayer() != id_view_widget_->getLayer())
+      auto widget = dynamic_cast<QWidget*>(tab_ptrs_[i]);
+      bool has_data = tab_ptrs_[i]->hasData(layer_ptr);
+      setTabEnabled(i, has_data); // enable/disable depending on data
+      if (has_data)
       {
-        id_view_widget_->setLayer(&cc->getCurrentLayer());
+        highest_data_index = i;
+      }
+      if (!has_data && // the currently visible tab has no data --> select a new tab
+          widget->isVisible())
+      {
+        auto_select = true;
       }
     }
-
-    if (dia_widget_->isVisible())
-    {
-      dia_widget_->updateEntries(cc->getCurrentLayer());
+    // pick the highest tab which has data
+    if (auto_select)
+    { 
+      setCurrentIndex(highest_data_index);
     }
+    Size current_index = currentIndex();
+
+    // update the currently visible tab (might be disabled if no data is shown)
+    tab_ptrs_[current_index]->updateEntries(layer_ptr);
   }
 
   void DataSelectionTabs::currentTabChanged(int tab_index)
@@ -244,12 +252,6 @@ namespace OpenMS
     }
 
     // update here?
-  }
-
-  void DataSelectionTabs::show(TAB_INDEX which)
-  {
-    setTabEnabled(which, true);
-    setCurrentIndex(which);
   }
 
   SpectraIDViewTab* DataSelectionTabs::getSpectraIDViewTab()

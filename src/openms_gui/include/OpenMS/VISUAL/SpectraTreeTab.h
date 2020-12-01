@@ -37,6 +37,7 @@
 #include <QtWidgets>
 
 
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
 class QLineEdit;
@@ -52,8 +53,9 @@ namespace OpenMS
 
     @ingroup PlotWidgets
   */
-  class SpectraTreeTab :
-    public QWidget
+  class OPENMS_GUI_DLLAPI SpectraTreeTab :
+    public QWidget,
+    public DataTabBase
   {
     Q_OBJECT
 public:
@@ -62,10 +64,13 @@ public:
     /// Destructor
     ~SpectraTreeTab() = default;
 
+    // docu in base class
+    bool hasData(const LayerData* layer);
+
     /// refresh the table using data from @p cl
-    void updateEntries(const LayerData & cl);
+    void updateEntries(LayerData* cl) override;
     /// remove all visible data
-    void clear();
+    void clear() override;
 
     /// Return a copy of the currently selected spectrum/chrom (for drag'n'drop to new window)
     /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)

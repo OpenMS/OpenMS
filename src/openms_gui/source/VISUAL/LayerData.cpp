@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 //#include <iostream>
 #include <QtWidgets/QFileDialog>
@@ -485,13 +486,14 @@ namespace OpenMS
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
 
-  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text)
+  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock)
     : supported_types_(supported_types),
-      file_dialog_text_(file_dialog_text)
+      file_dialog_text_(file_dialog_text),
+      gui_lock_(gui_lock)
   {
   }
 
-  bool LayerAnnotatorBase::annotate(LayerData& layer, LogWindow& log, const String& current_path) const
+  bool LayerAnnotatorBase::annotateWithFileDialog(LayerData& layer, LogWindow& log, const String& current_path) const
   {
     // warn if hidden layer => wrong layer selected...
     if (!layer.visible)
@@ -505,21 +507,53 @@ namespace OpenMS
                                                  file_dialog_text_.toQString(),
                                                  current_path.toQString(),
                                                  supported_types_.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
-    if (fname.isEmpty()) return false;
+    
+    bool success = annotateWithFilename(layer, log, fname);
+
+    return success;
+  }
+
+  bool LayerAnnotatorBase::annotateWithFilename(LayerData& layer, LogWindow& log, const String& fname) const
+  {
+    if (fname.empty()) return false;
 
     FileTypes::Type type = FileHandler::getType(fname);
 
     if (!supported_types_.contains(type))
     {
-      QMessageBox::warning(nullptr, "Error", QString("Unsupported file type. No annotation performed."));
+      log.appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + fname + "' has unsupported file type. No annotation performed.").toQString());
       return false;
     }
 
+    GUIHelpers::GUILock glock(gui_lock_);
     bool success = annotateWorker_(layer, fname, log);
-    
-    if (success) log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
 
+    if (success) log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
     return success;
+  }
+
+  std::unique_ptr<LayerAnnotatorBase> LayerAnnotatorBase::getAnnotatorWhichSupports(const FileTypes::Type& type)
+  {
+    std::unique_ptr<LayerAnnotatorBase> ptr(nullptr);
+    auto assign = [&type, &ptr](std::unique_ptr<LayerAnnotatorBase> other)
+    {
+      if (other->supported_types_.contains(type))
+      {
+        if (ptr.get() != nullptr) throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        ptr = std::move(other);
+      }
+    };
+    // hint: add new derived classes here, so they are checked as well
+    assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorAMS(nullptr)));
+    assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorPeptideID(nullptr)));
+    assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorOSW(nullptr)));
+
+    return std::move(ptr);
+  }
+
+  std::unique_ptr<LayerAnnotatorBase> LayerAnnotatorBase::getAnnotatorWhichSupports(const String& filename)
+  {
+    return getAnnotatorWhichSupports(FileHandler::getType(filename));
   }
 
   bool LayerAnnotatorPeptideID::annotateWorker_(LayerData& layer, const String& filename, LogWindow& /*log*/) const
@@ -581,7 +615,7 @@ namespace OpenMS
     OSWData data;
     log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Reading OSW data ...");
     oswf.readMinimal(data);
-    // allow data to map from transition.id (=native.id) to a chromatogram index
+    // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
     data.buildNativeIDResolver(*layer.getFullChromData().get());
     layer.setChromatogramAnnotation(std::move(data));
     log.appendText(" done");

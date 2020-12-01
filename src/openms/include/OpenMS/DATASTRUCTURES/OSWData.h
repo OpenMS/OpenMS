@@ -387,7 +387,7 @@ namespace OpenMS
         void buildNativeIDResolver(const MSExperiment& chrom_traces);
 
         /// resolve a transition.id (=nativeID) to a simple chromatogram index (.getChromatograms[index]) of the corresponding sqMass file
-///     /// Requires prior call to buildNativeIDResolver(), throws Exception::InvalidValue otherwise (or when nativeID is not known)
+        /// Requires prior call to buildNativeIDResolver(), throws Exception::InvalidValue otherwise (or when nativeID is not known)
         UInt fromNativeID(int transition_id) const;
 
       protected:
