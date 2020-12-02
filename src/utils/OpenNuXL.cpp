@@ -4273,16 +4273,10 @@ static void scoreXLIons_(
     return EXECUTION_OK;
   }
 
-  void annotateProteinModificationForTopHits_(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file, bool output_decoys = false)
+
+  void mapAccessionToTDProteins(ProteinIdentification& prot_id, map<String, ProteinHit*>& acc2protein_targets, map<String, ProteinHit*>& acc2protein_decoys)
   {
-    assert(prots.size() == 1); // support for one run only
-
-    ProteinIdentification& prot_id = prot_ids[0];
     vector<ProteinHit>& proteins = prot_id.getHits();
-
-    // create lookup accession -> protein
-    map<String, ProteinHit*> acc2protein_targets;
-    map<String, ProteinHit*> acc2protein_decoys;
     for (ProteinHit& protein : proteins)
     {
       if (protein.getMetaValue("target_decoy").toString().hasPrefix("target"))
@@ -4294,6 +4288,34 @@ static void scoreXLIons_(
         acc2protein_decoys[protein.getAccession()] = &protein;
       }
     }
+  }
+
+  void annotateProteinModificationForTopHits_(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file, bool report_decoys = false)
+  {
+    assert(prots.size() == 1); // support for one run only
+
+    // protein identification run
+    ProteinIdentification& prot_id = prot_ids[0];
+
+    // create lookup accession -> protein
+    map<String, ProteinHit*> acc2protein_targets;
+    map<String, ProteinHit*> acc2protein_decoys;
+    mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
+
+    struct ModifiedRegion
+    {
+      ResidueModification* xl;
+      int first; 
+      int last;
+      bool operator<(const ModifiedRegion& rhs) const
+      {
+        return std::tie(first, last, *xl) < std::tie(rhs.first, rhs.last, *rhs.xl);
+      }
+    };
+
+    // protein -> regions with XLs without AA level localization and in how many PSMs it was detected
+    map<String, map<ModifiedRegion, size_t>> modified_region_xls_targets;    
+    map<String, map<ModifiedRegion, size_t>> modified_region_xls_decoys;
 
     // store modification statistic for every protein    
     for (const PeptideIdentification& pep : peps)
@@ -4314,11 +4336,27 @@ static void scoreXLIons_(
         const String& acc = ph_evidence.getProteinAccession();
         const int peptide_start_in_protein = ph_evidence.getStart();
 
-        if (peptide_start_in_protein < 0 || best_localization < 0) continue;
-
+        if (peptide_start_in_protein < 0) continue;
+ 
         const int xl_pos_in_protein = peptide_start_in_protein + best_localization;
 
         bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+
+        if (best_localization < 0)
+        {
+          ModifiedRegion mr;
+          mr.xl = xl;
+          mr.first = ph_evidence.getStart();
+          mr.last = ph_evidence.getEnd();
+          if (is_target)
+          {
+            modified_region_xls_targets[acc][mr]++;
+          }
+          else
+          {
+            modified_region_xls_decoys[acc][mr]++;
+          }
+        }
 
         // retrieve protein the evidence points to
         ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
@@ -4340,16 +4378,19 @@ static void scoreXLIons_(
  
     for (const ProteinIdentification& prot_id : prot_ids)
     {
-      for (const ProteinHit& protein : proteins)
+      const vector<ProteinHit>& phs = prot_id.getHits();
+      for (const ProteinHit& protein : phs)
       {
+        const String& acc = protein.getAccession();        
+        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+
+        if (!is_target && !report_decoys) continue; // skip decoys if option is set
+
         const String& seq = protein.getSequence();
 
         for (const char c : seq) { aa2background_freq[c] += 1.0; }
-
-        const String& acc = protein.getAccession();        
         tsv_file.addLine(acc);
 
-        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
         auto mods = protein.getModifications();
 
         // count how many PSMs support XL-ed position in a protein
@@ -4377,6 +4418,8 @@ static void scoreXLIons_(
             annotated_sequence += String("[") + seq[p] + String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
             ++p;
           }
+          while (p < seq.size()) { annotated_sequence += seq[p]; ++p; } // output AAs after last modification
+
           tsv_file.addLine(annotated_sequence);
         }
         else
@@ -4384,6 +4427,7 @@ static void scoreXLIons_(
           tsv_file.addLine(seq);
         }
 
+        // output modification AA and count for this protein
         set<char> already_counted_at_protein_level;
         for (const auto& p2ms : mods.AALevelSummary)
         {
@@ -4425,6 +4469,17 @@ static void scoreXLIons_(
             tsv_file.addLine(m2s.first.getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
           }
         }
+        
+        // output list of modified regions (without AA level localization)
+        for (const auto& p2xlregions : modified_region_xls_targets)
+        {
+          for (const auto& region : p2xlregions.second)
+          {
+            const ModifiedRegion& r = region.first;
+            const size_t count = region.second;
+            tsv_file.addLine(r.xl->getFullId() + ":" + String(r.first + 1) + "-" + String(r.last + 1) + "(" + String(count) + ")");
+          }
+        }
       }  
     }
  
@@ -4432,7 +4487,7 @@ static void scoreXLIons_(
     for (const auto& m : aa2background_freq) { sum += m.second; }
     for (auto& m : aa2background_freq) { m.second /= sum; }
 
-    if (output_decoys)
+    if (report_decoys)
     {
       tsv_file.addLine("=============================================================");
       tsv_file.addLine("Protein summary for decoy proteins:");
@@ -6158,6 +6213,11 @@ static void scoreXLIons_(
       fdr.apply(xl_pi); 
       fdr.apply(pep_pi);
 
+      if (debug_level_ > 1)
+      {
+
+      }
+
       IDFilter::removeDecoyHits(xl_pi);
       IDFilter::removeDecoyHits(pep_pi);
 
@@ -6165,6 +6225,7 @@ static void scoreXLIons_(
       {
          IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
       }
+
       {
         String out2(out_idxml);
         out2.substitute(".idXML", "_");
