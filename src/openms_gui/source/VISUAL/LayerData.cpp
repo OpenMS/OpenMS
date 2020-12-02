@@ -611,15 +611,22 @@ namespace OpenMS
                                           const String& filename,
                                           LogWindow& log) const
   {
-    OSWFile oswf(filename);
-    OSWData data;
     log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Reading OSW data ...");
-    oswf.readMinimal(data);
-    // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
-    data.buildNativeIDResolver(*layer.getFullChromData().get());
-    layer.setChromatogramAnnotation(std::move(data));
-    log.appendText(" done");
-    return true;
+    try
+    {
+      OSWFile oswf(filename); // this can throw if file does not exist
+      OSWData data;
+      oswf.readMinimal(data);
+      // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
+      data.buildNativeIDResolver(*layer.getFullChromData().get());
+      layer.setChromatogramAnnotation(std::move(data));
+      return true;
+    }
+    catch (Exception::BaseException& e)
+    {
+      log.appendText(e.what());
+      return false;
+    }
   }
 
 } // namespace OpenMS

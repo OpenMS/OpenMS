@@ -273,7 +273,7 @@ namespace OpenMS
 
     OSWFile::OSWFile(const String& filename)
       : filename_(filename),
-        conn_(filename)
+        conn_(filename, SqliteConnector::SqlOpenMode::READONLY)
     {
       has_SCOREMS2_ = conn_.tableExists("SCORE_MS2");
     }

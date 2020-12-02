@@ -69,6 +69,8 @@ namespace OpenMS
     /// query all proteins, not just one with a particular ID
     static constexpr Size ALL_PROTEINS = -1;
 
+    /// opens an OSW file for reading.
+    /// @throws Exception::FileNotReadable if @p filename does not exist
     OSWFile(const String& filename);
     OSWFile(const OSWFile& rhs) = default;
     OSWFile& operator=(const OSWFile& rhs) = default;
@@ -127,7 +129,7 @@ namespace OpenMS
     /**
     @brief Updates an OpenSWATH OSW SQLite file with the MS1-, MS2- or transition-level results of Percolator.
     */
-    static void writeFromPercolator(const std::string& in_osw, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
+    static void writeFromPercolator(const std::string& osw_filename, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
 
   protected:
     /** populate transitions of @p swath_result

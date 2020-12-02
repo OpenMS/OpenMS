@@ -54,14 +54,21 @@ namespace OpenMS
   class OPENMS_DLLAPI SqliteConnector
   {
 public:
+    
+    /// how an sqlite db should be opened
+    enum class SqlOpenMode
+    {
+      READONLY,  ///< the DB must exist and is read-only
+      READWRITE, ///< the DB is readable and writable, but must exist when opening it
+      READWRITE_OR_CREATE ///< the DB readable and writable and is created new if not present already
+    };
 
     /// Default constructor
     SqliteConnector() = delete;
 
-    explicit SqliteConnector(const String& filename)
-    {
-      openDatabase(filename);
-    }
+    /// Constructor which opens a connection to @p filename
+    /// @throws Exception::SqlOperationFailed if the file does not exist/cannot be created (depending on @p mode)
+    explicit SqliteConnector(const String& filename, const SqlOpenMode mode = SqlOpenMode::READWRITE_OR_CREATE);
 
     /// Destructor
     ~SqliteConnector();
@@ -255,7 +262,7 @@ protected:
 
       @note Call this only once!
     */
-    void openDatabase(const String& filename);
+    void openDatabase_(const String& filename, const SqlOpenMode mode);
 
 protected:
     sqlite3 *db_ = nullptr;
