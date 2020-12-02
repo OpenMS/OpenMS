@@ -123,6 +123,6 @@ namespace OpenMS
     /// retention time window - determined from C# side
     double RTwindow;
     /// how many masses will be selected per ms level? - determined from C# side
-    IntList maxMassCount;
+    IntList massCount;
   };
 }

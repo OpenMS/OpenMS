@@ -60,7 +60,7 @@ namespace OpenMS
     explicit PeakGroup(int minCharge, int maxCharge);
 
     /// default destructor
-    ~PeakGroup() = default;
+    ~PeakGroup();
 
     /// copy constructor
     PeakGroup(const PeakGroup &) = default;

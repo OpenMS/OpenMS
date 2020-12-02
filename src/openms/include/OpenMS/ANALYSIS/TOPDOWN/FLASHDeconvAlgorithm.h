@@ -145,6 +145,8 @@ namespace OpenMS
     DoubleList minIsotopeCosine;
     /// max mass count per spectrum for each MS level
     IntList maxMassCount;
+    /// number of min mass per spec
+    IntList minMassCount;
 
     /// precalculated averagine distributions
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg;

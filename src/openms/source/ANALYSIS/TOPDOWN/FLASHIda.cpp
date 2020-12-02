@@ -70,16 +70,20 @@ namespace OpenMS
    
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("num_overlapped_scans", 10, "number of overlapped scans for MS1 deconvolution");
+
+
+    auto massCountd = inputs["max_mass_count"];
+
+    for (double j : massCountd)
+    {
+      massCount.push_back((int) j);
+    }
+
+    fd_defaults.setValue("min_mass_count", massCount);
+
     fd.setParameters(fd_defaults);
     fd.calculateAveragine(false);
 
-    auto maxMassCountd = inputs["max_mass_count"];
-    
-
-    for (double j : maxMassCountd)
-    { 
-      maxMassCount.push_back((int) j);
-    }
     RTwindow = inputs["RT_window"][0];
     qScoreThreshold = inputs["score_threshold"][0];
 
@@ -134,43 +138,96 @@ namespace OpenMS
       nselected[item.first] = item.second;
     }
 
-    auto shorRTwindow = RTwindow / 10.0;
+    //auto shorRTwindow = RTwindow / 10.0;
     std::vector<PeakGroup> filtered;
+    filtered.reserve(massCount.size());
+    std::sort(deconvolutedSpectrum.begin(), deconvolutedSpectrum.end(), QscoreComparator);
+    std::set<int> cselected; // current selected masses
+    int mc =  massCount[msLevel - 1];
+
     for (auto &pg : deconvolutedSpectrum)
     {
-      if (maxMassCount.size() >= msLevel && maxMassCount[msLevel - 1] > 0 &&
-          filtered.size() >= maxMassCount[msLevel - 1])
+      if (filtered.size() >= mc)
       {
         break;
-      }
-      //std::cout << pg.qScore << " " << qScoreThreshold << std::endl;
-      if (pg.getQScore() < qScoreThreshold)
-      {
-        continue;
       }
 
       auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
       auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
+      if (cselected.find(m) != cselected.end()){
+        continue;
+      }
       auto qScore = pg.getQScore();
       if (nselected.find(m) != nselected.end())
       {
-        if (rt - nselected[m][0] < shorRTwindow)
-        {
-          continue;
-        }
-        if (qScore < nselected[m][1])
-        {
-          continue;
-        }
+        continue;
       }
-      else
-      {
-        nselected[m] = std::vector<double>(2);
-      }
-      //delete[] nselected[m];
+
+      nselected[m] = std::vector<double>(2);
+      cselected.insert(m);
       nselected[m][0] = rt;
       nselected[m][1] = qScore;
       filtered.push_back(pg);
+    }
+
+    if (filtered.size() < mc)
+    {
+      for (auto &pg : deconvolutedSpectrum)
+      {
+        if (filtered.size() >= mc)
+        {
+          break;
+        }
+
+        auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
+        auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
+        if (cselected.find(m) != cselected.end()){
+          continue;
+        }
+        auto qScore = pg.getQScore();
+        if (nselected.find(m) != nselected.end())
+        {
+          if (qScore < nselected[m][1])
+          {
+            continue;
+          }
+        }
+        else
+        {
+          nselected[m] = std::vector<double>(2);
+        }
+        cselected.insert(m);
+        nselected[m][0] = rt;
+        nselected[m][1] = qScore;
+        filtered.push_back(pg);
+      }
+    }
+
+
+    if (filtered.size() < mc)
+    {
+      for (auto &pg : deconvolutedSpectrum)
+      {
+        if (filtered.size() >= mc)
+        {
+          break;
+        }
+
+        auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
+        auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
+        if (cselected.find(m) != cselected.end()){
+          continue;
+        }
+        auto qScore = pg.getQScore();
+        if (nselected.find(m) == nselected.end())
+        {
+          nselected[m] = std::vector<double>(2);
+        }
+        cselected.insert(m);
+        nselected[m][0] = rt;
+        nselected[m][1] = qScore;
+        filtered.push_back(pg);
+      }
     }
 
     nselected.swap(selected);
@@ -187,8 +244,8 @@ namespace OpenMS
     for (auto i = 0; i < deconvolutedSpectrum.size(); i++)
     {
       auto qrange = deconvolutedSpectrum[i].getMzxQScoreMzRange();
-      wstart[i] = std::get<0>(qrange) - .2;
-      wend[i] = std::get<1>(qrange) + .2;
+      wstart[i] = std::get<0>(qrange) - 1.2;
+      wend[i] = std::get<1>(qrange) + 1.2;
 
       qScores[i] = deconvolutedSpectrum[i].getQScore();
       charges[i] = deconvolutedSpectrum[i].getRepCharge();

@@ -70,6 +70,13 @@ namespace OpenMS
     defaults_.setValue("max_mass_count",
                        IntList{-1, -1},
                        "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
+
+    defaults_.setValue("min_mass_count",
+                       IntList{-1, -1},
+                       "minimum mass count per spec for MS1, 2, ... "
+                       "this parameter is only for real time acquisition. "
+                       "the parameter may not be satisfied in case spectrum quality is too poor. (e.g., -max_mass_count -1 2 to specify no min limit and 2 for MS1 and MS2, respectively. -1 specifies unlimited)");
+
     defaults_.setValue("min_intensity", .0, "intensity threshold");
     defaults_.setValue("num_overlapped_scans", 15, "number of overlapped scans for MS1 deconvolution");
     defaultsToParam_();
@@ -175,6 +182,7 @@ namespace OpenMS
     minIsotopeCosine = param_.getValue("min_isotope_cosine");
     //minChargeCosine = param_.getValue("min_charge_cosine");
     maxMassCount = param_.getValue("max_mass_count");
+    minMassCount = param_.getValue("min_mass_count");
     numOverlappedScans = param_.getValue("num_overlapped_scans");
     setFilters();
   }
@@ -1047,25 +1055,36 @@ namespace OpenMS
     std::vector<PeakGroup> filteredPeakGroups;
     filteredPeakGroups.reserve(deconvolutedSpectrum->size());
     double threshold = .0;
+    double minThreshold = std::numeric_limits<double>::max();
     auto chargeRange = currentMaxCharge - minCharge + 1;
 
-    auto mc = maxMassCount.size() > msLevel - 1 ? maxMassCount[msLevel - 1] : -1;
-    if (mc > 0)
+    auto maxc = maxMassCount.size() > msLevel - 1 ? maxMassCount[msLevel - 1] : -1;
+    auto minc = minMassCount.size() > msLevel - 1 ? minMassCount[msLevel - 1] : -1;
+
+    if (maxc > 0 || minc > 0)
     {
       std::vector<double> intensities;
       intensities.reserve(deconvolutedSpectrum->size());
 
       for (auto &pg : *deconvolutedSpectrum)
       {
-        //pg.updateMassesAndIntensity(avg);
+        if (pg.getMonoMass() < minMass || pg.getMonoMass() > maxMass)
+        {
+          continue;
+        }
         intensities.push_back(pg.getIntensity());
       }
-
-      if (intensities.size() > (Size) mc)
+      sort(intensities.begin(), intensities.end());
+      if (intensities.size() > (Size) maxc)
       {
-        sort(intensities.begin(), intensities.end());
-        threshold = intensities[intensities.size() - mc];
+        threshold = intensities[intensities.size() - maxc];
       }
+
+      if (intensities.size() > (Size) minc)
+      {
+        minThreshold = intensities[intensities.size() - minc];
+      }
+
     }
 
     auto perIsotopeIntensity = std::vector<double>(avg.getMaxIsotopeIndex());
@@ -1076,6 +1095,12 @@ namespace OpenMS
       if (pg.getIntensity() < threshold)
       {
         continue; //
+      }
+
+      bool pass = false;
+      if (pg.getIntensity() >= minThreshold)
+      {
+        pass = true; //
       }
 
       auto indices = calculatePerChargeIsotopeIntensity(
@@ -1101,7 +1126,10 @@ namespace OpenMS
 
         if (!isChargeWellDistributed)
         {
-          continue;
+          if(!pass)
+          {
+            continue;
+          }
         }
       }
 
@@ -1116,13 +1144,16 @@ namespace OpenMS
           (pg.getIsotopeCosine() <=
            minIsotopeCosine[msLevel - 1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
       {
-        continue;
+        if(!pass)
+        {
+          continue;
+        }
       }
 
       pg.updateMassesAndIntensity(offset, avg.getMaxIsotopeIndex());
       if (pg.getMonoMass() < minMass || pg.getMonoMass() > maxMass)
       {
-        continue;
+          continue;
       }
       auto iso = avg.get(pg.getMonoMass());
       auto isoNorm = avg.getNorm(pg.getMonoMass());
@@ -1257,11 +1288,11 @@ namespace OpenMS
 
     if (msLevel > 1)
     {
-      filterPeakGroupsByIsotopeCosine(mc);
+      filterPeakGroupsByIsotopeCosine(maxc);
     }
     else
     {
-      filterPeakGroupsByQScore(mc);
+      filterPeakGroupsByQScore(maxc);
     }
   }
 
@@ -1486,7 +1517,6 @@ namespace OpenMS
     }
     deconvolutedSpectrum->swap(filtered);
   }
-
 
   void FLASHDeconvAlgorithm::reassignPeaksinPeakGroups()
   {

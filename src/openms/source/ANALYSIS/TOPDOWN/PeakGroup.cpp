@@ -45,6 +45,11 @@ namespace OpenMS
     perChargeCos = std::vector<float>(1 + maxCharge, .0);
   }
 
+  PeakGroup::~PeakGroup()
+  {
+    clearChargeInfo();
+  }
+
   void PeakGroup::clearChargeInfo()
   {
     std::vector<float>().swap(perChargeSNR);
@@ -250,5 +255,4 @@ namespace OpenMS
   {
     return totalSNR;
   }
-
 }
