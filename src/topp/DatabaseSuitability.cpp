@@ -263,6 +263,8 @@ protected:
       os << "#corrected_novo_hits\t" << suit.num_top_novo_corr << "\n";
       os << "db_suitability\t" << suit.suitability << "\n";
       os << "corrected_suitability\t" << suit.suitability_corr << "\n";
+      os << "no_rerank_suitability\t" << suit.suitability_no_rerank << "\n";
+      os << "corrected_no_rerank_suitability\t" << suit.suitability_corr_no_rerank << "\n";
       os << "#total_novo_seqs\t" << spectral_quality.num_peptide_identification << "\n";
       os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
       os << "#ms2_spectra\t" << spectral_quality.num_ms2_spectra << "\n";
