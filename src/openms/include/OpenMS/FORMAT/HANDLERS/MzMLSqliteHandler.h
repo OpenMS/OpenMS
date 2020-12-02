@@ -103,6 +103,10 @@ public:
       */
       void readExperiment(MSExperiment & exp, bool meta_only = false) const;
 
+      /// extract the RUN::ID from the sqMass file
+      /// @throws Exception::SqlOperationFailed more than on run exists
+      UInt64 getRunID() const;
+
       /**
           @brief Read an set of spectra (potentially restricted to a subset)
 

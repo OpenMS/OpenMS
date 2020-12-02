@@ -61,6 +61,15 @@ namespace OpenMS
 
   void OSWData::buildNativeIDResolver(const MSExperiment& chrom_traces)
   {
+    // first check if the MSExperiment originates from the same run by checking for matching run-ids
+    if (chrom_traces.getSqlRunID() != getRunID())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                    "The RUN.ID of the sqMass/MSExperiment ('" + String(chrom_traces.getSqlRunID()) + 
+                                    "') and the OSW file ('" + String(getRunID()) + "') does not match. "
+                                    "Please use a recent version of OpenSwathWorkflow to create matching data.");
+    }
+    
     Size chrom_count = chrom_traces.getChromatograms().size();
     for (Size i = 0; i < chrom_count; ++i)
     {

@@ -261,35 +261,34 @@ namespace OpenMS
     void MzMLSqliteHandler::readExperiment(MSExperiment& exp, bool meta_only) const
     {
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
+      sqlite3* db = conn.getDB();
 
       Size nr_results = 0;
       if (write_full_meta_)
       {
-        std::string select_sql;
-        select_sql = "SELECT " \
-                      "RUN.ID as run_id," \
-                      "RUN.NATIVE_ID as native_id," \
-                      "RUN.FILENAME as filename," \
-                      "RUN_EXTRA.DATA as data " \
-                      "FROM RUN " \
-                      "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
-                      ";";
+        std::string select_sql = "SELECT " \
+          "RUN.ID as run_id," \
+          "RUN.NATIVE_ID as native_id," \
+          "RUN.FILENAME as filename," \
+          "RUN_EXTRA.DATA as data " \
+          "FROM RUN " \
+          "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
+          ";";
 
-        sqlite3_stmt * stmt;
+        sqlite3_stmt* stmt;
         conn.prepareStatement(&stmt, select_sql);
-        sqlite3_step( stmt );
+        sqlite3_step(stmt);
 
         // read data (throw exception if we find multiple runs)
-        while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+        while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
         {
           if (nr_results > 0)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "More than one run found, cannot read both into memory");
+              "More than one run found, cannot read both into memory");
           }
 
-          const void * raw_text = sqlite3_column_blob(stmt, 3);
+          const void* raw_text = sqlite3_column_blob(stmt, 3);
           size_t blob_bytes = sqlite3_column_bytes(stmt, 3);
 
           // create mzML file and parse full structure
@@ -304,11 +303,11 @@ namespace OpenMS
           }
           else
           {
-            const unsigned char * native_id = sqlite3_column_text(stmt, 1);
-            const unsigned char * filename = sqlite3_column_text(stmt, 2);
-            OPENMS_LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file "<< filename << std::endl;
+            const unsigned char* native_id = sqlite3_column_text(stmt, 1);
+            const unsigned char* filename = sqlite3_column_text(stmt, 2);
+            OPENMS_LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file " << filename << std::endl;
           }
-          sqlite3_step( stmt );
+          sqlite3_step(stmt);
         }
 
         // free memory
@@ -333,13 +332,43 @@ namespace OpenMS
         exp.setSpectra(spectra);
       }
 
-      if (meta_only) 
+      exp.setSqlRunID(getRunID());
+
+      if (meta_only)
       {
         return;
       }
 
       populateChromatogramsWithData_(db, exp.getChromatograms());
       populateSpectraWithData_(db, exp.getSpectra());
+    }
+
+    UInt64 MzMLSqliteHandler::getRunID() const
+    {
+      SqliteConnector conn(filename_);
+      sqlite3* db = conn.getDB();
+
+      Size nr_results = 0;
+      
+      std::string select_sql = "SELECT RUN.ID FROM RUN;";
+
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, select_sql);
+      Sql::SqlState state = Sql::SqlState::SQL_ROW;
+      UInt64 id;
+      while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
+      {
+        ++nr_results;
+        id = Sql::extractInt64(stmt, 0);
+      }
+      // free memory
+      sqlite3_finalize(stmt);
+
+      if (nr_results != 1)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "File '" + filename_ + "' contains more than one run. This is currently not supported!");
+      }
+      return id;
     }
 
     void MzMLSqliteHandler::readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only) const

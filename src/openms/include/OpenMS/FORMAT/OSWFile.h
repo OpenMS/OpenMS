@@ -131,6 +131,10 @@ namespace OpenMS
     */
     static void writeFromPercolator(const std::string& osw_filename, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
 
+    /// extract the RUN::ID from the sqMass file
+    /// @throws Exception::SqlOperationFailed more than on run exists
+    UInt64 getRunID() const;
+
   protected:
     /** populate transitions of @p swath_result
     
@@ -146,6 +150,9 @@ namespace OpenMS
 
     */
     void getFullProteins_(OSWData& swath_result, Size prot_index = ALL_PROTEINS);
+
+    /// set source file and sqMass run-ID
+    void readMeta_(OSWData& data);
 
   private:
     String filename_;       ///< sql file to open/write to

@@ -365,6 +365,16 @@ namespace OpenMS
           return source_file_;
         }
 
+        void setRunID(const UInt64 run_id)
+        {
+          run_id_ = run_id;
+        }
+
+        UInt64 getRunID() const
+        {
+          return run_id_;
+        }
+
         /// forget all data
         void clear();
 
@@ -382,7 +392,7 @@ namespace OpenMS
 
           @param chrom_traces The external sqMass file, which we build the mapping on
           @throws Exception::MissingInformation if any nativeID is not known internally
-
+          @throws Exception::Precondition if the run_ids do not match
         */
         void buildNativeIDResolver(const MSExperiment& chrom_traces);
 
@@ -400,6 +410,7 @@ namespace OpenMS
         std::map<UInt32, OSWTransition> transitions_;
         std::vector<OSWProtein> proteins_;
         String source_file_;                        ///< remember from which sql OSW file this data is loaded (to lazy load more data)
+        UInt64 run_id_;                             ///< the ID of this run from the SQL RUN table
         std::map<UInt32, UInt32> transID_to_index_; ///< map a Transition.ID (==native_id) to a chromatogram index in the sqMass experiment which contains the raw data
     };
     
