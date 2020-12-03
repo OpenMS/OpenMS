@@ -193,6 +193,22 @@ public:
             const String& three_letter_code,
             const String& one_letter_code,
             const EmpiricalFormula& formula);
+            
+    // More detailed constructor 
+    Residue(const String& name,
+            const String& short_name,
+            const String& three_letter_code,
+            const String& one_letter_code,
+            const EmpiricalFormula& formula,
+            double average_weight,
+            double mono_weight,
+            double pka,
+            double pkb,
+            double pkc,
+            double gb_sc,
+            double gb_bb_l,
+            double gb_bb_r,
+            const std::set<String>& synonyms);
 
     /// Destructor
     virtual ~Residue();

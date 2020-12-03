@@ -175,17 +175,12 @@ protected:
     //@{
     /// assignment operator
     ResidueDB& operator=(const ResidueDB& aa);
-    //@}
-
-    /**
-       @brief reads residues from the given an existing map
-
-       @throw Exception::ParseError if the existing map cannot be parsed
-    */
-    void readResiduesFromMap_();
-
-    /// parses a residue, given the key/value pairs from i.e. an existing map
-    Residue* parseResidue_(Map<String, String>& values);
+   
+   // builds 26 residues 
+    void buildResidues_();
+    
+    // add residues to to the lookup table and add the residue sets to the residues
+    void insertResidues_(Residue* residue, const String& residue_set_names);
 
     /// deletes all sub-instances of the stored data like modifications and residues
     void clear_();

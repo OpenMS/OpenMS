@@ -52,8 +52,8 @@ using namespace std;
 namespace OpenMS
 {
   ResidueDB::ResidueDB()
-  {
-    readResiduesFromMap_();
+  { 
+    buildResidues_();
     buildResidueNames_();
   }
 
@@ -137,7 +137,7 @@ namespace OpenMS
   {
     #pragma omp critical (ResidueDB)
     {
-      readResiduesFromMap_();
+      buildResidues_();
       buildResidueNames_();
     }     
   }
@@ -221,427 +221,115 @@ namespace OpenMS
     return found;
   }
 
-  void ResidueDB::readResiduesFromMap_()
+  void ResidueDB::buildResidues_()
   {
-    // create a residue map to avoid the xml file load
-    typedef map<String, String> ResidueList;
-    ResidueList res;
-    
-    // fill the ResidueList with the residue information 
-    res["Residues:Alanine:Name"] = "Alanine";
-    res["Residues:Alanine:ShortName"] =  "Ala";
-    res["Residues:Alanine:ThreeLetterCode"] = "ALA";
-    res["Residues:Alanine:OneLetterCode"] =  "A";
-    res["Residues:Alanine:Formula"] = "C3H7NO2";
-    res["Residues:Alanine:pka"] =  "2.35";
-    res["Residues:Alanine:pkb"] = "9.87";
-    res["Residues:Alanine:GB_SC"] =  "0.00";
-    res["Residues:Alanine:GB_BB_L"] = "881.82";
-    res["Residues:Alanine:GB_BB_R"] =  "0.00";
-    res["Residues:Alanine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Alanine:Synonyms:L-Alanine"] = "L-Alanine";
-    res["Residues:Alanine:Synonyms:alanine"] =  "alanine";
-    res["Residues:Alanine:Synonyms:Alanin"] = "Alanin";
-    res["Residues:Alanine:Synonyms:alanin"] = "alanin";
-    res["Residues:Alanine:Synonyms:Ala"] = "Ala";
-    
-    res["Residues:Cysteine:Name"] =  "Cysteine";
-    res["Residues:Cysteine:ShortName"] = "Cys";
-    res["Residues:Cysteine:ThreeLetterCode"] = "CYS";
-    res["Residues:Cysteine:OneLetterCode"] =  "C";
-    res["Residues:Cysteine:Formula"] =  "C3H7NO2S";
-    res["Residues:Cysteine:pka"] = "1.92";
-    res["Residues:Cysteine:pkb"] = "10.70";
-    res["Residues:Cysteine:pkc"] = "8.18";
-    res["Residues:Cysteine:GB_SC"] = "0.00";
-    res["Residues:Cysteine:GB_BB_L"] = "880.99";
-    res["Residues:Cysteine:GB_BB_R"] =  "0.12";
-    res["Residues:Cysteine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Cysteine:Synonyms:Cys"] = "Cys";
-    res["Residues:Cysteine:Synonyms:Cystine"] = "Cystine";
-    
-    res["Residues:Aspartate:Name"] =  "Aspartate";
-    res["Residues:Aspartate:ShortName"] = "Asp";
-    res["Residues:Aspartate:ThreeLetterCode"] = "ASP";
-    res["Residues:Aspartate:OneLetterCode"] = "D";
-    res["Residues:Aspartate:GB_SC"] = "784.0";
-    res["Residues:Aspartate:GB_BB_L"] = "880.02";
-    res["Residues:Aspartate:GB_BB_R"] = "-0.63";
-    res["Residues:Aspartate:Formula"] = "C4H7NO4";
-    res["Residues:Aspartate:pka"] = "1.99";
-    res["Residues:Aspartate:pkb"] = "9.90";
-    res["Residues:Aspartate:pkc"] = "3.90";
-    res["Residues:Aspartate:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Aspartate:Synonyms:Asp"] = "Asp";
-    res["Residues:Aspartate:Losses:LossName"] = "water";
-    res["Residues:Aspartate:Losses:LossFormula"] = "H2O";
-    
-    res["Residues:Glutamate:Name" ]= "Glutamate";
-    res["Residues:Glutamate:ShortName" ]= "Glu";
-    res["Residues:Glutamate:ThreeLetterCode" ]= "GLU";
-    res["Residues:Glutamate:OneLetterCode" ]= "E";
-    res["Residues:Glutamate:GB_SC" ]= "790.0";
-    res["Residues:Glutamate:GB_BB_L" ]= "880.10";
-    res["Residues:Glutamate:GB_BB_R" ]= "-0.39";
-    res["Residues:Glutamate:Formula" ]= "C5H9NO4";
-    res["Residues:Glutamate:pka" ]= "2.10";
-    res["Residues:Glutamate:pkb" ]= "9.47";
-    res["Residues:Glutamate:pkc" ]= "4.07";
-    res["Residues:Glutamate:ResidueSets" ]= "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Glutamate:Synonyms:Glu" ]= "Glu";
-    res["Residues:Glutamate:Losses:LossName" ]= "water";
-    res["Residues:Glutamate:Losses:LossFormula" ]= "H2O";
-    res["Residues:Glutamate:NTermLosses:LossName" ]= "water";
-    res["Residues:Glutamate:NTermLosses:LossFormula" ]= "H2O";
-    
-    res["Residues:Phenylalanine:Name" ]= "Phenylalanine";
-    res["Residues:Phenylalanine:ShortName" ]= "Phe";
-    res["Residues:Phenylalanine:ThreeLetterCode" ]= "PHE";
-    res["Residues:Phenylalanine:OneLetterCode" ]= "F";
-    res["Residues:Phenylalanine:Formula" ]= "C9H11NO2";
-    res["Residues:Phenylalanine:pka" ]= "2.20";
-    res["Residues:Phenylalanine:pkb" ]= "9.31";
-    res["Residues:Phenylalanine:GB_SC" ]= "0.00";
-    res["Residues:Phenylalanine:GB_BB_L" ]= "881.08";
-    res["Residues:Phenylalanine:GB_BB_R" ]= "0.03";
-    res["Residues:Phenylalanine:ResidueSets" ]= "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Phenylalanine:Synonyms:Phe" ]= "Phe";
-      
-    res["Residues:Glycine:Name"] = "Glycine";
-    res["Residues:Glycine:ShortName"] = "Gly";
-    res["Residues:Glycine:ThreeLetterCode"] = "GLY";
-    res["Residues:Glycine:OneLetterCode"] = "G";
-    res["Residues:Glycine:Formula"] = "C2H5NO2";
-    res["Residues:Glycine:pka"] = "2.35";
-    res["Residues:Glycine:pkb"] = "9.78";
-    res["Residues:Glycine:GB_SC"] = "0.00";
-    res["Residues:Glycine:GB_BB_L"] = "881.17";
-    res["Residues:Glycine:GB_BB_R"] = "0.92";
-    res["Residues:Glycine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Glycine:Synonyms:Gly"] = "Gly";
-
-    res["Residues:Histidine:Name"] = "Histidine";
-    res["Residues:Histidine:ShortName"] = "His";
-    res["Residues:Histidine:ThreeLetterCode"] = "HIS";
-    res["Residues:Histidine:OneLetterCode"] = "H";
-    res["Residues:Histidine:Formula"] = "C6H9N3O2";
-    res["Residues:Histidine:pka"] = "1.80";
-    res["Residues:Histidine:pkb"] = "9.33";
-    res["Residues:Histidine:pkc"] = "6.04";
-    res["Residues:Histidine:GB_SC"] = "927.84";
-    res["Residues:Histidine:GB_BB_L"] = "881.27";
-    res["Residues:Histidine:GB_BB_R"] = "-0.19";
-    res["Residues:Histidine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Histidine:Synonyms:His"] = "His";
-
-    res["Residues:Isoleucine:Name"] = "Isoleucine";
-    res["Residues:Isoleucine:ShortName"] = "Ile";
-    res["Residues:Isoleucine:ThreeLetterCode"] = "ILE";
-    res["Residues:Isoleucine:OneLetterCode"] = "I";
-    res["Residues:Isoleucine:Formula"] = "C6H13NO2";
-    res["Residues:Isoleucine:pka"] = "2.32";
-    res["Residues:Isoleucine:pkb"] = "9.76";
-    res["Residues:Isoleucine:GB_SC"] = "0.00";
-    res["Residues:Isoleucine:GB_BB_L"] = "880.99";
-    res["Residues:Isoleucine:GB_BB_R"] = "-1.17";
-    res["Residues:Isoleucine:ResidueSets"] = "All,Natural20,Natural19WithoutL,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Isoleucine:Synonyms:Ile"] = "Ile";
-
-    res["Residues:Lysine:Name"] = "Lysine";
-    res["Residues:Lysine:ShortName"] = "Lys";
-    res["Residues:Lysine:ThreeLetterCode"] = "LYS";
-    res["Residues:Lysine:OneLetterCode"] = "K";
-    res["Residues:Lysine:Formula"] = "C6H14N2O2";
-    res["Residues:Lysine:pka"] = "2.16";
-    res["Residues:Lysine:pkb"] = "9.06";
-    res["Residues:Lysine:pkc"] = "10.54";
-    res["Residues:Lysine:GB_SC"] = "926.74";
-    res["Residues:Lysine:GB_BB_L"] = "880.06";
-    res["Residues:Lysine:GB_BB_R"] = "-0.71";
-    res["Residues:Lysine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Lysine:Synonyms:Lys"] = "Lys";
-    res["Residues:Lysine:Losses:LossName"] = "ammonia";
-    res["Residues:Lysine:Losses:LossFormula"] = "NH3";
-
-    res["Residues:Leucine:Name"] = "Leucine";
-    res["Residues:Leucine:ShortName"] = "Leu";
-    res["Residues:Leucine:ThreeLetterCode"] = "LEU";
-    res["Residues:Leucine:OneLetterCode"] = "L";
-    res["Residues:Leucine:Formula"] = "C6H13NO2";
-    res["Residues:Leucine:pka"] = "2.33";
-    res["Residues:Leucine:pkb"] = "9.74";
-    res["Residues:Leucine:GB_SC"] = "0.00";
-    res["Residues:Leucine:GB_BB_L"] = "881.88";
-    res["Residues:Leucine:GB_BB_R"] = "-0.09";
-    res["Residues:Leucine:ResidueSets"] = "All,Natural20,Natural19WithoutI,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Leucine:Synonyms:Leu"] = "Leu";
-
-    res["Residues:Methionine:Name"] = "Methionine";
-    res["Residues:Methionine:ShortName"] = "Met";
-    res["Residues:Methionine:ThreeLetterCode"] = "MET";
-    res["Residues:Methionine:OneLetterCode"] = "M";
-    res["Residues:Methionine:Formula"] = "C5H11NO2S";
-    res["Residues:Methionine:pka"] = "2.13";
-    res["Residues:Methionine:pkb"] = "9.28";
-    res["Residues:Methionine:GB_SC"] = "830.0";
-    res["Residues:Methionine:GB_BB_L"] = "881.38";
-    res["Residues:Methionine:GB_BB_R"] = "0.30";
-    res["Residues:Methionine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Methionine:Synonyms:Met"] = "Met";
-
-    res["Residues:Asparagine:Name"] = "Asparagine";
-    res["Residues:Asparagine:ShortName"] = "Asn";
-    res["Residues:Asparagine:ThreeLetterCode"] = "ASN";
-    res["Residues:Asparagine:OneLetterCode"] = "N";
-    res["Residues:Asparagine:GB_SC"] = "864.94";
-    res["Residues:Asparagine:GB_BB_L"] = "881.18";
-    res["Residues:Asparagine:GB_BB_R"] = "1.56";
-    res["Residues:Asparagine:Formula"] = "C4H8N2O3";
-    res["Residues:Asparagine:pka"] = "2.14";
-    res["Residues:Asparagine:pkb"] = "8.72";
-    res["Residues:Asparagine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Asparagine:Synonyms:Asn"] = "Asn";
-    res["Residues:Asparagine:Losses:LossName"] = "ammonia";
-    res["Residues:Asparagine:Losses:LossFormula"] = "NH3";
-
-    res["Residues:Proline:Name"] = "Proline";
-    res["Residues:Proline:ShortName"] = "Pro";
-    res["Residues:Proline:ThreeLetterCode"] = "PRO";
-    res["Residues:Proline:OneLetterCode"] = "P";
-    res["Residues:Proline:Formula"] = "C5H9NO2";
-    res["Residues:Proline:pka"] = "1.95";
-    res["Residues:Proline:pkb"] = "10.64";
-    res["Residues:Proline:GB_SC"] = "0.00";
-    res["Residues:Proline:GB_BB_L"] = "881.25";
-    res["Residues:Proline:GB_BB_R"] = "11.75";
-    res["Residues:Proline:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Proline:Synonyms:Pro"] = "Pro";
-
-    res["Residues:Glutamine:Name"] = "Glutamine";
-    res["Residues:Glutamine:ShortName"] = "Gln";
-    res["Residues:Glutamine:ThreeLetterCode"] = "GLN";
-    res["Residues:Glutamine:OneLetterCode"] = "Q";
-    res["Residues:Glutamine:GB_SC"] = "865.25";
-    res["Residues:Glutamine:GB_BB_L"] = "881.50";
-    res["Residues:Glutamine:GB_BB_R"] = "4.10";
-    res["Residues:Glutamine:Formula"] = "C5H10N2O3";
-    res["Residues:Glutamine:pka"] = "2.17";
-    res["Residues:Glutamine:pkb"] = "9.13";
-    res["Residues:Glutamine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Glutamine:Synonyms:Gln"] = "Gln";
-    res["Residues:Glutamine:Losses:LossName"] = "ammonia";
-    res["Residues:Glutamine:Losses:LossFormula"] = "NH3";
-    res["Residues:Glutamine:NTermLosses:LossName"] = "water";
-    res["Residues:Glutamine:NTermLosses:LossFormula"] = "H2O";
-
-    res["Residues:Arginine:Name"] = "Arginine";
-    res["Residues:Arginine:ShortName"] = "Arg";
-    res["Residues:Arginine:ThreeLetterCode"] = "ARG";
-    res["Residues:Arginine:OneLetterCode"] = "R";
-    res["Residues:Arginine:GB_SC"] = "1000.0";
-    res["Residues:Arginine:GB_BB_L"] = "882.98";
-    res["Residues:Arginine:GB_BB_R"] = "6.28";
-    res["Residues:Arginine:Formula"] = "C6H14N4O2";
-    res["Residues:Arginine:pka"] = "1.82";
-    res["Residues:Arginine:pkb"] = "8.99";
-    res["Residues:Arginine:pkc"] = "12.48";
-    res["Residues:Arginine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Arginine:Synonyms:Arg"] = "Arg";
-    res["Residues:Arginine:Losses:LossName1"] = "ammonia";
-    res["Residues:Arginine:Losses:LossFormula1"] = "NH3";
-    res["Residues:Arginine:Losses:LossName2"] = "";
-    res["Residues:Arginine:Losses:LossFormula2"] = "NHCNH";
-    res["Residues:Arginine:Losses:LossName3"] = "";
-    res["Residues:Arginine:Losses:LossFormula3"] = "CONH2";
-
-    res["Residues:Selenocysteine:Name"] = "Selenocysteine";
-    res["Residues:Selenocysteine:ShortName"] = "Sec";
-    res["Residues:Selenocysteine:ThreeLetterCode"] = "SEC";
-    res["Residues:Selenocysteine:OneLetterCode"] = "U";
-    res["Residues:Selenocysteine:Formula"] = "C3H7NO2Se";
-    res["Residues:Selenocysteine:pkc"] = "5.73";
-    res["Residues:Selenocysteine:GB_SC"] = "0.00";
-    res["Residues:Selenocysteine:GB_BB_L"] = "880.99";
-    res["Residues:Selenocysteine:GB_BB_R"] = "0.12";
-    res["Residues:Selenocysteine:ResidueSets"] = "All,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Selenocysteine:Synonyms:Sec"] = "Sec";
-
-    res["Residues:Serine:Name"] = "Serine";
-    res["Residues:Serine:ShortName"] = "Ser";
-    res["Residues:Serine:ThreeLetterCode"] = "SER";
-    res["Residues:Serine:OneLetterCode"] = "S";
-    res["Residues:Serine:GB_SC"] = "775.0";
-    res["Residues:Serine:GB_BB_L"] = "881.08";
-    res["Residues:Serine:GB_BB_R"] = "0.98";
-    res["Residues:Serine:Formula"] = "C3H7NO3";
-    res["Residues:Serine:pka"] = "2.19";
-    res["Residues:Serine:pkb"] = "9.21";
-    res["Residues:Serine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Serine:Synonyms:Ser"] = "Ser";
-    res["Residues:Serine:Losses:LossName"] = "water";
-    res["Residues:Serine:Losses:LossFormula"] = "H2O";
-
-    res["Residues:Threonine:Name"] = "Threonine";
-    res["Residues:Threonine:ShortName"] = "Thr";
-    res["Residues:Threonine:ThreeLetterCode"] = "THR";
-    res["Residues:Threonine:OneLetterCode"] = "T";
-    res["Residues:Threonine:Formula"] = "C4H9NO3";
-    res["Residues:Threonine:pka"] = "2.09";
-    res["Residues:Threonine:pkb"] = "9.10";
-    res["Residues:Threonine:GB_SC"] = "780.0";
-    res["Residues:Threonine:GB_BB_L"] = "881.14";
-    res["Residues:Threonine:GB_BB_R"] = "1.21";
-    res["Residues:Threonine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Threonine:Synonyms:Thr"] = "Thr";
-    res["Residues:Threonine:Losses:LossName"] = "water";
-    res["Residues:Threonine:Losses:LossFormula"] = "H2O";
-
-    res["Residues:Valine:Name"] = "Valine";
-    res["Residues:Valine:ShortName"] = "Val";
-    res["Residues:Valine:ThreeLetterCode"] = "VAL";
-    res["Residues:Valine:OneLetterCode"] = "V";
-    res["Residues:Valine:Formula"] = "C5H11NO2";
-    res["Residues:Valine:pka"] = "2.39";
-    res["Residues:Valine:pkb"] = "9.74";
-    res["Residues:Valine:GB_SC"] = "0.0";
-    res["Residues:Valine:GB_BB_L"] = "881.17";
-    res["Residues:Valine:GB_BB_R"] = "-0.90";
-    res["Residues:Valine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Valine:Synonyms:Val"] = "Val";
-
-    res["Residues:Tryptophan:Name"] = "Tryptophan";
-    res["Residues:Tryptophan:ShortName"] = "Trp";
-    res["Residues:Tryptophan:ThreeLetterCode"] = "TRP";
-    res["Residues:Tryptophan:OneLetterCode"] = "W";
-    res["Residues:Tryptophan:Formula"] = "C11H12N2O2";
-    res["Residues:Tryptophan:pka"] = "2.46";
-    res["Residues:Tryptophan:pkb"] = "9.41";
-    res["Residues:Tryptophan:GB_SC"] = "909.53";
-    res["Residues:Tryptophan:GB_BB_L"] = "881.31";
-    res["Residues:Tryptophan:GB_BB_R"] = "0.10";
-    res["Residues:Tryptophan:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Tryptophan:Synonyms:Trp"] = "Trp";
-
-    res["Residues:Tyrosine:Name"] = "Tyrosine";
-    res["Residues:Tyrosine:ShortName"] = "Tyr";
-    res["Residues:Tyrosine:ThreeLetterCode"] = "TYR";
-    res["Residues:Tyrosine:OneLetterCode"] = "Y";
-    res["Residues:Tyrosine:Formula"] = "C9H11NO3";
-    res["Residues:Tyrosine:pka"] = "2.20";
-    res["Residues:Tyrosine:pkb"] = "9.21";
-    res["Residues:Tyrosine:pkc"] = "10.46";
-    res["Residues:Tyrosine:GB_SC"] = "790.0";
-    res["Residues:Tyrosine:GB_BB_L"] = "881.20";
-    res["Residues:Tyrosine:GB_BB_R"] = "-0.38";
-    res["Residues:Tyrosine:ResidueSets"] = "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Tyrosine:Synonyms:Tyr"] = "Tyr";
-
-    res["Residues:Pyrrolysine:Name"] = "Pyrrolysine";
-    res["Residues:Pyrrolysine:ShortName"] = "Pyr";
-    res["Residues:Pyrrolysine:ThreeLetterCode"] = "PYR";
-    res["Residues:Pyrrolysine:OneLetterCode"] = "O";
-    res["Residues:Pyrrolysine:Formula"] = "C12H21N3O3";
-    res["Residues:Pyrrolysine:pka"] = "0.0";
-    res["Residues:Pyrrolysine:pkb"] = "0.0";
-    res["Residues:Pyrrolysine:pkc"] = "0.0";
-    res["Residues:Pyrrolysine:GB_SC"] = "0.0";
-    res["Residues:Pyrrolysine:GB_BB_L"] = "0.0";
-    res["Residues:Pyrrolysine:GB_BB_R"] = "0.0";
-    res["Residues:Pyrrolysine:ResidueSets"] = "All,AmbiguousWithoutX,Ambiguous,AllNatural";
-    res["Residues:Pyrrolysine:Synonyms:Pyr"] = "Pyr";
-
-    res["Residues:Ambiguous_ASN_or_ASP:Name"] = "Asparagine/Aspartate";
-    res["Residues:Ambiguous_ASN_or_ASP:ShortName"] = "Asx";
-    res["Residues:Ambiguous_ASN_or_ASP:ThreeLetterCode"] = "ASX";
-    res["Residues:Ambiguous_ASN_or_ASP:OneLetterCode"] = "B";
-    res["Residues:Ambiguous_ASN_or_ASP:Formula"] = "";
-    res["Residues:Ambiguous_ASN_or_ASP:GB_SC"] = "0";
-    res["Residues:Ambiguous_ASN_or_ASP:GB_BB_L"] = "0";
-    res["Residues:Ambiguous_ASN_or_ASP:GB_BB_R"] = "0";
-    res["Residues:Ambiguous_ASN_or_ASP:ResidueSets"] = "All,AmbiguousWithoutX,Ambiguous";
-    res["Residues:Ambiguous_ASN_or_ASP:Synonyms:Asx"] = "Asx";
-
-    res["Residues:Ambiguous_GLN_or_GLU:Name"] = "Glutamine/Glutamate";
-    res["Residues:Ambiguous_GLN_or_GLU:ShortName"] = "Glx";
-    res["Residues:Ambiguous_GLN_or_GLU:ThreeLetterCode"] = "GLX";
-    res["Residues:Ambiguous_GLN_or_GLU:OneLetterCode"] = "Z";
-    res["Residues:Ambiguous_GLN_or_GLU:Formula"] = "";
-    res["Residues:Ambiguous_GLN_or_GLU:GB_SC"] = "0";
-    res["Residues:Ambiguous_GLN_or_GLU:GB_BB_L"] = "0";
-    res["Residues:Ambiguous_GLN_or_GLU:GB_BB_R"] = "0";
-    res["Residues:Ambiguous_GLN_or_GLU:ResidueSets"] = "All,AmbiguousWithoutX,Ambiguous";
-    res["Residues:Ambiguous_GLN_or_GLU:Synonyms:Glx"] = "Glx";
-
-    res["Residues:Ambiguous_ILE_or_LEU:Name"] = "Isoleucine/Leucine";
-    res["Residues:Ambiguous_ILE_or_LEU:ShortName"] = "Xle";
-    res["Residues:Ambiguous_ILE_or_LEU:ThreeLetterCode"] = "XLE";
-    res["Residues:Ambiguous_ILE_or_LEU:OneLetterCode"] = "J";
-    res["Residues:Ambiguous_ILE_or_LEU:Formula"] = "C6H13NO2";
-    res["Residues:Ambiguous_ILE_or_LEU:GB_SC"] = "0";
-    res["Residues:Ambiguous_ILE_or_LEU:GB_BB_L"] = "880.99";
-    res["Residues:Ambiguous_ILE_or_LEU:GB_BB_R"] = "-1.17";
-    res["Residues:Ambiguous_ILE_or_LEU:ResidueSets"] = "All,AmbiguousWithoutX,Ambiguous";
-    res["Residues:Ambiguous_ILE_or_LEU:Synonyms:Xle"] = "Xle";
-
-    res["Residues:Ambiguous_Unspecified_or_Unknown:Name"] = "Unspecified/Unknown";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:ShortName"] = "Xaa";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:ThreeLetterCode"] = "XAA";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:OneLetterCode"] = "X";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:Formula"] = "";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:GB_SC"] = "0";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:GB_BB_L"] = "0";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:GB_BB_R"] = "0";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:ResidueSets"] = "All,Ambiguous";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:Synonyms:Xaa"] = "Xaa";
-    res["Residues:Ambiguous_Unspecified_or_Unknown:Synonyms:Unk"] = "Unk";
-
     // clear names and lookup
     clearResidues_();
     clearResidueModifications_();
 
-    try
-    {
-      vector<String> split;
-      String first_elem_res = res.begin()->first;
-      first_elem_res.split(':', split);
-        
-      String prefix = split[0] + split[1];
-      Residue* res_ptr = nullptr;
-
-      Map<String, String> values;
-
-      for (auto it = res.begin(); it != res.end(); ++it)
-      {
-        String current_res = it->first;
-        current_res.split(':', split);
-        
-        if (prefix != split[0] + split[1])
-        {
-          // add residue
-          res_ptr = parseResidue_(values);
-          values.clear();
-          residues_.insert(res_ptr);
-          const_residues_.insert(res_ptr);
-          prefix = split[0] + split[1];
-          residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
-        }
-        String value = it->second;
-        String key = it->first;
-        values[key] = value;
-      }
+     Residue* alanine = new  Residue("Alanine", "Ala", "ALA", "A", EmpiricalFormula("C3H7NO2"), EmpiricalFormula("C3H7NO2").getAverageWeight(), EmpiricalFormula("C3H7NO2").getMonoWeight(), 2.35, 9.87, -1.00, 0.00, 881.82, 0.00, set<String>{"L-Alanine", "alanine",  "Alanin", "alanin", "Ala"});
+     insertResidues_(alanine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
+     
+    Residue* cysteine = new Residue("Cysteine", "Cys", "CYS", "C", EmpiricalFormula("C3H7NO2S"), EmpiricalFormula("C3H7NO2S").getAverageWeight(), EmpiricalFormula("C3H7NO2S").getMonoWeight(), 1.92, 10.70, 8.18, 0.00, 0.12, 880.99,  set<String>{"Cys", "Cystine"});
+    insertResidues_(cysteine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
     
-      // add last residue
-      res_ptr = parseResidue_(values);
-      residues_.insert(res_ptr);
-      const_residues_.insert(res_ptr);
-      residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
-    }
-    catch (Exception::BaseException& e)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
-    }
-  }
+    Residue* aspartate = new Residue("Aspartate", "Asp", "ASP", "D", EmpiricalFormula("C4H7NO4"), EmpiricalFormula("C4H7NO4").getAverageWeight(), EmpiricalFormula("C4H7NO4").getMonoWeight(), 1.99, 9.90, 3.90, 784.0, 880.02, -0.63, set<String>{"Asp"});
+    aspartate->addLossName("water");
+    aspartate->addLossFormula(EmpiricalFormula("H2O"));
+    insertResidues_(aspartate, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    
+    Residue* glutamate = new Residue ( "Glutamate", "Glu", "GLU", "E", EmpiricalFormula( "C5H9NO4"), EmpiricalFormula( "C5H9NO4").getAverageWeight(), EmpiricalFormula( "C5H9NO4").getMonoWeight(), 2.10, 9.47, 4.07, 790.0, 880.10, -0.39, set<String>{"Glu"});
+    glutamate->addLossName("water");
+    glutamate->addLossFormula(EmpiricalFormula("H2O"));
+    glutamate->addNTermLossName("water");
+    glutamate->addNTermLossFormula(EmpiricalFormula("H2O"));
+    insertResidues_(glutamate, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    
+    Residue* phenylalanine = new Residue ( "Phenylalanine", "Phe", "PHE", "F", EmpiricalFormula( "C9H11NO2"), EmpiricalFormula( "C9H11NO2").getAverageWeight(), EmpiricalFormula( "C9H11NO2").getMonoWeight(), 2.20, 9.31, -1.0, 0.00, 881.08, 0.03, set<String>{"Phe"});
+	insertResidues_(phenylalanine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    
+    Residue* glycine = new Residue ( "Glycine", "Gly", "GLY", "G", EmpiricalFormula( "C2H5NO2"), EmpiricalFormula( "C2H5NO2").getAverageWeight(), EmpiricalFormula( "C2H5NO2").getMonoWeight(), 2.35, 9.78, -1.0, 0.00, 881.17, 0.92, set<String>{"Gly"} );
+	insertResidues_(glycine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    
+    Residue* histidin = new Residue ( "Histidine", "His", "HIS", "H", EmpiricalFormula( "C6H9N3O2"), EmpiricalFormula( "C6H9N3O2").getAverageWeight(), EmpiricalFormula( "C6H9N3O2").getMonoWeight(), 1.80, 9.33, 6.04, 927.84, 881.27, -0.19, set<String>{"His"});
+	insertResidues_(histidin,  "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
 
+	Residue* isoleucine = new Residue ( "Isoleucine", "Ile", "ILE", "I", EmpiricalFormula( "C6H13NO2"), EmpiricalFormula( "C6H13NO2").getAverageWeight(), EmpiricalFormula( "C6H13NO2").getMonoWeight(), 2.32, 9.76, -1.0, 0.00, 880.99, -1.17, set<String>{"Ile"});
+	insertResidues_(isoleucine, "All,Natural20,Natural19WithoutL,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    
+    Residue* lysine = new Residue ( "Lysine", "Lys", "LYS", "K", EmpiricalFormula( "C6H14N2O2"), EmpiricalFormula( "C6H14N2O2").getAverageWeight(), EmpiricalFormula( "C6H14N2O2").getMonoWeight(), 2.16, 9.06, 10.54, 926.74, 880.06, -0.71, set<String>{ "Lys"});
+    lysine->addLossName("ammonia");
+    lysine->addLossFormula(EmpiricalFormula("NH3"));
+	insertResidues_(lysine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+	
+	Residue* leucine = new Residue ( "Leucine", "Leu", "LEU", "L", EmpiricalFormula( "C6H13NO2"), EmpiricalFormula( "C6H13NO2").getAverageWeight(), EmpiricalFormula( "C6H13NO2").getMonoWeight(), 2.33, 9.74, -1.0, 0.00, 881.88, -0.09, set<String>{ "Leu"});
+	insertResidues_(leucine, "All,Natural20,Natural19WithoutI,AmbiguousWithoutX,Ambiguous,AllNatural"  );
+	
+	Residue* methionine = new Residue ( "Methionine", "Met", "MET", "M", EmpiricalFormula( "C5H11NO2S"), EmpiricalFormula( "C5H11NO2S").getAverageWeight(), EmpiricalFormula( "C5H11NO2S").getMonoWeight(), 2.13, 9.28, -1.0, 830.0, 881.38, 0.30, set<String>{ "Met"});
+	insertResidues_(methionine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    
+    Residue* asparagine = new Residue ( "Asparagine", "Asn", "ASN", "N", EmpiricalFormula( "C4H8N2O3"), EmpiricalFormula( "C4H8N2O3").getAverageWeight(), EmpiricalFormula( "C4H8N2O3").getMonoWeight(), 2.14, 8.72, -1.0, 864.94, 881.18, 1.56, set<String>{ "Asn"});
+    asparagine->addLossName("ammonia");
+    asparagine->addLossFormula(EmpiricalFormula("NH3"));
+	insertResidues_(asparagine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
+	
+	Residue* proline = new Residue ( "Proline", "Pro", "PRO", "P", EmpiricalFormula( "C5H9NO2"), EmpiricalFormula( "C5H9NO2").getAverageWeight(), EmpiricalFormula( "C5H9NO2").getMonoWeight(), 1.95, 10.64, -1.0, 0.00, 881.25, 11.75, set<String>{ "Pro"});
+	insertResidues_(proline, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+	
+	Residue* glutamine = new Residue ( "Glutamine", "Gln", "GLN", "Q", EmpiricalFormula( "C5H10N2O3"), EmpiricalFormula( "C5H10N2O3").getAverageWeight(), EmpiricalFormula( "C5H10N2O3").getMonoWeight(), 2.17, 9.13, -1.0, 865.25, 881.50, 4.10, set<String>{ "Gln"});
+	glutamine->addLossName("ammonia");
+    glutamine->addLossFormula(EmpiricalFormula("NH3"));
+    glutamine->addNTermLossName("water");
+    glutamine->addNTermLossFormula(EmpiricalFormula("H2O"));
+	insertResidues_(glutamine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+	
+	Residue* arginine = new Residue ( "Arginine", "Arg", "ARG", "R", EmpiricalFormula( "C6H14N4O2"), EmpiricalFormula( "C6H14N4O2").getAverageWeight(), EmpiricalFormula( "C6H14N4O2").getMonoWeight(), 1.82, 8.99, 12.48, 1000.0, 882.98, 6.28, set<String>{ "Arg"});
+	arginine->addLossName("ammonia");
+    arginine->addLossFormula(EmpiricalFormula("NH3"));
+    arginine->addLossName("");
+    arginine->addLossFormula(EmpiricalFormula("NHCNH"));
+    arginine->addLossName("");
+    arginine->addLossFormula(EmpiricalFormula("CONH2"));
+	insertResidues_(arginine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+	
+	Residue* selenocysteine = new Residue ( "Selenocysteine", "Sec", "SEC", "U", EmpiricalFormula( "C3H7NO2Se"), EmpiricalFormula( "C3H7NO2Se").getAverageWeight(), EmpiricalFormula( "C3H7NO2Se").getMonoWeight(), 0.00, 0.00, 5.73, 0.00, 880.99, 0.12, set<String>{ "Sec"});
+    insertResidues_(selenocysteine, "All,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    
+	Residue* serine = new Residue ( "Serine", "Ser", "SER", "S", EmpiricalFormula( "C3H7NO3"), EmpiricalFormula( "C3H7NO3").getAverageWeight(), EmpiricalFormula( "C3H7NO3").getMonoWeight(), 2.19, 9.21, -1.0, 775.0, 881.08, 0.98, set<String>{ "Ser"});
+	serine->addLossName("water");
+    serine->addLossFormula(EmpiricalFormula("H2O"));
+	insertResidues_(serine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+	
+	Residue* threonine = new Residue ( "Threonine", "Thr", "THR", "T", EmpiricalFormula( "C4H9NO3"), EmpiricalFormula( "C4H9NO3").getAverageWeight(), EmpiricalFormula( "C4H9NO3").getMonoWeight(), 2.09, 9.10, -1.0, 780.0, 881.14, 1.21, set<String>{ "Thr"});
+	threonine->addLossName("water");
+    threonine->addLossFormula(EmpiricalFormula("H2O"));
+	insertResidues_(threonine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+	
+	Residue* valine = new Residue ( "Valine", "Val", "VAL", "V", EmpiricalFormula( "C5H11NO2"), EmpiricalFormula( "C5H11NO2").getAverageWeight(), EmpiricalFormula( "C5H11NO2").getMonoWeight(), 2.39, 9.74, -1.0, 0.0, 881.17, -0.90, set<String>{ "Val"});
+	insertResidues_(valine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+
+	Residue* tryptophan = new Residue ( "Tryptophan", "Trp", "TRP", "W", EmpiricalFormula( "C11H12N2O2"), EmpiricalFormula( "C11H12N2O2").getAverageWeight(), EmpiricalFormula( "C11H12N2O2").getMonoWeight(), 2.46, 9.41, -1.0, 909.53, 881.31, 0.10, set<String>{ "Trp"});
+	insertResidues_(tryptophan, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+
+	Residue* tyrosine = new Residue ( "Tyrosine", "Tyr", "TYR", "Y", EmpiricalFormula( "C9H11NO3"), EmpiricalFormula( "C9H11NO3").getAverageWeight(), EmpiricalFormula( "C9H11NO3").getMonoWeight(), 2.20, 9.21, 10.46, 790.0, 881.20, -0.38, set<String>{ "Tyr" });
+	insertResidues_(tyrosine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+
+	Residue* pyrrolysine = new Residue ( "Pyrrolysine", "Pyr", "PYR", "O", EmpiricalFormula( "C12H21N3O3"), EmpiricalFormula( "C12H21N3O3").getAverageWeight(), EmpiricalFormula( "C12H21N3O3").getMonoWeight(), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, set<String>{ "Pyr"});
+	insertResidues_( pyrrolysine, "All,AmbiguousWithoutX,Ambiguous,AllNatural");
+	
+	Residue* asparagine_aspartate = new Residue ( "Asparagine/Aspartate", "Asx", "ASX", "B", EmpiricalFormula( ""), EmpiricalFormula( "").getAverageWeight(), EmpiricalFormula( "").getMonoWeight(), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Asx" });
+	insertResidues_( asparagine_aspartate , "All,AmbiguousWithoutX,Ambiguous");
+	
+	Residue* glutamine_glutamate = new Residue ( "Glutamine/Glutamate", "Glx", "GLX", "Z", EmpiricalFormula( ""), EmpiricalFormula( "").getAverageWeight(), EmpiricalFormula( "").getMonoWeight(), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Glx"});
+	insertResidues_(glutamine_glutamate, "All,AmbiguousWithoutX,Ambiguous" );
+	
+	Residue* isoleucine_leucine = new Residue ( "Isoleucine/Leucine", "Xle", "XLE", "J", EmpiricalFormula( "C6H13NO2"), EmpiricalFormula( "C6H13NO2").getAverageWeight(), EmpiricalFormula( "C6H13NO2").getMonoWeight(), 0.00, 0.00, -1.0, 0.00, 880.99, -1.17, set<String>{ "Xle"});
+	insertResidues_( isoleucine_leucine, "All,AmbiguousWithoutX,Ambiguous");
+
+	Residue* unspecified_unknown = new Residue ( "Unspecified/Unknown", "Xaa", "XAA", "X", EmpiricalFormula( ""), EmpiricalFormula( "").getAverageWeight(), EmpiricalFormula( "").getMonoWeight(), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Xaa", "Unk"});
+	insertResidues_(unspecified_unknown, "All,Ambiguous" );
+  }
+  
   void ResidueDB::clear_()
   {
     clearResidues_();
@@ -671,156 +359,27 @@ namespace OpenMS
     residue_mod_names_.clear();
     const_modified_residues_.clear();
   }
-
-  Residue* ResidueDB::parseResidue_(Map<String, String>& values)
+  
+  void ResidueDB::insertResidues_(Residue* res_ptr, const String& residue_set_names)
   {
-    vector<EmpiricalFormula> low_mass_ions;
-    Residue* res_ptr = new Residue();
-
-    for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
-    {
-      String key(it->first);
-      String value(it->second);
-
-      if (key.hasSuffix(":Name"))
-      {
-        res_ptr->setName(value);
-        continue;
-      }
-      if (key.hasSuffix(":ShortName"))
-      {
-        res_ptr->setShortName(value);
-        continue;
-      }
-      if (key.hasSuffix(":ThreeLetterCode"))
-      {
-        res_ptr->setThreeLetterCode(value);
-        continue;
-      }
-      if (key.hasSuffix(":OneLetterCode"))
-      {
-        res_ptr->setOneLetterCode(value);
-        continue;
-      }
-      if (key.hasSuffix(":Formula"))
-      {
-        EmpiricalFormula formula(value);
-        res_ptr->setFormula(EmpiricalFormula(value));
-        res_ptr->setAverageWeight(formula.getAverageWeight());
-        res_ptr->setMonoWeight(formula.getMonoWeight());
-        continue;
-      }
-
-      if (key.hasSubstring(":Losses:LossName"))
-      {
-        res_ptr->addLossName(value);
-        continue;
-      }
-      if (key.hasSubstring(":Losses:LossFormula"))
-      {
-        EmpiricalFormula loss(value);
-        res_ptr->addLossFormula(loss);
-        continue;
-      }
-
-      if (key.hasSubstring("NTermLosses:LossName"))
-      {
-        res_ptr->addNTermLossName(value);
-        continue;
-      }
-
-      if (key.hasSubstring("NTermLosses:LossFormula"))
-      {
-        EmpiricalFormula loss(value);
-        res_ptr->addNTermLossFormula(loss);
-        continue;
-      }
-
-      if (key.hasSubstring("LowMassIons"))
-      {
-        // no markers defined?
-        if (!key.hasSuffix(":"))
-        {
-          low_mass_ions.push_back(EmpiricalFormula(value));
-        }
-        continue;
-      }
-      if (key.hasSubstring("Synonyms"))
-      {
-        // no synonyms defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->addSynonym(value);
-        }
-        continue;
-      }
-      if (key.hasSubstring("pka"))
-      {
-        // no pka defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->setPka(value.toDouble());
-        }
-        continue;
-      }
-      if (key.hasSubstring("pkb"))
-      {
-        // no pkb defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->setPkb(value.toDouble());
-        }
-        continue;
-      }
-      if (key.hasSubstring("pkc"))
-      {
-        // no pkc defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->setPkc(value.toDouble());
-        }
-        continue;
-      }
-      if (key.hasSubstring("GB_SC"))
-      {
-        res_ptr->setSideChainBasicity(value.toDouble());
-        continue;
-      }
-      if (key.hasSubstring("GB_BB_L"))
-      {
-        res_ptr->setBackboneBasicityLeft(value.toDouble());
-        continue;
-      }
-      if (key.hasSubstring("GB_BB_R"))
-      {
-        res_ptr->setBackboneBasicityRight(value.toDouble());
-        continue;
-      }
-      if (key.hasSubstring("ResidueSets"))
-      {
-        StringList residue_sets = ListUtils::create<String>(value);
-        for (StringList::const_iterator local_it = residue_sets.begin(); local_it != residue_sets.end(); ++local_it)
+     StringList residue_sets = ListUtils::create<String>(residue_set_names);
+    
+    for (StringList::const_iterator local_it = residue_sets.begin(); local_it != residue_sets.end(); ++local_it)
         {
           res_ptr->addResidueSet(*local_it);
           residue_sets_.insert(*local_it);
         }
-        continue;
-      }
-      cerr << "unknown key: " << key << ", with value: " << value << endl;
-    }
-
-    if (!low_mass_ions.empty())
-    {
-      res_ptr->setLowMassIons(low_mass_ions);
-    }
-
-    for (set<String>::const_iterator it = res_ptr->getResidueSets().begin(); it != res_ptr->getResidueSets().end(); ++it)
+        
+   for (set<String>::const_iterator it = res_ptr->getResidueSets().begin(); it != res_ptr->getResidueSets().end(); ++it)
     {
       residues_by_set_[*it].insert(res_ptr);
     }
 
-    return res_ptr;
-  }
+     residues_.insert(res_ptr);
+     const_residues_.insert(res_ptr);
+     residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
+   
+   }
 
   const set<String> ResidueDB::getResidueSets() const
   {
