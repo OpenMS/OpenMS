@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -85,6 +86,8 @@ protected:
                         "output file prefix or output dir. "
                         "If prefix, [prefix].tsv (feature deconvolution results), [prefix]_MSn_spec.tsv (spectral deconvolution results) will be generated. "
                         "If dir, [dir]/[inputfile].tsv and [dir]/[inputfile]_MSn_spec.tsv will be generated per [inputfile].");
+
+    registerInputFile_("in_train", "<input_file/input_dir>", "", "Training topPIC file", false, true);
 
     registerDoubleList_("tol",
                         "<ms1_tol, ms2_tol, ...>",
@@ -203,6 +206,36 @@ protected:
     //-------------------------------------------------------------
     String infilePath = getStringOption_("in");
     String outfilePath = getStringOption_("out");
+    String intrainfile = getStringOption_("in_train");
+    std::set<int> trainScanNumbers;
+    fstream  trainOut;
+
+    if (!intrainfile.empty())
+    {
+      trainOut.open(intrainfile+"att.csv", fstream::out);
+      QScore::writeAttHeader(trainOut);
+      std::ifstream infile(intrainfile);
+      String line;
+      bool start = false;
+      while (std::getline(infile, line))
+      {
+        if (line.rfind("Data file name", 0) == 0){
+          start = true;
+          continue;
+        }
+        if(!start){
+          continue;
+        }
+        vector<String> results;
+        stringstream  ss(line);
+        String str;
+        while (getline(ss, str, ',')) {
+          results.push_back(str);
+        }
+        trainScanNumbers.insert(std::stoi(results[4]));
+      }
+    }
+
     bool useRNAavg = getIntOption_("use_RNA_averagine") > 0;
     int maxMSLevel = getIntOption_("max_MS_level");
     bool ensamble = getIntOption_("use_ensamble_spectrum") > 0;
@@ -500,6 +533,14 @@ protected:
         // per spec deconvolution
         fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber);
 
+        if (it->getMSLevel() == 2 && !intrainfile.empty()
+        && !deconvolutedSpectrum.getPrecursorPeakGroup().empty()){
+          QScore::writeAttTsv(deconvolutedSpectrum.getPrecursorPeakGroup(),
+                              deconvolutedSpectrum.getPrecursorCharge(),
+                              trainScanNumbers.find(scanNumber) != trainScanNumbers.end(), trainOut);
+
+        }
+
         if (outMzml)
         {
           exp.addSpectrum(deconvolutedSpectrum.toSpectrum());
@@ -744,6 +785,11 @@ protected:
         topfdOut_MS2.close();
       }
     }
+
+    if (!intrainfile.empty()){
+      trainOut.close();
+    }
+
     return EXECUTION_OK;
   }
 

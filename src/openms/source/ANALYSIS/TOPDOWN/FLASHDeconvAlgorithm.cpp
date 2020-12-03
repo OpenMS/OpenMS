@@ -1054,7 +1054,6 @@ namespace OpenMS
   {
     std::vector<PeakGroup> filteredPeakGroups;
     filteredPeakGroups.reserve(deconvolutedSpectrum->size());
-    double threshold = .0;
     double minThreshold = std::numeric_limits<double>::max();
     auto chargeRange = currentMaxCharge - minCharge + 1;
 
@@ -1075,33 +1074,24 @@ namespace OpenMS
         intensities.push_back(pg.getIntensity());
       }
       sort(intensities.begin(), intensities.end());
-      if (intensities.size() > (Size) maxc)
-      {
-        threshold = intensities[intensities.size() - maxc];
-      }
 
       if (intensities.size() > (Size) minc)
       {
         minThreshold = intensities[intensities.size() - minc];
       }
-
     }
 
-    auto perIsotopeIntensity = std::vector<double>(avg.getMaxIsotopeIndex());
-    auto perChargeIntensity = std::vector<double>(chargeRange);
 
     for (auto &pg : *deconvolutedSpectrum)
     {
-      if (pg.getIntensity() < threshold)
-      {
-        continue; //
-      }
-
       bool pass = false;
       if (pg.getIntensity() >= minThreshold)
       {
         pass = true; //
       }
+
+      auto perIsotopeIntensity = std::vector<double>(avg.getMaxIsotopeIndex(), 0);
+      auto perChargeIntensity = std::vector<double>(chargeRange, 0);
 
       auto indices = calculatePerChargeIsotopeIntensity(
           perIsotopeIntensity, perChargeIntensity,
@@ -1133,7 +1123,6 @@ namespace OpenMS
         }
       }
 
-
       int offset = 0;
       auto cos = getIsotopeCosineAndDetermineIsotopeIndex(pg[0].getUnchargedMass(),
                                                           perIsotopeIntensity,
@@ -1160,7 +1149,7 @@ namespace OpenMS
       int isoSize = (int) iso.size();
       float totalNoise = .0;
       float totalSignal = .0;
-      auto perChargeMaxIntensity = std::vector<double>(chargeRange);
+      //auto perChargeMaxIntensity = std::vector<double>(chargeRange);
 
       auto crange = pg.getChargeRange();
       for (auto charge = std::get<0>(crange); charge <= std::get<1>(crange); charge++)
@@ -1171,8 +1160,6 @@ namespace OpenMS
         int minIsotopeIndex = avg.getMaxIsotopeIndex();
         int maxIsotopeIndex = 0;
 
-        //double minMz = pg.monoisotopicMass * 2;
-        //double maxMz = 0;
         double maxIntensity = .0;
         //double sumIntensity = .0;
         double sp = .0;
@@ -1199,7 +1186,7 @@ namespace OpenMS
           if (maxIntensity < p.intensity)
           {
             maxIntensity = p.intensity;
-            perChargeMaxIntensity[j] = maxIntensity;
+           // perChargeMaxIntensity[j] = maxIntensity;
           }
           // sp += p.intensity * p.intensity;
         }
@@ -1245,17 +1232,12 @@ namespace OpenMS
       for (auto charge = std::get<0>(crange); charge <= std::get<1>(crange); charge++)
       {
         int j = charge - minCharge;
-        if (perChargeMaxIntensity[j] <= 0)
-        {
-          continue;
-        }
-        auto score = QScore::getQScore(&pg, perChargeMaxIntensity[j], charge);
+        auto score = QScore::getQScore(&pg, charge);
 
         if (score < pg.getQScore())
         {
           continue;
         }
-        //pg.maxScorePeakIntensity = pg.perChargeSNR[charge];
         pg.setRepCharge(charge);
         pg.setQScore(score);
       }
@@ -1284,7 +1266,6 @@ namespace OpenMS
       filteredPeakGroups.push_back(pg);
     }
     deconvolutedSpectrum->swap(filteredPeakGroups);
-    //std::vector<PeakGroup>().swap(filteredPeakGroups);
 
     if (msLevel > 1)
     {
@@ -1295,7 +1276,6 @@ namespace OpenMS
       filterPeakGroupsByQScore(maxc);
     }
   }
-
 
   void FLASHDeconvAlgorithm::filterPeakGroupsByIsotopeCosine(int currentMaxMassCount)
   {
@@ -1576,10 +1556,6 @@ namespace OpenMS
       int maxIsotopeCount,
       PeakGroup &pg)
   {
-    //    auto chargeRange = currentMaxCharge - minCharge + 1;
-    std::fill(perIsotopeIntensity.begin(), perIsotopeIntensity.end(), 0);
-    std::fill(perChargeIntensity.begin(), perChargeIntensity.end(), 0);
-
     int minPgCharge = INT_MAX;
     int maxPgCharge = INT_MIN;
     //    double maxIntensity = -1;

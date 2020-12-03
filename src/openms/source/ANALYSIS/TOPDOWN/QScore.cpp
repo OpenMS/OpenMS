@@ -38,26 +38,56 @@
 namespace OpenMS
 {
 
-  double QScore::getQScore(PeakGroup *pg, double intensity, int charge)
+  double QScore::getQScore(PeakGroup *pg, int charge)
   {
-    double score;
     if (pg == nullptr)
     { // all zero
-      score = -1.3923 * log10(intensity + 1) + 8.3952;
+      return -100;
     }
-    else
-    {
-      score =
-          -0.367 * log10(pg->getChargeSNR(charge) + 1e-3)
-          - 1.4339 * log10(intensity + 1)
-          + 1.3297 * log10(pg->getChargeIntensity(charge) + 1)
-          //- 2.7199 * pg->getChargeIsotopeCosine(charge)
-          - 0.8385 * log10(pg->getSNR() + 1e-3)
-          + 4.29 * pg->getIsotopeCosine()
-          //          - 0.4913 * pg->chargeCosineScore
-          - 0.4561 * log10(pg->getIntensity() + 1)
-          + 1.424;
+    std::vector<double> weights({-2.1298, -1.0541, -0.4386, -7.9159, 0.6992, -0.9395, 12.6278});
+    //ChargeCos    -2.1298
+    //ChargeInt    -1.0541
+    //ChargeSNR    -0.4386
+    //Cos          -7.9159
+    //Int           0.6992
+    //SNR          -0.9395
+    //Intercept    12.6278
+    double score = weights[weights.size() - 1];
+    auto fv = toFeatureVector(pg, charge);
+    for(int i=0;i<fv.size();i++){
+      score += fv[i] * weights[i];
     }
     return -score;
+  }
+
+  std::vector<double> QScore::toFeatureVector(PeakGroup *pg, int charge)
+  {
+    std::vector<double> fvector;
+
+    fvector.push_back(pg->getChargeIsotopeCosine(charge));
+    fvector.push_back(log10(1.0 + pg->getChargeIntensity(charge)));
+    fvector.push_back(log10(1.0 + pg->getChargeSNR(charge)));
+
+    fvector.push_back(pg->getIsotopeCosine());
+    fvector.push_back(log10(1.0 + pg->getIntensity()));
+    fvector.push_back(log10(1.0 + pg->getSNR()));
+
+    return fvector;
+  }
+
+  void QScore::writeAttHeader(std::fstream &f)
+  {
+    f<<"ChargeCos,ChargeInt,ChargeSNR,Cos,Int,SNR,Class\n";
+  }
+
+  void QScore::writeAttTsv(PeakGroup pg, int charge, bool isIdentified, std::fstream &f)
+  {
+    auto fv = toFeatureVector(&pg, charge);
+    if (fv[0] <= 0) return;
+    for (auto& item : fv)
+    {
+      f<<item<<",";
+    }
+    f<<(isIdentified?"T":"F")<<"\n";
   }
 }
