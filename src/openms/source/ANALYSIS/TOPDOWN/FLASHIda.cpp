@@ -71,7 +71,6 @@ namespace OpenMS
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("num_overlapped_scans", 10, "number of overlapped scans for MS1 deconvolution");
 
-
     auto massCountd = inputs["max_mass_count"];
 
     for (double j : massCountd)
@@ -91,7 +90,6 @@ namespace OpenMS
     selected = std::map<int, std::vector<double>>(); // int mass, rt, qscore
     std::cout << fd_defaults << std::endl;
   }
-
 
   int FLASHIda::getPeakGroups(double *mzs,
                               double *ints,
