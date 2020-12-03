@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <map>
 #include <vector>

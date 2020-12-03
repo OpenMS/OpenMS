@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <array>

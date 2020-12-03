@@ -277,10 +277,7 @@ protected:
       /// of our sql-insert routines first convert to string, which might yield an uint64 which cannot
       /// be represented as int64, and sqlite would attempt to store it as double(!), which will loose precision
       template <typename T>
-      UInt64 clearSignBit(T value)
-      {
-        static_assert(false, "Wrong input type to clearSignBit(). Please pass unsigned 64bit ints!");
-      };
+      UInt64 clearSignBit(T value);
       /// only allow UInt64 specialization
       template <>
       inline UInt64 clearSignBit(UInt64 value) {
