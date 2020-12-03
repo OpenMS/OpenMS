@@ -129,15 +129,7 @@ namespace OpenMS
                        const String& input_filename = "inputfile",
                        bool ms1_scores = false,
                        bool sonar = false,
-                       bool uis_scores = false) :
-      output_filename_(output_filename),
-      input_filename_(input_filename),
-      run_id_(static_cast<int64_t>(run_id & ~(1ULL << 63))),  // conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
-      doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores),
-      sonar_(sonar),
-      enable_uis_scoring_(uis_scores)
-      {}
+                       bool uis_scores = false);
 
     bool isActive() const;
 

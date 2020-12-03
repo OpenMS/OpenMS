@@ -273,6 +273,21 @@ protected:
   {
     namespace SqliteHelper
     {
+      /// Sql only stores signed 64bit ints, so we remove the highest bit, because some/most
+      /// of our sql-insert routines first convert to string, which might yield an uint64 which cannot
+      /// be represented as int64, and sqlite would attempt to store it as double(!), which will loose precision
+      template <typename T>
+      UInt64 clearSignBit(T value)
+      {
+        static_assert(false, "Wrong input type to clearSignBit(). Please pass unsigned 64bit ints!");
+      };
+      /// only allow UInt64 specialization
+      template <>
+      inline UInt64 clearSignBit(UInt64 value) {
+        return value & ~(1ULL << 63);
+      }
+
+
       enum class SqlState
       {
         SQL_ROW,

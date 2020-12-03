@@ -251,7 +251,7 @@ namespace OpenMS
       filename_(filename),
       spec_id_(0),
       chrom_id_(0),
-      run_id_(static_cast<int64_t>(run_id & ~(1ULL << 63))), // conversion from UInt64 to int64_t to support SQLite (and conversion to 63 bits)
+      run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
       use_lossy_compression_(true),
       linear_abs_mass_acc_(0.0001), // set the desired mass accuracy = 1ppm at 100 m/z
       write_full_meta_(true)
@@ -346,8 +346,6 @@ namespace OpenMS
     UInt64 MzMLSqliteHandler::getRunID() const
     {
       SqliteConnector conn(filename_);
-      sqlite3* db = conn.getDB();
-
       Size nr_results = 0;
       
       std::string select_sql = "SELECT RUN.ID FROM RUN;";

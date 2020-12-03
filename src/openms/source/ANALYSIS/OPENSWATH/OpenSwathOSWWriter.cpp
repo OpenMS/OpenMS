@@ -40,6 +40,15 @@
 
 namespace OpenMS
 {
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, const UInt64 run_id, const String& input_filename, bool ms1_scores, bool sonar, bool uis_scores) :
+    output_filename_(output_filename),
+    input_filename_(input_filename),
+    run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
+    doWrite_(!output_filename.empty()),
+    use_ms1_traces_(ms1_scores),
+    sonar_(sonar),
+    enable_uis_scoring_(uis_scores)
+  {}
 
   bool OpenSwathOSWWriter::isActive() const
   {
@@ -222,8 +231,7 @@ namespace OpenMS
 
     for (const auto& feature_it : output)
     {
-      UInt64 uint64_feature_id = feature_it.getUniqueId();
-      int64_t feature_id = static_cast<int64_t >(uint64_feature_id & ~(1ULL << 63)); // clear sign bit
+      int64_t feature_id = Internal::SqliteHelper::clearSignBit(feature_it.getUniqueId()); // clear sign bit
 
       for (const auto& sub_it : feature_it.getSubordinates())
       {

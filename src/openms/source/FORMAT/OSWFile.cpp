@@ -607,8 +607,6 @@ namespace OpenMS
     UInt64 OSWFile::getRunID() const
     {
       SqliteConnector conn(filename_);
-      sqlite3* db = conn.getDB();
-
       Size nr_results = 0;
 
       std::string select_sql = "SELECT RUN.ID FROM RUN;";
