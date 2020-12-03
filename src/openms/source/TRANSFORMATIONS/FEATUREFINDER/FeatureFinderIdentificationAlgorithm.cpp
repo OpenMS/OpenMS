@@ -336,7 +336,6 @@ namespace OpenMS
         peptides.back().setRT(f_it->getRT());
         peptides.back().setMZ(f_it->getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
-        peptides.back().setMetaValue("FromUntargeted", "true");
         peptides.back().setMetaValue("SeedFeatureID", String(f_it->getUniqueId()));
         addPeptideToMap_(peptides.back(), peptide_map_);
         ++seeds_added;
