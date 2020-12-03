@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -40,22 +40,24 @@
 namespace OpenMS
 {
   /**
-   * @brief Maps a protein position to all observed modifications and associated statistics 
+   * @brief Map a protein position to all observed modifications and associated statistics 
    * 
-   * For example, to store that position 10 maps to Oxidation (M) which was observed in 123 PSMs.
-   * 
+   * For example, allows storing that position 10 in the protein carries Oxidation (M) 
+   * and was observed in 123 PSMs.
+   * Note: Implementation uses a std::map, thus accessing a location not present in the map 
+   * with operator[] will value construct an empty map at that location. Like with std::maps
+   * check first if the key exists.
    */
   struct OPENMS_DLLAPI ProteinModificationSummary
   {
     /// basic modification statistic
-    /// values are constructed as unknown/NA and equal -1
     struct OPENMS_DLLAPI Statistics
     {
       bool operator==(const Statistics& rhs) const;
-      size_t count = -1;  ///< total number of PSMs supporting the modification at this position
-      double frequency = -1.0; ///< PSMs with modification / total number of PSMs
-      double FLR = -1.0; ///< false localization rate
-      double probability = -1.0; ///< (localization) probability
+      size_t count = 0;  ///< total number of PSMs supporting the modification at this position
+      double frequency = 0.0; ///< PSMs with modification / total number of PSMs
+      double FLR = 0.0; ///< false localization rate
+      double probability = 0.0; ///< (localization) probability
     };
 
     /// comparison operator
@@ -67,5 +69,4 @@ namespace OpenMS
     /// position -> modification -> statistic (counts, etc.)
     AALevelModificationSummary AALevelSummary;
   };
-
 }
