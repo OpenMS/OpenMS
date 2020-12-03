@@ -44,14 +44,14 @@ namespace OpenMS
     { // all zero
       return -100;
     }
-    std::vector<double> weights({-2.1298, -1.0541, -0.4386, -7.9159, 0.6992, -0.9395, 12.6278});
-    //ChargeCos    -2.1298
-    //ChargeInt    -1.0541
-    //ChargeSNR    -0.4386
-    //Cos          -7.9159
-    //Int           0.6992
-    //SNR          -0.9395
-    //Intercept    12.6278
+    std::vector<double> weights({-11.6177, -1.4063, 0.026, -17.6877, 0.7945, -1.0989, 12.9876});
+    //ChargeCos    -11.6177
+    //ChargeInt     -1.4063
+    //ChargeSNR       0.026
+    //Cos          -17.6877
+    //Int            0.7945
+    //SNR           -1.0989
+    //Intercept     12.9876
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector(pg, charge);
     for(int i=0;i<fv.size();i++){
@@ -64,11 +64,11 @@ namespace OpenMS
   {
     std::vector<double> fvector;
 
-    fvector.push_back(pg->getChargeIsotopeCosine(charge));
+    fvector.push_back(log10(1.0 + pg->getChargeIsotopeCosine(charge)));
     fvector.push_back(log10(1.0 + pg->getChargeIntensity(charge)));
     fvector.push_back(log10(1.0 + pg->getChargeSNR(charge)));
 
-    fvector.push_back(pg->getIsotopeCosine());
+    fvector.push_back(log10(1.0 + pg->getIsotopeCosine()));
     fvector.push_back(log10(1.0 + pg->getIntensity()));
     fvector.push_back(log10(1.0 + pg->getSNR()));
 
