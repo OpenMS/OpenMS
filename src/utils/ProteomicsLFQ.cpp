@@ -696,7 +696,7 @@ protected:
 
       transform_(feature_maps, transformations);
 
-      link_(feature_maps, 
+      link_(feature_maps,
         median_fwhm, 
         max_alignment_diff, 
         consensus_fraction);
@@ -1014,7 +1014,8 @@ protected:
     // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
     Size fraction_group{1};
     for (String const & mz_file : ms_files.second)
-    { 
+    {
+      writeDebug_("Processing file: " + mz_file,  1);
       // centroid spectra (if in profile mode) and correct precursor masses
       MSExperiment ms_centroided;    
 

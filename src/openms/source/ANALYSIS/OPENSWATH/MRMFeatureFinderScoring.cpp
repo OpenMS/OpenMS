@@ -1129,6 +1129,10 @@ namespace OpenMS
       }
       chromatogram.setMetaValue("product_mz", transition->getProductMZ());
       chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
+      Precursor prec; prec.setPosition(transition->getPrecursorMZ());
+      Product prod; prod.setMZ(transition->getProductMZ());
+      chromatogram.setPrecursor(prec);
+      chromatogram.setProduct(prod);
       chromatogram.setNativeID(transition->getNativeID());
 
       // Create new transition group if there is none for this peptide
