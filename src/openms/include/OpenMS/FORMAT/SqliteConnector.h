@@ -38,6 +38,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <type_traits> // for is_same
+
 // forward declarations
 struct sqlite3;
 struct sqlite3_stmt;
