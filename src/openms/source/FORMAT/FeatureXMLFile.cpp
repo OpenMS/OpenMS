@@ -525,7 +525,7 @@ namespace OpenMS
     {
       prot_id_.setSearchEngine(attributeAsString_(attributes, "search_engine"));
       prot_id_.setSearchEngineVersion(attributeAsString_(attributes, "search_engine_version"));
-      prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
+      prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
       // set identifier
       // always generate a unique id to link a ProteinIdentification and the corresponding PeptideIdentifications
       // , since any FeatureLinker might just carelessly concatenate PepIDs from different FeatureMaps.
