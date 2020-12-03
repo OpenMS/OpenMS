@@ -55,8 +55,8 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI SqliteConnector
   {
-public:
-    
+  public:
+
     /// how an sqlite db should be opened
     enum class SqlOpenMode
     {
@@ -76,7 +76,7 @@ public:
     ~SqliteConnector();
 
     /**
-      @brief Returns the raw pointer to the database 
+      @brief Returns the raw pointer to the database
 
       @note The pointer is tied to the lifetime of the SqliteConnector object,
       do not use it after the object has gone out of scope!
@@ -133,7 +133,7 @@ public:
     }
 
     /**
-      @brief Executes raw data SQL statements (insert statements) 
+      @brief Executes raw data SQL statements (insert statements)
 
       This is useful for a case where raw data should be inserted into sqlite
       databases, and the raw data needs to be passed separately as it cannot be
@@ -255,7 +255,7 @@ public:
     */
     static void executeBindStatement(sqlite3* db, const String& prepare_statement, const std::vector<String>& data);
 
-protected:
+  protected:
 
     /**
       @brief Opens a new SQLite database
@@ -266,8 +266,8 @@ protected:
     */
     void openDatabase_(const String& filename, const SqlOpenMode mode);
 
-protected:
-    sqlite3 *db_ = nullptr;
+  protected:
+    sqlite3* db_ = nullptr;
 
   };
 
@@ -281,7 +281,8 @@ protected:
       template <typename T>
       UInt64 clearSignBit(T value)
       {
-        static_assert(typename is_same<T, type_false>::value, "Wrong input type to clearSignBit(). Please pass unsigned 64bit ints!");
+        static_assert(std::is_same<T, std::false_type>::value, "Wrong input type to clearSignBit(). Please pass unsigned 64bit ints!");
+        return 0;
       };
       /// only allow UInt64 specialization
       template <>
@@ -338,7 +339,7 @@ protected:
       bool extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Not implemented");
+          "Not implemented");
       }
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
@@ -354,7 +355,7 @@ protected:
       bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
 
       /** @defgroup sqlThrowingGetters Functions for getting values from sql-select statements
-          
+
           All these function throw Exception::SqlOperationFailed if the given position is of the wrong type.
        @{
        */
@@ -371,5 +372,3 @@ protected:
 
 
 } // namespace OpenMS
-
-
