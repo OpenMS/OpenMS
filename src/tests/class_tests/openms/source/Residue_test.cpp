@@ -311,7 +311,7 @@ START_SECTION(void setModification(const String& name))
 END_SECTION
 
 START_SECTION(String Residue::toString() const)
-	auto rr(*db->getResidue("MET"));
+	auto rr(*db->getResidue("Met"));
 	TEST_EQUAL(rr.toString(), "M");
 	TEST_EQUAL(rr.getModification() == nullptr, true)
 	rr.setModification("Oxidation");
