@@ -359,11 +359,7 @@ START_SECTION(bool operator==(const Residue &residue) const)
 
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setShortName("other_short_name");
-	TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
 	set<String> syns;
 	syns.insert("new_syn");
 	r.setSynonyms(syns);
@@ -458,11 +454,7 @@ START_SECTION(bool operator!=(const Residue &residue) const)
 
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  r.setShortName("other_short_name");
-  TEST_EQUAL(r != *e_ptr, true)
 
-  r = *e_ptr;
-  TEST_EQUAL(r != *e_ptr, false)
   set<String> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
