@@ -130,7 +130,7 @@ namespace OpenMS
                                             const std::vector<TransitionType>& transitions,
                                             const std::vector<OpenSwath::SwathMap>& swath_maps,
                                             OpenSwath::SpectrumAccessPtr ms1_map,
-                                            OpenMS::DIAScoring& diascoring,
+                                            const OpenMS::DIAScoring& diascoring,
                                             const CompoundType& compound,
                                             OpenSwath_Scores& scores,
                                             std::vector<double>& masserror_ppm,
@@ -187,6 +187,7 @@ namespace OpenMS
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
 
+    //TODO this score and the next, both rely on the CoarseIsotope of the PeptideAveragine. Maybe we could
     // DIA dotproduct and manhattan score based on library intensity
     diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
 
@@ -232,7 +233,7 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
-                                   OpenMS::DIAScoring & diascoring, 
+                                   const OpenMS::DIAScoring & diascoring,
                                    double precursor_mz, 
                                    double rt, 
                                    const CompoundType& compound, 
@@ -272,7 +273,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
                                               const std::vector<OpenSwath::SwathMap> swath_maps,
-                                              OpenMS::DIAScoring & diascoring,
+                                              const OpenMS::DIAScoring & diascoring,
                                               OpenSwath_Scores & scores,
                                               double drift_lower, double drift_upper)
   {

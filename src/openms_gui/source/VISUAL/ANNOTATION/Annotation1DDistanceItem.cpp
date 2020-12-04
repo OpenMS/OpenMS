@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtCore/QPoint>
 #include <QtGui/QPainter>
@@ -61,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DDistanceItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DDistanceItem::draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped)
   {
     //translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
@@ -186,7 +186,7 @@ namespace OpenMS
     ticks_ = ticks;
   }
 
-  void Annotation1DDistanceItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  void Annotation1DDistanceItem::ensureWithinDataRange(Plot1DCanvas * const canvas)
   {
     // can only be moved vertically, so check only y-position
     DRange<3> data_range = canvas->getDataRange();

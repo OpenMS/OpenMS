@@ -92,8 +92,8 @@ using namespace OpenMS;
   This tools accepts a set of chromatograms and picks peaks in them, correctly
   grouping related transitions from the same precursor together. It will
   perform the following steps:
-  - Step 1: find features (peaks) in individual chromatograms </li>
-  - Step 2: merge these features to consensus features that span multiple chromatograms </li>
+  - Step 1: find features (peaks) in individual chromatograms
+  - Step 2: merge these features to consensus features that span multiple chromatograms
 
   Step 1 is performed by smoothing the individual chromatogram and applying the
   PeakPickerHiRes.

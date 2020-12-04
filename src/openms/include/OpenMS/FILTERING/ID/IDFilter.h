@@ -628,8 +628,9 @@ public:
 
        @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
        @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+       @param best_hit Contains the best hit if successful
 
-       @except Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
+       @throws Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
 
        @return true if a hit was present, false otherwise
     */
@@ -1018,7 +1019,7 @@ public:
 
        Only peptide hits with a low mass deviation (between theoretical peptide mass and precursor mass) are kept.
 
-       @param identification Input/output
+       @param peptides Input/output
        @param mass_error Threshold for the mass deviation
        @param unit_ppm Is @p mass_error given in PPM?
 

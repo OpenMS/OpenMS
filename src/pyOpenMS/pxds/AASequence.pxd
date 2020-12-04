@@ -77,6 +77,10 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         double getMonoWeight() nogil except +
         double getMonoWeight(ResidueType type_, Int charge) nogil except +
 
+        # returns the mass-to-charge ratio of the peptide
+        double getMZ(Int charge) nogil except +
+        double getMZ(Int charge, ResidueType type_) nogil except +
+
         # returns the number of residues
         Size size() nogil except +
 

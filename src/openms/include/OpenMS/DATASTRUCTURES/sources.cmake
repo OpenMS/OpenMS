@@ -35,6 +35,7 @@ Map.h
 MassExplainer.h
 MatchedIterator.h
 Matrix.h
+OSWData.h
 Param.h
 QTCluster.h
 SeqanIncludeWrapper.h

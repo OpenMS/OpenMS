@@ -186,7 +186,7 @@ public:
                          const TransformationDescription & trafo,
                          const std::vector<OpenSwath::SwathMap>& swath_maps,
                          FeatureMap& output,
-                         bool ms1only = false);
+                         bool ms1only = false) const;
 
     /** @brief Set the flag for strict mapping
     */
@@ -239,7 +239,7 @@ private:
      * @param transition_group_detection To be filled with detecting transitions
     */
     void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
-                                         MRMTransitionGroupType& transition_group_detection);
+                                         MRMTransitionGroupType& transition_group_detection) const;
 
     /** @brief Splits combined transition groups into identification transition groups
      *
@@ -252,7 +252,7 @@ private:
     */
     void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
                                               MRMTransitionGroupType& transition_group_identification,
-                                              MRMTransitionGroupType& transition_group_identification_decoy);
+                                              MRMTransitionGroupType& transition_group_identification_decoy) const;
 
     /** @brief Provides scoring for target and decoy identification against detecting transitions
      *
@@ -276,9 +276,9 @@ private:
                                               const std::vector<std::string> & native_ids_detection,
                                               const double det_intensity_ratio_score,
                                               const double det_mi_ratio_score,
-                                              const std::vector<OpenSwath::SwathMap>& swath_maps);
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps) const;
 
-    void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge);
+    void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
     /// Synchronize members with param class
     void updateMembers_() override;

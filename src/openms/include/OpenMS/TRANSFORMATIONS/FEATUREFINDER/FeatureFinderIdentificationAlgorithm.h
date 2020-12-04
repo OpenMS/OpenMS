@@ -63,6 +63,11 @@ public:
   /// Main method for actual FeatureFinder
   /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
   /// in which case no machine learning or FDR estimation will be performed.
+  /// Optional seeds from e.g. untargeted FeatureFinders can be added with
+  /// @p seeds .
+  /// Results will be written to @p features .
+  /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
+  /// and potential seed IDs added.
   void run(
     std::vector<PeptideIdentification> peptides,
     const std::vector<ProteinIdentification>& proteins,
@@ -203,6 +208,8 @@ protected:
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
   TargetedExperiment library_; ///< accumulated assays for peptides
 
+  bool quantify_decoys_;
+
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):
@@ -244,7 +251,10 @@ protected:
   /// the PeptideMap is mutable since we clear it on-the-go
   void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map);
 
-  void addPeptideToMap_(PeptideIdentification& peptide, 
+  /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
+  /// Make sure it stays valid until destruction of the class.
+  /// @todo find better solution
+  void addPeptideToMap_(PeptideIdentification& peptide,
     PeptideMap& peptide_map,
     bool external = false) const;
 

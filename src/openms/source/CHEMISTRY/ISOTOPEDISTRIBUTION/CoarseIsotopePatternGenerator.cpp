@@ -229,7 +229,6 @@ namespace OpenMS
       return result;
     }
 
-
     // ensure the isotope cluster has no gaps
     // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
     IsotopeDistribution::ContainerType left_l = fillGaps_(left);
@@ -266,6 +265,10 @@ namespace OpenMS
   IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolvePow_(const IsotopeDistribution::ContainerType & input, Size n) const
   {
     IsotopeDistribution::ContainerType result;
+    if (input.empty())
+    {
+      return result;
+    }
     // TODO: use FFT convolve?
     if (n == 1)
     {
@@ -427,43 +430,47 @@ namespace OpenMS
 
   IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::fillGaps_(const IsotopeDistribution::ContainerType& id) const
   {
+    if (id.empty()) return id;
     IsotopeDistribution::ContainerType id_gapless;
     Size mass = round(id.begin()->getMZ());
-    for (IsotopeDistribution::ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
+    Size massend = round((--id.end())->getMZ());
+    id_gapless.resize(massend - mass + 1);
+
+    Size mass_cnt = mass;
+    for (auto& peak : id_gapless)
     {
-      //round atomic mass to the mass_number
-      if (round(it->getMZ()) != mass)
-      { // missing an entry
-        id_gapless.push_back(Peak1D(mass, 0.0));
-      }
-      else
-      { // mass is registered already
-        id_gapless.push_back(Peak1D(round(it->getMZ()), it->getIntensity())); // copy
-        ++it;  // ... and advance
-      }
+      peak.setMZ(mass_cnt);
+      mass_cnt++;
     }
+
+    for (const auto& peak : id)
+    {
+      Size to_set = round(peak.getMZ());
+      id_gapless[to_set-mass].setIntensity(peak.getIntensity());
+    }
+
     return id_gapless;
   }
 
-    IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::correctMass_(const IsotopeDistribution::ContainerType& input, const double mono_weight) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::correctMass_(const IsotopeDistribution::ContainerType& input, const double mono_weight) const
+  {
+    IsotopeDistribution::ContainerType result(input.size());
+
+    for (Size i = 0; i < input.size(); ++i)
     {
-      IsotopeDistribution::ContainerType result(input.size());
-
-      for (Size i = 0; i < input.size(); ++i)
+      // We assume that a coarse isotopic peak is mostly composed of carbon-13's
+      // and therefore use the mass difference between carbon-13 and carbon-12
+      // to determine the expected mass of a coarse isotopic peak.
+      double mass = mono_weight + (i * Constants::C13C12_MASSDIFF_U);
+      if (getRoundMasses())
       {
-        // We assume that a coarse isotopic peak is mostly composed of carbon-13's
-        // and therefore use the mass difference between carbon-13 and carbon-12
-        // to determine the expected mass of a coarse isotopic peak.
-        double mass = mono_weight + (i * Constants::C13C12_MASSDIFF_U);
-        if (getRoundMasses())
-        {
-          mass = round(mass);
-        }
-
-        result[i] = Peak1D(mass, input[i].getIntensity() );
+        mass = round(mass);
       }
 
-      return result;
+      result[i] = Peak1D(mass, input[i].getIntensity() );
     }
+
+    return result;
+  }
 }
 
