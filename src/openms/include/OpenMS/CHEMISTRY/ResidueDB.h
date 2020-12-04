@@ -157,8 +157,8 @@ public:
     //@}
 
 protected:
-    /// sets the residues from given an existing map
-    void setResidues_();
+    /// initializes all residues by building
+    void initResidues_();
 
     /** @name Private Constructors
     */
@@ -176,10 +176,10 @@ protected:
     /// assignment operator
     ResidueDB& operator=(const ResidueDB& aa);
    
-   // builds 26 residues 
+   // construct all residues 
     void buildResidues_();
     
-    // add residues to to the lookup table and add the residue sets to the residues
+    // add residues to the lookup table and add the residue sets to the residues
     void insertResidues_(Residue* residue, const String& residue_set_names);
 
     /// deletes all sub-instances of the stored data like modifications and residues
@@ -193,6 +193,9 @@ protected:
 
     /// builds an index of residue names for fast access, synonyms are also considered
     void buildResidueNames_();
+
+    /// adds a single residue to the index
+    void buildResidueName_(Residue*);
 
     void addResidue_(Residue* residue);
 
