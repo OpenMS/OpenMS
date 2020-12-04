@@ -58,7 +58,6 @@ namespace OpenMS
   }
 
   Residue::Residue(const String& name,
-            const String& short_name,
             const String& three_letter_code,
             const String& one_letter_code,
             EmpiricalFormula formula,
@@ -71,7 +70,6 @@ namespace OpenMS
             set<String> synonyms):
                 
     name_(name),
-    short_name_(short_name),
     synonyms_(synonyms),
     three_letter_code_(three_letter_code),
     one_letter_code_(one_letter_code),
@@ -147,16 +145,6 @@ namespace OpenMS
       cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
     }
     return "";
-  }
-
-  void Residue::setShortName(const String& short_name)
-  {
-    short_name_ = short_name;
-  }
-
-  const String& Residue::getShortName() const
-  {
-    return short_name_;
   }
 
   void Residue::setSynonyms(const set<String>& synonyms)
@@ -591,7 +579,6 @@ namespace OpenMS
   bool Residue::operator==(const Residue& residue) const
   {
     return name_ == residue.name_ &&
-           short_name_ == residue.short_name_ &&
            synonyms_ == residue.synonyms_ &&
            three_letter_code_ == residue.three_letter_code_ &&
            one_letter_code_ == residue.one_letter_code_ &&

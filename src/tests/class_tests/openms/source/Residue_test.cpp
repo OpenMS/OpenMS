@@ -134,16 +134,6 @@ START_SECTION(const String& getName() const)
 	TEST_EQUAL(e_ptr->getName(), "BLUBB")
 END_SECTION
 
-START_SECTION(void setShortName(const String &short_name))
-	Residue copy(*e_ptr);
-	e_ptr->setShortName("BB");
-	TEST_NOT_EQUAL(copy, *e_ptr)
-END_SECTION
-
-START_SECTION(const String& getShortName() const)
-	TEST_EQUAL(e_ptr->getShortName(), "BB")
-END_SECTION
-
 START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 	Residue copy(*e_ptr);
 	set<String> syn;

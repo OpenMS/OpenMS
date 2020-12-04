@@ -190,7 +190,6 @@ public:
            
     // Detailed constructor 
     Residue(const String& name,
-            const String& short_name,
             const String& three_letter_code,
             const String& one_letter_code,
             EmpiricalFormula formula,
@@ -225,12 +224,6 @@ public:
 
     /// returns the name of the residue
     const String& getName() const;
-
-    /// sets the short name of the residue, this name is used in the PeptideSequence for output
-    void setShortName(const String& short_name);
-
-    /// returns the short name of the residue
-    const String& getShortName() const;
 
     /// sets the synonyms
     void setSynonyms(const std::set<String>& synonyms);

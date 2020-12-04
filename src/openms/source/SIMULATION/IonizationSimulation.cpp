@@ -521,7 +521,7 @@ public:
     for (Size i = 0; i < seq.size(); ++i)
     {
       // check for basic residues
-      if (basic_residues_.count(seq[i].getShortName()) == 1)
+      if (basic_residues_.count(seq[i].getThreeLetterCode()) == 1)
       {
         ++count;
       }
