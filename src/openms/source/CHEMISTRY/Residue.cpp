@@ -58,32 +58,6 @@ namespace OpenMS
   }
 
   Residue::Residue(const String& name,
-                   const String& three_letter_code,
-                   const String& one_letter_code,
-                   const EmpiricalFormula& formula) :
-    name_(name),
-    three_letter_code_(three_letter_code),
-    one_letter_code_(one_letter_code),
-    formula_(formula),
-    average_weight_(0),
-    mono_weight_(0),
-    modification_(nullptr),
-    loss_average_weight_(0.0f),
-    loss_mono_weight_(0.0f),
-    pka_(0.0),
-    pkb_(0.0),
-    pkc_(-1.0),
-    gb_sc_(0.0),
-    gb_bb_l_(0.0),
-    gb_bb_r_(0.0)
-  {
-    if (!formula_.isEmpty())
-    {
-      internal_formula_ = formula_ - getInternalToFull();
-    }
-  }
-
-  Residue::Residue(const String& name,
             const String& short_name,
             const String& three_letter_code,
             const String& one_letter_code,
