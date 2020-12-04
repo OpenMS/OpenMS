@@ -51,6 +51,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
@@ -1593,7 +1594,7 @@ score += ah.mass_error_p     *   1.15386068
            +  11.45 * ah.ladder_score
            +  28.09 * (ah.tag_shifted >= 1);
 */
-           return 1.0 * ah.total_loss_score
+           const double ret = 1.0 * ah.total_loss_score
            +  0.5 * ah.partial_loss_score
            +  1.0 * ah.mass_error_p 
            -  0.1 * ah.err 
@@ -1604,6 +1605,7 @@ score += ah.mass_error_p     *   1.15386068
 //           +  1.0 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
            +  0.1 * ah.ladder_score
            +  1.0 * (ah.tag_shifted >= 1);
+           return ret;
 
 
 /*
@@ -3819,6 +3821,8 @@ static void scoreXLIons_(
 
     const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
 
+    total_loss_score = total_loss_score - 0.22 * (double)sequence.size();
+
     // early-out if super bad score
     if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { return; }
 
@@ -3832,6 +3836,7 @@ static void scoreXLIons_(
     ah.sequence = sequence; // copy StringView
     ah.peptide_mod_index = mod_pep_idx;
     ah.total_loss_score = total_loss_score;
+
     ah.MIC = tlss_MIC;
     ah.err = tlss_err;
     ah.Morph = tlss_Morph;
@@ -4428,6 +4433,7 @@ static void scoreXLIons_(
         }
 
         // output modification AA and count for this protein
+        tsv_file.addLine("Cross-link localizations:");
         set<char> already_counted_at_protein_level;
         for (const auto& p2ms : mods.AALevelSummary)
         {
@@ -4471,6 +4477,7 @@ static void scoreXLIons_(
         }
         
         // output list of modified regions (without AA level localization)
+        tsv_file.addLine("Cross-linked peptides without localization at single AA-level:");
         for (const auto& p2xlregions : modified_region_xls_targets)
         {
           for (const auto& region : p2xlregions.second)
@@ -5106,8 +5113,12 @@ static void scoreXLIons_(
     {
       progresslogger.startProgress(0, 1, "Generating decoys...");
       ProteaseDigestion digestor;
+      const String enzyme = getStringOption_("peptide:enzyme");
       digestor.setEnzyme(getStringOption_("peptide:enzyme"));
       digestor.setMissedCleavages(0);  // for decoy generation disable missed cleavages
+
+      DecoyGenerator dg;
+      dg.setSeed(4711);
 
       // append decoy proteins
       const size_t old_size = fasta_db.size();
@@ -5122,15 +5133,17 @@ static void scoreXLIons_(
         e.sequence = "";
         for (const auto & aas : output)
         {
-          std::string s = aas.toUnmodifiedString();
-          auto last = --s.end();
-          std::reverse(s.begin(), last);
+          if (aas.size() <= 2) { e.sequence += aas.toUnmodifiedString(); continue; }
+
+          //cout << "Seq. before reverse: " << s << endl; 
+          //auto last = --s.end();
+          //std::reverse(s.begin(), last); // standard peptide reverse
+          //cout << "Seq. after reverse : " << s << endl; 
 
           // switch cleavage sites (like in Andromeda or DecoyPyrate)
           // if (s.size() >= 2) std::swap(s[s.size() - 1], s[s.size() - 2]); 
-          e.sequence += s;
+          e.sequence += dg.shufflePeptides(aas, enzyme).toUnmodifiedString();
         }
-
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(e);
       }
@@ -5298,7 +5311,7 @@ static void scoreXLIons_(
                   const int & isotope_error = l->second.second;
                   const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
-                  float hyperScore(0), 
+                  float total_loss_score(0), 
                         tlss_MIC(0),
                         tlss_err(0), 
                         tlss_Morph(0),
@@ -5325,7 +5338,7 @@ static void scoreXLIons_(
                     b_ions, 
                     y_ions,
                     peak_matched,
-                    hyperScore,
+                    total_loss_score,
                     tlss_MIC,
                     tlss_Morph,
                     tlss_modds,
@@ -5335,7 +5348,10 @@ static void scoreXLIons_(
                   );                  
 
                   const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
-                  if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
+    
+                  total_loss_score = total_loss_score - 0.22 * (double)cit->size();
+
+                  if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                   const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                   const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
@@ -5349,7 +5365,7 @@ static void scoreXLIons_(
                   ah.err = tlss_err;
                   ah.Morph = tlss_Morph;
                   ah.modds = tlss_modds;
-                  ah.total_loss_score = hyperScore;
+                  ah.total_loss_score = total_loss_score;
                   ah.immonium_score = im_MIC;
                   ah.precursor_score = pc_MIC;
                   ah.total_MIC = tlss_total_MIC;
@@ -5582,7 +5598,7 @@ static void scoreXLIons_(
                     partial_loss_sub_score = log1p(dot_product) + yFact + bFact;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 */
-                    ah.total_loss_score = hyperScore;
+                    ah.total_loss_score = hyperScore - 0.22 * (double)ah.sequence.size();
                     ah.MIC = tlss_MIC;
                     ah.immonium_score = im_MIC;
                     ah.precursor_score = pc_MIC;
@@ -6238,6 +6254,7 @@ static void scoreXLIons_(
       sort(XL_FDR.begin(), XL_FDR.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
       for (double xlFDR : XL_FDR)
       { 
+        OPENMS_LOG_INFO << "Writing XL results at xl-FDR: " << xlFDR << endl;
         if (xlFDR > 0.0 && xlFDR < 1.0)
         {
           IDFilter::filterHitsByScore(xl_pi, xlFDR);
@@ -6368,7 +6385,7 @@ static void scoreXLIons_(
           sort(XL_FDR.begin(), XL_FDR.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
           for (double xlFDR : XL_FDR)
           {
- 
+            OPENMS_LOG_INFO << "Writing XL results at xl-FDR: " << xlFDR << endl;
             if (xlFDR > 0.0 && xlFDR < 1.0)
             {
               IDFilter::filterHitsByScore(xl_pi, xlFDR);

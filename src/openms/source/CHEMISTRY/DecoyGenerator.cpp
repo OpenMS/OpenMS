@@ -151,7 +151,17 @@ double DecoyGenerator::SequenceIdentity_(const String& decoy, const String& targ
     if (target[i] == decoy[i]) { ++match; }
   }
   double identity = (double) match / target.size();
-  return identity;
+
+  // also compare against reverse
+  match = 0;
+  for (int i = (int)target.size() - 1; i >= 0; --i)
+  {
+    int j = (int)target.size() - 1 - i;
+    if (target[j] == decoy[i]) { ++match; }
+  }
+  double rev_identity = (double) match / target.size();
+   
+  return std::max(identity, rev_identity);
 }
 
 

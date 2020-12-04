@@ -29,14 +29,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Authors: Timo Sachsenberg$
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <map>
 
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 namespace OpenMS
@@ -50,10 +49,13 @@ namespace OpenMS
   struct OPENMS_DLLAPI ProteinModificationSummary
   {
     /// basic modification statistic
-    struct OPENMS_DLLAPI Statistics : public MetaInfoInterface
+    struct OPENMS_DLLAPI Statistics
     {
-      size_t count = 0;
-      double frequency = 0.0;
+      bool operator==(const Statistics& rhs) const;
+      size_t count = -1;  ///< total number of PSMs supporting the modification at this position
+      double frequency = -1.0; ///< PSMs with modification / total number of PSMs
+      double FLR = -1.0; ///< false localization rate
+      double probability = -1.0; ///< (localization) probability
     };
 
     /// comparison operator
@@ -65,5 +67,5 @@ namespace OpenMS
     /// position -> modification -> statistic (counts, etc.)
     AALevelModificationSummary AALevelSummary;
   };
-
 }
+

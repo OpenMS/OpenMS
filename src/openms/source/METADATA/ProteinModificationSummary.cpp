@@ -40,3 +40,9 @@ bool ProteinModificationSummary::operator==(const ProteinModificationSummary& rh
 {
   return AALevelSummary == rhs.AALevelSummary;
 }
+
+bool ProteinModificationSummary::Statistics::operator==(const Statistics& rhs) const
+{
+  return std::tie(count, frequency, FLR, probability) == std::tie(rhs.count, rhs.frequency, rhs.FLR, rhs.probability);
+}
+
