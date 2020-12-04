@@ -187,28 +187,20 @@ public:
 
     /// Move constructor
     Residue(Residue&&) = default;
-
-    /// Detailed constructor
-    Residue(const String& name,
-            const String& three_letter_code,
-            const String& one_letter_code,
-            const EmpiricalFormula& formula);
-            
-    // More detailed constructor 
+           
+    // Detailed constructor 
     Residue(const String& name,
             const String& short_name,
             const String& three_letter_code,
             const String& one_letter_code,
-            const EmpiricalFormula& formula,
-            double average_weight,
-            double mono_weight,
-            double pka,
-            double pkb,
-            double pkc,
-            double gb_sc,
-            double gb_bb_l,
-            double gb_bb_r,
-            const std::set<String>& synonyms);
+            EmpiricalFormula formula,
+            double pka = 0,
+            double pkb = 0,
+            double pkc = -1,
+            double gb_sc = 0,
+            double gb_bb_l = 0,
+            double gb_bb_r = 0,
+            std::set<String> synonyms = std::set<String>());
 
     /// Destructor
     virtual ~Residue();

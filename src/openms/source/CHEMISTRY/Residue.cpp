@@ -83,20 +83,18 @@ namespace OpenMS
     }
   }
 
-    Residue::Residue(const String& name,
+  Residue::Residue(const String& name,
             const String& short_name,
             const String& three_letter_code,
             const String& one_letter_code,
-            const EmpiricalFormula& formula,
-            double average_weight,
-            double mono_weight,
+            EmpiricalFormula formula,
             double pka,
             double pkb,
             double pkc,
             double gb_sc,
             double gb_bb_l,
             double gb_bb_r,
-            const set<String>& synonyms):
+            set<String> synonyms):
                 
     name_(name),
     short_name_(short_name),
@@ -104,8 +102,8 @@ namespace OpenMS
     three_letter_code_(three_letter_code),
     one_letter_code_(one_letter_code),
     formula_(formula),
-    average_weight_(average_weight),
-    mono_weight_(mono_weight),
+    average_weight_(formula.getMonoWeight()),
+    mono_weight_(formula.getMonoWeight()),
     modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
