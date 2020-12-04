@@ -410,8 +410,6 @@ protected:
     // basic
     String name_;
 
-    String short_name_;
-
     std::set<String> synonyms_;
 
     String three_letter_code_;

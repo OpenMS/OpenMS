@@ -58,7 +58,7 @@ namespace OpenMS
 
   ResidueDB* ResidueDB::getInstance()
   {
-    static ResidueDB* db_ = new ResidueDB;
+    static ResidueDB* db_ = new ResidueDB();
     return db_;
   }
 
@@ -144,18 +144,21 @@ namespace OpenMS
   void ResidueDB::addResidue_(Residue* r)
   {
     vector<String> names;
-    if (r->getName() != "")
+
+    // add name to lookup
+    if (r->getName() != "") 
     {
       names.push_back(r->getName());
     }
-    const set<String>& synonyms = r->getSynonyms();
-    for (const String & s : synonyms)
+
+    // add all synonymes to lookup
+    for (const String & s : r->getSynonyms())
     {
       names.push_back(s);
     }
 
     if (!r->isModified())
-    {
+    { // add (unmodified) residue to residue_names, residues, and const_residues
       for (const String& name : names)
       {
         residue_names_[name] = r;
@@ -164,7 +167,7 @@ namespace OpenMS
       const_residues_.insert(r);
     }
     else
-    {
+    { // add modified residue to modified_residues_,  const_modified_residues_, and residue_mod_names_
       modified_residues_.insert(r);
       const_modified_residues_.insert(r);
 
@@ -191,7 +194,7 @@ namespace OpenMS
         }
       }
     }
-    buildResidueName_(r);
+    buildResidueNames_();
     return;
   }
 
@@ -221,7 +224,7 @@ namespace OpenMS
     // clear names and lookup
     clear_();
 
-    Residue* alanine = new  Residue("Alanine", "Ala", "A", EmpiricalFormula("C3H7NO2"), 2.35, 9.87, -1.00, 0.00, 881.82, 0.00, set<String>{"L-Alanine", "alanine",  "Alanin", "alanin", "Ala"});
+    Residue* alanine = new Residue("Alanine", "Ala", "A", EmpiricalFormula("C3H7NO2"), 2.35, 9.87, -1.00, 0.00, 881.82, 0.00, set<String>{"L-Alanine", "alanine",  "Alanin", "alanin", "Ala"});
     insertResidues_(alanine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
      
     Residue* cysteine = new Residue("Cysteine", "Cys", "C", EmpiricalFormula("C3H7NO2S"), 1.92, 10.70, 8.18, 0.00, 0.12, 880.99,  set<String>{"Cys", "Cystine"});
@@ -359,10 +362,10 @@ namespace OpenMS
      StringList residue_sets = ListUtils::create<String>(residue_set_names);
     
     for (const String& s : residue_sets)
-        {
-          res_ptr->addResidueSet(s);
-          residue_sets_.insert(s);
-        }
+    {
+      res_ptr->addResidueSet(s);
+      residue_sets_.insert(s);
+    }
         
    for (const String& s : res_ptr->getResidueSets())
     {

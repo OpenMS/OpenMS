@@ -74,7 +74,7 @@ namespace OpenMS
     three_letter_code_(three_letter_code),
     one_letter_code_(one_letter_code),
     formula_(formula),
-    average_weight_(formula.getMonoWeight()),
+    average_weight_(formula.getAverageWeight()),
     mono_weight_(formula.getMonoWeight()),
     modification_(nullptr),
     loss_average_weight_(0.0f),

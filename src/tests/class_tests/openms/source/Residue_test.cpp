@@ -63,7 +63,7 @@ START_SECTION((virtual ~Residue()))
 END_SECTION
 
 ResidueDB* db = ResidueDB::getInstance();
-e_ptr = new Residue(*db->getResidue("LYS"));
+e_ptr = new Residue(*db->getResidue("Lys"));
 
 EmpiricalFormula h2o("H2O");
 
@@ -311,7 +311,7 @@ START_SECTION(void setModification(const String& name))
 END_SECTION
 
 START_SECTION(String Residue::toString() const)
-	auto rr(*db->getResidue("MET"));
+	auto rr(*db->getResidue("Met"));
 	TEST_EQUAL(rr.toString(), "M");
 	TEST_EQUAL(rr.getModification() == nullptr, true)
 	rr.setModification("Oxidation");
@@ -359,11 +359,7 @@ START_SECTION(bool operator==(const Residue &residue) const)
 
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setShortName("other_short_name");
-	TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
 	set<String> syns;
 	syns.insert("new_syn");
 	r.setSynonyms(syns);
@@ -458,11 +454,7 @@ START_SECTION(bool operator!=(const Residue &residue) const)
 
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  r.setShortName("other_short_name");
-  TEST_EQUAL(r != *e_ptr, true)
 
-  r = *e_ptr;
-  TEST_EQUAL(r != *e_ptr, false)
   set<String> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
