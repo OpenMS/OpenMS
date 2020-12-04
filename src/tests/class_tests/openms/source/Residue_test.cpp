@@ -63,7 +63,7 @@ START_SECTION((virtual ~Residue()))
 END_SECTION
 
 ResidueDB* db = ResidueDB::getInstance();
-e_ptr = new Residue(*db->getResidue("LYS"));
+e_ptr = new Residue(*db->getResidue("Lys"));
 
 EmpiricalFormula h2o("H2O");
 
