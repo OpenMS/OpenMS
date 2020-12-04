@@ -247,11 +247,11 @@ namespace OpenMS
     // the cost for initialization and copy should be minimal
     //  - a single C string is created
     //  - two ints
-    MzMLSqliteHandler::MzMLSqliteHandler(String filename) :
+    MzMLSqliteHandler::MzMLSqliteHandler(const String& filename, const UInt64 run_id) :
       filename_(filename),
       spec_id_(0),
       chrom_id_(0),
-      run_id_(0),
+      run_id_(Internal::SqliteHelper::clearSignBit(run_id)),
       use_lossy_compression_(true),
       linear_abs_mass_acc_(0.0001), // set the desired mass accuracy = 1ppm at 100 m/z
       write_full_meta_(true)
@@ -261,35 +261,34 @@ namespace OpenMS
     void MzMLSqliteHandler::readExperiment(MSExperiment& exp, bool meta_only) const
     {
       SqliteConnector conn(filename_);
-      sqlite3 *db = conn.getDB();
+      sqlite3* db = conn.getDB();
 
       Size nr_results = 0;
       if (write_full_meta_)
       {
-        std::string select_sql;
-        select_sql = "SELECT " \
-                      "RUN.ID as run_id," \
-                      "RUN.NATIVE_ID as native_id," \
-                      "RUN.FILENAME as filename," \
-                      "RUN_EXTRA.DATA as data " \
-                      "FROM RUN " \
-                      "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
-                      ";";
+        std::string select_sql = "SELECT " \
+          "RUN.ID as run_id," \
+          "RUN.NATIVE_ID as native_id," \
+          "RUN.FILENAME as filename," \
+          "RUN_EXTRA.DATA as data " \
+          "FROM RUN " \
+          "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
+          ";";
 
-        sqlite3_stmt * stmt;
+        sqlite3_stmt* stmt;
         conn.prepareStatement(&stmt, select_sql);
-        sqlite3_step( stmt );
+        sqlite3_step(stmt);
 
         // read data (throw exception if we find multiple runs)
-        while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+        while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
         {
           if (nr_results > 0)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "More than one run found, cannot read both into memory");
+              "More than one run found, cannot read both into memory");
           }
 
-          const void * raw_text = sqlite3_column_blob(stmt, 3);
+          const void* raw_text = sqlite3_column_blob(stmt, 3);
           size_t blob_bytes = sqlite3_column_bytes(stmt, 3);
 
           // create mzML file and parse full structure
@@ -304,11 +303,11 @@ namespace OpenMS
           }
           else
           {
-            const unsigned char * native_id = sqlite3_column_text(stmt, 1);
-            const unsigned char * filename = sqlite3_column_text(stmt, 2);
-            OPENMS_LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file "<< filename << std::endl;
+            const unsigned char* native_id = sqlite3_column_text(stmt, 1);
+            const unsigned char* filename = sqlite3_column_text(stmt, 2);
+            OPENMS_LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file " << filename << std::endl;
           }
-          sqlite3_step( stmt );
+          sqlite3_step(stmt);
         }
 
         // free memory
@@ -333,13 +332,41 @@ namespace OpenMS
         exp.setSpectra(spectra);
       }
 
-      if (meta_only) 
+      exp.setSqlRunID(getRunID());
+
+      if (meta_only)
       {
         return;
       }
 
       populateChromatogramsWithData_(db, exp.getChromatograms());
       populateSpectraWithData_(db, exp.getSpectra());
+    }
+
+    UInt64 MzMLSqliteHandler::getRunID() const
+    {
+      SqliteConnector conn(filename_);
+      Size nr_results = 0;
+      
+      std::string select_sql = "SELECT RUN.ID FROM RUN;";
+
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, select_sql);
+      Sql::SqlState state = Sql::SqlState::SQL_ROW;
+      UInt64 id;
+      while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
+      {
+        ++nr_results;
+        id = Sql::extractInt64(stmt, 0);
+      }
+      // free memory
+      sqlite3_finalize(stmt);
+
+      if (nr_results != 1)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "File '" + filename_ + "' contains more than one run. This is currently not supported!");
+      }
+      return id;
     }
 
     void MzMLSqliteHandler::readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only) const
@@ -713,26 +740,25 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::writeExperiment(const MSExperiment & exp)
+    void MzMLSqliteHandler::writeExperiment(const MSExperiment& exp)
     {
       // write run level information
-      writeRunLevelInformation(exp, write_full_meta_, run_id_);
+      writeRunLevelInformation(exp, write_full_meta_);
 
       // write data
       writeChromatograms(exp.getChromatograms());
       writeSpectra(exp.getSpectra());
     }
 
-    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id)
+    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta)
     {
       SqliteConnector conn(filename_);
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
-
       std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
-          run_id << ",'" << native_id << "','" << native_id << "'); ";
+            run_id_ << ",'" << native_id << "','" << native_id << "'); ";
       conn.executeStatement("BEGIN TRANSACTION");
       conn.executeStatement(insert_run_sql.str());
       conn.executeStatement("END TRANSACTION");
@@ -758,7 +784,7 @@ namespace OpenMS
           meta.addChromatogram(c);
         }
         String prepare_statement = "INSERT INTO RUN_EXTRA (RUN_ID, DATA) VALUES ";
-        prepare_statement += String("(") + run_id + ", ?)";
+        prepare_statement += String("(") + run_id_ + ", ?)";
         std::vector<String> data;
 
         std::string output;

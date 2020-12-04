@@ -273,14 +273,14 @@ namespace OpenMS
 
     OSWFile::OSWFile(const String& filename)
       : filename_(filename),
-        conn_(filename)
+        conn_(filename, SqliteConnector::SqlOpenMode::READONLY)
     {
       has_SCOREMS2_ = conn_.tableExists("SCORE_MS2");
     }
 
     void OSWFile::readMinimal(OSWData& swath_result)
     {
-      swath_result.setSqlSourceFile(filename_);
+      readMeta_(swath_result);
 
       readTransitions_(swath_result);
 
@@ -332,7 +332,7 @@ namespace OpenMS
 
     void OSWFile::read(OSWData& swath_result)
     {
-      swath_result.setSqlSourceFile(filename_);
+      readMeta_(swath_result);
       readTransitions_(swath_result);
       getFullProteins_(swath_result);      
     }
@@ -596,6 +596,38 @@ namespace OpenMS
       }
 
       sqlite3_finalize(stmt);
+    }
+
+    void OSWFile::readMeta_(OSWData& data)
+    {
+      data.setSqlSourceFile(filename_);
+      data.setRunID(getRunID());
+    }
+
+    UInt64 OSWFile::getRunID() const
+    {
+      SqliteConnector conn(filename_);
+      Size nr_results = 0;
+
+      std::string select_sql = "SELECT RUN.ID FROM RUN;";
+
+      sqlite3_stmt* stmt;
+      conn.prepareStatement(&stmt, select_sql);
+      Sql::SqlState state = Sql::SqlState::SQL_ROW;
+      UInt64 id;
+      while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
+      {
+        ++nr_results;
+        id = Sql::extractInt64(stmt, 0);
+      }
+      // free memory
+      sqlite3_finalize(stmt);
+
+      if (nr_results != 1)
+      {
+        throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "File '" + filename_ + "' contains more than one run. This is currently not supported!");
+      }
+      return id;
     }
 
     void OSWFile::readTransitions_(OSWData& swath_result)
