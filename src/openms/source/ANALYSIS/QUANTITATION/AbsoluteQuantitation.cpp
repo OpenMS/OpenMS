@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Maintainer: Douglas McCloskey $
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
@@ -193,9 +193,9 @@ namespace OpenMS
     TransformationModel::DataPoint point;
     for (size_t i = 0; i < component_concentrations.size(); i++)
     {
-      point.first = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      point.first = component_concentrations[i].actual_concentration / component_concentrations[i].IS_actual_concentration / component_concentrations[i].dilution_factor; // adjust based on the dilution factor
       double ratio = calculateRatio(component_concentrations[i].feature, component_concentrations[i].IS_feature,feature_name);
-      point.second = ratio/component_concentrations[i].dilution_factor; // adjust based on the dilution factor
+      point.second = ratio;
       data.push_back(point);
     }
 
@@ -237,13 +237,13 @@ namespace OpenMS
         transformation_model_params);
 
       double actual_concentration_ratio = component_concentrations[i].actual_concentration/
-        component_concentrations[i].IS_actual_concentration;
+        component_concentrations[i].IS_actual_concentration / component_concentrations[i].dilution_factor;
       concentration_ratios.push_back(component_concentrations[i].actual_concentration);
 
       // extract out the feature amount ratios
       double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
         component_concentrations[i].IS_feature,
-        feature_name)/component_concentrations[i].dilution_factor;
+        feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
 
       // calculate the bias
