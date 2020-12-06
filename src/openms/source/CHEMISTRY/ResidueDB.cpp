@@ -225,60 +225,60 @@ namespace OpenMS
     clear_();
 
     Residue* alanine = new Residue("Alanine", "Ala", "A", EmpiricalFormula("C3H7NO2"), 2.35, 9.87, -1.00, 0.00, 881.82, 0.00, set<String>{"L-Alanine", "alanine",  "Alanin", "alanin", "Ala"});
-    insertResidues_(alanine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
+    insertResidueToResidueSet_(alanine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
      
     Residue* cysteine = new Residue("Cysteine", "Cys", "C", EmpiricalFormula("C3H7NO2S"), 1.92, 10.70, 8.18, 0.00, 0.12, 880.99,  set<String>{"Cys", "Cystine"});
-    insertResidues_(cysteine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
+    insertResidueToResidueSet_(cysteine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
     
     Residue* aspartate = new Residue("Aspartate", "Asp", "D", EmpiricalFormula("C4H7NO4"), 1.99, 9.90, 3.90, 784.0, 880.02, -0.63, set<String>{"Asp"});
     aspartate->addLossName("water");
     aspartate->addLossFormula(EmpiricalFormula("H2O"));
-    insertResidues_(aspartate, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(aspartate, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
     
     Residue* glutamate = new Residue ( "Glutamate", "Glu", "E", EmpiricalFormula("C5H9NO4"), 2.10, 9.47, 4.07, 790.0, 880.10, -0.39, set<String>{"Glu"});
     glutamate->addLossName("water");
     glutamate->addLossFormula(EmpiricalFormula("H2O"));
     glutamate->addNTermLossName("water");
     glutamate->addNTermLossFormula(EmpiricalFormula("H2O"));    
-    insertResidues_(glutamate, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(glutamate, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
     
     Residue* phenylalanine = new Residue ( "Phenylalanine", "Phe", "F", EmpiricalFormula( "C9H11NO2"), 2.20, 9.31, -1.0, 0.00, 881.08, 0.03, set<String>{"Phe"});
-    insertResidues_(phenylalanine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(phenylalanine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
     
     Residue* glycine = new Residue ( "Glycine", "Gly", "G", EmpiricalFormula( "C2H5NO2"), 2.35, 9.78, -1.0, 0.00, 881.17, 0.92, set<String>{"Gly"} );
-    insertResidues_(glycine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(glycine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
     
     Residue* histidin = new Residue ( "Histidine", "His", "H", EmpiricalFormula( "C6H9N3O2"), 1.80, 9.33, 6.04, 927.84, 881.27, -0.19, set<String>{"His"});
-    insertResidues_(histidin,  "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
+    insertResidueToResidueSet_(histidin,  "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
 
     Residue* isoleucine = new Residue ( "Isoleucine", "Ile", "I", EmpiricalFormula( "C6H13NO2"), 2.32, 9.76, -1.0, 0.00, 880.99, -1.17, set<String>{"Ile"});
-    insertResidues_(isoleucine, "All,Natural20,Natural19WithoutL,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(isoleucine, "All,Natural20,Natural19WithoutL,AmbiguousWithoutX,Ambiguous,AllNatural" );
       
     Residue* lysine = new Residue ( "Lysine", "Lys", "K", EmpiricalFormula( "C6H14N2O2"), 2.16, 9.06, 10.54, 926.74, 880.06, -0.71, set<String>{ "Lys"});
     lysine->addLossName("ammonia");
     lysine->addLossFormula(EmpiricalFormula("NH3"));
-    insertResidues_(lysine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(lysine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 	
     Residue* leucine = new Residue ( "Leucine", "Leu", "L", EmpiricalFormula( "C6H13NO2"), 2.33, 9.74, -1.0, 0.00, 881.88, -0.09, set<String>{ "Leu"});
-    insertResidues_(leucine, "All,Natural20,Natural19WithoutI,AmbiguousWithoutX,Ambiguous,AllNatural"  );
+    insertResidueToResidueSet_(leucine, "All,Natural20,Natural19WithoutI,AmbiguousWithoutX,Ambiguous,AllNatural"  );
 	
     Residue* methionine = new Residue ( "Methionine", "Met", "M", EmpiricalFormula( "C5H11NO2S"), 2.13, 9.28, -1.0, 830.0, 881.38, 0.30, set<String>{ "Met"});
-    insertResidues_(methionine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(methionine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
     
     Residue* asparagine = new Residue ( "Asparagine", "Asn", "N", EmpiricalFormula( "C4H8N2O3"), 2.14, 8.72, -1.0, 864.94, 881.18, 1.56, set<String>{ "Asn"});
     asparagine->addLossName("ammonia");
     asparagine->addLossFormula(EmpiricalFormula("NH3"));
-    insertResidues_(asparagine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
+    insertResidueToResidueSet_(asparagine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural");
 	
     Residue* proline = new Residue ( "Proline", "Pro", "P", EmpiricalFormula( "C5H9NO2"), 1.95, 10.64, -1.0, 0.00, 881.25, 11.75, set<String>{ "Pro"});
-    insertResidues_(proline, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(proline, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 	
     Residue* glutamine = new Residue ( "Glutamine", "Gln", "Q", EmpiricalFormula( "C5H10N2O3"), 2.17, 9.13, -1.0, 865.25, 881.50, 4.10, set<String>{ "Gln"});
     glutamine->addLossName("ammonia");
     glutamine->addLossFormula(EmpiricalFormula("NH3"));
     glutamine->addNTermLossName("water");
     glutamine->addNTermLossFormula(EmpiricalFormula("H2O"));
-    insertResidues_(glutamine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(glutamine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 	
     Residue* arginine = new Residue ( "Arginine", "Arg", "R", EmpiricalFormula( "C6H14N4O2"), 1.82, 8.99, 12.48, 1000.0, 882.98, 6.28, set<String>{ "Arg"});
     arginine->addLossName("ammonia");
@@ -287,44 +287,44 @@ namespace OpenMS
     arginine->addLossFormula(EmpiricalFormula("NHCNH"));
     arginine->addLossName("");
     arginine->addLossFormula(EmpiricalFormula("CONH2"));
-    insertResidues_(arginine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(arginine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 	
     Residue* selenocysteine = new Residue ( "Selenocysteine", "Sec", "U", EmpiricalFormula( "C3H7NO2Se"), 0.00, 0.00, 5.73, 0.00, 880.99, 0.12, set<String>{ "Sec"});
-    insertResidues_(selenocysteine, "All,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(selenocysteine, "All,AmbiguousWithoutX,Ambiguous,AllNatural" );
     
     Residue* serine = new Residue ( "Serine", "Ser", "S", EmpiricalFormula( "C3H7NO3"), 2.19, 9.21, -1.0, 775.0, 881.08, 0.98, set<String>{ "Ser"});
     serine->addLossName("water");
     serine->addLossFormula(EmpiricalFormula("H2O"));
-    insertResidues_(serine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(serine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 	
     Residue* threonine = new Residue ( "Threonine", "Thr", "T", EmpiricalFormula( "C4H9NO3"), 2.09, 9.10, -1.0, 780.0, 881.14, 1.21, set<String>{ "Thr"});
     threonine->addLossName("water");
     threonine->addLossFormula(EmpiricalFormula("H2O"));
-    insertResidues_(threonine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(threonine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 	
     Residue* valine = new Residue ( "Valine", "Val", "V", EmpiricalFormula( "C5H11NO2"), 2.39, 9.74, -1.0, 0.0, 881.17, -0.90, set<String>{ "Val"});
-    insertResidues_(valine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(valine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 
     Residue* tryptophan = new Residue ( "Tryptophan", "Trp", "W", EmpiricalFormula( "C11H12N2O2"), 2.46, 9.41, -1.0, 909.53, 881.31, 0.10, set<String>{ "Trp"});
-    insertResidues_(tryptophan, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(tryptophan, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 
     Residue* tyrosine = new Residue ( "Tyrosine", "Tyr", "Y", EmpiricalFormula( "C9H11NO3"), 2.20, 9.21, 10.46, 790.0, 881.20, -0.38, set<String>{ "Tyr" });
-    insertResidues_(tyrosine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
+    insertResidueToResidueSet_(tyrosine, "All,Natural20,Natural19WithoutI,Natural19WithoutL,Natural19J,AmbiguousWithoutX,Ambiguous,AllNatural" );
 
     Residue* pyrrolysine = new Residue ( "Pyrrolysine", "Pyr", "O", EmpiricalFormula( "C12H21N3O3"), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, set<String>{ "Pyr"});
-    insertResidues_( pyrrolysine, "All,AmbiguousWithoutX,Ambiguous,AllNatural");
+    insertResidueToResidueSet_( pyrrolysine, "All,AmbiguousWithoutX,Ambiguous,AllNatural");
 	
     Residue* asparagine_aspartate = new Residue ( "Asparagine/Aspartate", "Asx", "B", EmpiricalFormula(""), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Asx" });
-    insertResidues_( asparagine_aspartate , "All,AmbiguousWithoutX,Ambiguous");
+    insertResidueToResidueSet_( asparagine_aspartate , "All,AmbiguousWithoutX,Ambiguous");
 	
     Residue* glutamine_glutamate = new Residue ( "Glutamine/Glutamate", "Glx", "Z", EmpiricalFormula(""), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Glx"});
-    insertResidues_(glutamine_glutamate, "All,AmbiguousWithoutX,Ambiguous" );
+    insertResidueToResidueSet_(glutamine_glutamate, "All,AmbiguousWithoutX,Ambiguous" );
 	
     Residue* isoleucine_leucine = new Residue ( "Isoleucine/Leucine", "Xle", "J", EmpiricalFormula( "C6H13NO2"), 0.00, 0.00, -1.0, 0.00, 880.99, -1.17, set<String>{ "Xle"});
-    insertResidues_( isoleucine_leucine, "All,AmbiguousWithoutX,Ambiguous");
+    insertResidueToResidueSet_( isoleucine_leucine, "All,AmbiguousWithoutX,Ambiguous");
 
     Residue* unspecified_unknown = new Residue ( "Unspecified/Unknown", "Xaa", "X", EmpiricalFormula(""), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Xaa", "Unk"});
-    insertResidues_(unspecified_unknown, "All,Ambiguous" );
+    insertResidueToResidueSet_(unspecified_unknown, "All,Ambiguous" );
   }
   
   void ResidueDB::clear_()
@@ -357,9 +357,9 @@ namespace OpenMS
     const_modified_residues_.clear();
   }
   
-  void ResidueDB::insertResidues_(Residue* res_ptr, const String& residue_set_names)
+  void ResidueDB::insertResidueToResidueSet_(Residue* res_ptr, const String& residue_set_names)
   {
-     StringList residue_sets = ListUtils::create<String>(residue_set_names);
+    StringList residue_sets = ListUtils::create<String>(residue_set_names);
     
     for (const String& s : residue_sets)
     {
@@ -367,15 +367,14 @@ namespace OpenMS
       residue_sets_.insert(s);
     }
         
-   for (const String& s : res_ptr->getResidueSets())
+    for (const String& s : res_ptr->getResidueSets())
     {
       residues_by_set_[s].insert(res_ptr);
     }
 
-     residues_.insert(res_ptr);
-     const_residues_.insert(res_ptr);
-     residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
-   
+    residues_.insert(res_ptr);
+    const_residues_.insert(res_ptr);
+    residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;   
    }
 
   const set<String> ResidueDB::getResidueSets() const

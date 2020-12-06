@@ -179,7 +179,7 @@ public:
     */
     //@{
 
-    /// Default constructor
+    /// Default constructor (needed by pyOpenMS)
     Residue();
 
     /// Copy constructor
@@ -192,7 +192,7 @@ public:
     Residue(const String& name,
             const String& three_letter_code,
             const String& one_letter_code,
-            EmpiricalFormula formula,
+            const EmpiricalFormula& formula,
             double pka = 0,
             double pkb = 0,
             double pkc = -1,

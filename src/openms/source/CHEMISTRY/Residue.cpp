@@ -60,7 +60,7 @@ namespace OpenMS
   Residue::Residue(const String& name,
             const String& three_letter_code,
             const String& one_letter_code,
-            EmpiricalFormula formula,
+            const EmpiricalFormula& formula,
             double pka,
             double pkb,
             double pkc,
