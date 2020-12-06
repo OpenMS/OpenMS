@@ -119,21 +119,6 @@ START_SECTION(void setResidues(const String& filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
 END_SECTION
 
-START_SECTION(ResidueIterator beginResidue())
-	ResidueDB::ResidueIterator it = ptr->beginResidue();
-	Size count(0);
-	while (it != ptr->endResidue())
-	{
-		++it;
-		++count;
-	}
-
-	TEST_EQUAL(count >= 22, true)
-END_SECTION
-
-START_SECTION(ResidueIterator endResidue())
-	NOT_TESTABLE // tested above
-END_SECTION
 
 START_SECTION(ResidueConstIterator beginResidue() const)
 	const ResidueDB* const_ptr = ptr;

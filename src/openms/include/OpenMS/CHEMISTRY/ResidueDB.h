@@ -48,10 +48,7 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-      @brief residue data base which holds residues
-
-      The residues stored in this DB are defined in a
-      XML file under data/CHEMISTRY/residues.xml
+      @brief residue data base
 
       By default no modified residues are stored in an instance. However, if one
       queries the instance with getModifiedResidue, a new modified residue is
@@ -64,7 +61,6 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef std::set<Residue*>::iterator ResidueIterator;
     typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
     //@}
 
@@ -147,10 +143,6 @@ public:
     /** @name Iterators
     */
     //@{
-    inline ResidueIterator beginResidue() { return residues_.begin(); }
-
-    inline ResidueIterator endResidue() { return residues_.end(); }
-
     inline ResidueConstIterator beginResidue() const { return const_residues_.begin(); }
 
     inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
