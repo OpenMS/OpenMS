@@ -143,26 +143,8 @@ namespace OpenMS
 
   void ResidueDB::addResidue_(Residue* r)
   {
-    vector<String> names;
-
-    // add name to lookup
-    if (r->getName() != "") 
-    {
-      names.push_back(r->getName());
-    }
-
-    // add all synonymes to lookup
-    for (const String & s : r->getSynonyms())
-    {
-      names.push_back(s);
-    }
-
     if (!r->isModified())
     { // add (unmodified) residue to residue_names, residues, and const_residues
-      for (const String& name : names)
-      {
-        residue_names_[name] = r;
-      }
       const_residues_.insert(r);
       buildResidueName_(r);
     }
@@ -181,6 +163,18 @@ namespace OpenMS
       for (const String& s : mod->getSynonyms())
       {
         mod_names.push_back(s);
+      }
+
+      vector<String> names;
+      // add name to lookup
+      if (r->getName() != "") 
+      {
+        names.push_back(r->getName());
+      }
+      // add all synonymes to lookup
+      for (const String & s : r->getSynonyms())
+      {
+        names.push_back(s);
       }
 
       for (const String& n : names)
