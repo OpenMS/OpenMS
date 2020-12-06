@@ -67,7 +67,7 @@ namespace OpenMS
             double gb_sc,
             double gb_bb_l,
             double gb_bb_r,
-            set<String> synonyms):
+            const set<String>& synonyms):
                 
     name_(name),
     synonyms_(synonyms),

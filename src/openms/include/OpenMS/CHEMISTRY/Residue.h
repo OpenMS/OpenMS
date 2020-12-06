@@ -199,7 +199,7 @@ public:
             double gb_sc = 0,
             double gb_bb_l = 0,
             double gb_bb_r = 0,
-            std::set<String> synonyms = std::set<String>());
+            const std::set<String>& synonyms = std::set<String>());
 
     /// Destructor
     virtual ~Residue();
