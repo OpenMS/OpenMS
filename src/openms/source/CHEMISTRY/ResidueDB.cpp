@@ -164,6 +164,7 @@ namespace OpenMS
         residue_names_[name] = r;
       }
       const_residues_.insert(r);
+      buildResidueName_(r);
     }
     else
     { // add modified residue to const_modified_residues_, and residue_mod_names_
@@ -191,8 +192,7 @@ namespace OpenMS
           residue_mod_names_[n][m] = r;
         }
       }
-    }
-    buildResidueNames_();
+    }    
     return;
   }
 
