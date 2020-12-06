@@ -74,7 +74,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No residue specified.", "");
     }
 
-    Residue* r(nullptr);
+    const Residue* r(nullptr);
     #pragma omp critical (ResidueDB)
     {   
       auto it = residue_names_.find(name);
@@ -99,7 +99,7 @@ namespace OpenMS
     Size s;
     #pragma omp critical (ResidueDB)
     {
-      s = residues_.size();
+      s = const_residues_.size();
     } 
     return s;
   }
@@ -109,7 +109,7 @@ namespace OpenMS
     Size s;
     #pragma omp critical (ResidueDB)
     {
-      s = modified_residues_.size();
+      s = const_modified_residues_.size();
     } 
     return s;
   }
@@ -163,12 +163,10 @@ namespace OpenMS
       {
         residue_names_[name] = r;
       }
-      residues_.insert(r);
       const_residues_.insert(r);
     }
     else
-    { // add modified residue to modified_residues_,  const_modified_residues_, and residue_mod_names_
-      modified_residues_.insert(r);
+    { // add modified residue to const_modified_residues_, and residue_mod_names_
       const_modified_residues_.insert(r);
 
       // get all modification names
@@ -341,8 +339,7 @@ namespace OpenMS
       residue_by_one_letter_code_[i] = nullptr;
     }
 
-    for (auto& r : residues_) { delete r; }
-    residues_.clear();
+    for (auto& r : const_residues_) { delete r; }
     residue_names_.clear();
     const_residues_.clear();
     residues_by_set_.clear();
@@ -351,8 +348,7 @@ namespace OpenMS
 
   void ResidueDB::clearResidueModifications_()
   {
-    for (auto& r : modified_residues_) { delete r; }
-    modified_residues_.clear();
+    for (auto& r : const_modified_residues_) { delete r; }
     residue_mod_names_.clear();
     const_modified_residues_.clear();
   }
@@ -372,7 +368,6 @@ namespace OpenMS
       residues_by_set_[s].insert(res_ptr);
     }
 
-    residues_.insert(res_ptr);
     const_residues_.insert(res_ptr);
     residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;   
    }
@@ -387,7 +382,7 @@ namespace OpenMS
     return rs;
   }
 
-  void ResidueDB::buildResidueName_(Residue* r)
+  void ResidueDB::buildResidueName_(const Residue* r)
   {
     // add name to residue_names_
     residue_names_[r->getName()] = r;
@@ -416,7 +411,7 @@ namespace OpenMS
 
   void ResidueDB::buildResidueNames_()
   {
-    for (Residue* r : residues_)
+    for (const Residue* r : const_residues_)
     {
       buildResidueName_(r);
     }
@@ -480,7 +475,7 @@ namespace OpenMS
             const auto& inner = rm_entry->second.find(id);
             if (inner != rm_entry->second.end())
             {
-              res = inner->second;
+              res = const_cast<Residue*>(inner->second);
               found = true;
             }
           }

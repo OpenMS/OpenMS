@@ -187,22 +187,18 @@ protected:
     void buildResidueNames_();
 
     /// adds a single residue to the index
-    void buildResidueName_(Residue*);
+    void buildResidueName_(const Residue*);
 
     void addResidue_(Residue* residue);
 
-    boost::unordered_map<String, Residue*> residue_names_;
+    boost::unordered_map<String, const Residue*> residue_names_;
 
     // fast lookup table for residues
     Residue* residue_by_one_letter_code_[256];
 
-    Map<String, Map<String, Residue*> > residue_mod_names_;
-
-    std::set<Residue*> residues_;
+    Map<String, Map<String, const Residue*> > residue_mod_names_;
 
     std::set<const Residue*> const_residues_;
-
-    std::set<Residue*> modified_residues_;
 
     std::set<const Residue*> const_modified_residues_;
 
