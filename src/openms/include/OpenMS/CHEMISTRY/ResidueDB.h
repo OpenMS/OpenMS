@@ -172,7 +172,7 @@ protected:
     void buildResidues_();
     
     // add residues to the lookup table and add the residue sets to the residues
-    void insertResidueToResidueSet_(Residue* residue, const String& residue_set_names);
+    void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<String>& residue_sets);
 
     /// deletes all sub-instances of the stored data like modifications and residues
     void clear_();
