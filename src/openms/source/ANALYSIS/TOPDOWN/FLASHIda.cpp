@@ -69,7 +69,7 @@ namespace OpenMS
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
    
     fd_defaults.setValue("tol", inputs["tol"]);
-    fd_defaults.setValue("num_overlapped_scans", 10, "number of overlapped scans for MS1 deconvolution");
+    fd_defaults.setValue("RT_window", 20.0, "");
 
     auto massCountd = inputs["max_mass_count"];
 
