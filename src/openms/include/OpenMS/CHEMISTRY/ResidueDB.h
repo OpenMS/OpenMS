@@ -110,9 +110,8 @@ public:
     /**
        @brief returns a set of all residues stored in this residue db
 
-       The possible residues are defined in share/OpenMS/CHEMISTRY/Residues.xml.
-       At the moment the following sets are available:
-       All - all residues stored in the file
+       Following sets are available:
+       All - all residues
        Natural20 - default 20 naturally occurring residues
        Natural19WithoutI - default natural amino acids, excluding isoleucine (isobaric to leucine)
        Natural19WithoutL - default natural amino acids, excluding leucine (isobaric to isoleucine)
