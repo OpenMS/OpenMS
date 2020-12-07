@@ -258,7 +258,9 @@ namespace OpenMS
     auto spec = MSSpectrum();
     for (auto i = 0; i < length; i++)
     {
-      //auto* p = new Peak1D(mzs[i], ints[i]);
+      if (ints[i] <= 0){
+        continue;
+      }
       spec.push_back(Peak1D(mzs[i], ints[i]));
     }
     spec.setMSLevel(msLevel);

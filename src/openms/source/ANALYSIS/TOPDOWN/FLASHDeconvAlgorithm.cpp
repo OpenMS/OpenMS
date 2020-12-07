@@ -78,7 +78,7 @@ namespace OpenMS
                        "the parameter may not be satisfied in case spectrum quality is too poor. (e.g., -max_mass_count -1 2 to specify no min limit and 2 for MS1 and MS2, respectively. -1 specifies unlimited)");
 
     defaults_.setValue("min_intensity", .0, "intensity threshold");
-    defaults_.setValue("num_overlapped_scans", 15, "number of overlapped scans for MS1 deconvolution");
+    defaults_.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
     defaultsToParam_();
   }
 
@@ -183,7 +183,7 @@ namespace OpenMS
     //minChargeCosine = param_.getValue("min_charge_cosine");
     maxMassCount = param_.getValue("max_mass_count");
     minMassCount = param_.getValue("min_mass_count");
-    numOverlappedScans = param_.getValue("num_overlapped_scans");
+    rt_window = param_.getValue("RT_window");
     setFilters();
   }
 
@@ -866,8 +866,9 @@ namespace OpenMS
 
     if (msLevel == 1)
     {
-      if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) numOverlappedScans)//
+      while (!prevRtVector.empty() && deconvolutedSpectrum->getOriginalSpectrum().getRT() - prevRtVector[0] > rt_window)//
       {
+        prevRtVector.erase(prevRtVector.begin());
         prevMassBinVector.erase(prevMassBinVector.begin());
         prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
       }
@@ -885,8 +886,10 @@ namespace OpenMS
         //  }
       }
 
+      prevRtVector.push_back(deconvolutedSpectrum->getOriginalSpectrum().getRT());
       prevMassBinVector.push_back(mb); //
       prevMinBinLogMassVector.push_back(massBinMinValue);
+      prevRtVector.shrink_to_fit();
       prevMassBinVector.shrink_to_fit();
       prevMinBinLogMassVector.shrink_to_fit();
     }

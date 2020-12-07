@@ -125,8 +125,8 @@ namespace OpenMS
     double minMz, maxMz;
     /// min charge and max charge subject to analysis
     int minCharge, maxCharge;
-    /// when a spectrum is deconvoluted, the deconvoluted masses in the spectra within the overlapped scans are favorably considered.
-    int numOverlappedScans;
+    /// when a spectrum is deconvoluted, the deconvoluted masses within the this rt window are favorably considered.
+    double rt_window;
     /// mass ranges of deconvolution
     double minMass, maxMass;
     /// max charge is controlled by precursor charge for MSn
@@ -153,6 +153,7 @@ namespace OpenMS
     /// The data structures for spectra overlapping.
     std::vector<std::vector<Size>> prevMassBinVector;
     std::vector<double> prevMinBinLogMassVector;
+    std::vector<double> prevRtVector;
 
     /// harmonic charge factors that will be considered. For example, 2 is for 1/2 charge harmonic component
     const std::vector<int> hCharges{2, 3, 5};

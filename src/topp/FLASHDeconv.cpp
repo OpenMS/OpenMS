@@ -163,8 +163,8 @@ protected:
                          IntList{-1, -1},
                          "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
     fd_defaults.addTag("max_mass_count", "advanced");
-    fd_defaults.setValue("num_overlapped_scans", 10, "number of overlapped scans for MS1 deconvolution");
-    fd_defaults.addTag("num_overlapped_scans", "advanced");
+    fd_defaults.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
+    fd_defaults.addTag("RT_window", "advanced");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("mass_error_da",
@@ -183,7 +183,6 @@ protected:
     mf_defaults.addTag("min_sample_rate", "advanced"); // hide entry
     mf_defaults.addTag("trace_termination_outliers", "advanced"); // hide entry
     //mf_defaults.addTag("min_trace_length", "advanced"); // hide entry
-    //mf_defaults.setValue("trace_termination_outliers", numOverlappedScans, "");
     mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     //mf_defaults.setValue("min_charge_cosine", .5, "controlled by -min_charge_cosine option");
     //mf_defaults.addTag("min_charge_cosine", "advanced");
@@ -208,7 +207,7 @@ protected:
     String outfilePath = getStringOption_("out");
     String intrainfile = getStringOption_("in_train");
     std::set<int> trainScanNumbers;
-    fstream  trainOut;
+    fstream  trainOut, fiOut;
 
     if (!intrainfile.empty())
     {
@@ -350,6 +349,7 @@ protected:
         topfdOut_MS2.open(outfilePath + "_FD_ms2.msalign", fstream::out);
         //writeTopFDHeader(topfdOut);
       }
+      fiOut.open(outfilePath + "_FI.txt"); //TODO tmp
     }
 
 
@@ -476,6 +476,8 @@ protected:
           topfdOut_MS1.open(outfilePath + outfileName + "_FD_ms1.msalign", fstream::out);
           topfdOut_MS2.open(outfilePath + outfileName + "_FD_ms2.msalign", fstream::out);
         }
+
+        fiOut.open(outfilePath + outfileName + "_FI.txt", fstream::out);
       }
 
       // finally run FLASHDeconv here
@@ -497,7 +499,7 @@ protected:
       Param mf_param = getParam_().copy("FeatureTracing:", true);
       DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
       //mf_param.setValue("mass_error_ppm", ms1tol);
-      mf_param.setValue("trace_termination_outliers", fd_param.getValue("num_overlapped_scans"));
+      mf_param.setValue("trace_termination_outliers", 20);
       //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
 
@@ -518,6 +520,16 @@ protected:
         if (msLevel > currentMaxMSLevel)
         {
           continue;
+        }
+
+        if(msLevel == 1){
+          fiOut << "Spec\t"<<it->getRT()<<"\n";
+          for(auto &p : *it){
+            if(p.getIntensity() <= 0){
+              continue;
+            }
+            fiOut << p.getMZ() << "\t" << p.getIntensity()<<"\n";
+          }
         }
 
         specCntr[msLevel - 1]++;
@@ -651,7 +663,7 @@ protected:
           topfdOut_MS1.close();
           topfdOut_MS2.close();
         }
-
+        fiOut.close();
         for (int j = 0; j < (int) maxMSLevel; j++)
         {
           total_specCntr[j] += specCntr[j];
@@ -784,6 +796,8 @@ protected:
         topfdOut_MS1.close();
         topfdOut_MS2.close();
       }
+
+      fiOut.close();
     }
 
     if (!intrainfile.empty()){
