@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Jang Jang Jin$
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -48,10 +48,7 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-      @brief residue data base which holds residues
-
-      The residues stored in this DB are defined in a
-      XML file under data/CHEMISTRY/residues.xml
+      @brief residue data base
 
       By default no modified residues are stored in an instance. However, if one
       queries the instance with getModifiedResidue, a new modified residue is
@@ -64,7 +61,6 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef std::set<Residue*>::iterator ResidueIterator;
     typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
     //@}
 
@@ -114,9 +110,8 @@ public:
     /**
        @brief returns a set of all residues stored in this residue db
 
-       The possible residues are defined in share/OpenMS/CHEMISTRY/Residues.xml.
-       At the moment the following sets are available:
-       All - all residues stored in the file
+       Following sets are available:
+       All - all residues
        Natural20 - default 20 naturally occurring residues
        Natural19WithoutI - default natural amino acids, excluding isoleucine (isobaric to leucine)
        Natural19WithoutL - default natural amino acids, excluding leucine (isobaric to isoleucine)
@@ -147,18 +142,14 @@ public:
     /** @name Iterators
     */
     //@{
-    inline ResidueIterator beginResidue() { return residues_.begin(); }
-
-    inline ResidueIterator endResidue() { return residues_.end(); }
-
     inline ResidueConstIterator beginResidue() const { return const_residues_.begin(); }
 
     inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
     //@}
 
 protected:
-    /// sets the residues from given file
-    void setResidues_(const String& filename);
+    /// initializes all residues by building
+    void initResidues_();
 
     /** @name Private Constructors
     */
@@ -175,17 +166,12 @@ protected:
     //@{
     /// assignment operator
     ResidueDB& operator=(const ResidueDB& aa);
-    //@}
-
-    /**
-       @brief reads residues from the given file
-
-       @throw Exception::ParseError if the file cannot be parsed
-    */
-    void readResiduesFromFile_(const String& filename);
-
-    /// parses a residue, given the key/value pairs from i.e. an XML file
-    Residue* parseResidue_(Map<String, String>& values);
+   
+   // construct all residues 
+    void buildResidues_();
+    
+    // add residues to the lookup table and add the residue sets to the residues
+    void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<String>& residue_sets);
 
     /// deletes all sub-instances of the stored data like modifications and residues
     void clear_();
@@ -199,20 +185,19 @@ protected:
     /// builds an index of residue names for fast access, synonyms are also considered
     void buildResidueNames_();
 
+    /// adds a single residue to the index
+    void buildResidueName_(const Residue*);
+
     void addResidue_(Residue* residue);
 
-    boost::unordered_map<String, Residue*> residue_names_;
+    boost::unordered_map<String, const Residue*> residue_names_;
 
     // fast lookup table for residues
     Residue* residue_by_one_letter_code_[256];
 
-    Map<String, Map<String, Residue*> > residue_mod_names_;
-
-    std::set<Residue*> residues_;
+    Map<String, Map<String, const Residue*> > residue_mod_names_;
 
     std::set<const Residue*> const_residues_;
-
-    std::set<Residue*> modified_residues_;
 
     std::set<const Residue*> const_modified_residues_;
 
