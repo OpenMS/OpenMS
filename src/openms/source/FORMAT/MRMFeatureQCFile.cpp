@@ -211,6 +211,8 @@ namespace OpenMS
   void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc, const bool is_component_group)
   {
     if (is_component_group) {
+      if (mrmfqc.component_group_qcs.size() <= 0) return;
+
       // Store the ComponentGroupQCs
       clear(); // clear the buffer_
 
@@ -264,6 +266,8 @@ namespace OpenMS
 
       CsvFile::store(filename);
     } else {
+      if (mrmfqc.component_qcs.size() <= 0) return;
+
       // Store the ComponentQCs
       clear(); // clear the buffer_
 
