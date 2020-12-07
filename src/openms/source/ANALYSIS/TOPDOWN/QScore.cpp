@@ -77,7 +77,7 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream &f)
   {
-    f<<"ChargeCos,ChargeInt,ChargeSNR,Cos,Int,SNR,Class\n";
+    f<<"ChargeCos,ChargeInt,ChargeSNR,Cos,Int,SNR,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(PeakGroup pg, int charge, bool isIdentified, std::fstream &f)
@@ -88,6 +88,7 @@ namespace OpenMS
     {
       f<<item<<",";
     }
+    f<<pg.getQScore()<<",";
     f<<(isIdentified?"T":"F")<<"\n";
   }
 }
