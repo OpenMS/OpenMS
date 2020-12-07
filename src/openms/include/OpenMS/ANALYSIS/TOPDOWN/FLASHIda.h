@@ -106,8 +106,11 @@ namespace OpenMS
       }
     } QscoreComparator;
 
+    std::map<int, std::vector<double>> all;
     /// Selected integer masses - necessary for mass exclusion
     std::map<int, std::vector<double>> selected; // int mass, rt, qscore
+    /// Selected integer mzs - necessary for mz exclusion
+    std::map<int, std::vector<double>> selectedMz; // int m/z * 20, rt
     /// precalculated averagine for fast selection
     PrecalculatedAveragine avg;
     /// discard peak groups using mass exclusion

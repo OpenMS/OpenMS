@@ -872,7 +872,6 @@ namespace OpenMS
         prevMassBinVector.erase(prevMassBinVector.begin());
         prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
       }
-
       std::vector<Size> mb;
       mb.reserve(deconvolutedSpectrum->size());
       for (auto &pg : *deconvolutedSpectrum)//filteredPeakGroups
