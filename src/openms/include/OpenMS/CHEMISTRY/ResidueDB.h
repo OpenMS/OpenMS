@@ -34,10 +34,11 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 
+#include <map>
 #include <set>
 
 namespace OpenMS
@@ -48,23 +49,15 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-      @brief residue data base
-
-      By default no modified residues are stored in an instance. However, if one
-      queries the instance with getModifiedResidue, a new modified residue is
-      added.
+      @brief OpenMS stores a central database of all residues in the ResidueDB.
+      All (unmodified) residues are added to the database on construction.
+      Modified residues get created and added if getModifiedResidue is called.
+      
   */
   class OPENMS_DLLAPI ResidueDB
   {
 public:
-
-    /** @name Typedefs
-    */
-    //@{
-    typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
-    //@}
-
-    /// this member function serves as a replacement of the constructor
+    /// singleton
     static ResidueDB* getInstance();
 
     /** @name Constructors and Destructors
@@ -140,14 +133,6 @@ public:
     bool hasResidue(const Residue* residue) const;
     //@}
 
-    /** @name Iterators
-    */
-    //@{
-    inline ResidueConstIterator beginResidue() const { return const_residues_.begin(); }
-
-    inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
-    //@}
-
 protected:
     /// initializes all residues by building
     void initResidues_();
@@ -163,47 +148,49 @@ protected:
     //@}
 
     /** @name Assignment
-*/
+    */
     //@{
     /// assignment operator
-    ResidueDB& operator=(const ResidueDB& aa);
-   
+    ResidueDB& operator=(const ResidueDB& aa) = delete;
+    //@}
+
    // construct all residues 
     void buildResidues_();
     
-    // add residues to the lookup table and add the residue sets to the residues
+    /// creates and adds residues to a lookup tables including the residue set
     void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<String>& residue_sets);
 
-    /// deletes all sub-instances of the stored data like modifications and residues
+    /// deletes stored data like modifications and residues
     void clear_();
 
-    /// clears the residues and all lookup structures
-    void clearResidues_();
-
-    /// clears the residue modifications and all lookup structures
-    void clearResidueModifications_();
-
-    /// builds an index of residue names for fast access, synonyms are also considered
-    void buildResidueNames_();
-
-    /// adds a single residue to the index
-    void buildResidueName_(const Residue*);
-
+    /// add residue and add names to lookup
     void addResidue_(Residue* residue);
 
-    boost::unordered_map<String, const Residue*> residue_names_;
+    /// adds names of single residue to the index
+    void addResidueNames_(const Residue*);
 
-    // fast lookup table for residues
-    Residue* residue_by_one_letter_code_[256];
+    /// adds names of single modified residue to the index
+    void addModifiedResidueNames_(const Residue*);
 
-    Map<String, Map<String, const Residue*> > residue_mod_names_;
-
+    /// all (unmodified) residues
     std::set<const Residue*> const_residues_;
 
+    /// all modified residues
     std::set<const Residue*> const_modified_residues_;
 
-    Map<String, std::set<const Residue*> > residues_by_set_;
-
+    /// residue sets
     std::set<String> residue_sets_;
+
+    /// lookup from name to residue
+    boost::unordered_map<String, const Residue*> residue_names_;
+
+    /// fast lookup table for residues  
+    std::array<const Residue*, 256> residue_by_one_letter_code_ = {};
+
+    std::map<String, std::map<String, const Residue*> > residue_mod_names_;
+
+    std::map<String, std::set<const Residue*> > residues_by_set_;
+
+    
   };
 }

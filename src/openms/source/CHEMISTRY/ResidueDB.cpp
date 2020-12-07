@@ -37,13 +37,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-
-#include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <iostream>
 
@@ -53,6 +47,10 @@ namespace OpenMS
 {
   ResidueDB::ResidueDB()
   { 
+    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
+    {
+      residue_by_one_letter_code_[i] = nullptr;
+    }
     initResidues_();
   }
 
@@ -78,7 +76,10 @@ namespace OpenMS
     #pragma omp critical (ResidueDB)
     {   
       auto it = residue_names_.find(name);
-      if (it != residue_names_.end()) r = it->second;
+      if (it != residue_names_.end()) 
+      { 
+        r = it->second; 
+      }
     }
     if (r == nullptr)
     {
@@ -119,9 +120,10 @@ namespace OpenMS
     set<const Residue*> s;
     #pragma omp critical (ResidueDB)
     {
-      if (residues_by_set_.has(residue_set))
+      auto it = residues_by_set_.find(residue_set);
+      if (it != residues_by_set_.end())
       {
-        s = residues_by_set_[residue_set];
+        s = it->second;
       }
     } 
 
@@ -134,11 +136,7 @@ namespace OpenMS
 
   void ResidueDB::initResidues_()
   {
-    #pragma omp critical (ResidueDB)
-    {
-      buildResidues_();
-      buildResidueNames_();
-    }     
+    buildResidues_();
   }
 
   void ResidueDB::addResidue_(Residue* r)
@@ -146,46 +144,12 @@ namespace OpenMS
     if (!r->isModified())
     { // add (unmodified) residue to residue_names, residues, and const_residues
       const_residues_.insert(r);
-      buildResidueName_(r);
+      addResidueNames_(r);
     }
     else
     { // add modified residue to const_modified_residues_, and residue_mod_names_
       const_modified_residues_.insert(r);
-
-      // get all modification names
-      vector<String> mod_names;
-      const ResidueModification* mod = r->getModification();
-
-      mod_names.push_back(mod->getId());
-      mod_names.push_back(mod->getFullName());
-      mod_names.push_back(mod->getFullId());
-
-      for (const String& s : mod->getSynonyms())
-      {
-        mod_names.push_back(s);
-      }
-
-      vector<String> names;
-      // add name to lookup
-      if (r->getName() != "") 
-      {
-        names.push_back(r->getName());
-      }
-      // add all synonymes to lookup
-      for (const String & s : r->getSynonyms())
-      {
-        names.push_back(s);
-      }
-
-      for (const String& n : names)
-      {
-        if (n.empty()) continue;
-        for (const String& m : mod_names)
-        {
-          if (m.empty()) continue;
-          residue_mod_names_[n][m] = r;
-        }
-      }
+      addModifiedResidueNames_(r);
     }    
     return;
   }
@@ -213,9 +177,6 @@ namespace OpenMS
 
   void ResidueDB::buildResidues_()
   {
-    // clear names and lookup
-    clear_();
-
     Residue* alanine = new Residue("Alanine", "Ala", "A", EmpiricalFormula("C3H7NO2"), 2.35, 9.87, -1.00, 0.00, 881.82, 0.00, set<String>{"L-Alanine", "alanine",  "Alanin", "alanin", "Ala"});
     insertResidueAndAssociateWithResidueSet_(alanine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"});
      
@@ -320,31 +281,9 @@ namespace OpenMS
   }
   
   void ResidueDB::clear_()
-  {
-    clearResidues_();
-    clearResidueModifications_();
-  }
-
-  void ResidueDB::clearResidues_()
-  {
-    // initialize lookup table to null pointer
-    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
-    {
-      residue_by_one_letter_code_[i] = nullptr;
-    }
-
+  {    
     for (auto& r : const_residues_) { delete r; }
-    residue_names_.clear();
-    const_residues_.clear();
-    residues_by_set_.clear();
-    residue_sets_.clear();
-  }
-
-  void ResidueDB::clearResidueModifications_()
-  {
     for (auto& r : const_modified_residues_) { delete r; }
-    residue_mod_names_.clear();
-    const_modified_residues_.clear();
   }
   
   void ResidueDB::insertResidueAndAssociateWithResidueSet_(Residue* res_ptr, const StringList& residue_sets)
@@ -361,7 +300,9 @@ namespace OpenMS
     }
 
     const_residues_.insert(res_ptr);
-    residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;   
+    residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
+
+    addResidueNames_(res_ptr);
    }
 
   const set<String> ResidueDB::getResidueSets() const
@@ -374,7 +315,45 @@ namespace OpenMS
     return rs;
   }
 
-  void ResidueDB::buildResidueName_(const Residue* r)
+  void ResidueDB::addModifiedResidueNames_(const Residue* r)
+  {
+    // get all modification names
+    vector<String> mod_names;
+    const ResidueModification* mod = r->getModification();
+
+    mod_names.push_back(mod->getId());
+    mod_names.push_back(mod->getFullName());
+    mod_names.push_back(mod->getFullId());
+
+    for (const String& s : mod->getSynonyms())
+    {
+      mod_names.push_back(s);
+    }
+
+    vector<String> names;
+    // add name to lookup
+    if (r->getName() != "") 
+    {
+      names.push_back(r->getName());
+    }
+    // add all synonymes to lookup
+    for (const String & s : r->getSynonyms())
+    {
+      names.push_back(s);
+    }
+
+    for (const String& n : names)
+    {
+      if (n.empty()) continue;
+      for (const String& m : mod_names)
+      {
+        if (m.empty()) continue;
+        residue_mod_names_[n][m] = r;
+      }
+    }
+  }
+
+  void ResidueDB::addResidueNames_(const Residue* r)
   {
     // add name to residue_names_
     residue_names_[r->getName()] = r;
@@ -401,18 +380,11 @@ namespace OpenMS
     }
   }
 
-  void ResidueDB::buildResidueNames_()
-  {
-    for (const Residue* r : const_residues_)
-    {
-      buildResidueName_(r);
-    }
-  }
-
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
     // throws if modification is not part of ModificationsDB
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
+    cout << "origin:" << mod->getOrigin() << endl;
     auto r = getResidue(mod->getOrigin());
     return getModifiedResidue(r, mod->getFullId());
   }
@@ -474,7 +446,7 @@ namespace OpenMS
           if (!found)
           {
             // create and register this modified residue
-            res = new Residue(*residue_names_[res_name]);
+            Residue* res = new Residue(*residue_names_[res_name]);
             res->setModification(mod);
             addResidue_(res);
           }
