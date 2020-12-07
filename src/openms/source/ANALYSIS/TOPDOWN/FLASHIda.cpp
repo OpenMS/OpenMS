@@ -149,7 +149,9 @@ namespace OpenMS
       {
         break;
       }
-
+      if(pg.getQScore() < qScoreThreshold){
+        continue;
+      }
       auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
       auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
       if (cselected.find(m) != cselected.end()){
@@ -176,7 +178,9 @@ namespace OpenMS
         {
           break;
         }
-
+        if(pg.getQScore() < qScoreThreshold){
+          continue;
+        }
         auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
         auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
         if (cselected.find(m) != cselected.end()){
@@ -210,7 +214,9 @@ namespace OpenMS
         {
           break;
         }
-
+        if(pg.getQScore() < qScoreThreshold){
+          continue;
+        }
         auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
         auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
         if (cselected.find(m) != cselected.end()){

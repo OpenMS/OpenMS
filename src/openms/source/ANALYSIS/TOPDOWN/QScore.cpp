@@ -45,6 +45,16 @@ namespace OpenMS
       return -100;
     }
     std::vector<double> weights({-11.6177, -1.4063, 0.026, -17.6877, 0.7945, -1.0989, 12.9876});
+
+    //ChargeCos    -12.6355
+    //ChargeInt     -1.0869
+    //ChargeSNR      0.0741
+    //Cos          -25.2902
+    //Int            1.2951
+    //SNR           -1.6148
+    //Intercept       9.191
+
+
     //ChargeCos    -11.6177
     //ChargeInt     -1.4063
     //ChargeSNR       0.026
