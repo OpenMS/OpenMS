@@ -68,7 +68,7 @@
 // This is confusing for debug logs from executables on user machines and unnecessary.
 // This shifts the pointer to the char array of the filepath to the filename only.
 // WARNING: Does not work for files outside of the src directory.
-#define OPENMS_FILENAME (__FILE__ + SOURCE_PATH_SIZE)
+#define OPENMS_FILENAME (__FILE__ + @CF_SOURCE_PATH_SIZE@)
 
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
 #ifdef OPENMS_COMPILER_MSVC

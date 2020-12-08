@@ -272,8 +272,7 @@ set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 # The additional / is important to remove the last character from the path.
 # Note that it does not matter if the OS uses / or \, because we are only
 # saving the path size.
-string(LENGTH "${PROJECT_SOURCE_DIR}/" SOURCE_PATH_SIZE)
-add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
+string(LENGTH "${PROJECT_SOURCE_DIR}/" CF_SOURCE_PATH_SIZE)
 
 #------------------------------------------------------------------------------
 # CMake Utitlities
