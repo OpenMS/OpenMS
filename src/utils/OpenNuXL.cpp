@@ -422,6 +422,8 @@ class AnnotatedHit
   double explained_peak_fraction = 0;
   double wTop50 = 0;
 
+  size_t n_theoretical_peaks = 0;
+
   static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
   {
     return a.score > b.score;
@@ -768,7 +770,8 @@ protected:
       float& modds,
       float& err,
       float& pc_MIC,
-      float& im_MIC)
+      float& im_MIC,
+      size_t& n_theoretical_peaks)
   {
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
@@ -783,7 +786,6 @@ protected:
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size();
 
-    size_t comparisons(0);
     size_t matches(0);
 
     // maximum charge considered
@@ -819,7 +821,7 @@ protected:
               peak_matched[index] = true;
             }
           }
-          ++comparisons;
+          ++n_theoretical_peaks;
         }
       }
     }
@@ -856,7 +858,7 @@ protected:
             peak_matched[index] = true;
           }
         }
-        ++comparisons;
+        ++n_theoretical_peaks;
       }
     }
 
@@ -983,7 +985,7 @@ protected:
             peak_matched[index] = true;
           }
         }
-        ++comparisons;
+        ++n_theoretical_peaks;
       }      
     }
     pc_MIC /= TIC;
@@ -1006,7 +1008,7 @@ protected:
             peak_matched[index] = true;
           }
         } 
-        ++comparisons;
+        ++n_theoretical_peaks;
       };
 
     // see DOI: 10.1021/pr3007045 A Systematic Investigation into the Nature of Tryptic HCD Spectra
@@ -1082,7 +1084,7 @@ protected:
      exp_spectrum.back().getMZ(),
      (int)Morph);
 #else
-    modds = matchOddsScore_(comparisons,
+    modds = matchOddsScore_(n_theoretical_peaks,
      fragment_mass_tolerance_Da,
      exp_spectrum.size(),
      exp_spectrum.back().getMZ(),
@@ -1111,7 +1113,8 @@ protected:
                         float& plss_err,
                         float& plss_modds,
                         float& plss_pc_MIC,
-                        float& plss_im_MIC)
+                        float& plss_im_MIC,
+                        size_t& n_theoretical_peaks)
   {
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
@@ -1140,7 +1143,6 @@ protected:
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size(); // number of bonds = length of peptide - 1
 
-    size_t comparisons(0);
     size_t matches(0);
 
     // maximum charge considered
@@ -1187,7 +1189,7 @@ protected:
                 matches++;
               }
             }
-            ++comparisons;
+            ++n_theoretical_peaks;
           }
         } 
       }
@@ -1231,7 +1233,7 @@ protected:
               matches++;
             }
           }
-          ++comparisons;
+          ++n_theoretical_peaks;
         }
       }  
     }
@@ -1295,12 +1297,6 @@ protected:
       }  
     }
 #endif
-
-
-
-
-
-
 
     UInt y_ion_count(0), b_ion_count(0);
     double b_sum(0.0);
@@ -1374,7 +1370,7 @@ protected:
               matches++;
             }
           }
-          ++comparisons;
+          ++n_theoretical_peaks;
         }      
       }
     }
@@ -1399,7 +1395,7 @@ protected:
             matches++;
           }
         } 
-        ++comparisons;
+        ++n_theoretical_peaks;
       };
 
     static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight();
@@ -1484,7 +1480,7 @@ protected:
      (int)plss_Morph);
 #else
     plss_modds = matchOddsScore_(
-     comparisons, 
+     n_theoretical_peaks, 
      fragment_mass_tolerance_Da,
      exp_spectrum.size(),
      exp_spectrum.back().getMZ(),
@@ -1699,7 +1695,8 @@ static void scoreXLIons_(
                          float &plss_Morph,
                          float &plss_modds,
                          float &plss_pc_MIC,
-                         float &plss_im_MIC)
+                         float &plss_im_MIC,
+                         size_t &n_theoretical_peaks)
   {
     OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
@@ -1717,6 +1714,9 @@ static void scoreXLIons_(
                                              marker_ions_sub_score_spectrum_z1,
                                              marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[IA_CHARGE_INDEX]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
+
+      // count marker ions
+      n_theoretical_peaks += marker_ions_sub_score_spectrum_z1.size();
     }
 
     scoreShiftedLadderIons_(
@@ -1740,7 +1740,8 @@ static void scoreXLIons_(
                       plss_err,
                       plss_modds,
                       plss_pc_MIC,
-                      plss_im_MIC);
+                      plss_im_MIC,
+                      n_theoretical_peaks);
 #ifdef DEBUG_OpenNuXL
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
@@ -3428,6 +3429,7 @@ static void scoreXLIons_(
         variable_modifications.val.find(c_term_mod) != variable_modifications.val.end()) ++n_var_mods;
 
       ph.setMetaValue(String("variable_modifications"), n_var_mods);
+      ph.setMetaValue(String("n_theoretical_peaks"), ah.n_theoretical_peaks);
 
       // determine NA modification from index in map
       auto mod_combinations_it = mm.mod_combinations.cbegin();
@@ -3791,6 +3793,8 @@ static void scoreXLIons_(
       pc_MIC(0),
       im_MIC(0);
 
+    size_t n_theoretical_peaks(0);
+
     vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0); 
     vector<double> b_ions(total_loss_template_z1_b_ions.size(), 0.0); 
     vector<double> y_ions(total_loss_template_z1_b_ions.size(), 0.0); 
@@ -3816,7 +3820,8 @@ static void scoreXLIons_(
       tlss_modds,
       tlss_err,
       pc_MIC,
-      im_MIC   
+      im_MIC,
+      n_theoretical_peaks
     );
 
     const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
@@ -3848,7 +3853,7 @@ static void scoreXLIons_(
 
     ah.NA_mod_index = rna_mod_idx;
     ah.isotope_error = isotope_error;
-
+    ah.n_theoretical_peaks = n_theoretical_peaks;
     auto range = make_pair(intensity_sum.begin(), intensity_sum.end());
     ah.ladder_score = ladderScore_(range) / (double)intensity_sum.size(); 
     range = longestCompleteLadder_(intensity_sum.begin(), intensity_sum.end());
@@ -4347,6 +4352,7 @@ static void scoreXLIons_(
 
         bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
 
+        // not localized? annotate region
         if (best_localization < 0)
         {
           ModifiedRegion mr;
@@ -4382,10 +4388,10 @@ static void scoreXLIons_(
     map<char, double> aa2background_freq; // AA background distribution for normalization
  
     for (const ProteinIdentification& prot_id : prot_ids)
-    {
+    { 
       const vector<ProteinHit>& phs = prot_id.getHits();
       for (const ProteinHit& protein : phs)
-      {
+      { // for all identified proteins
         const String& acc = protein.getAccession();        
         bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
 
@@ -4398,7 +4404,7 @@ static void scoreXLIons_(
 
         auto mods = protein.getModifications();
 
-        // count how many PSMs support XL-ed position in a protein
+        // count how many PSMs support XL-ed position in the current protein
         map<size_t, size_t> position2psm_count;
         for (const auto& p2ms : mods.AALevelSummary)
         {
@@ -5007,7 +5013,8 @@ static void scoreXLIons_(
        << "precursor_intensity_log10"
        << "NuXL:NA_MASS_z0"
        << "NuXL:NA_length"   
-       << "nucleotide_mass_tags";
+       << "nucleotide_mass_tags"
+       << "n_theoretical_peaks";
 
     if (!purities.empty()) feature_set_ << "precursor_purity";
 
@@ -5318,6 +5325,7 @@ static void scoreXLIons_(
                         tlss_modds(0),
                         pc_MIC(0),
                         im_MIC(0);
+                  size_t n_theoretical_peaks(0);
 
                   vector<double> intensity_linear(total_loss_template_z1_b_ions.size(), 0.0);
                   vector<double> b_ions(total_loss_template_z1_b_ions.size(), 0.0);
@@ -5344,7 +5352,8 @@ static void scoreXLIons_(
                     tlss_modds,
                     tlss_err,
                     pc_MIC,
-                    im_MIC
+                    im_MIC,
+                    n_theoretical_peaks
                   );                  
 
                   const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
@@ -5400,6 +5409,8 @@ static void scoreXLIons_(
                   // combined score
                   const double tags = exp_spectrum.getFloatDataArrays()[1][0];
                   ah.score = OpenNuXL::calculateCombinedScore(ah, false, tags);
+                  ah.n_theoretical_peaks = n_theoretical_peaks;
+                  //ah.score = OpenNuXL::calculateFastScore(ah); does this work too
 
 #ifdef DEBUG_OpenNuXL
                   OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -5499,9 +5510,10 @@ static void scoreXLIons_(
                       tlss_modds(0),
                       partial_loss_sub_score(0), 
                       marker_ions_sub_score(0),
-                      hyperScore(0),
+                      total_loss_score(0),
                       pc_MIC(0),
                       im_MIC(0);
+                    size_t n_theoretical_peaks(0);
 
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
@@ -5524,17 +5536,21 @@ static void scoreXLIons_(
                       b_ions,
                       y_ions,
                       peak_matched,
-                      hyperScore,
+                      total_loss_score,
                       tlss_MIC,
                       tlss_Morph,
                       tlss_modds,
                       tlss_err,
                       pc_MIC,
-                      im_MIC   
+                      im_MIC,
+                      n_theoretical_peaks
                     );
 
                     const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
-                    if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
+
+                    total_loss_score = total_loss_score - 0.22 * (double)cit->size();
+
+                    if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                     vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
 
@@ -5568,7 +5584,8 @@ static void scoreXLIons_(
                                  plss_Morph,
                                  plss_modds,
                                  plss_pc_MIC,
-                                 plss_im_MIC);
+                                 plss_im_MIC,
+                                 n_theoretical_peaks);
 
                     const double total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC)) + plss_MIC + (plss_pc_MIC - floor(plss_pc_MIC)) + plss_im_MIC + marker_ions_sub_score;
 
@@ -5598,7 +5615,7 @@ static void scoreXLIons_(
                     partial_loss_sub_score = log1p(dot_product) + yFact + bFact;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 */
-                    ah.total_loss_score = hyperScore - 0.22 * (double)ah.sequence.size();
+                    ah.total_loss_score = total_loss_score;
                     ah.MIC = tlss_MIC;
                     ah.immonium_score = im_MIC;
                     ah.precursor_score = pc_MIC;
@@ -5647,6 +5664,7 @@ static void scoreXLIons_(
                     // combined score
                     const double tags = exp_spectrum.getFloatDataArrays()[1][0];
                     ah.score = OpenNuXL::calculateCombinedScore(ah, true, tags);
+                    ah.n_theoretical_peaks = n_theoretical_peaks;
 
 #ifdef DEBUG_OpenNuXL
                     OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
