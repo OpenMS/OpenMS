@@ -1583,39 +1583,6 @@ protected:
     if (!design_file.empty())
     { // load from file
       design = ExperimentalDesignFile::load(design_file, false);
-      // some sanity checks
-      if (design.getNumberOfLabels() != 1)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Experimental design is not label-free as it contains multiple labels.");          
-      }
-      if (!design.sameNrOfMSFilesPerFraction())
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");          
-      }
-      
-      // extract basenames from experimental design and input files
-      const auto& pl2fg = design.getPathLabelToFractionGroupMapping(true);      
-      set<String> ed_basenames;
-      for (const auto& p : pl2fg)
-      {
-        const String& filename = p.first.first;
-        ed_basenames.insert(filename);
-      }
-
-      set<String> in_basenames;
-      for (Size i = 0; i != in.size(); ++i)
-      {
-        const String& in_bn = File::basename(in[i]);
-        in_basenames.insert(in_bn);
-      }
-
-      if (ed_basenames != in_basenames)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION, "Spectra files provided as input need to match the ones in the experimental design file.");
-      }
     }
     else
     {
@@ -1638,6 +1605,43 @@ protected:
       }      
       design.setMSFileSection(msfs);
     }
+
+    // some sanity checks
+    // extract basenames from experimental design and input files
+    const auto& pl2fg = design.getPathLabelToFractionGroupMapping(true);      
+    set<String> ed_basenames;
+    for (const auto& p : pl2fg)
+    {
+      const String& filename = p.first.first;
+      ed_basenames.insert(filename);
+    }
+
+    set<String> in_basenames;
+    for (Size i = 0; i != in.size(); ++i)
+    {
+      const String& in_bn = File::basename(in[i]);
+      in_basenames.insert(in_bn);
+    }
+
+    if (!std::includes(ed_basenames.begin(), ed_basenames.end(), in_basenames.begin(), in_basenames.end()))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+        OPENMS_PRETTY_FUNCTION, "Spectra file basenames provided as input need to match a subset the experimental design file basenames.");
+    }
+
+    design.filterByBasenames(in_basenames); 
+
+    if (design.getNumberOfLabels() != 1)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "Experimental design is not label-free as it contains multiple labels.");          
+    }
+    if (!design.sameNrOfMSFilesPerFraction())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");          
+    }
+
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
     for (auto & f : frac2ms)
@@ -1655,24 +1659,7 @@ protected:
     map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
 
     // check if mzMLs in experimental design match to mzMLs passed as in parameter
-    for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
-    {      
-      for (String const & mz_file : ms_files.second)
-      { 
-        const String& mz_file_abs_path = File::absolutePath(mz_file);
-        if (mzfile2idfile.find(mz_file_abs_path) == mzfile2idfile.end())
-        {
-          OPENMS_LOG_FATAL_ERROR << "MzML file in experimental design file '"
-            << mz_file_abs_path << "'not passed as 'in' parameter.\n" 
-            << "Note: relative paths in the experimental design file "
-            << "are resolved relative to the design file path. \n"
-            << "Use absolute paths or make sure the design file is in "
-            << "the same path as the mzML files."
-            << endl;
-          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mz_file_abs_path);
-        }
-      }
-    }
+    
 
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
     writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);

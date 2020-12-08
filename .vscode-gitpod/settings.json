@@ -7,5 +7,6 @@
       "-DBOOST_USE_STATIC=OFF"
     ],
     "cmake.parallelJobs": 0,
-    "cmake.clearOutputBeforeBuild": false
+    "cmake.clearOutputBeforeBuild": false,
+    "cmake.skipConfigureIfCachePresent": true
 }
