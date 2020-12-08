@@ -269,13 +269,27 @@ namespace OpenMS
   }
 
 
-  void DIATreeTab::updateEntries(LayerData& cl)
+  bool DIATreeTab::hasData(const LayerData* layer)
   {
+    if (layer == nullptr) return false;
+    OSWData* data = layer->getChromatogramAnnotation().get();
+    return (data != nullptr && !data->getProteins().empty());
+  }
+
+  void DIATreeTab::updateEntries(LayerData* layer)
+  {
+    if (layer == nullptr)
+    {
+      clear();
+      return;
+    }
+
     if (!dia_treewidget_->isVisible() || dia_treewidget_->signalsBlocked())
     {
       return;
     }
- 
+    LayerData& cl = *layer;
+
     OSWData* data = cl.getChromatogramAnnotation().get();
 
     if (current_data_ == data)

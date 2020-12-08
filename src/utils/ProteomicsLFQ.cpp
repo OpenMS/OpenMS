@@ -696,7 +696,7 @@ protected:
 
       transform_(feature_maps, transformations);
 
-      link_(feature_maps, 
+      link_(feature_maps,
         median_fwhm, 
         max_alignment_diff, 
         consensus_fraction);
@@ -1014,7 +1014,8 @@ protected:
     // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
     Size fraction_group{1};
     for (String const & mz_file : ms_files.second)
-    { 
+    {
+      writeDebug_("Processing file: " + mz_file,  1);
       // centroid spectra (if in profile mode) and correct precursor masses
       MSExperiment ms_centroided;    
 
@@ -1502,6 +1503,43 @@ protected:
     return EXECUTION_OK;
   }
 
+  void syncIDAndQuant_(vector<PeptideIdentification>& pids, const unordered_map<String,set<String>>& pep2prot_inferred)
+  {
+    for (auto& pid : pids)
+    {
+      auto& hits = pid.getHits();
+      for (auto& ph : hits)
+      {
+        std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
+        auto pep2prot_it = pep2prot_inferred.find(ph.getSequence().toUnmodifiedString());
+        if (pep2prot_it != pep2prot_inferred.end())
+        {
+          const auto accs = pep2prot_it->second;
+          pes.erase(std::remove_if(pes.begin(), 
+                              pes.end(),
+                              [&pep2prot_inferred,&accs](PeptideEvidence& x){
+                                return accs.find(x.getProteinAccession()) == accs.end();
+                              }),
+              pes.end());
+          ph.setPeptideEvidences(std::move(pes));
+        }
+        else
+        {
+          ph.setPeptideEvidences({});
+        }
+      }
+      // erase hits without references to proteins
+      hits.erase(std::remove_if(hits.begin(), hits.end(),
+                            [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
+            hits.end());
+    }
+    // erase peptide ids without peptide hits
+    pids.erase(std::remove_if(pids.begin(), 
+                    pids.end(),
+                    [](PeptideIdentification& x){ return x.getHits().empty(); }),
+          pids.end());
+  }
+
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -1797,13 +1835,14 @@ protected:
    
     // references from PSM to Protein that got removed during inference need to be also removed in the consensus map
     {
-      set<String> protein_inferred;
+      unordered_map<String,set<String>> pep2prot_inferred;
       // determine all inferred proteins
-      for (auto& p : inferred_protein_ids)
+      for (auto& p : inferred_peptide_ids)
       {
         for (auto& ph : p.getHits())
         {
-          protein_inferred.insert(ph.getAccession());
+          //TODO if we ever support modified proteins, mapping via unmodified sequence will not work
+          pep2prot_inferred.emplace(ph.getSequence().toUnmodifiedString(), ph.extractProteinAccessionsSet());
         }
       }
 
@@ -1811,55 +1850,11 @@ protected:
       for (auto& c : consensus)
       {
         auto& pids = c.getPeptideIdentifications();
-        for (auto& pid : pids)
-        {
-          auto& hits = pid.getHits();
-          for (auto& ph : hits)
-          {
-            std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
-            pes.erase(std::remove_if(pes.begin(), 
-                                pes.end(),
-                                [&protein_inferred](PeptideEvidence& x){ return protein_inferred.find(x.getProteinAccession()) == protein_inferred.end(); }),
-                 pes.end());
-            ph.setPeptideEvidences(std::move(pes));
-          }
-        // erase hits without reference to proteins
-        hits.erase(std::remove_if(hits.begin(), hits.end(),
-                              [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
-               hits.end());
-        }
-        // erase peptide ids without peptide hits
-        pids.erase(std::remove_if(pids.begin(), 
-                         pids.end(),
-                         [](PeptideIdentification& x){ return x.getHits().empty(); }),
-               pids.end());
+        syncIDAndQuant_(pids, pep2prot_inferred);
       }
 
       auto& pids = consensus.getUnassignedPeptideIdentifications();
-      for (auto& pid : pids)
-      {
-        auto& hits = pid.getHits();
-        for (auto& ph : hits)
-        {
-          std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
-          pes.erase(std::remove_if(pes.begin(), 
-                              pes.end(),
-                              [&protein_inferred](PeptideEvidence& x){ return protein_inferred.find(x.getProteinAccession()) == protein_inferred.end(); }),
-               pes.end());
-          ph.setPeptideEvidences(std::move(pes));
-        }
-
-        // erase hits without reference to proteins
-        hits.erase(std::remove_if(hits.begin(), hits.end(),
-                              [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
-               hits.end());
-      }
-
-     // erase peptide ids without peptide hits
-     pids.erase(std::remove_if(pids.begin(), 
-                         pids.end(),
-                         [](PeptideIdentification& x){ return x.getHits().empty(); }),
-          pids.end());
+      syncIDAndQuant_(pids, pep2prot_inferred);
     }
 
     // clean up references (assigned and unassigned)

@@ -141,31 +141,35 @@ START_TEST(OSWFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION(UInt64 getRunID() const)
+	OSWFile oswf(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"));
+	TEST_EQUAL(oswf.getRunID(), 6996169951924032342);
+END_SECTION
+
 START_SECTION(void read(OSWData& swath_result))
-	
 	OSWData res;
 	OSWFile oswf(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"));
 	oswf.read(res);
 	TEST_EQUAL(res.getProteins().size(), 2);
 	TEST_EQUAL(res.transitionCount(), 140);
+	TEST_EQUAL(res.getRunID(), 6996169951924032342);
 	checkData(res);
 END_SECTION			
 
-
 START_SECTION(void readMinimal(OSWData & swath_result))
-
 	OSWData res;
 	OSWFile oswf(OPENMS_GET_TEST_DATA_PATH("OSWFile_test.osw"));
 	oswf.readMinimal(res);
 	TEST_EQUAL(res.getProteins().size(), 2);
 	TEST_EQUAL(res.transitionCount(), 140);
 
+	TEST_EQUAL(res.getRunID(), 6996169951924032342);
+
 	// make sure proteins are actually empty
 	TEST_EQUAL(res.getProteins()[0].getPeptidePrecursors().empty(), true);
 	TEST_EQUAL(res.getProteins()[1].getPeptidePrecursors().empty(), true);
 
 	// now fill them...
-
 	for (Size i = 0; i < res.getProteins().size(); ++i)
 	{
 		oswf.readProtein(res, i);

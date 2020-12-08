@@ -36,7 +36,7 @@
 
 #include <QtWidgets>
 
-
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
 class QLineEdit;
@@ -54,8 +54,8 @@ namespace OpenMS
 
     @ingroup PlotWidgets
   */
-  class DIATreeTab :
-    public QWidget
+  class OPENMS_GUI_DLLAPI DIATreeTab :
+    public QWidget, public DataTabBase
   {
     Q_OBJECT
   public:
@@ -64,9 +64,12 @@ namespace OpenMS
     /// Destructor
     ~DIATreeTab() = default;
 
+    // docu in base class
+    bool hasData(const LayerData* layer) override;
+
     /// refresh the table using data from @p cl
     /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
-    void updateEntries(LayerData& cl);
+    void updateEntries(LayerData* cl) override;
     /// remove all visible data
     void clear();
 

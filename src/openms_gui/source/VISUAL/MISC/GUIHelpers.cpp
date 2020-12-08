@@ -39,13 +39,14 @@
 
 #include <QDesktopServices>
 #include <QDir>
-#include <QUrl>
+#include <QGuiApplication>
 #include <QMessageBox>
-#include <QString>
-#include <QStringList>
 #include <QPainter>
 #include <QPoint>
 #include <QProcess>
+#include <QString>
+#include <QStringList>
+#include <QUrl>
 
 namespace OpenMS
 {
@@ -145,34 +146,18 @@ namespace OpenMS
     }
   }
 
-  /**
-  @brief draw a multi-line text at coordinates XY using a specific font and color
-  @param painter Where to draw
-  @param text Each item is a new line
-  @param where Coordinates where to start drawing (upper left corner of text)
-  @param col_fg Optional text color; if invalid (=default) will use the current painter's color
-  @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
-  @param Optional font; will use Courier by default
-  */
-  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg, const QColor col_bg, QFont f)
+  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg, const QColor col_bg, const QFont& f)
   {
     painter.save();
 
     // font
     painter.setFont(f);
 
-    //d etermine width and height of the box we need
-    QFontMetrics metrics(painter.font());
-    int line_spacing = metrics.lineSpacing();
-    int height = 6 + text.size() * line_spacing;
-    int width = 4;
-    for (int i = 0; i < text.size(); ++i)
-    {
-      width = std::max(width, 4 + metrics.width(text[i]));
-    }
+    int line_spacing;
+    QRectF dim = getTextDimension(text, painter.font(), line_spacing);
 
     // draw background for text
-    if (col_bg.isValid()) painter.fillRect(where.x(), where.y(), width, height, col_bg);
+    if (col_bg.isValid()) painter.fillRect(where.x(), where.y(), dim.width(), dim.height(), col_bg);
 
     // draw text
     if (col_fg.isValid()) painter.setPen(col_fg);
@@ -184,4 +169,86 @@ namespace OpenMS
     painter.restore();
   }
 
+  QRectF GUIHelpers::getTextDimension(const QStringList& text, const QFont& f, int& line_spacing)
+  {
+    // determine width and height of the box we need
+    QFontMetrics metrics(f);
+    line_spacing = metrics.lineSpacing();
+    int height = 6 + text.size() * line_spacing;
+    int width = 4;
+    for (int i = 0; i < text.size(); ++i)
+    {
+      width = std::max(width, 4 + metrics.width(text[i]));
+    }
+    return QRectF(0, 0, width, height);
+  }
+
+  GUIHelpers::GUILock::GUILock(QWidget* gui)
+    : locked_widget_(gui)
+  {
+    lock();
+  }
+
+  GUIHelpers::GUILock::~GUILock()
+  {
+    unlock();
+  }
+
+  void GUIHelpers::GUILock::lock()
+  {
+    if (currently_locked_) return;
+    if (locked_widget_ == nullptr) return;
+
+    was_enabled_ = locked_widget_->isEnabled();
+    locked_widget_->setEnabled(false);
+    QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    currently_locked_ = true;
+  }
+
+  void GUIHelpers::GUILock::unlock()
+  {
+    if (!currently_locked_) return;
+    if (locked_widget_ == nullptr) return;
+
+    locked_widget_->setEnabled(was_enabled_);
+    QGuiApplication::restoreOverrideCursor(); 
+    currently_locked_ = false;
+  }
+
 } //namespace OpenMS
+
+  /// C'tor: number of @p levels must be >=1
+
+OpenMS::GUIHelpers::OverlapDetector::OverlapDetector(int levels)
+{
+  if (levels <= 0) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels);
+  rows_.resize(levels, 0);
+}
+
+/// try to put an item which spans from @p x_start to @p x_end in the topmost row possible
+/// @return the smallest row index (starting at 0) which has none (or the least) overlap
+
+size_t OpenMS::GUIHelpers::OverlapDetector::placeItem(double x_start, double x_end)
+{
+  if (x_start < 0) OPENMS_LOG_WARN << "Warning: x coordinates should be positive!\n";
+  if (x_start > x_end) OPENMS_LOG_WARN << "Warning: x-end is larger than x-start!\n";
+
+  size_t best_index = 0;
+  double best_distance = -std::numeric_limits<double>::max();
+  for (size_t i = 0; i < rows_.size(); ++i)
+  {
+    if (rows_[i] < x_start)
+    { // easy win; row[i] does not overlap; take it
+      rows_[i] = x_end; // update space for next call
+      return i;
+    }
+    // x_start is smaller than row's end...
+    if ((rows_[i] - x_start) < best_distance)
+    {
+      best_distance = rows_[i] - x_start;
+      best_index = i;
+    }
+  }
+
+  return best_index;
+}

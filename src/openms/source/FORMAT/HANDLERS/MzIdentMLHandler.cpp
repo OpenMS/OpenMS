@@ -570,9 +570,13 @@ namespace OpenMS
         sip += String("\t\t</Threshold>\n");
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
+        
         // empty date would lead to XML schema validation error:
         DateTime date_time = it->getDateTime();
-        if (!date_time.isValid()) date_time = DateTime::now();
+        if (!date_time.isValid()) 
+        { 
+          date_time = DateTime::now(); 
+        }
         sil_2_date.insert(make_pair(sil_id, String(date_time.getDate() + "T" + date_time.getTime())));
 
         //~ collect SpectraData element for each ProteinIdentification

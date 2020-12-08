@@ -285,12 +285,28 @@ namespace OpenMS
     item->setText(ClmnPeak::ZOOM, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
   }
 
-  void SpectraTreeTab::updateEntries(const LayerData& cl)
+  bool SpectraTreeTab::hasData(const LayerData* layer)
   {
+    if (layer == nullptr) return false;
+
+    bool is_peak = layer->type == LayerData::DT_PEAK && !(layer->chromatogram_flag_set());
+    bool is_chrom = layer->type == LayerData::DT_CHROMATOGRAM || layer->chromatogram_flag_set();
+    return is_peak || is_chrom;
+  }
+
+  void SpectraTreeTab::updateEntries(LayerData* layer)
+  {
+    if (layer == nullptr)
+    {
+      clear();
+      return;
+    }
+
     if (!spectra_treewidget_->isVisible() || spectra_treewidget_->signalsBlocked())
     {
       return;
     }
+    LayerData& cl = *layer;
 
     spectra_treewidget_->blockSignals(true);
     RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });

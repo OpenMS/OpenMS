@@ -127,15 +127,15 @@ namespace OpenMS
 
     connect(table_widget_, &QTableWidget::currentCellChanged, this, &SpectraIDViewTab::currentCellChanged_);
     connect(table_widget_, &QTableWidget::itemChanged, this, &SpectraIDViewTab::updatedSingleCell_);
-    connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries);
-    connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries);
+    connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries_);
+    connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries_);
     connect(export_table, &QPushButton::clicked, table_widget_, &TableView::exportEntries);
   }
 
   void SpectraIDViewTab::clear()
   {
-    // remove all entries
-    setLayer(nullptr);
+    table_widget_->clear();
+    layer_ = nullptr;
   }
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
@@ -256,12 +256,23 @@ namespace OpenMS
     } // PeakAnnotation cell clicked
   }
 
-  void SpectraIDViewTab::setLayer(LayerData* cl)
+  bool SpectraIDViewTab::hasData(const LayerData* layer)
+  {
+    // this is a very easy check.
+    // We do not check for PeptideIdentifications attached to Spectra, because the user could just 
+    // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
+    bool no_data = (layer == nullptr
+                || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->empty())
+                || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+    return !no_data;
+  }
+
+  void SpectraIDViewTab::updateEntries(LayerData* cl)
   {
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
-    updateEntries();
+    updateEntries_(); // we need this extra function since its an internal slot
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -281,14 +292,12 @@ namespace OpenMS
     };
   }
 
-  void SpectraIDViewTab::updateEntries()
+  void SpectraIDViewTab::updateEntries_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr
-        || (layer_->type == LayerData::DT_PEAK && layer_->getPeakData()->empty())
-        || (layer_->type == LayerData::DT_CHROMATOGRAM && layer_->getChromatogramData()->empty()))
+    if (!hasData(layer_))
     {
-      table_widget_->clear();
+      clear();
       return;
     }
 
@@ -297,7 +306,6 @@ namespace OpenMS
     if (!isVisible()) { return; }
 
     int restore_spec_index = layer_->getCurrentSpectrumIndex();
-    std::cout << "spec index selected:" << restore_spec_index << '\n';
 
     set<String> common_keys;
     bool has_peak_annotations(false);
@@ -369,7 +377,6 @@ namespace OpenMS
       const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
       const Size id_count = pi.size();
       const vector<Precursor> & precursors = spectrum.getPrecursors();
-
 
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
       if (ms_level != 2 && id_count == 0) { continue; }

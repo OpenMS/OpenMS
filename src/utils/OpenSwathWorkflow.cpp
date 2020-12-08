@@ -811,12 +811,10 @@ protected:
 
     if (tr_type == FileTypes::PQP)
     {
-      remove(out_osw.c_str());
       if (!out_osw.empty())
-      {
+      { // copy the PQP file and name it OSW file
         std::ifstream  src(tr_file.c_str(), std::ios::binary);
-        std::ofstream  dst(out_osw.c_str(), std::ios::binary);
-
+        std::ofstream  dst(out_osw.c_str(), std::ios::binary | std::ios::trunc);
         dst << src.rdbuf();
       }
     }
@@ -926,17 +924,18 @@ protected:
 
     ///////////////////////////////////
     // Set up chromatogram output
-    // Either use chrom.mzML or sqlite DB
+    // Either use chrom.mzML or sqliteDB (sqMass)
     ///////////////////////////////////
     Interfaces::IMSDataConsumer* chromatogramConsumer;
-    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom);
+    UInt64 run_id = OpenMS::UniqueIdGenerator::getUniqueId();
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom, run_id);
 
     ///////////////////////////////////
-    // Set up peakgroup file output
+    // Set up peakgroup file output (.tsv or .osw file)
     ///////////////////////////////////
     FeatureMap out_featureFile;
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
-    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
 
     ///////////////////////////////////
     // Extract and score

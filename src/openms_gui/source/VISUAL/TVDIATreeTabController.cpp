@@ -44,7 +44,7 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
-
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
@@ -80,18 +80,19 @@ namespace OpenMS
     {
     }
   };
-  
 
-  TVDIATreeTabController::TVDIATreeTabController(TOPPViewBase* parent):
-    TVControllerBase(parent)
-  {  
-  }
 
   bool addTransitionAsLayer(Plot1DWidget* w, 
                             const MiniLayer& ml,
                             const int transition_id,
-                            const OSWPeakGroup* feature = nullptr)
+                            std::set<UInt32>& transitions_seen)
   {
+    if (transitions_seen.find(transition_id) != transitions_seen.end())
+    { // duplicate .. do not show
+      return true;
+    }
+    transitions_seen.insert(transition_id);
+
     String chrom_caption = FileHandler::stripExtension(File::basename(ml.filename)) + "[" + transition_id + "]";
 
     // convert from native id to chrom_index
@@ -102,22 +103,65 @@ namespace OpenMS
     {
       return false;
     }
-    // add boundaries
-    if (feature)
-    {
-      double width = feature->getRTRightWidth() - feature->getRTLeftWidth();
-      double center = feature->getRTLeftWidth() + width / 2;
-      String ann = String("RT: ") + String(feature->getRTExperimental(), false) + "\ndRT: " + String(feature->getRTDelta(), false) + "\nQ-Value: " + String(feature->getQValue(), false);
-      Annotation1DItem* item = new Annotation1DVerticalLineItem(center, width, 30, QColor("invalid"), ann.toQString());
-      item->setSelected(false);
-      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-    }
-
-
     w->canvas()->activateSpectrum(0, false);
     return true;
   }
 
+  void addFeatures(Plot1DWidget* w, std::vector<OSWPeakGroup>& features)
+  {
+    // nothing to do...
+    if (features.empty()) return;
+
+    // sort features by left RT
+    std::sort(features.begin(), features.end(), [](const OSWPeakGroup& a, const OSWPeakGroup& b)
+    {
+      return a.getRTLeftWidth() < b.getRTLeftWidth();
+    });
+    const OSWPeakGroup* best_feature = &features[0];
+    auto findBestFeature = [&best_feature](const OSWPeakGroup& f)
+    {
+      if (best_feature->getQValue() > f.getQValue()) best_feature = &f;
+    };
+    std::for_each(features.begin(), features.end(), findBestFeature);
+    if (best_feature->getQValue() == -1)
+    { // no q-values are annotated. make them all grey.
+      best_feature = nullptr;
+    }
+    GUIHelpers::OverlapDetector od(3); // three y-levels for showing annotation
+
+
+    // show feature boundaries
+    for (const auto& feature : features)
+    {
+      auto width = feature.getRTRightWidth() - feature.getRTLeftWidth();
+      auto center = feature.getRTLeftWidth() + width / 2;
+      String ann = String("RT:\n ") + String(feature.getRTExperimental(), false) + "\ndRT:\n " + String(feature.getRTDelta(), false) + "\nQ:\n " + String(feature.getQValue(), false);
+      QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
+                          ? GUIHelpers::ColorBrewer::Distinct::LightGreen
+                          : GUIHelpers::ColorBrewer::Distinct::LightGrey];
+      Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 150, false, col, ann.toQString());
+      item->setSelected(false);
+      auto text_size = item->getTextRect(); // this is in px units (Qt widget coordinates)
+      // translate to axis units (our native 'data'):
+      auto p_text = w->canvas()->widgetToDataDistance(text_size.width(), 0);
+      auto chunk = od.placeItem(feature.getRTLeftWidth(), feature.getRTLeftWidth() + p_text.getX());
+      item->setTextYOffset(chunk * text_size.height());
+
+      w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
+    }
+    // paint the expected RT once
+    auto expected_RT = features[0].getRTExperimental() - features[0].getRTDelta();
+    Annotation1DItem* item = new Annotation1DVerticalLineItem(expected_RT, 3, 200, true, Qt::darkGreen, "");
+    item->setSelected(false);
+    w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
+  }
+
+
+
+  TVDIATreeTabController::TVDIATreeTabController(TOPPViewBase* parent) :
+    TVControllerBase(parent)
+  {
+  }
 
   void TVDIATreeTabController::showChromatogramsAsNew1D(const OSWIndexTrace& trace)
   {
@@ -159,6 +203,9 @@ namespace OpenMS
       return false;
     }
 
+    std::set<UInt32> transitions_seen;
+    std::vector<OSWPeakGroup> features;
+
     switch (trace.lowest)
     {
     case OSWHierarchy::Level::PROTEIN:
@@ -166,12 +213,13 @@ namespace OpenMS
       const auto& prot = data->getProteins()[trace.idx_prot];
       // show only the first peptide for now...
       const auto& pep = prot.getPeptidePrecursors()[0];
+      features = pep.getFeatures();
       for (const auto& feat : pep.getFeatures())
       {
         const auto& trids = feat.getTransitionIDs();
         for (UInt trid : trids)
         {
-          if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+          if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
           { // something went wrong. abort
             return false;
           }
@@ -183,12 +231,13 @@ namespace OpenMS
     {
       const auto& prot = data->getProteins()[trace.idx_prot];
       const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
+      features = pep.getFeatures();
       for (const auto& feat : pep.getFeatures())
       {
         const auto& trids = feat.getTransitionIDs();
         for (UInt trid : trids)
         {
-          if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+          if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
           { // something went wrong. abort
             return false;
           }
@@ -201,10 +250,11 @@ namespace OpenMS
       const auto& prot = data->getProteins()[trace.idx_prot];
       const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
       const auto& feat = pep.getFeatures()[trace.idx_feat];
+      features = { feat };
       const auto& trids = feat.getTransitionIDs();
       for (UInt trid : trids)
       {
-        if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+        if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
         { // something went wrong. abort
           return false;
         }
@@ -217,7 +267,7 @@ namespace OpenMS
       const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
       const auto& feat = pep.getFeatures()[trace.idx_feat];
       const auto& trid = feat.getTransitionIDs()[trace.idx_trans];
-      if (!addTransitionAsLayer(w, ml, (Size)trid, &feat))
+      if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
       { // something went wrong. abort
         return false;
       }
@@ -226,6 +276,9 @@ namespace OpenMS
     default:
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+
+    // add bars for all identified features
+    addFeatures(w, features);
 
     return true;
   }

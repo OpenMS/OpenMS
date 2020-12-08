@@ -336,6 +336,7 @@ namespace OpenMS
         peptides.back().setRT(f_it->getRT());
         peptides.back().setMZ(f_it->getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
+        peptides.back().setMetaValue("SeedFeatureID", String(f_it->getUniqueId()));
         addPeptideToMap_(peptides.back(), peptide_map_);
         ++seeds_added;
       }
@@ -665,7 +666,12 @@ namespace OpenMS
             // to not be combined
             seedcount++;
             //cout << peptide.sequence << " " << charge << endl;
-            String peptide_id = peptide.sequence + String(seedcount) + "/" + String(charge);
+            double mz = rt_pep.second->getMZ();
+            double rt = rt_pep.second->getRT();
+            String uid = rt_pep.second->getMetaValue("SeedFeatureID");
+
+            // UID should be enough, but let's add the seed count to be sure.
+            String peptide_id = peptide.sequence + "[" + uid + "][" + String(seedcount) + "]/" + String(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
             peptide.protein_refs = {"not_available"};
@@ -674,7 +680,6 @@ namespace OpenMS
             //create an entry in the "output" ref_rt_map for internals
             RTMap &internal_ids = ref_rt_map[peptide_id].first;
 
-            double mz = rt_pep.second->getMZ();
             // get isotope distribution for peptide:
             //TODO Why 10? Document constant?
             Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
@@ -694,8 +699,8 @@ namespace OpenMS
             // store beginning and end of RT region: here we only need one entry
             peptide.rts.clear();
             double rt_tolerance = rt_window_ / 2.0;
-            addPeptideRT_(peptide, rt_pep.second->getRT() - rt_tolerance);
-            addPeptideRT_(peptide, rt_pep.second->getRT() + rt_tolerance);
+            addPeptideRT_(peptide, rt - rt_tolerance);
+            addPeptideRT_(peptide, rt + rt_tolerance);
             library_.addPeptide(peptide);
             generateTransitions_(peptide.id, mz, charge, iso_dist);
             internal_ids.emplace(rt_pep);

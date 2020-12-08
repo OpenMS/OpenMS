@@ -176,7 +176,7 @@ public:
 
         if (chr_idx == -1 && peak_idx == -1)
         {
-          OPENMS_LOG_DEBUG << "**** MRMTransitionGroupPicker : no more peaks left" << picked_chroms.size() << std::endl;
+          OPENMS_LOG_DEBUG << "**** MRMTransitionGroupPicker : no more peaks left. Nr. chroms: " << picked_chroms.size() << std::endl;
           break;
         }
 
