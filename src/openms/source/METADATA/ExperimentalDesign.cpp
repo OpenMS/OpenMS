@@ -675,7 +675,6 @@ namespace OpenMS
     }
     
     return (before - msfile_section_.size());
-
   }
 
   /* Implementations of SampleSection */
