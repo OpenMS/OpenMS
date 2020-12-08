@@ -2297,7 +2297,7 @@ namespace OpenMS
       {
         auto mod = modstat.first;
         MzTabModification mztab_mod;
-        mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(mod));
+        mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(*mod));
         vector<std::pair<Size, MzTabParameter>> pos;
         pos.emplace_back(make_pair(position, MzTabParameter())); // position, parameter pair (e.g. FLR)
         mztab_mod.setPositionsAndParameters(pos);
@@ -2474,7 +2474,7 @@ namespace OpenMS
       {
         auto mod = modstat.first;
         MzTabModification mztab_mod;
-        mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(mod));
+        mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(*mod));
         vector<std::pair<Size, MzTabParameter>> pos;
         // mzTab position is one-based, internal is 0-based so we need to +1
         pos.emplace_back(make_pair(position + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)

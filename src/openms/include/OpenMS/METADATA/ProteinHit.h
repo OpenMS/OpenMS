@@ -201,6 +201,9 @@ public:
     /// returns the set of modified protein positions and associated statistics
     const ProteinModificationSummary& getModifications() const;
 
+    /// returns the mutable set of modified protein positions and associated statistics
+    ProteinModificationSummary& getModifications();
+
     /// sets modified protein positions and associated statistics (e.g., counts=PSMs that provided evidance for the modification at this position)
     void setModifications(const ProteinModificationSummary& mods);
     //@}
