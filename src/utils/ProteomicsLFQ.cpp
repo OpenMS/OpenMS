@@ -1517,7 +1517,7 @@ protected:
           const auto accs = pep2prot_it->second;
           pes.erase(std::remove_if(pes.begin(), 
                               pes.end(),
-                              [&pep2prot_inferred,&accs](PeptideEvidence& x){
+                              [&accs](PeptideEvidence& x){
                                 return accs.find(x.getProteinAccession()) == accs.end();
                               }),
               pes.end());
@@ -1629,7 +1629,11 @@ protected:
         OPENMS_PRETTY_FUNCTION, "Spectra file basenames provided as input need to match a subset the experimental design file basenames.");
     }
 
-    design.filterByBasenames(in_basenames); 
+    Size nr_filtered = design.filterByBasenames(in_basenames);
+    if (nr_filtered > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: " << nr_filtered << " files from experimental design were not passed as mzMLs. Continuing with subset if the fractions still match." << std::endl;
+    }
 
     if (design.getNumberOfLabels() != 1)
     {

@@ -319,6 +319,16 @@ namespace OpenMS
             )
         {
           peptide_already_exists = true;
+          String seq = "empty";
+          int chg = 0;
+          if (!peptide.getHits().empty())
+          {
+            seq = peptide.getHits()[0].getSequence().toString();
+            chg = peptide.getHits()[0].getCharge();
+          }
+          OpenMS_Log_debug << "Skipping seed from FeatureID " << String(f_it->getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
+          " due to overlap with " << seq << "/" << chg << " at MZ: " << peptide_MZ << "; RT: " << peptide_RT << endl;
+
           break;
         }
       }
@@ -1201,13 +1211,22 @@ namespace OpenMS
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
+    double mz = peptide.getMZ();
     if (!external)
     {
-      OPENMS_LOG_DEBUG << "Adding " << hit.getSequence() << " " << charge << " " << rt << endl;
+      if (peptide.metaValueExists("SeedFeatureID"))
+      {
+        OpenMS_Log_debug << "Adding seed (internal) from FeatureID " << peptide.getMetaValue("SeedFeatureID") << ": " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      }
+      else
+      {
+        OpenMS_Log_debug << "Adding peptide (internal)" << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      }
       peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide);
     }
     else
     {
+      OpenMS_Log_debug << "Adding peptide (external)" << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
       peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
     }
   }

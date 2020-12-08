@@ -470,12 +470,10 @@ namespace OpenMS
         if (files_per_fraction == 0) // first fraction, initialize
         {
           files_per_fraction = f.second.size();
-          std::cout << f.second.size() << std::endl;
         }
         else // fraction >= 2
         {
           // different number of associated MS files?
-          std::cout << f.second.size() << std::endl;
           if (f.second.size() != files_per_fraction)
           {
             return false;
@@ -660,7 +658,7 @@ namespace OpenMS
       });
   }
 
-  void ExperimentalDesign::filterByBasenames(const set<String>& bns)
+  Size ExperimentalDesign::filterByBasenames(const set<String>& bns)
   {
     Size before = msfile_section_.size();
     msfile_section_.erase(std::remove_if(msfile_section_.begin(), msfile_section_.end(),
@@ -675,6 +673,9 @@ namespace OpenMS
     {
       OPENMS_LOG_FATAL_ERROR << "Given basename set does not overlap with design. Design would be empty." << std::endl;
     }
+    
+    return (before - msfile_section_.size());
+
   }
 
   /* Implementations of SampleSection */

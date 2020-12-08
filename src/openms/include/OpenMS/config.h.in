@@ -64,6 +64,12 @@
 // __PRETTY_FUNCTION__ is a GNU G++ extension so we use the alternative in boost
 #define OPENMS_PRETTY_FUNCTION BOOST_CURRENT_FUNCTION
 
+// __FILENAME__ prints the path that is used during compilation of the object. Per default in CMake it is the full absolute path.
+// This is confusing for debug logs from executables on user machines and unnecessary.
+// This shifts the pointer to the char array of the filepath to the filename only.
+// WARNING: Does not work for files outside of the src directory.
+#define OPENMS_FILENAME (__FILE__ + SOURCE_PATH_SIZE)
+
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
 #ifdef OPENMS_COMPILER_MSVC
 // we define this using NDEBUG on MSVC as there are multiple build types simultaneously in the Solution file,
