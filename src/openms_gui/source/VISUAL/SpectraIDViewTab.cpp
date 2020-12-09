@@ -158,6 +158,9 @@ namespace OpenMS
     const auto& exp = *layer_->getPeakData();
     const auto& spec2 = exp[current_spectrum_index];
 
+    //
+    // Signal for a new spectrum to be shown
+    //
     // show precursor spectrum (usually MS1)
     if (column == Clmn::PRECURSOR_MZ)
     {
@@ -357,9 +360,11 @@ namespace OpenMS
     table_widget_->setRowCount(0);
     table_widget_->setColumnCount(headers.size());
 
-    QTableWidgetItem* proto_item = new QTableWidgetItem();
-    proto_item->setTextAlignment(Qt::AlignCenter);
-    table_widget_->setItemPrototype(proto_item);
+    {
+      QTableWidgetItem* proto_item = new QTableWidgetItem();
+      proto_item->setTextAlignment(Qt::AlignCenter);
+      table_widget_->setItemPrototype(proto_item);
+    }
 
     table_widget_->setSortingEnabled(false);
     table_widget_->setUpdatesEnabled(false);
@@ -370,8 +375,6 @@ namespace OpenMS
     // index i is needed, so iterate the old way...
     for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
-      QTableWidgetItem* item = nullptr;
-
       const MSSpectrum& spectrum = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
       const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
@@ -412,14 +415,12 @@ namespace OpenMS
             table_widget_->setAtBottomRow((int)ph.getRank(), Clmn::RANK, bg_color);
             table_widget_->setAtBottomRow(ph.getCharge(), Clmn::CHARGE, bg_color);
 
-            //sequence
+            // sequence
             String seq = ph.getSequence().toString();
             if (seq.empty()) seq = ph.getMetaValue("label");
             table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
 
-            //Accession
-            item = table_widget_->itemPrototype()->clone();
-            item->setTextAlignment(Qt::AlignLeft);
+            // accession
             set<String> protein_accessions = ph.extractProteinAccessionsSet();
             String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
             table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
@@ -464,7 +465,6 @@ namespace OpenMS
               // add peak annotation column (part of meta-value assessment above)
               if (has_peak_annotations)
               {
-                table_widget_->setAtBottomRow("show", current_col, bg_color);
                 // set hidden data for export to TSV
                 QString annotation;
                 for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
@@ -474,23 +474,22 @@ namespace OpenMS
                     String(pa.charge).toQString() + "|" +
                     pa.annotation.toQString() + ";";
                 }
-                table_widget_->item(table_widget_->rowCount() - 1, current_col)->setData(Qt::UserRole, annotation);
+                QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color);
+                item->setData(Qt::UserRole, annotation);
                 ++current_col;
               }
               for (const auto& ck : common_keys)
               {
                 DataValue dv = ph.getMetaValue(ck);
-                item = table_widget_->itemPrototype()->clone();
-                item->setTextAlignment(Qt::AlignLeft);
                 if (dv.valueType() == DataValue::DOUBLE_VALUE)
                 {
-                  item->setData(Qt::DisplayRole, (double)dv);
+                  table_widget_->setAtBottomRow(double(dv), current_col, bg_color);
                 }
                 else
                 {
-                  item->setText(dv.toQString());
+                  table_widget_->setAtBottomRow(dv.toQString(), current_col, bg_color);
                 }
-                table_widget_->setAtBottomRow(item, current_col, bg_color);
+                
                 ++current_col;
               }
             }
@@ -592,6 +591,9 @@ namespace OpenMS
     int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+
+    // maintain sortability of our checkbox column
+    TableView::updateCheckBoxItem(item);
 
     vector<PeptideIdentification>& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].getPeptideIdentifications();
 

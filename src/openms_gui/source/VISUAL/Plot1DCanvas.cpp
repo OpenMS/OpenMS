@@ -1266,8 +1266,10 @@ namespace OpenMS
 
   void Plot1DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
   {
-    if (!peak.isValid())
+    if (!peak.isValid() || peak.peak >= getCurrentLayer().getCurrentSpectrum().size())
+    {
       return;
+    }              
 
     //determine coordinates;
     double mz = 0.0;
