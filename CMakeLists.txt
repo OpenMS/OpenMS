@@ -273,6 +273,10 @@ set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 # Note that it does not matter if the OS uses / or \, because we are only
 # saving the path size.
 string(LENGTH "${PROJECT_SOURCE_DIR}/" CF_SOURCE_PATH_SIZE)
+string(LENGTH "${PROJECT_BINARY_DIR}/" BINARY_PATH_SIZE)
+if (BINARY_PATH_SIZE LESS CF_SOURCE_PATH_SIZE)
+  set(CF_SOURCE_PATH_SIZE ${BINARY_PATH_SIZE})
+endif()
 
 #------------------------------------------------------------------------------
 # CMake Utitlities

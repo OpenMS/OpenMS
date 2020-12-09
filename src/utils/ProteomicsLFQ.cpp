@@ -255,7 +255,7 @@ protected:
     ffi_defaults.setValue("svm:samples", 10000); // restrict number of samples for training
     ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
     ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
-    ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness    
+    ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
 
     // hide entries
     for (const auto& s : {"svm:samples", "svm:log2_C", "svm:log2_gamma", "svm:min_prob", "svm:no_selection", "svm:xval_out", "svm:kernel", "svm:xval", "candidates_out", "extract:n_isotopes", "model:type"} )
@@ -1115,6 +1115,8 @@ protected:
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
       ffi_param.setValue("EMGScoring:init_mom", "true");
       ffi_param.setValue("EMGScoring:max_iteration", 100);
+      ffi_param.setValue("debug", debug_level_); // pass down debug level
+
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
