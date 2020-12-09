@@ -547,7 +547,7 @@ protected:
 
         if (it->getMSLevel() == 2 && !intrainfile.empty()
         && !deconvolutedSpectrum.getPrecursorPeakGroup().empty()){
-          QScore::writeAttTsv(deconvolutedSpectrum.getPrecursorPeakGroup(),
+          QScore::writeAttTsv(deconvolutedSpectrum.getOriginalSpectrum().getRT(), deconvolutedSpectrum.getPrecursorPeakGroup(),
                               deconvolutedSpectrum.getPrecursorCharge(),
                               trainScanNumbers.find(scanNumber) != trainScanNumbers.end(), trainOut);
 

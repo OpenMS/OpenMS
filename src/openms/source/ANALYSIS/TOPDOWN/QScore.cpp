@@ -87,13 +87,14 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream &f)
   {
-    f<<"ChargeCos,ChargeInt,ChargeSNR,Cos,Int,SNR,Qscore,Class\n";
+    f<<"RT,PrecursorMass,ChargeCos,ChargeInt,ChargeSNR,Cos,Int,SNR,Qscore,Class\n";
   }
 
-  void QScore::writeAttTsv(PeakGroup pg, int charge, bool isIdentified, std::fstream &f)
+  void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, std::fstream &f)
   {
     auto fv = toFeatureVector(&pg, charge);
     if (fv[0] <= 0) return;
+    f << rt <<","<<pg.getMonoMass() <<",";
     for (auto& item : fv)
     {
       f<<item<<",";

@@ -107,6 +107,8 @@ namespace OpenMS
     } QscoreComparator;
 
     std::map<int, std::vector<double>> all;
+    std::map<int, std::vector<double>> allMz;
+
     /// Selected integer masses - necessary for mass exclusion
     std::map<int, std::vector<double>> selected; // int mass, rt, qscore
     /// Selected integer mzs - necessary for mz exclusion

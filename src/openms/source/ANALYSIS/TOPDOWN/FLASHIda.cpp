@@ -127,6 +127,8 @@ namespace OpenMS
     std::sort(deconvolutedSpectrum.begin(), deconvolutedSpectrum.end(), QscoreComparator);
 
     std::map<int, std::vector<double>> nall;
+    std::map<int, std::vector<double>> nallMz;
+
     std::map<int, std::vector<double>> nselected;
     std::map<int, std::vector<double>> nselectedMz; // m/z * 20
     std::vector<PeakGroup> toConsider;
@@ -144,26 +146,14 @@ namespace OpenMS
       }
       nall[item.first] = item.second;
     }
-    for (auto& pg : deconvolutedSpectrum)
+
+    for (auto& item : allMz)
     {
-      if (pg.getQScore() < qScoreThreshold)
+      if (item.second[0] < rt - RTwindow)
       {
-        break;
+        continue;
       }
-      auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
-      auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
-      auto qScore = pg.getQScore();
-      if (nall.find(m) != nall.end()) {
-        if (nall[m][1] < qScore) {
-          toConsider.push_back(pg);
-        }
-        else {
-          toConsider3.push_back(pg);
-        }
-      }
-      else{
-        toConsider2.push_back(pg);
-      }
+      nallMz[item.first] = item.second;
     }
 
     for (auto& pg : deconvolutedSpectrum)
@@ -174,14 +164,55 @@ namespace OpenMS
       }
       auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
       auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
+      auto mz = (int)round(20 * std::get<0>(pg.getMzxQScoreMzRange()));
+
       auto qScore = pg.getQScore();
-      nall[m] = std::vector<double>(2);
-      nall[m][0] = rt;
-      nall[m][1] = qScore;
+      if (nall.find(m) != nall.end() && nall[m][1] < qScore
+         || nallMz.find(mz) != nallMz.end() && nallMz[mz][1] < qScore)
+      {
+        toConsider.push_back(pg);
+        continue;
+      }
+
+      if (nall.find(m) != nall.end()
+          || nallMz.find(mz) != nallMz.end())
+      {
+        toConsider3.push_back(pg);
+        continue;
+      }
+      toConsider2.push_back(pg);
+    }
+
+    for (auto& pg : deconvolutedSpectrum)
+    {
+      auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
+      auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
+      auto mz = (int)round(20 * std::get<0>(pg.getMzxQScoreMzRange()));
+
+      auto qScore = pg.getQScore();
+      if (nall.find(m) == nall.end()){
+        nall[m] = std::vector<double>(2);
+        nall[m][1] = qScore;
+      }else if (nall[m][1] < qScore){
+        nall[m][1] = qScore;
+      }
+
+      nallMz[mz][0] = rt;
+      if (nallMz.find(mz) == nallMz.end()){
+        nallMz[mz] = std::vector<double>(2);
+        nallMz[mz][1] = qScore;
+      }else if (nallMz[mz][1] < qScore){
+        nallMz[mz][1] = qScore;
+      }
+
+      nallMz[mz][0] = rt;
     }
 
     nall.swap(all);
     std::map<int, std::vector<double>>().swap(nall);
+
+    nallMz.swap(allMz);
+    std::map<int, std::vector<double>>().swap(nallMz);
 
     for (auto& item : selected)
     {
@@ -201,7 +232,6 @@ namespace OpenMS
       nselectedMz[item.first] = item.second;
     }
 
-    //auto shorRTwindow = RTwindow / 10.0;
     std::vector<PeakGroup> filtered;
     filtered.reserve(massCount.size());
     std::set<int> cselected; // current selected masses
@@ -209,10 +239,9 @@ namespace OpenMS
 
     int mc = massCount[msLevel - 1];
 
-
     if (filtered.size() < mc)
     {
-      for (auto& pg : toConsider)
+      for (auto& pg : toConsider) // increasing but not selected
       {
         if (filtered.size() >= mc)
         {
@@ -242,70 +271,38 @@ namespace OpenMS
         cselected.insert(m);
         cselectedMz.insert(mz);
 
-        nselected[m] = std::vector<double>(2);
-        nselectedMz[mz] = std::vector<double>(2);
+        if (nselectedMz.find(mz) == nselectedMz.end()){
+          nselectedMz[mz] = std::vector<double>(2);
+          nselectedMz[mz][1] = qScore;
+        }else if (nselectedMz[mz][1] < qScore){
+          nselectedMz[mz][1] = qScore;
+        }
 
-        nselectedMz[mz][0] = rt;
-        nselectedMz[mz][1] = qScore;
         nselected[m][0] = rt;
-        nselected[m][1] = qScore;
+
+        if (nselected.find(m) == nselected.end()){
+          nselected[m] = std::vector<double>(2);
+          nselected[m][1] = qScore;
+        }else if (nselected[m][1] < qScore){
+          nselected[m][1] = qScore;
+        }
+
+        nselected[m][0] = rt;
+
         filtered.push_back(pg);
       }
     }
 
     if (filtered.size() < mc)
     {
-      for (auto& pg : toConsider2)
+      for (auto& pg : toConsider2) // newly emerging
       {
         if (filtered.size() >= mc)
         {
           break;
         }
 
-        auto mz = (int)round(20 * std::get<0>(pg.getMzxQScoreMzRange()));
-        if (cselectedMz.find(mz) != cselectedMz.end()) {
-          continue;
-        }
-        auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
-        auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
-        if (cselected.find(m) != cselected.end()) {
-          continue;
-        }
-        auto qScore = pg.getQScore();
-        if (nselectedMz.find(mz) != nselectedMz.end())
-        {
-          continue;
-        }
-
-        if (nselected.find(m) != nselected.end())
-        {
-          continue;
-        }
-
-        cselected.insert(m);
-        cselectedMz.insert(mz);
-
-        nselected[m] = std::vector<double>(2);
-        nselectedMz[mz] = std::vector<double>(2);
-
-        nselectedMz[mz][0] = rt;
-        nselectedMz[mz][1] = qScore;
-        nselected[m][0] = rt;
-        nselected[m][1] = qScore;
-        filtered.push_back(pg);
-      }
-    }
-
-    if (filtered.size() < mc)
-    {
-      for (auto& pg : toConsider)
-      {
-        if (filtered.size() >= mc)
-        {
-          break;
-        }
-
-        auto mz = (int)round(20 * std::get<0>(pg.getMzxQScoreMzRange()));
+        auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange()))/2.0);
         if (cselectedMz.find(mz) != cselectedMz.end()) {
           continue;
         }
@@ -319,27 +316,39 @@ namespace OpenMS
         cselected.insert(m);
         cselectedMz.insert(mz);
 
-        nselected[m] = std::vector<double>(2);
-        nselectedMz[mz] = std::vector<double>(2);
 
-        nselectedMz[mz][0] = rt;
-        nselectedMz[mz][1] = qScore;
+        if (nselectedMz.find(mz) == nselectedMz.end()){
+          nselectedMz[mz] = std::vector<double>(2);
+          nselectedMz[mz][1] = qScore;
+        }else if (nselectedMz[mz][1] < qScore){
+          nselectedMz[mz][1] = qScore;
+        }
+
         nselected[m][0] = rt;
-        nselected[m][1] = qScore;
+
+        if (nselected.find(m) == nselected.end()){
+          nselected[m] = std::vector<double>(2);
+          nselected[m][1] = qScore;
+        }else if (nselected[m][1] < qScore){
+          nselected[m][1] = qScore;
+        }
+
+        nselected[m][0] = rt;
+
         filtered.push_back(pg);
       }
     }
 
     if (filtered.size() < mc)
     {
-      for (auto& pg : toConsider2)
+      for (auto& pg : toConsider) // increasing but preselected
       {
         if (filtered.size() >= mc)
         {
           break;
         }
 
-        auto mz = (int)round(20 * std::get<0>(pg.getMzxQScoreMzRange()));
+        auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange()))/2.0);
         if (cselectedMz.find(mz) != cselectedMz.end()) {
           continue;
         }
@@ -353,27 +362,39 @@ namespace OpenMS
         cselected.insert(m);
         cselectedMz.insert(mz);
 
-        nselected[m] = std::vector<double>(2);
-        nselectedMz[mz] = std::vector<double>(2);
 
-        nselectedMz[mz][0] = rt;
-        nselectedMz[mz][1] = qScore;
+        if (nselectedMz.find(mz) == nselectedMz.end()){
+          nselectedMz[mz] = std::vector<double>(2);
+          nselectedMz[mz][1] = qScore;
+        }else if (nselectedMz[mz][1] < qScore){
+          nselectedMz[mz][1] = qScore;
+        }
+
         nselected[m][0] = rt;
-        nselected[m][1] = qScore;
+
+        if (nselected.find(m) == nselected.end()){
+          nselected[m] = std::vector<double>(2);
+          nselected[m][1] = qScore;
+        }else if (nselected[m][1] < qScore){
+          nselected[m][1] = qScore;
+        }
+
+        nselected[m][0] = rt;
+
         filtered.push_back(pg);
       }
     }
 
     if (filtered.size() < mc)
     {
-      for (auto& pg : toConsider3)
+      for (auto& pg : toConsider3) // others
       {
         if (filtered.size() >= mc)
         {
           break;
         }
 
-        auto mz = (int)round(20 * std::get<0>(pg.getMzxQScoreMzRange()));
+        auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange()))/2.0);
         if (cselectedMz.find(mz) != cselectedMz.end()) {
           continue;
         }
@@ -387,13 +408,25 @@ namespace OpenMS
         cselected.insert(m);
         cselectedMz.insert(mz);
 
-        nselected[m] = std::vector<double>(2);
-        nselectedMz[mz] = std::vector<double>(2);
 
-        nselectedMz[mz][0] = rt;
-        nselectedMz[mz][1] = qScore;
+        if (nselectedMz.find(mz) == nselectedMz.end()){
+          nselectedMz[mz] = std::vector<double>(2);
+          nselectedMz[mz][1] = qScore;
+        }else if (nselectedMz[mz][1] < qScore){
+          nselectedMz[mz][1] = qScore;
+        }
+
         nselected[m][0] = rt;
-        nselected[m][1] = qScore;
+
+        if (nselected.find(m) == nselected.end()){
+          nselected[m] = std::vector<double>(2);
+          nselected[m][1] = qScore;
+        }else if (nselected[m][1] < qScore){
+          nselected[m][1] = qScore;
+        }
+
+        nselected[m][0] = rt;
+
         filtered.push_back(pg);
       }
     }
