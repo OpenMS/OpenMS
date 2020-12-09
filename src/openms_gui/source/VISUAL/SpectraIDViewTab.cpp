@@ -158,6 +158,9 @@ namespace OpenMS
     const auto& exp = *layer_->getPeakData();
     const auto& spec2 = exp[current_spectrum_index];
 
+    //
+    // Signal for a new spectrum to be shown
+    //
     // show precursor spectrum (usually MS1)
     if (column == Clmn::PRECURSOR_MZ)
     {
@@ -462,7 +465,6 @@ namespace OpenMS
               // add peak annotation column (part of meta-value assessment above)
               if (has_peak_annotations)
               {
-                QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color);
                 // set hidden data for export to TSV
                 QString annotation;
                 for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
@@ -472,6 +474,7 @@ namespace OpenMS
                     String(pa.charge).toQString() + "|" +
                     pa.annotation.toQString() + ";";
                 }
+                QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color);
                 item->setData(Qt::UserRole, annotation);
                 ++current_col;
               }
@@ -588,6 +591,9 @@ namespace OpenMS
     int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+
+    // maintain sortability of our checkbox column
+    TableView::updateCheckBoxItem(item);
 
     vector<PeptideIdentification>& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].getPeptideIdentifications();
 

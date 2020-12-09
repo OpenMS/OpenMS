@@ -184,6 +184,13 @@ namespace OpenMS
     return setAtBottomRow(item, column_index, background, foreground);
   }
 
+  QTableWidgetItem* TableView::setAtBottomRow(const char* text, size_t column_index, const QColor& background, const QColor& foreground)
+  {
+    QTableWidgetItem* item = itemPrototype()->clone();
+    item->setText(text);
+    return setAtBottomRow(item, column_index, background, foreground);
+  }
+
   QTableWidgetItem* TableView::setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
@@ -198,10 +205,12 @@ namespace OpenMS
     return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  QTableWidgetItem* TableView::setAtBottomRow(bool selected, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const bool selected, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setCheckState(selected ? Qt::Checked : Qt::Unchecked);
+    /// sorting of columns is done by the DisplayRole, not the checkstate. So we need different content.
+    updateCheckBoxItem(item);
     return setAtBottomRow(item, column_index, background, foreground);
   }
 
@@ -211,6 +220,23 @@ namespace OpenMS
     if (foreground.isValid()) item->setForeground(QBrush(foreground));
     setItem(rowCount() - 1, (int)column_index, item);
     return item;
+  }
+
+  void TableView::updateCheckBoxItem(QTableWidgetItem* item)
+  {
+    // check if this function is called on checkbox items only (either no DisplayRole set or the text is '' or ' ')
+    if (!item->data(Qt::DisplayRole).isValid() || 
+        (item->data(Qt::DisplayRole).type() == QVariant::Type::String
+          && (item->data(Qt::DisplayRole).toString().isEmpty() || item->data(Qt::DisplayRole).toString() == " ")
+        )
+       )
+    {
+      item->setText(item->checkState() == Qt::Checked ? " " : "");
+    }
+    else
+    { 
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Called on non-checkbox item");
+    }
   }
  
   QStringList TableView::getHeaderNames(const WidgetHeader which, bool use_export_name)
