@@ -177,39 +177,40 @@ namespace OpenMS
     }
   }
 
-  void TableView::setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setText(text);
-    setAtBottomRow(item, column_index, background, foreground);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setData(Qt::DisplayRole, i);
-    setAtBottomRow(item, column_index, background, foreground);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setData(Qt::DisplayRole, d);
-    setAtBottomRow(item, column_index, background, foreground);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(bool selected, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(bool selected, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setCheckState(selected ? Qt::Checked : Qt::Unchecked);
-    setAtBottomRow(item, column_index, background, foreground);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
   {
     item->setBackgroundColor(background);
     if (foreground.isValid()) item->setForeground(QBrush(foreground));
     setItem(rowCount() - 1, (int)column_index, item);
+    return item;
   }
  
   QStringList TableView::getHeaderNames(const WidgetHeader which, bool use_export_name)

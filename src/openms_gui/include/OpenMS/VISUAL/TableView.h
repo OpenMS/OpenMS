@@ -67,11 +67,11 @@ namespace OpenMS
     virtual void exportEntries();
 
 
-    void setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(bool selected, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground);
+    QTableWidgetItem* setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    QTableWidgetItem* setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    QTableWidgetItem* setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    QTableWidgetItem* setAtBottomRow(bool selected, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    QTableWidgetItem* setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground);
 
     /// sets the visible headers (and the number of columns)
     void setHeaders(const QStringList& headers);
