@@ -136,7 +136,6 @@ namespace OpenMS
     std::vector<PeakGroup> toConsider3;
     toConsider3.reserve(deconvolutedSpectrum.size());
 
-
     for (auto& item : all)
     {
       if (item.second[0] < rt - RTwindow)
@@ -159,11 +158,11 @@ namespace OpenMS
           toConsider.push_back(pg);
         }
         else {
-          toConsider2.push_back(pg);
+          toConsider3.push_back(pg);
         }
       }
       else{
-        toConsider3.push_back(pg);
+        toConsider2.push_back(pg);
       }
     }
 

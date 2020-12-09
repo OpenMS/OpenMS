@@ -55,7 +55,7 @@ namespace OpenMS
   {
     if (pObject != nullptr)
     {
-      return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name);
+      return pObject->getPeakGroups(mzs, ints, length, rt * 60.0, msLevel, name);
     }
     return 0;
   }
