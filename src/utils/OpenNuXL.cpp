@@ -211,7 +211,18 @@ struct ImmoniumIonsInPeptide
         default: break;
       }   
     } 
-  } 
+  }
+
+  void swap()
+  { // swap entries for decoy generation
+    std::swap(Y,E);
+    std::swap(W,Q);
+    std::swap(F,M);
+    std::swap(H,K);
+    std::swap(C,L);
+    std::swap(P,L);
+  }
+ 
   bool Y = false;
   bool W = false;
   bool F = false;
@@ -1114,7 +1125,8 @@ protected:
                         float& plss_modds,
                         float& plss_pc_MIC,
                         float& plss_im_MIC,
-                        size_t& n_theoretical_peaks)
+                        size_t& n_theoretical_peaks,
+                        bool is_decoy)
   {
     OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
     OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
@@ -1696,7 +1708,8 @@ static void scoreXLIons_(
                          float &plss_modds,
                          float &plss_pc_MIC,
                          float &plss_im_MIC,
-                         size_t &n_theoretical_peaks)
+                         size_t &n_theoretical_peaks,
+                         bool is_decoy)
   {
     OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
@@ -1741,7 +1754,8 @@ static void scoreXLIons_(
                       plss_modds,
                       plss_pc_MIC,
                       plss_im_MIC,
-                      n_theoretical_peaks);
+                      n_theoretical_peaks,
+                      is_decoy);
 #ifdef DEBUG_OpenNuXL
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
@@ -3826,7 +3840,7 @@ static void scoreXLIons_(
 
     const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
 
-    total_loss_score = total_loss_score - 0.22 * (double)sequence.size();
+    //total_loss_score = total_loss_score - 0.22 * (double)sequence.size();
 
     // early-out if super bad score
     if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { return; }
@@ -4327,6 +4341,8 @@ static void scoreXLIons_(
     map<String, map<ModifiedRegion, size_t>> modified_region_xls_targets;    
     map<String, map<ModifiedRegion, size_t>> modified_region_xls_decoys;
 
+    map<String, ResidueModification*> name2mod; // used to free temporary residues
+
     // store modification statistic for every protein    
     for (const PeptideIdentification& pep : peps)
     {
@@ -4336,10 +4352,21 @@ static void scoreXLIons_(
       const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
       const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
 
-      // create a user defined modification
-      ResidueModification* xl = new ResidueModification();
-      xl->setFullId(ph.getMetaValue("NuXL:NA")); // something not used in ResidueDB
-      xl->setOrigin('X'); // any AA
+      // create a user defined modification (at most once)
+      ResidueModification* xl;
+      const String NA = ph.getMetaValue("NuXL:NA");
+      auto it = name2mod.find(NA);
+      if (it != name2mod.end())
+      {
+        xl = it->second;
+      }
+      else
+      {
+        xl = new ResidueModification();
+        xl->setFullId(NA);
+        xl->setOrigin('X'); // any AA
+        name2mod[NA] = xl;
+      }
 
       for (auto& ph_evidence : ph_evidences)
       {
@@ -4374,7 +4401,7 @@ static void scoreXLIons_(
         if (xl_pos_in_protein < protein->getSequence().size())
         {
           auto mods = protein->getModifications();  // TODO: add mutable reference access
-          mods.AALevelSummary[xl_pos_in_protein][*xl].count++;
+          mods.AALevelSummary[xl_pos_in_protein][xl].count++;
           protein->setModifications(mods);
         }
       }
@@ -4478,7 +4505,7 @@ static void scoreXLIons_(
             {
               aa2psm_count_decoys[AA_at_position] += count;
             }
-            tsv_file.addLine(m2s.first.getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
+            tsv_file.addLine(m2s.first->getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
           }
         }
         
@@ -4534,6 +4561,8 @@ static void scoreXLIons_(
     {
       tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
     }
+    
+    for (auto m : name2mod) { delete(m.second); } // free memory
   }
 
   ExitCodes main_(int, const char**) override
@@ -4939,7 +4968,7 @@ static void scoreXLIons_(
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
     p.setValue("add_decoy_proteins", "true"); // we still want decoys in the result (e.g., to run percolator)
-    p.setValue("add_decoy_peptides", "true"); // we still want decoys in the result (e.g., to run percolator)
+    p.setValue("add_decoy_peptides", "true");
     if (report_top_hits >= 2)
     {
       p.setValue("use_all_hits", "true");
@@ -5197,6 +5226,8 @@ static void scoreXLIons_(
 
       auto const & current_fasta_entry = fasta_db[fasta_index];
 
+      bool is_decoy = current_fasta_entry.identifier.hasPrefix("DECOY_");
+
       digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length, max_peptide_length);
 
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)
@@ -5231,6 +5262,8 @@ static void scoreXLIons_(
 
         // determine which residues might give rise to an immonium ion
         ImmoniumIonsInPeptide iip(unmodified_sequence);
+
+        if (is_decoy) iip.swap();     
 
         AASequence aas = AASequence::fromString(unmodified_sequence);
         ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
@@ -5358,7 +5391,7 @@ static void scoreXLIons_(
 
                   const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
     
-                  total_loss_score = total_loss_score - 0.22 * (double)cit->size();
+//                  total_loss_score = total_loss_score - 0.22 * (double)cit->size();
 
                   if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
@@ -5548,7 +5581,7 @@ static void scoreXLIons_(
 
                     const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
 
-                    total_loss_score = total_loss_score - 0.22 * (double)cit->size();
+//                    total_loss_score = total_loss_score - 0.22 * (double)cit->size();
 
                     if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
@@ -5585,7 +5618,8 @@ static void scoreXLIons_(
                                  plss_modds,
                                  plss_pc_MIC,
                                  plss_im_MIC,
-                                 n_theoretical_peaks);
+                                 n_theoretical_peaks,
+                                 is_decoy);
 
                     const double total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC)) + plss_MIC + (plss_pc_MIC - floor(plss_pc_MIC)) + plss_im_MIC + marker_ions_sub_score;
 
@@ -6317,7 +6351,7 @@ static void scoreXLIons_(
                        << "-score_type" << "svm"
                        << "-unitnorm"
                        << "-post_processing_tdc"
-//                       << "-nested_xval_bins" << "3"
+                       << "-nested_xval_bins" << "3"
                        << "-weights" << weights_out.toQString()
                        << "-out_pin" << pin.toQString();
 

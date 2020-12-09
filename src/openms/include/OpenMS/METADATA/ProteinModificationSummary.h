@@ -29,20 +29,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-<<<<<<< HEAD
-// $Authors: Timo Sachsenberg$
-=======
 // $Authors: Timo Sachsenberg $
->>>>>>> upstream/feature/mod_statistic
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <map>
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/feature/mod_statistic
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 namespace OpenMS
