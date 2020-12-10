@@ -68,7 +68,12 @@
 // This is confusing for debug logs from executables on user machines and unnecessary.
 // This shifts the pointer to the char array of the filepath to the filename only.
 // WARNING: Does not work for files outside of the src directory.
-#define OPENMS_FILENAME (__FILE__ + @CF_SOURCE_PATH_SIZE@)
+
+#define OPENMS_FILENAME _Pragma("GCC diagnostic push") \
+_Pragma("GCC diagnostic push") \
+_Pragma("GCC diagnostic ignored \"-Wstring-plus-int\"") \
+( __FILE__ + @CF_SOURCE_PATH_SIZE@ ) \
+_Pragma("GCC diagnostic pop")
 
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
 #ifdef OPENMS_COMPILER_MSVC

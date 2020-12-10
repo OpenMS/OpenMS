@@ -331,40 +331,56 @@ namespace OpenMS
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
+    std::map<std::pair<double,Size>, const String&> diff_idx2mods;
     char res = '?'; // empty
     if (!residue.empty()) res = residue[0];
+    double diff = 0;
+    Size cnt = 0;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
       {
-        if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+        diff = fabs(m->getDiffMonoMass() - mass);
+        if ((diff <= max_error) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
-          mods.push_back(m->getFullId());
+          diff_idx2mods.emplace(make_pair(diff, cnt++), m->getFullId());
         }
       }
+    }
+    for (const auto& foo_mod : diff_idx2mods)
+    {
+      mods.push_back(foo_mod.second);
     }
   }
 
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
+    std::map<std::pair<double,Size>, const ResidueModification*> diff_idx2mods;
     char res = '?'; // empty
     if (!residue.empty()) res = residue[0];
+    double diff = 0;
+    Size cnt = 0;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       for (auto const & m : mods_)
       {
-        if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+        diff = fabs(m->getDiffMonoMass() - mass);
+        if ((diff <= max_error) &&
             residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
-          mods.push_back(m);
+          diff_idx2mods.emplace(make_pair(diff, cnt++), m);
         }
       }
+    }
+    for (const auto& foo_mod : diff_idx2mods)
+    {
+      mods.push_back(foo_mod.second);
     }
   }
 
