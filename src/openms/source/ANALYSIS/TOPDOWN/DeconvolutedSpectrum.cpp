@@ -283,8 +283,8 @@ namespace OpenMS
     {
       if (precursorPeakGroup != nullptr)
       {
-        fs << "MS_ONE_ID=" << precursorPeakGroup->getScanNumber() << "\n"
-           << "MS_ONE_SCAN=" << precursorPeakGroup->getScanNumber() << "\n"
+        fs << "MS_ONE_ID=" << precursorScanNumber << "\n"
+           << "MS_ONE_SCAN=" << precursorScanNumber << "\n"
            << "PRECURSOR_MZ="
            << std::to_string(precursorPeak.getMZ()) << "\n"
            << "PRECURSOR_CHARGE=" << precursorPeak.getCharge() << "\n"
@@ -294,11 +294,11 @@ namespace OpenMS
       else
       {
         fs << "MS_ONE_ID=" << 0 << "\n"
-            << "MS_ONE_SCAN=" << 0 << "\n"
+            << "MS_ONE_SCAN=" << precursorScanNumber << "\n"
             << "PRECURSOR_MZ="
             << std::to_string(precursorPeak.getMZ()) << "\n"
             << "PRECURSOR_CHARGE=" << precursorPeak.getCharge() << "\n"
-            << "PRECURSOR_MASS=" << std::to_string(precursorPeak.getMZ() * precursorPeak.getCharge()) << "\n"
+            << "PRECURSOR_MASS=" << std::to_string((precursorPeak.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursorPeak.getCharge()>0)) * abs(precursorPeak.getCharge())) << "\n"
             << "PRECURSOR_INTENSITY=" << precursorPeak.getIntensity() << "\n";
       }
     }
@@ -390,6 +390,8 @@ namespace OpenMS
             continue;
           }
           maxIntensity = pt.intensity;
+          precursorPeak.setMZ(pt.mz);
+          precursorPeak.setIntensity(pt.intensity);
           precursorPeak.setCharge(pt.charge);
           tmp = &pt;
         }

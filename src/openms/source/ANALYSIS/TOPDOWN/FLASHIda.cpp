@@ -221,7 +221,6 @@ namespace OpenMS
         filtered.push_back(pg);
         cselected.insert(m);
         cselectedMz.insert(mz);
-
       }
     }
 
