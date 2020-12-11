@@ -49,7 +49,7 @@ namespace OpenMS
       auto tokenString = std::string(token);
       auto num = atof(tokenString.c_str());
 
-      if (num == 0.0)
+      if (!isdigit(tokenString[0]))
       {
         key = tokenString;
         inputs[key] = DoubleList();
