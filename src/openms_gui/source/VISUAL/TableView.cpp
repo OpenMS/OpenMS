@@ -70,6 +70,11 @@ namespace OpenMS
     connect(this->horizontalHeader(), &QHeaderView::customContextMenuRequested, this, &TableView::headerContextMenu_);
 
     this->verticalHeader()->setHidden(true); // hide vertical column
+    {
+      QTableWidgetItem* proto_item = new QTableWidgetItem();
+      proto_item->setTextAlignment(Qt::AlignCenter);
+      this->setItemPrototype(proto_item);
+    }
   }
 
   void TableView::headerContextMenu_(const QPoint& pos)
@@ -175,6 +180,11 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.toList().join(", ")));
     }
+  }
+
+  void TableView::appendRow()
+  {
+    insertRow(rowCount());
   }
 
   QTableWidgetItem* TableView::setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground)
@@ -296,6 +306,11 @@ namespace OpenMS
     }
 
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " has no data!");
+  }
+
+  void TableView::resizeEvent(QResizeEvent* event)
+  {
+    emit resized();
   }
 
 }
