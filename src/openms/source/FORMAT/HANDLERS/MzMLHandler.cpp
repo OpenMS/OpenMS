@@ -3966,6 +3966,8 @@ namespace OpenMS
       const MapType& exp = *(cexp_);
       logger_.startProgress(0, exp.size() + exp.getChromatograms().size(), "storing mzML file");
       int progress = 0;
+      UInt stored_spectra = 0;
+      UInt stored_chromatograms = 0;
       Internal::MzMLValidator validator(mapping_, cv_);
 
       std::vector<std::vector< ConstDataProcessingPtr > > dps;
@@ -4008,6 +4010,7 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const SpectrumType& spec = exp[s_idx];
           writeSpectrum_(os, spec, s_idx, validator, renew_native_ids, dps);
+          ++stored_spectra;
         }
         os << "\t\t</spectrumList>\n";
       }
@@ -4027,11 +4030,15 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const ChromatogramType& chromatogram = exp.getChromatograms()[c_idx];
           writeChromatogram_(os, chromatogram, c_idx, validator);
+          ++stored_chromatograms;
         }
         os << "\t\t</chromatogramList>" << "\n";
       }
 
       MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
+
+      OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
+
       logger_.endProgress();
     }
 
