@@ -129,8 +129,8 @@ namespace OpenMS
 
     const auto order = std::vector<char>({'B', 'R', 'b', 'G', 'r'});
 
-    std::map<int, std::vector<double>> nall;;
-    std::map<int, char> ncolor;
+    std::unordered_map<int, std::vector<double>> nall;;
+    std::unordered_map<int, char> ncolor;
 
     for (auto& item : all)
     {
@@ -177,10 +177,10 @@ namespace OpenMS
     }
 
     nall.swap(all);
-    std::map<int, std::vector<double>>().swap(nall);
+    std::unordered_map<int, std::vector<double>>().swap(nall);
 
     ncolor.swap(color);
-    std::map<int, char>().swap(ncolor);
+    std::unordered_map<int, char>().swap(ncolor);
 
     std::vector<PeakGroup> filtered;
     filtered.reserve(massCount.size());
