@@ -44,15 +44,14 @@ namespace OpenMS
     { // all zero
       return -100;
     }
-    std::vector<double> weights({-15.1886, -4.2336, -0.2314, -25.4235, -1.0989, 13.0523});
+    std::vector<double> weights({-16.2939, 0.4319, -0.3667, -49.6329,  -0.1853, 18.5845});
 
-
-    //ChargeCos    -15.1886
-    //ChargeInt     -4.2336
-    //ChargeSNR     -0.2314
-    //Cos          -25.4235
-    //SNR           -1.0874
-    //Intercept     13.0523
+//ChargeCos    -16.2939
+//ChargeInt      0.4319
+//ChargeSNR     -0.3667
+//Cos          -49.6329
+//SNR           -0.1853
+//Intercept     18.5845
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector(pg, charge);
     for(int i=0;i<fv.size();i++){
@@ -76,14 +75,16 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream &f)
   {
-    f<<"RT,PrecursorMass,ChargeCos,ChargeInt,ChargeSNR,Cos,SNR,Qscore,Class\n";
+    f<<"RT,PrecursorAvgMass,ChargeCos,ChargeInt,ChargeSNR,Cos,SNR,Qscore,Class\n";
   }
 
-  void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, std::fstream &f)
+  void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream &f)
   {
     auto fv = toFeatureVector(&pg, charge);
     if (fv[0] <= 0) return;
-    f << rt <<","<<pg.getMonoMass() <<",";
+
+    auto mass = avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass();
+    f << rt <<","<<mass <<",";
     for (auto& item : fv)
     {
       f<<item<<",";

@@ -48,7 +48,7 @@ namespace OpenMS
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     static double getQScore(PeakGroup *pg, int charge);
-    static void writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, std::fstream &f);
+    static void writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream &f);
     static void writeAttHeader(std::fstream &f);
 
   private:

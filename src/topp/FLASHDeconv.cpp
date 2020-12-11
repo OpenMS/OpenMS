@@ -549,7 +549,7 @@ protected:
         && !deconvolutedSpectrum.getPrecursorPeakGroup().empty()){
           QScore::writeAttTsv(deconvolutedSpectrum.getOriginalSpectrum().getRT(), deconvolutedSpectrum.getPrecursorPeakGroup(),
                               deconvolutedSpectrum.getPrecursorCharge(),
-                              trainScanNumbers.find(scanNumber) != trainScanNumbers.end(), trainOut);
+                              trainScanNumbers.find(scanNumber) != trainScanNumbers.end(), avg, trainOut);
 
         }
 
