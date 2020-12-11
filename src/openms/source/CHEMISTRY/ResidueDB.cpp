@@ -380,14 +380,6 @@ namespace OpenMS
     }
   }
 
-  void ResidueDB::buildResidueNames_()
-  {
-    for (const Residue* r : const_residues_)
-    {
-      buildResidueName_(r);
-    }
-  }
-
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
     // throws if modification is not part of ModificationsDB
