@@ -67,6 +67,8 @@ namespace OpenMS
     defaults_.setMaxFloat("FDR", 1.);
     defaults_.setValue("force", "false", "Set this flag to enforce re-ranking when no cross correlation score is present. For re-ranking the default score found at each peptide hit is used. Use with care!");
     defaults_.setValidStrings("force", { "true", "false" });
+    defaults_.setValue("keep_search_files", "false", "Set this flag if you wish to keep the files used by and produced by the internal ID search.");
+    defaults_.setValidStrings("keep_search_files", { "true", "false" });
     defaultsToParam_();
   }
   
@@ -304,7 +306,8 @@ namespace OpenMS
     }
 
     // temporary folder for search in- und output files
-    File::TempDir tmp_dir;
+    bool keep_files = !param_.getValue("keep_search_files").toBool();
+    File::TempDir tmp_dir(keep_files);
     String mzml_path = tmp_dir.getPath() + "spectra.mzML";
     String db_path = tmp_dir.getPath() + "database.FASTA";
     String out_path = tmp_dir.getPath() + "out.idXML";
@@ -364,6 +367,12 @@ namespace OpenMS
       throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
     }
 
+    if (keep_files)
+    {
+      IdXMLFile indexed;
+      indexed.store(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids);
+    }
+
     // calculate q-values
     FalseDiscoveryRate fdr;
     Param p(fdr.getParameters());
@@ -378,6 +387,12 @@ namespace OpenMS
     fdr.setParameters(p);
     OPENMS_LOG_DEBUG << "Calculating q-values ..." << endl << endl;
     fdr.apply(pep_ids);
+
+    if (keep_files)
+    {
+      IdXMLFile post_fdr;
+      post_fdr.store(tmp_dir.getPath() + "indexed_post_FDR.idXML", prot_ids, pep_ids);
+    }
 
     return pep_ids;
   }
