@@ -47,10 +47,6 @@ namespace OpenMS
 {
   ResidueDB::ResidueDB()
   { 
-    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
-    {
-      residue_by_one_letter_code_[i] = nullptr;
-    }
     initResidues_();
   }
 

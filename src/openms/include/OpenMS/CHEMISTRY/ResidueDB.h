@@ -184,7 +184,7 @@ protected:
     boost::unordered_map<String, const Residue*> residue_names_;
 
     /// fast lookup table for residues  
-    std::array<const Residue*, 256> residue_by_one_letter_code_ = {};
+    std::array<const Residue*, 256> residue_by_one_letter_code_ = {{nullptr}};
 
     std::map<String, std::map<String, const Residue*> > residue_mod_names_;
 

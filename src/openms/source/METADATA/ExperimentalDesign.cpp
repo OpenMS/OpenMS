@@ -36,6 +36,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -655,6 +656,25 @@ namespace OpenMS
         return std::tie(a.fraction_group, a.fraction, a.label, a.sample, a.path) <
                std::tie(b.fraction_group, b.fraction, b.label, b.sample, b.path);
       });
+  }
+
+  Size ExperimentalDesign::filterByBasenames(const set<String>& bns)
+  {
+    Size before = msfile_section_.size();
+    msfile_section_.erase(std::remove_if(msfile_section_.begin(), msfile_section_.end(),
+    [&bns](MSFileSectionEntry& e)
+    {
+      return bns.find(File::basename(e.path)) == bns.end();
+    }), msfile_section_.end());
+
+    OPENMS_LOG_INFO << "Removed " << (before - msfile_section_.size()) << " files from design to match given subset." << std::endl;
+    
+    if (msfile_section_.empty()) 
+    {
+      OPENMS_LOG_FATAL_ERROR << "Given basename set does not overlap with design. Design would be empty." << std::endl;
+    }
+    
+    return (before - msfile_section_.size());
   }
 
   /* Implementations of SampleSection */

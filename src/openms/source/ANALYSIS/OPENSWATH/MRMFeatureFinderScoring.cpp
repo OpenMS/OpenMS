@@ -560,10 +560,10 @@ namespace OpenMS
       OpenSwath::IMRMFeature* imrmfeature;
       imrmfeature = new MRMFeatureOpenMS(mrmfeature);
 
-      OPENMS_LOG_DEBUG << "scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
+      OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
         " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
-        " with " << transition_group_detection.size()  << " nr transitions and nr chromats " << 
-        transition_group_detection.getChromatograms().size() << std::endl;
+        " with " << transition_group_detection.size()  << " transitions and " << 
+        transition_group_detection.getChromatograms().size() << " chromatograms" << std::endl;
 
       int group_size = boost::numeric_cast<int>(transition_group_detection.size());
       if (group_size == 0 && !ms1only)

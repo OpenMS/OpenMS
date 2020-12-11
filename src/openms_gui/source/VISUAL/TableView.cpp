@@ -177,39 +177,66 @@ namespace OpenMS
     }
   }
 
-  void TableView::setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setText(text);
-    setAtBottomRow(item, column_index, background, foreground);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const char* text, size_t column_index, const QColor& background, const QColor& foreground)
+  {
+    QTableWidgetItem* item = itemPrototype()->clone();
+    item->setText(text);
+    return setAtBottomRow(item, column_index, background, foreground);
+  }
+
+  QTableWidgetItem* TableView::setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setData(Qt::DisplayRole, i);
-    setAtBottomRow(item, column_index, background, foreground);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setData(Qt::DisplayRole, d);
-    setAtBottomRow(item, column_index, background, foreground);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(bool selected, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(const bool selected, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
     item->setCheckState(selected ? Qt::Checked : Qt::Unchecked);
-    setAtBottomRow(item, column_index, background, foreground);
+    /// sorting of columns is done by the DisplayRole, not the checkstate. So we need different content.
+    updateCheckBoxItem(item);
+    return setAtBottomRow(item, column_index, background, foreground);
   }
 
-  void TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
+  QTableWidgetItem* TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
   {
     item->setBackgroundColor(background);
     if (foreground.isValid()) item->setForeground(QBrush(foreground));
     setItem(rowCount() - 1, (int)column_index, item);
+    return item;
+  }
+
+  void TableView::updateCheckBoxItem(QTableWidgetItem* item)
+  {
+    // check if this function is called on checkbox items only (either no DisplayRole set or the text is '' or ' ')
+    if (!item->data(Qt::DisplayRole).isValid() || 
+        (item->data(Qt::DisplayRole).type() == QVariant::Type::String
+          && (item->data(Qt::DisplayRole).toString().isEmpty() || item->data(Qt::DisplayRole).toString() == " ")
+        )
+       )
+    {
+      item->setText(item->checkState() == Qt::Checked ? " " : "");
+    }
+    else
+    { 
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Called on non-checkbox item");
+    }
   }
  
   QStringList TableView::getHeaderNames(const WidgetHeader which, bool use_export_name)
