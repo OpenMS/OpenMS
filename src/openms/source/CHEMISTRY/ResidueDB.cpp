@@ -119,9 +119,10 @@ namespace OpenMS
     set<const Residue*> s;
     #pragma omp critical (ResidueDB)
     {
-      if (residues_by_set_.has(residue_set))
+      auto it = residues_by_set_.find(residue_set);
+      if (it != residues_by_set_.end())
       {
-        s = residues_by_set_[residue_set];
+        s = it->second;
       }
     } 
 
