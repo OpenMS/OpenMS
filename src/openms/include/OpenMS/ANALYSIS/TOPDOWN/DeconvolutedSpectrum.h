@@ -97,7 +97,7 @@ namespace OpenMS
       @param fs file stream to the output file
       @param id the index to the spectrum. updated outside.
  */
-    void writeTopFD(std::fstream &fs, int id);
+    void writeTopFD(std::fstream &fs, int id, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
     /// cast DeconvolutedSpectrum into MSSpectrum object to write mzml format
     MSSpectrum toSpectrum();

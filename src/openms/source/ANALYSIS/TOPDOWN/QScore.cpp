@@ -44,24 +44,15 @@ namespace OpenMS
     { // all zero
       return -100;
     }
-    std::vector<double> weights({-11.6177, -1.4063, 0.026, -17.6877, 0.7945, -1.0989, 12.9876});
-
-    //ChargeCos    -12.6355
-    //ChargeInt     -1.0869
-    //ChargeSNR      0.0741
-    //Cos          -25.2902
-    //Int            1.2951
-    //SNR           -1.6148
-    //Intercept       9.191
+    std::vector<double> weights({-15.1886, -4.2336, -0.2314, -25.4235, -1.0989, 13.0523});
 
 
-    //ChargeCos    -11.6177
-    //ChargeInt     -1.4063
-    //ChargeSNR       0.026
-    //Cos          -17.6877
-    //Int            0.7945
-    //SNR           -1.0989
-    //Intercept     12.9876
+    //ChargeCos    -15.1886
+    //ChargeInt     -4.2336
+    //ChargeSNR     -0.2314
+    //Cos          -25.4235
+    //SNR           -1.0874
+    //Intercept     13.0523
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector(pg, charge);
     for(int i=0;i<fv.size();i++){
@@ -75,11 +66,9 @@ namespace OpenMS
     std::vector<double> fvector;
 
     fvector.push_back(log10(1.0 + pg->getChargeIsotopeCosine(charge)));
-    fvector.push_back(log10(1.0 + pg->getChargeIntensity(charge)));
+    fvector.push_back((pg->getChargeIntensity(charge)+1)/(pg->getIntensity()+1));
     fvector.push_back(log10(1.0 + pg->getChargeSNR(charge)));
-
     fvector.push_back(log10(1.0 + pg->getIsotopeCosine()));
-    fvector.push_back(log10(1.0 + pg->getIntensity()));
     fvector.push_back(log10(1.0 + pg->getSNR()));
 
     return fvector;
@@ -87,7 +76,7 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream &f)
   {
-    f<<"RT,PrecursorMass,ChargeCos,ChargeInt,ChargeSNR,Cos,Int,SNR,Qscore,Class\n";
+    f<<"RT,PrecursorMass,ChargeCos,ChargeInt,ChargeSNR,Cos,SNR,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, std::fstream &f)

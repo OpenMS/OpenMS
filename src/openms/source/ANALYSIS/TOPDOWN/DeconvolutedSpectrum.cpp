@@ -267,7 +267,7 @@ namespace OpenMS
     }
   }
 
-  void DeconvolutedSpectrum::writeTopFD(std::fstream &fs, int id)//, fstream &fsm, fstream &fsp)
+  void DeconvolutedSpectrum::writeTopFD(std::fstream &fs, int id, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg)//, fstream &fsm, fstream &fsp)
   {
     auto msLevel = spec.getMSLevel();
 
@@ -293,12 +293,14 @@ namespace OpenMS
       }
       else
       {
+        auto avgMass = (precursorPeak.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursorPeak.getCharge()>0)) * abs(precursorPeak.getCharge());
+        auto mMass = avgMass - avg.getAverageMassDelta(avgMass);
         fs << "MS_ONE_ID=" << 0 << "\n"
             << "MS_ONE_SCAN=" << precursorScanNumber << "\n"
             << "PRECURSOR_MZ="
             << std::to_string(precursorPeak.getMZ()) << "\n"
             << "PRECURSOR_CHARGE=" << precursorPeak.getCharge() << "\n"
-            << "PRECURSOR_MASS=" << std::to_string((precursorPeak.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursorPeak.getCharge()>0)) * abs(precursorPeak.getCharge())) << "\n"
+            << "PRECURSOR_MASS=" << std::to_string(mMass) << "\n"
             << "PRECURSOR_INTENSITY=" << precursorPeak.getIntensity() << "\n";
       }
     }
@@ -390,9 +392,7 @@ namespace OpenMS
             continue;
           }
           maxIntensity = pt.intensity;
-          precursorPeak.setMZ(pt.mz);
-          precursorPeak.setIntensity(pt.intensity);
-          precursorPeak.setCharge(pt.charge);
+
           tmp = &pt;
         }
 
@@ -401,6 +401,9 @@ namespace OpenMS
           continue;
         }
 
+        precursorPeak.setMZ(tmp->mz);
+        precursorPeak.setIntensity(tmp->intensity);
+        precursorPeak.setCharge(tmp->charge);
         maxSumIntensity = sumIntensity;
         precursorPeakGroup = &pg;
       }

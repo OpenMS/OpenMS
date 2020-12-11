@@ -580,7 +580,7 @@ protected:
 
         if (outTopfd)
         {
-          deconvolutedSpectrum.writeTopFD(msLevel == 1 ? topfdOut_MS1 : topfdOut_MS2, scanNumber);
+          deconvolutedSpectrum.writeTopFD(msLevel == 1 ? topfdOut_MS1 : topfdOut_MS2, scanNumber, avg);
         }
 
         deconvolutedSpectrum.clearPeakGroupsChargeInfo();
