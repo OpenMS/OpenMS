@@ -351,8 +351,13 @@ namespace OpenMS
     // load result
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    IdXMLFile comet_out;
-    comet_out.load(out_path, prot_ids, pep_ids);
+    IdXMLFile id_file;
+    id_file.load(out_path, prot_ids, pep_ids);
+
+    if (keep_files)
+    {
+      id_file.store(tmp_dir.getPath() + "id_search_out.idXML", prot_ids, pep_ids);
+    }
 
     // annotate target/decoy information
     PeptideIndexing indexer;
@@ -369,8 +374,7 @@ namespace OpenMS
 
     if (keep_files)
     {
-      IdXMLFile indexed;
-      indexed.store(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids);
+      id_file.store(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids);
     }
 
     // calculate q-values
@@ -390,8 +394,7 @@ namespace OpenMS
 
     if (keep_files)
     {
-      IdXMLFile post_fdr;
-      post_fdr.store(tmp_dir.getPath() + "indexed_post_FDR.idXML", prot_ids, pep_ids);
+      id_file.store(tmp_dir.getPath() + "indexed_post_FDR.idXML", prot_ids, pep_ids);
     }
 
     return pep_ids;
@@ -410,8 +413,9 @@ namespace OpenMS
     }
     double num_AS_written = num_AA * subsampling_rate;
 
-    random_device rd;
-    mt19937 g(rd());
+    //random_device rd();
+    //mt19937 g(rd());
+    mt19937 g(0);
     shuffle(fasta_data.begin(), fasta_data.end(), g);
 
     Size curr_AA{};
