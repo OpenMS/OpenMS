@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <map>
 #include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -178,13 +178,13 @@ protected:
     /// fast lookup table for residues 
     std::array<const Residue*, 256> residue_by_one_letter_code_ {{nullptr}};  // {} would be sufficient on gcc >= 5.1
 
-    Map<String, Map<String, const Residue*> > residue_mod_names_;
+    std::map<String, std::map<String, const Residue*> > residue_mod_names_;
 
     std::set<const Residue*> const_residues_;
 
     std::set<const Residue*> const_modified_residues_;
 
-    Map<String, std::set<const Residue*> > residues_by_set_;
+    std::map<String, std::set<const Residue*> > residues_by_set_;
 
     std::set<String> residue_sets_;
   };
