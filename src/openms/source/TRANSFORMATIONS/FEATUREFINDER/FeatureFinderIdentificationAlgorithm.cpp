@@ -319,6 +319,16 @@ namespace OpenMS
             )
         {
           peptide_already_exists = true;
+          String seq = "empty";
+          int chg = 0;
+          if (!peptide.getHits().empty())
+          {
+            seq = peptide.getHits()[0].getSequence().toString();
+            chg = peptide.getHits()[0].getCharge();
+          }
+          OpenMS_Log_debug << "Skipping seed from FeatureID " << String(f_it->getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
+          " due to overlap with " << seq << "/" << chg << " at MZ: " << peptide_MZ << "; RT: " << peptide_RT << endl;
+
           break;
         }
       }
@@ -341,7 +351,7 @@ namespace OpenMS
         ++seeds_added;
       }
     }
-    OPENMS_LOG_INFO << "Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
+    OPENMS_LOG_INFO << "#Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
 
     n_internal_peps_ = peptide_map_.size();
     for (vector<PeptideIdentification>::iterator pep_it =
@@ -634,10 +644,9 @@ namespace OpenMS
          pm_it != end; ++pm_it)
     {
       TargetedExperiment::Peptide peptide;
-
       const AASequence &seq = pm_it->first;
-      OPENMS_LOG_DEBUG << "\nPeptide: " << seq.toString() << std::endl;
       peptide.sequence = seq.toString();
+
       // @NOTE: Technically, "TargetedExperiment::Peptide" stores the unmodified
       // sequence and the modifications separately. Unfortunately, creating the
       // modifications vector is complex and there is currently no convenient
@@ -665,7 +674,7 @@ namespace OpenMS
             // since we dont know their IDs, seeds will all need a different grouplabel in SWATH
             // to not be combined
             seedcount++;
-            //cout << peptide.sequence << " " << charge << endl;
+
             double mz = rt_pep.second->getMZ();
             double rt = rt_pep.second->getRT();
             String uid = rt_pep.second->getMetaValue("SeedFeatureID");
@@ -694,11 +703,11 @@ namespace OpenMS
               iso_dist.renormalize();
             }
 
-            OPENMS_LOG_DEBUG << "Seed Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
+            double rt_tolerance = rt_window_ / 2.0;
+            OPENMS_LOG_DEBUG << "Window for seed " << uid << " (m/z: " << mz << ", RT: " << rt << "): " << (rt - rt_tolerance) << "-" << (rt + rt_tolerance) << std::endl;
 
             // store beginning and end of RT region: here we only need one entry
             peptide.rts.clear();
-            double rt_tolerance = rt_window_ / 2.0;
             addPeptideRT_(peptide, rt - rt_tolerance);
             addPeptideRT_(peptide, rt + rt_tolerance);
             library_.addPeptide(peptide);
@@ -732,7 +741,6 @@ namespace OpenMS
         // get regions in which peptide eludes (ideally only one):
         std::vector<RTRegion> rt_regions;
         getRTRegions_(pm_it->second, rt_regions);
-        OPENMS_LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << std::endl;
 
         // go through different charge states:
         for (ChargeMap::const_iterator cm_it = pm_it->second.begin();
@@ -752,7 +760,7 @@ namespace OpenMS
           }
 
           double mz = seq.getMZ(charge);
-          OPENMS_LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "\nPeptide " << peptide.sequence << "/" << charge << " (m/z: " << mz << "):" << std::endl;
           peptide.setChargeState(charge);
           String peptide_id = peptide.sequence + "/" + String(charge);
 
@@ -769,7 +777,7 @@ namespace OpenMS
           {
             if (reg_it->ids.count(charge))
             {
-              OPENMS_LOG_DEBUG << "Region " << counter + 1 << " (RT: "
+              OpenMS_Log_debug << "Charge " << charge << ", Region# " << counter + 1 << " (RT: "
                                << float(reg_it->start) << "-" << float(reg_it->end)
                                << ", size " << float(reg_it->end - reg_it->start) << ")"
                                << std::endl;
@@ -1201,13 +1209,22 @@ namespace OpenMS
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
+    double mz = peptide.getMZ();
     if (!external)
     {
-      OPENMS_LOG_DEBUG << "Adding " << hit.getSequence() << " " << charge << " " << rt << endl;
+      if (peptide.metaValueExists("SeedFeatureID"))
+      {
+        OpenMS_Log_debug << "Adding seed (internal) from FeatureID " << peptide.getMetaValue("SeedFeatureID") << ": " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      }
+      else
+      {
+        OpenMS_Log_debug << "Adding peptide (internal) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      }
       peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide);
     }
     else
     {
+      OpenMS_Log_debug << "Adding peptide (external) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
       peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
     }
   }
