@@ -1105,7 +1105,7 @@ namespace OpenMS
           avg.getMaxIsotopeIndex(), pg);
 
       auto cs = getChargeFitScore(perChargeIntensity, chargeRange);
-      if (cs < minChargeScore[msLevel-1]){
+      if (cs <= minChargeScore[msLevel-1]){
         continue;
       }
       pg.setChargeScore(cs);
@@ -1166,6 +1166,9 @@ namespace OpenMS
       auto crange = pg.getChargeRange();
       for (auto charge = std::get<0>(crange); charge <= std::get<1>(crange); charge++)
       {
+        if (pg.getChargeIntensity(charge) <= 0){
+          continue;
+        }
         int j = charge - minCharge;
         auto perIsotopeIntensities = std::vector<double>(avg.getMaxIsotopeIndex(), 0);
 
@@ -1243,10 +1246,14 @@ namespace OpenMS
 
       for (auto charge = std::get<0>(crange); charge <= std::get<1>(crange); charge++)
       {
+        if(pg.getChargeIntensity(charge) <= 0){
+          continue;
+        }
         int j = charge - minCharge;
+
         auto score = QScore::getQScore(&pg, charge);
 
-        if (score < pg.getQScore())
+        if (score <= pg.getQScore())
         {
           continue;
         }

@@ -44,15 +44,14 @@ namespace OpenMS
     { // all zero
       return -100;
     }
-    std::vector<double> weights({-2.7354, 0.3827, -6.2515, -32.5791, -4.9526, -9.6165,  14.7892 });
+    std::vector<double> weights({-2.3839, -6.3708, -33.1837, -5.0299, -9.4333,  14.8904 });
     //
-    //ChargeCos       -2.7354
-    //ChargeInt        0.3827
-    //ChargeSNR       -6.2515
-    //Cos            -32.5791
-    //SNR             -4.9526
-    //ChargeScore     -9.6165
-    //Intercept       14.7892
+    //ChargeCos       -2.3839
+    //ChargeSNR       -6.3708
+    //Cos            -33.1837
+    //SNR             -5.0299
+    //ChargeScore     -9.4333
+    //Intercept       14.8904
 
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector(pg, charge);
@@ -67,7 +66,7 @@ namespace OpenMS
     std::vector<double> fvector;
 
     fvector.push_back(log10(1 + pg->getChargeIsotopeCosine(charge)));
-    fvector.push_back(log10(1 + (pg->getChargeIntensity(charge)+1)/(pg->getIntensity()+1)));
+    //fvector.push_back(log10(1 + (pg->getChargeIntensity(charge)+1)/(pg->getIntensity()+1)));
     fvector.push_back(log10(1 + (pg->getChargeSNR(charge))/(1+pg->getChargeSNR(charge))));
     fvector.push_back(log10(1 + pg->getIsotopeCosine()));
     fvector.push_back(log10(1 + (pg->getSNR()/(1 + pg->getSNR()))));
@@ -77,7 +76,7 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream &f)
   {
-    f<<"RT,PrecursorAvgMass,ChargeCos,ChargeInt,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+    f<<"RT,PrecursorAvgMass,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream &f)
