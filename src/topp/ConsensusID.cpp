@@ -209,6 +209,22 @@ protected:
     StringList merged_spectra_data;
     String engine = prot_ids[0].getSearchEngine();
     String version = prot_ids[0].getSearchEngineVersion();
+
+    // merge proteins
+    unordered_set<String> seen_proteins;
+    vector<ProteinHit> merged_proteins;
+    for (Size i = 0; i < prot_ids.size(); ++i)
+    {
+      for (auto& hit : prot_ids[i].getHits())
+      {
+        const auto& iter_inserted = seen_proteins.emplace(hit.getAccession());
+        if (iter_inserted.second)
+        {
+          merged_proteins.push_back(std::move(hit));
+        }
+      }
+    }
+
     for (vector<ProteinIdentification>::iterator it_prot_ids = prot_ids.begin(); it_prot_ids != prot_ids.end(); ++it_prot_ids)
     {
       ProteinIdentification::SearchParameters search_params(it_prot_ids->getSearchParameters());
@@ -224,8 +240,10 @@ protected:
     search_params.fixed_modifications    = fixed_mods;
     search_params.variable_modifications = var_mods;
 
+
     prot_ids.clear();
     prot_ids.resize(1);
+    prot_ids[0].getHits() = merged_proteins;
     prot_ids[0].setDateTime(DateTime::now());
     prot_ids[0].setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
     prot_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
@@ -340,17 +358,54 @@ protected:
     }
   }
 
-  void setProteinIdentificationSettings_(ProteinIdentification& prot_id, vector<tuple<String, String, ProteinIdentification::SearchParameters>>& se_ver_settings)
+  void setProteinIdentificationSettings_(ProteinIdentification& prot_id,
+      vector<tuple<String, String, ProteinIdentification::SearchParameters>>& se_ver_settings,
+      vector<tuple<String, String, vector<pair<String, String>>>>& rescore_ver_settings)
   {
     // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
     set<String> fixed_mods_set;
     set<String> var_mods_set;
+    set<EnzymaticDigestion::Specificity> specs;
+    double prec_tol_ppm = 0.;
+    double prec_tol_da = 0.;
+    double frag_tol_ppm = 0.;
+    double frag_tol_da = 0.;
+    int min_chg = 10000;
+    int max_chg = -10000;
+    Size mc = 0;
+    // we sort them to pick the same entries, no matter the order of the inputs
+    set<String, std::greater<String>> enzymes;
+    set<String, std::greater<String>> dbs;
 
-    //TODO check if settings are same/similar
-    bool allsamese = true;
     // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
     // we assume that they are the same or similar
     ProteinIdentification::SearchParameters new_sp = get<2>(se_ver_settings[0]);
+
+    // first check the rescoring procedure. Should at least be the same tool.
+    // "" = IDPosteriorProbability. If parts were not rescored at all, they wont have a PEP annotated,
+    // and the tool will fail in the next step (beginning of algorithm)
+    // TODO maybe also consolidate/merge those settings. But they are currently only used for reporting.
+    const auto& final_rescore_ver_setting = rescore_ver_settings[0];
+    const String& final_rescore_algo = get<0>(final_rescore_ver_setting);
+    const String& final_rescore_algo_version = get<1>(final_rescore_ver_setting);
+
+    for (const auto& rescore_ver_setting : rescore_ver_settings)
+    {
+      if (get<0>(rescore_ver_setting) != final_rescore_algo
+          || get<1>(rescore_ver_setting) != final_rescore_algo_version)
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with different rescoring algorithms. " +
+                           get<0>(rescore_ver_setting) + " vs " + final_rescore_algo;
+      }
+    }
+    if (!final_rescore_algo.empty()) new_sp.setMetaValue(final_rescore_algo, final_rescore_algo_version);
+    for (const auto& s : get<2>(final_rescore_ver_setting))
+    {
+      // the metavalue names in s.first already contain the algorithm name. No need to prepend
+      new_sp.setMetaValue(s.first, s.second);
+    }
+
+    bool allsamese = true;
     for (const auto& se_ver_setting : se_ver_settings)
     {
       allsamese = allsamese &&
@@ -373,16 +428,132 @@ protected:
       new_sp.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
       new_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
       new_sp.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
+      
+      const auto& chg_pair = sp.getChargeRange();
+      if (chg_pair.first != 0 && chg_pair.first < min_chg) min_chg = chg_pair.first;
+      if (chg_pair.second != 0 && chg_pair.second > max_chg) max_chg = chg_pair.second;
+      if (sp.missed_cleavages > mc ) mc = sp.missed_cleavages;
+      if (sp.fragment_mass_tolerance_ppm)
+      {
+        if (sp.fragment_mass_tolerance > frag_tol_ppm) frag_tol_ppm = sp.fragment_mass_tolerance;
+      }
+      else
+      {
+        if (sp.fragment_mass_tolerance > frag_tol_da) frag_tol_da = sp.fragment_mass_tolerance;
+      }
+      if (sp.precursor_mass_tolerance_ppm)
+      {
+        if (sp.precursor_mass_tolerance > prec_tol_ppm) prec_tol_ppm = sp.precursor_mass_tolerance;
+      }
+      else
+      {
+        if (sp.precursor_mass_tolerance > prec_tol_da) prec_tol_da = sp.precursor_mass_tolerance;
+      }
+
+      enzymes.insert(sp.digestion_enzyme.getName());
+      dbs.insert(sp.db);
+      specs.insert(sp.enzyme_term_specificity);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
     }
 
+    if (specs.find(EnzymaticDigestion::SPEC_NONE) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONE;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_SEMI) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_NONTERM) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONTERM;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_NOCTERM) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NOCTERM;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_FULL) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
+    }
 
     std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
     new_sp.fixed_modifications    = fixed_mods;
     new_sp.variable_modifications = var_mods;
+
+    String final_enz;
+    for (const auto& enz : enzymes)
+    {
+      if (enz != "unknown_enzyme")
+      {
+        // Although the set should be sorted to start with the longest
+        // versions, this extends "" to Trypsin and e.g. Trypsin to Trypsin/P
+        if (enz.hasSubstring(final_enz))
+        {
+          final_enz = enz;
+        }
+        else if (!final_enz.hasSubstring(enz))
+        {
+          OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible enzymes."
+          " OpenMS officially supports only one enzyme per search. Using " + final_enz + " to (incompletely)"
+          " represent the combined run. This might or might not lead to inconsistencies downstream.";
+        }
+      }
+    }
+    new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(final_enz);
+
+    String final_db = *dbs.begin();
+    String final_db_bn = final_db;
+    final_db_bn.substitute("\\","/");
+    final_db_bn = File::basename(final_db_bn);
+    // we need to copy to substitute anyway
+    for (auto db : dbs) // OMS_CODING_TEST_EXCLUDE
+    {
+      db.substitute("\\","/");
+      if (File::basename(db) != final_db_bn)
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with different databases."
+        " OpenMS officially supports only one database per search. Using " + final_db + " to (incompletely)"
+        " represent the combined run. This might or might not lead to inconsistencies downstream.";
+      }
+    }
+
+    new_sp.charges = String(min_chg) + "-" + String(max_chg);
+    if (prec_tol_da > 0 && prec_tol_ppm > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
+      "precursor tolerance units. Using Da for the combined run.";
+    }
+    if (prec_tol_da > 0)
+    {
+      new_sp.precursor_mass_tolerance = prec_tol_da;
+      new_sp.precursor_mass_tolerance_ppm = false;
+    }
+    else
+    {
+      new_sp.precursor_mass_tolerance = prec_tol_ppm;
+      new_sp.precursor_mass_tolerance_ppm = true;
+    }
+    if (frag_tol_da > 0 && frag_tol_ppm > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
+      "fragment tolerance units. Using Da for the combined run.";
+    }
+    if (frag_tol_da > 0)
+    {
+      new_sp.fragment_mass_tolerance = frag_tol_da;
+      new_sp.fragment_mass_tolerance_ppm = false;
+    }
+    else
+    {
+      new_sp.fragment_mass_tolerance = frag_tol_ppm;
+      new_sp.fragment_mass_tolerance_ppm = true;
+    }
+    
+    new_sp.missed_cleavages = mc;
 
     prot_id.setDateTime(DateTime::now());
     prot_id.setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
@@ -510,6 +681,7 @@ protected:
         // the values (new_run_idx) in mzml_to_new_run_idx correspond to the indices in mzml_to_sesettings
         map<String, Size> mzml_to_new_run_idx;
         vector<vector<tuple<String, String, ProteinIdentification::SearchParameters>>> mzml_to_sesettings;
+        vector<vector<tuple<String, String, vector<pair<String,String>>>>> mzml_to_rescoresettings;
 
         for (const auto& infile : in)
         {
@@ -543,17 +715,40 @@ protected:
             String original_file = original_files[0];
             auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<String>{});
             const auto se_ver_settings = getOriginalSearchEngineSettings_(prot);
+            tuple<String, String, vector<pair<String,String>>> rescore_ver_settings{"","",vector<pair<String,String>>()};
+            //TODO find a way to get/check IDPEP params.
+            if (prot.getSearchEngine() == "Percolator")
+            {
+              get<0>(rescore_ver_settings) = prot.getSearchEngine();
+              get<1>(rescore_ver_settings) = prot.getSearchEngineVersion();
+              const auto& sp = prot.getSearchParameters();
+              vector<String> mvkeys;
+              sp.getKeys(mvkeys);
+              for (const String & mvkey : mvkeys)
+              {
+                if (mvkey.hasPrefix("Percolator:"))
+                {
+                  // we do not cut the tool (here Percolator) prefix since we will use it as is
+                  // in the new params
+                  get<2>(rescore_ver_settings).emplace_back(mvkey, sp.getMetaValue(mvkey));
+                }
+              }
+            }
+
             if (iter_inserted.second)
             {
               mzml_to_new_run_idx[original_file] = prot_ids.size();
               mzml_to_sesettings.emplace_back(vector<tuple<String, String, ProteinIdentification::SearchParameters>>{});
               mzml_to_sesettings.back().emplace_back(se_ver_settings);
+              mzml_to_rescoresettings.emplace_back(vector<tuple<String, String, vector<pair<String,String>>>>{});
+              mzml_to_rescoresettings.back().emplace_back(rescore_ver_settings);
               prot_ids.emplace_back(ProteinIdentification());
               prot_ids.back().setIdentifier("ConsensusID for " + original_file);
             }
             else
             {
               mzml_to_sesettings[mzml_to_new_run_idx[original_file]].emplace_back(se_ver_settings);
+              mzml_to_rescoresettings[mzml_to_new_run_idx[original_file]].emplace_back(rescore_ver_settings);
             }
             for (auto& hit : prot.getHits())
             {
@@ -592,7 +787,7 @@ protected:
           // Note: we assume that at least one of the inputs had mzML as an extension
           // we could keep track of it but IMHO we should not allow raw there at all (just complicates things)
           to_put.setPrimaryMSRunPath({file_ref_peps.first + ".mzML"});
-          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id]);
+          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id], mzml_to_rescoresettings[new_run_id]);
           for (const auto& ref_peps : file_ref_peps.second)
           {
             vector<PeptideIdentification> peps = ref_peps.second;
@@ -615,10 +810,22 @@ protected:
           }
         }
       }
-      else
+      else // link spectra by RT and mz proximity and do ConsensusID on their PSMs
       {
+        if (in.size() != 1)
+        {
+          OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag, expects a single idXML file."
+          "Please merge the files with IDMerger using its default settings." << std::endl;
+        }
+        // note: this requires a single merged idXML file.
         IdXMLFile().load(in[0], prot_ids, pep_ids, document_id);
 
+        if (prot_ids.size() == 1)
+        {
+          OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag expects a merged idXML file"
+          "with multiple runs. Only one run found in the first file." << std::endl;
+        }
+        
         // merge peptide IDs by precursor position - this is equivalent to a
         // feature linking problem (peptide IDs from different ID runs <->
         // features from different maps), so we bring the data into a format
@@ -670,27 +877,31 @@ protected:
         ConsensusMap grouping;
         linker.group(maps, grouping);
 
+        Size old_size = prot_ids.size();
+        // create new identification run
+        setProteinIdentifications_(prot_ids);
+
         // compute consensus
         pep_ids.clear();
-        for (ConsensusMap::Iterator it = grouping.begin(); it != grouping.end();
-             ++it)
+        for (auto& cfeature : grouping)
         {
-          consensus->apply(it->getPeptideIdentifications(), runid_to_se, prot_ids.size());
-          if (!it->getPeptideIdentifications().empty())
+          auto& ids = cfeature.getPeptideIdentifications();
+          consensus->apply(ids, runid_to_se, old_size);
+          
+          if (!ids.empty())
           {
-            PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
+            PeptideIdentification& pep_id = ids[0];
             // hits may be empty due to filtering (parameter "min_support");
             // in that case skip to avoid a warning from "IDXMLFile::store":
             if (!pep_id.getHits().empty())
             {
-              pep_id.setRT(it->getRT());
-              pep_id.setMZ(it->getMZ());
+              pep_id.setIdentifier(prot_ids[0].getIdentifier());
+              pep_id.setRT(cfeature.getRT());
+              pep_id.setMZ(cfeature.getMZ());
               pep_ids.push_back(pep_id);
             }
           }
         }
-        // create new identification run
-        setProteinIdentifications_(prot_ids);
       }
       // store consensus
       IdXMLFile().store(out, prot_ids, pep_ids);

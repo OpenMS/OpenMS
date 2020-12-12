@@ -150,9 +150,9 @@ protected:
      * @param pattern    m/z pattern to search for
      * @param peak    filter result output
      *
-     * @return boolean if this filter was passed i.e. there are <isotopes_per_peptide_min_> or more mass traces which form the pattern.
+     * @return boolean if this filter was passed i.e. there are @em isotopes_per_peptide_min_ or more mass traces which form the pattern.
      */
-    bool filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const;
+    bool filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const;
 
     /**
      * @brief blacklist this peak
@@ -168,10 +168,10 @@ protected:
      * 
      * Each of the satellites is associated with a specific mass trace. We blacklist
      * all peaks in these mass traces (even if they are not a satellite) extending them
-     * by a margin <rt_band_>.  
+     * by a margin @em rt_band_.
      * 
      * @param peak    peak to be blacklisted
-     * @param pattern_idx    index of the pattern in <patterns_>
+     * @param pattern_idx    index of the pattern in @em patterns_
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
     
@@ -184,7 +184,7 @@ protected:
      * @param pattern    m/z pattern to search for
      * @param peak    peak with set of satellite peaks
      *
-     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
+     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than @em averagine_similarity_
      */
     bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const;
     
@@ -198,7 +198,7 @@ protected:
      * @param pattern    m/z pattern to search for
      * @param peak    peak with set of satellite peaks
      *
-     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <peptide_similarity_>
+     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than @em peptide_similarity_
      */
     bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const;
 
@@ -215,12 +215,12 @@ protected:
     /**
      * @brief "white" centroided experimental data
      *
-     * subset of all peaks of <exp_centroided_> which are not blacklisted in <blacklist_>
+     * subset of all peaks of @em exp_centroided_ which are not blacklisted in @em blacklist_
      */
     MSExperiment exp_centroided_white_;
     
     /**
-     * @brief mapping of peak indices from a 'white' experiment <exp_centroided_white_> to its original experiment <exp_centroided_>
+     * @brief mapping of peak indices from a 'white' experiment @em exp_centroided_white_ to its original experiment @em exp_centroided_
      */
     White2Original exp_centroided_mapping_;
 

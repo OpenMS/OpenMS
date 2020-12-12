@@ -163,15 +163,15 @@
 #ifdef WITH_GUI
 #include <QApplication>
 
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
 
 // include this file after the GUI stuff, or there will be a conflict between
-// "LayerData.h" (via "Spectrum1DCanvas.h") and "SeqanIncludeWrapper.h"!
+// "LayerData.h" (via "Plot1DCanvas.h") and "SeqanIncludeWrapper.h"!
 // (see https://github.com/OpenMS/OpenMS/issues/1327)
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 
@@ -483,9 +483,9 @@ int main(int argc, char** argv)
   DOCME(TOPPViewBase);
   DOCME(TOPPASBase);
 
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), nullptr));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), nullptr));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), nullptr));
+  DOCME2(Plot1DCanvas, Plot1DCanvas(Param(), nullptr));
+  DOCME2(Plot2DCanvas, Plot2DCanvas(Param(), nullptr));
+  DOCME2(Plot3DCanvas, Plot3DCanvas(Param(), nullptr));
 #endif
 
   return 0;

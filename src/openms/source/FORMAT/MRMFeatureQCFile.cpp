@@ -210,7 +210,10 @@ namespace OpenMS
 
   void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc, const bool is_component_group)
   {
-    if (is_component_group) {
+    if (is_component_group) 
+    {
+      if (mrmfqc.component_group_qcs.empty()) return;
+
       // Store the ComponentGroupQCs
       clear(); // clear the buffer_
 
@@ -218,7 +221,8 @@ namespace OpenMS
       StringList headers = { "component_group_name", "retention_time_l", "retention_time_u", "intensity_l", "intensity_u", "overall_quality_l", "overall_quality_u",
         "n_heavy_l", "n_heavy_u", "n_light_l", "n_light_u", "n_detecting_l", "n_detecting_u", "n_quantifying_l", "n_quantifying_u", "n_identifying_l", "n_identifying_u", "n_transitions_l", "n_transitions_u",
         "ion_ratio_pair_name_1", "ion_ratio_pair_name_2", "ion_ratio_l", "ion_ratio_u", "ion_ratio_feature_name" };
-      for (const auto& meta_data : mrmfqc.component_group_qcs.at(0).meta_value_qc) {
+      for (const auto& meta_data : mrmfqc.component_group_qcs.at(0).meta_value_qc) 
+      {
         headers.push_back("metaValue_" + meta_data.first + "_l");
         headers.push_back("metaValue_" + meta_data.first + "_u");
       }
@@ -263,13 +267,18 @@ namespace OpenMS
       }
 
       CsvFile::store(filename);
-    } else {
+    } 
+    else 
+    {
+      if (mrmfqc.component_qcs.empty()) return;
+
       // Store the ComponentQCs
       clear(); // clear the buffer_
 
       // Make the ComponentQCs headers
       StringList headers = { "component_name","retention_time_l","retention_time_u","intensity_l","intensity_u","overall_quality_l","overall_quality_u" };
-      for (const auto& meta_data : mrmfqc.component_qcs.at(0).meta_value_qc) {
+      for (const auto& meta_data : mrmfqc.component_qcs.at(0).meta_value_qc) 
+      {
         headers.push_back("metaValue_" + meta_data.first + "_l");
         headers.push_back("metaValue_" + meta_data.first + "_u");
       }
@@ -287,7 +296,8 @@ namespace OpenMS
         row[5] = component_qc.overall_quality_l;
         row[6] = component_qc.overall_quality_u;
         size_t meta_data_iter = 7;
-        for (const auto& meta_data : component_qc.meta_value_qc) {
+        for (const auto& meta_data : component_qc.meta_value_qc) 
+        {
           row[meta_data_iter] = meta_data.second.first;
           ++meta_data_iter;
           row[meta_data_iter] = meta_data.second.second;

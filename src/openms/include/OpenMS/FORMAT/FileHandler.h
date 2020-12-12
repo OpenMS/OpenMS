@@ -98,7 +98,7 @@ public:
       @brief Tries to find and remove a known file extension, and append the new one.
 
       Internally calls 'stripExtension()' and adds the new suffix to the result.
-      E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\files\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\files\data.featureXML'
+      E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
       If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
     */
     static String swapExtension(const String& filename, const FileTypes::Type new_type);

@@ -32,6 +32,7 @@
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -195,7 +196,6 @@ public:
                   "Nature Methods volume 14, pages 513–520 (2017)",
                   "doi:10.1038/nmeth.4256"}
              }),
-    working_directory(debug_level_ >= 2),
     java_exe(""),
     exe(""),
     parameter_file_path(""),
@@ -216,11 +216,11 @@ protected:
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
     // Java executable
-    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"skipexists"});
     registerIntOption_(TOPPMSFraggerAdapter::java_heapmemory, "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
     // Handle executable
-    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, {"is_executable"});
 
     // Input file
     registerInputFile_(TOPPMSFraggerAdapter::in, "<file>", "", "Input File with specta for MSFragger");
@@ -376,7 +376,8 @@ protected:
 
 
   ExitCodes main_(int, const char**) override
-  {  
+  {
+    File::TempDir working_directory(debug_level_ >= 2);
     try
     {
       // java executable
@@ -522,11 +523,11 @@ protected:
       const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      const QFileInfo tmp_param_file(this->working_directory.getPath().toQString(), "fragger.params");
+      const QFileInfo tmp_param_file(working_directory.getPath().toQString(), "fragger.params");
       this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
-      writeDebug_("Working Directory: '" + this->working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+      writeDebug_("Working Directory: '" + working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("If you want to keep the working directory and the parameter file, set the -debug to 2", 1);
       ofstream os(this->parameter_file_path.c_str());
 
@@ -619,7 +620,7 @@ protected:
         << input_file;
 
     QProcess process_msfragger;
-    process_msfragger.setWorkingDirectory(this->working_directory.getPath().toQString());
+    process_msfragger.setWorkingDirectory(working_directory.getPath().toQString());
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
@@ -654,9 +655,16 @@ protected:
     { 
         it->setSearchEngine("MSFragger");
     }
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
-    // remove the msfragger pepXML output from the user lcoation
+    // remove the msfragger pepXML output from the user location
 
     if (optional_output_file.empty())
     {
@@ -664,7 +672,7 @@ protected:
     }
     else
     {
-    // rename the pepXML file to the opt_out
+      // rename the pepXML file to the opt_out
       QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
     }
 
@@ -680,8 +688,6 @@ protected:
 
 
 private:
-
-  File::TempDir working_directory;
 
   String java_exe;
   String exe;

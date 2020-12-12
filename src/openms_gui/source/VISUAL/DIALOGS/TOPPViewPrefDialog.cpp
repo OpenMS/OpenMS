@@ -51,7 +51,6 @@ namespace OpenMS
     {
       ui_->setupUi(this);
       connect(ui_->browse_default, &QPushButton::clicked, this, &TOPPViewPrefDialog::browseDefaultPath_);
-      connect(ui_->browse_temp, &QPushButton::clicked, this, &TOPPViewPrefDialog::browseTempPath_);
     }
 
     TOPPViewPrefDialog::~TOPPViewPrefDialog()
@@ -72,8 +71,6 @@ namespace OpenMS
       ui_->use_cached_ms1->setChecked(param_.getValue("preferences:use_cached_ms1").toBool());
       ui_->use_cached_ms2->setChecked(param_.getValue("preferences:use_cached_ms2").toBool());
    
-      ui_->temp_path->setText(param_.getValue("preferences:tmp_file_path").toQString());
-      ui_->recent_files->setValue((Int)param_.getValue("preferences:number_of_recent_files"));
       ui_->map_default->setCurrentIndex(ui_->map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
       ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));
       ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));
@@ -158,8 +155,6 @@ namespace OpenMS
       p.setValue("preferences:use_cached_ms1", ui_->use_cached_ms1->isChecked());
       p.setValue("preferences:use_cached_ms2", ui_->use_cached_ms2->isChecked());
 
-      p.setValue("preferences:tmp_file_path", ui_->temp_path->text());
-      p.setValue("preferences:number_of_recent_files", ui_->recent_files->value());
       p.setValue("preferences:default_map_view", ui_->map_default->currentText());
       p.setValue("preferences:intensity_cutoff", ui_->map_cutoff->currentText());
       p.setValue("preferences:on_file_change", ui_->on_file_change->currentText());
@@ -221,15 +216,6 @@ namespace OpenMS
       if (path != "")
       {
         ui_->default_path->setText(path);
-      }
-    }
-
-    void TOPPViewPrefDialog::browseTempPath_()
-    {
-      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->temp_path->text());
-      if (path != "")
-      {
-        ui_->temp_path->setText(path);
       }
     }
 

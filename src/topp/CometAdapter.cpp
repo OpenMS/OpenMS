@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -88,7 +89,7 @@ using namespace std;
     To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
     PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
 
-    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CometAdapter.cli
@@ -735,7 +736,16 @@ protected:
     protein_identifications[0].setSearchEngineVersion(comet_version);
     // TODO let this be parsed by the pepXML parser if this info is present there.
     protein_identifications[0].getSearchParameters().enzyme_term_specificity =
-        static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
+    static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
+    protein_identifications[0].getSearchParameters().charges = getStringOption_("precursor_charge");
+    protein_identifications[0].getSearchParameters().db = getStringOption_("database");
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

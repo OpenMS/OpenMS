@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
@@ -649,6 +650,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
 
     break;
+
+    case FileTypes::SQMASS:
+      SqMassFile().load(filename, exp);
+
+      break;
 
     case FileTypes::XMASS:
       exp.reset();

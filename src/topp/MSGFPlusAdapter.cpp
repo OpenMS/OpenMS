@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -103,10 +104,10 @@
     an example and consult the MSGF+ documentation for further details.
     Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
     This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
-    are not available here (this includes fixed/variable modifications, which are passed on the commandline via -mod <file>).
+    are not available here (this includes fixed/variable modifications, which are passed on the commandline via <code>-mod &lt;file&gt;</code>).
     Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
 
-    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MSGFPlusAdapter.cli
@@ -801,6 +802,13 @@ protected:
           psm.removeMetaValue("IsotopeError");
         }
       }
+
+      // write all (!) parameters as metavalues to the search parameters
+      if (!protein_ids.empty())
+      {
+        DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_ids[0].getSearchParameters(), this->getToolPrefix());
+      }
+
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 

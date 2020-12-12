@@ -406,6 +406,18 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 }
 END_SECTION
 
+START_SECTION((double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const))
+{
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.0 + 1e-6)
+  
+  // uses getMonoWeight and is thus thoroughly tested
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(1, Residue::YIon), double(1018.4952))
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(2, Residue::YIon), double((1018.4952 + Constants::PROTON_MASS_U) / 2.0))
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, AASequence::fromString("DFPIANGER").getMZ(0));
+}
+END_SECTION
+
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;
@@ -636,6 +648,26 @@ START_SECTION(void setNTerminalModification(const String &modification))
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
   TEST_EQUAL(seq3 == seq4, true)
+
+  AASequence seq5 = AASequence::fromString("DABCDEF");
+  AASequence seq6 = seq5;
+  AASequence seq7 = seq5;
+  AASequence seq8 = seq5;
+
+  seq5.setNTerminalModification("Met-loss (Protein N-term M)");
+  TEST_EQUAL(seq5.isModified(), true)
+
+  seq6.setNTerminalModification("Acetyl (N-term)");
+  TEST_EQUAL(seq6.isModified(), true)
+
+  seq7.setCTerminalModification("Amidated (C-term)");
+  TEST_EQUAL(seq7.isModified(), true)
+
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("(T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("foobar"));
+
 END_SECTION
 
 START_SECTION(const String& getNTerminalModificationName() const)

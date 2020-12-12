@@ -49,8 +49,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum) :
-    rt_typical_(rt_typical), rt_minimum_(rt_minimum)
+  MultiplexClustering::MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical) :
+    rt_typical_(rt_typical)
   {
     if (exp_picked.size() != boundaries.size())
     {
@@ -104,8 +104,8 @@ namespace OpenMS
 
   }
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum) :
-    rt_typical_(rt_typical), rt_minimum_(rt_minimum)
+  MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical) :
+    rt_typical_(rt_typical)
   {
     // ranges of the experiment
     double mz_min = exp.getMinMZ();
@@ -204,7 +204,7 @@ namespace OpenMS
   {
   }
   
-  double MultiplexClustering::MultiplexDistance::operator()(Point p1, Point p2)
+  double MultiplexClustering::MultiplexDistance::operator()(const Point& p1, const Point& p2) const
   {
       return sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
   }

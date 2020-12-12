@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
@@ -127,7 +128,7 @@ using namespace std;
 
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
-    Hint: this adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
+    @note This adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
     will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
 
     @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
@@ -1049,6 +1050,13 @@ protected:
     //-------------------------------------------------------------
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats

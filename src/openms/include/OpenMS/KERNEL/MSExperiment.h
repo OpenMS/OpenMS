@@ -425,6 +425,13 @@ public:
 
     ///@}
 
+    /// If the file is loaded from an sqMass file, this run-ID allows to connect to the corresponding OSW identification file
+    /// If the run-ID was not stored (older version) or this MSExperiment was not loaded from sqMass, then 0 is returned.
+    UInt64 getSqlRunID() const;
+
+    /// sets the run-ID which is used when storing an sqMass file
+    void setSqlRunID(UInt64 id);
+
     ///@name Sorting spectra and peaks
     ///@{
     /**
@@ -484,6 +491,7 @@ public:
 
     /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum& spectrum);
+
 
     void addSpectrum(MSSpectrum&& spectrum)
     {
@@ -551,6 +559,8 @@ public:
     /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
+    /// do any of the spectra have a peptideID?
+    bool hasPeptideIdentifications() const;
 
 protected:
 

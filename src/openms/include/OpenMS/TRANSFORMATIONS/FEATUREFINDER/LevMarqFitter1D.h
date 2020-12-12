@@ -69,10 +69,10 @@ public:
 
       virtual ~GenericFunctor() {}
 
-      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) = 0;
+      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const = 0;
 
       // compute Jacobian matrix for the different parameters
-      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) = 0;
+      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const = 0;
 
     protected:
       const int m_inputs, m_values;

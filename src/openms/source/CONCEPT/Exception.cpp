@@ -290,6 +290,13 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
 
+    SqlOperationFailed::SqlOperationFailed(const char* file, int line, const char* function, const std::string& description) noexcept :
+      BaseException(file, line, function, "SqlOperationFailed", "")
+    {
+      what_ = "an sql operation failed ('" + description + "')";
+      GlobalExceptionHandler::getInstance().setMessage(what_);
+    }
+
     FileEmpty::FileEmpty(const char* file, int line, const char* function, const std::string& filename) noexcept :
       BaseException(file, line, function, "FileEmpty", "")
     {

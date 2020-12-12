@@ -59,25 +59,23 @@ namespace OpenMS
   namespace Internal
   {
 
-    GUILock::GUILock(SwathTabWidget* stw)
+    SwathGUILock::SwathGUILock(SwathTabWidget* stw)
       : 
       stw_(stw),
       old_(stw->currentWidget()),
-      was_enabled_(stw->isEnabled())
+      glock_(stw)
     {
       stw->setCurrentWidget(stw->ui->tab_log);
-      stw->setEnabled(false);
     }
 
-    GUILock::~GUILock()
+    SwathGUILock::~SwathGUILock()
     {
       stw_->setCurrentWidget(old_);
-      stw_->setEnabled(was_enabled_);
     }
 
     String getOSWExe()
     {
-      return File::getExecutablePath() + "OpenSwathWorkflow";
+      return File::findSiblingTOPPExecutable("OpenSwathWorkflow");
     }
 
     QString getDefaultOutDir()
@@ -102,7 +100,8 @@ namespace OpenMS
       auto py_pyprophet = (PythonModuleRequirement*)ui->py_pyprophet;
       py_pyprophet->setRequiredModules( { "pyprophet", "msproteomicstoolslib" });
       py_pyprophet->setFreeText("In order to run PyProphet and TRIC after OpenSWATH, the above modules need to be installed\n" \
-                                "Once they are available, the 'PyProphet and TRIC' tab will become active and configurable.");
+                                "Once they are available, the 'PyProphet and TRIC' tab will become active and configurable.\n" \
+                                "To install the modules, visit the <a href=\"http://www.openswath.org\">openswath.org homepage</a> and follow the installation instructions.");
       py_pyprophet->setTitle("External: PyProphet and TRIC tools");
       connect(py_selector, &PythonSelector::valueChanged, py_pyprophet, &PythonModuleRequirement::validate);
         
@@ -173,7 +172,7 @@ namespace OpenMS
     {
       if (!checkOSWInputReady_()) return;
       
-      GUILock lock(this); // forbid user interaction
+      SwathGUILock lock(this); // forbid user interaction
 
       updateSwathParamFromWidgets_();
       Param tmp_param;
@@ -380,7 +379,7 @@ namespace OpenMS
     
     typedef std::vector<Args> ArgLoop;
 
-    /// Allows running and executable with arguments
+    /// Allows running an executable with arguments
     /// Multiple execution in a loop is supported by the ArgLoop argument
     /// e.g. running 'ls -la .' and 'ls -la ..'
     /// uses Command("ls", QStringList() << "-la" << "%1", ArgLoop{ Args {QStringList() << "." << "..", 1 } })
@@ -448,7 +447,7 @@ namespace OpenMS
         QMessageBox::warning(this, "Error", "Could not find all requirements for 'pyprophet & tric' (see 'Config' tab). Install modules via 'pip install <modulename>' and make sure it's available in $PATH");
         return;
       }
-      GUILock lock(this); // forbid user interaction
+      SwathGUILock lock(this); // forbid user interaction
 
       auto inputs = getPyProphetInputFiles();
       if (inputs.empty())

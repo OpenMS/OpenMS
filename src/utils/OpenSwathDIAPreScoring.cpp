@@ -90,7 +90,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("traML"));
 
     // registerOutputFile_("out", "<file>", "", "output file");
     // setValidFormats_("out", ListUtils::create<String>("tsv"));
@@ -101,7 +101,7 @@ protected:
     setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
     registerOutputFileList_("output_files", "<files>", StringList(),
                            "Output files. One per Swath input file.",
-                           false);
+                           true);
     setValidFormats_("output_files", ListUtils::create<String>("tsv"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,

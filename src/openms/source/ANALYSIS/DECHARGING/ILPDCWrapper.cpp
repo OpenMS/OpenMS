@@ -228,7 +228,6 @@ namespace OpenMS
 
 
     LPWrapper build;
-    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     // add ALL edges first. Their result is what is interesting to us later
@@ -325,7 +324,6 @@ namespace OpenMS
                                         const Size verbose_level) const
   {
     LPWrapper build;
-    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     //------------------------------------objective function-----------------------------------------------

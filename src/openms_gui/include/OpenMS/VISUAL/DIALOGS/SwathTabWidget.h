@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QTabWidget>
 
@@ -65,16 +66,16 @@ namespace OpenMS
     /**
       @brief RAII class to switch to certain TabWidget, disable the GUI and go back to the orignal Tab when this class is destroyed
     */
-    class GUILock
+    class SwathGUILock
     {
       public:
-      GUILock(SwathTabWidget* stw);
+        SwathGUILock(SwathTabWidget* stw);
 
-      ~GUILock();
+      ~SwathGUILock();
       private:
         SwathTabWidget* stw_;
         QWidget* old_;
-        bool was_enabled_;
+        GUIHelpers::GUILock glock_;
     };
 
     /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
@@ -83,7 +84,7 @@ namespace OpenMS
       Q_OBJECT
 
     public:
-      friend class GUILock;
+      friend class SwathGUILock;
 
       explicit SwathTabWidget(QWidget *parent = nullptr);
       ~SwathTabWidget();

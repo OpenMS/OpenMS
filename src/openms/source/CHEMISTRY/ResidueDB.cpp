@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
 
@@ -52,14 +52,13 @@ using namespace std;
 namespace OpenMS
 {
   ResidueDB::ResidueDB()
-  {
-    readResiduesFromFile_("CHEMISTRY/Residues.xml");
-    buildResidueNames_();
+  { 
+    initResidues_();
   }
 
   ResidueDB* ResidueDB::getInstance()
   {
-    static ResidueDB* db_ = new ResidueDB;
+    static ResidueDB* db_ = new ResidueDB();
     return db_;
   }
 
@@ -75,7 +74,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No residue specified.", "");
     }
 
-    Residue* r(nullptr);
+    const Residue* r(nullptr);
     #pragma omp critical (ResidueDB)
     {   
       auto it = residue_names_.find(name);
@@ -90,7 +89,8 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
-    // no lock required here because read only and array is initialized in thread-safe constructor
+    //TODO why does this not throw but the String version does??
+    //no lock required here because read only and array is initialized in thread-safe constructor
     return residue_by_one_letter_code_[one_letter_code];
   }
 
@@ -99,7 +99,7 @@ namespace OpenMS
     Size s;
     #pragma omp critical (ResidueDB)
     {
-      s = residues_.size();
+      s = const_residues_.size();
     } 
     return s;
   }
@@ -109,7 +109,7 @@ namespace OpenMS
     Size s;
     #pragma omp critical (ResidueDB)
     {
-      s = modified_residues_.size();
+      s = const_modified_residues_.size();
     } 
     return s;
   }
@@ -119,9 +119,10 @@ namespace OpenMS
     set<const Residue*> s;
     #pragma omp critical (ResidueDB)
     {
-      if (residues_by_set_.has(residue_set))
+      auto it = residues_by_set_.find(residue_set);
+      if (it != residues_by_set_.end())
       {
-        s = residues_by_set_[residue_set];
+        s = it->second;
       }
     } 
 
@@ -132,44 +133,24 @@ namespace OpenMS
     return s;
   }
 
-  void ResidueDB::setResidues_(const String& file_name)
+  void ResidueDB::initResidues_()
   {
     #pragma omp critical (ResidueDB)
     {
-      readResiduesFromFile_(file_name);
+      buildResidues_();
       buildResidueNames_();
     }     
   }
 
   void ResidueDB::addResidue_(Residue* r)
   {
-    vector<String> names;
-    if (r->getName() != "")
-    {
-      names.push_back(r->getName());
-    }
-    if (r->getShortName() != "")
-    {
-      names.push_back(r->getShortName());
-    }
-    set<String> synonyms = r->getSynonyms();
-    for (const String & s : synonyms)
-    {
-      names.push_back(s);
-    }
-
     if (!r->isModified())
-    {
-      for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
-      {
-        residue_names_[*it] = r;
-      }
-      residues_.insert(r);
+    { // add (unmodified) residue to residue_names, residues, and const_residues
       const_residues_.insert(r);
+      buildResidueName_(r);
     }
     else
-    {
-      modified_residues_.insert(r);
+    { // add modified residue to const_modified_residues_, and residue_mod_names_
       const_modified_residues_.insert(r);
 
       // get all modification names
@@ -179,10 +160,22 @@ namespace OpenMS
       mod_names.push_back(mod->getId());
       mod_names.push_back(mod->getFullName());
       mod_names.push_back(mod->getFullId());
-      const set<String>& mod_synonyms = mod->getSynonyms();
-      for (set<String>::const_iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
+
+      for (const String& s : mod->getSynonyms())
       {
-        mod_names.push_back(*it);
+        mod_names.push_back(s);
+      }
+
+      vector<String> names;
+      // add name to lookup
+      if (r->getName() != "") 
+      {
+        names.push_back(r->getName());
+      }
+      // add all synonymes to lookup
+      for (const String & s : r->getSynonyms())
+      {
+        names.push_back(s);
       }
 
       for (const String& n : names)
@@ -194,8 +187,7 @@ namespace OpenMS
           residue_mod_names_[n][m] = r;
         }
       }
-    }
-    buildResidueNames_();
+    }    
     return;
   }
 
@@ -220,63 +212,114 @@ namespace OpenMS
     return found;
   }
 
-  void ResidueDB::readResiduesFromFile_(const String& file_name)
+  void ResidueDB::buildResidues_()
   {
-    String file = File::find(file_name);
-
-    Param param;
-    ParamXMLFile paramFile;
-    paramFile.load(file, param);
-
-    if (!param.begin().getName().hasPrefix("Residues"))
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "");
-    }
-
     // clear names and lookup
-    clearResidues_();
-    clearResidueModifications_();
+    clear_();
 
-    try
-    {
-      vector<String> split;
-      param.begin().getName().split(':', split);
-      String prefix = split[0] + split[1];
-      Residue* res_ptr = nullptr;
+    Residue* alanine = new Residue("Alanine", "Ala", "A", EmpiricalFormula("C3H7NO2"), 2.35, 9.87, -1.00, 0.00, 881.82, 0.00, set<String>{"L-Alanine", "alanine",  "Alanin", "alanin", "Ala"});
+    insertResidueAndAssociateWithResidueSet_(alanine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"});
+     
+    Residue* cysteine = new Residue("Cysteine", "Cys", "C", EmpiricalFormula("C3H7NO2S"), 1.92, 10.70, 8.18, 0.00, 0.12, 880.99,  set<String>{"Cys", "Cystine"});
+    insertResidueAndAssociateWithResidueSet_(cysteine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"});
+    
+    Residue* aspartate = new Residue("Aspartate", "Asp", "D", EmpiricalFormula("C4H7NO4"), 1.99, 9.90, 3.90, 784.0, 880.02, -0.63, set<String>{"Asp"});
+    aspartate->addLossName("water");
+    aspartate->addLossFormula(EmpiricalFormula("H2O"));
+    insertResidueAndAssociateWithResidueSet_(aspartate, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+    
+    Residue* glutamate = new Residue ( "Glutamate", "Glu", "E", EmpiricalFormula("C5H9NO4"), 2.10, 9.47, 4.07, 790.0, 880.10, -0.39, set<String>{"Glu"});
+    glutamate->addLossName("water");
+    glutamate->addLossFormula(EmpiricalFormula("H2O"));
+    glutamate->addNTermLossName("water");
+    glutamate->addNTermLossFormula(EmpiricalFormula("H2O"));    
+    insertResidueAndAssociateWithResidueSet_(glutamate, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+    
+    Residue* phenylalanine = new Residue ( "Phenylalanine", "Phe", "F", EmpiricalFormula( "C9H11NO2"), 2.20, 9.31, -1.0, 0.00, 881.08, 0.03, set<String>{"Phe"});
+    insertResidueAndAssociateWithResidueSet_(phenylalanine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+    
+    Residue* glycine = new Residue ( "Glycine", "Gly", "G", EmpiricalFormula( "C2H5NO2"), 2.35, 9.78, -1.0, 0.00, 881.17, 0.92, set<String>{"Gly"} );
+    insertResidueAndAssociateWithResidueSet_(glycine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+    
+    Residue* histidin = new Residue ( "Histidine", "His", "H", EmpiricalFormula( "C6H9N3O2"), 1.80, 9.33, 6.04, 927.84, 881.27, -0.19, set<String>{"His"});
+    insertResidueAndAssociateWithResidueSet_(histidin,  {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"});
 
-      Map<String, String> values;
+    Residue* isoleucine = new Residue ( "Isoleucine", "Ile", "I", EmpiricalFormula( "C6H13NO2"), 2.32, 9.76, -1.0, 0.00, 880.99, -1.17, set<String>{"Ile"});
+    insertResidueAndAssociateWithResidueSet_(isoleucine, {"All","Natural20","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"});
+      
+    Residue* lysine = new Residue ( "Lysine", "Lys", "K", EmpiricalFormula( "C6H14N2O2"), 2.16, 9.06, 10.54, 926.74, 880.06, -0.71, set<String>{ "Lys"});
+    lysine->addLossName("ammonia");
+    lysine->addLossFormula(EmpiricalFormula("NH3"));
+    insertResidueAndAssociateWithResidueSet_(lysine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+	
+    Residue* leucine = new Residue ( "Leucine", "Leu", "L", EmpiricalFormula( "C6H13NO2"), 2.33, 9.74, -1.0, 0.00, 881.88, -0.09, set<String>{ "Leu"});
+    insertResidueAndAssociateWithResidueSet_(leucine, {"All","Natural20","Natural19WithoutI","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"}  );
+	
+    Residue* methionine = new Residue ( "Methionine", "Met", "M", EmpiricalFormula( "C5H11NO2S"), 2.13, 9.28, -1.0, 830.0, 881.38, 0.30, set<String>{ "Met"});
+    insertResidueAndAssociateWithResidueSet_(methionine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+    
+    Residue* asparagine = new Residue ( "Asparagine", "Asn", "N", EmpiricalFormula( "C4H8N2O3"), 2.14, 8.72, -1.0, 864.94, 881.18, 1.56, set<String>{ "Asn"});
+    asparagine->addLossName("ammonia");
+    asparagine->addLossFormula(EmpiricalFormula("NH3"));
+    insertResidueAndAssociateWithResidueSet_(asparagine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"});
+	
+    Residue* proline = new Residue ( "Proline", "Pro", "P", EmpiricalFormula( "C5H9NO2"), 1.95, 10.64, -1.0, 0.00, 881.25, 11.75, set<String>{ "Pro"});
+    insertResidueAndAssociateWithResidueSet_(proline, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+	
+    Residue* glutamine = new Residue ( "Glutamine", "Gln", "Q", EmpiricalFormula( "C5H10N2O3"), 2.17, 9.13, -1.0, 865.25, 881.50, 4.10, set<String>{ "Gln"});
+    glutamine->addLossName("ammonia");
+    glutamine->addLossFormula(EmpiricalFormula("NH3"));
+    glutamine->addNTermLossName("water");
+    glutamine->addNTermLossFormula(EmpiricalFormula("H2O"));
+    insertResidueAndAssociateWithResidueSet_(glutamine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+	
+    Residue* arginine = new Residue ( "Arginine", "Arg", "R", EmpiricalFormula( "C6H14N4O2"), 1.82, 8.99, 12.48, 1000.0, 882.98, 6.28, set<String>{ "Arg"});
+    arginine->addLossName("ammonia");
+    arginine->addLossFormula(EmpiricalFormula("NH3"));
+    arginine->addLossName("");
+    arginine->addLossFormula(EmpiricalFormula("NHCNH"));
+    arginine->addLossName("");
+    arginine->addLossFormula(EmpiricalFormula("CONH2"));
+    insertResidueAndAssociateWithResidueSet_(arginine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+	
+    Residue* selenocysteine = new Residue ( "Selenocysteine", "Sec", "U", EmpiricalFormula( "C3H7NO2Se"), 0.00, 0.00, 5.73, 0.00, 880.99, 0.12, set<String>{ "Sec"});
+    insertResidueAndAssociateWithResidueSet_(selenocysteine, {"All","AmbiguousWithoutX","Ambiguous","AllNatural"});
+    
+    Residue* serine = new Residue ( "Serine", "Ser", "S", EmpiricalFormula( "C3H7NO3"), 2.19, 9.21, -1.0, 775.0, 881.08, 0.98, set<String>{ "Ser"});
+    serine->addLossName("water");
+    serine->addLossFormula(EmpiricalFormula("H2O"));
+    insertResidueAndAssociateWithResidueSet_(serine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+	
+    Residue* threonine = new Residue ( "Threonine", "Thr", "T", EmpiricalFormula( "C4H9NO3"), 2.09, 9.10, -1.0, 780.0, 881.14, 1.21, set<String>{ "Thr"});
+    threonine->addLossName("water");
+    threonine->addLossFormula(EmpiricalFormula("H2O"));
+    insertResidueAndAssociateWithResidueSet_(threonine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
+	
+    Residue* valine = new Residue ( "Valine", "Val", "V", EmpiricalFormula( "C5H11NO2"), 2.39, 9.74, -1.0, 0.0, 881.17, -0.90, set<String>{ "Val"});
+    insertResidueAndAssociateWithResidueSet_(valine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
 
-      for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
-      {
-        it.getName().split(':', split);
-        if (prefix != split[0] + split[1])
-        {
-          // add residue
-          res_ptr = parseResidue_(values);
-          values.clear();
-          residues_.insert(res_ptr);
-          const_residues_.insert(res_ptr);
-          prefix = split[0] + split[1];
-          residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
-        }
+    Residue* tryptophan = new Residue ( "Tryptophan", "Trp", "W", EmpiricalFormula( "C11H12N2O2"), 2.46, 9.41, -1.0, 909.53, 881.31, 0.10, set<String>{ "Trp"});
+    insertResidueAndAssociateWithResidueSet_(tryptophan, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
 
-        String value = it->value;
-        String key = it.getName();
-        values[key] = value;
-      }
+    Residue* tyrosine = new Residue ( "Tyrosine", "Tyr", "Y", EmpiricalFormula( "C9H11NO3"), 2.20, 9.21, 10.46, 790.0, 881.20, -0.38, set<String>{ "Tyr" });
+    insertResidueAndAssociateWithResidueSet_(tyrosine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
 
-      // add last residue
-      res_ptr = parseResidue_(values);
-      residues_.insert(res_ptr);
-      const_residues_.insert(res_ptr);
-      residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;
-    }
-    catch (Exception::BaseException& e)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
-    }
+    Residue* pyrrolysine = new Residue ( "Pyrrolysine", "Pyr", "O", EmpiricalFormula( "C12H21N3O3"), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, set<String>{ "Pyr"});
+    insertResidueAndAssociateWithResidueSet_( pyrrolysine, {"All","AmbiguousWithoutX","Ambiguous","AllNatural"});
+	
+    Residue* asparagine_aspartate = new Residue ( "Asparagine/Aspartate", "Asx", "B", EmpiricalFormula(""), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Asx" });
+    insertResidueAndAssociateWithResidueSet_( asparagine_aspartate , {"All","AmbiguousWithoutX","Ambiguous"});
+	
+    Residue* glutamine_glutamate = new Residue ( "Glutamine/Glutamate", "Glx", "Z", EmpiricalFormula(""), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Glx"});
+    insertResidueAndAssociateWithResidueSet_(glutamine_glutamate, {"All","AmbiguousWithoutX","Ambiguous"} );
+	
+    Residue* isoleucine_leucine = new Residue ( "Isoleucine/Leucine", "Xle", "J", EmpiricalFormula( "C6H13NO2"), 0.00, 0.00, -1.0, 0.00, 880.99, -1.17, set<String>{ "Xle"});
+    insertResidueAndAssociateWithResidueSet_( isoleucine_leucine, {"All","AmbiguousWithoutX","Ambiguous"});
+
+    Residue* unspecified_unknown = new Residue ( "Unspecified/Unknown", "Xaa", "X", EmpiricalFormula(""), 0.00, 0.00, -1.0, 0.00, 0.00, 0.00, set<String>{ "Xaa", "Unk"});
+    insertResidueAndAssociateWithResidueSet_(unspecified_unknown, {"All","Ambiguous"} );
   }
-
+  
   void ResidueDB::clear_()
   {
     clearResidues_();
@@ -291,8 +334,7 @@ namespace OpenMS
       residue_by_one_letter_code_[i] = nullptr;
     }
 
-    for (auto& r : residues_) { delete r; }
-    residues_.clear();
+    for (auto& r : const_residues_) { delete r; }
     residue_names_.clear();
     const_residues_.clear();
     residues_by_set_.clear();
@@ -301,161 +343,27 @@ namespace OpenMS
 
   void ResidueDB::clearResidueModifications_()
   {
-    for (auto& r : modified_residues_) { delete r; }
-    modified_residues_.clear();
+    for (auto& r : const_modified_residues_) { delete r; }
     residue_mod_names_.clear();
     const_modified_residues_.clear();
   }
-
-  Residue* ResidueDB::parseResidue_(Map<String, String>& values)
-  {
-    vector<EmpiricalFormula> low_mass_ions;
-    Residue* res_ptr = new Residue();
-
-    for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
+  
+  void ResidueDB::insertResidueAndAssociateWithResidueSet_(Residue* res_ptr, const StringList& residue_sets)
+  {    
+    for (const String& s : residue_sets)
     {
-      String key(it->first);
-      String value(it->second);
-
-      if (key.hasSuffix(":Name"))
-      {
-        res_ptr->setName(value);
-        continue;
-      }
-      if (key.hasSuffix(":ShortName"))
-      {
-        res_ptr->setShortName(value);
-        continue;
-      }
-      if (key.hasSuffix(":ThreeLetterCode"))
-      {
-        res_ptr->setThreeLetterCode(value);
-        continue;
-      }
-      if (key.hasSuffix(":OneLetterCode"))
-      {
-        res_ptr->setOneLetterCode(value);
-        continue;
-      }
-      if (key.hasSuffix(":Formula"))
-      {
-        EmpiricalFormula formula(value);
-        res_ptr->setFormula(EmpiricalFormula(value));
-        res_ptr->setAverageWeight(formula.getAverageWeight());
-        res_ptr->setMonoWeight(formula.getMonoWeight());
-        continue;
-      }
-
-      if (key.hasSubstring(":Losses:LossName"))
-      {
-        res_ptr->addLossName(value);
-        continue;
-      }
-      if (key.hasSubstring(":Losses:LossFormula"))
-      {
-        EmpiricalFormula loss(value);
-        res_ptr->addLossFormula(loss);
-        continue;
-      }
-
-      if (key.hasSubstring("NTermLosses:LossName"))
-      {
-        res_ptr->addNTermLossName(value);
-        continue;
-      }
-
-      if (key.hasSubstring("NTermLosses:LossFormula"))
-      {
-        EmpiricalFormula loss(value);
-        res_ptr->addNTermLossFormula(loss);
-        continue;
-      }
-
-      if (key.hasSubstring("LowMassIons"))
-      {
-        // no markers defined?
-        if (!key.hasSuffix(":"))
-        {
-          low_mass_ions.push_back(EmpiricalFormula(value));
-        }
-        continue;
-      }
-      if (key.hasSubstring("Synonyms"))
-      {
-        // no synonyms defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->addSynonym(value);
-        }
-        continue;
-      }
-      if (key.hasSubstring("pka"))
-      {
-        // no pka defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->setPka(value.toDouble());
-        }
-        continue;
-      }
-      if (key.hasSubstring("pkb"))
-      {
-        // no pkb defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->setPkb(value.toDouble());
-        }
-        continue;
-      }
-      if (key.hasSubstring("pkc"))
-      {
-        // no pkc defined?
-        if (!key.hasSuffix(":"))
-        {
-          res_ptr->setPkc(value.toDouble());
-        }
-        continue;
-      }
-      if (key.hasSubstring("GB_SC"))
-      {
-        res_ptr->setSideChainBasicity(value.toDouble());
-        continue;
-      }
-      if (key.hasSubstring("GB_BB_L"))
-      {
-        res_ptr->setBackboneBasicityLeft(value.toDouble());
-        continue;
-      }
-      if (key.hasSubstring("GB_BB_R"))
-      {
-        res_ptr->setBackboneBasicityRight(value.toDouble());
-        continue;
-      }
-      if (key.hasSubstring("ResidueSets"))
-      {
-        StringList residue_sets = ListUtils::create<String>(value);
-        for (StringList::const_iterator local_it = residue_sets.begin(); local_it != residue_sets.end(); ++local_it)
-        {
-          res_ptr->addResidueSet(*local_it);
-          residue_sets_.insert(*local_it);
-        }
-        continue;
-      }
-      cerr << "unknown key: " << key << ", with value: " << value << endl;
+      res_ptr->addResidueSet(s);
+      residue_sets_.insert(s);
+    }
+        
+    for (const String& s : res_ptr->getResidueSets())
+    {
+      residues_by_set_[s].insert(res_ptr);
     }
 
-    if (!low_mass_ions.empty())
-    {
-      res_ptr->setLowMassIons(low_mass_ions);
-    }
-
-    for (set<String>::const_iterator it = res_ptr->getResidueSets().begin(); it != res_ptr->getResidueSets().end(); ++it)
-    {
-      residues_by_set_[*it].insert(res_ptr);
-    }
-
-    return res_ptr;
-  }
+    const_residues_.insert(res_ptr);
+    residue_by_one_letter_code_[static_cast<unsigned char>(res_ptr->getOneLetterCode()[0])] = res_ptr;   
+   }
 
   const set<String> ResidueDB::getResidueSets() const
   {
@@ -467,33 +375,38 @@ namespace OpenMS
     return rs;
   }
 
+  void ResidueDB::buildResidueName_(const Residue* r)
+  {
+    // add name to residue_names_
+    residue_names_[r->getName()] = r;
+
+    // add tree letter code to residue_names_
+    if (r->getThreeLetterCode() != "")
+    {
+      residue_names_[r->getThreeLetterCode()] = r;
+    }
+
+    // add one letter code to residue_names_
+    if (r->getOneLetterCode() != "")
+    {
+      residue_names_[r->getOneLetterCode()] = r;
+    }
+
+    // add all synonyms to residue_names_
+    for (const String& s : r->getSynonyms())
+    {
+      if (!s.empty())
+      {
+        residue_names_[s] = r;
+      }
+    }
+  }
+
   void ResidueDB::buildResidueNames_()
   {
-    set<Residue*>::iterator it;
-    for (it = residues_.begin(); it != residues_.end(); ++it)
+    for (const Residue* r : const_residues_)
     {
-      residue_names_[(*it)->getName()] = *it;
-      if ((*it)->getThreeLetterCode() != "")
-      {
-        residue_names_[(*it)->getThreeLetterCode()] = *it;
-      }
-      if ((*it)->getOneLetterCode() != "")
-      {
-        residue_names_[(*it)->getOneLetterCode()] = *it;
-      }
-      if ((*it)->getShortName() != "")
-      {
-        residue_names_[(*it)->getShortName()] = *it;
-      }
-      set<String>::iterator sit;
-      set<String> syn = (*it)->getSynonyms();
-      for (sit = syn.begin(); sit != syn.end(); ++sit)
-      {
-        if (*sit != "")
-        {
-          residue_names_[*sit] = *it;
-        }
-      }
+      buildResidueName_(r);
     }
   }
 
@@ -555,7 +468,7 @@ namespace OpenMS
             const auto& inner = rm_entry->second.find(id);
             if (inner != rm_entry->second.end())
             {
-              res = inner->second;
+              res = const_cast<Residue*>(inner->second);
               found = true;
             }
           }
@@ -582,5 +495,4 @@ namespace OpenMS
     
     return res;
   }
-
 }

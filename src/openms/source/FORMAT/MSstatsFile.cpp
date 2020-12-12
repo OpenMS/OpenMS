@@ -37,10 +37,11 @@
 #include <tuple>
 
 using namespace std;
+using namespace OpenMS;
 
-const OpenMS::String OpenMS::MSstatsFile::na_string_ = "NA";
+const String MSstatsFile::na_string_ = "NA";
 
-void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
+void MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
                                              const String& bioreplicate,
                                              const String& condition)
 {
@@ -57,7 +58,7 @@ void OpenMS::MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSec
   }
 }
 
-void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection,
+void MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection,
                                              const String& bioreplicate,
                                              const String& condition,
                                              const String& mixture)
@@ -76,22 +77,22 @@ void OpenMS::MSstatsFile::checkConditionISO_(const ExperimentalDesign::SampleSec
 // of aggregatedConsensusInfo, and once in the other fields of aggregatedConsensusInfo)
 // Cant we just get this stuff on the fly?
 // We go through the features anyway again.
-OpenMS::MSstatsFile::AggregatedConsensusInfo OpenMS::MSstatsFile::aggregateInfo_(const ConsensusMap& consensus_map,
+MSstatsFile::AggregatedConsensusInfo MSstatsFile::aggregateInfo_(const ConsensusMap& consensus_map,
                                                                                  const std::vector<String>& spectra_paths)
 {
-  OpenMS::MSstatsFile::AggregatedConsensusInfo aggregatedInfo; //results
+  MSstatsFile::AggregatedConsensusInfo aggregatedInfo; //results
   const auto &column_headers = consensus_map.getColumnHeaders(); // needed for label_id
 
-  for (const OpenMS::ConsensusFeature &consensus_feature : consensus_map)
+  for (const ConsensusFeature &consensus_feature : consensus_map)
   {
 
-    vector<OpenMS::String> filenames;
-    vector<OpenMS::MSstatsFile::Intensity> intensities;
-    vector<OpenMS::MSstatsFile::Coordinate> retention_times;
+    vector<String> filenames;
+    vector<MSstatsFile::Intensity> intensities;
+    vector<MSstatsFile::Coordinate> retention_times;
     vector<unsigned> cf_labels;
 
     // Store the file names and the run intensities of this feature
-    const OpenMS::ConsensusFeature::HandleSetType& fs(consensus_feature.getFeatures());
+    const ConsensusFeature::HandleSetType& fs(consensus_feature.getFeatures());
     for (const auto& feat : fs)
     {
       filenames.push_back(spectra_paths[feat.getMapIndex()]);
@@ -102,7 +103,7 @@ OpenMS::MSstatsFile::AggregatedConsensusInfo OpenMS::MSstatsFile::aggregateInfo_
       auto &column = column_headers.at(feat.getMapIndex());
       if (column.metaValueExists("channel_id"))
       {
-        cf_labels.push_back(OpenMS::Int(column.getMetaValue("channel_id")));
+        cf_labels.push_back(Int(column.getMetaValue("channel_id")));
       }
       else
       {
@@ -124,7 +125,7 @@ OpenMS::MSstatsFile::AggregatedConsensusInfo OpenMS::MSstatsFile::aggregateInfo_
 //@todo LineType should be a template only for the line, not for the whole
 // mapping structure. More exact type matching/info then.
 template <class LineType>
-void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarization_method,
+void MSstatsFile::constructFile_(const String& retention_time_summarization_method,
                                          const bool rt_summarization_manual,
                                          TextFile& csv_out,
                                          const std::set<String>& peptideseq_quantifyable,
@@ -132,7 +133,7 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
 
 {
   // sanity check that the triples (peptide_sequence, precursor_charge, run) only appears once
-  set<tuple<OpenMS::String, OpenMS::String, OpenMS::String> > peptideseq_precursor_charge_run;
+  set<tuple<String, String, String> > peptideseq_precursor_charge_run;
 
   int count_similar = 0;
   for (const auto &peptideseq : peptideseq_quantifyable)
@@ -141,8 +142,8 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
             peptideseq_to_prefix_to_intensities[peptideseq])
     {
       // First, we collect all retention times and intensities
-      set<OpenMS::MSstatsFile::Coordinate> retention_times{};
-      set<OpenMS::MSstatsFile::Intensity> intensities{};
+      set<MSstatsFile::Coordinate> retention_times{};
+      set<MSstatsFile::Intensity> intensities{};
       for (const auto &p : line.second)
       {
         if (retention_times.find(get<1>(p)) != retention_times.end())
@@ -158,7 +159,7 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
         }
       }
 
-      tuple<OpenMS::String, OpenMS::String, OpenMS::String> tpl = make_tuple(
+      tuple<String, String, String> tpl = make_tuple(
           line.first.sequence(), line.first.precursor_charge(), line.first.run());
 
       if (peptideseq_precursor_charge_run.find(tpl) != peptideseq_precursor_charge_run.end())
@@ -182,7 +183,7 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
       // Otherwise, the intensities are resolved over the retention times
       else
       {
-        OpenMS::MSstatsFile::Intensity intensity(0);
+        MSstatsFile::Intensity intensity(0);
         if (retention_time_summarization_method == "max")
         {
           intensity = *(max_element(intensities.begin(), intensities.end()));
@@ -202,14 +203,14 @@ void OpenMS::MSstatsFile::constructFile_(const String& retention_time_summarizat
         //common prefix items, aggregated intensity, "unique ID (file of first spectrum in the set of 'same')"
         //@todo we could collect all spectrum references contributing to this intensity instead
         csv_out.addLine(
-            line.first.toString() + delim_ + OpenMS::String(intensity) + delim_ + quote_ +
+            line.first.toString() + delim_ + String(intensity) + delim_ + quote_ +
             get<2>(*line.second.begin()) + quote_);
       }
     }
   }
 }
 
-void OpenMS::MSstatsFile::storeLFQ(const String& filename,
+void MSstatsFile::storeLFQ(const String& filename,
                                    const ConsensusMap& consensus_map,
                                    const ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
@@ -223,7 +224,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
 
   if (design.getNumberOfLabels() != 1)
   {
-     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Too many labels for a label-free quantitation experiments. Please select the appropriate method, or validate the experimental desing.");
+     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Too many labels for a label-free quantitation experiments. Please select the appropriate method, or validate the experimental design.");
   }
 
   checkConditionLFQ_(sampleSection, bioreplicate, condition);
@@ -264,7 +265,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
   // Determine if the experiment has fractions
   const bool has_fraction = design.isFractionated();
 
-  //vector< OpenMS::BaseFeature> features{};
+  //vector< BaseFeature> features{};
   vector< String > spectra_paths{};
 
   //features.reserve(consensus_map.size());
@@ -301,7 +302,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
   }
 
   // Extract information from the consensus features.
-  OpenMS::MSstatsFile::AggregatedConsensusInfo aggregatedInfo = OpenMS::MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
+  MSstatsFile::AggregatedConsensusInfo aggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
 
   // The output file of the MSstats converter
   TextFile csv_out;
@@ -364,12 +365,18 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
 
   for (Size i = 0; i < aggregatedInfo.features.size(); ++i)
   {
-    const OpenMS::BaseFeature &base_feature = aggregatedInfo.features[i];
+    const BaseFeature &base_feature = aggregatedInfo.features[i];
 
-    for (const OpenMS::PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
+    for (const PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
     {
-      for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
+      for (const PeptideHit & pep_hit : pep_id.getHits())
       {
+        // skip decoys
+        if (pep_hit.metaValueExists("target_decoy") && pep_hit.getMetaValue("target_decoy") == "decoy") 
+        { 
+          continue;
+        }
+
         //TODO Really double check with Meena Choi (MSStats author) or make it an option! I can't find any info
         // on what is correct. For TMT we include them (since it is necessary) (see occurrence above as well when map is built!)
         const String & sequence = pep_hit.getSequence().toString(); // to modified string
@@ -461,7 +468,7 @@ void OpenMS::MSstatsFile::storeLFQ(const String& filename,
   csv_out.store(filename);
 }
 
-void OpenMS::MSstatsFile::storeISO(const String& filename,
+void MSstatsFile::storeISO(const String& filename,
                                    const ConsensusMap& consensus_map,
                                    const ExperimentalDesign& design,
                                    const StringList& reannotate_filenames,
@@ -524,7 +531,7 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
     design_filenames.push_back(fn);
   }
 
-  vector< OpenMS::BaseFeature> features;
+  vector< BaseFeature> features;
   vector< String > spectra_paths;
 
   features.reserve(consensus_map.size());
@@ -561,7 +568,7 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   }
 
   // Extract information from the consensus features.
-  OpenMS::MSstatsFile::AggregatedConsensusInfo AggregatedInfo = OpenMS::MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
+  MSstatsFile::AggregatedConsensusInfo AggregatedInfo = MSstatsFile::aggregateInfo_(consensus_map, spectra_paths);
 
   // The output file of the MSstatsConverter
   TextFile csv_out;
@@ -587,9 +594,9 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
 
   for (Size i = 0; i < AggregatedInfo.features.size(); ++i)
   {
-    const OpenMS::BaseFeature &base_feature = AggregatedInfo.features[i];
+    const BaseFeature &base_feature = AggregatedInfo.features[i];
 
-    for (const OpenMS::PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
+    for (const PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
     {
       String nativeID = "NONATIVEID";
       if (pep_id.metaValueExists("spectrum_reference"))
@@ -597,8 +604,14 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
         nativeID = pep_id.getMetaValue("spectrum_reference");
       }
 
-      for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
+      for (const PeptideHit & pep_hit : pep_id.getHits())
       {
+        // skip decoys
+        if (pep_hit.metaValueExists("target_decoy") && pep_hit.getMetaValue("target_decoy") == "decoy") 
+        { 
+          continue;
+        }
+
         // Variables of the peptide hit
         // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
         const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
@@ -684,7 +697,7 @@ void OpenMS::MSstatsFile::storeISO(const String& filename,
   csv_out.store(filename);
 }
 
-bool OpenMS::MSstatsFile::checkUnorderedContent_(const std::vector<String> &first, const std::vector<String> &second)
+bool MSstatsFile::checkUnorderedContent_(const std::vector<String> &first, const std::vector<String> &second)
 {
   const std::set< String > lhs(first.begin(), first.end());
   const std::set< String > rhs(second.begin(), second.end());
@@ -692,9 +705,9 @@ bool OpenMS::MSstatsFile::checkUnorderedContent_(const std::vector<String> &firs
          && std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-void OpenMS::MSstatsFile::assembleRunMap_(
-    std::map< std::pair<OpenMS::String, unsigned>, unsigned> &run_map,
-    const OpenMS::ExperimentalDesign &design)
+void MSstatsFile::assembleRunMap_(
+    std::map< std::pair<String, unsigned>, unsigned> &run_map,
+    const ExperimentalDesign &design)
 {
   run_map.clear();
   const ExperimentalDesign::MSFileSection& msfile_section = design.getMSFileSection();
@@ -710,7 +723,7 @@ void OpenMS::MSstatsFile::assembleRunMap_(
   }
 }
 
-std::unordered_map<OpenMS::String, const OpenMS::IndProtGrp* > OpenMS::MSstatsFile::getAccessionToGroupMap_(const OpenMS::IndProtGrps& ind_prots)
+std::unordered_map<String, const IndProtGrp* > MSstatsFile::getAccessionToGroupMap_(const IndProtGrps& ind_prots)
 {
   std::unordered_map<String, const IndProtGrp* > res{};
   for (const IndProtGrp& pgrp : ind_prots)
@@ -723,9 +736,9 @@ std::unordered_map<OpenMS::String, const OpenMS::IndProtGrp* > OpenMS::MSstatsFi
   return res;
 }
 
-bool OpenMS::MSstatsFile::isQuantifyable_(
-    const std::set<OpenMS::String>& accs,
-    const std::unordered_map<OpenMS::String, const OpenMS::IndProtGrp*>& accession_to_group) const
+bool MSstatsFile::isQuantifyable_(
+    const std::set<String>& accs,
+    const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const
 {
   if (accs.empty()) return false;
 
