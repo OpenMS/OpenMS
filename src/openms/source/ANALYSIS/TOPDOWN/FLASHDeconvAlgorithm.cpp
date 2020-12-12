@@ -1166,10 +1166,10 @@ namespace OpenMS
       auto crange = pg.getChargeRange();
       for (auto charge = std::get<0>(crange); charge <= std::get<1>(crange); charge++)
       {
-        if (pg.getChargeIntensity(charge) <= 0){
+        int j = charge - minCharge;
+        if (perChargeIntensity[j] <= 0){
           continue;
         }
-        int j = charge - minCharge;
         auto perIsotopeIntensities = std::vector<double>(avg.getMaxIsotopeIndex(), 0);
 
         int minIsotopeIndex = avg.getMaxIsotopeIndex();
@@ -1230,7 +1230,7 @@ namespace OpenMS
         double cos2 = _cos * _cos;
 
         pg.setChargeIsotopeCosine(charge, _cos);
-        pg.setChargeIntensity(charge, perChargeIntensity[charge - minCharge]);
+        pg.setChargeIntensity(charge, perChargeIntensity[j]);
 
         auto dno = (1 - cos2) * sp + pg.getChargeSNR(charge) + 1;
         auto no = cos2 * sp + 1;
