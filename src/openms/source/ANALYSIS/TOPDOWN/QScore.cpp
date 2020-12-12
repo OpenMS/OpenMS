@@ -44,17 +44,19 @@ namespace OpenMS
     { // all zero
       return -100;
     }
-    std::vector<double> weights({-16.2939, 0.4319, -0.3667, -49.6329,  -0.1853, 18.5845});
+    std::vector<double> weights({-2.7354, 0.3827, -6.2515, -32.5791, -4.9526, -9.6165,  14.7892 });
+    //
+    //ChargeCos       -2.7354
+    //ChargeInt        0.3827
+    //ChargeSNR       -6.2515
+    //Cos            -32.5791
+    //SNR             -4.9526
+    //ChargeScore     -9.6165
+    //Intercept       14.7892
 
-//ChargeCos    -16.2939
-//ChargeInt      0.4319
-//ChargeSNR     -0.3667
-//Cos          -49.6329
-//SNR           -0.1853
-//Intercept     18.5845
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector(pg, charge);
-    for(int i=0;i<fv.size();i++){
+    for(int i=0;i<weights.size() - 1;i++){
       score += fv[i] * weights[i];
     }
     return -score;
@@ -64,18 +66,18 @@ namespace OpenMS
   {
     std::vector<double> fvector;
 
-    fvector.push_back(log10(1.0 + pg->getChargeIsotopeCosine(charge)));
-    fvector.push_back((pg->getChargeIntensity(charge)+1)/(pg->getIntensity()+1));
-    fvector.push_back(log10(1.0 + pg->getChargeSNR(charge)));
-    fvector.push_back(log10(1.0 + pg->getIsotopeCosine()));
-    fvector.push_back(log10(1.0 + pg->getSNR()));
-
+    fvector.push_back(log10(1 + pg->getChargeIsotopeCosine(charge)));
+    fvector.push_back(log10(1 + (pg->getChargeIntensity(charge)+1)/(pg->getIntensity()+1)));
+    fvector.push_back(log10(1 + (pg->getChargeSNR(charge))/(1+pg->getChargeSNR(charge))));
+    fvector.push_back(log10(1 + pg->getIsotopeCosine()));
+    fvector.push_back(log10(1 + (pg->getSNR()/(1 + pg->getSNR()))));
+    fvector.push_back(log10(1 + pg->getChargeScore()));
     return fvector;
   }
 
   void QScore::writeAttHeader(std::fstream &f)
   {
-    f<<"RT,PrecursorAvgMass,ChargeCos,ChargeInt,ChargeSNR,Cos,SNR,Qscore,Class\n";
+    f<<"RT,PrecursorAvgMass,ChargeCos,ChargeInt,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream &f)

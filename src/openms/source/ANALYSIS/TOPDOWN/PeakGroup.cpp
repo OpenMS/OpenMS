@@ -226,6 +226,11 @@ namespace OpenMS
     maxQScoreCharge = c;
   }
 
+  void PeakGroup::setChargeScore(float s)
+  {
+    chargeScore = s;
+  }
+
   float PeakGroup::getIsotopeCosine() const
   {
     return isotopeCosineScore;
@@ -254,5 +259,10 @@ namespace OpenMS
   float PeakGroup::getSNR() const
   {
     return totalSNR;
+  }
+
+  float PeakGroup::getChargeScore() const
+  {
+    return chargeScore;
   }
 }

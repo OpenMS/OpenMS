@@ -64,6 +64,10 @@ namespace OpenMS
     defaults_.setValue("min_isotope_cosine",
                        DoubleList{.75, .85},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+    defaults_.setValue("min_charge_score",
+                       DoubleList{.7, .0},
+                       "charge score threshold for MS1, 2, ... (e.g., -min_charge_score 0.7 0.3 to specify 0.7 and 0.3 for MS1 and MS2, respectively)");
+
     //defaults_.setValue("min_charge_cosine",
     //                   .5,
     //                   "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
@@ -180,6 +184,7 @@ namespace OpenMS
     }
 
     minIsotopeCosine = param_.getValue("min_isotope_cosine");
+    minChargeScore = param_.getValue("min_charge_score");
     //minChargeCosine = param_.getValue("min_charge_cosine");
     maxMassCount = param_.getValue("max_mass_count");
     minMassCount = param_.getValue("min_mass_count");
@@ -1099,9 +1104,14 @@ namespace OpenMS
           perIsotopeIntensity, perChargeIntensity,
           avg.getMaxIsotopeIndex(), pg);
 
+      auto cs = getChargeFitScore(perChargeIntensity, chargeRange);
+      if (cs < minChargeScore[msLevel-1]){
+        continue;
+      }
+      pg.setChargeScore(cs);
+
       if (msLevel == 1)
       {
-        //auto chargeCosineScore = getChargeFitScore(perChargeIntensity, chargeRange);
 
         //if(chargeCosineScore < 0.5)
         //{
@@ -1700,100 +1710,37 @@ namespace OpenMS
   double FLASHDeconvAlgorithm::getChargeFitScore(const std::vector<double> &perChargeIntensity, const int chargeRange)
   {
     double maxPerChargeIntensity = .0;
-    std::vector<double> xs;
-    std::vector<double> ys;
-
-    xs.reserve(chargeRange + 2);
-    ys.reserve(chargeRange + 2);
+    double sumIntensity = .0;
+    int maxIndex = -1;
 
     for (int i = 0; i < chargeRange; i++)
     {
-      maxPerChargeIntensity = std::max(maxPerChargeIntensity, perChargeIntensity[i]);
-    }
-
-    double th = maxPerChargeIntensity * .02;// as recommended in the original paper...
-    int first = -1, last = 0;
-    for (int i = 0; i < chargeRange; i++)
-    {
-      if (perChargeIntensity[i] <= th)
-      {
+      sumIntensity += perChargeIntensity[i];
+      if(maxPerChargeIntensity > perChargeIntensity[i]){
         continue;
       }
-      if (first < 0)
-      {
-        first = i;
+      maxPerChargeIntensity = perChargeIntensity[i];
+      maxIndex = i;
+    }
+
+    double p = .0;
+    for (int i=maxIndex;i<chargeRange - 1; i++)
+    {
+      auto diff = perChargeIntensity[i+1] - perChargeIntensity[i];
+      if (diff <= 0){
+        continue;
       }
-
-      last = i;
+      p += diff;
     }
 
-    for (int i = first; i <= last; i++)
+    for (int i=maxIndex;i>0; i--)
     {
-      if (perChargeIntensity[i] <= th)
-      {
-        //continue;
+      auto diff = perChargeIntensity[i-1] - perChargeIntensity[i];
+      if (diff <= 0){
+        continue;
       }
-      xs.push_back(i);
-      ys.push_back(1 + perChargeIntensity[i]);
+      p += diff;
     }
-
-    if (xs.size() <= 3)
-    {
-      return 1.0;
-    }
-
-    Eigen::Matrix3d m;
-    Eigen::Vector3d v;
-
-    double s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0;
-    double t0 = 0, t1 = 0, t2 = 0;
-
-    for (Size i = 0; i < xs.size(); i++)
-    {
-      auto &x = xs[i];
-      auto y = log(ys[i]);
-      s0++;
-      s1 += x;
-      s2 += x * x;
-      s3 += x * x * x;
-      s4 += x * x * x * x;
-      t0 += y;
-      t1 += y * x;
-      t2 += y * x * x;
-    }
-    m(0, 0) = s0;
-    m(1, 0) = m(0, 1) = s1;
-    m(2, 0) = m(1, 1) = m(0, 2) = s2;
-    m(2, 1) = m(1, 2) = s3;
-    m(2, 2) = s4;
-
-    auto im = m.inverse();
-    v(0) = t0;
-    v(1) = t1;
-    v(2) = t2;
-    //cout<<v<<endl;
-    auto abc = im * v;
-    //cout<<abc<<endl;
-    double mu = -abc(1) / abc(2) / 2;
-    double omega = -1 / abc(2) / 2;
-
-    if (omega <= 0)
-    {
-      return -.1;
-    }
-    std::vector<double> tys;
-
-    for (Size i = 0; i < ys.size(); i++)
-    {
-      double ty = exp(-(xs[i] - mu) * (xs[i] - mu) / 2 / omega);
-      tys.push_back(ty);
-    }
-
-    auto cos = getCosine(ys, tys);
-    if (isnan(cos))
-    {
-      return -.1;
-    }
-    return cos;
+    return 1 - p/sumIntensity;
   }
 }

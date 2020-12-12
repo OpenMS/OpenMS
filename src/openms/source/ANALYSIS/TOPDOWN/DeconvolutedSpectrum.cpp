@@ -154,7 +154,7 @@ namespace OpenMS
              << precursorPeakGroup->getQScore() << "\t";
         }
       }
-      fs << pg.getIsotopeCosine() << "\t";
+      fs << pg.getIsotopeCosine() << "\t" << pg.getChargeScore() <<"\t";
 
       auto qrange = pg.getMzxQScoreMzRange();
       fs << pg.getSNR() << "\t"
@@ -210,7 +210,7 @@ namespace OpenMS
             << "FileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-               "IsotopeCosine\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
@@ -219,7 +219,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
     else
@@ -231,7 +231,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-               "IsotopeCosine\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
 
       }
       else
@@ -241,7 +241,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }

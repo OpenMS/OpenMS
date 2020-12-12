@@ -155,6 +155,11 @@ protected:
                          DoubleList{.75, .90},
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.addTag("min_isotope_cosine", "advanced");
+    fd_defaults.setValue("min_charge_score",
+                       DoubleList{.0, .0},
+                       "charge score threshold for MS1, 2, ... (e.g., -min_charge_score 0.7 0.3 to specify 0.7 and 0.3 for MS1 and MS2, respectively)");
+    fd_defaults.addTag("min_charge_score", "advanced");
+
     //fd_defaults.setValue("min_charge_cosine",
     //                     .75,
     //                     "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");

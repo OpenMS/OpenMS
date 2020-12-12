@@ -108,6 +108,9 @@ namespace OpenMS
     void setQScore(float q);
     /// set total SNR
     void setSNR(float snr);
+    /// set charge score
+    void setChargeScore(float s);
+
     /// get scan number
     int getScanNumber() const;
     /// get monoisotoopic mass
@@ -132,6 +135,8 @@ namespace OpenMS
     float getQScore() const;
     /// get total SNR
     float getSNR() const;
+    /// get charge score
+    float getChargeScore() const;
 
   private:
     /// per charge SNR, isotope cosine, and intensity vectors
@@ -153,6 +158,7 @@ namespace OpenMS
     /// scoring variables
     int maxQScoreCharge;
     float isotopeCosineScore;
+    float chargeScore;
     float qScore;
     float totalSNR;
   };
