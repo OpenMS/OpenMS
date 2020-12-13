@@ -327,8 +327,47 @@ namespace OpenMS
     return index;
   }
 
-
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          mods.push_back(m->getFullId());
+        }
+      }
+    }
+  }
+
+  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          mods.push_back(m);
+        }
+      }
+    }
+  }
+
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
     std::map<std::pair<double,Size>, const String&> diff_idx2mods;
@@ -356,7 +395,7 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
     std::map<std::pair<double,Size>, const ResidueModification*> diff_idx2mods;
