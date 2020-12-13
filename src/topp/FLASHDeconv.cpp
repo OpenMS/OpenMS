@@ -548,6 +548,7 @@ protected:
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         // per spec deconvolution
+        //if (msLevel == 1)// TODO remove!!
         fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber);
 
         if (it->getMSLevel() == 2 && !intrainfile.empty()

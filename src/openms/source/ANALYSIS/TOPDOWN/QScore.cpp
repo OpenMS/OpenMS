@@ -44,14 +44,14 @@ namespace OpenMS
     { // all zero
       return -100;
     }
-    std::vector<double> weights({-2.3839, -6.3708, -33.1837, -5.0299, -9.4333,  14.8904 });
+    std::vector<double> weights({-0.7927, -1.9353, -9.4241, -1.5728, -2.4232,  14.0816 });
     //
-    //ChargeCos       -2.3839
-    //ChargeSNR       -6.3708
-    //Cos            -33.1837
-    //SNR             -5.0299
-    //ChargeScore     -9.4333
-    //Intercept       14.8904
+    //ChargeCos      -0.7927
+    //ChargeSNR      -1.9353
+    //Cos            -9.4241
+    //SNR            -1.5728
+    //ChargeScore    -2.4232
+    //Intercept      14.0816
 
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector(pg, charge);
@@ -65,14 +65,22 @@ namespace OpenMS
   {
     std::vector<double> fvector;
 
-    fvector.push_back(log10(1 + pg->getChargeIsotopeCosine(charge)));
-    //fvector.push_back(log10(1 + (pg->getChargeIntensity(charge)+1)/(pg->getIntensity()+1)));
-    fvector.push_back(log10(1 + (pg->getChargeSNR(charge))/(1+pg->getChargeSNR(charge))));
-    fvector.push_back(log10(1 + pg->getIsotopeCosine()));
-    fvector.push_back(log10(1 + (pg->getSNR()/(1 + pg->getSNR()))));
-    fvector.push_back(log10(1 + pg->getChargeScore()));
+    double a = pg->getChargeIsotopeCosine(charge);
+    double d = 1;
+    fvector.push_back(log2(a + d));
+    a = pg->getChargeSNR(charge);
+    fvector.push_back(log2(d + a/(1+a)));
+    a = pg->getIsotopeCosine();
+    fvector.push_back(log2(a + d));
+    a = pg->getSNR();
+    fvector.push_back(log2(d + a/(1+a)));
+    a = pg->getChargeScore();
+    fvector.push_back(log2(a + d));
+
     return fvector;
   }
+
+
 
   void QScore::writeAttHeader(std::fstream &f)
   {
@@ -82,7 +90,7 @@ namespace OpenMS
   void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream &f)
   {
     auto fv = toFeatureVector(&pg, charge);
-    if (fv[0] <= 0) return;
+    if (pg.getChargeIsotopeCosine(charge) <= 0) return;
 
     auto mass = avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass();
     f << rt <<","<<mass <<",";
