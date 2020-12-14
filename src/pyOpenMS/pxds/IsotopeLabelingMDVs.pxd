@@ -1,5 +1,5 @@
 from Types cimport *
-from Matrix import *
+from Matrix cimport *
 from Feature cimport *
 from FeatureMap cimport *
 from String cimport *
