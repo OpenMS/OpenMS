@@ -214,17 +214,6 @@ private:
 
     }; //class
 
-
-    namespace
-    {
-      //given x compute y = slope * x + intercept
-      double computePointY(double x, double slope, double intercept)
-      {
-        return slope * x + intercept;
-      }
-
-    } //namespace
-
     //x, y, w must be of same size
     template <typename Iterator>
     double LinearRegression::computeChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, double slope, double intercept)

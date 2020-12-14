@@ -99,8 +99,6 @@ public:
         double log_eval_no_normalize(double x) const;
 
       private:
-        /// cached value of log sigma
-        double logsigma;
         double halflogtwopi = 0.5*log(2.0*Constants::PI);
       };
 
