@@ -7,7 +7,7 @@ from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS":
     
-    cdef cppclass IsotopeLabelingMDVs() :
+    cdef cppclass IsotopeLabelingMDVs(DefaultParamHandler) :
         
         IsotopeLabelingMDVs() nogil except +
 
