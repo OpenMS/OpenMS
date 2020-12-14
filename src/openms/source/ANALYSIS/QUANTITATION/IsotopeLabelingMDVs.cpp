@@ -60,6 +60,15 @@ namespace OpenMS
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
+    const std::unordered_map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices_ =
+    {
+      { DerivatizationAgent::TBDMS, {{0.8213, 0.1053, 0.0734, 0.0000},
+                                     {0.8420, 0.0963, 0.0617, 0.0000},
+                                     {0.8466, 0.0957, 0.0343, 0.0233},
+                                     {0.8484, 0.0954, 0.0337, 0.0225}}
+      }
+    };
+    
     Eigen::MatrixXd correction_matrix_eigen;
     auto correction_matrix_search = correction_matrices_.find(correction_matrix_agent);
     
