@@ -224,15 +224,12 @@ namespace OpenMS
     
   private:
     /// Correction Matrices for various derivatization agents
-    const std::unordered_map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices_
+    const std::unordered_map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices_ =
     {
-      std::unordered_map<DerivatizationAgent, std::vector<std::vector<double>> >
-      {
-        { DerivatizationAgent::TBDMS, {{0.8213, 0.1053, 0.0734, 0.0000},
-                                       {0.8420, 0.0963, 0.0617, 0.0000},
-                                       {0.8466, 0.0957, 0.0343, 0.0233},
-                                       {0.8484, 0.0954, 0.0337, 0.0225}}
-        }
+      { DerivatizationAgent::TBDMS, {{0.8213, 0.1053, 0.0734, 0.0000},
+                                     {0.8420, 0.0963, 0.0617, 0.0000},
+                                     {0.8466, 0.0957, 0.0343, 0.0233},
+                                     {0.8484, 0.0954, 0.0337, 0.0225}}
       }
     };
   };
