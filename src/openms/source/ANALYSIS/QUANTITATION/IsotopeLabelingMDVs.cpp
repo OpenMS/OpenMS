@@ -60,7 +60,7 @@ namespace OpenMS
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
-    const std::unordered_map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices_ =
+    const std::map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices_ =
     {
       { DerivatizationAgent::TBDMS, {{0.8213, 0.1053, 0.0734, 0.0000},
                                      {0.8420, 0.0963, 0.0617, 0.0000},
