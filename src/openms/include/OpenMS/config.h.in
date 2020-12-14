@@ -68,12 +68,32 @@
 // This is confusing for debug logs from executables on user machines and unnecessary.
 // This shifts the pointer to the char array of the filepath to the filename only.
 // WARNING: Does not work for files outside of the src directory.
+// Needs the pragmas for CLangs superstrict compiler warnings. But the pragmas lead to failures in Win and Lnx.
+// Therefore it is not used for now.
 
-#define OPENMS_FILENAME _Pragma("GCC diagnostic push") \
-_Pragma("GCC diagnostic push") \
-_Pragma("GCC diagnostic ignored \"-Wstring-plus-int\"") \
-( __FILE__ + @CF_SOURCE_PATH_SIZE@ ) \
-_Pragma("GCC diagnostic pop")
+//#define OPENMS_SHORT_FILE _Pragma("GCC diagnostic push") \
+//_Pragma("GCC diagnostic push") \
+//_Pragma("GCC diagnostic ignored \"-Wstring-plus-int\"") \
+//( __FILE__ + @CF_SOURCE_PATH_SIZE@ ) \
+//_Pragma("GCC diagnostic pop")
+
+using cstr = const char * const;
+
+static constexpr cstr past_last_slash(cstr str, cstr last_slash)
+{
+  return
+    *str == '\0' ? last_slash :
+    *str == '/'  ? past_last_slash(str + 1, str + 1) :
+    *str == '\\'  ? past_last_slash(str + 1, str + 1) :
+    past_last_slash(str + 1, last_slash);
+}
+
+static constexpr cstr past_last_slash(cstr str)
+{
+  return past_last_slash(str, str);
+}
+
+#define OPENMS_FILENAME ({constexpr cstr sf__ {past_last_slash(__FILE__)}; sf__;})
 
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
 #ifdef OPENMS_COMPILER_MSVC
