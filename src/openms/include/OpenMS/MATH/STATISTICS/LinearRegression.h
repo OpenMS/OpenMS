@@ -88,9 +88,7 @@ public:
       }
 
       /// Destructor
-      virtual ~LinearRegression()
-      {
-      }
+      virtual ~LinearRegression() = default;
 
       /**
           @brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$
@@ -165,6 +163,12 @@ public:
       double getChiSquared() const;
       /// Non-mutable access to relative standard deviation
       double getRSD() const;
+
+      /// given x compute y = slope * x + intercept
+      static inline double computePointY(double x, double slope, double intercept)
+      {
+        return slope * x + intercept;
+      }
 
 protected:
 
