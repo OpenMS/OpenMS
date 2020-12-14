@@ -292,9 +292,6 @@ namespace OpenMS
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " has no data!");
   }
 
-  /// get the displayed name of the header in column with index @p header_column
-  /// @throws Exception::ElementNotFound if header at index @p header_column is not valid
-
   QString TableView::getHeaderName(const int header_column)
   {
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
@@ -308,7 +305,7 @@ namespace OpenMS
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " has no data!");
   }
 
-  void TableView::resizeEvent(QResizeEvent* event)
+  void TableView::resizeEvent(QResizeEvent* /*event*/)
   {
     emit resized();
   }

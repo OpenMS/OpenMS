@@ -142,7 +142,7 @@ namespace OpenMS
 
       // if out_dir (user defined output directory for OSW results) changes ...
       connect(ui->out_dir, &OutputDirectory::directoryChanged, this, &SwathTabWidget::checkPyProphetInput_);
-      // ... or the mzML input changes --> update the input list of tbl_py_pqps (which depend in the basenames of mzMLs and the OSW output directory)
+      // ... or the mzML input changes --> update the input list of tbl_py_osws (which depend in the basenames of mzMLs and the OSW output directory)
       connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &SwathTabWidget::checkPyProphetInput_);
 
       // prepare table for pyProphet input files
@@ -300,6 +300,8 @@ namespace OpenMS
       return files;
     }
 
+    const char* msg_no_osws = "select mzML input files in 'LC-MS files' tab first and pick an output directory in 'Run OpenSwath' tab";
+
     void SwathTabWidget::checkPyProphetInput_()
     {
       // populate the file list widget for pyProphet input
@@ -309,7 +311,7 @@ namespace OpenMS
       if (files.empty())
       {
         tbl.appendRow();
-        tbl.setAtBottomRow("select mzML input files in 'LC-MS files' tab first and pick an output directory in 'Run OpenSwath' tab", 0, Qt::white, Qt::gray);
+        tbl.setAtBottomRow(msg_no_osws, 0, Qt::white, Qt::gray);
       }
       else 
       {
@@ -319,7 +321,6 @@ namespace OpenMS
           tbl.setAtBottomRow(file.first.c_str(), 0, Qt::white, 
                              file.second ? Qt::black : Qt::red)
               ->setCheckState(Qt::Unchecked);
-
         }
       }
       // set label at bottom
@@ -342,6 +343,7 @@ namespace OpenMS
       ui->log_text->append(text);
       ui->log_text->setTextColor(tc); // restore old color
     }
+
     void SwathTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
       writeLog_(text.toQString(), color, new_section);
@@ -594,13 +596,18 @@ namespace OpenMS
       QStringList args;
       auto raw_files = getMzMLInputFiles(); // mzML's for now; will be translated to sqMass below
       auto osw_files = getPyProphetOutputFileNames();
+      if (tbl.rowCount() == 1 && tbl.item(0, 0)->data(Qt::DisplayRole).toString() == msg_no_osws)
+      {
+        QMessageBox::information(this, "Error", "No files are selected from the list above! Make sure to select mzML files in the 'LC-MS files' tab first.");
+        return;
+      }
       if (tbl.rowCount() != raw_files.size() || tbl.rowCount() != osw_files.count())
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Something went wrong in populating the input file window");
       }
       for (int i = 0; i < tbl.rowCount(); ++i)
       {
-        if (tbl.item(i, 0)->checkState() == Qt::Checked)
+        if (tbl.item(i, 0)->checkState() == Qt::CheckState::Checked)
         {
           ++selected_rows;
           args << infileToChrom(raw_files[i]).toQString() << "!" << osw_files[i];
