@@ -601,7 +601,7 @@ namespace OpenMS
         QMessageBox::information(this, "Error", "No files are selected from the list above! Make sure to select mzML files in the 'LC-MS files' tab first.");
         return;
       }
-      if (size_t(tbl.rowCount()) != raw_files.size() || raw_files.size() != osw_files.count())
+      if (size_t(tbl.rowCount()) != raw_files.size() || tbl.rowCount() != osw_files.count())
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Something went wrong in populating the input file window");
       }
