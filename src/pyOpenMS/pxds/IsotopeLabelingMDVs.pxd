@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
         IsotopeLabelingMDVs() nogil except +
 
         void isotopicCorrection(const Feature & normalized_feature, Feature & corrected_feature, 
-          const MatrixDouble & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
+          const MatrixDouble & correction_matrix, const IsotopeLabelingMDVs_DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void isotopicCorrections(
           const FeatureMap & normalized_featureMap, FeatureMap & corrected_featureMap,
-          const MatrixDouble & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
+          const MatrixDouble & correction_matrix, const IsotopeLabelingMDVs_DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void calculateIsotopicPurity(
           const Feature & normalized_feature, Feature & feature_with_isotopic_purity,
@@ -36,8 +36,32 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDV(
           const Feature & measured_feature, Feature & normalized_feature,
-          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +
+          const IsotopeLabelingMDVs_MassIntensityType & mass_intensity_type, const IsotopeLabelingMDVs_FeatureName & feature_name) nogil except +
 
         void calculateMDVs(
           const FeatureMap & measured_featureMap, FeatureMap & normalized_featureMap,
-          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +
+          const IsotopeLabelingMDVs_MassIntensityType & mass_intensity_type, const IsotopeLabelingMDVs_FeatureName & feature_name) nogil except +
+
+
+cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS::IsotopeLabelingMDVs":
+
+    cdef enum IsotopeLabelingMDVs_DerivatizationAgent "OpenMS::IsotopeLabelingMDVs::DerivatizationAgent":
+        #wrap-attach:
+        #    DerivatizationAgent
+        NOT_SELECTED
+        TBDMS
+        SIZE_OF_DERIVATIZATIONAGENT
+
+    cdef enum IsotopeLabelingMDVs_FeatureName "OpenMS::IsotopeLabelingMDVs::FeatureName":
+        #wrap-attach:
+        #    FeatureName
+        INTENSITY
+        PEAK_APEX_INT
+        SIZE_OF_FEATURENAME
+
+    cdef enum IsotopeLabelingMDVs_MassIntensityType "OpenMS::IsotopeLabelingMDVs::MassIntensityType":
+        #wrap-attach:
+        #    MassIntensityType
+        NORM_MAX
+        NORM_SUM
+        SIZE_OF_MASSINTENSITYTYPE
