@@ -326,7 +326,7 @@ namespace OpenMS
             seq = peptide.getHits()[0].getSequence().toString();
             chg = peptide.getHits()[0].getCharge();
           }
-          OpenMS_Log_debug << "Skipping seed from FeatureID " << String(f_it->getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
+          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from FeatureID " << String(f_it->getUniqueId()) << " with CHG: " << seed_charge << "; RT: " << seed_RT << "; MZ: " << seed_MZ <<
           " due to overlap with " << seq << "/" << chg << " at MZ: " << peptide_MZ << "; RT: " << peptide_RT << endl;
 
           break;
@@ -777,7 +777,7 @@ namespace OpenMS
           {
             if (reg_it->ids.count(charge))
             {
-              OpenMS_Log_debug << "Charge " << charge << ", Region# " << counter + 1 << " (RT: "
+              OPENMS_LOG_DEBUG_NOFILE << "Charge " << charge << ", Region# " << counter + 1 << " (RT: "
                                << float(reg_it->start) << "-" << float(reg_it->end)
                                << ", size " << float(reg_it->end - reg_it->start) << ")"
                                << std::endl;
@@ -1214,17 +1214,17 @@ namespace OpenMS
     {
       if (peptide.metaValueExists("SeedFeatureID"))
       {
-        OpenMS_Log_debug << "Adding seed (internal) from FeatureID " << peptide.getMetaValue("SeedFeatureID") << ": " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+        OPENMS_LOG_DEBUG_NOFILE << "Adding seed (internal) from FeatureID " << peptide.getMetaValue("SeedFeatureID") << ": " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
       }
       else
       {
-        OpenMS_Log_debug << "Adding peptide (internal) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+        OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (internal) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
       }
       peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide);
     }
     else
     {
-      OpenMS_Log_debug << "Adding peptide (external) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (external) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
       peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
     }
   }
