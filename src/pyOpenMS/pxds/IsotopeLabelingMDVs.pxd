@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
         IsotopeLabelingMDVs() nogil except +
 
         void isotopicCorrection(const Feature & normalized_feature, Feature & corrected_feature, 
-          const MatrixDouble & correction_matrix, const IsotopeLabelingMDVs_DerivatizationAgent & correction_matrix_agent) nogil except +
+          const MatrixDouble & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void isotopicCorrections(
           const FeatureMap & normalized_featureMap, FeatureMap & corrected_featureMap,
-          const MatrixDouble & correction_matrix, const IsotopeLabelingMDVs_DerivatizationAgent & correction_matrix_agent) nogil except +
+          const MatrixDouble & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void calculateIsotopicPurity(
           const Feature & normalized_feature, Feature & feature_with_isotopic_purity,
@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS::IsotopeLabelingMDVs":
 
-    cdef enum IsotopeLabelingMDVs_DerivatizationAgent "OpenMS::IsotopeLabelingMDVs::DerivatizationAgent":
+    cdef enum DerivatizationAgent "OpenMS::IsotopeLabelingMDVs::DerivatizationAgent":
         #wrap-attach:
         #    DerivatizationAgent
         NOT_SELECTED
