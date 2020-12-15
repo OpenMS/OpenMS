@@ -942,6 +942,7 @@ namespace OpenMS
         return (-1) * log10(getScore_({"MS:1002257","expect"}, hit, current_score_type));
       }
       else if (engine == "SIMPLESEARCHENGINE")
+      {
         return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
       }
 
