@@ -978,17 +978,18 @@ public:
          bool first_run_inference_;
          String filename_;
          StringList fixed_mods_;
+         /* currently unused
          bool export_unidentified_features_; 
-         bool export_subfeatures_;
+         bool export_subfeatures_; */
          bool export_empty_pep_ids_; 
          size_t quant_study_variables_ = 0;
-         size_t n_study_variables_ = 0;
+         // size_t n_study_variables_ = 0; //currently unused
          size_t PRT_STATE_ = 0;
          size_t prt_run_id_ = 0; // current (protein) identification run
          size_t prt_hit_id_ = 0; // current protein in (protein) identification run
          size_t prt_group_id_ = 0;
          size_t prt_indistgroup_id_ = 0;
-         size_t pep_id_ = 0;
+         // size_t pep_id_ = 0; // currently unused
          size_t psm_id_ = 0;
          MzTabString db_, db_version_;
 
