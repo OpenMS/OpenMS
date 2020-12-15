@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
         IsotopeLabelingMDVs() nogil except +
 
         void isotopicCorrection(const Feature & normalized_feature, Feature & corrected_feature, 
-          const Matrix[ double ] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
+          Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void isotopicCorrections(
           const FeatureMap & normalized_featureMap, FeatureMap & corrected_featureMap,
-          const Matrix[ double ] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
+          Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void calculateIsotopicPurity(
           const Feature & normalized_feature, Feature & feature_with_isotopic_purity,
