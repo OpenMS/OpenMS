@@ -103,7 +103,7 @@ namespace OpenMS
       {
         target_intensity += isolated_window[next_iso_index].getIntensity();
 
-        isolated_window.erase(isolated_window.begin()+next_iso_index);
+        isolated_window.erase(isolated_window.begin() + next_iso_index);
         target_peak_count++;
       }
       // always increment iso to progress the loop
@@ -120,7 +120,8 @@ namespace OpenMS
     score.target_intensity = target_intensity;
     score.signal_proportion = rel_sig;
     score.target_peak_count = target_peak_count;
-    score.residual_peak_count = isolated_window.size();
+    score.interfering_peak_count = isolated_window.size();
+    score.interfering_peaks = isolated_window;
 
     return score;
   }
@@ -135,18 +136,18 @@ namespace OpenMS
       score.signal_proportion = score.target_intensity / score.total_intensity;
     }
     score.target_peak_count = score1.target_peak_count + score2.target_peak_count;
-    score.residual_peak_count = score1.residual_peak_count + score2.residual_peak_count;
+    score.interfering_peak_count = score1.interfering_peak_count + score2.interfering_peak_count;
 
     return score;
   }
 
-  std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra)
   {
     std::map<String, PrecursorPurity::PurityScores> purityscores;
     std::pair<std::map<String, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
     int spectra_size = static_cast<int>(spectra.size());
 
-    if (spectra[0].getMSLevel() != 1)
+    if (spectra[0].getMSLevel() != 1 && !ignore_missing_precursor_spectra)
     {
       OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. First Spectrum is not MS1. Precursor Purity info will not be calculated!\n";
       return purityscores;
@@ -157,7 +158,7 @@ namespace OpenMS
       if (spectra[i].getMSLevel() == 2)
       {
         auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
-        if (parent_spectrum_it == spectra.end())
+        if (parent_spectrum_it == spectra.end() && !ignore_missing_precursor_spectra)
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. An MS2 spectrum without parent spectrum detected. Precursor Purity info will not be calculated!\n";
           return std::map<String, PrecursorPurity::PurityScores>();
@@ -183,9 +184,12 @@ namespace OpenMS
     {
       if (spectra[i].getMSLevel() == 2)
       {
-        auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
-        PrecursorPurity::PurityScores score = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-
+        PrecursorPurity::PurityScores score;
+        auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin() + i);
+        if (parent_spectrum_it != spectra.end())
+        {
+          score = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+        }
 #pragma omp critical (purityscores_access)
         {
           // replace the initialized values

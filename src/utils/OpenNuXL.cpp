@@ -133,6 +133,8 @@ using namespace boost::accumulators;
 
 #define CONSIDER_AA_LOSSES 1
 
+
+
 //#define ANNOTATED_QUANTILES 1
 
 #ifdef ANNOTATED_QUANTILES
@@ -141,6 +143,7 @@ typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
 #include <boost/accumulators/statistics/extended_p_square_quantile.hpp>
 
 typedef accumulator_set<double, stats<tag::extended_p_square_quantile(quadratic)> > accumulator_t_quadratic;
+          
 
 struct SpectrumLevelScoreQuantiles
 {
@@ -467,7 +470,7 @@ public:
 protected:
   /// percolator feature set
   StringList feature_set_;
-
+  
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
@@ -1139,6 +1142,34 @@ protected:
       };
 #endif
 
+    auto ambigious_match = [&](const double& mz, const double z, const String& name)->bool
+    {
+      auto it = fragment_adduct2block_if_masses_present.find(name); // get vector of blocked mass lists
+      if (it != fragment_adduct2block_if_masses_present.end())
+      {
+        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+        for (auto ml : it->second)
+        { // for all blocked mass lists
+          bool mass_list_matches{true};
+          for (const double m : ml)
+          { // for all masses in current mass list            
+            Size index = exp_spectrum.findNearest(mz - m * z);
+            const double exp_mz = exp_spectrum[index].getMZ();
+
+            const double abs_err_Da = std::fabs(mz - m * z - exp_mz);
+            if (abs_err_Da >= max_dist_dalton) // no match? then this mass list is not ambigous (break and continue with next one)
+            {
+              mass_list_matches = false;
+              break;
+            }
+          } 
+          if (mass_list_matches) { return true; } // mass list matched every peak -> ambigious explanation
+        }
+      }
+      return false;
+    };
+
+
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size(); // number of bonds = length of peptide - 1
 
@@ -1154,12 +1185,19 @@ protected:
       {
         for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
         {
-          for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
 
+////////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
+          // TODO move out?
+          auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
+          bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
+
+          for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
           {
             const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
               + (z-1) * Constants::PROTON_MASS_U) / z;
 
+            if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
+ 
             const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
             // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
@@ -1200,12 +1238,18 @@ protected:
     {
       for (const RNPxlFragmentAdductDefinition  & fa : partial_loss_modification)
       {
+////////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
+        auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
+        bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
+
         for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
             + (z-1) * Constants::PROTON_MASS_U) / z;
 
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+          if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
 
           // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
           Size index = exp_spectrum.findNearest(theo_mz);
@@ -1354,6 +1398,11 @@ protected:
         for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
         {
           const double theo_mz = (peptide_mass + fa.mass + z * Constants::PROTON_MASS_U) / z;
+
+          // TODO move out?
+          auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
+          bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
+          if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
 
           const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
           Size index = exp_spectrum.findNearest(theo_mz);
@@ -2008,6 +2057,8 @@ static void scoreXLIons_(
 #ifdef FILTER_AMBIGIOUS_PEAKS
   static map<double, double> mass2high_frequency_;
 #endif
+  static map<String, vector<vector<double>>> fragment_adduct2block_if_masses_present;
+
 
   void calculateNucleotideTags_(PeakMap& exp, 
     const double fragment_mass_tolerance, 
@@ -2062,6 +2113,9 @@ static void scoreXLIons_(
       }
     }
 
+    map<String, set<String>> tag2ADs;
+    unordered_map<String, unordered_set<String>> ADs2tag;
+
     // 2 AA vs 1AA + adduct 
     for (const Residue* a : residues)
     {
@@ -2079,9 +2133,19 @@ static void scoreXLIons_(
         for (; left != right; ++left)
         {
           auto& residues2adductname = left->second;
+          const String& A = a->getOneLetterCode();
+          const String& B = b->getOneLetterCode();
+          const String tag = A+B;
           for (auto& r2s : residues2adductname)
           {
-            cout << (am + bm) << ":" << a->getOneLetterCode() << b->getOneLetterCode() << "=" << r2s.first->getOneLetterCode() << "+" << r2s.second << endl;
+            const String& adduct_name = r2s.second;
+            cout << (am + bm) << ":" << tag << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
+            tag2ADs[tag].insert(adduct_name);
+            ADs2tag[adduct_name].insert(tag);
+            vector<double> list;
+            list.push_back(am);        
+            list.push_back(bm);        
+            fragment_adduct2block_if_masses_present[adduct_name].push_back(list);
           }
         }      
       }
@@ -2102,13 +2166,24 @@ static void scoreXLIons_(
         auto right = adduct_mass2adduct_names.upper_bound(am + bm + tolerance);
         for (; left != right; ++left)
         {
-          for (auto& name : left->second)
+          const String& A = a->getOneLetterCode();
+          const String& B = b->getOneLetterCode();
+          const String tag = A+B;
+          for (auto& adduct_name : left->second)
           {
-            cout << (am + bm) << ":" << a->getOneLetterCode() << b->getOneLetterCode() << "=" << name << endl;
+            cout << (am + bm) << ":" << tag << "=" << adduct_name << endl;
+            tag2ADs[tag].insert(adduct_name);
+            ADs2tag[adduct_name].insert(tag);
+            vector<double> list;
+            list.push_back(am);        
+            list.push_back(bm);        
+            fragment_adduct2block_if_masses_present[adduct_name].push_back(list);
           }
         }      
       }
     }
+
+    // The bad cases where one AA matches to one AA + adduct or even one AA to adduct
 
     // 1 (heavy) AA vs 1 (light) AA + adduct 
     for (const Residue* a : residues)
@@ -2124,9 +2199,16 @@ static void scoreXLIons_(
       for (; left != right; ++left)
       {
         auto& residues2adductname = left->second;
+        const String& A = a->getOneLetterCode();
         for (auto& r2s : residues2adductname)
         {
-          cout << am << ":" << a->getOneLetterCode() << "=" << r2s.first->getOneLetterCode() << "+" << r2s.second << endl;
+          const String& adduct_name = r2s.second;
+          cout << am << ":" << A << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
+          tag2ADs[A].insert(adduct_name);
+          ADs2tag[adduct_name].insert(A);
+          vector<double> list;
+          list.push_back(am);        
+          fragment_adduct2block_if_masses_present[adduct_name].push_back(list);
         }
       }
     }
@@ -2143,15 +2225,42 @@ static void scoreXLIons_(
       auto right = adduct_mass2adduct_names.upper_bound(am + tolerance);
       for (; left != right; ++left)
       {
-        for (auto& name : left->second)
+        const String& A = a->getOneLetterCode();
+        for (auto& adduct_name : left->second)
         {
-          cout << am << ":" << a->getOneLetterCode() << "=" << name << endl;
+          cout << am << ":" << A << "=" << adduct_name << endl;
+          tag2ADs[A].insert(adduct_name);
+          ADs2tag[adduct_name].insert(A);
+          vector<double> list;
+          list.push_back(am);        
+          fragment_adduct2block_if_masses_present[adduct_name].push_back(list);
         }
       }      
     }
-    
-
-    ////
+{
+    OpenNuXLTagger tagger(0.03,1,2);
+    for (auto & spec : exp)
+    {
+      if (spec.getMSLevel() != 2) continue;
+      std::set<std::string> tags;
+      tagger.getTag(spec, tags);
+      spec.getStringDataArrays().push_back({});
+      for (const auto& s : tags) // map tag to ambigious fragment adduct and store
+      {
+        const auto it = tag2ADs.find(s);
+        if (it != tag2ADs.end()) 
+        {
+          for (const auto& ad : it->second)
+          {
+            //cout << ad << " ";
+            spec.getStringDataArrays().back().push_back(ad);
+          }
+        }
+      };
+//      cout << endl;
+    } 
+}
+    //////////////////////////////////// above should go into new function !!!!!!!!!!!!!!! as it is not nucleotide tag related
 
     if (debug_level_ > 0)
     {
@@ -2400,7 +2509,8 @@ static void scoreXLIons_(
     bool single_charge_spectra, 
     bool annotate_charge,
     double window_size,
-    size_t peakcount)
+    size_t peakcount,
+    const std::map<String, PrecursorPurity::PurityScores>& purities)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -2430,6 +2540,7 @@ static void scoreXLIons_(
                                          true); // add up intensities
     }
 
+    filterPeakInterference_(exp, purities);
 
     SqrtMower sqrt_mower_filter;
     sqrt_mower_filter.filterPeakMap(exp);
@@ -4651,6 +4762,35 @@ static void scoreXLIons_(
     
     for (auto m : name2mod) { delete(m.second); } // free memory
   }
+  
+  void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
+  {
+    for (auto& s : spectra)
+    {
+      unordered_set<size_t> idx_to_remove;
+      cout << s.getNativeID() << " " << purities.size() << endl; 
+      auto it = purities.find(s.getNativeID());
+      if (it != purities.end())
+      {        
+        for (const auto& interfering_peak : it->second.interfering_peaks)
+        {
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? interfering_peak.getMZ()  * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+          auto pos = s.findNearest(interfering_peak.getMZ(), max_dist_dalton, max_dist_dalton); 
+          if (pos != -1) 
+          {
+            idx_to_remove.insert(pos);
+          }
+        }
+        vector<size_t> idx_to_keep; // inverse
+        for (size_t i = 0; i != s.size(); ++i)
+        { // add indices we don't want to remove
+          if (idx_to_remove.find(i) == idx_to_remove.end()) idx_to_keep.push_back(i);
+        } 
+        cout << "Filtered out " << idx_to_remove.size() << " peaks matching to precursor inference." << endl;
+        s.select(idx_to_keep);
+      }
+    } 
+  }
 
   ExitCodes main_(int, const char**) override
   {
@@ -5073,12 +5213,13 @@ static void scoreXLIons_(
     {
       PeakMap tmp_spectra;
       f.load(in_mzml, tmp_spectra);
-      int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){return s.getMSLevel() == 1;});
+      int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){ return s.getMSLevel() == 1; });
+      OPENMS_LOG_INFO << "Using " << nMS1 << " spectra for precursor purity calculation." << endl;
       if (nMS1 != 0)
       {
         // if isolation windows are properly annotated and correct if necessary
         checkAndCorrectIsolationWindows_(tmp_spectra);
-        purities = PrecursorPurity::computePrecursorPurities(tmp_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+        purities = PrecursorPurity::computePrecursorPurities(tmp_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, true); // true = ignore missing PCs
       }
     } // free spectra  
 
@@ -5185,7 +5326,7 @@ static void scoreXLIons_(
                        fragment_mass_tolerance, 
                        fragment_mass_tolerance_unit_ppm, 
                        false, // keep charge as is
-                       true, window_size, peak_count); // annotate charge  
+                       true, window_size, peak_count, purities); // annotate charge  
     progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Calculate Nucleotide Tags...");
@@ -5905,7 +6046,7 @@ static void scoreXLIons_(
                        fragment_mass_tolerance, 
                        fragment_mass_tolerance_unit_ppm, 
                        false, // no single charge (false)
-                       true, window_size, peak_count); // annotate charge (true)
+                       true, window_size, peak_count, purities); // annotate charge (true)
 
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
     progresslogger.endProgress();
@@ -6534,6 +6675,8 @@ static void scoreXLIons_(
 #ifdef FILTER_AMBIGIOUS_PEAKS
 map<double, double> OpenNuXL::mass2high_frequency_ = {};
 #endif
+
+map<String, vector<vector<double>>> OpenNuXL::fragment_adduct2block_if_masses_present = {};
 
 int main(int argc, const char** argv)
 {
