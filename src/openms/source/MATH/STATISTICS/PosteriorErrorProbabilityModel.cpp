@@ -958,9 +958,9 @@ namespace OpenMS
       const double fdr_for_targets_smaller)
     {
       std::set<Int> charges;
-      const StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,
+      const StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,"
                                                                   "SimTandem,MSGFPlus,MS-GF+,Comet,"
-                                                                  "tide-search,SimpleSearchEngine,
+                                                                  "tide-search,SimpleSearchEngine,"
                                                                   "OpenMS/ConsensusID_best,OpenMS/ConsensusID_worst,OpenMS/ConsensusID_average");
 
       if (split_charge)
