@@ -70,6 +70,11 @@ namespace OpenMS
     connect(this->horizontalHeader(), &QHeaderView::customContextMenuRequested, this, &TableView::headerContextMenu_);
 
     this->verticalHeader()->setHidden(true); // hide vertical column
+    {
+      QTableWidgetItem* proto_item = new QTableWidgetItem();
+      proto_item->setTextAlignment(Qt::AlignCenter);
+      this->setItemPrototype(proto_item);
+    }
   }
 
   void TableView::headerContextMenu_(const QPoint& pos)
@@ -177,6 +182,11 @@ namespace OpenMS
     }
   }
 
+  void TableView::appendRow()
+  {
+    insertRow(rowCount());
+  }
+
   QTableWidgetItem* TableView::setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground)
   {
     QTableWidgetItem* item = itemPrototype()->clone();
@@ -282,9 +292,6 @@ namespace OpenMS
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " has no data!");
   }
 
-  /// get the displayed name of the header in column with index @p header_column
-  /// @throws Exception::ElementNotFound if header at index @p header_column is not valid
-
   QString TableView::getHeaderName(const int header_column)
   {
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
@@ -296,6 +303,11 @@ namespace OpenMS
     }
 
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " has no data!");
+  }
+
+  void TableView::resizeEvent(QResizeEvent* /*event*/)
+  {
+    emit resized();
   }
 
 }

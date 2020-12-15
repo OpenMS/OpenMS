@@ -142,8 +142,16 @@ namespace OpenMS
 
       // if out_dir (user defined output directory for OSW results) changes ...
       connect(ui->out_dir, &OutputDirectory::directoryChanged, this, &SwathTabWidget::checkPyProphetInput_);
-      // ... or the mzML input changes --> update the input list of input_py_pqps (which depend in the basenames of mzMLs and the OSW output directory)
+      // ... or the mzML input changes --> update the input list of tbl_py_osws (which depend in the basenames of mzMLs and the OSW output directory)
       connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &SwathTabWidget::checkPyProphetInput_);
+
+      // prepare table for pyProphet input files
+      auto& tbl = *(ui->tbl_py_osws);
+      tbl.setHeaders(QStringList() << "filename");
+      tbl.setSortingEnabled(false);
+      connect(ui->tbl_py_osws, &TableView::resized, [&]() {
+        ui->tbl_py_osws->setColumnWidth(0, ui->tbl_py_osws->width()); // full size column
+      });
 
       ui->out_dir->setDirectory(getDefaultOutDir());
     }
@@ -292,27 +300,33 @@ namespace OpenMS
       return files;
     }
 
+    const char* msg_no_osws = "select mzML input files in 'LC-MS files' tab first and pick an output directory in 'Run OpenSwath' tab";
+
     void SwathTabWidget::checkPyProphetInput_()
     {
-      QString text;
-      for (const auto& file : getPyProphetInputFiles())
+      // populate the file list widget for pyProphet input
+      auto& tbl = *(ui->tbl_py_osws);
+      tbl.setRowCount(0); // clear the table; clear() does not resize the table!
+      auto files = getPyProphetInputFiles();
+      if (files.empty())
       {
-        // predict output OSW filenames
-        if (file.second)
+        tbl.appendRow();
+        tbl.setAtBottomRow(msg_no_osws, 0, Qt::white, Qt::gray);
+      }
+      else 
+      {
+        for (const auto& file : files)
         {
-          text += QString("<font color=#000000>%1</font><br>").arg(file.first.toQString());
-        }
-        else
-        {
-          text += QString("<font color=#ff0000>%1</font><br>").arg(file.first.toQString());
+          tbl.appendRow();
+          tbl.setAtBottomRow(file.first.c_str(), 0, Qt::white, 
+                             file.second ? Qt::black : Qt::red)
+              ->setCheckState(Qt::Unchecked);
         }
       }
-      ui->input_py_pqps->clear();
-      ui->input_py_pqps->setHtml(text);
-
+      // set label at bottom
       ui->lbl_pyOutDir->setText("Results can be found in '" + getCurrentOutDir_() + 
                                 "'. If pyProphet ran, there will be PDF files with model statistics and TRIC will "
-                                "generate TSV files (tric_aligned.tsv and tric_aligned_matrix.tsv) for downstream processing.");
+                                "generate TSV files (tric_aligned.tsv and tric_aligned_matrix.tsv) for downstream processing.\n To view results interactively, open them in TOPPView.");
     }
 
     void SwathTabWidget::writeLog_(const QString& text, const QColor& color, bool new_section)
@@ -329,6 +343,7 @@ namespace OpenMS
       ui->log_text->append(text);
       ui->log_text->setTextColor(tc); // restore old color
     }
+
     void SwathTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
       writeLog_(text.toQString(), color, new_section);
@@ -440,6 +455,20 @@ namespace OpenMS
       return false;
     }
 
+    QStringList SwathTabWidget::getPyProphetOutputFileNames() const
+    {
+      auto in = getPyProphetInputFiles();
+      QStringList out;
+      for (auto& f : in)
+      {
+        auto s = (FileHandler::stripExtension(f.first) + "_pyProphet_out.osw");
+        out << s.toQString();
+      }
+      return out;
+    }
+    
+
+
     void SwathTabWidget::on_btn_runPyProphet_clicked()
     {
       if (!ui->py_pyprophet->isReady())
@@ -455,7 +484,7 @@ namespace OpenMS
         QMessageBox::warning(this, "Error", "Provide at least one input file for pyProphet and TRIC in the 'LC-MS files' tab.");
         return;
       }
-      QStringList osws;
+      QStringList osws = getPyProphetOutputFileNames();
       QStringList osws_orig;
       QStringList osws_reduced;
       QStringList tsvs;
@@ -467,8 +496,7 @@ namespace OpenMS
           return;
         }
         osws_orig << file.first.toQString();
-        osws << (FileHandler::stripExtension(file.first) + "_copy.osw").toQString();
-        osws_reduced << (FileHandler::stripExtension(file.first) + "_copy.oswr").toQString();
+        osws_reduced << (FileHandler::stripExtension(file.first) + "_pyProphet.oswr").toQString();
         tsvs << (FileHandler::swapExtension(file.first, FileTypes::TSV)).toQString();
       }
       // check presence of template
@@ -560,7 +588,65 @@ namespace OpenMS
       GUIHelpers::openFolder(getCurrentOutDir_());
     }
 
+    void SwathTabWidget::on_pushButton_clicked()
+    {
+      auto& tbl = *(ui->tbl_py_osws);
+      int selected_rows = 0;
+      QStringList missing_osw_files;
+      QStringList args;
+      auto raw_files = getMzMLInputFiles(); // mzML's for now; will be translated to sqMass below
+      auto osw_files = getPyProphetOutputFileNames();
+      if (tbl.rowCount() == 1 && tbl.item(0, 0)->data(Qt::DisplayRole).toString() == msg_no_osws)
+      {
+        QMessageBox::information(this, "Error", "No files are selected from the list above! Make sure to select mzML files in the 'LC-MS files' tab first.");
+        return;
+      }
+      if (size_t(tbl.rowCount()) != raw_files.size() || tbl.rowCount() != osw_files.count())
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Something went wrong in populating the input file window");
+      }
+      for (int i = 0; i < tbl.rowCount(); ++i)
+      {
+        if (tbl.item(i, 0)->checkState() == Qt::CheckState::Checked)
+        {
+          ++selected_rows;
+          args << infileToChrom(raw_files[i]).toQString() << "!" << osw_files[i];
+          if (!File::exists(osw_files[i])) missing_osw_files << File::basename(osw_files[i]).toQString();
+        }
+      }
+      if (selected_rows == 0)
+      {
+        QMessageBox::information(this, "Error", "No files are selected from the list above! Select the files you want to open and try again.");
+        return;
+      }
+      if ( ! missing_osw_files.isEmpty())
+      {
+        QMessageBox::information(this, "Error", "The following selected files to not yet have a pyProphet result file:\n" + missing_osw_files.join("\n") + "\nPlease run pyProphet first");
+        return;
+      }
+
+      if (QMessageBox::question(this, "Confirm", (String("Confirm opening ") + selected_rows + " raw files in TOPPView").toQString(), 
+                                QMessageBox::StandardButton::Ok, QMessageBox::StandardButton::Cancel) 
+                             == QMessageBox::StandardButton::Ok)
+      {
+        // create on heap, to avoid QProcess being closed when application exits 
+        // This is a small memleak, but QProcess::startDetached() is only available from Qt 5.10 on -- switch to that once its supported everywhere
+        QProcess* qp = new QProcess;
+        qp->setWorkingDirectory(getCurrentOutDir_());
+        auto tv = File::findSiblingTOPPExecutable("TOPPView");
+        qp->start(tv.toQString(), args);
+        if (!qp->waitForStarted(2000))
+        {
+          QMessageBox::warning(this, "Error", String("Could not open TOPPView executable from '" + tv + "'").toQString());
+          return;
+        }
+        // TOPPView is running now ... detached
+      }
+    }
+
   }   //namespace Internal
 } //namspace OpenMS
+
+
 
 
