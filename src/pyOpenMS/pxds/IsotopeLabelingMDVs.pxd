@@ -48,20 +48,20 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
     cdef enum DerivatizationAgent "OpenMS::IsotopeLabelingMDVs::DerivatizationAgent":
         #wrap-attach:
         #    DerivatizationAgent
-        NOT_SELECTED
-        TBDMS
+        NOT_SELECTED,
+        TBDMS,
         SIZE_OF_DERIVATIZATIONAGENT
 
     cdef enum IsotopeLabelingMDVs_FeatureName "OpenMS::IsotopeLabelingMDVs::FeatureName":
         #wrap-attach:
         #    FeatureName
-        INTENSITY
-        PEAK_APEX_INT
+        INTENSITY,
+        PEAK_APEX_INT,
         SIZE_OF_FEATURENAME
 
     cdef enum IsotopeLabelingMDVs_MassIntensityType "OpenMS::IsotopeLabelingMDVs::MassIntensityType":
         #wrap-attach:
         #    MassIntensityType
-        NORM_MAX
-        NORM_SUM
+        NORM_MAX,
+        NORM_SUM,
         SIZE_OF_MASSINTENSITYTYPE
