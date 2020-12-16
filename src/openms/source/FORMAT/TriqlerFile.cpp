@@ -246,7 +246,6 @@ void TriqlerFile::storeLFQ(const String& filename,
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "TriqlerFile export expects Posterior Error Probabilities in the IDs of all features"
           " to convert them to Posterior Probabilities.");
-
       }
       for (const PeptideHit & pep_hit : pep_id.getHits())
       {
