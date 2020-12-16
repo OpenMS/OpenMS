@@ -359,13 +359,6 @@ namespace OpenMS
     table_widget_->clear();
     table_widget_->setRowCount(0);
     table_widget_->setColumnCount(headers.size());
-
-    {
-      QTableWidgetItem* proto_item = new QTableWidgetItem();
-      proto_item->setTextAlignment(Qt::AlignCenter);
-      table_widget_->setItemPrototype(proto_item);
-    }
-
     table_widget_->setSortingEnabled(false);
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);

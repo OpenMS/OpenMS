@@ -41,8 +41,9 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/TableView.h>
 
-#include <QTabWidget>
+#include <QTabWidget> // our base class
 
 #include <vector>
 #include <utility> // for std::pair
@@ -90,7 +91,9 @@ namespace OpenMS
       ~SwathTabWidget();
 
       StringList getMzMLInputFiles() const;
-    
+
+      QStringList getPyProphetOutputFileNames() const;
+
     private slots:
       void on_run_swath_clicked();
       void on_edit_advanced_parameters_clicked();
@@ -101,6 +104,8 @@ namespace OpenMS
       void on_btn_runPyProphet_clicked();
 
       void on_btn_pyresults_clicked();
+
+      void on_pushButton_clicked();
 
     private:
       /// find the path of a Script, given the location of python(.exe). E.g. pyprophet.exe or feature_alignment.py
@@ -152,3 +157,4 @@ namespace OpenMS
 using InputFile = OpenMS::InputFile;
 using OutputDirectory = OpenMS::OutputDirectory;
 using ParamEditor = OpenMS::ParamEditor;
+using TableView = OpenMS::TableView;

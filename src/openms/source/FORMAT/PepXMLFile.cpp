@@ -220,11 +220,13 @@ namespace OpenMS
 
     if (registered_mod_ == nullptr)
     {
+      //TODO differentiate between integer and non-integer masses like in AASequence?
+      // Are there non-integer masses in the header of PepXML?
       std::vector<const ResidueModification*> mods;
       // if terminus was not specified
       if (term_spec_ == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) // try least specific search first
       {
-        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMassSorted(
             mods, massdiff_, mod_tol_, aminoacid_, ResidueModification::ANYWHERE);
       }
       if (mods.empty())
@@ -232,7 +234,7 @@ namespace OpenMS
         // for unknown terminus it looks for everything, otherwise just for the specific terminus
         // TODO we might also need to search for Protein-X-Term in case of X-Term
         //  since some tools seem to forget to annotate
-        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMassSorted(
             mods, massdiff_, mod_tol_, aminoacid_, term_spec_);
       }
       if (!mods.empty())

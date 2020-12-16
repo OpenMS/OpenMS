@@ -52,7 +52,6 @@ namespace OpenMS
       @brief OpenMS stores a central database of all residues in the ResidueDB.
       All (unmodified) residues are added to the database on construction.
       Modified residues get created and added if getModifiedResidue is called.
-      
   */
   class OPENMS_DLLAPI ResidueDB
   {
@@ -170,6 +169,8 @@ protected:
 
     /// adds names of single modified residue to the index
     void addModifiedResidueNames_(const Residue*);
+    
+    std::map<String, std::map<String, const Residue*> > residue_mod_names_;
 
     /// all (unmodified) residues
     std::set<const Residue*> const_residues_;
@@ -177,7 +178,6 @@ protected:
     /// all modified residues
     std::set<const Residue*> const_modified_residues_;
 
-    /// residue sets
     std::set<String> residue_sets_;
 
     /// lookup from name to residue

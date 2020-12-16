@@ -385,9 +385,9 @@ namespace OpenMS
 
           The mapping is stored internally and can be used to translate transition.ids (which are native_ids) to a chromatogram index of the external sqMass file.
 
-          The mapping can be queried using toNativeID(int transition.id).
+          The mapping can be queried using fromNativeID(int transition.id).
 
-          Make sure that the other OSW data is loaded before building this mapping here.
+          Make sure that the other OSW data is loaded (at least via OSWFile::readMinimal()) before building this mapping here.
 
           @param chrom_traces The external sqMass file, which we build the mapping on
           @throws Exception::MissingInformation if any nativeID is not known internally

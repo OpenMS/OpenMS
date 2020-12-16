@@ -1000,8 +1000,8 @@ protected:
         {
           left_borders.push_back(left);
           right_borders.push_back(right);
-          OPENMS_LOG_DEBUG << " * peak" << k << " left boundary " << left_borders.back()   <<  " with inty " << max_int << std::endl;
-          OPENMS_LOG_DEBUG << " * peak" << k << " right boundary " << right_borders.back() <<  " with inty " << max_int << std::endl;
+          OPENMS_LOG_DEBUG << " * peak " << k << " left boundary " << left_borders.back()   <<  " with inty " << max_int << std::endl;
+          OPENMS_LOG_DEBUG << " * peak " << k << " right boundary " << right_borders.back() <<  " with inty " << max_int << std::endl;
         }
       }
 
