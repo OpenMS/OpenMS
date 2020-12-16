@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Jang Jang Jin$
+// $Authors: Andreas Bertsch, Jang Jang Jin, Timo Sachsenberg$
 // --------------------------------------------------------------------------
 //
 
@@ -52,13 +52,15 @@ namespace OpenMS
 
   ResidueDB* ResidueDB::getInstance()
   {
-    static ResidueDB* db_ = new ResidueDB();
+    static ResidueDB* db_ = new ResidueDB(); // Meyers' singleton -> thread safe
     return db_;
   }
 
   ResidueDB::~ResidueDB()
   {
-    clear_();
+    // free memory
+    for (auto& r : const_residues_) { delete r; }
+    for (auto& r : const_modified_residues_) { delete r; }
   }
 
   const Residue* ResidueDB::getResidue(const String& name) const
@@ -68,7 +70,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No residue specified.", "");
     }
 
-    const Residue* r(nullptr);
+    const Residue* r{};
     #pragma omp critical (ResidueDB)
     {   
       auto it = residue_names_.find(name);
@@ -132,7 +134,7 @@ namespace OpenMS
 
   void ResidueDB::initResidues_()
   {
-    buildResidues_();
+    buildResidues_();    
   }
 
   void ResidueDB::addResidue_(Residue* r)
@@ -276,12 +278,6 @@ namespace OpenMS
     insertResidueAndAssociateWithResidueSet_(unspecified_unknown, {"All","Ambiguous"} );
   }
   
-  void ResidueDB::clear_()
-  {    
-    for (auto& r : const_residues_) { delete r; }
-    for (auto& r : const_modified_residues_) { delete r; }
-  }
-  
   void ResidueDB::insertResidueAndAssociateWithResidueSet_(Residue* res_ptr, const StringList& residue_sets)
   {    
     for (const String& s : residue_sets)
@@ -380,7 +376,6 @@ namespace OpenMS
   {
     // throws if modification is not part of ModificationsDB
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
-    cout << "origin:" << mod->getOrigin() << endl;
     auto r = getResidue(mod->getOrigin());
     return getModifiedResidue(r, mod->getFullId());
   }
@@ -390,7 +385,7 @@ namespace OpenMS
     OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
     // search if the mod already exists
     const String & res_name = residue->getName();
-    Residue* res(nullptr);
+    Residue* res{};
     bool residue_found(true), mod_found(true);
     #pragma omp critical (ResidueDB)
     {
@@ -411,7 +406,7 @@ namespace OpenMS
 
       if (residue_found)
       {
-        const ResidueModification* mod;
+        const ResidueModification* mod{};
         try
         {
           // terminal modifications don't apply to residues (side chain), so only consider internal ones
@@ -426,12 +421,11 @@ namespace OpenMS
         // check if modification in ResidueDB
         if (mod_found)
         {
-          const String& id = mod->getId().empty() ? mod->getFullId() : mod->getId();
-
           // check if modified residue is already present in ResidueDB
           bool found = false;
           if (rm_entry != residue_mod_names_.end())
           {
+            const String& id = mod->getId().empty() ? mod->getFullId() : mod->getId();
             const auto& inner = rm_entry->second.find(id);
             if (inner != rm_entry->second.end())
             {
@@ -442,9 +436,9 @@ namespace OpenMS
           if (!found)
           {
             // create and register this modified residue
-            Residue* res = new Residue(*residue_names_[res_name]);
+            res = new Residue(*residue_names_.at(res_name));
             res->setModification(mod);
-            addResidue_(res);
+            addResidue_(res);            
           }
         }
       }
