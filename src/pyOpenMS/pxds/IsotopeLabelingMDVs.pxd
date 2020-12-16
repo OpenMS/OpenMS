@@ -36,11 +36,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDV(
           const Feature & measured_feature, Feature & normalized_feature,
-          const IsotopeLabelingMDVs_MassIntensityType & mass_intensity_type, const IsotopeLabelingMDVs_FeatureName & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +
 
         void calculateMDVs(
           const FeatureMap & measured_featureMap, FeatureMap & normalized_featureMap,
-          const IsotopeLabelingMDVs_MassIntensityType & mass_intensity_type, const IsotopeLabelingMDVs_FeatureName & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS::IsotopeLabelingMDVs":
@@ -52,14 +52,14 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
         TBDMS,
         SIZE_OF_DERIVATIZATIONAGENT
 
-    cdef enum IsotopeLabelingMDVs_FeatureName "OpenMS::IsotopeLabelingMDVs::FeatureName":
+    cdef enum FeatureName "OpenMS::IsotopeLabelingMDVs::FeatureName":
         #wrap-attach:
         #    FeatureName
         INTENSITY,
         PEAK_APEX_INT,
         SIZE_OF_FEATURENAME
 
-    cdef enum IsotopeLabelingMDVs_MassIntensityType "OpenMS::IsotopeLabelingMDVs::MassIntensityType":
+    cdef enum MassIntensityType "OpenMS::IsotopeLabelingMDVs::MassIntensityType":
         #wrap-attach:
         #    MassIntensityType
         NORM_MAX,
