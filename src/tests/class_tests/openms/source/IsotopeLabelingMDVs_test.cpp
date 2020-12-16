@@ -68,14 +68,14 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
   IsotopeLabelingMDVs                isotopelabelingmdvs;
   
   // From CHO_190316_Flux.xlsx provided by Douglas McCloskey
-  std::vector<Peak2D::IntensityType> L1_peak_apex_int {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
-  std::vector<Peak2D::IntensityType> L2_peak_apex_int {2.77e+07, 5.45e+04, 6.26e+05, 7.46e+04, 2.75e+04};
+  std::vector<double> L1_peak_apex_int {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
+  std::vector<double> L2_peak_apex_int {2.77e+07, 5.45e+04, 6.26e+05, 7.46e+04, 2.75e+04};
 
-  std::vector<Peak2D::IntensityType> L1_norm_max {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
-  std::vector<Peak2D::IntensityType> L1_norm_sum {9.9961e-01, 3.3228e-05, 2.8243e-04, 7.1717e-05};
+  std::vector<double> L1_norm_max {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double> L1_norm_sum {9.9961e-01, 3.3228e-05, 2.8243e-04, 7.1717e-05};
 
-  std::vector<Peak2D::IntensityType> L2_norm_max {1.00e+00, 1.967e-03, 2.259e-02, 2.693e-03, 9.927e-04};
-  std::vector<Peak2D::IntensityType> L2_norm_sum {9.7252e-01, 1.9134e-03, 2.1978e-02, 2.6191e-03, 9.655e-04};
+  std::vector<double> L2_norm_max {1.00e+00, 1.967e-03, 2.259e-02, 2.693e-03, 9.927e-04};
+  std::vector<double> L2_norm_sum {9.7252e-01, 1.9134e-03, 2.1978e-02, 2.6191e-03, 9.655e-04};
 
   // Lactate1 & Lactate2 - peak_apex_int - norm_max
   OpenMS::Feature               lactate_1_normmax;
@@ -177,14 +177,14 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
   IsotopeLabelingMDVs                isotopelabelingmdvs;
   
   // From CHO_190316_Flux.xlsx provided by Douglas McCloskey
-  std::vector<Peak2D::IntensityType> L1_peak_apex_int {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
-  std::vector<Peak2D::IntensityType> L2_peak_apex_int {2.77e+07, 5.45e+04, 6.26e+05, 7.46e+04, 2.75e+04};
+  std::vector<double> L1_peak_apex_int {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
+  std::vector<double> L2_peak_apex_int {2.77e+07, 5.45e+04, 6.26e+05, 7.46e+04, 2.75e+04};
 
-  std::vector<Peak2D::IntensityType> L1_norm_max {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
-  std::vector<Peak2D::IntensityType> L1_norm_sum {9.9961e-01, 3.3228e-05, 2.8243e-04, 7.1717e-05};
+  std::vector<double> L1_norm_max {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double> L1_norm_sum {9.9961e-01, 3.3228e-05, 2.8243e-04, 7.1717e-05};
 
-  std::vector<Peak2D::IntensityType> L2_norm_max {1.00e+00, 1.967e-03, 2.259e-02, 2.693e-03, 9.927e-04};
-  std::vector<Peak2D::IntensityType> L2_norm_sum {9.7252e-01, 1.9134e-03, 2.1978e-02, 2.6191e-03, 9.655e-04};
+  std::vector<double> L2_norm_max {1.00e+00, 1.967e-03, 2.259e-02, 2.693e-03, 9.927e-04};
+  std::vector<double> L2_norm_sum {9.7252e-01, 1.9134e-03, 2.1978e-02, 2.6191e-03, 9.655e-04};
   
 
   // Lactate1 & Lactate2 - peak_apex_int - norm_max
