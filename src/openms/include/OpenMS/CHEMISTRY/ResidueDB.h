@@ -186,8 +186,6 @@ protected:
     /// fast lookup table for residues  
     std::array<const Residue*, 256> residue_by_one_letter_code_ = {{nullptr}};
 
-    std::map<String, std::map<String, const Residue*> > residue_mod_names_;
-
     std::map<String, std::set<const Residue*> > residues_by_set_;    
   };
 }
