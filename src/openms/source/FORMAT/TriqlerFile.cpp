@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TriqlerFile.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
 #include <tuple>
 
@@ -233,18 +234,25 @@ void TriqlerFile::storeLFQ(const String& filename,
 
   // Stores all the lines that will be present in the final Triqler output
   MapSequenceToLines_ peptideseq_to_line;
-
+  IDScoreSwitcherAlgorithm scores;
   for (Size i = 0; i < aggregatedInfo.features.size(); ++i)
   {
     const BaseFeature &base_feature = aggregatedInfo.features[i];
 
     for (const PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
     {
+      if (!scores.isScoreType(pep_id.getScoreType(), IDScoreSwitcherAlgorithm::ScoreType::PEP))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "TriqlerFile export expects Posterior Error Probabilities in the IDs of all features"
+          " to convert them to Posterior Probabilities.");
+
+      }
       for (const PeptideHit & pep_hit : pep_id.getHits())
       {
         const String & sequence = pep_hit.getSequence().toString(); // to modified string
 
-        const double & search_score = pep_hit.getScore(); // TODO: check score type
+        const double & search_score = pep_hit.getScore();
 
         // check if all referenced protein accessions are part of the same indistinguishable group
         // if so, we mark the sequence as quantifiable
@@ -293,7 +301,7 @@ void TriqlerFile::storeLFQ(const String& filename,
                   String(run),
                   sampleSection.getFactorValue(sample, condition),
                   String(precursor_charge),
-                  String(search_score),
+                  String(1. - search_score),
                   String(intensity), 
                   sequence,
                   accession));

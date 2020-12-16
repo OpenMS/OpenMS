@@ -229,8 +229,8 @@ protected:
 
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const;
 
-  /// get regions in which peptide elutes (ideally only one) by clustering RT elution times
-  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions) const;
+  /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
+  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
 
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,
@@ -249,7 +249,7 @@ protected:
 
   /// creates an assay library out of the peptide sequences and their RT elution windows
   /// the PeptideMap is mutable since we clear it on-the-go
-  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map);
+  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
   /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
   /// Make sure it stays valid until destruction of the class.
