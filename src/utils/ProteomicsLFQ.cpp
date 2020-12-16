@@ -1972,6 +1972,11 @@ protected:
       // shrink protein runs to the one containing the inference data
       consensus.getProteinIdentifications().resize(1);
 
+
+      IDScoreSwitcherAlgorithm switcher;
+      Size c = 0;
+      switcher.switchToGeneralScoreType(consensus, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
+
       tf.storeLFQ(
         out_triqler, 
         consensus, 
