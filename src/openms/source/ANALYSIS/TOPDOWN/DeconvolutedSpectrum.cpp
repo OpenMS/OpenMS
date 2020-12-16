@@ -367,6 +367,7 @@ namespace OpenMS
       double maxSumIntensity = 0.0;
       for (auto &pg: precursorSpectrum)
       {
+        std::sort(pg.begin(), pg.end());
         if (pg[0].mz > endMz || pg[pg.size() - 1].mz < startMz)
         {
           continue;
@@ -406,6 +407,9 @@ namespace OpenMS
         precursorPeak.setCharge(tmp->charge);
         maxSumIntensity = sumIntensity;
         precursorPeakGroup = &pg;
+      }
+      if(precursorPeakGroup != nullptr){
+        break;
       }
     }
 

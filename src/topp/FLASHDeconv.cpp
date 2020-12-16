@@ -152,7 +152,7 @@ protected:
     fd_defaults.setValue("min_intensity", .0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
-                         DoubleList{.75, .90},
+                         DoubleList{.75, .75},
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.addTag("min_isotope_cosine", "advanced");
     fd_defaults.setValue("min_charge_score",
@@ -354,7 +354,7 @@ protected:
         topfdOut_MS2.open(outfilePath + "_FD_ms2.msalign", fstream::out);
         //writeTopFDHeader(topfdOut);
       }
-      fiOut.open(outfilePath + "_FI.txt"); //TODO tmp
+      //fiOut.open(outfilePath + "_FI.txt"); //TODO tmp
     }
 
 
@@ -482,7 +482,7 @@ protected:
           topfdOut_MS2.open(outfilePath + outfileName + "_FD_ms2.msalign", fstream::out);
         }
 
-        fiOut.open(outfilePath + outfileName + "_FI.txt", fstream::out);
+        //fiOut.open(outfilePath + outfileName + "_FI.txt", fstream::out);
       }
 
       // finally run FLASHDeconv here
@@ -528,12 +528,12 @@ protected:
         }
 
         if(msLevel == 1){
-          fiOut << "Spec\t"<<it->getRT()<<"\n";
+          //fiOut << "Spec\t"<<it->getRT()<<"\n";
           for(auto &p : *it){
             if(p.getIntensity() <= 0){
               continue;
             }
-            fiOut << p.getMZ() << "\t" << p.getIntensity()<<"\n";
+            //fiOut << p.getMZ() << "\t" << p.getIntensity()<<"\n";
           }
         }
 
@@ -548,7 +548,6 @@ protected:
           deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         // per spec deconvolution
-        //if (msLevel == 1)// TODO remove!!
         fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber);
 
         if (it->getMSLevel() == 2 && !intrainfile.empty()
@@ -567,14 +566,21 @@ protected:
         elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
             chrono::high_resolution_clock::now() - deconv_t_start).count();
 
-        if (msLevel < currentMaxMSLevel)
+        if (msLevel < currentMaxMSLevel && lastDeconvolutedSpectra.find(msLevel) == lastDeconvolutedSpectra.end()) // if lastDeconvolutedSpectra is empty, fill even if deconvolutedSpectrum is empty
         {
-          lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
+          lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
         }
+
         if (deconvolutedSpectrum.empty())
         {
           continue;
         }
+
+        if (msLevel < currentMaxMSLevel)
+        {
+          lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
+        }
+
         if (!ensamble)
         {
           massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);// add deconvoluted mass in massTracer
@@ -590,6 +596,7 @@ protected:
         }
 
         deconvolutedSpectrum.clearPeakGroupsChargeInfo();
+        deconvolutedSpectrum.getPrecursorPeakGroup().clearChargeInfo();
         float progress = (float) (it - map.begin()) / map.size();
         if (progress > prevProgress + .01)
         {
@@ -669,7 +676,7 @@ protected:
           topfdOut_MS1.close();
           topfdOut_MS2.close();
         }
-        fiOut.close();
+        //fiOut.close();
         for (int j = 0; j < (int) maxMSLevel; j++)
         {
           total_specCntr[j] += specCntr[j];
@@ -803,7 +810,7 @@ protected:
         topfdOut_MS2.close();
       }
 
-      fiOut.close();
+      //fiOut.close();
     }
 
     if (!intrainfile.empty()){
