@@ -229,7 +229,7 @@ protected:
     std::vector<fstream> out_specstreams, out_topFDstream;
 
     fstream fiOut;
-    fiOut.open(infile+".txt", fstream::out); // TDDO
+    //fiOut.open(infile+".txt", fstream::out); // TDDO
 
     outstream.open(outfile, fstream::out);
 
@@ -424,12 +424,12 @@ protected:
       }
 
       if(msLevel == 1){
-        fiOut << "Spec\t"<<it->getRT()<<"\n";
+       // fiOut << "Spec\t"<<it->getRT()<<"\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
             continue;
           }
-          fiOut << p.getMZ() << "\t" << p.getIntensity()<<"\n";
+         // fiOut << p.getMZ() << "\t" << p.getIntensity()<<"\n";
         }
       }
 
@@ -446,9 +446,8 @@ protected:
           deconvolutedSpectrum.registerPrecursor(lastlastDeconvolutedSpectra[msLevel - 1]);
         }
       }
-      // per spec deconvolution
+                      // per spec deconvolution
       fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber);
-
       if (it->getMSLevel() == 2 && !in_trainfile.empty() &&  !out_trainfile.empty()
           && !deconvolutedSpectrum.getPrecursorPeakGroup().empty()){
         QScore::writeAttTsv(deconvolutedSpectrum.getOriginalSpectrum().getRT(), deconvolutedSpectrum.getPrecursorPeakGroup(),
@@ -456,7 +455,6 @@ protected:
                             trainScanNumbers.find(scanNumber) != trainScanNumbers.end(), avg, out_trainstream);
 
       }
-
       if (!out_mzmlfile.empty())
       {
         exp.addSpectrum(deconvolutedSpectrum.toSpectrum(mzmlCharge));
@@ -478,7 +476,7 @@ protected:
       {
         continue;
       }
-
+      OPENMS_LOG_INFO <<4<< endl;
       //if (msLevel < currentMaxMSLevel)
       //{
       //  lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
@@ -488,12 +486,15 @@ protected:
       {
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);// add deconvoluted mass in massTracer
       }
+
       qspecCntr[msLevel - 1]++;
       massCntr[msLevel - 1] += deconvolutedSpectrum.size();
-      deconvolutedSpectrum
-          .writeDeconvolutedMasses(out_specstreams[msLevel - 1], infile, avg, writeDetail);
-
-      if (!out_topFDfile.empty())
+      if(out_specstreams.size() > msLevel-1)
+      {
+        deconvolutedSpectrum
+            .writeDeconvolutedMasses(out_specstreams[msLevel - 1], infile, avg, writeDetail);
+      }
+      if (out_topFDstream.size() > msLevel-1)
       {
         deconvolutedSpectrum.writeTopFD(out_topFDstream[msLevel - 1], scanNumber, avg);
       }
@@ -571,7 +572,7 @@ protected:
                       << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / sumCntr << " ms (Wall)] --" << endl;
     }
 
-    fiOut.close(); // TODO
+    //fiOut.close(); //
 
     outstream.close();
 
