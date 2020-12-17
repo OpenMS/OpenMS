@@ -143,8 +143,8 @@ namespace OpenMS
     DoubleList binWidth;
     /// cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList minIsotopeCosine;
-    /// score threshold between charge score for each MS level
-    DoubleList minChargeScore;
+    ///// score threshold between charge score for each MS level
+    //DoubleList minChargeScore;
     /// max mass count per spectrum for each MS level
     IntList maxMassCount;
     /// number of min mass per spec
@@ -248,6 +248,8 @@ namespace OpenMS
 
     /// filter out overlapping masses
     void removeOverlappingPeakGroups(double tol);
+
+    void removeOverlappingPeakGroupsWithNominalMass();
 
     /// filter out possible harmonics
     void removeHarmonicPeakGroups(double tol);

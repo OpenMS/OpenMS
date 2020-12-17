@@ -41,6 +41,7 @@ namespace OpenMS
   // constructor
   FLASHIda::FLASHIda(char* arg)
   {
+
     std::unordered_map<std::string, std::vector<double>> inputs;
     char* token = std::strtok(arg, " ");
     std::string key;
@@ -49,7 +50,7 @@ namespace OpenMS
       auto tokenString = std::string(token);
       auto num = atof(tokenString.c_str());
 
-      if (!isdigit(tokenString[0]))
+      if (num == 0 && !isdigit(tokenString[tokenString.size() - 1]))
       {
         key = tokenString;
         inputs[key] = DoubleList();
@@ -87,6 +88,7 @@ namespace OpenMS
     qScoreThreshold = inputs["score_threshold"][0];
 
     avg = fd.getAveragine();
+    std::cout << "QScore threshold: " << qScoreThreshold << std::endl;
     std::cout << fd_defaults << std::endl;
   }
 
@@ -127,7 +129,7 @@ namespace OpenMS
     std::sort(deconvolutedSpectrum.begin(), deconvolutedSpectrum.end(), QscoreComparator);
     int mc = massCount[msLevel - 1];
 
-    const auto order = std::vector<char>({'B', 'R', 'b', 'G', 'r'});
+    const auto order = std::vector<char>({'B', 'R', 'G', 'b', 'r'});
 
     std::unordered_map<int, std::vector<double>> nall;;
     std::unordered_map<int, char> ncolor;

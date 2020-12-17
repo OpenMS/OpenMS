@@ -36,7 +36,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -155,10 +154,10 @@ protected:
                          DoubleList{.75, .75},
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.addTag("min_isotope_cosine", "advanced");
-    fd_defaults.setValue("min_charge_score",
-                       DoubleList{.0, .0},
-                       "charge score threshold for MS1, 2, ... (e.g., -min_charge_score 0.7 0.3 to specify 0.7 and 0.3 for MS1 and MS2, respectively)");
-    fd_defaults.addTag("min_charge_score", "advanced");
+    //fd_defaults.setValue("min_charge_score",
+    //                   DoubleList{.0, .0},
+    //                  "charge score threshold for MS1, 2, ... (e.g., -min_charge_score 0.7 0.3 to specify 0.7 and 0.3 for MS1 and MS2, respectively)");
+    //fd_defaults.addTag("min_charge_score", "advanced");
 
     //fd_defaults.setValue("min_charge_cosine",
     //                     .75,
@@ -490,6 +489,7 @@ protected:
       int scanNumber = 0;
       float prevProgress = .0;
       auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
+      auto lastlastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
       MSExperiment exp;
 
@@ -545,7 +545,10 @@ protected:
         // for MS>1 spectrum, register precursor
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
-          deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
+          auto registered = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
+          if(!registered && lastlastDeconvolutedSpectra.find(msLevel - 1) != lastlastDeconvolutedSpectra.end()){
+            deconvolutedSpectrum.registerPrecursor(lastlastDeconvolutedSpectra[msLevel - 1]);
+          }
         }
         // per spec deconvolution
         fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber);
@@ -566,8 +569,12 @@ protected:
         elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
             chrono::high_resolution_clock::now() - deconv_t_start).count();
 
-        if (msLevel < currentMaxMSLevel && lastDeconvolutedSpectra.find(msLevel) == lastDeconvolutedSpectra.end()) // if lastDeconvolutedSpectra is empty, fill even if deconvolutedSpectrum is empty
+        if (msLevel < currentMaxMSLevel)
         {
+          if(lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())
+          {
+            lastlastDeconvolutedSpectra[msLevel] = lastDeconvolutedSpectra[msLevel];
+          }
           lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
         }
 
@@ -576,10 +583,10 @@ protected:
           continue;
         }
 
-        if (msLevel < currentMaxMSLevel)
-        {
-          lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
-        }
+        //if (msLevel < currentMaxMSLevel)
+        //{
+        //  lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
+        //}
 
         if (!ensamble)
         {
@@ -595,8 +602,8 @@ protected:
           deconvolutedSpectrum.writeTopFD(msLevel == 1 ? topfdOut_MS1 : topfdOut_MS2, scanNumber, avg);
         }
 
-        deconvolutedSpectrum.clearPeakGroupsChargeInfo();
-        deconvolutedSpectrum.getPrecursorPeakGroup().clearChargeInfo();
+        //deconvolutedSpectrum.clearPeakGroupsChargeInfo();
+        //deconvolutedSpectrum.getPrecursorPeakGroup().clearChargeInfo();
         float progress = (float) (it - map.begin()) / map.size();
         if (progress > prevProgress + .01)
         {
@@ -608,6 +615,7 @@ protected:
       printProgress(1); //
       std::cout << std::endl;
       std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra); // empty memory
+      std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastlastDeconvolutedSpectra); // empty memory
 
       // massTracer run
       if (!ensamble)
