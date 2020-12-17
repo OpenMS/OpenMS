@@ -85,7 +85,7 @@ namespace OpenMS
       if ((line_() != -1) && (name_() != "unknown"))
       {
         std::cout << "last entry in the exception handler: " << std::endl;
-        std::cout << "exception of type " << name_().c_str() << " occured in line "
+        std::cout << "exception of type " << name_().c_str() << " occurred in line "
                   << line_() << ", function " << function_() << " of " << file_().c_str() << std::endl;
         std::cout << "error message: " << what_().c_str() << std::endl;
       }

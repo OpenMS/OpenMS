@@ -193,7 +193,7 @@ namespace OpenMS
         {
           fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:" +
                                         p.getIdentifier() +
-                                        ".\nThe random chance of this error occuring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
+                                        ".\nThe random chance of this error occurring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
         }
       }
     }
