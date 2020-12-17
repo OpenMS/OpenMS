@@ -309,7 +309,7 @@ namespace OpenMS
         // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
         // Consider up to 5th isotopic trace (e.g., because of seed misassignment)
         double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * peptide_MZ : mz_window_;
-        if ((fabs(seed_RT - peptide_RT) <= rt_window_) &&
+        if ((fabs(seed_RT - peptide_RT) <= seed_rt_window_ / 2.0) &&
            ((fabs(seed_MZ - peptide_MZ) <= th_tolerance) ||
              fabs(seed_MZ - (1.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
              fabs(seed_MZ - (2.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
@@ -707,7 +707,7 @@ namespace OpenMS
               iso_dist.renormalize();
             }
 
-            double rt_tolerance = rt_window_ / 2.0;
+            double rt_tolerance = seed_rt_window_ / 2.0;
 
             // store beginning and end of RT region: here we only need one entry
             peptide.rts.clear();
