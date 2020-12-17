@@ -214,9 +214,9 @@ namespace OpenMS
         }
 
         auto pc = color[m];
-        if(pc == 'B'){
+        if(pc == 'B' && pg.getQScore() > 0){
           color[m] = 'b';
-        }else if (pc == 'R'){
+        }else if (pc == 'R'&& pg.getQScore() > 0){
           color[m] = 'r';
         }
 

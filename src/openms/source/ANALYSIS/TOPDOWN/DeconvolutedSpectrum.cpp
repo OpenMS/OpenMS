@@ -42,7 +42,7 @@ namespace OpenMS
     spec = s;
   }
 
-  MSSpectrum DeconvolutedSpectrum::toSpectrum()
+  MSSpectrum DeconvolutedSpectrum::toSpectrum(int mzmlCharge)
   {
     auto outSpec = MSSpectrum(spec);
     outSpec.clear(false);
@@ -58,7 +58,7 @@ namespace OpenMS
     {
       Precursor precursor(spec.getPrecursors()[0]);
       precursor.setCharge(precursorPeakGroup->getRepCharge());
-      precursor.setMZ(precursorPeakGroup->getMonoMass());
+      precursor.setMZ(precursorPeakGroup->getMonoMass() + mzmlCharge * (mzmlCharge >= 0 ?Constants::PROTON_MASS_U : Constants::ELECTRON_MASS_U));
       precursor.setIntensity(precursorPeakGroup->getIntensity());
       outSpec.getPrecursors().clear();
       outSpec.getPrecursors().emplace_back(precursor);

@@ -100,7 +100,7 @@ namespace OpenMS
     void writeTopFD(std::fstream &fs, int id, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
     /// cast DeconvolutedSpectrum into MSSpectrum object to write mzml format
-    MSSpectrum toSpectrum();
+    MSSpectrum toSpectrum(int charge);
 
     /// write the header for Thermo Inclusion List header format
     static void writeThermoInclusionHeader(std::fstream &fs);
