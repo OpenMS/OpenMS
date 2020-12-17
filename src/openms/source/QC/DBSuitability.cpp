@@ -306,7 +306,7 @@ namespace OpenMS
     }
 
     // temporary folder for search in- und output files
-    bool keep_files = !param_.getValue("keep_search_files").toBool();
+    bool keep_files = param_.getValue("keep_search_files").toBool();
     File::TempDir tmp_dir(keep_files);
     String mzml_path = tmp_dir.getPath() + "spectra.mzML";
     String db_path = tmp_dir.getPath() + "database.FASTA";
