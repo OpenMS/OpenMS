@@ -95,17 +95,17 @@ namespace OpenMS
                                        "Chromatogram must be sorted by position");
     }
 
-    OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
-        " with " << chromatogram.size() << " peaks ";
     if (chromatogram.empty())
     {
-        OPENMS_LOG_DEBUG << std::endl; 
-        OPENMS_LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
-        return;
+      OPENMS_LOG_DEBUG << " ====  Chromatogram " << chromatogram.getNativeID() << "empty. Skip picking.";
+      return;
     }
-    OPENMS_LOG_DEBUG << "(start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
+    else
+    {
+        OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
+        " with " << chromatogram.size() << " peaks (start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
         "using method \'" << method_ << "\'" << std::endl;
-
+    }
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
@@ -127,7 +127,7 @@ namespace OpenMS
 
     // Find initial seeds (peak picking)
     pp_.pick(smoothed_chrom, picked_chrom);
-    OPENMS_LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
+    OPENMS_LOG_DEBUG << "Picked " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
     {

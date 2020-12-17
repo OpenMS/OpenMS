@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <map>
 #include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -48,22 +48,13 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-      @brief residue data base
-
-      By default no modified residues are stored in an instance. However, if one
-      queries the instance with getModifiedResidue, a new modified residue is
-      added.
+      @brief OpenMS stores a central database of all residues in the ResidueDB.
+      All (unmodified) residues are added to the database on construction.
+      Modified residues get created and added if getModifiedResidue is called.
   */
   class OPENMS_DLLAPI ResidueDB
   {
 public:
-
-    /** @name Typedefs
-    */
-    //@{
-    typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
-    //@}
-
     /// this member function serves as a replacement of the constructor
     static ResidueDB* getInstance();
 
@@ -139,14 +130,6 @@ public:
     bool hasResidue(const Residue* residue) const;
     //@}
 
-    /** @name Iterators
-    */
-    //@{
-    inline ResidueConstIterator beginResidue() const { return const_residues_.begin(); }
-
-    inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
-    //@}
-
 protected:
     /// initializes all residues by building
     void initResidues_();
@@ -192,16 +175,16 @@ protected:
 
     boost::unordered_map<String, const Residue*> residue_names_;
 
-    // fast lookup table for residues
-    Residue* residue_by_one_letter_code_[256];
+    /// fast lookup table for residues 
+    std::array<const Residue*, 256> residue_by_one_letter_code_ {{nullptr}};  // {} would be sufficient on gcc >= 5.1
 
-    Map<String, Map<String, const Residue*> > residue_mod_names_;
+    std::map<String, std::map<String, const Residue*> > residue_mod_names_;
 
     std::set<const Residue*> const_residues_;
 
     std::set<const Residue*> const_modified_residues_;
 
-    Map<String, std::set<const Residue*> > residues_by_set_;
+    std::map<String, std::set<const Residue*> > residues_by_set_;
 
     std::set<String> residue_sets_;
   };
