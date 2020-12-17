@@ -58,6 +58,7 @@ struct OPENMS_DLLAPI MorpheusScore
     float MIC = 0; ///< ion current of matches (experimental peaks)
     float TIC = 0; ///< total ion current (experimental peak) 
     float err = 0; ///< average absolute mass error of matched fragments (in Da)
+    float err_ppm = 0; ///< average absolute mass error of matched fragments (in ppm)
   };
 
   /// returns Morpheus Score, \#matched ions, \#total ions, \#matched intensities, \#total fragment intensities (TIC)

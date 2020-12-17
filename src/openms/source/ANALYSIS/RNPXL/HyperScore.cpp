@@ -125,12 +125,24 @@ namespace OpenMS
     return hyperScore;
   }
 
-  double HyperScore::computeWithDetail(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum, PSMDetail& d)
+  double HyperScore::computeWithDetail(double fragment_mass_tolerance, 
+    bool fragment_mass_tolerance_unit_ppm, 
+    const PeakSpectrum& exp_spectrum, 
+    const PeakSpectrum& theo_spectrum,
+    std::vector<double>& b_ions,
+    std::vector<double>& y_ions,
+    PSMDetail& d)
   {
     if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
     {
       std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
+    }
+
+    bool store_ion_intensities = true;
+    if (b_ions.empty() || y_ions.empty())
+    {
+      store_ion_intensities = false;
     }
 
     // TODO this assumes only one StringDataArray is present and it is the right one
@@ -154,8 +166,12 @@ namespace OpenMS
       MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
       for (; it != it.end(); ++it)
       {
-        abs_error += Math::getPPMAbs((*it).getMZ(), it.ref().getMZ());
-        dot_product += (*it).getIntensity() * it.ref().getIntensity(); /* * mass_error */;
+        const double exp_mz{it.ref().getMZ()};
+        const double theo_mz{(*it).getMZ()};
+        const double exp_int{it.ref().getIntensity()};
+        const double theo_int{(*it).getIntensity()};
+        abs_error += Math::getPPMAbs(theo, exp_mz);
+        dot_product += theo_int * exp_int; /* * mass_error */;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         auto i = it.refIdx();
         if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))

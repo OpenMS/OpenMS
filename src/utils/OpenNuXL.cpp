@@ -343,7 +343,7 @@ class AnnotatedHit
       Morph: number of matched peaks + the fraction of MIC
   */
   float pl_MIC = 0;
-  float pl_err = 0;
+  float pl_err = 0.0;
   float pl_Morph = 0;
 
   /*
@@ -811,14 +811,17 @@ protected:
           const Size exp_z = exp_charges[index];
 
           // found peak match
-          const double abs_err_DA = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_DA < max_dist_dalton)
+          const double abs_err_Da = std::abs(theo_mz - exp_mz);
+          if (exp_z == z && abs_err_Da < max_dist_dalton)
           {
             if (!peak_matched[index])
             {
               const double intensity = exp_spectrum[index].getIntensity();
               dot_product += intensity;
-              b_mean_err += intensity * abs_err_DA;
+              if (b_ions[i] == 0) // only b-ion mass error otherwise counts don't match for mean err calculation
+              {
+                b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
+              }
               b_ions[i] += intensity;
               ++matches;
               peak_matched[index] = true;
@@ -844,13 +847,13 @@ protected:
         const Size exp_z = exp_charges[index];
 
         // found peak match
-        const double abs_err_DA = std::abs(theo_mz - exp_mz);
-        if (exp_z == z && abs_err_DA < max_dist_dalton)
+        const double abs_err_Da = std::abs(theo_mz - exp_mz);
+        if (exp_z == z && abs_err_Da < max_dist_dalton)
         {
           if (!peak_matched[index])
           {
             const double intensity = exp_spectrum[index].getIntensity();
-            y_mean_err += intensity * abs_err_DA;
+            y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
             dot_product += intensity;                  
             y_ions[N-1 - i] += intensity;      
             ++matches;
@@ -860,6 +863,7 @@ protected:
         ++n_theoretical_peaks;
       }
     }
+
 
 #ifdef CONSIDER_AA_LOSSES
     // block peaks matching to AA related neutral losses so they get counted for explained peak fraction calculation
@@ -948,7 +952,7 @@ protected:
       hyperScore = 0;
       MIC = 0;
       Morph = 0;
-      err = fragment_mass_tolerance_unit_ppm ? 2000.0 * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+      err = fragment_mass_tolerance;
     }
     else
     {
@@ -959,7 +963,7 @@ protected:
       for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       MIC /= TIC;
       Morph = b_ion_count + y_ion_count + MIC;
-      err = (y_mean_err + b_mean_err)/(b_sum + y_sum);
+      err = (y_mean_err + b_mean_err)/(b_ion_count + y_ion_count);
     }
 
     // match precusor ions z = 1..pc_charge
@@ -1220,7 +1224,7 @@ protected:
                 }
 #endif
                 const double intensity = exp_spectrum[index].getIntensity();
-                b_mean_err += intensity * abs_err_Da;
+                b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
                 dot_product += intensity;
                 b_ions[i] += intensity;            
                 peak_matched[index] = true;
@@ -1231,8 +1235,8 @@ protected:
           }
         } 
       }
-    } 
-
+    }
+ 
     // match y-ions
     for (Size z = 1; z <= max_z; ++z)
     {
@@ -1261,7 +1265,7 @@ protected:
           const double abs_err_Da = std::abs(theo_mz - exp_mz);
           if (exp_z == z && abs_err_Da < max_dist_dalton)
           {
-            if (!peak_matched[index])
+//            if (!peak_matched[index])
             {
 #ifdef FILTER_AMBIGIOUS_PEAKS
               // skip ambigious matches
@@ -1271,7 +1275,7 @@ protected:
               }
 #endif
               const double intensity = exp_spectrum[index].getIntensity();
-              y_mean_err += intensity * abs_err_Da;
+              y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
               dot_product += intensity;                  
               y_ions[N-1 - i] += intensity;      
               peak_matched[index] = true;
@@ -1374,7 +1378,7 @@ protected:
       plss_hyperScore = 0;
       plss_MIC = 0;
       plss_Morph = 0;
-      plss_err = fragment_mass_tolerance_unit_ppm ? 2000.0 * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+      plss_err = fragment_mass_tolerance;
     }
     else
     {
@@ -1385,7 +1389,7 @@ protected:
       for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       plss_MIC /= TIC;
       plss_Morph = b_ion_count + y_ion_count + plss_MIC;
-      plss_err = (y_mean_err + b_mean_err)/(b_sum + y_sum);
+      plss_err = (y_mean_err + b_mean_err)/(b_ion_count + y_ion_count);
    }
     
     // match (partially) shifted precusor ions z = 1..pc_charge
@@ -1519,7 +1523,7 @@ protected:
     plss_im_MIC /= TIC;
 
     // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
-    plss_err = plss_Morph > 2 ? plss_err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
+//    plss_err = plss_Morph > 2 ? plss_err : fragment_mass_tolerance;
 
     const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
 
@@ -1645,8 +1649,8 @@ score += ah.mass_error_p     *   1.15386068
            const double ret = 1.0 * ah.total_loss_score
            +  0.5 * ah.partial_loss_score
            +  1.0 * ah.mass_error_p 
-           -  0.1 * ah.err 
-           -  0.1 * ah.pl_err
+           -  0.001 * ah.err 
+           -  0.001 * ah.pl_err
            + isXL * 0.1 * ah.marker_ions_score
            +  1.0 * ah.total_MIC
            + isXL * (ah.pl_pc_MIC + ah.precursor_score)
@@ -1799,9 +1803,6 @@ static void scoreXLIons_(
 #ifdef DEBUG_OpenNuXL
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
-    // cap plss_err to something larger than the mean_mz * max_ppm_error
-    float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
-    if (plss_err > ft_da) plss_err = ft_da;
   }
 
   // De novo tagger
@@ -2841,7 +2842,7 @@ static void scoreXLIons_(
           float  partial_loss_sub_score(0), 
             marker_ions_sub_score(0),
             plss_MIC(0), 
-            plss_err(1.0), 
+            plss_err(fragment_mass_tolerance), 
             plss_Morph(0), 
             plss_modds(0);
 
@@ -4765,10 +4766,11 @@ static void scoreXLIons_(
   
   void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
+    double filtered_peaks_count{0};
+    size_t filtered_spectra{0};
     for (auto& s : spectra)
     {
       unordered_set<size_t> idx_to_remove;
-      cout << s.getNativeID() << " " << purities.size() << endl; 
       auto it = purities.find(s.getNativeID());
       if (it != purities.end())
       {        
@@ -4785,11 +4787,14 @@ static void scoreXLIons_(
         for (size_t i = 0; i != s.size(); ++i)
         { // add indices we don't want to remove
           if (idx_to_remove.find(i) == idx_to_remove.end()) idx_to_keep.push_back(i);
-        } 
-        cout << "Filtered out " << idx_to_remove.size() << " peaks matching to precursor inference." << endl;
+        }
+        filtered_peaks_count += idx_to_remove.size();
         s.select(idx_to_keep);
       }
+      ++filtered_spectra;
     } 
+    OPENMS_LOG_INFO << "Filtered out " << filtered_peaks_count << " peaks in total that matched to precursor interference." << endl;
+    if (filtered_spectra > 0) OPENMS_LOG_INFO << "  On average " << filtered_peaks_count / (double)filtered_spectra << " peaks per MS2." << endl;
   }
 
   ExitCodes main_(int, const char**) override
@@ -4843,7 +4848,6 @@ static void scoreXLIons_(
 
     InternalCalibration ic; // only filled if pcrecalibration is set and there are enough calibrants
 
-
     // autotune (only works if non-XL peptides present)
     set<String> skip_peptide_spectrum;
     double global_fragment_error(0);
@@ -4881,7 +4885,7 @@ static void scoreXLIons_(
       sse.setParameters(p);
       cout << "Running autotune..." << endl;
       sse.search(in_mzml, in_db, prot_ids, pep_ids);      
-
+      
 /// try to run percolator
       {    
         vector<ProteinIdentification> perc_prot_ids;
@@ -5034,9 +5038,20 @@ static void scoreXLIons_(
         vector<double> median_fragment_error_ppm_abs;
         vector<double> median_fragment_error_ppm;
         vector<double> precursor_error_ppm;
+        double mean_prefix_ions_fraction{}, mean_suffix_ions_fraction{};
         for (const auto& pi : pep_ids)
         {
           const PeptideHit& ph = pi.getHits()[0];
+          if (ph.metaValueExists(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION))
+          {
+            mean_prefix_ions_fraction += (double)ph.getMetaValue(Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION);
+          }
+
+          if (ph.metaValueExists(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION))
+          {
+            mean_suffix_ions_fraction += (double)ph.getMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
+          }
+
           if (ph.metaValueExists(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM))
           {
             //cout << ph.getMetaValue("median_fragment_error_ppm") << endl;
@@ -5059,6 +5074,10 @@ static void scoreXLIons_(
         double left_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.005];
         double median_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.5];
         double right_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.995];
+
+        mean_suffix_ions_fraction /= (double) pep_ids.size();
+        mean_prefix_ions_fraction /= (double) pep_ids.size();
+        cout << "Mean prefix/suffix ions fractino: " << mean_prefix_ions_fraction << "/" << mean_suffix_ions_fraction << endl;
 
         if (autotune)
         {
@@ -5827,7 +5846,7 @@ static void scoreXLIons_(
                       vector<double> y_xl_ions(b_ions.size(), 0.0);
 
                       float plss_MIC(0), 
-                        plss_err(1.0), 
+                        plss_err(fragment_mass_tolerance), 
                         plss_Morph(0), 
                         plss_modds(0),
                         plss_pc_MIC(0),
@@ -6615,6 +6634,7 @@ static void scoreXLIons_(
                                   float &plss_Morph,
                                   float &plss_modds) 
   {
+    OPENMS_PRECONDITION(fragment_mass_tolerance_unit_ppm, "absolute fragment mass toleranes not implemented.");
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
     if (!marker_ions_sub_score_spectrum_z1.empty())
@@ -6652,11 +6672,11 @@ static void scoreXLIons_(
                                                           pl_spec->getIntegerDataArrays()[IA_CHARGE_INDEX]);      
       plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
       plss_Morph = pl_sub_scores.score;
+      const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
 
       // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
-      plss_err = plss_Morph > 2 ? pl_sub_scores.err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
+//      plss_err = plss_Morph > 2 ? pl_sub_scores.err_ppm : fragment_mass_tolerance;
 
-      const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
       plss_modds = matchOddsScore_(pl_spec->size(), 
         fragment_mass_tolerance_Da,
         exp_spectrum.size(),
@@ -6666,9 +6686,6 @@ static void scoreXLIons_(
 #ifdef DEBUG_OpenNuXL
     OPENMS_LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
-    // cap plss_err to something larger than the mean_mz * max_ppm_error
-    float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
-    if (plss_err > ft_da) plss_err = ft_da;
   }
 };
 

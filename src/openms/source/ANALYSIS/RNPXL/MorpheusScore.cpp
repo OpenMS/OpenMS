@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <cmath>
 
 namespace OpenMS
@@ -83,6 +84,7 @@ namespace OpenMS
     e = 0;
     double match_intensity(0.0);
     double sum_error(0.0);
+    double sum_error_ppm(0.0);
 
     while (t < n_t && e < n_e)
     {
@@ -94,6 +96,7 @@ namespace OpenMS
       {
         match_intensity += exp_spectrum[e].getIntensity();
         sum_error += fabs(d);
+        sum_error_ppm += Math::getPPMAbs(exp_mz, theo_mz);
         ++e; // sum up experimental peak intensity only once
       }
       else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
@@ -114,6 +117,7 @@ namespace OpenMS
     psm.MIC = match_intensity;
     psm.TIC = total_intensity;
     psm.err = matches > 0 ? sum_error / static_cast<double>(matches) : 1e10;
+    psm.err_ppm = matches > 0 ? sum_error_ppm / static_cast<double>(matches) : 1e10;
     return psm;
   }
 
@@ -170,6 +174,7 @@ namespace OpenMS
     e = 0;
     double match_intensity(0.0);
     double sum_error(0.0);
+    double sum_error_ppm(0.0);
 
     while (t < n_t && e < n_e)
     {
@@ -185,6 +190,7 @@ namespace OpenMS
         { 
           match_intensity += exp_spectrum[e].getIntensity();
           sum_error += fabs(d);
+          sum_error_ppm += Math::getPPMAbs(exp_mz, theo_mz);
         }
         ++e; // sum up experimental peak intensity only once
       }
@@ -206,6 +212,7 @@ namespace OpenMS
     psm.MIC = match_intensity;
     psm.TIC = total_intensity;
     psm.err = matches > 0 ? sum_error / static_cast<double>(matches) : 1e10;
+    psm.err_ppm = matches > 0 ? sum_error_ppm / static_cast<double>(matches) : 1e10;
     return psm;
   }
 
