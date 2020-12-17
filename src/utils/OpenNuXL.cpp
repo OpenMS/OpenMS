@@ -1350,6 +1350,7 @@ protected:
 
     UInt y_ion_count(0), b_ion_count(0);
     double b_sum(0.0);
+    
     for (Size i = 0; i != b_ions.size(); ++i) 
     {
       if (b_ions[i] > 0) 
@@ -1369,6 +1370,16 @@ protected:
         y_sum += y_ions[i];
         ++y_ion_count;
       }       
+    }
+
+    /*
+      peptide of size N breaks into b_i and y_{N-i} ions
+      or with a zero-based index: b[0] -> y[N-1], b[1] -> y[N-1-1], ...
+    */
+    size_t y_larger_than_b{0};
+    for (Size i = 0; i != b_ions.size(); ++i) 
+    {
+      if (b_ions[i] < y_ions[N-1-i]) y_larger_than_b++;
     }
 
     const double& TIC = exp_spectrum.getFloatDataArrays()[0][0];
@@ -1543,6 +1554,15 @@ protected:
      matches);
 #endif
 
+    boost::math::binomial flip(N, 0.5);
+    if (y_larger_than_b == 0)
+    {
+      plss_modds = 1;
+    }
+    else
+    {
+      plss_modds = boost::math::cdf(boost::math::complement(flip, y_larger_than_b - 1));
+    }
   } 
 
 /*
