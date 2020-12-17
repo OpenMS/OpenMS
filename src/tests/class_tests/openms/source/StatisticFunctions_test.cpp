@@ -118,7 +118,7 @@ START_SECTION([EXTRA](template <typename IteratorType> double MAD(IteratorType b
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> double MeanAD(IteratorType begin, IteratorType end, double median_of_numbers)))
+START_SECTION([EXTRA](template <typename IteratorType> double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)))
 {
   int x1[] = {-1, 0, 1, 2, 3}; // mean = 1
   TEST_EQUAL(Math::MeanAbsoluteDeviation(x1, x1 + 5, 1), 1.2);
@@ -126,10 +126,16 @@ START_SECTION([EXTRA](template <typename IteratorType> double MeanAD(IteratorTyp
   int x2[] = {-1, 0, 1, 2, 3, 4}; // mean = 1.5
   TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(x2, x2 + 6, 1.5), 1.5);
   
-  DoubleList z_odd = ListUtils::create<double>("-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // mean = 0.5
+  int x3[] = {-1, 0}; // mean = -0.5
+  TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(x3, x3 + 1, -0.5), 0.5);
+  
+  int x4[] = {1}; // mean = 1
+  TEST_EQUAL(std::isnan(Math::MeanAbsoluteDeviation(x4, x4, 1)), true); // NaN
+  
+  DoubleList z_odd = ListUtils::create<double>("-1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0"); // mean = 0.5
   TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(z_odd.begin(), z_odd.end(), 0.5), 0.857142);
   
-  DoubleList z_even = ListUtils::create<double>("-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0"); // mean = 0.25
+  DoubleList z_even = ListUtils::create<double>("-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0"); // mean = 0.25
   TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(z_even.begin(), z_even.end(), 0.25), 1);
 }
 END_SECTION

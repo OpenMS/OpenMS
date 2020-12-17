@@ -229,11 +229,12 @@ namespace OpenMS
     {
       std::vector<double> diffs;
       diffs.reserve(std::distance(begin, end));
+      double mean {0};
       for (IteratorType it = begin; it != end; ++it)
       {
-        diffs.push_back(fabs(*it - mean_of_numbers));
+        mean += fabs(*it - mean_of_numbers);
       }
-      return mean(diffs.begin(), diffs.end());
+      return mean /= std::distance(begin, end);
     }
 
     /**

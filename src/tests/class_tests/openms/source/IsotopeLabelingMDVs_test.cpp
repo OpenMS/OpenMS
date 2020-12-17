@@ -666,7 +666,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
   }
 
   isotopelabelingmdvs.calculateMDVAccuracies(lactate_1_featureMap, lactate_1_with_accuracy_info_featureMap, accoa_C23H37N7O17P3S_MRM_measured_13, "C23H37N7O17P3S");
-  for (uint8_t i = 0; i < lactate_1_with_accuracy_info_featureMap.size(); ++i)
+  for (size_t i = 0; i < lactate_1_with_accuracy_info_featureMap.size(); ++i)
   {
     TEST_REAL_SIMILAR( lactate_1_with_accuracy_info_featureMap.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[0] );
   }
@@ -674,7 +674,7 @@ START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracies(
   lactate_1_with_accuracy_info_featureMap.clear();
 
   isotopelabelingmdvs.calculateMDVAccuracies(lactate_1_featureMap, lactate_1_with_accuracy_info_featureMap, fad_C27H32N9O15P2_EPI_measured_48, "C27H32N9O15P2");
-  for (uint8_t i = 0; i < lactate_1_with_accuracy_info_featureMap.size(); ++i)
+  for (size_t i = 0; i < lactate_1_with_accuracy_info_featureMap.size(); ++i)
   {
     TEST_REAL_SIMILAR( lactate_1_with_accuracy_info_featureMap.at(i).getMetaValue("average_accuracy"), Average_accuracy_groundtruth[1] );
   }

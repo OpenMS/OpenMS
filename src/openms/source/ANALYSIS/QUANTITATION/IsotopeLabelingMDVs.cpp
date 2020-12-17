@@ -61,7 +61,7 @@ namespace OpenMS
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
     /// Correction Matrices for various derivatization agents
-    const std::map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices_ =
+    const std::map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices =
     {
       { DerivatizationAgent::TBDMS, {{0.8213, 0.1053, 0.0734, 0.0000},
                                      {0.8420, 0.0963, 0.0617, 0.0000},
@@ -71,10 +71,10 @@ namespace OpenMS
     };
     
     Eigen::MatrixXd correction_matrix_eigen;
-    auto correction_matrix_search = correction_matrices_.find(correction_matrix_agent);
+    auto correction_matrix_search = correction_matrices.find(correction_matrix_agent);
     
     // use the internally saved correction matrix if the derivatization agent name is supplied and found
-    if (correction_matrix_agent != DerivatizationAgent::NOT_SELECTED && correction_matrix_search != correction_matrices_.end())
+    if (correction_matrix_agent != DerivatizationAgent::NOT_SELECTED && correction_matrix_search != correction_matrices.end())
     {
       correction_matrix_eigen.resize(correction_matrix_search->second.size(), correction_matrix_search->second[0].size());
       for (size_t i = 0; i < correction_matrix_search->second.size(); ++i)
@@ -102,11 +102,10 @@ namespace OpenMS
     Eigen::MatrixXd correction_matrix_eigen_inversed = correction_matrix_eigen.inverse();
     
     // 2- element-wise expansion with MDV_observed
-    std::vector<Feature> normalized_feature_subordinates = normalized_feature.getSubordinates();
     std::vector<double> MDV_observed;
-    for (auto it = normalized_feature_subordinates.begin(); it != normalized_feature_subordinates.end(); it++)
+    for (const auto& feature : normalized_feature.getSubordinates())
     {
-      MDV_observed.push_back(it->getMetaValue("peak_apex_int"));
+      MDV_observed.push_back(feature.getMetaValue("peak_apex_int"));
     }
     
     corrected_feature = normalized_feature;
@@ -198,7 +197,7 @@ namespace OpenMS
     
     if (!fragment_isotopomer_abs_diff.empty())
     {
-      double diff_mean = std::accumulate(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), 0.0) / fragment_isotopomer_abs_diff.size();
+      double diff_mean = OpenMS::Math::mean(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end());
     
       diff_mean = OpenMS::Math::MeanAbsoluteDeviation(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), diff_mean);
     
@@ -212,6 +211,7 @@ namespace OpenMS
     const std::vector<double>& fragment_isotopomer_measured,
     const std::string& fragment_isotopomer_theoretical_formula)
   {
+    featureMap_with_accuracy_info.clear();
     for (const Feature& feature : normalized_featureMap)
     {
       Feature feature_with_accuracy_info;
@@ -307,10 +307,7 @@ namespace OpenMS
     const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
     const MassIntensityType& mass_intensity_type, const FeatureName& feature_name)
   {
-    if (!normalized_featureMap.empty())
-    {
-      normalized_featureMap.clear();
-    }
+    normalized_featureMap.clear();
     
     for (const Feature& feature : measured_featureMap)
     {
