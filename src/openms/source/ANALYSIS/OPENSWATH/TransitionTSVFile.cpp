@@ -1050,6 +1050,10 @@ namespace OpenMS
     {
       peptide.setMetaValue("GeneName", tr_it->GeneName);
     }
+    if (!tr_it->SumFormula.empty())
+    {
+      peptide.setMetaValue("SumFormula", tr_it->SumFormula);
+    }
 
     // per peptide CV terms
     peptide.setPeptideGroupLabel(tr_it->peptide_group_label);
