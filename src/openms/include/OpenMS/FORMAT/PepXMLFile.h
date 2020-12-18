@@ -122,6 +122,12 @@ public:
       keep_native_name_ = keep;
     }
 
+    /// sets the preferred fixed modifications
+    void setPreferredFixedModifications(const std::vector<ResidueModification>& mods);
+
+    /// sets the preferred variable modifications
+    void setPreferredVariableModifications(const std::vector<ResidueModification>& mods);
+
 protected:
 
     /// Docu in base class
@@ -153,6 +159,13 @@ private:
       std::vector<String> errors_;
       const ResidueModification* registered_mod_;
 
+      const ResidueModification* lookupModInPreferredMods_(const std::vector<ResidueModification>& preferred_fixed_mods,
+                                                           const String& aminoacid,
+                                                           double massdiff,
+                                                           const String& description,
+                                                           const ResidueModification::TermSpecificity term_spec,
+                                                           double tolerance);
+
       public:
       AminoAcidModification() = delete;
 
@@ -162,7 +175,10 @@ private:
       /// since we use them ambiguously
       AminoAcidModification(
           const String& aminoacid, const String& massdiff, const String& mass,
-          String variable, const String& description, String terminus, const String& protein_terminus);
+          String variable, const String& description, String terminus, const String& protein_terminus,
+          const std::vector<ResidueModification>& preferred_fixed_mods,
+          const std::vector<ResidueModification>& preferred_var_mods,
+          double tolerance);
 
       AminoAcidModification(const AminoAcidModification& rhs) = default;
 
@@ -187,6 +203,7 @@ private:
       const String& getAminoAcid() const;
 
       const std::vector<String>& getErrors() const;
+
     };
 
     /// Pointer to the list of identified proteins
@@ -292,14 +309,19 @@ private:
     /// The modifications of the current peptide hit (position is 1-based)
     std::vector<std::pair<const ResidueModification*, Size> > current_modifications_;
 
-    /// Fixed aminoacid modifications
+    /// Fixed aminoacid modifications as parsed from the header
     std::vector<AminoAcidModification> fixed_modifications_;
 
-    /// Variable aminoacid modifications
+    /// Variable aminoacid modifications as parsed from the header
     std::vector<AminoAcidModification> variable_modifications_;
 
-    /// stores modifications that should be preferred when reading
-    std::vector<const ResidueModification*> preferred_modifications_;
+    /// Fixed modifications that should be preferred when parsing the header
+    /// (e.g. when pepXML was produced through an adapter)
+    std::vector<ResidueModification> preferred_fixed_modifications_;
+
+    /// Variable modifications that should be preferred when parsing the header
+    /// (e.g. when pepXML was produced through an adapter)
+    std::vector<ResidueModification> preferred_variable_modifications_;
 
     //@}
 
@@ -311,8 +333,6 @@ private:
     bool lookupAddFromHeader_(double modification_mass,
                               Size modification_position,
                               std::vector<AminoAcidModification> const& header_mods);
-
-    void setPreferredModifications(const std::vector<const ResidueModification*>& mods);
   };
 
 } // namespace OpenMS
