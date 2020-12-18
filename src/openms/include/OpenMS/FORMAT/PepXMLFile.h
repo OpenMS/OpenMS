@@ -298,6 +298,9 @@ private:
     /// Variable aminoacid modifications
     std::vector<AminoAcidModification> variable_modifications_;
 
+    /// stores modifications that should be preferred when reading
+    std::vector<const ResidueModification*> preferred_modifications_;
+
     //@}
 
     static const double mod_tol_;
@@ -308,6 +311,8 @@ private:
     bool lookupAddFromHeader_(double modification_mass,
                               Size modification_position,
                               std::vector<AminoAcidModification> const& header_mods);
+
+    void setPreferredModifications(const std::vector<const ResidueModification*>& mods);
   };
 
 } // namespace OpenMS

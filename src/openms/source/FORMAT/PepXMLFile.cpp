@@ -282,7 +282,8 @@ namespace OpenMS
     scan_map_(),
     analysis_summary_(false),
     keep_native_name_(false),
-    search_score_summary_(false)
+    search_score_summary_(false),
+    preferred_modifications_({})
   {
     const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
@@ -1979,6 +1980,11 @@ namespace OpenMS
       current_proteins_.back()->setSearchParameters(params_);
       search_summary_ = false;
     }
+  }
+
+  void PepXMLFile::setPreferredModifications(const std::vector<const ResidueModification*>& mods)
+  {
+    preferred_modifications_ = mods;
   }
 
 } // namespace OpenMS
