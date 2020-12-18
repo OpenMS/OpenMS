@@ -231,6 +231,14 @@ protected:
     Param mascot_query_param = getParam_().copy("Mascot_server:", true);
     writeDebug_("Setting parameters for Mascot query", 1);
     mascot_query->setParameters(mascot_query_param);
+    
+    bool internal_decoys = getStringOption_("Mascot_parameters:decoy") == "true";
+    // We used internal decoy search. Set that we want to retrieve decoy search results during export.
+    if (internal_decoys)
+    {
+      mascot_query->setExportDecoys(true);
+    }
+
     writeDebug_("Setting spectra for Mascot query", 1);
     mascot_query->setQuerySpectra(ss.str());
 
@@ -257,28 +265,59 @@ protected:
         !mascot_query_param.getValue("skip_export").toBool())
     {
       // write Mascot response to file
-      String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
-      QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
-      mascot_tmp_file.open(QIODevice::WriteOnly);
-      mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
-      mascot_tmp_file.close();
-
-      // set up helper object for looking up spectrum meta data:
-      SpectrumMetaDataLookup lookup;
-      MascotXMLFile::initializeLookup(lookup, exp);
-
-      // read the response
-      MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);
-      writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
-
-      // for debugging errors relating to unexpected response files
-      if (this->debug_level_ >= 100)
       {
-        writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+        String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
+        QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
+        mascot_tmp_file.open(QIODevice::WriteOnly);
+        mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
+        mascot_tmp_file.close();
+      
+        // set up helper object for looking up spectrum meta data:
+        SpectrumMetaDataLookup lookup;
+        MascotXMLFile::initializeLookup(lookup, exp);
+
+        // read the response
+        MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);
+        writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
+
+        // for debugging errors relating to unexpected response files
+        if (this->debug_level_ >= 100)
+        {
+          writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+        }
+        else
+        {
+          mascot_tmp_file.remove(); // delete file
+        }
       }
-      else
+
+      if (internal_decoys)
       {
-        mascot_tmp_file.remove(); // delete file
+        String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response");
+        QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
+        mascot_tmp_file.open(QIODevice::WriteOnly);
+        mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
+        mascot_tmp_file.close();
+      
+        // set up helper object for looking up spectrum meta data:
+        SpectrumMetaDataLookup lookup;
+        MascotXMLFile::initializeLookup(lookup, exp);
+
+        // read the response
+        vector<PeptideIdentification> pep_ids_decoy;
+        ProteinIdentification prot_id_decoy;
+        MascotXMLFile().load(mascot_tmp_file_name, prot_id_decoy, pep_ids_decoy, lookup);
+        writeDebug_("Read " + String(pep_ids_decoy.size()) + " decoy peptide ids and " + String(prot_id_decoy.getHits().size()) + " decoy protein identifications from Mascot", 5);
+
+        // for debugging errors relating to unexpected response files
+        if (this->debug_level_ >= 100)
+        {
+          writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+        }
+        else
+        {
+          mascot_tmp_file.remove(); // delete file
+        }       
       }
 
       // keep or delete protein identifications?!

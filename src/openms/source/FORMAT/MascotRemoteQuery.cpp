@@ -579,6 +579,7 @@ namespace OpenMS
 
       // see http://www.matrixscience.com/help/export_help.html for parameter documentation
       String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
+      // TODO: check that export_params don't contain _show_decoy_report=1. This would add <decoy> at the top of the XML document and we can't easily distinguish the two files (target/decoy) from the search results later.
       String adjustable_params = param_.getValue("export_params");
       results_path.append(required_params.toQString() + "&" +
                           adjustable_params.toQString());
@@ -586,6 +587,19 @@ namespace OpenMS
 
       //Finished search, fire off results retrieval
       getResults(results_path);
+
+      if (export_decoys_)
+      {
+        results_path = "";
+        results_path.append(server_path_.toQString());
+        results_path.append("/cgi/export_dat_2.pl?file=");
+        results_path.append(rx.cap(1));        
+        results_path.append(required_params.toQString() + "&" +
+                            adjustable_params.toQString() + "&_show_decoy_report=1&show_decoy=1"); // request 
+
+        //Finished search, fire off results retrieval
+        getResults(results_path);        
+      }
     }
     else if (status == 303)
     {
@@ -637,8 +651,22 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
         cerr << "Get the XML File" << "\n";
 #endif
-        mascot_xml_ = new_bytes;
-        endRun_();
+        if (new_bytes.contains("<decoy>"))
+        {
+          mascot_decoy_xml_ = new_bytes;          
+        }
+        else
+        {
+          mascot_xml_ = new_bytes;
+        }
+        if (export_decoys_ && !mascot_decoy_xml_.isEmpty() && !mascot_xml_.isEmpty())
+        {
+          endRun_();
+        }
+        else if (!mascot_xml_.isEmpty())
+        {
+          endRun_();
+        }        
       }
     }
   }
@@ -651,6 +679,16 @@ namespace OpenMS
   const QByteArray& MascotRemoteQuery::getMascotXMLResponse() const
   {
     return mascot_xml_;
+  }
+
+  const QByteArray& MascotRemoteQuery::getMascotXMLDecoyResponse() const
+  {
+    return mascot_decoy_xml_;
+  }
+
+  void MascotRemoteQuery::setExportDecoys(const bool b)
+  {
+    export_decoys_ = b;
   }
 
   bool MascotRemoteQuery::hasError() const
@@ -698,6 +736,7 @@ namespace OpenMS
     boundary_ = param_.getValue("boundary");
     cookie_ = "";
     mascot_xml_ = "";
+    mascot_decoy_xml_ = "";
 
     to_ = param_.getValue("timeout");
     timeout_.setInterval(1000 * to_);
