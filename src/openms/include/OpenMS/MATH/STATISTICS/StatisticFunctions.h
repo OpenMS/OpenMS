@@ -227,14 +227,12 @@ namespace OpenMS
     template <typename IteratorType>
     double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)
     {
-      std::vector<double> diffs;
-      diffs.reserve(std::distance(begin, end));
       double mean {0};
       for (IteratorType it = begin; it != end; ++it)
       {
         mean += fabs(*it - mean_of_numbers);
       }
-      return mean /= std::distance(begin, end);
+      return mean / std::distance(begin, end);
     }
 
     /**
