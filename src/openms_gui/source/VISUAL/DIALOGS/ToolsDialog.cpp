@@ -214,34 +214,16 @@ namespace OpenMS
 
   void ToolsDialog::createINI_()
   {
-    QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
-    QProcess qp;
-    String executable = File::findSiblingTOPPExecutable(getTool());
-    qp.start(executable.toQString(), args);
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      QMessageBox::critical(this, "Error", (String("Could not execute '") + executable + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
-      return;
-    }
-    else if (!File::exists(ini_file_))
-    {
-      QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
-      return;
-    }
-
     enable_();
     if (!arg_param_.empty())
     {
-      tool_desc_->clear();
-      arg_param_.clear();
-      vis_param_.clear();
-      editor_->clear();
-      arg_map_.clear();
+       tool_desc_->clear();
+       arg_param_.clear();
+       vis_param_.clear();
+       editor_->clear();
+       arg_map_.clear();
     }
-
-    ParamXMLFile paramFile;
-    paramFile.load((ini_file_).c_str(), arg_param_);
+    arg_param_ = getParamFromIni_(getTool());
 
     tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);
