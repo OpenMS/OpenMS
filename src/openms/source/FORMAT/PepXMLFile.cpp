@@ -127,7 +127,7 @@ namespace OpenMS
   }
 
   const ResidueModification*
-  PepXMLFile::AminoAcidModification::lookupModInPreferredMods_(const vector<ResidueModification>& preferred_mods,
+  PepXMLFile::AminoAcidModification::lookupModInPreferredMods_(const vector<const ResidueModification*>& preferred_mods,
                                                        const String& aminoacid,
                                                        double massdiff,
                                                        const String& description,
@@ -136,19 +136,19 @@ namespace OpenMS
   {
     for (const auto& pref_mod : preferred_mods)
     {
-      if (description == pref_mod.getFullId())
+      if (description == pref_mod->getFullId())
       {
-        return &pref_mod;
+        return pref_mod;
       }
     }
     for (const auto& pref_mod : preferred_mods)
     {
-      if ((aminoacid.empty() || aminoacid[0] == pref_mod.getOrigin()) &&
-      (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY || term_spec == pref_mod.getTermSpecificity()))
+      if ((aminoacid.empty() || aminoacid[0] == pref_mod->getOrigin()) &&
+      (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY || term_spec == pref_mod->getTermSpecificity()))
       {
-        if (fabs(massdiff - pref_mod.getDiffMonoMass()) < tolerance)
+        if (fabs(massdiff - pref_mod->getDiffMonoMass()) < tolerance)
         {
-          return &pref_mod;
+          return pref_mod;
         }
       }
     }
@@ -158,8 +158,8 @@ namespace OpenMS
   PepXMLFile::AminoAcidModification::AminoAcidModification(
       const String& aminoacid, const String& massdiff, const String& mass,
       String variable, const String& description, String terminus, const String& protein_terminus,
-      const vector<ResidueModification>& preferred_fixed_mods,
-      const vector<ResidueModification>& preferred_var_mods,
+      const vector<const ResidueModification*>& preferred_fixed_mods,
+      const vector<const ResidueModification*>& preferred_var_mods,
       double tolerance)
   {
     if (aminoacid.empty() && terminus.empty())
@@ -2041,12 +2041,12 @@ namespace OpenMS
     }
   }
 
-  void PepXMLFile::setPreferredFixedModifications(const std::vector<ResidueModification>& mods)
+  void PepXMLFile::setPreferredFixedModifications(const std::vector<const ResidueModification*>& mods)
   {
     preferred_fixed_modifications_ = mods;
   }
 
-  void PepXMLFile::setPreferredVariableModifications(const std::vector<ResidueModification>& mods)
+  void PepXMLFile::setPreferredVariableModifications(const std::vector<const ResidueModification*>& mods)
   {
     preferred_variable_modifications_ = mods;
   }

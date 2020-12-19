@@ -123,10 +123,10 @@ public:
     }
 
     /// sets the preferred fixed modifications
-    void setPreferredFixedModifications(const std::vector<ResidueModification>& mods);
+    void setPreferredFixedModifications(const std::vector<const ResidueModification*>& mods);
 
     /// sets the preferred variable modifications
-    void setPreferredVariableModifications(const std::vector<ResidueModification>& mods);
+    void setPreferredVariableModifications(const std::vector<const ResidueModification*>& mods);
 
 protected:
 
@@ -159,7 +159,7 @@ private:
       std::vector<String> errors_;
       const ResidueModification* registered_mod_;
 
-      const ResidueModification* lookupModInPreferredMods_(const std::vector<ResidueModification>& preferred_fixed_mods,
+      const ResidueModification* lookupModInPreferredMods_(const std::vector<const ResidueModification*>& preferred_fixed_mods,
                                                            const String& aminoacid,
                                                            double massdiff,
                                                            const String& description,
@@ -176,8 +176,8 @@ private:
       AminoAcidModification(
           const String& aminoacid, const String& massdiff, const String& mass,
           String variable, const String& description, String terminus, const String& protein_terminus,
-          const std::vector<ResidueModification>& preferred_fixed_mods,
-          const std::vector<ResidueModification>& preferred_var_mods,
+          const std::vector<const ResidueModification*>& preferred_fixed_mods,
+          const std::vector<const ResidueModification*>& preferred_var_mods,
           double tolerance);
 
       AminoAcidModification(const AminoAcidModification& rhs) = default;
@@ -316,11 +316,11 @@ private:
 
     /// Fixed modifications that should be preferred when parsing the header
     /// (e.g. when pepXML was produced through an adapter)
-    std::vector<ResidueModification> preferred_fixed_modifications_;
+    std::vector<const ResidueModification*> preferred_fixed_modifications_;
 
     /// Variable modifications that should be preferred when parsing the header
     /// (e.g. when pepXML was produced through an adapter)
-    std::vector<ResidueModification> preferred_variable_modifications_;
+    std::vector<const ResidueModification*> preferred_variable_modifications_;
 
     //@}
 
