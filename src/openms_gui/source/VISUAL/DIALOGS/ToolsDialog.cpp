@@ -55,6 +55,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -83,37 +87,26 @@ namespace OpenMS
     main_grid->addWidget(label, 1, 0);
     QStringList list;
 
-    if (layer_type == LayerData::DT_PEAK)
+    // Determine all available tools compatible with the layer_type
+    tool_map_ = {
+            {"*.mzML", LayerData::DataType::DT_PEAK},
+            {"*.mzXML", LayerData::DataType::DT_PEAK},
+            {"*.featureXML", LayerData::DataType::DT_FEATURE},
+            {"*.consensusXML", LayerData::DataType::DT_CONSENSUS},
+            {"*.idXML", LayerData::DataType::DT_IDENT},
+    };
+    // Get a map of all tools
+    const auto& tools = OpenMS::ToolHandler::getTOPPToolList();
+    for (const auto& tool : tools)
     {
-      list << "FileFilter" << "FileInfo"
-           << "NoiseFilterGaussian" << "NoiseFilterSGolay"
-           << "BaselineFilter" << "PeakPickerHiRes"
-           << "PeakPickerWavelet" << "Resampler"
-           << "MapNormalizer" << "InternalCalibration"
-           << "TOFCalibration"
-           << "FeatureFinderCentroided" << "FeatureFinderIsotopeWavelet" << "FeatureFinderMultiplex"
-           << "MassTraceExtractor" << "FeatureFinderMetabo"
-           << "FeatureFinderMRM"
-           << "IsobaricAnalyzer" << "SpectraFilterWindowMower"
-           << "SpectraFilterThresholdMower" << "SpectraFilterSqrtMower"
-           << "SpectraFilterParentPeakMower" << "SpectraFilterMarkerMower"
-           << "SpectraFilterScaler" << "SpectraFilterBernNorm"
-           << "SpectraFilterNLargest" << "SpectraFilterNormalizer";
-    }
-    else if (layer_type == LayerData::DT_FEATURE)
-    {
-      list << "FileFilter" << "FileConverter"
-           << "FileInfo" << "Decharger"
-           << "FeatureLinkerLabeled";
-    }
-    else if (layer_type == LayerData::DT_CONSENSUS)
-    {
-      list << "FileFilter" << "FileConverter"
-           << "FileInfo";
-    }
-    else if (layer_type == LayerData::DT_CHROMATOGRAM)
-    {
-      //TODO CHROM
+        const String &toolName = tool.first;
+        Param p = getParamFromIni_(toolName);
+        std::vector<LayerData::DataType> toolTypes = getTypesFromParam_(p);
+        // Check if tool is compatible with the layer type
+        if (std::find(toolTypes.begin(), toolTypes.end(), layer_type) != toolTypes.end())
+        {
+            list << toolName.toQString();
+        }
     }
     //sort list alphabetically
     list.sort();
@@ -172,6 +165,51 @@ namespace OpenMS
   ToolsDialog::~ToolsDialog()
   {
 
+  }
+
+  Param ToolsDialog::getParamFromIni_(const String& toolName) {
+      QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
+      QProcess qp;
+      String executable = File::findSiblingTOPPExecutable(toolName);
+      qp.start(executable.toQString(), args);
+      const bool success = qp.waitForFinished(-1); // wait till job is finished
+      if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+      {
+          QMessageBox::critical(this, "Error", (String("Could not execute '") + executable + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+          // TODO handle error
+      }
+      else if (!File::exists(ini_file_))
+      {
+          QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
+          // TODO handle error
+      }
+      Param toolP;
+      ParamXMLFile paramFile;
+      paramFile.load((ini_file_).c_str(), toolP);
+
+      return toolP;
+  }
+
+    std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const{
+      // Containing all types a tool is compatible with
+      std::vector<LayerData::DataType> types;
+      for (const auto& entry : p)
+      {
+          if (entry.name == "in")
+          {
+              // Map all file extension to a LayerData::DataType
+              for (auto& fileExtension : entry.valid_strings)
+              {
+                  const auto& iter = tool_map_.find(fileExtension);
+                  // If mapping was found
+                  if (iter != tool_map_.end())
+                  {
+                      types.push_back(iter->second);
+                  }
+              }
+          }
+      }
+      return types;
   }
 
   void ToolsDialog::createINI_()
