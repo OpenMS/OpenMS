@@ -722,11 +722,17 @@ protected:
 
     // read the pep.xml put of Comet and write it to idXML
 
+    vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
+    vector<String> variable_modifications_names = getStringList_("variable_modifications");
+
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
     writeDebug_("load PepXMLFile", 1);
-    PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications);
+    PepXMLFile pepfile{};
+    pepfile.setPreferredFixedModifications(getModifications_(fixed_modifications_names));
+    pepfile.setPreferredVariableModifications(getModifications_(variable_modifications_names));
+    pepfile.load(tmp_pepxml, protein_identifications, peptide_identifications);
     writeDebug_("write idXMLFile", 1);
     writeDebug_(out, 1);
 
