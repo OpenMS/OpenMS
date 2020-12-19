@@ -203,7 +203,6 @@ private:
       const String& getAminoAcid() const;
 
       const std::vector<String>& getErrors() const;
-
     };
 
     /// Pointer to the list of identified proteins
@@ -334,5 +333,4 @@ private:
                               Size modification_position,
                               std::vector<AminoAcidModification> const& header_mods);
   };
-
 } // namespace OpenMS
