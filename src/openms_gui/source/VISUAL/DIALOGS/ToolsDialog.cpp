@@ -99,14 +99,14 @@ namespace OpenMS
     const auto& tools = OpenMS::ToolHandler::getTOPPToolList();
     for (const auto& tool : tools)
     {
-        const String &toolName = tool.first;
-        Param p = getParamFromIni_(toolName);
-        std::vector<LayerData::DataType> toolTypes = getTypesFromParam_(p);
-        // Check if tool is compatible with the layer type
-        if (std::find(toolTypes.begin(), toolTypes.end(), layer_type) != toolTypes.end())
-        {
-            list << toolName.toQString();
-        }
+      const String &toolName = tool.first;
+      Param p = getParamFromIni_(toolName);
+      std::vector<LayerData::DataType> toolTypes = getTypesFromParam_(p);
+      // Check if tool is compatible with the layer type
+      if (std::find(toolTypes.begin(), toolTypes.end(), layer_type) != toolTypes.end())
+      {
+        list << toolName.toQString();
+      }
     }
     //sort list alphabetically
     list.sort();
@@ -167,49 +167,51 @@ namespace OpenMS
 
   }
 
-  Param ToolsDialog::getParamFromIni_(const String& toolName) {
-      QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
-      QProcess qp;
-      String executable = File::findSiblingTOPPExecutable(toolName);
-      qp.start(executable.toQString(), args);
-      const bool success = qp.waitForFinished(-1); // wait till job is finished
-      if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-      {
-          QMessageBox::critical(this, "Error", (String("Could not execute '") + executable + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
-          // TODO handle error
-      }
-      else if (!File::exists(ini_file_))
-      {
-          QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
-          // TODO handle error
-      }
-      Param toolP;
-      ParamXMLFile paramFile;
-      paramFile.load((ini_file_).c_str(), toolP);
+  Param ToolsDialog::getParamFromIni_(const String& toolName)
+  {
+    QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
+    QProcess qp;
+    String executable = File::findSiblingTOPPExecutable(toolName);
+    qp.start(executable.toQString(), args);
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
+    if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+        QMessageBox::critical(this, "Error", (String("Could not execute '") + executable + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        // TODO handle error
+    }
+    else if (!File::exists(ini_file_))
+    {
+        QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
+        // TODO handle error
+    }
+    Param toolP;
+    ParamXMLFile paramFile;
+    paramFile.load((ini_file_).c_str(), toolP);
 
-      return toolP;
+    return toolP;
   }
 
-    std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const{
-      // Containing all types a tool is compatible with
-      std::vector<LayerData::DataType> types;
-      for (const auto& entry : p)
+  std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
+  {
+    // Containing all types a tool is compatible with
+    std::vector<LayerData::DataType> types;
+    for (const auto& entry : p)
+    {
+      if (entry.name == "in")
       {
-          if (entry.name == "in")
+        // Map all file extension to a LayerData::DataType
+        for (auto& fileExtension : entry.valid_strings)
+        {
+          const auto& iter = tool_map_.find(fileExtension);
+          // If mapping was found
+          if (iter != tool_map_.end())
           {
-              // Map all file extension to a LayerData::DataType
-              for (auto& fileExtension : entry.valid_strings)
-              {
-                  const auto& iter = tool_map_.find(fileExtension);
-                  // If mapping was found
-                  if (iter != tool_map_.end())
-                  {
-                      types.push_back(iter->second);
-                  }
-              }
+            types.push_back(iter->second);
           }
+        }
       }
-      return types;
+    }
+    return types;
   }
 
   void ToolsDialog::createINI_()
