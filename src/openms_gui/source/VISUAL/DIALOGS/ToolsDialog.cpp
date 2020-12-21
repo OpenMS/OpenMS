@@ -58,6 +58,7 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 using namespace std;
 
@@ -89,23 +90,23 @@ namespace OpenMS
 
     // Determine all available tools compatible with the layer_type
     tool_map_ = {
-            {"*.mzML", LayerData::DataType::DT_PEAK},
-            {"*.mzXML", LayerData::DataType::DT_PEAK},
-            {"*.featureXML", LayerData::DataType::DT_FEATURE},
-            {"*.consensusXML", LayerData::DataType::DT_CONSENSUS},
-            {"*.idXML", LayerData::DataType::DT_IDENT},
+            {FileTypes::Type::MZML, LayerData::DataType::DT_PEAK},
+            {FileTypes::Type::MZXML, LayerData::DataType::DT_PEAK},
+            {FileTypes::Type::FEATUREXML, LayerData::DataType::DT_FEATURE},
+            {FileTypes::Type::CONSENSUSXML, LayerData::DataType::DT_CONSENSUS},
+            {FileTypes::Type::IDXML, LayerData::DataType::DT_IDENT}
     };
     // Get a map of all tools
     const auto& tools = OpenMS::ToolHandler::getTOPPToolList();
     for (const auto& tool : tools)
     {
-      const String &toolName = tool.first;
-      Param p = getParamFromIni_(toolName);
+      const String &tool_name = tool.first;
+      Param p = getParamFromIni_(tool_name);
       std::vector<LayerData::DataType> toolTypes = getTypesFromParam_(p);
       // Check if tool is compatible with the layer type
       if (std::find(toolTypes.begin(), toolTypes.end(), layer_type) != toolTypes.end())
       {
-        list << toolName.toQString();
+        list << tool_name.toQString();
       }
     }
     //sort list alphabetically
@@ -167,11 +168,11 @@ namespace OpenMS
 
   }
 
-  Param ToolsDialog::getParamFromIni_(const String& toolName)
+  Param ToolsDialog::getParamFromIni_(const String& tool_name)
   {
     QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
     QProcess qp;
-    String executable = File::findSiblingTOPPExecutable(toolName);
+    String executable = File::findSiblingTOPPExecutable(tool_name);
     qp.start(executable.toQString(), args);
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
@@ -200,9 +201,11 @@ namespace OpenMS
       if (entry.name == "in")
       {
         // Map all file extension to a LayerData::DataType
-        for (auto& fileExtension : entry.valid_strings)
+        for (auto& file_extension : entry.valid_strings)
         {
-          const auto& iter = tool_map_.find(fileExtension);
+          // a file extension in valid_strings is of form "*.TYPE" -> convert to substr "TYPE".
+          const String& file_type = file_extension.substr(2, file_extension.size());
+          const auto& iter = tool_map_.find(FileTypes::nameToType(file_type));
           // If mapping was found
           if (iter != tool_map_.end())
           {

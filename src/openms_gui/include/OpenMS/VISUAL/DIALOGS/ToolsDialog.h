@@ -125,7 +125,7 @@ private:
     ///Enables the ok button and input/output comboboxes
     void enable_();
     /// Generates an .ini file for a given tool name and loads it into a Param object.
-    Param getParamFromIni_(const String& toolName);
+    Param getParamFromIni_(const String& tool_name);
     /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
     std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
 
