@@ -100,15 +100,16 @@ namespace OpenMS
     const auto& tools = OpenMS::ToolHandler::getTOPPToolList();
     for (const auto& tool : tools)
     {
-      const String &tool_name = tool.first;
+      const String& tool_name = tool.first;
       Param p = getParamFromIni_(tool_name);
-      std::vector<LayerData::DataType> toolTypes = getTypesFromParam_(p);
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
       // Check if tool is compatible with the layer type
-      if (std::find(toolTypes.begin(), toolTypes.end(), layer_type) != toolTypes.end())
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
         list << tool_name.toQString();
       }
     }
+
     //sort list alphabetically
     list.sort();
     list.push_front("<select tool>");
@@ -185,11 +186,11 @@ namespace OpenMS
         QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
         // TODO handle error
     }
-    Param toolP;
+    Param tool_param;
     ParamXMLFile paramFile;
-    paramFile.load((ini_file_).c_str(), toolP);
+    paramFile.load((ini_file_).c_str(), tool_param);
 
-    return toolP;
+    return tool_param;
   }
 
   std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
@@ -217,6 +218,49 @@ namespace OpenMS
     return types;
   }
 
+  void ToolsDialog::setInputOutputCombo_(const Param &p)
+  {
+    String str;
+    QStringList input_list;
+    QStringList output_list;
+    for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
+    {
+      // iter.getName() is either of form "ToolName:1:ItemName" or "ToolName:1:NodeName:ItemName".
+      // Cut off "ToolName:1:"
+      str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
+      if (str.size() != 0 && str.find(":") == String::npos)
+      {
+        arg_map_.insert(make_pair(str, iter.getName()));
+        // Only add to input list if item has "input file" tag.
+        if (iter->tags.find("input file") != iter->tags.end())
+        {
+          input_list << QStringList(str.c_str());
+        }
+          // Only add to output list if item has "output file" tag.
+        else if (iter->tags.find("output file") != iter->tags.end())
+        {
+          output_list << QStringList(str.c_str());
+        }
+      }
+    }
+    // Clear and set input combo box
+    input_combo_->clear();
+    output_combo_->clear();
+    input_combo_->addItems(input_list);
+    Int pos = input_list.indexOf("in");
+    if (pos != -1)
+    {
+      input_combo_->setCurrentIndex(pos);
+    }
+    // Clear and set output combo box
+    output_combo_->addItems(output_list);
+    pos = output_list.indexOf("out");
+    if (pos != -1 && getTool() != "FileInfo")
+    {
+      output_combo_->setCurrentIndex(pos);
+    }
+  }
+
   void ToolsDialog::createINI_()
   {
     enable_();
@@ -238,33 +282,8 @@ namespace OpenMS
 
     editor_->load(vis_param_);
 
-    String str;
-    QStringList arg_list;
-    for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
-    {
-      str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-      if (str.size() != 0 && str.find(":") == String::npos)
-      {
-        arg_map_.insert(make_pair(str, iter.getName()));
-        arg_list << QStringList(str.c_str());
-      }
-    }
+    setInputOutputCombo_(arg_param_);
 
-    arg_list.push_front("<select>");
-    input_combo_->clear();
-    output_combo_->clear();
-    input_combo_->addItems(arg_list);
-    Int pos = arg_list.indexOf("in");
-    if (pos != -1)
-    {
-      input_combo_->setCurrentIndex(pos);
-    }
-    output_combo_->addItems(arg_list);
-    pos = arg_list.indexOf("out");
-    if (pos != -1 && getTool() != "FileInfo")
-    {
-      output_combo_->setCurrentIndex(pos);
-    }
     editor_->setFocus(Qt::MouseFocusReason);
   }
 
@@ -366,31 +385,7 @@ namespace OpenMS
     //load data into editor
     editor_->load(vis_param_);
 
-    QStringList arg_list;
-    for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
-    {
-      str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-      if (!str.empty() && str.find(":") == String::npos)
-      {
-        arg_map_.insert(make_pair(str, iter.getName()));
-        arg_list << QStringList(str.c_str());
-      }
-    }
-    arg_list.push_front("<select>");
-    input_combo_->clear();
-    output_combo_->clear();
-    input_combo_->addItems(arg_list);
-    pos = arg_list.indexOf("in");
-    if (pos != -1)
-    {
-      input_combo_->setCurrentIndex(pos);
-    }
-    output_combo_->addItems(arg_list);
-    pos = arg_list.indexOf("out");
-    if (pos != -1 && getTool() != "FileInfo")
-    {
-      output_combo_->setCurrentIndex(pos);
-    }
+    setInputOutputCombo_(arg_param_);
   }
 
   void ToolsDialog::storeINI_()

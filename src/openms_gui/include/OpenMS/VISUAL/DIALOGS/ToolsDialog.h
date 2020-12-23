@@ -128,6 +128,8 @@ private:
     Param getParamFromIni_(const String& tool_name);
     /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
     std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
+    // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
+    void setInputOutputCombo_(const Param& p);
 
 protected slots:
 
