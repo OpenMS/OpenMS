@@ -135,13 +135,10 @@ namespace OpenMS
   }
 
   void IsotopeLabelingMDVs::calculateIsotopicPurity(
-    const Feature& normalized_featuremap,
-    Feature& featuremap_with_isotopic_purity,
+    Feature& normalized_featuremap,
     const std::vector<double>& experiment_data,
     const std::string& isotopic_purity_name)
   {
-    featuremap_with_isotopic_purity = normalized_featuremap;
-    
     if (!experiment_data.empty())
     {
       double experiment_data_peak = 0.0;
@@ -154,33 +151,27 @@ namespace OpenMS
       {
         double previous_experiment_data_peak = experiment_data[experiment_data_peak_idx - 1];
         double isotopic_purity = experiment_data_peak_idx / (experiment_data_peak_idx + (previous_experiment_data_peak / experiment_data_peak));
-        featuremap_with_isotopic_purity.setMetaValue(isotopic_purity_name, isotopic_purity);
+        normalized_featuremap.setMetaValue(isotopic_purity_name, isotopic_purity);
       }
     }
   }
 
   void IsotopeLabelingMDVs::calculateIsotopicPurities(
-    const FeatureMap& normalized_featureMap,
-    FeatureMap& featureMap_with_isotopic_purity,
-    const std::vector<double>& experiment_data,
-    const std::string& isotopic_purity_name)
+    FeatureMap& normalized_featureMap,
+    const std::vector<std::vector<double>>& experiment_data,
+    const std::vector<std::string>& isotopic_purity_names)
   {
-    for (const Feature& feature : normalized_featureMap)
+    for (size_t feature_idx = 0; feature_idx < normalized_featureMap.size(); ++feature_idx)
     {
-      Feature feature_with_isotopic_purity;
-      calculateIsotopicPurity(feature, feature_with_isotopic_purity, experiment_data, isotopic_purity_name);
-      featureMap_with_isotopic_purity.push_back(feature_with_isotopic_purity);
+      calculateIsotopicPurity(normalized_featureMap.at(feature_idx), experiment_data.at(feature_idx), isotopic_purity_names.at(feature_idx));
     }
   }
   
   void IsotopeLabelingMDVs::calculateMDVAccuracy(
-    const Feature& normalized_feature,
-    Feature& feature_with_accuracy_info,
+    Feature& normalized_feature,
     const std::vector<double>& fragment_isotopomer_measured,
     const std::string& fragment_isotopomer_theoretical_formula)
   {
-    feature_with_accuracy_info = normalized_feature;
-    
     std::vector<double> fragment_isotopomer_theoretical;
     
     IsotopeDistribution theoretical_iso(EmpiricalFormula(fragment_isotopomer_theoretical_formula).getIsotopeDistribution(CoarseIsotopePatternGenerator(fragment_isotopomer_measured.size())));
@@ -201,22 +192,22 @@ namespace OpenMS
     
       diff_mean = OpenMS::Math::MeanAbsoluteDeviation(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), diff_mean);
     
-      feature_with_accuracy_info.setMetaValue("average_accuracy", diff_mean);
+      for (size_t feature_subordinate = 0; feature_subordinate < normalized_feature.getSubordinates().size(); ++feature_subordinate)
+      {
+        normalized_feature.getSubordinates().at(feature_subordinate).setMetaValue("average_accuracy", diff_mean);
+      }
     }
   }
 
   void IsotopeLabelingMDVs::calculateMDVAccuracies(
-    const FeatureMap& normalized_featureMap,
-    FeatureMap& featureMap_with_accuracy_info,
-    const std::vector<double>& fragment_isotopomer_measured,
-    const std::string& fragment_isotopomer_theoretical_formula)
+    FeatureMap& normalized_featureMap,
+    const std::vector<std::vector<double>>& fragment_isotopomer_measured,
+    const std::vector<std::string>& fragment_isotopomer_theoretical_formulas)
   {
-    featureMap_with_accuracy_info.clear();
-    for (const Feature& feature : normalized_featureMap)
+    for (size_t feature_idx = 0; feature_idx < normalized_featureMap.size(); ++feature_idx)
     {
       Feature feature_with_accuracy_info;
-      calculateMDVAccuracy(feature, feature_with_accuracy_info, fragment_isotopomer_measured, fragment_isotopomer_theoretical_formula);
-      featureMap_with_accuracy_info.push_back(feature_with_accuracy_info);
+      calculateMDVAccuracy(normalized_featureMap.at(feature_idx), fragment_isotopomer_measured.at(feature_idx), fragment_isotopomer_theoretical_formulas.at(feature_idx));
     }
   }
 
