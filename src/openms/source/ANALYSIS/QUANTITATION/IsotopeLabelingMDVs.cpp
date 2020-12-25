@@ -169,13 +169,20 @@ namespace OpenMS
   
   void IsotopeLabelingMDVs::calculateMDVAccuracy(
     Feature& normalized_feature,
-    const std::string& fragment_isotopomer_measured_name,
+    const std::string& feature_name,
     const std::string& fragment_isotopomer_theoretical_formula)
   {
-    std::vector<double> fragment_isotopomer_theoretical;
+    std::vector<double> fragment_isotopomer_theoretical, fragment_isotopomer_measured;
     
-    std::vector<double> fragment_isotopomer_measured = normalized_feature.getMetaValue(fragment_isotopomer_measured_name);
+    for (auto it = normalized_feature.getSubordinates().begin(); it != normalized_feature.getSubordinates().end(); it++)
+    {
+      if (it->metaValueExists(feature_name))
+      {
+        fragment_isotopomer_measured.push_back(it->getMetaValue(feature_name));
+      }
+    }
     
+    // Generate theoretical values with the exact same length as fragment_isotopomer_measured
     IsotopeDistribution theoretical_iso(EmpiricalFormula(fragment_isotopomer_theoretical_formula).getIsotopeDistribution(CoarseIsotopePatternGenerator(fragment_isotopomer_measured.size())));
     for (IsotopeDistribution::ConstIterator it = theoretical_iso.begin(); it != theoretical_iso.end(); ++it)
     {
@@ -205,15 +212,22 @@ namespace OpenMS
 
   void IsotopeLabelingMDVs::calculateMDVAccuracies(
     FeatureMap& normalized_featureMap,
-    const std::string& fragment_isotopomer_measured_name,
+    const std::string& feature_name,
     const std::map<std::string, std::string>& fragment_isotopomer_theoretical_formulas)
   {
     for (size_t feature_idx = 0; feature_idx < normalized_featureMap.size(); ++feature_idx)
     {
       Feature feature_with_accuracy_info;
-      calculateMDVAccuracy(normalized_featureMap.at(feature_idx),
-                           normalized_featureMap.at(feature_idx).getMetaValue(fragment_isotopomer_measured_name),
-                           fragment_isotopomer_theoretical_formulas.at(normalized_featureMap.at(feature_idx).getMetaValue("peptideRef")));
+      if (normalized_featureMap.at(feature_idx).metaValueExists("peptideRef"))
+      {
+        calculateMDVAccuracy(normalized_featureMap.at(feature_idx),
+                             normalized_featureMap.at(feature_idx).getMetaValue(feature_name),
+                             fragment_isotopomer_theoretical_formulas.at(normalized_featureMap.at(feature_idx).getMetaValue("peptideRef")));
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << "No peptideRef in FeatureMap (MetaValue doesn't exist)!" << std::endl;
+      }
     }
   }
 
@@ -221,13 +235,13 @@ namespace OpenMS
     const Feature& measured_feature,
     Feature& normalized_feature,
     const MassIntensityType& mass_intensity_type,
-    const FeatureName& feature_name)
+    const std::string& feature_name)
   {
     std::vector<Feature> measured_feature_subordinates = measured_feature.getSubordinates();
     normalized_feature = measured_feature;
     if (mass_intensity_type == MassIntensityType::NORM_MAX)
     {
-      if (feature_name == FeatureName::INTENSITY)
+      if (feature_name == "intensity")
       {
         std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
@@ -246,12 +260,12 @@ namespace OpenMS
         }
       }
       // for every other case where feature_name isn't 'intensity', i.e. 'peak_apex_int'
-      else if (feature_name == FeatureName::PEAK_APEX_INT)
+      else
       {
         std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          intensities_vec.push_back(it->getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]));
+          intensities_vec.push_back(it->getMetaValue(feature_name));
         }
         std::vector<OpenMS::Peak2D::IntensityType>::iterator max_it = std::max_element(intensities_vec.begin(), intensities_vec.end());
         double measured_feature_max = intensities_vec[std::distance(intensities_vec.begin(), max_it)];
@@ -260,14 +274,14 @@ namespace OpenMS
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]) / measured_feature_max);
+            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
           }
         }
       }
     }
     else if (mass_intensity_type == MassIntensityType::NORM_SUM)
     {
-      if (feature_name == FeatureName::INTENSITY)
+      if (feature_name == "intensity")
       {
         OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
@@ -281,19 +295,19 @@ namespace OpenMS
         }
       }
       // for every other case where feature_name isn't 'intensity', i.e. 'peak_apex_int'
-      else if (feature_name == FeatureName::PEAK_APEX_INT)
+      else
       {
         OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          feature_peak_apex_intensity_sum += (Peak2D::IntensityType)it->getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]);
+          feature_peak_apex_intensity_sum += (Peak2D::IntensityType)it->getMetaValue(feature_name);
         }
 
         if (feature_peak_apex_intensity_sum != 0.0)
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(NamesOfFeatureName[static_cast<int>(FeatureName::PEAK_APEX_INT)]) / feature_peak_apex_intensity_sum);
+            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
           }
         }
       }
@@ -302,7 +316,7 @@ namespace OpenMS
 
   void IsotopeLabelingMDVs::calculateMDVs(
     const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
-    const MassIntensityType& mass_intensity_type, const FeatureName& feature_name)
+    const MassIntensityType& mass_intensity_type, const std::string& feature_name)
   {
     normalized_featureMap.clear();
     

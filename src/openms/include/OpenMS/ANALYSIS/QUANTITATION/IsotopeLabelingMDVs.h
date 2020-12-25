@@ -203,7 +203,7 @@ namespace OpenMS
     */
     void calculateMDV(
       const Feature& measured_feature, Feature& normalized_feature,
-      const MassIntensityType& mass_intensity_type, const FeatureName& feature_name);
+      const MassIntensityType& mass_intensity_type, const std::string& feature_name);
     
     /**
       @brief This function calculates the mass distribution vector (MDV)
@@ -217,7 +217,7 @@ namespace OpenMS
     */
     void calculateMDVs(
       const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
-      const MassIntensityType& mass_intensity_type, const FeatureName& feature_name);
+      const MassIntensityType& mass_intensity_type, const std::string& feature_name);
     
   protected:
     /// Synchronize members with param class
