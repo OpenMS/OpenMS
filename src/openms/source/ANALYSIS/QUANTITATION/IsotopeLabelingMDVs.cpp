@@ -169,10 +169,12 @@ namespace OpenMS
   
   void IsotopeLabelingMDVs::calculateMDVAccuracy(
     Feature& normalized_feature,
-    const std::vector<double>& fragment_isotopomer_measured,
+    const std::string& fragment_isotopomer_measured_name,
     const std::string& fragment_isotopomer_theoretical_formula)
   {
     std::vector<double> fragment_isotopomer_theoretical;
+    
+    std::vector<double> fragment_isotopomer_measured = normalized_feature.getMetaValue(fragment_isotopomer_measured_name);
     
     IsotopeDistribution theoretical_iso(EmpiricalFormula(fragment_isotopomer_theoretical_formula).getIsotopeDistribution(CoarseIsotopePatternGenerator(fragment_isotopomer_measured.size())));
     for (IsotopeDistribution::ConstIterator it = theoretical_iso.begin(); it != theoretical_iso.end(); ++it)
@@ -192,22 +194,26 @@ namespace OpenMS
     
       diff_mean = OpenMS::Math::MeanAbsoluteDeviation(fragment_isotopomer_abs_diff.begin(), fragment_isotopomer_abs_diff.end(), diff_mean);
     
+      normalized_feature.setMetaValue("average_accuracy", diff_mean);
+      
       for (size_t feature_subordinate = 0; feature_subordinate < normalized_feature.getSubordinates().size(); ++feature_subordinate)
       {
-        normalized_feature.getSubordinates().at(feature_subordinate).setMetaValue("average_accuracy", diff_mean);
+        normalized_feature.getSubordinates().at(feature_subordinate).setMetaValue("absolute_difference", fragment_isotopomer_abs_diff);
       }
     }
   }
 
   void IsotopeLabelingMDVs::calculateMDVAccuracies(
     FeatureMap& normalized_featureMap,
-    const std::vector<std::vector<double>>& fragment_isotopomer_measured,
-    const std::vector<std::string>& fragment_isotopomer_theoretical_formulas)
+    const std::string& fragment_isotopomer_measured_name,
+    const std::map<std::string, std::string>& fragment_isotopomer_theoretical_formulas)
   {
     for (size_t feature_idx = 0; feature_idx < normalized_featureMap.size(); ++feature_idx)
     {
       Feature feature_with_accuracy_info;
-      calculateMDVAccuracy(normalized_featureMap.at(feature_idx), fragment_isotopomer_measured.at(feature_idx), fragment_isotopomer_theoretical_formulas.at(feature_idx));
+      calculateMDVAccuracy(normalized_featureMap.at(feature_idx),
+                           normalized_featureMap.at(feature_idx).getMetaValue(fragment_isotopomer_measured_name),
+                           fragment_isotopomer_theoretical_formulas.at(normalized_featureMap.at(feature_idx).getMetaValue("peptideRef")));
     }
   }
 

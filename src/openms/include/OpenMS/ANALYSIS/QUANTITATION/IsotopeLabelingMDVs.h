@@ -175,7 +175,7 @@ namespace OpenMS
     */
     void calculateMDVAccuracy(
       Feature& normalized_feature, // TODO:update DOC
-      const std::vector<double>& fragment_isotopomer_measured, const std::string& fragment_isotopomer_theoretical_formula);
+      const std::string& fragment_isotopomer_measured_name, const std::string& fragment_isotopomer_theoretical_formula);
     
     /**
        @brief This function calculates the accuracy of the MDVs as compared to the theoretical MDVs (only for 12C quality control experiments)
@@ -188,7 +188,8 @@ namespace OpenMS
     */
     void calculateMDVAccuracies( // TODO:update DOC
       FeatureMap& normalized_featureMap,
-      const std::vector<std::vector<double>>& fragment_isotopomer_measured, const std::vector<std::string>& fragment_isotopomer_theoretical_formulas);
+      const std::string& fragment_isotopomer_measured_name,
+      const std::map<std::string, std::string>& fragment_isotopomer_theoretical_formulas);
  
     /**
       @brief This function calculates the mass distribution vector (MDV)
