@@ -343,6 +343,8 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
             ++it; // STL erase idiom (mind the pre-increment)
           }
         }
+        
+        if (fas.empty()) continue; // no feasible fragment adducts left? continue
 
         // store feasible adducts associated with a cross-link with character nucleotide[0]
         vector<RNPxlFragmentAdductDefinition> faa;

@@ -36,6 +36,8 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+using namespace std;
+
 namespace OpenMS
 {
   String RNPxlReportRow::getString(const String& separator) const
@@ -289,4 +291,256 @@ namespace OpenMS
   }
   return csv_rows;
 }
+
+  void RNPxlProteinReport::annotateProteinModificationForTopHits(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file, bool report_decoys)
+  {
+    assert(prots.size() == 1); // support for one run only
+
+    // protein identification run
+    ProteinIdentification& prot_id = prot_ids[0];
+
+    // create lookup accession -> protein
+    map<String, ProteinHit*> acc2protein_targets;
+    map<String, ProteinHit*> acc2protein_decoys;
+    mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
+
+    struct ModifiedRegion
+    {
+      ResidueModification* xl;
+      int first; 
+      int last;
+      bool operator<(const ModifiedRegion& rhs) const
+      {
+        return std::tie(first, last, *xl) < std::tie(rhs.first, rhs.last, *rhs.xl);
+      }
+    };
+
+    // protein -> regions with XLs without AA level localization and in how many PSMs it was detected
+    map<String, map<ModifiedRegion, size_t>> modified_region_xls_targets;    
+    map<String, map<ModifiedRegion, size_t>> modified_region_xls_decoys;
+
+    map<String, ResidueModification*> name2mod; // used to free temporary residues
+
+    // store modification statistic for every protein    
+    for (const PeptideIdentification& pep : peps)
+    {
+      auto& hits = pep.getHits();
+      if (hits.empty()) continue;
+      const PeptideHit& ph = hits[0]; // only consider top hit
+      const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
+      const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
+
+      // create a user defined modification (at most once)
+      ResidueModification* xl;
+      const String NA = ph.getMetaValue("NuXL:NA");
+      auto it = name2mod.find(NA);
+      if (it != name2mod.end())
+      {
+        xl = it->second;
+      }
+      else
+      {
+        xl = new ResidueModification();
+        xl->setFullId(NA);
+        xl->setOrigin('X'); // any AA
+        name2mod[NA] = xl;
+      }
+
+      for (auto& ph_evidence : ph_evidences)
+      {
+        const String& acc = ph_evidence.getProteinAccession();
+        const int peptide_start_in_protein = ph_evidence.getStart();
+
+        if (peptide_start_in_protein < 0) continue;
+ 
+        const int xl_pos_in_protein = peptide_start_in_protein + best_localization;
+
+        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+
+        // not localized? annotate region
+        if (best_localization < 0)
+        {
+          ModifiedRegion mr;
+          mr.xl = xl;
+          mr.first = ph_evidence.getStart();
+          mr.last = ph_evidence.getEnd();
+          if (is_target)
+          {
+            modified_region_xls_targets[acc][mr]++;
+          }
+          else
+          {
+            modified_region_xls_decoys[acc][mr]++;
+          }
+        }
+
+        // retrieve protein the evidence points to
+        ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
+        if (xl_pos_in_protein < protein->getSequence().size())
+        {
+          auto mods = protein->getModifications();  // TODO: add mutable reference access
+          mods.AALevelSummary[xl_pos_in_protein][xl].count++;
+          protein->setModifications(mods);
+        }
+      }
+    }
+   
+    map<char, size_t> aa2protein_count_targets; // how many proteins have that AA cross-linked
+    map<char, size_t> aa2psm_count_targets; // how many PSMs have that AA cross-linked
+    map<char, size_t> aa2protein_count_decoys; // how many proteins have that AA cross-linked
+    map<char, size_t> aa2psm_count_decoys; // how many PSMs have that AA cross-linked
+
+    map<char, double> aa2background_freq; // AA background distribution for normalization
+ 
+    for (const ProteinIdentification& prot_id : prot_ids)
+    { 
+      const vector<ProteinHit>& phs = prot_id.getHits();
+      for (const ProteinHit& protein : phs)
+      { // for all identified proteins
+        const String& acc = protein.getAccession();        
+        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
+
+        if (!is_target && !report_decoys) continue; // skip decoys if option is set
+
+        const String& seq = protein.getSequence();
+
+        for (const char c : seq) { aa2background_freq[c] += 1.0; }
+        tsv_file.addLine(acc);
+
+        auto mods = protein.getModifications();
+
+        // count how many PSMs support XL-ed position in the current protein
+        map<size_t, size_t> position2psm_count;
+        for (const auto& p2ms : mods.AALevelSummary)
+        {
+          size_t position = p2ms.first;
+          for (const auto& m2s : p2ms.second)
+          { 
+            const auto stat = m2s.second;
+            position2psm_count[position] += stat.count;            
+          }
+        }
+
+        // put string with AA, position, PSM count in sequence: e.g.: [Y123,2]
+        String annotated_sequence;
+        size_t p{0};
+
+        if (!position2psm_count.empty())
+        {       
+          for (const auto p2psm : position2psm_count)
+          {
+            while (p < p2psm.first) { annotated_sequence += seq[p]; ++p; }
+            // p now points to the modified AA
+            annotated_sequence += String("[") + seq[p] + String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
+            ++p;
+          }
+          while (p < seq.size()) { annotated_sequence += seq[p]; ++p; } // output AAs after last modification
+
+          tsv_file.addLine(annotated_sequence);
+        }
+        else
+        {
+          tsv_file.addLine(seq);
+        }
+
+        // output modification AA and count for this protein
+        tsv_file.addLine("Cross-link localizations:");
+        set<char> already_counted_at_protein_level;
+        for (const auto& p2ms : mods.AALevelSummary)
+        {
+          size_t position = p2ms.first;
+
+          // retrieve AA a xl position
+          char AA_at_position = '?';
+          if (seq.size() > position)
+          {
+            AA_at_position = seq[position];
+          }
+
+          // count a modified AA only once per protein for protein count
+          if (already_counted_at_protein_level.count(AA_at_position) == 0)
+          {        
+            if (is_target)
+            {
+              aa2protein_count_targets[AA_at_position]++;
+            }
+            else
+            {
+              aa2protein_count_decoys[AA_at_position]++;
+            }
+            already_counted_at_protein_level.insert(AA_at_position);
+          }
+
+          for (const auto& m2s : p2ms.second)
+          {
+            auto stat = m2s.second;
+            size_t count = stat.count;
+            if (is_target)
+            {
+              aa2psm_count_targets[AA_at_position] += count;
+            }
+            else
+            {
+              aa2psm_count_decoys[AA_at_position] += count;
+            }
+            tsv_file.addLine(m2s.first->getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
+          }
+        }
+        
+        // output list of modified regions (without AA level localization)
+        tsv_file.addLine("Cross-linked peptides without localization at single AA-level:");
+        for (const auto& p2xlregions : modified_region_xls_targets)
+        {
+          for (const auto& region : p2xlregions.second)
+          {
+            const ModifiedRegion& r = region.first;
+            const size_t count = region.second;
+            tsv_file.addLine(r.xl->getFullId() + ":" + String(r.first + 1) + "-" + String(r.last + 1) + "(" + String(count) + ")");
+          }
+        }
+      }  
+    }
+ 
+    double sum{};
+    for (const auto& m : aa2background_freq) { sum += m.second; }
+    for (auto& m : aa2background_freq) { m.second /= sum; }
+
+    if (report_decoys)
+    {
+      tsv_file.addLine("=============================================================");
+      tsv_file.addLine("Protein summary for decoy proteins:");
+      tsv_file.addLine("AA:proteins");
+      for (const auto& a2p : aa2protein_count_decoys)
+      {
+        tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+      }
+
+      tsv_file.addLine("=============================================================");
+      tsv_file.addLine("PSM summary for decoy PSMs:");
+      tsv_file.addLine("AA:PSMs");
+      for (const auto& a2p : aa2psm_count_decoys)
+      {
+        tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
+      }
+    }
+
+    tsv_file.addLine("=============================================================");
+    tsv_file.addLine("Protein summary for target proteins:");
+    tsv_file.addLine("AA:proteins");
+    for (const auto& a2p : aa2protein_count_targets)
+    {
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
+    }
+
+    tsv_file.addLine("=============================================================");
+    tsv_file.addLine("PSM summary for target PSMs:");
+    tsv_file.addLine("AA:PSMs");
+    for (const auto& a2p : aa2psm_count_targets)
+    {
+      tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
+    }
+    
+    for (auto m : name2mod) { delete(m.second); } // free memory
+  }
+
 }

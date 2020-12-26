@@ -7,6 +7,7 @@ HyperScore.cpp
 ModifiedPeptideGenerator.cpp
 MorpheusScore.cpp
 PScore.cpp
+RNPxlAnnotateAndLocate.cpp
 RNPxlFragmentAdductDefinition.cpp
 RNPxlFragmentAnnotationHelper.cpp
 RNPxlFragmentIonGenerator.cpp

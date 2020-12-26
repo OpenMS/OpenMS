@@ -35,94 +35,23 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlParameterParsing.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlAnnotatedHit.h>
 
+#include <set>
+#include <map>
 #include <vector>
+#include <algorithm>
 
 namespace OpenMS
 {
-
-/// @brief struct to hold a single report line
-struct OPENMS_DLLAPI RNPxlReportRow
+class OPENMS_DLLAPI RNPxlConstants
 {
-  bool no_id;
-
-  // columns
-  double rt;
-  double original_mz;
-  String accessions;
-  String peptide;
-  String NA;
-  Int charge;
-  double score;
-  int rank;
-  double best_localization_score;
-  String localization_scores;
-  String best_localization;
-  double peptide_weight;
-  double NA_weight;
-  double xl_weight;
-  StringList meta_values; // the actual values of exported metadata
-  RNPxlMarkerIonExtractor::MarkerIonsType marker_ions;
-  double abs_prec_error;
-  double rel_prec_error;
-  double m_H;
-  double m_2H;
-  double m_3H;
-  double m_4H;
-  String fragment_annotation;
-  String getString(const String& separator) const;
+  public:
+  static constexpr size_t IA_CHARGE_INDEX = 0;
+  static constexpr size_t IA_RANK_INDEX = 1;
+  static constexpr size_t IA_DENOVO_TAG_INDEX = 2;
 };
-
-/// create header line
-struct OPENMS_DLLAPI RNPxlReportRowHeader
-{
-  static String getString(const String& separator, const StringList& meta_values_to_export);
-};
-
-/// create PSM report
-struct OPENMS_DLLAPI RNPxlReport
-{
-  static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, 
-    std::vector<PeptideIdentification>& peptide_ids, 
-    const StringList& meta_values_to_export,
-    double marker_ions_tolerance);
-};
-
-
-/// protein report
-struct OPENMS_DLLAPI RNPxlProteinReport
-{
-  static void annotateProteinModificationForTopHits(std::vector<ProteinIdentification>& prot_ids, 
-    const std::vector<PeptideIdentification>& peps, 
-    TextFile& tsv_file,
-    bool report_decoys = false);
-
-  static void mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys)
-  {
-    std::vector<ProteinHit>& proteins = prot_id.getHits();
-    for (ProteinHit& protein : proteins)
-    {
-      if (protein.getMetaValue("target_decoy").toString().hasPrefix("target"))
-      {
-        acc2protein_targets[protein.getAccession()] = &protein;
-      }
-      else
-      {
-        acc2protein_decoys[protein.getAccession()] = &protein;
-      }
-    }
-  }
-  
-};
-
 }
-
-
