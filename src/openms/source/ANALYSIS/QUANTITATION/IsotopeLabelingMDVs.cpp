@@ -178,7 +178,7 @@ namespace OpenMS
     {
       if (feature_name == "intensity")
       {
-        fragment_isotopomer_measured.push_back(it->getIntensity());
+        fragment_isotopomer_measured.push_back((double)(it->getIntensity()));
       }
       else if (feature_name != "intensity" && it->metaValueExists(feature_name))
       {
@@ -186,7 +186,7 @@ namespace OpenMS
       }
     }
     
-    if (normalized_feature.getSubordinates().size() != fragment_isotopomer_measured.size()) {
+    if (normalized_feature.getSubordinates().size() != fragment_isotopomer_measured.size() || fragment_isotopomer_measured.empty()) {
       OpenMS_Log_fatal << "Missing values for the Measured Isotopomer Fragment, Please make sure the Subordinates are accordingly updated." << std::endl;
     }
     
@@ -213,7 +213,7 @@ namespace OpenMS
       
       for (size_t feature_subordinate = 0; feature_subordinate < normalized_feature.getSubordinates().size(); ++feature_subordinate)
       {
-        normalized_feature.getSubordinates().at(feature_subordinate).setMetaValue("absolute_difference", fragment_isotopomer_abs_diff);
+        normalized_feature.getSubordinates().at(feature_subordinate).setMetaValue("absolute_difference", fragment_isotopomer_abs_diff.at(feature_subordinate));
       }
     }
   }
@@ -225,12 +225,11 @@ namespace OpenMS
   {
     for (size_t feature_idx = 0; feature_idx < normalized_featureMap.size(); ++feature_idx)
     {
-      Feature feature_with_accuracy_info;
       if (normalized_featureMap.at(feature_idx).metaValueExists("peptideRef"))
       {
         calculateMDVAccuracy(normalized_featureMap.at(feature_idx),
-                             normalized_featureMap.at(feature_idx).getMetaValue(feature_name),
-                             fragment_isotopomer_theoretical_formulas.at(normalized_featureMap.at(feature_idx).getMetaValue("peptideRef")));
+                             feature_name,
+                             fragment_isotopomer_theoretical_formulas.find((std::string)normalized_featureMap.at(feature_idx).getMetaValue("peptideRef"))->second);
       }
       else
       {
