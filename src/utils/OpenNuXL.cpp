@@ -61,6 +61,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlAnnotatedHit.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlAnnotateAndLocate.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlConstants.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlFDR.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentIonGenerator.h>
@@ -1519,7 +1520,7 @@ score += ah.mass_error_p     *   1.15386068
            +  28.09 * (ah.tag_shifted >= 1);
 */
 
-      return ah.modds + 0.00001 * ah.pl_modds;
+      return ah.modds + ah.pl_modds;
     //return sqrt(ah.pl_modds*ah.pl_modds + ah.modds*ah.modds);
 /*
            const double ret = 1.0 * ah.total_loss_score
@@ -4207,16 +4208,7 @@ static void scoreXLIons_(
     // calculate all feasible fragment adducts from all possible precursor adducts
     RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_);
 
-    // calculate FDR
-    FalseDiscoveryRate fdr;
-    Param p = fdr.getParameters();
-    p.setValue("add_decoy_proteins", "true"); // we still want decoys in the result (e.g., to run percolator)
-    p.setValue("add_decoy_peptides", "true");
-    if (report_top_hits >= 2)
-    {
-      p.setValue("use_all_hits", "true");
-    }
-    fdr.setParameters(p);
+    RNPxlFDR fdr(report_top_hits);
 
     // load MS2 map
     PeakMap spectra;
@@ -5372,7 +5364,8 @@ static void scoreXLIons_(
         cout << "Imputed XL features in " << imputed << " linear peptides." << endl;
       }
 
-      fdr.apply(peptide_ids); 
+      // q-value at PSM level irrespective of class (XL/non-XL)
+      fdr.QValueAtPSMLevel(peptide_ids); 
   
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
@@ -5404,76 +5397,11 @@ static void scoreXLIons_(
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
       // split PSMs into XLs and non-XLs but keep only best one of both
-      vector<PeptideIdentification> pep_pi;
-      vector<PeptideIdentification> xl_pi;
-      for (const auto & pi : peptide_ids)
-      {
-        vector<PeptideHit> pep_ph;
-        vector<PeptideHit> xl_ph;
-        for (const auto & ph : pi.getHits())
-        {
-           if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
-           { // only add best hit
-             if (pep_ph.empty() && xl_ph.empty()) pep_ph.push_back(ph); 
-           }
-           else
-           {
-             if (pep_ph.empty() && xl_ph.empty()) xl_ph.push_back(ph); 
-           }
-        }
-        if (!pep_ph.empty()) { pep_pi.push_back(pi); pep_pi.back().setHits(pep_ph); }
-        if (!xl_ph.empty()) { xl_pi.push_back(pi); xl_pi.back().setHits(xl_ph); }
-      }
+      vector<PeptideIdentification> pep_pi, xl_pi;
+      String original_PSM_output_filename(out_idxml);
+      original_PSM_output_filename.substitute(".idXML", "_");
+      fdr.PeptideAndXLQValueAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
 
-      // calculate FDRs separately
-      fdr.apply(xl_pi); 
-      fdr.apply(pep_pi);
-
-      IDFilter::removeDecoyHits(xl_pi);
-      IDFilter::removeDecoyHits(pep_pi);
-
-      if (peptide_FDR > 0.0 && peptide_FDR < 1.0)
-      {
-         IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
-      }
-
-      {
-        String out2(out_idxml);
-        out2.substitute(".idXML", "_");
-        vector<ProteinIdentification> tmp_prots = protein_ids;
-        IDFilter::removeUnreferencedProteins(tmp_prots, pep_pi);
-        IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", tmp_prots, pep_pi);
-      }
-
-      std::replace(XL_FDR.begin(), XL_FDR.end(), 0.0, 1.0);
-      sort(XL_FDR.begin(), XL_FDR.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
-      for (double xlFDR : XL_FDR)
-      { 
-        OPENMS_LOG_INFO << "Writing XL results at xl-FDR: " << xlFDR << endl;
-        if (xlFDR > 0.0 && xlFDR < 1.0)
-        {
-          IDFilter::filterHitsByScore(xl_pi, xlFDR);
-        }
-        {
-          String out2(out_idxml);
-          out2.substitute(".idXML", "_");
-          vector<ProteinIdentification> tmp_prots = protein_ids;
-          IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
-          // PSM result
-          IdXMLFile().store(out2 + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
-
-          // protein result
-          if (!out_tsv.empty())
-          {
-            out2 = out_tsv;
-            out2.substitute(".tsv", "_proteins");
-            TextFile tsv_file;
-            RNPxlProteinReport::annotateProteinModificationForTopHits(tmp_prots, xl_pi, tsv_file);
-            tsv_file.store(out2 + String::number(xlFDR, 4) + "_XLs.tsv");
-          }
-        }
-      }
-     
       String percolator_executable = getStringOption_("percolator_executable");
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) > 1000;
       if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
@@ -5519,7 +5447,7 @@ static void scoreXLIons_(
           IDFilter::keepNBestHits(peptide_ids, 1);
           IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
-	  // annotate RNPxl related information to hits and create report
+	        // annotate RNPxl related information to hits and create report
           vector<RNPxlReportRow> csv_rows_percolator = RNPxlReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
           // save report
@@ -5535,75 +5463,11 @@ static void scoreXLIons_(
             csv_file.store(out_percolator_tsv);
           }
 
-
-          // split PSMs into XLs and non-XLs but keep only best one of both
-          vector<PeptideIdentification> pep_pi;
-          vector<PeptideIdentification> xl_pi;
-          for (const auto & pi : peptide_ids)
-          {
-            vector<PeptideHit> pep_ph, xl_ph;
-            for (const auto & ph : pi.getHits())
-            {
-               if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
-               { // only add best hit
-                 if (pep_ph.empty() && xl_ph.empty()) pep_ph.push_back(ph); 
-               }
-               else
-               {
-                 if (pep_ph.empty() && xl_ph.empty()) xl_ph.push_back(ph); 
-               }
-            }
-            if (!pep_ph.empty()) { pep_pi.push_back(pi); pep_pi.back().setHits(pep_ph); }
-            if (!xl_ph.empty()) { xl_pi.push_back(pi); xl_pi.back().setHits(xl_ph); }
-          }
-
-          // calculate FDRs separately
-          fdr.apply(xl_pi); 
-          fdr.apply(pep_pi);
-
-          IDFilter::removeDecoyHits(xl_pi);
-          IDFilter::removeDecoyHits(pep_pi);
- 
-          if (peptide_FDR > 0.0 && peptide_FDR < 1.0)
-          {
-            IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
-          }
-          {
-            String out2(out_idxml);
-            out2.substitute(".idXML", "_perc_");
-            vector<ProteinIdentification> tmp_prots = protein_ids;
-            IDFilter::removeUnreferencedProteins(tmp_prots, pep_pi);
-            IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", tmp_prots, pep_pi);
-          }
- 
-          std::replace(XL_FDR.begin(), XL_FDR.end(), 0.0, 1.0); // treat disabled filtering as 100% FDR
-          sort(XL_FDR.begin(), XL_FDR.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
-          for (double xlFDR : XL_FDR)
-          {
-            OPENMS_LOG_INFO << "Writing XL results at xl-FDR: " << xlFDR << endl;
-            if (xlFDR > 0.0 && xlFDR < 1.0)
-            {
-              IDFilter::filterHitsByScore(xl_pi, xlFDR);
-            }
-            {
-              String out2(out_idxml);
-              out2.substitute(".idXML", "_perc_");
-              vector<ProteinIdentification> tmp_prots = protein_ids;
-              IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
-
-              // store PSM results
-              IdXMLFile().store(out2 + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
-              // store protein results
-              if (!out_tsv.empty())
-              {
-                out2 = out_tsv;
-                out2.substitute(".tsv", "_perc_proteins");
-                TextFile tsv_file;
-                RNPxlProteinReport::annotateProteinModificationForTopHits(tmp_prots, xl_pi, tsv_file);
-                tsv_file.store(out2 + String::number(xlFDR, 4) + "_XLs.tsv");
-              }
-            }
-          }
+          vector<PeptideIdentification> pep_pi, xl_pi;
+          
+          String percolator_PSM_output_filename(out_idxml);
+          percolator_PSM_output_filename.substitute(".idXML", "_perc_");
+          fdr.PeptideAndXLQValueAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
         }
       }
       else

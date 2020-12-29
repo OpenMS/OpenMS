@@ -10,6 +10,7 @@ PScore.h
 RNPxlAnnotateAndLocate.h
 RNPxlAnnotatedHit.h
 RNPxlConstants.h
+RNPxlFDR.h
 RNPxlFragmentAdductDefinition.h
 RNPxlFragmentAnnotationHelper.h
 RNPxlFragmentIonGenerator.h
