@@ -513,8 +513,8 @@ protected:
       registerInputFile_("in", "<file>", "", "Input file ");
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
       registerOutputFile_("out", "<file>", "", "Output file.");
-      setValidFormats_("out", ListUtils::create<String>("tsv"));
-      registerStringOption_("separator", "<sep>", "", "The used separator character(s); if not set the 'tab' character is used", false);
+      setValidFormats_("out", ListUtils::create<String>("tsv,csv,txt"));
+      registerStringOption_("out_type", "<out_type>", "tsv", "The format of the output file; if not set 'tsv' is used", false);
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
       setValidStrings_("quoting", ListUtils::create<String>("none,double,escape"));
@@ -572,8 +572,16 @@ protected:
       int add_protein_hit_metavalues = getIntOption_("id:add_protein_hit_metavalues");
 
       // separator etc.
-      String sep = getStringOption_("separator");
-      if (sep == "") sep = "\t";
+      String out_type = getStringOption_("out_type");
+      String sep;
+      if (out_type == "csv") 
+      {
+        sep = ",";
+      } 
+      else 
+      {
+        sep = "\t";
+      }
       String replacement = getStringOption_("replacement");
       String quoting = getStringOption_("quoting");
       String::QuotingMethod quoting_method;
