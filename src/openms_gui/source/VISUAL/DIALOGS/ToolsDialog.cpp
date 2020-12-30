@@ -221,14 +221,16 @@ namespace OpenMS
   void ToolsDialog::setInputOutputCombo_(const Param &p)
   {
     String str;
-    QStringList input_list;
-    QStringList output_list;
-    for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
+    QStringList input_list("<select>");
+    QStringList output_list("<select>");
+    bool outRequired = false;
+    for (Param::ParamIterator iter = p.begin(); iter != p.end(); ++iter)
     {
-      // iter.getName() is either of form "ToolName:1:ItemName" or "ToolName:1:NodeName:ItemName".
+      // iter.getName() is either of form "ToolName:1:ItemName" or "ToolName:1:NodeName:[...]:ItemName".
       // Cut off "ToolName:1:"
       str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-      if (str.size() != 0 && str.find(":") == String::npos)
+      // Only add items and no nodes
+      if (!str.empty() && str.find(":") == String::npos)
       {
         arg_map_.insert(make_pair(str, iter.getName()));
         // Only add to input list if item has "input file" tag.
@@ -240,6 +242,8 @@ namespace OpenMS
         else if (iter->tags.find("output file") != iter->tags.end())
         {
           output_list << QStringList(str.c_str());
+          // Check whether the item has a required tag i.e. is mandatory.
+          outRequired = (outRequired) || (iter->tags.find("required") != iter->tags.end());
         }
       }
     }
@@ -255,7 +259,7 @@ namespace OpenMS
     // Clear and set output combo box
     output_combo_->addItems(output_list);
     pos = output_list.indexOf("out");
-    if (pos != -1 && getTool() != "FileInfo")
+    if (pos != -1 && getTool() != "FileInfo" && outRequired)
     {
       output_combo_->setCurrentIndex(pos);
     }
