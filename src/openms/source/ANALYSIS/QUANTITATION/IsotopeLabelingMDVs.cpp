@@ -36,8 +36,9 @@
 
 namespace OpenMS
 {
-
-  const std::string IsotopeLabelingMDVs::NamesOfFeatureName[] = {"intensity", "peak_apex_int"};
+  const std::string IsotopeLabelingMDVs::NamesOfDerivatizationAgent[] = {"NOT_SELECTED", "TBDMS"};
+  
+  const std::string IsotopeLabelingMDVs::NamesOfMassIntensityType[] = {"norm_max", "norm_sum"};
 
   IsotopeLabelingMDVs::IsotopeLabelingMDVs() :
     DefaultParamHandler("IsotopeLabelingMDVs")
