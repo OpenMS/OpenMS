@@ -265,7 +265,170 @@ public:
 protected:
   /// percolator feature set
   StringList feature_set_;
-  
+ 
+  void applyPresets_(StringList& modifications, StringList& fragment_adducts, String& can_cross_link)
+  {
+    const String p = getStringOption_("RNPxl:presets");
+    if (p == "RNA")
+    {
+      modifications = 
+         {"U:", 
+          "U:-H2O", 
+          "U:-H2O-HPO3", 
+          "U:-HPO3", 
+          "C:", 
+          "C:-NH3", 
+          "C:-H2O", 
+          "C:-NH3-HPO3", 
+          "C:-H2O-HPO3", 
+          "C:-HPO3", 
+          "G:", 
+          "G:-H2O", 
+          "G:-NH3", 
+          "G:-H2O-HPO3", 
+          "G:-NH3-HPO3", 
+          "G:-HPO3", 
+          "A:", 
+          "A:-NH3",
+          "A:-NH3-HPO3", 
+          "A:-HPO3"};
+      fragment_adducts = 
+         {"U:C9H10N2O5;U-H3PO4",
+          "U:C4H4N2O2;U';",
+          "U:C4H2N2O1;U';-H2O",
+          "U:C3O;C3O",
+          "U:C9H13N2O9P1;U",
+          "U:C9H11N2O8P1;U-H2O",
+          "U:C9H12N2O6;U-HPO3",
+          "U:C5H9O7P;ribose",
+          "U:C5H7O6P;ribose-H2O",
+          "U:C5H6O3;ribose-H2O-HPO3",
+          "C:C9H14N3O8P;C",
+          "C:C9H11N2O8P;C-NH3",
+          "C:C9H12N3O7P;C-H2O",
+          "C:C9H13N3O5;C-HPO3",
+          "C:C9H11N3O4;C-H3PO4",
+          "C:C4H5N3O;C';",
+          "C:C4H3N3;C';-H2O",
+          "C:C4H2N2O;C';-NH3",
+          "G:C10H14N5O8P;G",
+          "G:C10H12N5O7P;G-H2O",
+          "G:C10H11N4O8P;G-NH3",
+          "G:C10H13N5O5;G-HPO3",
+          "C:C9H10N2O5;C-NH3-HPO3",
+          "G:C10H10N4O5;G-NH3-HPO3",
+          "G:C10H11N5O4;G-H3PO4",
+          "G:C5H5N5O;G';",
+          "G:C5H3N5;G';-H2O",
+          "G:C5H2N4O;G';-NH3",
+          "A:C10H14N5O7P;A",
+          "A:C10H12N5O6P;A-H2O",
+          "A:C10H11N4O7P;A-NH3",
+          "A:C10H13N5O4;A-HPO3",
+          "A:C10H11N5O3;A-H3PO4",
+          "A:C10H10N5O4;A-NH3-HPO3",
+          "A:C5H5N5;A';",
+          "A:C5H2N4;A';-NH3",
+          "C:C5H9O7P;ribose",
+          "G:C5H9O7P;ribose",
+          "A:C5H9O7P;ribose",
+          "G:C5H7O6P;rib-H2O",
+          "C:C5H7O6P;rib-H2O",
+          "A:C5H7O6P;rib-H2O",
+          "G:C5H6O3;ribose-H2O-HPO3",
+          "C:C5H6O3;ribose-H2O-HPO3",
+          "A:C5H6O3;ribose-H2O-HPO3"};
+      can_cross_link = "UCGA";
+    }
+    else if (p == "DNA")
+    {
+      modifications = {
+        "T:",
+        "T:-H2O",
+        "T:-H2O-HPO3",
+        "T:-HPO3",
+        "A:",
+        "A:-H2O",
+        "A:-H2O-HPO3",
+        "A:-HPO3",
+        "G:",
+        "G:-H2O",
+        "G:-NH3",
+        "A:-NH3",
+        "G:-HPO3",
+        "G:-H2O-HPO3",
+        "G:-NH3-HPO3",
+        "C:",
+        "C:-H2O",
+        "C:-NH3",
+        "C:-H2O-HPO3",
+        "C:-NH3",
+        "C:-NH3-HPO3",
+        "T:+C5H7O5P",
+        "A:+C5H7O5P",
+        "G:+C5H7O5P",
+        "C:+C5H7O5P",
+        "T:-C4H5N3O",
+        "A:-C5H5N5",
+        "T:+HPO3",
+        "C:+HPO3",
+        "A:+HPO3",
+        "G:+HPO3",
+        "T:+HPO3-H2O",
+        "C:+HPO3-H2O",
+        "A:+HPO3-H2O",
+        "G:+HPO3-H2O"};
+
+      fragment_adducts = {
+        "T:C10H15N2O8P;T",
+        "T:C10H13N2O7P;T-H2O",
+        "T:C10H14N2O5;T-HPO3",
+        "T:C10H12N2O4;T-H3PO4",
+        "T:C5H6N2O2;T';",
+        "T:C5H4N2O;T';-H2O",
+        "C:C9H14N3O7P;C",
+        "C:C9H11N2O7P;C-NH3",
+        "C:C9H12N3O6P;C-H2O",
+        "C:C9H13N3O4;C-HPO3",
+        "C:C9H11N3O3;C-H3PO4",
+        "C:C4H5N3O;C';",
+        "C:C4H3N3;C';-H2O",
+        "C:C4H2N2O;C';-NH3",
+        "G:C10H14N5O7P;G",
+        "G:C10H12N5O6P;G-H2O",
+        "G:C10H11N4O7P;G-NH3",
+        "G:C10H13N5O4;G-HPO3",
+        "C:C9H10N2O4;C-NH3-HPO3",
+        "G:C10H10N4O4;G-NH3-HPO3",
+        "G:C10H11N5O3;G-H3PO4",
+        "G:C5H5N5O;G';",
+        "G:C5H3N5;G';-H2O",
+        "G:C5H2N4O;G';-NH3",
+        "A:C10H14N5O6P;A",
+        "A:C10H12N5O5P;A-H2O",
+        "A:C10H11N4O6P;A-NH3",
+        "A:C10H13N5O3;A-HPO3",
+        "A:C10H11N5O2;A-H3PO4",
+        "A:C10H10N5O3;A-NH3-HPO3",
+        "A:C5H5N5;A';",
+        "A:C5H2N4;A';-NH3",
+        "A:C5H9O6P;dribose",
+        "G:C5H9O6P;dribose",
+        "C:C5H9O6P;dribose",
+        "T:C5H9O6P;dribose",
+        "A:C5H7O5P;dribose-H2O",
+        "G:C5H7O5P;dribose-H2O",
+        "C:C5H7O5P;dribose-H2O",
+        "T:C5H7O5P;dribose-H2O",
+        "A:C5H8O3;dribose-HPO3",
+        "G:C5H8O3;dribose-HPO3",
+        "C:C5H8O3;dribose-HPO3",
+        "T:C5H8O3;dribose-HPO3"};
+
+      can_cross_link = "CTGA";
+    }
+  }
+ 
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
@@ -345,6 +508,10 @@ protected:
 
     // RNPxl specific
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
+
+    registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
+    setValidStrings_("RNPxl:presets", {"none", "RNA", "DNA"});
+
     registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
 
     registerStringOption_("RNPxl:sequence", "", "", "Sequence to restrict the generation of oligonucleotide chains. (disabled for empty sequence).", false);
@@ -3760,6 +3927,56 @@ static void scoreXLIons_(
     return EXECUTION_OK;
   }
 
+  void optimizeFDR(vector<PeptideIdentification>& peptide_ids)
+  {
+
+    size_t most_XLs{0};
+    double best_p{-1};
+    
+    for (double p = 0.0; p < 1.01; p = p + 0.1)
+    {
+      vector<PeptideIdentification> pids{peptide_ids};
+      for (auto& pid : pids)
+      {
+        auto hits = pid.getHits();
+        for (auto& h : hits)
+        {
+          const double pl_modds = h.getMetaValue("NuXL:pl_modds");
+          const double modds = h.getMetaValue("NuXL:modds");
+          h.setScore((1.0 - p) * modds + p * pl_modds);
+        }
+        pid.setHits(hits);
+        pid.assignRanks();
+      }
+      RNPxlFDR fdr(1);
+      vector<PeptideIdentification> pep_pi, xl_pi;
+      fdr.calculatePeptideAndXLQValueAtPSMLevel(pids, pep_pi, xl_pi);
+      IDFilter::keepNBestHits(xl_pi, 1);
+      IDFilter::filterHitsByScore(xl_pi, 0.1); // 10% FDR, TODO: pROC
+      IDFilter::removeEmptyIdentifications(xl_pi);
+      cout << "p: " << p << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
+      if (xl_pi.size() > most_XLs)
+      {
+        most_XLs = xl_pi.size();
+        best_p = p;
+        cout << "found better p: " << p << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
+      }
+    }
+
+    // apply best weighting
+    for (auto& pid : peptide_ids)
+    {
+      auto hits = pid.getHits();
+      for (auto& h : hits)
+      {
+        const double pl_modds = h.getMetaValue("NuXL:pl_modds");
+        const double modds = h.getMetaValue("NuXL:modds");
+        h.setScore((1.0 - best_p) * modds + best_p * pl_modds);
+      }
+      pid.setHits(hits);
+      pid.assignRanks();
+    }
+  }
 
   void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
@@ -3831,7 +4048,6 @@ static void scoreXLIons_(
     bool idfilter = find(filter.begin(), filter.end(), "idfilter") != filter.end();
     bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
     bool pcrecalibration = find(filter.begin(), filter.end(), "pcrecalibration") != filter.end();
-
 
     if (pcrecalibration) 
     {
@@ -4168,10 +4384,20 @@ static void scoreXLIons_(
 
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
-    const String& can_cross_link = getStringOption_("RNPxl:can_cross_link");
-    for (const auto& c : can_cross_link) { can_xl_.insert(c); }
-
-    StringList modifications = getStringList_("RNPxl:modifications");
+    StringList modifications;
+    StringList fragment_adducts;
+    String can_cross_link;
+    if (getStringOption_("RNPxl:presets") == "none")
+    {
+      modifications = getStringList_("RNPxl:modifications");
+      fragment_adducts = getStringList_("RNPxl:fragment_adducts");
+      can_cross_link = getStringOption_("RNPxl:can_cross_link");
+    }
+    else
+    { // set form presets
+      applyPresets_(modifications, fragment_adducts, can_cross_link);
+    }
+    for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
 
     String sequence_restriction = getStringOption_("RNPxl:sequence");
 
@@ -4203,7 +4429,7 @@ static void scoreXLIons_(
     // parse tool parameter and generate all fragment adducts
 
     // first, we determine which fragments adducts can be generated from a single nucleotide (that has no losses)
-    RNPxlParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(getStringList_("RNPxl:fragment_adducts"));
+    RNPxlParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(fragment_adducts);
 
     // calculate all feasible fragment adducts from all possible precursor adducts
     RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_);
@@ -5229,7 +5455,7 @@ static void scoreXLIons_(
       {
          mean += it->second;
          ++c;
-         if (c > 1000) break;
+         if (c >= 1000) break;
       }
       if (c != 0) { mean /= c; }
 
@@ -5238,7 +5464,7 @@ static void scoreXLIons_(
          if (it->second > 0) continue; // skip positive ppm
          mean_negative += it->second;
          ++c_negative;
-         if (c_negative > 1000) break;
+         if (c_negative >= 1000) break;
       }
       if (c_negative != 0) { mean_negative /= c_negative; }
 
@@ -5247,7 +5473,7 @@ static void scoreXLIons_(
          if (it->second < 0) continue; // skip negative ppm
          mean_positive += it->second;
          ++c_positive;
-         if (c_positive > 1000) break;
+         if (c_positive >= 1000) break;
       }
       if (c_positive != 0) { mean_positive /= c_positive; }
 
@@ -5364,9 +5590,19 @@ static void scoreXLIons_(
         cout << "Imputed XL features in " << imputed << " linear peptides." << endl;
       }
 
+
       // q-value at PSM level irrespective of class (XL/non-XL)
-      fdr.QValueAtPSMLevel(peptide_ids); 
-  
+      //fdr.QValueAtPSMLevel(peptide_ids); 
+
+      optimizeFDR(peptide_ids);
+     
+/* 
+      vector<PeptideIdentification> pep_pi, xl_pi;
+      fdr.calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
+      fdr.mergePeptidesAndXLs(pep_pi, xl_pi, peptide_ids);
+      xl_pi.clear();
+      pep_pi.clear();
+*/
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
@@ -5397,13 +5633,13 @@ static void scoreXLIons_(
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
       // split PSMs into XLs and non-XLs but keep only best one of both
-      vector<PeptideIdentification> pep_pi, xl_pi;
       String original_PSM_output_filename(out_idxml);
       original_PSM_output_filename.substitute(".idXML", "_");
-      fdr.PeptideAndXLQValueAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
+      vector<PeptideIdentification> pep_pi, xl_pi;
+      fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
 
       String percolator_executable = getStringOption_("percolator_executable");
-      bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) > 1000;
+      bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
       if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
       {
         // run percolator on idXML
@@ -5467,7 +5703,7 @@ static void scoreXLIons_(
           
           String percolator_PSM_output_filename(out_idxml);
           percolator_PSM_output_filename.substitute(".idXML", "_perc_");
-          fdr.PeptideAndXLQValueAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
+          fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
         }
       }
       else

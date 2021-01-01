@@ -50,11 +50,25 @@ class OPENMS_DLLAPI RNPxlFDR
   public:
     explicit RNPxlFDR(size_t report_top_hits);
 
+    // split by meta value "NuXL:isXL" == 0
+    void splitIntoPeptidesAndXLs(const std::vector<PeptideIdentification>& peptide_ids, 
+      std::vector<PeptideIdentification>& pep_pi, 
+      std::vector<PeptideIdentification>& xl_pi) const;
+
+    void mergePeptidesAndXLs(const std::vector<PeptideIdentification>& pep_pi, 
+      const std::vector<PeptideIdentification>& xl_pi, 
+      std::vector<PeptideIdentification>& peptide_ids) const;
+
     // calculate PSM-level q-values (irrespective of XL/non-XL class)
     void QValueAtPSMLevel(std::vector<PeptideIdentification>& peptide_ids) const;
 
     // calculate PSM-level q-values for XL and non-XL class separately.
-    void PeptideAndXLQValueAtPSMLevel(
+    void calculatePeptideAndXLQValueAtPSMLevel(const std::vector<PeptideIdentification>& peptide_ids, 
+      std::vector<PeptideIdentification>& pep_pi, 
+      std::vector<PeptideIdentification>& xl_pi) const;
+
+    // calculate separate FDRs, filter decoys, write PSM and protein reports
+    void calculatePeptideAndXLQValueAndFilterAtPSMLevel(
       const std::vector<ProteinIdentification>& protein_ids,
       const std::vector<PeptideIdentification>& peptide_ids, 
       std::vector<PeptideIdentification>& pep,
