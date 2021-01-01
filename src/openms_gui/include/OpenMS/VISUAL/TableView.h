@@ -66,6 +66,9 @@ namespace OpenMS
     */
     virtual void exportEntries();
 
+    /// adds a new row to the bottom
+    void appendRow();
+
     QTableWidgetItem* setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
     QTableWidgetItem* setAtBottomRow(const char* text, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
     QTableWidgetItem* setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
@@ -130,6 +133,14 @@ namespace OpenMS
     /// get the displayed name of the header in column with index @p header_column
     /// @throws Exception::ElementNotFound if header at index @p header_column is not valid
     QString getHeaderName(const int header_column);
+
+  signals:
+    /// emitted when the widget is resized
+    void resized();
+
+  protected:
+    // emits the resized signal
+    void resizeEvent(QResizeEvent* event) override;
 
   protected slots:
     /// Display header context menu; allows to show/hide columns
