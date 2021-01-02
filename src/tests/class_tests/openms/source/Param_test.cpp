@@ -1279,9 +1279,9 @@ command_line_mult[6] = m7;
 command_line_mult[7] = m8;
 command_line_mult[8] = m9;
 
-START_SECTION((void parseCommandLine(const int argc, const char **argv, const Map< String, String > &options_with_one_argument, const Map< String, String > &options_without_argument, const Map< String, String > &options_with_multiple_argument, const String &misc="misc", const String &unknown="unknown")))
+START_SECTION((void parseCommandLine(const int argc, const char **argv, const std::map< String, String > &options_with_one_argument, const std::map< String, String > &options_without_argument, const std::map< String, String > &options_with_multiple_argument, const String &misc="misc", const String &unknown="unknown")))
 
-	Map<String,String> with_one,without,with_multiple;
+	std::map<String,String> with_one,without,with_multiple;
 	with_one["-a"]="a";
 	with_one["-b"]="b";
 	with_one["-c"]="c";
