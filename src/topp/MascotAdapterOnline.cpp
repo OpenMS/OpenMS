@@ -234,7 +234,7 @@ protected:
         {
           pep_a[it->second].insertHit(h);
         }
-        pep_a.assignRanks();
+        pep_a[it->second].assignRanks();
       }
     }
   }
