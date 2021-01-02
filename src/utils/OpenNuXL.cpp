@@ -1087,7 +1087,8 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
      matches);
 #endif
 */
-    const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
+    //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
+    const double p_random_match = 1e-3;
     OPENMS_PRECONDITION(n_theoretical_peaks > 0, "Error: no theoretical peaks are generated");
     modds = matchOddsScore_(n_theoretical_peaks, matches, p_random_match);
 /*
@@ -1572,7 +1573,8 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
 
     assert(n_theoretical_XL_peaks != 0);
 
-    const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
+    //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
+    const double p_random_match = 1e-3;
     plss_modds = matchOddsScore_(n_theoretical_XL_peaks, matches, p_random_match);
     n_theoretical_peaks += n_theoretical_XL_peaks;
 
@@ -5796,7 +5798,8 @@ static void scoreXLIons_(
       // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
 //      plss_err = plss_Morph > 2 ? pl_sub_scores.err_ppm : fragment_mass_tolerance;
 
-      const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
+      //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
+      const double p_random_match = 1e-3;
       plss_modds = matchOddsScore_(pl_spec->size(), (int)plss_Morph, p_random_match);
 /*
       plss_modds = matchOddsScore_(pl_spec->size(), 
