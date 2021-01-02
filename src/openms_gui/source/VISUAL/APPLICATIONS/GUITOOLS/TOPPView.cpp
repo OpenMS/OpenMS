@@ -108,7 +108,7 @@ void print_usage()
 int main(int argc, const char** argv)
 {
   //list of all the valid options
-  Map<String, String> valid_options, valid_flags, option_lists;
+  std::map<String, String> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_options["-ini"] = "ini";
 

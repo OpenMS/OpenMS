@@ -115,7 +115,7 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 int main(int argc, const char** argv)
 {
   // list of all the valid options
-  Map<String, String> valid_options, valid_flags, option_lists;
+  std::map<String, String> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
