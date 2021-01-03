@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDV(
           const Feature & measured_feature, Feature & normalized_feature,
-          const MassIntensityType & mass_intensity_type, const Strin & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const String & feature_name) nogil except +
 
         void calculateMDVs(
           const FeatureMap & measured_featureMap, FeatureMap & normalized_featureMap,
