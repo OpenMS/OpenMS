@@ -202,7 +202,7 @@ protected:
 
   void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, vector<PeptideIdentification>& pep_a, const vector<PeptideIdentification>& pep_b)
   {
-    for (const auto p : p_b.getHits())
+    for (const ProteinHit& p : p_b.getHits())
     {
       p_a.insertHit(p);
     }
@@ -218,7 +218,7 @@ protected:
       if (run_identifier.empty()) run_identifier = pep.getIdentifier();
     }
 
-    for (auto pep : pep_b)
+    for (auto pep : pep_b) //OMS_CODING_TEST_EXCLUDE
     {
       auto it = native_id2id_index.find(pep.getMetaValue("spectrum_reference"));
       if (it == native_id2id_index.end()) // spectrum not yet identified? add decoy id
