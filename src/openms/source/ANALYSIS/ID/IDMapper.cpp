@@ -129,7 +129,7 @@ namespace OpenMS
     {
       if (!peptide_ids[i].empty())
       { // mapping is done by either native id or by comparing peptide_id RT with experiment RT
-        if (peptide_ids[i].metaValueExists("spectrum_reference") == false) 
+        if (!peptide_ids[i].metaValueExists("spectrum_reference")) 
         { // use RT for mapping 
           identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
         } 
@@ -150,7 +150,7 @@ namespace OpenMS
       }
     }
 
-    if (identifications_precursors.size() > 0) 
+    if (!identifications_precursors.empty()) 
     {
       // store mapping of scan RT to index
       multimap<double, Size> experiment_precursors;
