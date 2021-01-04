@@ -266,11 +266,24 @@ protected:
   /// percolator feature set
   StringList feature_set_;
  
-  void applyPresets_(StringList& modifications, StringList& fragment_adducts, String& can_cross_link)
+  void applyPresets_(StringList& nucleotides, 
+    StringList& mapping, 
+    StringList& modifications, 
+    StringList& fragment_adducts, 
+    String& can_cross_link)
   {
+    const StringList DNA_nucleotides = {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"}; // the mono-phosphates
+    const StringList RNA_nucleotides = {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}; 
+    const StringList DNA_mapping = {"A->A", "C->C", "G->G", "T->T"};
+    const StringList RNA_mapping = {"A->A", "C->C", "G->G", "U->U"};
+
     const String p = getStringOption_("RNPxl:presets");
     if (p == "RNA")
     {
+      nucleotides = RNA_nucleotides;
+
+      mapping = RNA_mapping;
+
       modifications = 
          {"U:", 
           "U:-H2O", 
@@ -292,10 +305,11 @@ protected:
           "A:-NH3",
           "A:-NH3-HPO3", 
           "A:-HPO3"};
+
       fragment_adducts = 
          {"U:C9H10N2O5;U-H3PO4",
-          "U:C4H4N2O2;U';",
-          "U:C4H2N2O1;U';-H2O",
+          "U:C4H4N2O2;U'",
+          "U:C4H2N2O1;U'-H2O",
           "U:C3O;C3O",
           "U:C9H13N2O9P1;U",
           "U:C9H11N2O8P1;U-H2O",
@@ -308,9 +322,9 @@ protected:
           "C:C9H12N3O7P;C-H2O",
           "C:C9H13N3O5;C-HPO3",
           "C:C9H11N3O4;C-H3PO4",
-          "C:C4H5N3O;C';",
-          "C:C4H3N3;C';-H2O",
-          "C:C4H2N2O;C';-NH3",
+          "C:C4H5N3O;C'",
+          "C:C4H3N3;C'-H2O",
+          "C:C4H2N2O;C'-NH3",
           "G:C10H14N5O8P;G",
           "G:C10H12N5O7P;G-H2O",
           "G:C10H11N4O8P;G-NH3",
@@ -318,17 +332,17 @@ protected:
           "C:C9H10N2O5;C-NH3-HPO3",
           "G:C10H10N4O5;G-NH3-HPO3",
           "G:C10H11N5O4;G-H3PO4",
-          "G:C5H5N5O;G';",
-          "G:C5H3N5;G';-H2O",
-          "G:C5H2N4O;G';-NH3",
+          "G:C5H5N5O;G'",
+          "G:C5H3N5;G'-H2O",
+          "G:C5H2N4O;G'-NH3",
           "A:C10H14N5O7P;A",
           "A:C10H12N5O6P;A-H2O",
           "A:C10H11N4O7P;A-NH3",
           "A:C10H13N5O4;A-HPO3",
           "A:C10H11N5O3;A-H3PO4",
           "A:C10H10N5O4;A-NH3-HPO3",
-          "A:C5H5N5;A';",
-          "A:C5H2N4;A';-NH3",
+          "A:C5H5N5;A'",
+          "A:C5H2N4;A'-NH3",
           "C:C5H9O7P;ribose",
           "G:C5H9O7P;ribose",
           "A:C5H9O7P;ribose",
@@ -342,6 +356,9 @@ protected:
     }
     else if (p == "DNA")
     {
+      nucleotides = DNA_nucleotides;
+      mapping = DNA_mapping;
+
       modifications = {
         "T:",
         "T:-H2O",
@@ -364,12 +381,17 @@ protected:
         "C:-H2O-HPO3",
         "C:-NH3",
         "C:-NH3-HPO3",
-        "T:+C5H7O5P",
+
+        "T:+C5H7O5P", // + dribose-H2O
         "A:+C5H7O5P",
         "G:+C5H7O5P",
         "C:+C5H7O5P",
-        "T:-C4H5N3O",
+
+        "C:-C4H5N3O", // loss of base -> only dribose remains
+        "T:-C5H6N2O2",
+        "G:-C5H5N5O",
         "A:-C5H5N5",
+
         "T:+HPO3",
         "C:+HPO3",
         "A:+HPO3",
@@ -384,35 +406,39 @@ protected:
         "T:C10H13N2O7P;T-H2O",
         "T:C10H14N2O5;T-HPO3",
         "T:C10H12N2O4;T-H3PO4",
-        "T:C5H6N2O2;T';",
-        "T:C5H4N2O;T';-H2O",
+        "T:C5H6N2O2;T'",
+        "T:C5H4N2O;T'-H2O",
+
         "C:C9H14N3O7P;C",
         "C:C9H11N2O7P;C-NH3",
         "C:C9H12N3O6P;C-H2O",
         "C:C9H13N3O4;C-HPO3",
         "C:C9H11N3O3;C-H3PO4",
-        "C:C4H5N3O;C';",
-        "C:C4H3N3;C';-H2O",
-        "C:C4H2N2O;C';-NH3",
+        "C:C9H10N2O4;C-NH3-HPO3",
+        "C:C4H5N3O;C'",
+        "C:C4H3N3;C'-H2O",
+        "C:C4H2N2O;C'-NH3",
+
         "G:C10H14N5O7P;G",
         "G:C10H12N5O6P;G-H2O",
         "G:C10H11N4O7P;G-NH3",
         "G:C10H13N5O4;G-HPO3",
-        "C:C9H10N2O4;C-NH3-HPO3",
         "G:C10H10N4O4;G-NH3-HPO3",
         "G:C10H11N5O3;G-H3PO4",
-        "G:C5H5N5O;G';",
-        "G:C5H3N5;G';-H2O",
-        "G:C5H2N4O;G';-NH3",
+        "G:C5H5N5O;G'",
+        "G:C5H3N5;G'-H2O",
+        "G:C5H2N4O;G'-NH3",
+
         "A:C10H14N5O6P;A",
         "A:C10H12N5O5P;A-H2O",
         "A:C10H11N4O6P;A-NH3",
         "A:C10H13N5O3;A-HPO3",
         "A:C10H11N5O2;A-H3PO4",
         "A:C10H10N5O3;A-NH3-HPO3",
-        "A:C5H5N5;A';",
-        "A:C5H2N4;A';-NH3",
-        "A:C5H9O6P;dribose",
+        "A:C5H5N5;A'",
+        "A:C5H2N4;A'-NH3",
+
+        "A:C5H9O6P;dribose", // base was lost -> only dribose remains
         "G:C5H9O6P;dribose",
         "C:C5H9O6P;dribose",
         "T:C5H9O6P;dribose",
@@ -423,7 +449,223 @@ protected:
         "A:C5H8O3;dribose-HPO3",
         "G:C5H8O3;dribose-HPO3",
         "C:C5H8O3;dribose-HPO3",
-        "T:C5H8O3;dribose-HPO3"};
+        "T:C5H8O3;dribose-HPO3"
+      };
+
+      can_cross_link = "CTGA";
+    }
+    else if (p == "RNA-4SU")
+    {
+      nucleotides = RNA_nucleotides;
+      nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
+
+      mapping = RNA_mapping;
+      mapping.push_back("S->S");
+
+      fragment_adducts = {
+          "S:C4H2N2O1;tU-H2S",
+          "U:C9H10N2O5;U-H3PO4",
+          "U:C4H4N2O2;U'",
+          "U:C4H2N2O1;U'-H2O",
+          "U:C3O;C3O",
+          "U:C9H13N2O9P1;U",
+          "U:C9H11N2O8P1;U-H2O",
+          "U:C9H12N2O6;U-HPO3",
+          "U:C5H9O7P;ribose",
+          "U:C5H7O6P;ribose-H2O",
+          "U:C5H6O3;ribose-H2O-HPO3",
+          "C:C9H14N3O8P;C",
+          "C:C9H11N2O8P;C-NH3",
+          "C:C9H12N3O7P;C-H2O",
+          "C:C9H13N3O5;C-HPO3",
+          "C:C9H11N3O4;C-H3PO4",
+          "C:C4H5N3O;C'",
+          "C:C4H3N3;C'-H2O",
+          "C:C4H2N2O;C'-NH3",
+          "G:C10H14N5O8P;G",
+          "G:C10H12N5O7P;G-H2O",
+          "G:C10H11N4O8P;G-NH3",
+          "G:C10H13N5O5;G-HPO3",
+          "C:C9H10N2O5;C-NH3-HPO3",
+          "G:C10H10N4O5;G-NH3-HPO3",
+          "G:C10H11N5O4;G-H3PO4",
+          "G:C5H5N5O;G'",
+          "G:C5H3N5;G'-H2O",
+          "G:C5H2N4O;G'-NH3",
+          "A:C10H14N5O7P;A",
+          "A:C10H12N5O6P;A-H2O",
+          "A:C10H11N4O7P;A-NH3",
+          "A:C10H13N5O4;A-HPO3",
+          "A:C10H11N5O3;A-H3PO4",
+          "A:C10H10N5O4;A-NH3-HPO3",
+          "A:C5H5N5;A'",
+          "A:C5H2N4;A'-NH3",
+          "C:C5H9O7P;ribose",
+          "G:C5H9O7P;ribose",
+          "A:C5H9O7P;ribose",
+          "G:C5H7O6P;rib-H2O",
+          "C:C5H7O6P;rib-H2O",
+          "A:C5H7O6P;rib-H2O",
+          "G:C5H6O3;ribose-H2O-HPO3",
+          "C:C5H6O3;ribose-H2O-HPO3",
+          "A:C5H6O3;ribose-H2O-HPO3"
+      };    
+
+      modifications = {
+          "S:",
+          "S:-H2O",
+          "S:-H2O-HPO3",
+          "S:-HPO3",
+          "S:-H2S+HPO3",
+          "S:-H2S"
+      };
+
+      can_cross_link = "S";
+    }
+    else if (p == "RNA-DEB")
+    {
+      nucleotides = RNA_nucleotides;
+      mapping = RNA_mapping;
+
+      modifications = {
+        "U:+C4H6O2",
+        "U:+C4H6O2-H2O",
+        "U:+C4H6O2-HPO3",
+        "U:+C4H6O2-H3PO4",
+        "U:+C4H6O2-H2O-H2O",
+        "U:+C4H6O2-H3PO4-H2O",
+
+        "G:+C4H6O2",
+        "G:+C4H6O2-H2O",
+        "G:+C4H6O2-HPO3",
+        "G:+C4H6O2-H3PO4",
+        "G:+C4H6O2-H2O-H2O",
+        "G:+C4H6O2-H3PO4-H2O",
+        "G:+C4H6O2-NH3",
+
+        "C:+C4H6O2",
+        "C:+C4H6O2-H2O",
+        "C:+C4H6O2-HPO3",
+        "C:+C4H6O2-H3PO4",
+        "C:+C4H6O2-H2O-H2O",
+        "C:+C4H6O2-H3PO4-H2O",
+        "C:+C4H6O2-H2O",
+        "C:+C4H6O2-NH3",
+
+        "A:+C4H6O2",
+        "A:+C4H6O2-H2O",
+        "A:+C4H6O2-HPO3",
+        "A:+C4H6O2-H3PO4",
+        "A:+C4H6O2-H2O-H2O",
+        "A:+C4H6O2-H3PO4-H2O",
+        "A:+C4H6O2-H2O",
+        "A:+C4H6O2-NH3"
+      };
+
+      fragment_adducts = {
+        "U:C4H6O2;DEB",
+        "U:C4H4O;DEB-H2O",
+        "U:C13H16N2O7;DEB+U-H3PO4",
+        "U:C8H10N2O4;DEB+U'",
+        "U:C8H8N2O3;DEB+U'-H2O",
+        "U:C7H6O3;DEB+C3O",
+        "U:C13H19N2O11P1;DEB+U",
+        "U:C13H17N2O10P1;DEB+U-H2O",
+        "U:C13H16N2O7;DEB+U-H3PO4",
+        "G:C4H6O2;DEB",
+        "G:C4H4O;DEB-H2O",
+        "G:C14H17N5O6;DEB+G-H3PO4",
+        "G:C9H11N5O3;DEB+G'",
+        "G:C8H9N5O3;DEB+G'-H2O",
+        "G:C14H20N5O10P1;DEB+G",
+        "G:C14H18N5O9P1;DEB+G-H2O",
+        "G:C14H17N5O6;DEB+G-H3PO4",
+        "C:C4H6O2;DEB",
+        "C:C4H4O;DEB-H2O",
+        "C:C13H17N3O6;DEB+C-H3PO4",
+        "C:C8H11N3O3;DEB+C'",
+        "C:C8H9N3O2;DEB+C'-H2O",
+        "C:C13H20N3O10P1;DEB+C",
+        "C:C13H18N3O9P1;DEB+C-H2O",
+        "C:C13H17N3O6;DEB+C-H3PO4",
+        "A:C4H6O2;DEB",
+        "A:C4H4O;DEB-H2O",
+        "A:C14H17N5O5;DEB+A-H3PO4",
+        "A:C9H11N5O2;DEB+A'",
+        "A:C8H9N5O2;DEB+A'-H2O",
+        "A:C14H20N5O9P1;DEB+A",
+        "A:C14H18N5O8P1;DEB+A-H2O",
+        "A:C14H17N5O5;DEB+A-H3PO4",
+        "A:C19H12N5O6P;A-H2O",
+        "A:C9H17N4O;DEB+A'-NH3",
+        "A:C14H17N4O9;DEB+A-NH3"
+      };
+      can_cross_link = "UCGA";
+
+    }
+    else if (p == "DNA-DEB")
+    {
+      nucleotides = DNA_nucleotides;
+      mapping = DNA_mapping;
+
+      modifications = { // adapted from Fanni + water losses
+        "T:+C4H6O2",
+        "T:+C4H6O2-H2O",
+        "G:+C4H6O2",
+        "G:+C4H6O2-C5H9O6P",
+        "G:+C4H6O2-H2O-C5H9O6P",
+        "G:+C4H6O2-H2O",
+        "C:+C4H6O2",
+        "C:+C4H6O2-H2O",
+        "A:+C4H6O2",
+        "A:+C4H6O2-H2O"
+       };
+
+      fragment_adducts = {
+        // DEB
+        "T:C4H6O2;DEB",
+        "T:C4H4O;DEB-H2O",
+        "T:C5H6N2O2;T'",  // needed for marker ion
+        "T:C9H12N2O4;DEB+T'",
+        "T:C9H10N2O3;DEB+T'-H2O",
+        "T:C14H21N2O10P1;DEB+T",    // C4H6O2 + C10H15N2O8P
+        "T:C14H19N2O9P1;DEB+T-H2O", 
+        "T:C14H20N2O7;DEB+T-HPO3",  // C4H6O2 + C10H15N2O8P - HPO3
+        "T:C14H18N2O6;DEB+T-H3PO4", // C4H6O2 + C10H15N2O8P - H3PO4
+
+        "C:C4H6O2;DEB",
+        "C:C4H4O;DEB-H2O",
+        "C:C4H5N3O;C'",  // needed for marker ion
+        "C:C8H11N3O3;DEB+C'"
+        "C:C8H9N3O2;DEB+C'-H2O",
+        "C:C13H20N3O9P1;DEB+C",
+        "C:C13H18N3O8P1;DEB+C-H2O",
+//      "C:C13H19N3O6;DEB+C-HPO3", 
+//      "C:C13H17N3O5;DEB+C-H3PO4",
+         
+        "G:C4H6O2;DEB",
+        "G:C4H4O;DEB-H2O",
+        "G:C9H11N5O3;DEB+G'", 
+        "G:C9H9N5O2;DEB+G'-H2O", 
+        "G:C14H20N5O9P1;DEB+G",
+        "G:C5H5N5O;G'", // needed for marker ion
+        "G:C10H9N5O2;G-H3PO4-H2O", // exclusive to Fanni
+        "G:C14H18N5O8P1;DEB+G-H2O", // not in Fanni's list
+//      "G:C14H19N5O6;DEB+G-HPO3",
+//      "G:C14H17N5O5;DEB+G-H3PO4",
+
+        "A:C4H6O2;DEB",
+        "A:C4H4O;DEB-H2O",          
+        "A:C5H5N5;A'" // needed for marker ion
+        "A:C9H11N5O2;DEB+A'",       // C4H6O2 + C5H5N5
+        "A:C9H9N5O1;DEB+A'-H2O",    // not in Fanni's list
+        "A:C9H8N4O2;DEB+A'-NH3",    // C4H6O2 + C5H5N5 - NH3
+        "A:C14H20N5O8P1;DEB+A",     // C4H6O2 + C10H14N5O6P
+        "A:C14H18N5O7P1;DEB+A-H2O", // not in Fanni's list
+        "A:C10H9N5O;A-H3PO4-H2O", // Fanni
+//      "A:C14H19N5O3;DEB+A-HPO3",  // C4H6O2 + C10H14N5O6P - HPO3
+//      "A:C14H17N5O2;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
+      };
 
       can_cross_link = "CTGA";
     }
@@ -510,7 +752,7 @@ protected:
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
 
     registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
-    setValidStrings_("RNPxl:presets", {"none", "RNA", "DNA"});
+    setValidStrings_("RNPxl:presets", {"none", "RNA", "DNA", "RNA-4SU", "RNA-DEB"});
 
     registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
 
@@ -775,42 +1017,73 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
-    // match b- and a-ions (we record a-ions as b-ions)
-    for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
-    { 
-      for (Size z = 1; z <= max_z; ++z)
+    // match b-ions
+    for (Size z = 1; z <= max_z; ++z)
+    {
+      n_theoretical_peaks += total_loss_template_z1_b_ions.size();
+
+      for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
       {
-        n_theoretical_peaks += total_loss_template_z1_b_ions.size();
+        const double theo_mz = (total_loss_template_z1_b_ions[i] 
+          + (z-1) * Constants::PROTON_MASS_U) / z;
+        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
-        for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
+        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+        Size index = exp_spectrum.findNearest(theo_mz);
+
+        const double exp_mz = exp_spectrum[index].getMZ();
+        const Size exp_z = exp_charges[index];
+
+        // found peak match
+        const double abs_err_Da = std::abs(theo_mz - exp_mz);
+        if (exp_z == z && abs_err_Da < max_dist_dalton)
         {
-          const double theo_mz = (total_loss_template_z1_b_ions[i] + diff2b 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          Size index = exp_spectrum.findNearest(theo_mz);
-
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
+          if (!peak_matched[index])
           {
-            if (!peak_matched[index])
-            {
-              double intensity = exp_spectrum[index].getIntensity();
-              intensity = (diff2b == 0.0) ? intensity * b_[i] : intensity * a_[i]; ////////////////////////////////// fragment background freq scaling
-              dot_product += intensity;
-              if (b_ions[i] == 0) // only b-ion mass error otherwise counts don't match for mean err calculation
-              {
-                b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
-              }
-              b_ions[i] += intensity;
-              ++matches;
-              peak_matched[index] = true;
-            }
+            double intensity = exp_spectrum[index].getIntensity();
+            intensity *= b_[i]; ////////////////////////////////// fragment background freq scaling
+            dot_product += intensity;
+            b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
+            b_ions[i] += intensity;
+            ++matches;
+            peak_matched[index] = true;
+          }
+        }
+      }
+    }
+
+    // match a-ions
+    vector<double> a_ions(b_ions.size(), 0.0);
+
+    const double diff2b = -27.994915; // b-ion and a-ion ('CO' mass diff from b- to a-ion)
+    for (Size z = 1; z <= max_z; ++z)
+    {
+      n_theoretical_peaks += total_loss_template_z1_b_ions.size();
+
+      for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
+      {
+        const double theo_mz = (total_loss_template_z1_b_ions[i] + diff2b 
+          + (z-1) * Constants::PROTON_MASS_U) / z;
+        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+        Size index = exp_spectrum.findNearest(theo_mz);
+
+        const double exp_mz = exp_spectrum[index].getMZ();
+        const Size exp_z = exp_charges[index];
+
+        // found peak match
+        const double abs_err_Da = std::abs(theo_mz - exp_mz);
+        if (exp_z == z && abs_err_Da < max_dist_dalton)
+        {
+          if (!peak_matched[index])
+          {
+            double intensity = exp_spectrum[index].getIntensity();
+            intensity *= a_[i]; ////////////////////////////////// fragment background freq scaling
+            dot_product += intensity;
+            a_ions[i] += intensity;
+            ++matches;
+            peak_matched[index] = true;
           }
         }
       }
@@ -839,7 +1112,7 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
           if (!peak_matched[index])
           {
             double intensity = exp_spectrum[index].getIntensity();
-            intensity = intensity * y_[i];  ////////////////////////////////// fragment background freq scaling
+            intensity *= y_[i];  ////////////////////////////////// fragment background freq scaling
 
             y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
             dot_product += intensity;                  
@@ -900,7 +1173,8 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
 #endif
 
     // determine b+a and y-ion count 
-    UInt y_ion_count(0), b_ion_count(0);
+    UInt y_ion_count(0), b_ion_count(0), a_ion_count(0);
+
     double b_sum(0.0);
     for (Size i = 0; i != b_ions.size(); ++i) 
     {
@@ -923,21 +1197,23 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
       }       
     }
 
-    /*
-      peptide of size N breaks into b_i and y_{N-i} ions
-      or with a zero-based index: b[0] -> y[N-1], b[1] -> y[N-1-1], ...
-    size_t y_larger_than_b{0};
-    for (Size i = 0; i != b_ions.size(); ++i) 
+    double a_sum(0.0);
+    for (Size i = 0; i != a_ions.size(); ++i) 
     {
-      if (b_ions[i] < y_ions[N-1-i]) y_larger_than_b++;
+      if (a_ions[i] > 0) 
+      {
+        intensity_sum[i] += a_ions[i];
+        a_sum += a_ions[i];
+        ++a_ion_count;
+      }       
     }
-*/
+
     OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].getName() == "TIC", "No TIC stored in spectrum meta data.");
     OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].size() == 1, "Exactly one TIC expected.");
 
     const double& TIC = exp_spectrum.getFloatDataArrays()[0][0];
 
-    if (y_ion_count == 0 && b_ion_count == 0) 
+    if (y_ion_count == 0 && b_ion_count == 0) // Note: don't check for a_ion_count here as this leads to division by zero at err calculation below
     {
       hyperScore = 0;
       MIC = 0;
@@ -946,13 +1222,14 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
     }
     else
     {
-      const double yFact = logfactorial_(y_ion_count);
       const double bFact = logfactorial_(b_ion_count);
-      hyperScore = log1p(dot_product) + yFact + bFact;
+      const double aFact = logfactorial_(a_ion_count);
+      const double yFact = logfactorial_(y_ion_count);
+      hyperScore = log1p(dot_product) + yFact + bFact + aFact;
       MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
       for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       MIC /= TIC;
-      Morph = b_ion_count + y_ion_count + MIC;
+      Morph = b_ion_count + y_ion_count + y_ion_count + MIC;
       err = (y_mean_err + b_mean_err)/(b_ion_count + y_ion_count);
     }
 
@@ -1190,64 +1467,122 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
-    // match b- and a-ions (we record a-ions as b-ions)
-    for (double diff2b : {0.0, -27.994915} ) // b-ion and a-ion ('CO' mass diff from b- to a-ion)
-    { 
-      for (Size z = 1; z <= max_z; ++z)
-      {
-        for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
-        {
-          n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
-////////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
-          // TODO move out?
+    // match b-ions
+    for (Size z = 1; z <= max_z; ++z)
+    {
+     for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+     {
+       n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
+/////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
+       // TODO move out?
 #ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
-          auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
-          bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
+        auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
+        bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
 #endif
 
-          for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
+        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
+        {
+          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass 
+            + (z-1) * Constants::PROTON_MASS_U) / z;
+
+#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
+          if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
+#endif
+ 
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+          Size index = exp_spectrum.findNearest(theo_mz);
+
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
+
+          // found peak match
+          const double abs_err_Da = std::abs(theo_mz - exp_mz);
+          if (exp_z == z && abs_err_Da < max_dist_dalton)
           {
-            const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
-              + (z-1) * Constants::PROTON_MASS_U) / z;
+            if (!peak_matched[index])
+            {
+#ifdef FILTER_AMBIGIOUS_PEAKS
+              // skip ambigious matches
+              if (i >= 1)
+              {
+                if (ambigious_match(partial_loss_template_z1_b_ions[i - 1], partial_loss_template_z1_b_ions[i] + fa.mass)) continue;
+              }
+#endif
+              double intensity = exp_spectrum[index].getIntensity();
+              intensity *= xl_b_[i]; ////////////////////////////////// fragment background freq scaling
+              b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
+              dot_product += intensity;
+              b_ions[i] += intensity;            
+              peak_matched[index] = true;
+              matches++;
+            }
+          }
+        }
+      } 
+    }
+
+    // match a-ions
+    vector<double> a_ions(b_ions.size(), 0.0);
+    const double diff2b = -27.994915; // b-ion and a-ion ('CO' mass diff from b- to a-ion)
+
+    // match a-ions
+    for (Size z = 1; z <= max_z; ++z)
+    {
+      for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+      {
+        n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
+        // TODO move out?
+#ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
+//////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
+        auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
+        bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
+#endif
+
+        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
+        {
+          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
+            + (z-1) * Constants::PROTON_MASS_U) / z;
 
 #ifdef FILTER_SHIFTED_PEAKS_THAT_MATCH_AA_TAGS
             if (has_tag_that_matches_fragmentadduct && ambigious_match(theo_mz, z, fa.name)) continue;
 #endif
  
-            const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
-            // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-            Size index = exp_spectrum.findNearest(theo_mz);
+          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+          Size index = exp_spectrum.findNearest(theo_mz);
 
-            const double exp_mz = exp_spectrum[index].getMZ();
-            const Size exp_z = exp_charges[index];
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
 
-            // found peak match
-            const double abs_err_Da = std::abs(theo_mz - exp_mz);
-            if (exp_z == z && abs_err_Da < max_dist_dalton)
+          // found peak match
+          const double abs_err_Da = std::abs(theo_mz - exp_mz);
+          if (exp_z == z && abs_err_Da < max_dist_dalton)
+          {
+            if (!peak_matched[index])
             {
-              if (!peak_matched[index])
-              {
 #ifdef FILTER_AMBIGIOUS_PEAKS
-                // skip ambigious matches
-                if (i >= 1)
-                {
-                  if (ambigious_match(partial_loss_template_z1_b_ions[i - 1], partial_loss_template_z1_b_ions[i] + fa.mass)) continue;
-                }
-#endif
-                double intensity = exp_spectrum[index].getIntensity();
-                intensity = diff2b == 0.0 ? intensity * xl_b_[i] : intensity * xl_a_[i]; ////////////////////////////////// fragment background freq scaling
-                b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
-                dot_product += intensity;
-                b_ions[i] += intensity;            
-                peak_matched[index] = true;
-                matches++;
+              // skip ambigious matches
+              if (i >= 1)
+              {
+                if (ambigious_match(partial_loss_template_z1_b_ions[i - 1], partial_loss_template_z1_b_ions[i] + fa.mass)) continue;
               }
+#endif
+              double intensity = exp_spectrum[index].getIntensity();
+              intensity *= xl_a_[i]; ////////////////////////////////// fragment background freq scaling
+              dot_product += intensity;
+              a_ions[i] += intensity;            
+              peak_matched[index] = true;
+              matches++;
             }
           }
-        } 
-      }
+        }
+      } 
     }
+    
+
  
     // match y-ions
     for (Size z = 1; z <= max_z; ++z)
@@ -1364,9 +1699,9 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     }
 #endif
 
-    UInt y_ion_count(0), b_ion_count(0);
+    UInt y_ion_count(0), b_ion_count(0), a_ion_count(0);
+
     double b_sum(0.0);
-    
     for (Size i = 0; i != b_ions.size(); ++i) 
     {
       if (b_ions[i] > 0) 
@@ -1388,18 +1723,23 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
       }       
     }
 
-    /*
-      peptide of size N breaks into b_i and y_{N-i} ions
-      or with a zero-based index: b[0] -> y[N-1], b[1] -> y[N-1-1], ...
-    size_t y_larger_than_b{0};
-    for (Size i = 0; i != b_ions.size(); ++i) 
+    double a_sum(0.0);
+    for (Size i = 0; i != a_ions.size(); ++i) 
     {
-      if (b_ions[i] < y_ions[N-1-i]) y_larger_than_b++;
+      if (a_ions[i] > 0) 
+      {
+        intensity_sum[i] += a_ions[i];
+        a_sum += a_ions[i];
+        ++a_ion_count;
+      }       
     }
-*/
+
+    OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].getName() == "TIC", "No TIC stored in spectrum meta data.");
+    OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].size() == 1, "Exactly one TIC expected.");
+
     const double& TIC = exp_spectrum.getFloatDataArrays()[0][0];
 
-    if (y_ion_count == 0 && b_ion_count == 0) 
+    if (y_ion_count == 0 && b_ion_count == 0) //Note: don't check for a_ion_count here as this might lead to division by zero when plss_err is calculated
     {
       plss_hyperScore = 0;
       plss_MIC = 0;
@@ -1408,9 +1748,10 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     }
     else
     {
-      const double yFact = logfactorial_(y_ion_count);
       const double bFact = logfactorial_(b_ion_count);
-      plss_hyperScore = log1p(dot_product) + yFact + bFact;
+      const double aFact = logfactorial_(a_ion_count);
+      const double yFact = logfactorial_(y_ion_count);
+      plss_hyperScore = log1p(dot_product) + yFact + bFact + aFact;
       plss_MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
       for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       plss_MIC /= TIC;
@@ -4376,28 +4717,29 @@ static void scoreXLIons_(
     double peptide_FDR = getDoubleOption_("report:peptideFDR");
     DoubleList XL_FDR = getDoubleList_("report:xlFDR");
 
-    // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
-    StringList target_nucleotides = getStringList_("RNPxl:target_nucleotides");
-
     StringList nt_groups = getStringList_("RNPxl:nt_groups");
 
-    // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
-    StringList mappings = getStringList_("RNPxl:mapping");
 
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
     StringList modifications;
     StringList fragment_adducts;
     String can_cross_link;
+    // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
+    StringList target_nucleotides;
+    // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
+    StringList mappings;
     if (getStringOption_("RNPxl:presets") == "none")
     {
+      target_nucleotides = getStringList_("RNPxl:target_nucleotides");
+      mappings = getStringList_("RNPxl:mapping");
       modifications = getStringList_("RNPxl:modifications");
       fragment_adducts = getStringList_("RNPxl:fragment_adducts");
       can_cross_link = getStringOption_("RNPxl:can_cross_link");
     }
     else
-    { // set form presets
-      applyPresets_(modifications, fragment_adducts, can_cross_link);
+    { // set from presets
+      applyPresets_(target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
     }
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
 

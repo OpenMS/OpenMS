@@ -1894,7 +1894,7 @@ endif()
 #------------------------------------------------------------------------------
 # OpenNuXL
 add_test("TOPP_OpenNuXL_1" ${TOPP_BIN_PATH}/OpenNuXL -test -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_1_output.tmp -RNPxl:decoys "false" -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_1_output.tmp -out_tsv OpenNuXL_1_output_tsv.tmp -RNPxl:decoys "false" -ini ${DATA_DIR_TOPP}/OpenNuXL_1_parameters.ini)
 add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_1_output.tmp -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
 set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")

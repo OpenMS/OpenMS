@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <boost/range/adaptor/reversed.hpp>
 
 using namespace std;
 
@@ -294,6 +295,7 @@ namespace OpenMS
 
   void RNPxlProteinReport::annotateProteinModificationForTopHits(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file, bool report_decoys)
   {
+    cout << "Creating protein report. " << endl;
     assert(prots.size() == 1); // support for one run only
 
     // protein identification run
@@ -304,6 +306,7 @@ namespace OpenMS
     map<String, ProteinHit*> acc2protein_decoys;
     mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
 
+    // internal helper struct to store a modified region
     struct ModifiedRegion
     {
       ResidueModification* xl;
@@ -321,6 +324,8 @@ namespace OpenMS
 
     map<String, ResidueModification*> name2mod; // used to free temporary residues
 
+    map<String, size_t> adduct2count;
+
     // store modification statistic for every protein    
     for (const PeptideIdentification& pep : peps)
     {
@@ -333,6 +338,7 @@ namespace OpenMS
       // create a user defined modification (at most once)
       ResidueModification* xl;
       const String NA = ph.getMetaValue("NuXL:NA");
+      adduct2count[NA] += 1;
       auto it = name2mod.find(NA);
       if (it != name2mod.end())
       {
@@ -391,7 +397,34 @@ namespace OpenMS
     map<char, size_t> aa2psm_count_decoys; // how many PSMs have that AA cross-linked
 
     map<char, double> aa2background_freq; // AA background distribution for normalization
- 
+
+    struct  AALevelLocalization
+    {
+      String NA;
+      String AA;
+      size_t pos = 0;
+      size_t count = 0;
+    };
+
+    struct  RegionLevelLocalization
+    {
+      String NA;
+      size_t first = 0;
+      size_t last = 0;
+      size_t count = 0;
+    };
+
+    struct ProteinReportEntry
+    {
+      String accession;
+      String annotated_sequence;
+      size_t count = 0; // XL spectral count
+      vector<AALevelLocalization> aa_level_localization;      
+      vector<RegionLevelLocalization> region_level_localization;      
+    };
+
+    vector<ProteinReportEntry> protein_report_entries;
+
     for (const ProteinIdentification& prot_id : prot_ids)
     { 
       const vector<ProteinHit>& phs = prot_id.getHits();
@@ -405,7 +438,10 @@ namespace OpenMS
         const String& seq = protein.getSequence();
 
         for (const char c : seq) { aa2background_freq[c] += 1.0; }
-        tsv_file.addLine(acc);
+
+        // create result entry
+        ProteinReportEntry e;
+        e.accession = acc;
 
         auto mods = protein.getModifications();
 
@@ -435,16 +471,15 @@ namespace OpenMS
             ++p;
           }
           while (p < seq.size()) { annotated_sequence += seq[p]; ++p; } // output AAs after last modification
-
-          tsv_file.addLine(annotated_sequence);
+          e.annotated_sequence = annotated_sequence;
         }
         else
         {
-          tsv_file.addLine(seq);
+          e.annotated_sequence = seq;
         }
 
         // output modification AA and count for this protein
-        tsv_file.addLine("Cross-link localizations:");
+        //tsv_file.addLine("Cross-link localizations:");
         set<char> already_counted_at_protein_level;
         for (const auto& p2ms : mods.AALevelSummary)
         {
@@ -483,22 +518,63 @@ namespace OpenMS
             {
               aa2psm_count_decoys[AA_at_position] += count;
             }
-            tsv_file.addLine(m2s.first->getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
+            AALevelLocalization aa_loc;
+            aa_loc.NA = m2s.first->getFullId();
+            aa_loc.AA = AA_at_position;
+            aa_loc.pos = position + 1;
+            aa_loc.count = count;
+            e.aa_level_localization.push_back(aa_loc);
+            e.count += count; // count PSM 
+            //tsv_file.addLine(m2s.first->getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
           }
         }
         
         // output list of modified regions (without AA level localization)
-        tsv_file.addLine("Cross-linked peptides without localization at single AA-level:");
+        //tsv_file.addLine("Cross-linked peptides without localization at single AA-level:");
         for (const auto& p2xlregions : modified_region_xls_targets)
         {
           for (const auto& region : p2xlregions.second)
           {
             const ModifiedRegion& r = region.first;
-            const size_t count = region.second;
-            tsv_file.addLine(r.xl->getFullId() + ":" + String(r.first + 1) + "-" + String(r.last + 1) + "(" + String(count) + ")");
+            const size_t region_count = region.second;
+            RegionLevelLocalization reg_loc;
+            reg_loc.NA = r.xl->getFullId();
+            reg_loc.first = r.first + 1;
+            reg_loc.last = r.last + 1;
+            reg_loc.count = region_count;
+            e.region_level_localization.push_back(reg_loc);
+            e.count += region_count; // count PSM 
+            //tsv_file.addLine(r.xl->getFullId() + ":" + String(r.first + 1) + "-" + String(r.last + 1) + "(" + String(count) + ")");
           }
         }
+        protein_report_entries.push_back(e);
       }  
+    }
+  
+    // sort report entries (largest number of XL PSM count first) 
+    cout << "Sorting entries... " << endl;
+    std::sort(protein_report_entries.begin(), protein_report_entries.end(), 
+      [](const ProteinReportEntry & a, const ProteinReportEntry & b) -> bool
+      { 
+         return std::tie(a.count, a.accession, a.annotated_sequence) > std::tie(b.count, b.accession, b.annotated_sequence);
+      }); 
+
+    // write to file
+    cout << "Write to file... " << endl;
+    for (const auto& e : protein_report_entries)
+    {
+      tsv_file.addLine(String(">") + e.accession + "\t(" + String(e.count) + ")");
+      tsv_file.addLine(e.annotated_sequence);
+      //tsv_file.addLine("Cross-link localizations:");
+      for (const auto& aa_loc : e.aa_level_localization)
+      {
+        tsv_file.addLine("AA: " + aa_loc.NA + ":" + aa_loc.AA + String(aa_loc.pos) + "(" + String(aa_loc.count) + ")"); 
+      }     
+      //tsv_file.addLine("Cross-linked peptides (without AA-level localization):");
+      for (const auto& reg_loc : e.region_level_localization)
+      {
+        tsv_file.addLine("REGION: " + reg_loc.NA + ":" + String(reg_loc.first) + "-" + String(reg_loc.last) + "(" + String(reg_loc.count) + ")");
+      }
     }
  
     double sum{};
@@ -539,7 +615,24 @@ namespace OpenMS
     {
       tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
     }
-    
+
+    tsv_file.addLine("=============================================================");
+    tsv_file.addLine("Precursor adduct summary for target PSMs:");
+    tsv_file.addLine("Precursor adduct:PSMs:PSMs(%)");
+
+    map<size_t, String> count2adduct;
+    size_t total_psms{};
+    for (const auto& ac : adduct2count)
+    {
+      count2adduct[ac.second] = ac.first;
+      total_psms += ac.second;
+    }
+
+    for (const auto& ca : boost::adaptors::reverse(count2adduct))
+    {
+      tsv_file.addLine(ca.second + " : " + String(ca.first) + " : " + String(100.0 * (double)ca.first / (double)total_psms));
+    }
+   
     for (auto m : name2mod) { delete(m.second); } // free memory
   }
 
