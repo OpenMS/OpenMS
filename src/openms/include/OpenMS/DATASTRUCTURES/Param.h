@@ -35,10 +35,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <iosfwd>
+//#include <iosfwd> Necesarry?
 #include <set>
 #include <string>
 #include <map>
@@ -78,7 +78,7 @@ public:
       /// Default constructor
       ParamEntry();
       /// Constructor with name, description, value and advanced flag
-      ParamEntry(const std::string& n, const std::string& v, const DataValue& d, const std::vector<std::string>& t = std::vector<std::string>());
+      ParamEntry(const std::string& n, const ParamValue& v, const std::string& d, const std::vector<std::string>& t = std::vector<std::string>());
       /// Copy constructor
       ParamEntry(const ParamEntry&) = default;
       /// Move constructor
@@ -101,7 +101,7 @@ public:
       /// Description of the entry
       std::string description;
       /// Value associated with the entry
-      DataValue value;
+      ParamValue value;
       /// Tags list, used e.g. for advanced parameter tag
       std::set<std::string> tags;
       ///@name Restrictions to accepted values (used in checkDefaults)
@@ -287,14 +287,14 @@ protected:
       @param description Verbose description of the parameter
       @param tags list of tags associated to this parameter
     */
-    void setValue(const std::string& key, const DataValue& value, const std::string& description = "", const std::vector<std::string>& tags = std::vector<std::string>());
+    void setValue(const std::string& key, const ParamValue& value, const std::string& description = "", const std::vector<std::string>& tags = std::vector<std::string>());
 
     /**
       @brief Returns a value of a parameter.
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
-    const DataValue& getValue(const std::string& key) const;
+    const ParamValue& getValue(const std::string& key) const;
 
     /**
       @brief Returns the whole parameter entry.
