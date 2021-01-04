@@ -59,7 +59,7 @@ namespace OpenMS
   {
   }
 
-  Param::ParamEntry::ParamEntry(const std::string& n, const std::string& v, const DataValue& d, const std::vector<std::string>& t) :
+  Param::ParamEntry::ParamEntry(const std::string& n, const ParamValue& v, const std::string& d, const std::vector<std::string>& t) :
     name(n),
     description(d),
     value(v),
@@ -88,7 +88,7 @@ namespace OpenMS
 
   bool Param::ParamEntry::isValid(std::string& message) const
   {
-    if (value.valueType() == DataValue::STRING_VALUE)
+    if (value.valueType() == ParamValue::STRING_VALUE)
     {
       if (valid_strings.size() != 0)
       {
@@ -114,10 +114,10 @@ namespace OpenMS
         }
       }
     }
-    else if (value.valueType() == DataValue::STRING_LIST)
+    else if (value.valueType() == ParamValue::STRING_LIST)
     {
-      String str_value;
-      StringList ls_value = value;
+      std::string str_value;
+      std::vector<std::string> ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         str_value = ls_value[i];
@@ -147,16 +147,16 @@ namespace OpenMS
         }
       }
     }
-    else if (value.valueType() == DataValue::INT_VALUE)
+    else if (value.valueType() == ParamValue::INT_VALUE)
     {
       Int tmp = value;
       if ((min_int != -std::numeric_limits<Int>::max() && tmp < min_int) || (max_int != std::numeric_limits<Int>::max() && tmp > max_int))
       {
-        message = "Invalid integer parameter value '" + std::to_string(tmp) + "' for parameter '" + name + "' given! The valid range is: [" + min_int + ":" + max_int + "].";
+        message = "Invalid integer parameter value '" + std::to_string(tmp) + "' for parameter '" + name + "' given! The valid range is: [" + std::to_string(min_int) + ":" + std::to_string(max_int) + "].";
         return false;
       }
     }
-    else if (value.valueType() == DataValue::INT_LIST)
+    else if (value.valueType() == ParamValue::INT_LIST)
     {
       Int int_value;
       IntList ls_value = value;
@@ -170,7 +170,7 @@ namespace OpenMS
         }
       }
     }
-    else if (value.valueType() == DataValue::DOUBLE_VALUE)
+    else if (value.valueType() == ParamValue::DOUBLE_VALUE)
     {
       double tmp = value;
       if ((min_float != -std::numeric_limits<double>::max() && tmp < min_float) || (max_float != std::numeric_limits<double>::max() && tmp > max_float))
@@ -179,7 +179,7 @@ namespace OpenMS
         return false;
       }
     }
-    else if (value.valueType() == DataValue::DOUBLE_LIST)
+    else if (value.valueType() == ParamValue::DOUBLE_LIST)
     {
       DoubleList ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
@@ -464,7 +464,7 @@ namespace OpenMS
     return root_ == rhs.root_;
   }
 
-  void Param::setValue(const std::string& key, const DataValue& value, const std::string& description, const std::vector<std::string>& tags)
+  void Param::setValue(const std::string& key, const ParamValue& value, const std::string& description, const std::vector<std::string>& tags)
   {
     root_.insert(ParamEntry("", value, description, tags), key);
   }
@@ -473,7 +473,7 @@ namespace OpenMS
   {
     ParamEntry& entry = getEntry_(key);
     //check if correct parameter type
-    if (entry.value.valueType() != DataValue::STRING_VALUE && entry.value.valueType() != DataValue::STRING_LIST)
+    if (entry.value.valueType() != ParamValue::STRING_VALUE && entry.value.valueType() != ParamValue::STRING_LIST)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -491,7 +491,7 @@ namespace OpenMS
   void Param::setMinInt(const std::string& key, Int min)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
+    if (entry.value.valueType() != ParamValue::INT_VALUE && entry.value.valueType() != ParamValue::INT_LIST)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -501,7 +501,7 @@ namespace OpenMS
   void Param::setMaxInt(const std::string& key, Int max)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
+    if (entry.value.valueType() != ParamValue::INT_VALUE && entry.value.valueType() != ParamValue::INT_LIST)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -511,7 +511,7 @@ namespace OpenMS
   void Param::setMinFloat(const std::string& key, double min)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
+    if (entry.value.valueType() != ParamValue::DOUBLE_VALUE && entry.value.valueType() != ParamValue::DOUBLE_LIST)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -521,14 +521,14 @@ namespace OpenMS
   void Param::setMaxFloat(const std::string& key, double max)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
+    if (entry.value.valueType() != ParamValue::DOUBLE_VALUE && entry.value.valueType() != ParamValue::DOUBLE_LIST)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     entry.max_float = max;
   }
 
-  const DataValue& Param::getValue(const std::string& key) const
+  const ParamValue& Param::getValue(const std::string& key) const
   {
     return getEntry_(key).value;
   }
@@ -589,16 +589,16 @@ namespace OpenMS
           addTag(name, *tag_it);
         }
         //copy restrictions
-        if (it->value.valueType() == DataValue::STRING_VALUE || it->value.valueType() == DataValue::STRING_LIST)
+        if (it->value.valueType() == ParamValue::STRING_VALUE || it->value.valueType() == ParamValue::STRING_LIST)
         {
           setValidStrings(name, it->valid_strings);
         }
-        else if (it->value.valueType() == DataValue::INT_VALUE || it->value.valueType() == DataValue::INT_LIST)
+        else if (it->value.valueType() == ParamValue::INT_VALUE || it->value.valueType() == ParamValue::INT_LIST)
         {
           setMinInt(name, it->min_int);
           setMaxInt(name, it->max_int);
         }
-        else if (it->value.valueType() == DataValue::DOUBLE_VALUE || it->value.valueType() == DataValue::DOUBLE_LIST)
+        else if (it->value.valueType() == ParamValue::DOUBLE_VALUE || it->value.valueType() == ParamValue::DOUBLE_LIST)
         {
           setMinFloat(name, it->min_float);
           setMaxFloat(name, it->max_float);
@@ -953,7 +953,7 @@ namespace OpenMS
       //without argument
       else if (options_without_argument.find(arg) != options_without_argument.end())
       {
-        root_.insert(ParamEntry("", std::string("true"), ""), options_without_argument.find(arg)->second);
+        root_.insert(ParamEntry("", "true", ""), options_without_argument.find(arg)->second);
       }
       //with one argument
       else if (options_with_one_argument.find(arg) != options_with_one_argument.end())
@@ -1074,34 +1074,34 @@ namespace OpenMS
       if (default_value->value.valueType() != it->value.valueType())
       {
         std::string d_type;
-        if (default_value->value.valueType() == DataValue::STRING_VALUE)
+        if (default_value->value.valueType() == ParamValue::STRING_VALUE)
           d_type = "string";
-        if (default_value->value.valueType() == DataValue::STRING_LIST)
+        if (default_value->value.valueType() == ParamValue::STRING_LIST)
           d_type = "string list";
-        if (default_value->value.valueType() == DataValue::EMPTY_VALUE)
+        if (default_value->value.valueType() == ParamValue::EMPTY_VALUE)
           d_type = "empty";
-        if (default_value->value.valueType() == DataValue::INT_VALUE)
+        if (default_value->value.valueType() == ParamValue::INT_VALUE)
           d_type = "integer";
-        if (default_value->value.valueType() == DataValue::INT_LIST)
+        if (default_value->value.valueType() == ParamValue::INT_LIST)
           d_type = "integer list";
-        if (default_value->value.valueType() == DataValue::DOUBLE_VALUE)
+        if (default_value->value.valueType() == ParamValue::DOUBLE_VALUE)
           d_type = "float";
-        if (default_value->value.valueType() == DataValue::DOUBLE_LIST)
+        if (default_value->value.valueType() == ParamValue::DOUBLE_LIST)
           d_type = "float list";
         std::string p_type;
-        if (it->value.valueType() == DataValue::STRING_VALUE)
+        if (it->value.valueType() == ParamValue::STRING_VALUE)
           p_type = "string";
-        if (it->value.valueType() == DataValue::STRING_LIST)
+        if (it->value.valueType() == ParamValue::STRING_LIST)
           p_type = "string list";
-        if (it->value.valueType() == DataValue::EMPTY_VALUE)
+        if (it->value.valueType() == ParamValue::EMPTY_VALUE)
           p_type = "empty";
-        if (it->value.valueType() == DataValue::INT_VALUE)
+        if (it->value.valueType() == ParamValue::INT_VALUE)
           p_type = "integer";
-        if (it->value.valueType() == DataValue::INT_LIST)
+        if (it->value.valueType() == ParamValue::INT_LIST)
           p_type = "integer list";
-        if (it->value.valueType() == DataValue::DOUBLE_VALUE)
+        if (it->value.valueType() == ParamValue::DOUBLE_VALUE)
           p_type = "float";
-        if (it->value.valueType() == DataValue::DOUBLE_LIST)
+        if (it->value.valueType() == ParamValue::DOUBLE_LIST)
           p_type = "float list";
 
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": Wrong parameter type '" + p_type + "' for " + d_type + " parameter '" + it.getName() + "' given!");
@@ -1181,16 +1181,17 @@ OPENMS_THREAD_CRITICAL(oms_log)
           continue;
         }
         // param 'type': do not override!
-        suffix = ":type";
-        else if (it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0 &&
-                 it.getName().toQString().count(':') == 2) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
+        else if (suffix = ":type", it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
-          if (this->getValue(it.getName()) != it->value)
-          {
-OPENMS_THREAD_CRITICAL(oms_log)
-            stream << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
+          SignedSize first = it.getName().find(':');
+          if(it.getName().find(':', first+1) != std::string::npos) {
+              if (this->getValue(it.getName()) != it->value) {
+                  OPENMS_THREAD_CRITICAL(oms_log)
+                  stream
+                          << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
+              }
+              continue;
           }
-          continue;
         }
 
         // all other parameters:
@@ -1254,7 +1255,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
         if (new_entry.value != it->value)
         {
           // check entry for consistency (in case restrictions have changed)
-          DataValue default_value = new_entry.value;
+          ParamValue default_value = new_entry.value;
           new_entry.value = it->value;
           std::string validation_result;
           if (new_entry.isValid(validation_result))
