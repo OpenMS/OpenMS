@@ -55,7 +55,7 @@ using namespace std;
 namespace OpenMS
 {
   DBSuitability::DBSuitability()
-    : DefaultParamHandler("DBSuitability"), results_{}, decoy_pattern_(DecoyHelper::getPrefixRegex() + "|" + DecoyHelper::getSuffixRegex())
+    : DefaultParamHandler("DBSuitability"), results_{}, decoy_pattern_(string(DecoyHelper::getPrefixRegex() + "|" + DecoyHelper::getSuffixRegex()))
   {
     defaults_.setValue("no_rerank", "false", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.");
     defaults_.setValidStrings("no_rerank", { "true", "false" });
@@ -76,8 +76,6 @@ namespace OpenMS
   
   void DBSuitability::compute(vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
-    pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
-
     if (pep_ids[0].getScoreType() == "q-value") // q-value as score?
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
@@ -128,6 +126,7 @@ namespace OpenMS
 
     if(!param_.getValue("disable_correction").toBool())
     {
+      pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
       // calculate correction of suitability with extrapolation
 
       // sampled run
@@ -244,7 +243,8 @@ namespace OpenMS
     const set<String>& accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
     {
-      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(acc, decoy_pattern_))
+      String acc_copy(acc);
+      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(acc_copy.toLower(), decoy_pattern_))
       {
         return false;
       }
@@ -592,7 +592,6 @@ namespace OpenMS
 
     double db_slope = (int(data_sampled.num_top_db) - int(data_full.num_top_db)) / (sampling_rate - 1);
     double deNovo_slope = (int(data_sampled.num_top_novo) - int(data_full.num_top_novo)) / (sampling_rate - 1);
-
     return -(db_slope) / (deNovo_slope);
   }
 

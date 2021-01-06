@@ -174,6 +174,8 @@ namespace OpenMS
     *           FDR                         - q-value that should be filtered for
     *                                         Preliminary tests have shown that database suitability
     *                                         is rather stable across common FDR thresholds from 0 - 5 %
+    *           keep_search_files           - temporary files created for and by the internal ID search are kept
+    *           disable_correction          - disables corrected suitability calculations
     *           force                       - forces re-ranking to be done even without a cross correlation score,
     *                                         in which case the default main score is used
     *
