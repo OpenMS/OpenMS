@@ -54,38 +54,13 @@ using namespace std;
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <boost/regex.hpp>
 
 START_TEST(Suitability, "$Id$")
 
-MSExperiment exp;
-MzMLFile m;
-m.load("C:\\Development\\TOPPAS_Outputs\\Corrected_Suitability_test_files\\TOPPAS_out\\006-FileConverter-out\\BSA1.mzML", exp);
-
-vector<FASTAFile::FASTAEntry> fasta_data;
-FASTAFile::load("C:\\Development\\OpenMS\\share\\OpenMS\\examples\\TOPPAS\\data\\BSA_Identification\\18Protein_SoCe_Tr_detergents_trace_target_decoy.FASTA", fasta_data);
-
-vector<PeptideIdentification> pep_ids;
-vector<ProteinIdentification> prot_ids;
-IdXMLFile i;
-i.load("C:\\Development\\TOPPAS_Outputs\\Corrected_Suitability_test_files\\TOPPAS_out\\014-PeptideIndexer-out\\BSA1.idXML", prot_ids, pep_ids);
-
-vector<FASTAFile::FASTAEntry> novo_fasta;
-FASTAFile::load("C:\\Development\\TOPPAS_Outputs\\TOPPAS_out\\006-DecoyDatabase-out\\BSA1.FASTA", novo_fasta);
-
-DBSuitability s;
-Param p;
-p.setValue("FDR", 0.8);
-s.setParameters(p);
-s.compute(pep_ids, exp, fasta_data, novo_fasta, prot_ids[0].getSearchParameters());
-
-DBSuitability::SuitabilityData data = s.getResults()[0];
-cout << "top db:" << data.num_top_db << endl;
-cout << data.num_top_novo << " " << data.num_top_novo_corr << endl;
-cout << data.suitability << " " << data.suitability_corr << endl;
-cout << data.corr_factor << endl;
-
-END_TEST
-/*/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 ////////////////////// CREATE DATA //////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -201,6 +176,10 @@ pep_id.setScoreType("q-value");
 pep_id.setHits({ decoy1 });
 FDR_id.push_back(pep_id);
 
+vector<FASTAFile::FASTAEntry> empty_fasta;
+MSExperiment empty_exp;
+ProteinIdentification::SearchParameters empty_params;
+
 /////////////////////////////////////////////////////////////
 ///////////////////// START TESTING /////////////////////////
 /////////////////////////////////////////////////////////////
@@ -220,23 +199,25 @@ START_SECTION(~DBSuitability())
 }
 END_SECTION
 
-START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
+START_SECTION(void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params))
 {
+  // Test normal suitability (without correction)
   DBSuitability s;
   Param p;
+  p.setValue("disable_correction", "true");
   p.setValue("reranking_cutoff_percentile", 1.);
   s.setParameters(p);
-  s.compute(pep_ids);
+  s.compute(move(pep_ids), empty_exp, empty_fasta, empty_fasta, empty_params);
 
   p.setValue("reranking_cutoff_percentile", 1./3);
   p.setValue("FDR", 0.);
   s.setParameters(p);
-  s.compute(pep_ids_2);
-  s.compute(top_decoy);
+  s.compute(move(pep_ids_2), empty_exp, empty_fasta, empty_fasta, empty_params);
+  s.compute(move(top_decoy), empty_exp, empty_fasta, empty_fasta, empty_params);
 
   p.setValue("reranking_cutoff_percentile", 0.);
   s.setParameters(p);
-  s.compute(pep_ids_3);
+  s.compute(move(pep_ids_3), empty_exp, empty_fasta, empty_fasta, empty_params);
   vector<DBSuitability::SuitabilityData> d = s.getResults();
   DBSuitability::SuitabilityData data_fract_1 = d[0];
   DBSuitability::SuitabilityData data_fract_05 = d[1];
@@ -267,9 +248,39 @@ START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
   TEST_REAL_SIMILAR(data_small_percentile.suitability, 2./5);
   TEST_EQUAL(data_decoy_top.suitability, DBL_MAX);
 
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, s.compute(FDR_id), "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(few_decoys), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score.");
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(no_xcorr_ids), "No cross correlation score found at peptide hit. Only Comet search engine is supported right now.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, s.compute(move(FDR_id), empty_exp, empty_fasta, empty_fasta, empty_params), "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(move(few_decoys), empty_exp, empty_fasta, empty_fasta, empty_params), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(move(no_xcorr_ids), empty_exp, empty_fasta, empty_fasta, empty_params), "No cross correlation score found at peptide hit. Only Comet search engine is supported for re-ranking. Set 'force' flag to use the default score for this. This may result in undefined behaviour and is not advised.");
+
+  // Test corrected suitability
+  /*MSExperiment exp;
+  MzMLFile m;
+  m.load(File::find("./examples/BSA/BSA1.mzML"), exp);
+
+  vector<FASTAFile::FASTAEntry> fasta_data;
+  FASTAFile::load(File::find("./data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.FASTA"), fasta_data);
+
+  vector<PeptideIdentification> pep_ids;
+  vector<ProteinIdentification> prot_ids;
+  IdXMLFile i;
+  i.load("C:\\Development\\TOPPAS_Outputs\\Corrected_Suitability_test_files\\TOPPAS_out\\014-PeptideIndexer-out\\BSA1.idXML", prot_ids, pep_ids);
+
+  vector<FASTAFile::FASTAEntry> novo_fasta;
+  FASTAFile::load("C:\\Development\\TOPPAS_Outputs\\TOPPAS_out\\006-DecoyDatabase-out\\BSA1.FASTA", novo_fasta);
+
+  DBSuitability s;
+  Param p;
+  p.setValue("FDR", 0.8);
+  s.setParameters(p);
+  s.compute(pep_ids, exp, fasta_data, novo_fasta, prot_ids[0].getSearchParameters());
+
+  DBSuitability::SuitabilityData data = s.getResults()[0];
+  cout << "top db:" << data.num_top_db << endl;
+  cout << data.num_top_novo << " " << data.num_top_novo_corr << endl;
+  cout << data.suitability << " " << data.suitability_corr << endl;
+  cout << data.corr_factor << endl;*/
+
+END_TEST
 }
 END_SECTION
 
@@ -281,4 +292,4 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-END_TEST*/
+END_TEST
