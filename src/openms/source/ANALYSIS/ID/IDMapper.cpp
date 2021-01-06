@@ -36,6 +36,8 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
+#include <unordered_set>
+
 
 using namespace std;
 
@@ -121,8 +123,7 @@ namespace OpenMS
     lookup.readSpectra(map);
 
     // remember which peptides were mapped (for stats later)
-    set<Size> peptides_mapped;
-
+    unordered_set<Size> peptides_mapped;
     // store mapping of identification RT to index (ignore empty hits)
     multimap<double, Size> identifications_precursors;
     for (Size i = 0; i < peptide_ids.size(); ++i)
