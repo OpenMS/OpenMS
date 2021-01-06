@@ -578,7 +578,7 @@ protected:
 
       idx = out.rfind('.');
 
-      if(idx != String::npos)
+      if (idx != String::npos)
       {
         String extension = out.substr(idx+1);
         if (extension == "csv" || extension == "tsv")
