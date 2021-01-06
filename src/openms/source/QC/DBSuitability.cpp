@@ -55,7 +55,7 @@ using namespace std;
 namespace OpenMS
 {
   DBSuitability::DBSuitability()
-    : DefaultParamHandler("DBSuitability"), results_{}
+    : DefaultParamHandler("DBSuitability"), results_{}, decoy_pattern_(DecoyHelper::getPrefixRegex() + "|" + DecoyHelper::getSuffixRegex())
   {
     defaults_.setValue("no_rerank", "false", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.");
     defaults_.setValidStrings("no_rerank", { "true", "false" });
@@ -72,7 +72,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, const MSExperiment& exp, vector<FASTAFile::FASTAEntry> original_fasta, std::vector<FASTAFile::FASTAEntry> novo_fasta, const ProteinIdentification::SearchParameters& search_params)
+  void DBSuitability::compute(vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
     pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
 
@@ -93,7 +93,7 @@ namespace OpenMS
       {
         if (!param_.getValue("force").toBool())
         {
-          OPENMS_LOG_WARN << "No cross correlation score found. Make sure Comet is used for identification search. Re-ranking will be turned off. Set the 'force' flag to re-enable re-ranking. Use with care!" << endl;
+          OPENMS_LOG_WARN << "No cross correlation score found. Comet is recommended for identification search. Re-ranking will be turned off. Set the 'force' flag to re-enable re-ranking. Use with care!" << endl;
           param_.setValue("no_rerank", "true");
         }
         else
@@ -116,6 +116,12 @@ namespace OpenMS
     // calculate suitability
     results_.push_back(SuitabilityData());
     SuitabilityData& suitability_data_full = results_.back();
+
+    // make sure pep_ids are sorted
+    for (auto& pep_id : pep_ids)
+    {
+      pep_id.sort();
+    }
     calculateSuitability_(pep_ids, suitability_data_full);
 
     // calculate correction of suitability with extrapolation
@@ -127,6 +133,11 @@ namespace OpenMS
     sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
     appendDecoys_(sampled_db);
     vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
+    // make sure pep_ids are sorted
+    for (auto& pep_id : subsampled_ids)
+    {
+      pep_id.sort();
+    }
 
     SuitabilityData suitability_data_sampled;
     calculateSuitability_(subsampled_ids, suitability_data_sampled);
@@ -134,8 +145,8 @@ namespace OpenMS
     suitability_data_full.setCorrectionFactor(calculateCorrectionFactor_(suitability_data_full, suitability_data_sampled, subsampling_rate));
 
     // fill in theoretical suitability if re-ranking hadn't happen
-    SuitabilityData no_rerank = simulateNoReRanking_(suitability_data_full);
-    SuitabilityData no_rerank_sampled = simulateNoReRanking_(suitability_data_sampled);
+    SuitabilityData no_rerank = suitability_data_full.simulateNoReRanking();
+    SuitabilityData no_rerank_sampled = suitability_data_sampled.simulateNoReRanking();
 
     double factor_no_rerank = calculateCorrectionFactor_(no_rerank, no_rerank_sampled, subsampling_rate);
 
@@ -168,12 +179,12 @@ namespace OpenMS
 
       if (decoy_1 == DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
       {
-        decoy_1 = getRightScore_(hit);
+        decoy_1 = extractScore_(hit);
         continue;
       }
       if (decoy_1 < DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
       {
-        decoy_2 = getRightScore_(hit);
+        decoy_2 = extractScore_(hit);
         break;
       }
     }
@@ -210,7 +221,7 @@ namespace OpenMS
       throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score."));
     }
 
-    // sort the diffs decreasing and get the percentile one
+    // sort the diffs decreasing and get the nth-percentile diff
     UInt index = round(reranking_cutoff_percentile * diffs.size());
     
     if (index >= diffs.size())
@@ -225,11 +236,10 @@ namespace OpenMS
 
   bool DBSuitability::isNovoHit_(const PeptideHit& hit) const
   {
-    const boost::regex decoy_pattern(DecoyHelper::getPrefixRegex() + "|" + DecoyHelper::getSuffixRegex());
     const set<String>& accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
     {
-      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(acc, decoy_pattern))
+      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(acc, decoy_pattern_))
       {
         return false;
       }
@@ -258,7 +268,8 @@ namespace OpenMS
     {
       for (const String& a : working_adapters)
       {
-        if (key.compare(0, a.size(), a) == 0)
+        // look for adapter name as a prefix of a search parameter
+        if (key.compare(0, a.size() + 1, a + ":") == 0)
         {
           // used adapter found
           adapter = a;
@@ -354,11 +365,6 @@ namespace OpenMS
     IdXMLFile id_file;
     id_file.load(out_path, prot_ids, pep_ids);
 
-    if (keep_files)
-    {
-      id_file.store(tmp_dir.getPath() + "id_search_out.idXML", prot_ids, pep_ids);
-    }
-
     // annotate target/decoy information
     PeptideIndexing indexer;
     FASTAContainer<TFI_Vector> proteins(fasta_data);
@@ -400,7 +406,7 @@ namespace OpenMS
     return pep_ids;
   }
 
-  std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double subsampling_rate) const
+  std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double subsampling_rate) const
   {
     if (subsampling_rate < 0 || subsampling_rate > 1)
     {
@@ -413,23 +419,23 @@ namespace OpenMS
     }
     double num_AS_written = num_AA * subsampling_rate;
 
-    //random_device rd();
-    //mt19937 g(rd());
-    mt19937 g(0);
-    shuffle(fasta_data.begin(), fasta_data.end(), g);
+    mt19937 g(std::random_device{}());
+    std::vector<int> rnd_indices(fasta_data.size());
+    std::iota(std::begin(rnd_indices), std::end(rnd_indices), 0);
+    shuffle(rnd_indices.begin(), rnd_indices.end(), g);
 
     Size curr_AA{};
     vector<FASTAFile::FASTAEntry> sampled_fasta;
-    for (const auto& entry : fasta_data)
+    for (const int i : rnd_indices)
     {
       if (curr_AA >= num_AS_written) break;
-      sampled_fasta.push_back(entry);
-      curr_AA += entry.sequence.size();
+      sampled_fasta.push_back(fasta_data[i]);
+      curr_AA += fasta_data[i].sequence.size();
     }
     return sampled_fasta;
   }
 
-  void DBSuitability::calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const
+  void DBSuitability::calculateSuitability_(const std::vector<PeptideIdentification>& pep_ids, SuitabilityData& data) const
   {
     bool no_re_rank = param_.getValue("no_rerank").toBool();
     double cut_off_fract = param_.getValue("reranking_cutoff_percentile");
@@ -446,12 +452,9 @@ namespace OpenMS
       data.cut_off = getDecoyCutOff_(pep_ids, cut_off_fract);
     }
 
-    for (PeptideIdentification& pep_id : pep_ids)
+    for (const PeptideIdentification& pep_id : pep_ids)
     {
-      // sort hits by q-value
-      pep_id.sort();
-
-      vector<PeptideHit>& hits = pep_id.getHits();
+      const vector<PeptideHit>& hits = pep_id.getHits();
 
       if (hits.empty()) continue;
 
@@ -510,7 +513,7 @@ namespace OpenMS
       }
 
       // re-ranking
-      if (getRightScore_(top_hit) - getRightScore_(second_hit) <= data.cut_off)
+      if (extractScore_(top_hit) - extractScore_(second_hit) <= data.cut_off)
       {
         ++data.num_top_db;
         ++data.num_re_ranked;
@@ -558,7 +561,7 @@ namespace OpenMS
     }
   }
 
-  double DBSuitability::getRightScore_(const PeptideHit& pep_hit) const
+  double DBSuitability::extractScore_(const PeptideHit& pep_hit) const
   {
     if (pep_hit.metaValueExists("MS:1002252")) // use xcorr
     {
@@ -573,14 +576,6 @@ namespace OpenMS
 
       return pep_hit.getScore();
     }
-  }
-
-  DBSuitability::SuitabilityData DBSuitability::simulateNoReRanking_(const SuitabilityData& data) const
-  {
-    SuitabilityData simulated_data;
-    simulated_data.num_top_db = data.num_top_db - data.num_re_ranked;
-    simulated_data.num_top_novo = data.num_top_novo + data.num_re_ranked;    
-    return simulated_data;
   }
 
   double DBSuitability::calculateCorrectionFactor_(const SuitabilityData& data_full, const SuitabilityData& data_sampled, double sampling_rate) const
@@ -607,4 +602,26 @@ namespace OpenMS
     suitability_corr = num_top_db / (num_top_db + num_top_novo_corr);
   }
 
+  double DBSuitability::SuitabilityData::getCorrectionFactor() const
+  {
+    return this->corr_factor;
+  }
+
+  double DBSuitability::SuitabilityData::getCorrectedNovoHits() const
+  {
+    return this->num_top_novo_corr;
+  }
+
+  double DBSuitability::SuitabilityData::getCorrectedSuitability() const
+  {
+    return this->suitability_corr;
+  }
+
+  DBSuitability::SuitabilityData DBSuitability::SuitabilityData::simulateNoReRanking() const
+  {
+    SuitabilityData simulated_data;
+    simulated_data.num_top_db = num_top_db - num_re_ranked;
+    simulated_data.num_top_novo = num_top_novo + num_re_ranked;
+    return simulated_data;
+  }
 }// namespace OpenMS

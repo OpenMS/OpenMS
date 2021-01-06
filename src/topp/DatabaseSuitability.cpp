@@ -100,8 +100,9 @@ To generate the de novo "database":
 For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p reranking_cutoff_percentile.@n
 For this to work it is important @ref TOPP_PeptideIndexer ran before. However it is also crucial that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
 
-@note For identification search the recommended search engine is Comet because the Comet cross-correlation score is needed for re-ranking.@n
-You can still uses other search engines. In this case the tool will use the default score of your search engine. This can result in undefined behaviour and is not recommended.@n
+@note For identification search the recommended search engine is Comet because the Comet cross-correlation score is recommended for re-ranking.@n
+If you use other search engines re-ranking will be turned off automaticly. You can still enforce re-ranking by using the 'force' flag.@n
+In this case the tool will use the default score of your search engine. This can result in undefined behaviour. Be warned.@n
 
 
 The results are written directly into the console. But you can provide an optional tsv output file where the most important results will be exported to.
@@ -149,9 +150,9 @@ protected:
     setValidFormats_("in_spec", { "mzML" });
     registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides (unfiltered)");
     setValidFormats_("in_novo", { "idXML" });
-    registerInputFile_("database", "<file>", "", "Input FASTA file of the database in question (with decoys)");
+    registerInputFile_("database", "<file>", "", "Input FASTA file of the database in question");
     setValidFormats_("database", { "FASTA" });
-    registerInputFile_("novo_database", "<file>", "", "Input deNovo sequences derived from MzML given in 'in_spec' concatenated to one FASTA entry (with decoy)");
+    registerInputFile_("novo_database", "<file>", "", "Input deNovo sequences derived from MzML given in 'in_spec' concatenated to one FASTA entry");
     setValidFormats_("novo_database", { "FASTA" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
@@ -228,7 +229,7 @@ protected:
     DBSuitability s;
     Param p = getParam_().copy("algorithm:", true);
     s.setParameters(p);
-    s.compute(pep_ids, exp, database, novo_database, prot_ids[0].getSearchParameters());
+    s.compute(std::move(pep_ids), exp, database, novo_database, prot_ids[0].getSearchParameters());
 
     DBSuitability::SuitabilityData suit = s.getResults()[0];
 
@@ -238,10 +239,10 @@ protected:
 
     OPENMS_LOG_INFO << suit.num_top_db << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were found in the database." << endl;
     OPENMS_LOG_INFO << suit.num_top_novo << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
-    OPENMS_LOG_INFO << suit.num_top_novo_corr << " top deNovo hits after correction." << endl;
+    OPENMS_LOG_INFO << suit.getCorrectedNovoHits() << " top deNovo hits after correction." << endl;
     OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl;
-    OPENMS_LOG_INFO << "database suitability after correction: " << suit.suitability_corr << endl << endl;
+    OPENMS_LOG_INFO << "database suitability after correction: " << suit.getCorrectedSuitability() << endl << endl;
     OPENMS_LOG_INFO << unique_novo.size() << " / " << spectral_quality.num_peptide_identification << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << spectral_quality.num_ms2_spectra << " ms2 spectra found" << endl;
     OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl << endl;
@@ -260,9 +261,9 @@ protected:
       os << "key\tvalue\n";
       os << "#top_db_hits\t" << suit.num_top_db << "\n";
       os << "#top_novo_hits\t" << suit.num_top_novo << "\n";
-      os << "#corrected_novo_hits\t" << suit.num_top_novo_corr << "\n";
+      os << "#corrected_novo_hits\t" << suit.getCorrectedNovoHits() << "\n";
       os << "db_suitability\t" << suit.suitability << "\n";
-      os << "corrected_suitability\t" << suit.suitability_corr << "\n";
+      os << "corrected_suitability\t" << suit.getCorrectedSuitability() << "\n";
       os << "no_rerank_suitability\t" << suit.suitability_no_rerank << "\n";
       os << "corrected_no_rerank_suitability\t" << suit.suitability_corr_no_rerank << "\n";
       os << "#total_novo_seqs\t" << spectral_quality.num_peptide_identification << "\n";

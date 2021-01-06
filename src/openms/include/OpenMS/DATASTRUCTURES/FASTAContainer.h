@@ -348,23 +348,23 @@ public:
     bool is_prefix; //< on success, was it a prefix or suffix
   };
 
-  // common decoy strings in FASTA files
-  // note: decoy prefixes/suffices must be provided in lower case
+  /// common decoy strings in FASTA files
+  /// note: decoy prefixes/suffices must be provided in lower case
   static std::vector<std::string> getAffixes()
   {
     return { "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
   }
 
-  // returns a regex string to find decoy prefixes
+  /// returns a regex string to find decoy prefixes
   static std::string getPrefixRegex()
   {
     return std::string("^(") + ListUtils::concatenate<std::string>(getAffixes(), "_*|") + "_*)";
   }
 
-  // returns regex string to find decoy suffixes
+  /// returns regex string to find decoy suffixes
   static std::string getSuffixRegex()
   {
-    return std::string("(") + ListUtils::concatenate<std::string>(getAffixes(), "_*|") + "_*)$";
+    return std::string("(*_") + ListUtils::concatenate<std::string>(getAffixes(), "|*_") + ")$";
   }
 
   /**

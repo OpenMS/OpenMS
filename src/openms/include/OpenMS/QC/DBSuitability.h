@@ -72,13 +72,10 @@ namespace OpenMS
   {
   public:
     /// struct to store results
-    struct SuitabilityData
+    struct OPENMS_DLLAPI SuitabilityData
     {
       /// number of times the top hit is considered to be a deNovo hit
       Size num_top_novo = 0;
-
-      /// number of top deNovo hits multiplied by the correction factor
-      double num_top_novo_corr = 0;
 
       /// number of times the top hit is considered to be a database hit
       Size num_top_db = 0;
@@ -93,13 +90,6 @@ namespace OpenMS
       /// the cut-off that was used to determine when a score difference was "small enough"
       /// this is normalized by mw
       double cut_off = DBL_MAX;
-
-      /// #IDs with only deNovo search / #IDs with only database search
-      /// used for correcting the number of deNovo hits
-      /// worse databases will have less IDs then good databases
-      /// this punishes worse databases more than good ones and will result in
-      /// a worse suitability
-      double corr_factor;
 
       /// the suitability of the database used for identification search, calculated with:
       ///               #db_hits / (#db_hits + #deNovo_hits)
@@ -116,19 +106,46 @@ namespace OpenMS
       /// if re-ranking is actually turned off, this will be the same as the normal suitability
       double suitability_no_rerank = 0;
 
-      /// the suitability after correcting the top deNovo hits to impact worse databases more
-      ///
-      /// The corrected suitability has a more linear behaviour. It basicly translates to the ratio
-      /// of the theoretical perfect database the used database corresponds to. (i.e. a corrected
-      /// suitability of 0.5 means the used database contains half the proteins of the 'perfect' database)
-      double suitability_corr = 0;
-
       /// the suitability after correcting the top deNovo hits, if re-ranking would have been disabled
       double suitability_corr_no_rerank = 0;
 
       /// apply a correction factor to the already calculated suitability
       /// only works if num_top_db and num_top_novo contain a non-zero value
       void setCorrectionFactor(double factor);
+
+      double getCorrectionFactor() const;
+
+      double getCorrectedNovoHits() const;
+
+      double getCorrectedSuitability() const;
+
+      /**
+      * @brief Returns a SuitabilityData object containing the data if re-ranking didn't happen
+      *
+      * Cases that are re-ranked are already counted. To get the 'no re-ranking' data these cases need to be
+      * subtracted from the number of top database hits and added to the number of top deNovo hits.
+      *
+      * @returns       simulated suitability data where re-ranking didn't happen
+      */
+      SuitabilityData simulateNoReRanking() const;
+
+    private:
+      /// #IDs with only deNovo search / #IDs with only database search
+      /// used for correcting the number of deNovo hits
+      /// worse databases will have less IDs than good databases
+      /// this punishes worse databases more than good ones and will result in
+      /// a worse suitability
+      double corr_factor;
+
+      /// number of top deNovo hits multiplied by the correction factor
+      double num_top_novo_corr = 0;
+
+      /// the suitability after correcting the top deNovo hits to impact worse databases more
+      ///
+      /// The corrected suitability has a more linear behaviour. It basicly translates to the ratio
+      /// of the theoretical perfect database the used database corresponds to. (i.e. a corrected
+      /// suitability of 0.5 means the used database contains half the proteins of the 'perfect' database)
+      double suitability_corr = 0;
     };
 
     /// Constructor
@@ -168,7 +185,7 @@ namespace OpenMS
     * of 1. This number in combination with the maximum number of deNovo hits (found with an identification search
     * where only deNovo is used as a database) can be used to calculate a correction factor like this:
     *                     #database hits for suitability of 1 / #maximum deNovo hits
-    * This formular can be simplified in a way that the maximum number of deNovo hits isn't needed:
+    * This formula can be simplified in a way that the maximum number of deNovo hits isn't needed:
     *                     - (database hits slope) / deNovo hits slope
     * Both of these values can easily be calculated with the original suitability data in conjunction with the one sampled search.
     * 
@@ -199,7 +216,7 @@ namespace OpenMS
     *                           this happends when another adapter than CometAdapter was used
     * @throws                   Precondition if a q-value is found in @p pep_ids
     */
-    void compute(std::vector<PeptideIdentification> pep_ids, const MSExperiment& exp, std::vector<FASTAFile::FASTAEntry> original_fasta, std::vector<FASTAFile::FASTAEntry> novo_fasta, const ProteinIdentification::SearchParameters& search_params);
+    void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
 
     /**
     * @brief Returns results calculated by this metric
@@ -215,6 +232,9 @@ namespace OpenMS
   private:
     /// result vector
     std::vector<SuitabilityData> results_;
+
+    /// pattern for finding a decoy string
+    const boost::regex decoy_pattern_;
 
     /**
     * @brief Calculates the xcorr difference between the top two hits marked as decoy
@@ -326,7 +346,7 @@ namespace OpenMS
     * @returns                  fasta entries with total number of AA = original number of AA * subsampling_rate
     * @throws                   IllegalArgument if subsampling rate is not between 0 and 1
     */
-    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double subsampling_rate) const;
+    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double subsampling_rate) const;
 
     /**
     * @brief Calculates all suitability data from a combined deNovo+database search
@@ -338,20 +358,20 @@ namespace OpenMS
     *
     * Suitability is calculated: # database hits / # all hits
     *
-    * @param pep_ids    peptide identifications coming from the combined search
+    * @param pep_ids    peptide identifications coming from the combined search, each peptide identification should be sorted
     * @param data       SuitabilityData object where the result should be written into
     * @throws           MissingInformation if no target/decoy annotation is found on @p pep_ids
     * @throws           MissingInformation if no xcorr is found,
     *                   this happends when another adapter than CometAdapter was used
     */
-    void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const;
+    void calculateSuitability_(const std::vector<PeptideIdentification>& pep_ids, SuitabilityData& data) const;
 
     /**
     * @brief Calculates and appends decoys to a given vector of FASTAEntry
     *
     * Each sequence is digested with Trypsin. The resulting peptides are reversed and appended to one another.
     * This results in the decoy sequences.
-    * The idetifier is given a 'DECOY_' prefix.
+    * The identifier is given a 'DECOY_' prefix.
     *
     * @param fasta     reference to fasta vector where the decoys are needed
     */
@@ -364,18 +384,7 @@ namespace OpenMS
     * @returns          cross correlation score normalized by MW or current score
     * @throws           MissingInformation if no xcorr is found and 'force' flag isn't set
     */
-    double getRightScore_(const PeptideHit& pep_hit) const;
-
-    /**
-    * @brief Returns a SuitabilityData object containing the data if re-ranking didn't happen
-    *
-    * Cases that are re-ranked are already counted. To get the 'no re-ranking' data these cases need to be
-    * subtracted from the number of top database hits and added to the number of top deNovo hits.
-    *
-    * @param data    actual suitability data
-    * @returns       simulated suitability data where re-ranking didn't happen
-    */
-    SuitabilityData simulateNoReRanking_(const SuitabilityData& data) const;
+    double extractScore_(const PeptideHit& pep_hit) const;
 
     /**
     * @brief Calculates the correction factor from two suitability calculations
