@@ -65,10 +65,12 @@ namespace OpenMS
     defaults_.setValue("FDR", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)");
     defaults_.setMinFloat("FDR", 0.);
     defaults_.setMaxFloat("FDR", 1.);
-    defaults_.setValue("force", "false", "Set this flag to enforce re-ranking when no cross correlation score is present. For re-ranking the default score found at each peptide hit is used. Use with care!");
-    defaults_.setValidStrings("force", { "true", "false" });
     defaults_.setValue("keep_search_files", "false", "Set this flag if you wish to keep the files used by and produced by the internal ID search.");
     defaults_.setValidStrings("keep_search_files", { "true", "false" });
+    defaults_.setValue("disable_correction", "false", "Set this flag to disable the calculation of the corrected suitability.");
+    defaults_.setValidStrings("disable_correction", { "true", "false" });
+    defaults_.setValue("force", "false", "Set this flag to enforce re-ranking when no cross correlation score is present. For re-ranking the default score found at each peptide hit is used. Use with care!");
+    defaults_.setValidStrings("force", { "true", "false" });
     defaultsToParam_();
   }
   
@@ -124,33 +126,36 @@ namespace OpenMS
     }
     calculateSuitability_(pep_ids, suitability_data_full);
 
-    // calculate correction of suitability with extrapolation
-
-    // sampled run
-    // TODO: maybe multiple runs? could be controlled with a parameter
-    double subsampling_rate = 0.5;
-    vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, subsampling_rate);
-    sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
-    appendDecoys_(sampled_db);
-    vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
-    // make sure pep_ids are sorted
-    for (auto& pep_id : subsampled_ids)
+    if(!param_.getValue("disable_correction").toBool())
     {
-      pep_id.sort();
+      // calculate correction of suitability with extrapolation
+
+      // sampled run
+      // TODO: maybe multiple runs? could be controlled with a parameter
+      double subsampling_rate = 0.5;
+      vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, subsampling_rate);
+      sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
+      appendDecoys_(sampled_db);
+      vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
+      // make sure pep_ids are sorted
+      for (auto& pep_id : subsampled_ids)
+      {
+        pep_id.sort();
+      }
+
+      SuitabilityData suitability_data_sampled;
+      calculateSuitability_(subsampled_ids, suitability_data_sampled);
+
+      suitability_data_full.setCorrectionFactor(calculateCorrectionFactor_(suitability_data_full, suitability_data_sampled, subsampling_rate));
+
+      // fill in theoretical suitability if re-ranking hadn't happen
+      SuitabilityData no_rerank = suitability_data_full.simulateNoReRanking();
+      SuitabilityData no_rerank_sampled = suitability_data_sampled.simulateNoReRanking();
+
+      double factor_no_rerank = calculateCorrectionFactor_(no_rerank, no_rerank_sampled, subsampling_rate);
+
+      suitability_data_full.suitability_corr_no_rerank = double(no_rerank.num_top_db) / (no_rerank.num_top_novo * factor_no_rerank + no_rerank.num_top_db);
     }
-
-    SuitabilityData suitability_data_sampled;
-    calculateSuitability_(subsampled_ids, suitability_data_sampled);
-
-    suitability_data_full.setCorrectionFactor(calculateCorrectionFactor_(suitability_data_full, suitability_data_sampled, subsampling_rate));
-
-    // fill in theoretical suitability if re-ranking hadn't happen
-    SuitabilityData no_rerank = suitability_data_full.simulateNoReRanking();
-    SuitabilityData no_rerank_sampled = suitability_data_sampled.simulateNoReRanking();
-
-    double factor_no_rerank = calculateCorrectionFactor_(no_rerank, no_rerank_sampled, subsampling_rate);
-
-    suitability_data_full.suitability_corr_no_rerank = double(no_rerank.num_top_db) / (no_rerank.num_top_novo * factor_no_rerank + no_rerank.num_top_db);
   }
 
   const std::vector<DBSuitability::SuitabilityData>& DBSuitability::getResults() const
