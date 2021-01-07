@@ -424,7 +424,7 @@ namespace OpenMS
     }
     double num_AS_written = num_AA * subsampling_rate;
 
-    mt19937 g(std::random_device{}());
+    mt19937 g(UniqueIdGenerator::getUniqueId());
     std::vector<int> rnd_indices(fasta_data.size());
     std::iota(std::begin(rnd_indices), std::end(rnd_indices), 0);
     shuffle(rnd_indices.begin(), rnd_indices.end(), g);
