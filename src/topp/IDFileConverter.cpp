@@ -35,6 +35,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -42,6 +44,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -209,18 +212,35 @@ private:
   }
 
 protected:
+  Param getSubsectionDefaults_(const String& /*section*/) const override
+  {
+    Param p(TheoreticalSpectrumGenerator().getDefaults());
+    vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
+    p.setValue("enzym", "Trypsin", "Enzym used to digest the fasta proteins");
+    p.setValidStrings("enzym", all_enzymes);
+    //todo: set some reasonable bounderies
+    p.setValue("min_charge", 0, "Minimum precursor charge");
+    p.setMinInt("min_charge", -9);
+    p.setMaxInt("min_charge", 9);
+    p.setValue("max_charge", 9, "Maximum precursor charge");
+    p.setMinInt("max_charge", -9);
+    p.setMaxInt("max_charge", 9);
+    return p; 
+  }
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (.pepXML, .protXML, .idXML, .mzid),\n"
                        "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
+                       "- a single file in fasta format (can only be used to generate a theoretical mzML),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml,fasta"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
+    String formats("idXML,mzid,pepXML,FASTA,xquest.xml,mzML");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -243,6 +263,8 @@ protected:
 
     registerFlag_("concatenate_peptides", "[FASTA output only] Will concatenate the top peptide hits to one peptide sequence, rather than write a new peptide for each hit.", true);
     registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported. A value of 0 or less exports all hits.", false, true);
+
+    registerSubsection_("fasta_to_mzml", "[FASTA input + MzML output only] Parameters used to adjust simulation of the theoretical spectra.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -564,6 +586,61 @@ protected:
       else if (in_type == FileTypes::XQUESTXML)
       {
         XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+      }
+
+      else if (in_type == FileTypes::FASTA)
+      {
+        // handle out type
+        const String out = getStringOption_("out");
+        FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+        if (out_type != FileTypes::MZML)
+        {
+          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+
+        MSExperiment exp;
+        TheoreticalSpectrumGenerator tsg;
+
+        // extract parameters and remove non tsg params
+        Param p = getParam_().copy("fasta_to_mzml:", true);
+        String enzym = p.getValue("enzym");
+        Int min_charge = p.getValue("min_charge");
+        Int max_charge = p.getValue("max_charge");
+        p.remove("enzym");
+        p.remove("min_charge");
+        p.remove("max_charge");
+
+        tsg.setParameters(p);
+
+        ProteaseDigestion digestor;
+        digestor.setEnzyme(enzym);
+
+        // loop through fasta input
+        FASTAFile::FASTAEntry entry;
+        FASTAFile f;
+        f.readStart(in);
+        while (f.readNext(entry))
+        {
+          // digest sequence of fasta entry
+          vector<AASequence> digested_peptides;
+          AASequence seq = AASequence::fromString(entry.sequence);
+          digestor.digest(seq, digested_peptides);
+
+          // for each peptide calculate the theoretical spectrum
+          for (const auto& peptide : digested_peptides)
+          {
+            PeakSpectrum spec;
+            tsg.getSpectrum(spec, peptide, min_charge, max_charge);
+            exp.addSpectrum(spec);
+          }
+        }
+
+        MzMLFile mz_file;
+        mz_file.store(out, exp);
+
+        return EXECUTION_OK;
       }
 
       else
