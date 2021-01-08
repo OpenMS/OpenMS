@@ -158,9 +158,6 @@ protected:
     /// creates and adds residues to a lookup table including the residue set
     void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<String>& residue_sets);
 
-    /// deletes stored data like modifications and residues
-    void clear_();
-
     /// add residue and add names to lookup
     void addResidue_(Residue* residue);
 
