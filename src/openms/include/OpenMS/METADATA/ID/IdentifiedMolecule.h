@@ -62,6 +62,11 @@ namespace OpenMS
         return RefVariant::operator==(static_cast<RefVariant>(other));
       }
 
+      bool operator!=(const IdentifiedMolecule& other) const
+      {
+        return !operator==(other);
+      }
+
       bool operator<(const IdentifiedMolecule& other) const
       {
         return RefVariant::operator<(static_cast<RefVariant>(other));

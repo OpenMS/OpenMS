@@ -871,8 +871,7 @@ namespace OpenMS
   void IdentificationData::mergeScoredProcessingResults_(
     IdentificationData::ScoredProcessingResult& result,
     const IdentificationData::ScoredProcessingResult& other,
-    const map<ProcessingStepRef, ProcessingStepRef>& step_refs,
-    const map<ScoreTypeRef, ScoreTypeRef>& score_refs)
+    const RefTranslator& trans)
   {
     result.MetaInfoInterface::operator=(other);
     for (const AppliedProcessingStep& applied : other.steps_and_scores)
@@ -880,11 +879,11 @@ namespace OpenMS
       AppliedProcessingStep copy;
       if (applied.processing_step_opt)
       {
-        copy.processing_step_opt = step_refs.at(*applied.processing_step_opt);
+        copy.processing_step_opt = trans.processing_step_refs.at(*applied.processing_step_opt);
       }
       for (const auto& pair : applied.scores)
       {
-        ScoreTypeRef score_ref = score_refs.at(pair.first);
+        ScoreTypeRef score_ref = trans.score_type_refs.at(pair.first);
         copy.scores[score_ref] = pair.second;
       }
       result.addProcessingStep(copy);
@@ -892,26 +891,24 @@ namespace OpenMS
   }
 
 
-  IdentificationData::ProcessingStepRef
+  IdentificationData::RefTranslator
   IdentificationData::merge(const IdentificationData& other)
   {
+    RefTranslator trans;
     no_checks_ = true;
     // input files:
-    map<InputFileRef, InputFileRef> file_refs;
     for (InputFileRef other_ref = other.getInputFiles().begin();
          other_ref != other.getInputFiles().end(); ++other_ref)
     {
-      file_refs[other_ref] = registerInputFile(*other_ref);
+      trans.input_file_refs[other_ref] = registerInputFile(*other_ref);
     }
     // score types:
-    map<ScoreTypeRef, ScoreTypeRef> score_refs;
     for (ScoreTypeRef other_ref = other.getScoreTypes().begin();
          other_ref != other.getScoreTypes().end(); ++other_ref)
     {
-      score_refs[other_ref] = registerScoreType(*other_ref);
+      trans.score_type_refs[other_ref] = registerScoreType(*other_ref);
     }
     // processing software:
-    map<ProcessingSoftwareRef, ProcessingSoftwareRef> sw_refs;
     for (ProcessingSoftwareRef other_ref = other.getProcessingSoftwares().begin();
          other_ref != other.getProcessingSoftwares().end(); ++other_ref)
     {
@@ -919,40 +916,37 @@ namespace OpenMS
       ProcessingSoftware copy = *other_ref;
       for (ScoreTypeRef& score_ref : copy.assigned_scores)
       {
-        score_ref = score_refs[score_ref];
+        score_ref = trans.score_type_refs[score_ref];
       }
-      sw_refs[other_ref] = registerProcessingSoftware(copy);
+      trans.processing_software_refs[other_ref] = registerProcessingSoftware(copy);
     }
     // search params:
-    map<SearchParamRef, SearchParamRef> param_refs;
     for (SearchParamRef other_ref = other.getDBSearchParams().begin();
          other_ref != other.getDBSearchParams().end(); ++other_ref)
     {
-      param_refs[other_ref] = registerDBSearchParam(*other_ref);
+      trans.search_param_refs[other_ref] = registerDBSearchParam(*other_ref);
     }
     // processing steps:
-    map<ProcessingStepRef, ProcessingStepRef> step_refs;
     for (ProcessingStepRef other_ref = other.getProcessingSteps().begin();
          other_ref != other.getProcessingSteps().end(); ++other_ref)
     {
       // update internal references:
       ProcessingStep copy = *other_ref;
-      copy.software_ref = sw_refs[copy.software_ref];
+      copy.software_ref = trans.processing_software_refs[copy.software_ref];
       for (InputFileRef& file_ref : copy.input_file_refs)
       {
-        file_ref = file_refs[file_ref];
+        file_ref = trans.input_file_refs[file_ref];
       }
-      step_refs[other_ref] = registerProcessingStep(copy);
+      trans.processing_step_refs[other_ref] = registerProcessingStep(copy);
     }
     // search steps:
     for (const auto& pair : other.getDBSearchSteps())
     {
-      ProcessingStepRef step_ref = step_refs[pair.first];
-      SearchParamRef param_ref = param_refs[pair.second];
+      ProcessingStepRef step_ref = trans.processing_step_refs[pair.first];
+      SearchParamRef param_ref = trans.search_param_refs[pair.second];
       db_search_steps_[step_ref] = param_ref;
     }
     // input items:
-    map<InputItemRef, InputItemRef> query_refs;
     for (InputItemRef other_ref = other.getInputItems().begin();
          other_ref != other.getInputItems().end(); ++other_ref)
     {
@@ -960,12 +954,11 @@ namespace OpenMS
       InputItem copy = *other_ref;
       if (copy.input_file_opt)
       {
-        copy.input_file_opt = file_refs[*copy.input_file_opt];
+        copy.input_file_opt = trans.input_file_refs[*copy.input_file_opt];
       }
-      query_refs[other_ref] = registerInputItem(copy);
+      trans.input_item_refs[other_ref] = registerInputItem(copy);
     }
     // parent sequences:
-    map<ParentSequenceRef, ParentSequenceRef> parent_refs;
     for (ParentSequenceRef other_ref = other.getParentSequences().begin();
          other_ref != other.getParentSequences().end(); ++other_ref)
     {
@@ -974,116 +967,97 @@ namespace OpenMS
                           other_ref->sequence, other_ref->description,
                           other_ref->coverage, other_ref->is_decoy);
       // now copy precessing steps and scores while updating references:
-      mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
-      parent_refs[other_ref] = registerParentSequence(copy);
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      trans.parent_sequence_refs[other_ref] = registerParentSequence(copy);
     }
     // identified peptides:
-    map<IdentifiedPeptideRef, IdentifiedPeptideRef> peptide_refs;
     for (IdentifiedPeptideRef other_ref = other.getIdentifiedPeptides().begin();
          other_ref != other.getIdentifiedPeptides().end(); ++other_ref)
     {
       // don't copy parent matches, steps/scores yet:
       IdentifiedPeptide copy(other_ref->sequence, ParentMatches());
       // now copy steps/scores and parent matches while updating references:
-      mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
       for (const auto& pair : other_ref->parent_matches)
       {
-        ParentSequenceRef parent_ref = parent_refs[pair.first];
+        ParentSequenceRef parent_ref = trans.parent_sequence_refs[pair.first];
         copy.parent_matches[parent_ref] = pair.second;
       }
       // @TODO: with C++17, 'map::extract' offers a better way to update keys
-      peptide_refs[other_ref] = registerIdentifiedPeptide(copy);
+      trans.identified_peptide_refs[other_ref] = registerIdentifiedPeptide(copy);
     }
     // identified oligonucleotides:
-    map<IdentifiedOligoRef, IdentifiedOligoRef> oligo_refs;
     for (IdentifiedOligoRef other_ref = other.getIdentifiedOligos().begin();
          other_ref != other.getIdentifiedOligos().end(); ++other_ref)
     {
       // don't copy parent matches, steps/scores yet:
       IdentifiedOligo copy(other_ref->sequence, ParentMatches());
       // now copy steps/scores and parent matches while updating references:
-      mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
       for (const auto& pair : other_ref->parent_matches)
       {
-        ParentSequenceRef parent_ref = parent_refs[pair.first];
+        ParentSequenceRef parent_ref = trans.parent_sequence_refs[pair.first];
         copy.parent_matches[parent_ref] = pair.second;
       }
      // @TODO: with C++17, 'map::extract' offers a better way to update keys
-      oligo_refs[other_ref] = registerIdentifiedOligo(copy);
+      trans.identified_oligo_refs[other_ref] = registerIdentifiedOligo(copy);
     }
     // identified compounds:
-    map<IdentifiedCompoundRef, IdentifiedCompoundRef> compound_refs;
     for (IdentifiedCompoundRef other_ref = other.getIdentifiedCompounds().begin();
          other_ref != other.getIdentifiedCompounds().end(); ++other_ref)
     {
       IdentifiedCompound copy(other_ref->identifier, other_ref->formula,
                               other_ref->name, other_ref->smile, other_ref->inchi);
-      mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
-      compound_refs[other_ref] = registerIdentifiedCompound(copy);
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      trans.identified_compound_refs[other_ref] = registerIdentifiedCompound(copy);
     }
     // adducts:
-    map<AdductRef, AdductRef> adduct_refs;
     for (AdductRef other_ref = other.getAdducts().begin();
          other_ref != other.getAdducts().end(); ++other_ref)
     {
-      adduct_refs[other_ref] = registerAdduct(*other_ref);
+      trans.adduct_refs[other_ref] = registerAdduct(*other_ref);
     }
     // input matches:
-    map<InputMatchRef, InputMatchRef> match_refs;
     for (InputMatchRef other_ref = other.getInputMatches().begin();
          other_ref != other.getInputMatches().end(); ++other_ref)
     {
-      IdentifiedMolecule molecule_var;
-      const IdentifiedMolecule& other_var = other_ref->identified_molecule_var;
-      switch (other_var.getMoleculeType())
-      {
-        case MoleculeType::PROTEIN:
-          molecule_var = peptide_refs[other_var.getIdentifiedPeptideRef()];
-          break;
-        case MoleculeType::COMPOUND:
-          molecule_var = compound_refs[other_var.getIdentifiedCompoundRef()];
-          break;
-        case MoleculeType::RNA:
-          molecule_var = oligo_refs[other_var.getIdentifiedOligoRef()];
-          break;
-        default: // avoid compiler warning
-          break;
-      }
-      InputItemRef query_ref = query_refs[other_ref->input_item_ref];
-      InputMatch copy(molecule_var, query_ref, other_ref->charge);
+      IdentifiedMolecule molecule_var =
+        trans.translateIdentifiedMolecule(other_ref->identified_molecule_var);
+      InputItemRef item_ref = trans.input_item_refs[other_ref->input_item_ref];
+      InputMatch copy(molecule_var, item_ref, other_ref->charge);
       if (other_ref->adduct_opt)
       {
-        copy.adduct_opt = adduct_refs[*other_ref->adduct_opt];
+        copy.adduct_opt = trans.adduct_refs[*other_ref->adduct_opt];
       }
       for (const auto& pair : other_ref->peak_annotations)
       {
         boost::optional<ProcessingStepRef> opt_ref;
         if (pair.first)
         {
-          opt_ref = step_refs[*pair.first];
+          opt_ref = trans.processing_step_refs[*pair.first];
         }
         copy.peak_annotations[opt_ref] = pair.second;
       }
-      mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
-      match_refs[other_ref] = registerInputMatch(copy);
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      trans.input_match_refs[other_ref] = registerInputMatch(copy);
     }
     // parent sequence groups:
     // @TODO: does this need to be more sophisticated?
     for (const ParentGroupSet& groups : other.parent_groups_)
     {
       ParentGroupSet copy(groups.label);
-      mergeScoredProcessingResults_(copy, groups, step_refs, score_refs);
+      mergeScoredProcessingResults_(copy, groups, trans);
       for (const ParentGroup& group : groups.groups)
       {
         ParentGroup group_copy;
         for (const auto& pair : group.scores)
         {
-          ScoreTypeRef score_ref = score_refs[pair.first];
+          ScoreTypeRef score_ref = trans.score_type_refs[pair.first];
           group_copy.scores[score_ref] = pair.second;
         }
         for (ParentSequenceRef parent_ref : group.parent_refs)
         {
-          group_copy.parent_refs.insert(parent_refs[parent_ref]);
+          group_copy.parent_refs.insert(trans.parent_sequence_refs[parent_ref]);
         }
         copy.groups.insert(group_copy);
       }
@@ -1091,12 +1065,7 @@ namespace OpenMS
     }
     no_checks_ = false;
 
-    // this is only needed for reusing "merge" in the copy c'tor:
-    if (other.current_step_ref_ == other.processing_steps_.end())
-    {
-      return processing_steps_.end();
-    }
-    return step_refs[other.current_step_ref_];
+    return trans;
   }
 
 
@@ -1105,7 +1074,11 @@ namespace OpenMS
   {
     // don't add a processing step during merging:
     current_step_ref_ = processing_steps_.end();
-    current_step_ref_ = merge(other);
+    RefTranslator trans = merge(other);
+    if (other.current_step_ref_ != other.processing_steps_.end())
+    {
+      current_step_ref_ = trans.processing_step_refs[other.current_step_ref_];
+    }
     no_checks_ = other.no_checks_;
   }
 } // end namespace OpenMS

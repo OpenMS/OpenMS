@@ -33,24 +33,24 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  const std::string BaseFeature::NamesOfAnnotationState[] = {"no ID", "single ID", "multiple IDs (identical)", "multiple IDs (divergent)"};
+  const std::string BaseFeature::NamesOfAnnotationState[] =
+    {"no ID", "single ID", "multiple IDs (identical)", "multiple IDs (divergent)"};
 
 
   BaseFeature::BaseFeature() :
-    RichPeak2D(), quality_(0.0), charge_(0), width_(0), peptides_()
+    RichPeak2D(), quality_(0.0), charge_(0), width_(0)
   {
   }
 
   BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index) :
       RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
-      peptides_(rhs.peptides_)
+      peptides_(rhs.peptides_), primary_id_(rhs.primary_id_), input_matches_(rhs.input_matches_)
   {
     for (auto& pep : this->peptides_)
     {
@@ -59,7 +59,7 @@ namespace OpenMS
   }
 
   BaseFeature::BaseFeature(const RichPeak2D& point) :
-    RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
+    RichPeak2D(point), quality_(0.0), charge_(0), width_(0)
   {
   }
 
@@ -73,7 +73,7 @@ namespace OpenMS
   }
 
   BaseFeature::BaseFeature(const Peak2D& point) :
-    RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
+    RichPeak2D(point), quality_(0.0), charge_(0), width_(0)
   {
   }
 
@@ -83,7 +83,9 @@ namespace OpenMS
            && (quality_ == rhs.quality_)
            && (charge_ == rhs.charge_)
            && (width_ == rhs.width_)
-           && (peptides_ == rhs.peptides_);
+           && (peptides_ == rhs.peptides_)
+           && (primary_id_ == rhs.primary_id_)
+           && (input_matches_ == rhs.input_matches_);
   }
 
   bool BaseFeature::operator!=(const BaseFeature& rhs) const
@@ -148,11 +150,12 @@ namespace OpenMS
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
   {
-    if (peptides_.size() == 0) return FEATURE_ID_NONE;
-    else if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
-      return FEATURE_ID_SINGLE;
-    else
+    // use legacy (peptide) IDs when new (generic) IDs aren't available:
+    if (input_matches_.empty())
     {
+      if (peptides_.empty()) return FEATURE_ID_NONE;
+      if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
+        return FEATURE_ID_SINGLE;
       std::set<String> seqs;
       for (Size i = 0; i < peptides_.size(); ++i)
       {
@@ -164,9 +167,84 @@ namespace OpenMS
         }
       }
       if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
-      else if (seqs.size() > 1)
-        return FEATURE_ID_MULTIPLE_DIVERGENT;                        // multiple different annotations ... probably bad mapping
+      if (seqs.size() > 1)
+        return FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
       else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
+    }
+
+    // with new (generic) IDs:
+    if (input_matches_.size() == 1) return FEATURE_ID_SINGLE;
+    // multiple matches - just compare all molecules to the first:
+    auto first = input_matches_.begin();
+    for (auto it = ++first; it != input_matches_.end(); ++it)
+    {
+      if ((*it)->identified_molecule_var != (*first)->identified_molecule_var)
+      {
+        return FEATURE_ID_MULTIPLE_DIVERGENT;
+      }
+    }
+    return FEATURE_ID_MULTIPLE_SAME;
+  }
+
+
+  bool BaseFeature::hasPrimaryID() const
+  {
+    return bool(primary_id_);
+  }
+
+
+  const IdentificationData::IdentifiedMolecule& BaseFeature::getPrimaryID() const
+  {
+    if (!primary_id_)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "no primary ID assigned");
+    }
+
+    return *primary_id_; // unpack the option
+  }
+
+
+  void BaseFeature::clearPrimaryID()
+  {
+    primary_id_ = boost::none;
+  }
+
+
+  void BaseFeature::setPrimaryID(const IdentificationData::IdentifiedMolecule& id)
+  {
+    primary_id_ = id;
+  }
+
+
+  const std::set<IdentificationData::InputMatchRef>& BaseFeature::getInputMatches() const
+  {
+    return input_matches_;
+  }
+
+
+  std::set<IdentificationData::InputMatchRef>& BaseFeature::getInputMatches()
+  {
+    return input_matches_;
+  }
+
+
+  void BaseFeature::addInputMatch(IdentificationData::InputMatchRef ref)
+  {
+    input_matches_.insert(ref);
+  }
+
+  void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
+  {
+    if (primary_id_)
+    {
+      primary_id_ = trans.translateIdentifiedMolecule(*primary_id_);
+    }
+    set<IdentificationData::InputMatchRef> input_matches;
+    input_matches.swap(input_matches_);
+    for (auto match : input_matches)
+    {
+        input_matches_.insert(trans.input_match_refs.at(match));
     }
   }
 

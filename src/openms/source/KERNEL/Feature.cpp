@@ -231,4 +231,13 @@ namespace OpenMS
     subordinates_ = rhs;
   }
 
+  void Feature::updateAllIDReferences(const IdentificationData::RefTranslator& trans)
+  {
+    updateIDReferences(trans);
+    for (Feature& sub : subordinates_)
+    {
+      sub.updateAllIDReferences(trans);
+    }
+  }
+
 }

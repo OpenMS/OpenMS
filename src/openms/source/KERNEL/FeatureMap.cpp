@@ -42,6 +42,8 @@
 
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
+using namespace std;
+
 namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& os, const AnnotationStatistics& ann)
@@ -122,8 +124,15 @@ namespace OpenMS
     UniqueIdIndexer<FeatureMap>(source),
     protein_identifications_(source.protein_identifications_),
     unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
-    data_processing_(source.data_processing_)
+    data_processing_(source.data_processing_),
+    id_data_() // updated below
   {
+    // copy ID data and update references in features:
+    IdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
+    for (Feature& feature : *this)
+    {
+      feature.updateAllIDReferences(trans);
+    }
   }
 
   FeatureMap::~FeatureMap()
@@ -210,38 +219,38 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::IntensityLess()));
+      std::sort(this->begin(), this->end(), reverseComparator(Feature::IntensityLess()));
     }
     else
     {
-      std::sort(this->begin(), this->end(), FeatureType::IntensityLess());
+      std::sort(this->begin(), this->end(), Feature::IntensityLess());
     }
   }
 
   void FeatureMap::sortByPosition()
   {
-    std::sort(this->begin(), this->end(), FeatureType::PositionLess());
+    std::sort(this->begin(), this->end(), Feature::PositionLess());
   }
 
   void FeatureMap::sortByRT()
   {
-    std::sort(this->begin(), this->end(), FeatureType::RTLess());
+    std::sort(this->begin(), this->end(), Feature::RTLess());
   }
 
   void FeatureMap::sortByMZ()
   {
-    std::sort(this->begin(), this->end(), FeatureType::MZLess());
+    std::sort(this->begin(), this->end(), Feature::MZLess());
   }
 
   void FeatureMap::sortByOverallQuality(bool reverse)
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::OverallQualityLess()));
+      std::sort(this->begin(), this->end(), reverseComparator(Feature::OverallQualityLess()));
     }
     else
     {
-      std::sort(this->begin(), this->end(), FeatureType::OverallQualityLess());
+      std::sort(this->begin(), this->end(), Feature::OverallQualityLess());
     }
   }
 
@@ -363,14 +372,14 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Setting empty MS runs paths." << std::endl;
       this->setMetaValue("spectra_data", DataValue(s));
       return;
-    } 
+    }
 
     for (const String& filename : s)
     {
       if (!filename.hasSuffix("mzML") && !filename.hasSuffix("mzml"))
       {
         OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
-                        << "Filename: '" << filename << "'" << std::endl;                          
+                        << "Filename: '" << filename << "'" << std::endl;
       }
     }
 
@@ -389,7 +398,7 @@ namespace OpenMS
     else
     {
       setPrimaryMSRunPath(s);
-    }        
+    }
   }
 
 
@@ -399,8 +408,8 @@ namespace OpenMS
     if (this->metaValueExists("spectra_data"))
     {
       toFill = this->getMetaValue("spectra_data");
-    }          
-     
+    }
+
     if (toFill.empty())
     {
       OPENMS_LOG_WARN << "No MS run annotated in feature map. Setting to 'UNKNOWN' " << std::endl;
@@ -431,6 +440,28 @@ namespace OpenMS
     {
       result += iter->getAnnotationState();
     }
+    return result;
+  }
+
+
+  set<IdentificationDataInternal::InputMatchRef> FeatureMap::getUnassignedInputMatches() const
+  {
+    set<IdentificationData::InputMatchRef> all_matches;
+    for (auto it = id_data_.getInputMatches().begin();
+         it != id_data_.getInputMatches().end(); ++it)
+    {
+      all_matches.insert(it);
+    }
+    set<IdentificationData::InputMatchRef> assigned_matches;
+    for (const Feature& feat : *this)
+    {
+      assigned_matches.insert(feat.getInputMatches().begin(),
+                              feat.getInputMatches().end());
+    }
+    set<IdentificationData::InputMatchRef> result;
+    set_difference(all_matches.begin(), all_matches.end(),
+                   assigned_matches.begin(), assigned_matches.end(),
+                   inserter(result, result.end()));
     return result;
   }
 

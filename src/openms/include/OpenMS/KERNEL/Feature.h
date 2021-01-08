@@ -183,6 +183,9 @@ public:
       return assignments;
     }
 
+    /// update ID referenes (primary ID, input matches) for this feature and any subfeatures
+    void updateAllIDReferences(const IdentificationData::RefTranslator& trans);
+
 protected:
 
     /// Quality measures for each dimension
@@ -203,4 +206,3 @@ protected:
   };
 
 } // namespace OpenMS
-

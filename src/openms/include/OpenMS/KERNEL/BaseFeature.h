@@ -36,11 +36,13 @@
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+
+#include <boost/optional.hpp>
 
 namespace OpenMS
 {
   class FeatureHandle;
-  class PeptideIdentification;
 
   /**
     @brief A basic LC-MS feature.
@@ -53,8 +55,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI BaseFeature :
-    public RichPeak2D
+  class OPENMS_DLLAPI BaseFeature : public RichPeak2D
   {
 public:
     ///@name Type definitions
@@ -66,7 +67,7 @@ public:
     /// Type of feature width/FWHM (RT)
     typedef float WidthType;
 
-    /// state of identification, use getIDState() to query it
+    /// state of identification, use getAnnotationState() to query it
     enum AnnotationState
     {
       FEATURE_ID_NONE,
@@ -176,6 +177,34 @@ public:
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;
 
+    /// has a primary ID (peptide, RNA, compound) been assigned?
+    bool hasPrimaryID() const;
+
+    /**
+       @brief Return the primary ID (peptide, RNA, compound) assigned to this feature.
+
+       @throw Exception::MissingInformation if no ID was assigned
+    */
+    const IdentificationData::IdentifiedMolecule& getPrimaryID() const;
+
+    /// clear any primary ID that was assigned
+    void clearPrimaryID();
+
+    /// set the primary ID (peptide, RNA, compound) for this feature
+    void setPrimaryID(const IdentificationData::IdentifiedMolecule& id);
+
+    /// immutable access to the set of input matches (e.g. PSMs) supporting IDs of this feature
+    const std::set<IdentificationData::InputMatchRef>& getInputMatches() const;
+
+    /// mutable access to the set of input matches (e.g. PSMs) supporting IDs of this feature
+    std::set<IdentificationData::InputMatchRef>& getInputMatches();
+
+    /// add an input match (e.g. PSM) for this feature
+    void addInputMatch(IdentificationData::InputMatchRef ref);
+
+    /// update ID referenes (primary ID, input matches) for this feature
+    void updateIDReferences(const IdentificationData::RefTranslator& trans);
+
 protected:
 
     /// Overall quality measure of the feature
@@ -189,7 +218,12 @@ protected:
 
     /// PeptideIdentifications belonging to the feature
     std::vector<PeptideIdentification> peptides_;
+
+    /// primary ID (peptide, RNA, compound) assigned to this feature
+    boost::optional<IdentificationDataInternal::IdentifiedMolecule> primary_id_;
+
+    /// set of input matches (e.g. PSMs) supporting IDs of this feature
+    std::set<IdentificationDataInternal::InputMatchRef> input_matches_;
   };
 
 } // namespace OpenMS
-

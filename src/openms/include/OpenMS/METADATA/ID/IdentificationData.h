@@ -47,7 +47,6 @@
 #include <OpenMS/METADATA/ID/ParentGroup.h>
 #include <OpenMS/METADATA/ID/InputMatchGroup.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
-#include <OpenMS/FORMAT/MzTab.h>
 
 #include <boost/unordered_set.hpp>
 
@@ -181,6 +180,38 @@ namespace OpenMS
 
     using AddressLookup = boost::unordered_set<uintptr_t>;
 
+    /// structure that maps references of corresponding objects after copying
+    struct RefTranslator {
+      std::map<InputFileRef, InputFileRef> input_file_refs;
+      std::map<ScoreTypeRef, ScoreTypeRef> score_type_refs;
+      std::map<ProcessingSoftwareRef, ProcessingSoftwareRef> processing_software_refs;
+      std::map<SearchParamRef, SearchParamRef> search_param_refs;
+      std::map<ProcessingStepRef, ProcessingStepRef> processing_step_refs;
+      std::map<InputItemRef, InputItemRef> input_item_refs;
+      std::map<ParentSequenceRef, ParentSequenceRef> parent_sequence_refs;
+      std::map<IdentifiedPeptideRef, IdentifiedPeptideRef> identified_peptide_refs;
+      std::map<IdentifiedOligoRef, IdentifiedOligoRef> identified_oligo_refs;
+      std::map<IdentifiedCompoundRef, IdentifiedCompoundRef> identified_compound_refs;
+      std::map<AdductRef, AdductRef> adduct_refs;
+      std::map<InputMatchRef, InputMatchRef> input_match_refs;
+
+      IdentifiedMolecule translateIdentifiedMolecule(IdentifiedMolecule old) const
+      {
+        switch (old.getMoleculeType())
+        {
+          case MoleculeType::PROTEIN:
+            return identified_peptide_refs.at(old.getIdentifiedPeptideRef());
+          case MoleculeType::COMPOUND:
+            return identified_compound_refs.at(old.getIdentifiedCompoundRef());
+          case MoleculeType::RNA:
+            return identified_oligo_refs.at(old.getIdentifiedOligoRef());
+          default:
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "invalid molecule type",
+                                          String(old.getMoleculeType()));
+        }
+      }
+    };
 
     /// Default constructor
     IdentificationData():
@@ -430,7 +461,7 @@ namespace OpenMS
       This step will be appended to the list of processing steps for all relevant elements that are registered subsequently (unless it is already the last entry in the list).
       If a score type without a software reference is registered, the software reference of this processing step will be applied.
       Effective until @ref clearCurrentProcessingStep() is called.
-     */
+    */
     void setCurrentProcessingStep(ProcessingStepRef step_ref);
 
     /*!
@@ -481,11 +512,14 @@ namespace OpenMS
     /*!
       @brief Merge in data from another instance.
 
+      Can be used to make a deep copy by calling merge() on an empty object.
+      The returned translation table allows updating of references that are held externally.
+
       @param other Instance to merge in.
 
-      @return Equivalent to the current processing step in @p other after merging
+      @return Translation table for references (old -> new)
     */
-    ProcessingStepRef merge(const IdentificationData& other);
+    RefTranslator merge(const IdentificationData& other);
 
     /*!
       Pick a score type for operations (e.g. filtering) on a container of scored processing results (e.g. input matches, identified peptides, ...).
@@ -601,8 +635,7 @@ namespace OpenMS
     /// Helper function to merge scored processing results while updating references (to processing steps and score types)
     void mergeScoredProcessingResults_(
       ScoredProcessingResult& result, const ScoredProcessingResult& other,
-      const std::map<ProcessingStepRef, ProcessingStepRef>& step_refs,
-      const std::map<ScoreTypeRef, ScoreTypeRef>& score_refs);
+      const RefTranslator& trans);
 
     /*!
       @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure

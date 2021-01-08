@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/OMSFile.h>
 
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>

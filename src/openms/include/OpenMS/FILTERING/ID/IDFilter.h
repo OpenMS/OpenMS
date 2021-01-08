@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -1366,4 +1367,3 @@ public:
   };
 
 } // namespace OpenMS
-
