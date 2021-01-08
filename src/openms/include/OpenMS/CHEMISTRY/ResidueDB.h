@@ -155,7 +155,7 @@ protected:
    // construct all residues 
     void buildResidues_();
     
-    /// creates and adds residues to a lookup tables including the residue set
+    /// creates and adds residues to a lookup table including the residue set
     void insertResidueAndAssociateWithResidueSet_(Residue* residue, const std::vector<String>& residue_sets);
 
     /// deletes stored data like modifications and residues
