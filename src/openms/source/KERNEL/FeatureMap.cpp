@@ -165,6 +165,7 @@ namespace OpenMS
            protein_identifications_ == rhs.protein_identifications_ &&
            unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
            data_processing_ == rhs.data_processing_;
+    // @TODO: implement "operator==" for IdentificationData?
   }
 
   bool FeatureMap::operator!=(const FeatureMap& rhs) const
@@ -195,11 +196,20 @@ namespace OpenMS
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(), rhs.unassigned_peptide_identifications_.end());
     data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
 
+    Size n_old_features = size();
     // append features:
     this->insert(this->end(), rhs.begin(), rhs.end());
 
     // todo: check for double entries
     // features, unassignedpeptides, proteins...
+
+    // merge IDs (new format):
+    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    // update ID references of new features:
+    for (Size i = n_old_features; i < size(); ++i)
+    {
+      operator[](i).updateAllIDReferences(trans);
+    }
 
     // consistency
     try
@@ -317,6 +327,7 @@ namespace OpenMS
     protein_identifications_.swap(from.protein_identifications_);
     unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
     data_processing_.swap(from.data_processing_);
+    id_data_.swap(from.id_data_);
   }
 
   const std::vector<ProteinIdentification>& FeatureMap::getProteinIdentifications() const
@@ -430,6 +441,7 @@ namespace OpenMS
       protein_identifications_.clear();
       unassigned_peptide_identifications_.clear();
       data_processing_.clear();
+      id_data_.clear();
     }
   }
 

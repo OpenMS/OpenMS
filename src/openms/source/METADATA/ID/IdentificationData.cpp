@@ -1081,4 +1081,40 @@ namespace OpenMS
     }
     no_checks_ = other.no_checks_;
   }
+
+
+  void IdentificationData::swap(IdentificationData& other)
+  {
+    input_files_.swap(other.input_files_);
+    processing_softwares_.swap(other.processing_softwares_);
+    processing_steps_.swap(other.processing_steps_);
+    db_search_params_.swap(other.db_search_params_);
+    db_search_steps_.swap(other.db_search_steps_);
+    score_types_.swap(other.score_types_);
+    input_items_.swap(other.input_items_);
+    parents_.swap(other.parents_);
+    parent_groups_.swap(other.parent_groups_);
+    identified_peptides_.swap(other.identified_peptides_);
+    identified_compounds_.swap(other.identified_compounds_);
+    identified_oligos_.swap(other.identified_oligos_);
+    input_matches_.swap(other.input_matches_);
+    input_match_groups_.swap(other.input_match_groups_);
+    std::swap(current_step_ref_, other.current_step_ref_);
+    std::swap(no_checks_, other.no_checks_);
+    // look-up tables:
+    input_item_lookup_.swap(other.input_item_lookup_);
+    parent_lookup_.swap(other.parent_lookup_);
+    identified_peptide_lookup_.swap(other.identified_peptide_lookup_);
+    identified_compound_lookup_.swap(other.identified_compound_lookup_);
+    identified_oligo_lookup_.swap(other.identified_oligo_lookup_);
+    input_match_lookup_.swap(other.input_match_lookup_);
+  }
+
+
+  void IdentificationData::clear()
+  {
+    IdentificationData tmp;
+    swap(tmp);
+  }
+
 } // end namespace OpenMS

@@ -521,6 +521,12 @@ namespace OpenMS
     */
     RefTranslator merge(const IdentificationData& other);
 
+    /// Swap contents with a second instance
+    void swap(IdentificationData& other);
+
+    /// Clear all contents
+    void clear();
+
     /*!
       Pick a score type for operations (e.g. filtering) on a container of scored processing results (e.g. input matches, identified peptides, ...).
 
