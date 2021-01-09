@@ -36,6 +36,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 // #define DEBUG_QTCLUSTERFINDER
 
@@ -98,6 +99,132 @@ namespace OpenMS
   {
     // update parameters (dummy)
     setParameters_(1, 1);
+
+    if(use_IDs_)
+    {
+      std::unordered_map<String, std::vector<double>> ided_feat_rts;
+      for (const auto& map : input_maps)
+      {
+        for (const auto& feat : map)
+        {
+          const auto& pepIDs = feat.getPeptideIdentifications();
+          if (!pepIDs.empty())
+          {
+            //TODO sort (lose const) or assume first is best?
+            if (!pepIDs[0].getHits().empty())
+            {
+              const auto it_inserted = ided_feat_rts.emplace(pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge(), std::vector<double>{feat.getRT()});
+              if (!it_inserted.second)
+              {
+                //TODO use Running/online statistics (if we can live without median) to save memory
+                it_inserted.first->second.push_back(feat.getRT());
+              }
+            }
+          }
+        }
+      }
+
+      //TODO this does not differentiate between the variety of differences between distinct map pairs. E.g.
+      // differences between map 1 and map 2 might be usually very small (e.g. they are replicates), while
+      // differences between map 1 and map 3 are large, since they are different conditions. But we might lose
+      // robust estimates and use more memory if we split them.
+      std::vector<std::pair<double,std::vector<double>>> medians_diffs;
+      medians_diffs.resize(ided_feat_rts.size());
+      Size c = 0;
+      for (auto& id_rts : ided_feat_rts)
+      {
+        #ifdef DEBUG_QTCLUSTERFINDER
+        std::cout << "Stats for " << id_rts.first << ": ";
+        for (const auto& rt : id_rts.second)
+        {
+          std::cout << rt << ", ";
+        }
+        std::cout << std::endl;
+        #endif
+        auto& rts = id_rts.second;
+        std::sort(rts.begin(),rts.end());
+        medians_diffs[c].first = rts[rts.size()/2];
+        medians_diffs[c].second.reserve(rts.size()-1);
+        Size i = 0;
+        for (const auto& rt : rts)
+        {
+          if (i == rts.size()/2) continue;
+          //TODO would relative diffs solve the RT dependency issue sufficiently? Probably not with non-linear shifts
+          medians_diffs[c].second.push_back(std::fabs(rt-medians_diffs[c].first));
+          i++;
+        }
+        c++;
+      }
+      //TODO we could also bin by equal sized RT bins, or by a fixed RT size
+
+      //TODO could be dependent on nr. of maps (e.g. with 5 maps you get [at least?] 4 diffs per ID already)
+      Size min_nr_diffs_per_bin = 50;
+
+      //TODO check if we can assume sorted
+      std::sort(medians_diffs.begin(), medians_diffs.end());
+
+      Size cnt = 0;
+      vector<double> tmp_diffs;
+      double start_rt = 0.;
+      double iqr_mult = 1.5;
+      double min_tolerance = 20;
+      double tol, iqr, q1, q3 = 0.;
+      OPENMS_LOG_DEBUG << "Calculating RT linking tolerance bins..." << std::endl;
+      for (const auto& med_diffs : medians_diffs)
+      {
+        if (tmp_diffs.size() > min_nr_diffs_per_bin)
+        {
+          std::sort(tmp_diffs.begin(), tmp_diffs.end());
+          // calculate allowed tolerance
+          //TODO find better measure. I think IQR only works for symmetric
+          q1 = quantile_(tmp_diffs, 0.25);
+          q3 = quantile_(tmp_diffs, 0.75);
+          iqr = q3 - q1;
+          tol = max(min_tolerance, max(fabs(q3 + iqr_mult * iqr), fabs(q1 - iqr_mult * iqr)));
+          bin_tolerances_.insert(make_pair(start_rt, tol));
+
+          OPENMS_LOG_DEBUG_NOFILE << "(RT: " << start_rt << ", Tol: " << tol << ")" << std::endl;
+          #ifdef DEBUG_QTCLUSTERFINDER
+          OPENMS_LOG_DEBUG_NOFILE << "Differences used: ";
+          for (const auto& diff : tmp_diffs)
+          {
+            OPENMS_LOG_DEBUG_NOFILE << diff << ", ";
+          }
+          OPENMS_LOG_DEBUG_NOFILE << std::endl;
+          #endif
+          tmp_diffs.clear();
+          start_rt = (med_diffs.first + medians_diffs[cnt-1].first)/2;
+        }
+        else
+        {
+          tmp_diffs.insert(tmp_diffs.end(), med_diffs.second.begin(), med_diffs.second.end());
+        }
+        cnt++;
+      }
+      // calculate allowed tolerance
+      std::sort(tmp_diffs.begin(), tmp_diffs.end());
+      q1 = quantile_(tmp_diffs, 0.25);
+      q3 = quantile_(tmp_diffs, 0.75);
+      iqr = q3 - q1;
+      tol = max(min_tolerance, max(fabs(q3 + iqr_mult * iqr), fabs(q1 - iqr_mult * iqr)));
+      bin_tolerances_.insert(make_pair(start_rt, tol));
+      //TODO check size of last bin
+      OPENMS_LOG_DEBUG_NOFILE << "(RT: " << start_rt << ", Tol: " << tol << ")" << std::endl;
+      #ifdef DEBUG_QTCLUSTERFINDER
+      OPENMS_LOG_DEBUG_NOFILE << "Differences used: ";
+      for (const auto& diff : tmp_diffs)
+      {
+        std::cout << diff << ", ";
+      }
+      std::cout << std::endl;
+      #endif
+
+      //TODO make stable last bin (e.g. by combining with bin before).
+      #ifdef DEBUG_QTCLUSTERFINDER
+      OPENMS_LOG_DEBUG_NOFILE << << "size of last bin: " << tmp_diffs.size() << std::endl;
+      #endif
+      tmp_diffs.clear();
+    }
 
     result_map.clear(false);
 
@@ -513,6 +640,11 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
               {
                 continue; // conditions not satisfied
               }
+              if (use_IDs_ && neighbor_feature->getAnnotations().empty())
+              {
+                double rt_dist = std::fabs(neighbor_feature->getRT() - center_feature->getRT());
+                if (distIsOutlier_(rt_dist, center_feature->getRT())) continue;
+              }
               // if neighbor point is a possible cluster point, add it:
               cluster.add(neighbor_feature, dist);
             }
@@ -614,6 +746,20 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
                                        const OpenMS::GridFeature* right)
   {
     return feature_distance_(left->getFeature(), right->getFeature()).second;
+  }
+
+  bool QTClusterFinder::distIsOutlier_(double dist, double rt)
+  {
+    if (bin_tolerances_.empty()) throw new Exception::MissingInformation(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION, "bin_tolerances not initialized yet.");
+    const auto& it = bin_tolerances_.lower_bound(rt);
+    if (it == bin_tolerances_.end())
+    {
+      return dist >= (--bin_tolerances_.end())->second;
+    }
+    else
+    {
+      return dist >= it->second;
+    }
   }
   
   QTClusterFinder::~QTClusterFinder() = default;

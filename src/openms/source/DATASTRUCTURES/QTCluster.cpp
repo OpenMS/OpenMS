@@ -160,6 +160,7 @@ namespace OpenMS
       bool one_empty = (center_point.getAnnotations().empty() || element->getAnnotations().empty());
       if (!one_empty) // both are annotated
       {
+        //TODO shouldn't an overlap of at least one Sequence suffice?
         if (center_point.getAnnotations() != element->getAnnotations()) 
         {
           // Both annotations are non-empty and are unequal, we don't add
@@ -179,6 +180,7 @@ namespace OpenMS
     // Store best (closest) element:
     // Only add the element if either no element is present for the map or if
     // the element is closer than the current element for that map
+    //TODO shouldn't IDed features be preferred to unIDed ones?
     if (map_index != center_point.getMapIndex())
     {
       NeighborMap& neighbors_ = data_->neighbors_;

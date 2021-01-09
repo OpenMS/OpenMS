@@ -142,6 +142,9 @@ namespace OpenMS
     /// Set of features already used
     std::unordered_set<const OpenMS::GridFeature*> already_used_;
 
+    ///
+    std::map<double, double> bin_tolerances_;
+
     /**
        @brief Calculates the distance between two grid features.
     */
@@ -245,6 +248,23 @@ namespace OpenMS
      * @param cluster cluster to which the new elements are added
      */ 
     void addClusterElements_(const Grid& grid, QTCluster& cluster);
+
+    bool distIsOutlier_(double dist, double rt);
+
+    template <typename T1, typename T2> typename T1::value_type quantile_(const T1 &x, T2 q)
+    {
+      if (q < 0.0) q = 0.;
+      if (q > 1.0) q = 1.;
+
+      const auto n  = x.size();
+      const auto id = (n - 1) * q;
+      const auto lo = floor(id);
+      const auto hi = ceil(id);
+      const auto qs = x[lo];
+      const auto h  = (id - lo);
+
+      return (1.0 - h) * qs + h * x[hi];
+    }
 
 protected:
 
