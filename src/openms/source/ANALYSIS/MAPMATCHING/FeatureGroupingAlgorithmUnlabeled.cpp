@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
-
-#include <OpenMS/KERNEL/ConversionHelper.h>
 
 namespace OpenMS
 {
@@ -59,7 +57,7 @@ namespace OpenMS
     // check that the number of maps is ok
     if (maps.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "At least two maps must be given!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "At least two maps must be given!");
     }
 
     // define reference map (the one with most peaks)
@@ -99,36 +97,9 @@ namespace OpenMS
     // replace result with temporary map
     out.swap(input[0]);
     // copy back the input maps (they have been deleted while swapping)
-    out.getFileDescriptions() = input[0].getFileDescriptions();
+    out.getColumnHeaders() = input[0].getColumnHeaders();
 
-    // add protein IDs and unassigned peptide IDs to the result map here,
-    // to keep the same order as the input maps (useful for output later)
-    for (std::vector<FeatureMap>::const_iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it)
-    {
-      // add protein identifications to result map
-      out.getProteinIdentifications().insert(
-        out.getProteinIdentifications().end(),
-        map_it->getProteinIdentifications().begin(),
-        map_it->getProteinIdentifications().end());
-
-      // add unassigned peptide identifications to result map
-      out.getUnassignedPeptideIdentifications().insert(
-        out.getUnassignedPeptideIdentifications().end(),
-        map_it->getUnassignedPeptideIdentifications().begin(),
-        map_it->getUnassignedPeptideIdentifications().end());
-    }
-
-    // canonical ordering for checking the results, and the ids have no real meaning anyway
-#if 1 // the way this was done in DelaunayPairFinder and StablePairFinder
-    out.sortByMZ();
-#else
-    out.sortByQuality();
-    out.sortByMaps();
-    out.sortBySize();
-#endif
-
-    return;
+    postprocess_(maps, out);
   }
 
   void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap& feature_map)

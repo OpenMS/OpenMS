@@ -15,5 +15,5 @@ cdef extern from "<OpenMS/FORMAT/DTAFile.h>" namespace "OpenMS":
         DTAFile() nogil except +
         DTAFile(DTAFile) nogil except +
 
-        void load(String filename, MSSpectrum[Peak1D] & spectrum) nogil except +
-        void store(String filename, MSSpectrum[Peak1D] & spectrum) nogil except +
+        void load(String filename, MSSpectrum & spectrum) nogil except +
+        void store(String filename, MSSpectrum & spectrum) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtGui/QPainter>
 #include <QtCore/QPoint>
@@ -42,11 +42,15 @@
 namespace OpenMS
 {
 
-  Annotation1DCaret::Annotation1DCaret(const Annotation1DCaret::PositionsType& caret_positions, const QString& text, const QColor& colour) :
+  Annotation1DCaret::Annotation1DCaret(const Annotation1DCaret::PositionsType& caret_positions, 
+                                       const QString& text,
+                                       const QColor& colour,
+                                       const QColor& connection_line_color) :
     Annotation1DItem(text),
     caret_positions_(caret_positions),
     position_(caret_positions[0]),
-    color_(colour)
+    color_(colour),
+    connection_line_color_(connection_line_color)
   {
     st_.setText(text);
   }
@@ -57,6 +61,7 @@ namespace OpenMS
     caret_positions_ = rhs.caret_positions_;
     position_ = rhs.position_;
     color_ = rhs.color_;
+    connection_line_color_ = rhs.connection_line_color_;
     st_ = rhs.st_;
   }
 
@@ -70,7 +75,7 @@ namespace OpenMS
     text_ = text; // this is just to keep the base class consistent.. we don't really use text_
   }
 
-  void Annotation1DCaret::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
+  void Annotation1DCaret::draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
     painter.save();
 
@@ -188,7 +193,9 @@ namespace OpenMS
       }
 
       painter.save();
-      painter.setPen(Qt::DashLine);
+      QPen qp(Qt::DashLine);
+      qp.setColor(connection_line_color_);
+      painter.setPen(qp);
       if (!found_intersection) // no intersection with bounding box of text -> normal drawing
       {
         painter.drawLine(caret_position_widget, position_widget);
@@ -244,7 +251,7 @@ namespace OpenMS
     return caret_positions_;
   }
 
-  void Annotation1DCaret::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
+  void Annotation1DCaret::ensureWithinDataRange(Plot1DCanvas* const canvas)
   {
     DRange<3> data_range = canvas->getDataRange();
 

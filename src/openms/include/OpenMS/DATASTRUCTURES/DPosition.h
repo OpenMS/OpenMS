@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DPOSITION_H
-#define OPENMS_DATASTRUCTURES_DPOSITION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -107,6 +106,13 @@ public:
     {
       std::copy(&(pos.coordinate_[0]), &(pos.coordinate_[D]),
                 &(coordinate_[0]));
+    }
+
+    /// Move constructor
+    DPosition(DPosition&& rhs) noexcept
+    {
+      // NOTE: do not change this before testing with nightly Windows builds ( = default causes segfault)
+      std::move(std::begin(rhs.coordinate_), std::end(rhs.coordinate_), &coordinate_[0]);
     }
 
     /// Constructor only for DPosition<2> that takes two Coordinates.
@@ -463,4 +469,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_DPOSITION_H

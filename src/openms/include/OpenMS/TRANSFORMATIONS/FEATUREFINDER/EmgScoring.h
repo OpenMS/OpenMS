@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_EMGSCORING_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EMGSCORING_H
+#pragma once
 
 #include <vector>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
@@ -62,27 +61,30 @@ namespace OpenMS
 
   public :
 
-    EmgScoring() { }
+    EmgScoring() = default;
 
-    ~EmgScoring() { }
+    ~EmgScoring() = default;
 
-    void setFitterParam(Param param)
+    /// overwrites params for the Emg1DFitter. Unspecified params will stay default.
+    /// use getDefaults to see what you can set.
+    void setFitterParam(const Param& param)
     {
-      fitter_emg1D_.setParameters(param);
+      fitter_emg1D_params_ = param;
     }
 
+    /// Get default params for the Emg1D fitting
     Param getDefaults()
     {
-      return fitter_emg1D_.getDefaults();
+      return EmgFitter1D().getDefaults();
     }
 
     /// calculate the elution profile fit score
     template<typename SpectrumType, class TransitionT>
-    double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, TransitionT> & transition_group)
+    double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, TransitionT> & transition_group) const
     {
-      std::vector<double> fit_scores;
       double avg_score = 0;
       bool smooth_data = false;
+
       for (Size k = 0; k < transition_group.size(); k++)
       {
         // get the id, then find the corresponding transition and features within this peakgroup
@@ -92,7 +94,6 @@ namespace OpenMS
 
         // TODO what if score is -1 ?? e.g. if it is undefined
         double fscore = elutionModelFit(f.getConvexHulls()[0].getHullPoints(), smooth_data);
-        fit_scores.push_back(fscore);
         avg_score += fscore;
       }
 
@@ -102,7 +103,7 @@ namespace OpenMS
 
     // Fxn from FeatureFinderAlgorithmMRM
     // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
-    double elutionModelFit(ConvexHull2D::PointArrayType current_section, bool smooth_data)
+    double elutionModelFit(const ConvexHull2D::PointArrayType& current_section, bool smooth_data) const
     {
       // We need at least 2 datapoints in order to create a fit
       if (current_section.size() < 2)
@@ -117,36 +118,23 @@ namespace OpenMS
       // -- cut line 301 of FeatureFinderAlgorithmMRM
       std::vector<LocalPeakType> data_to_fit;
       prepareFit_(current_section, data_to_fit, smooth_data);
-      InterpolationModel * model_rt = 0;
+      InterpolationModel * model_rt = nullptr;
       double quality = fitRT_(data_to_fit, model_rt);
       // cut line 354 of FeatureFinderAlgorithmMRM
       delete model_rt;
 
       return quality;
-
     }
 
   protected:
     template<class LocalPeakType>
-    double fitRT_(std::vector<LocalPeakType> & rt_input_data, InterpolationModel * & model)
+    double fitRT_(std::vector<LocalPeakType> & rt_input_data, InterpolationModel * & model) const
     {
       double quality;
-      //Param param;
-
-      /*EmgFitter
-       param.setValue( "tolerance_stdev_bounding_box", tolerance_stdev_box_);
-       param.setValue( "statistics:mean", rt_stat_.mean() );
-       param.setValue( "statistics:variance", rt_stat_.variance() );
-       param.setValue( "interpolation_step", interpolation_step_rt_ );
-       param.setValue( "max_iteration", max_iteration_);
-       param.setValue( "deltaAbsError", deltaAbsError_);
-       param.setValue( "deltaRelError", deltaRelError_);
-       */
-
-      // Set parameter for fitter
-      //fitter_emg1D.setParameters(param);
+      EmgFitter1D fitter_emg1D;
+      fitter_emg1D.setParameters(fitter_emg1D_params_);
       // Construct model for rt
-      quality = fitter_emg1D_.fit1d(rt_input_data, model);
+      quality = fitter_emg1D.fit1d(rt_input_data, model);
 
       // Check quality
       if (boost::math::isnan(quality)) quality = -1.0;
@@ -156,7 +144,7 @@ namespace OpenMS
     // Fxn from FeatureFinderAlgorithmMRM
     // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
     template<class LocalPeakType>
-    void prepareFit_(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data)
+    void prepareFit_(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data) const
     {
       // typedef Peak1D LocalPeakType;
       PeakSpectrum filter_spec;
@@ -218,8 +206,8 @@ namespace OpenMS
       }
     }
 
-    EmgFitter1D fitter_emg1D_;
+    Param fitter_emg1D_params_;
   };
+
 }
 
-#endif /* EMGSCORING_H_ */

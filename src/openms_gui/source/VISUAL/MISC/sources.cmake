@@ -3,6 +3,8 @@ set(directory source/VISUAL/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
+CommonDefs.cpp
+ExternalProcessMBox.cpp
 GUIHelpers.cpp
 )
 

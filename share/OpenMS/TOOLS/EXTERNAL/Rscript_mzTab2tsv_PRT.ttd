@@ -1,10 +1,7 @@
 <ttd>
 	<tool status="external">
 		<category>does not really matter</category>
-		// multiple of these are allowed
 		<type>Rscript_mzTab2tsv_PRT</type>
-		#name# -- for internal only
-		// multiple of these allowed (same # as 'types') - for external only
 		<external>
 				<text>
 					<onstartup>Calling Rscript mzTab2tsv_PRT ...</onstartup>

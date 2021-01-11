@@ -1,0 +1,89 @@
+on run argv
+  set image_name to item 1 of argv
+  tell application "Finder"
+  	tell disk image_name
+        
+        -- wait for the image to finish mounting
+        set open_attempts to 0
+        repeat while open_attempts < 4
+          try
+            open
+              delay 1
+              set open_attempts to 5
+            close
+            on error errStr number errorNumber
+              set open_attempts to open_attempts + 1
+              delay 10
+          end try
+        end repeat
+        delay 5
+
+        -- open the image the first time and save a DS_Store with just
+        -- background and icon setup
+        open
+          set current view of container window to icon view
+          set theViewOptions to the icon view options of container window
+          set background picture of theViewOptions to file ".background:background.png"
+          set arrangement of theViewOptions to not arranged
+          set icon size of theViewOptions to 128
+          delay 5
+        close
+        
+        -- next setup the position of the app and Applications symlink
+        -- plus hide all the window decoration
+    		open
+          update without registering applications
+    			set theXOrigin to 400
+    			set theYOrigin to 200
+    			set theBottomRightX to 1030
+    			set theBottomRightY to 785
+
+    			tell container window
+            set sidebar width to 0
+    				set toolbar visible to false
+    				set statusbar visible to false
+    				set the bounds to {theXOrigin, theYOrigin, theBottomRightX, theBottomRightY}
+    				set statusbar visible to false
+            set the position of item "@CPACK_PACKAGE_FILE_NAME@" to {470, 140}
+
+            -- change the icon of the OpenMS Folder.
+            
+            do shell script("cd /Volumes/@CPACK_PACKAGE_FILE_NAME@
+            # Rename to just OpenMS-version
+            mv '@CPACK_PACKAGE_FILE_NAME@' '@OPENMS_DMG_FOLDER_NAME@'
+            # Take an image and make the image its own icon:
+            sips -i @OPENMS_LOGO@ >> ~/logfile.log 2>&1
+
+            # Extract the icon to its own resource file:
+            DeRez -only icns @OPENMS_LOGO@ > /tmp/tmpicns.rsrc
+
+            # append this resource to the file you want to icon-ize.
+            Rez -append /tmp/tmpicns.rsrc -o $'@OPENMS_DMG_FOLDER_NAME@/Icon\r'
+
+            # Use the resource to set the icon.
+            SetFile -a C @OPENMS_DMG_FOLDER_NAME@
+
+            # Hide the Icon\r file from Finder.
+            SetFile -a V $'@OPENMS_DMG_FOLDER_NAME@/Icon\r'
+
+            # clean up.
+            rm /tmp/tmpicns.rsrc
+            ")
+
+            set the position of item "Applications" to {160, 140}
+    			end tell
+          update without registering applications
+          delay 5
+        close
+
+        -- one last open and close so you can see everything looks correct
+        open
+          delay 5
+        close
+
+  	end tell
+    -- Weird behaviour of the CPACK module. Sometimes it does not write the changes to the dmg.
+    delay 20
+  end tell
+  -- Codesigning does not work here. You have to do it manually. CPack is not able to perform post packaging scripts.
+end run

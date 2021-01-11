@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_14128832103716313886" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file://I:\OpenSWATH_Metabolomics_data\20181121_full_data\04_PestMixes_individually_Solvent_DDA_20-50/PestMix1_1ngSolventDDA20-50.wiff]"/>
+	<dataProcessing completion_time="2019-07-25T08:44:40">
+		<software name="FeatureFinderMetabo" version="2.4.0-nightly-2019-07-17" />
+		<processingAction name="Quantitation" />
+		<UserParam type="string" name="parameter: in" value="/Volumes/elements/OpenSWATH_Metabolomics_data_backup/20181121_full_data_mzml/04_PestMixes_individually_Solvent_DDA_20-50/03_rt_truncated/PestMix1_1ngSolventDDA20-50.mzML"/>
+		<UserParam type="string" name="parameter: out" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_20190722_DIAMet17013/fs-Featu_0-272-254-17022/000/000/FeatureFinderMetabo_0/PestMix1_1ngSolventDDA20-50_out0.featureXML"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="10"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: out_chrom" value=""/>
+		<UserParam type="float" name="parameter: algorithm:common:noise_threshold_int" value="1500.0"/>
+		<UserParam type="float" name="parameter: algorithm:common:chrom_peak_snr" value="3.0"/>
+		<UserParam type="float" name="parameter: algorithm:common:chrom_fwhm" value="8.0"/>
+		<UserParam type="float" name="parameter: algorithm:mtd:mass_error_ppm" value="10.0"/>
+		<UserParam type="string" name="parameter: algorithm:mtd:reestimate_mt_sd" value="true"/>
+		<UserParam type="string" name="parameter: algorithm:mtd:quant_method" value="area"/>
+		<UserParam type="string" name="parameter: algorithm:mtd:trace_termination_criterion" value="outlier"/>
+		<UserParam type="int" name="parameter: algorithm:mtd:trace_termination_outliers" value="5"/>
+		<UserParam type="float" name="parameter: algorithm:mtd:min_sample_rate" value="0.5"/>
+		<UserParam type="float" name="parameter: algorithm:mtd:min_trace_length" value="1.5"/>
+		<UserParam type="float" name="parameter: algorithm:mtd:max_trace_length" value="60.0"/>
+		<UserParam type="string" name="parameter: algorithm:epd:enabled" value="true"/>
+		<UserParam type="string" name="parameter: algorithm:epd:width_filtering" value="off"/>
+		<UserParam type="float" name="parameter: algorithm:epd:min_fwhm" value="1.0"/>
+		<UserParam type="float" name="parameter: algorithm:epd:max_fwhm" value="30.0"/>
+		<UserParam type="string" name="parameter: algorithm:epd:masstrace_snr_filtering" value="false"/>
+		<UserParam type="float" name="parameter: algorithm:ffm:local_rt_range" value="10.0"/>
+		<UserParam type="float" name="parameter: algorithm:ffm:local_mz_range" value="6.5"/>
+		<UserParam type="int" name="parameter: algorithm:ffm:charge_lower_bound" value="1"/>
+		<UserParam type="int" name="parameter: algorithm:ffm:charge_upper_bound" value="1"/>
+		<UserParam type="string" name="parameter: algorithm:ffm:report_summed_ints" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:ffm:enable_RT_filtering" value="true"/>
+		<UserParam type="string" name="parameter: algorithm:ffm:isotope_filtering_model" value="none"/>
+		<UserParam type="string" name="parameter: algorithm:ffm:mz_scoring_13C" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:ffm:use_smoothed_intensities" value="true"/>
+		<UserParam type="string" name="parameter: algorithm:ffm:report_convex_hulls" value="true"/>
+		<UserParam type="string" name="parameter: algorithm:ffm:remove_single_traces" value="false"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2019-07-25T08:44:42">
+		<software name="MetaboliteAdductDecharger" version="2.4.0-nightly-2019-07-17" />
+		<processingAction name="Charge deconvolution" />
+		<UserParam type="string" name="parameter: in" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_20190722_DIAMet17013/fs-Featu_0-272-254-17022/000/000/FeatureFinderMetabo_0/PestMix1_1ngSolventDDA20-50_out0.featureXML"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: out_cm" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_20190722_DIAMet17013/fs-Metab_0-272-255-17027/000/000/MetaboliteAdductDecharger_0/PestMix1_1ngSolventDDA20-50_out0_out0.consensusXML"/>
+		<UserParam type="string" name="parameter: out_fm" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_20190722_DIAMet17013/fs-Metab_0-272-255-17027/000/000/MetaboliteAdductDecharger_1/PestMix1_1ngSolventDDA20-50_out0_out1.featureXML"/>
+		<UserParam type="string" name="parameter: outpairs" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_20190722_DIAMet17013/fs-Metab_0-272-255-17027/000/000/MetaboliteAdductDecharger_2/PestMix1_1ngSolventDDA20-50_out0_out2.consensusXML"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_min" value="1"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_max" value="1"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_span_max" value="1"/>
+		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:q_try" value="feature"/>
+		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:retention_max_diff" value="1.0"/>
+		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:retention_max_diff_local" value="1.0"/>
+		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:mass_max_diff" value="0.05"/>
+		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:unit" value="Da"/>
+		<UserParam type="stringList" name="parameter: algorithm:MetaboliteFeatureDeconvolution:potential_adducts" value="[H:+:0.6,Na:+:0.3,K:+:0.1]"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:max_neutrals" value="1"/>
+		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:use_minority_bound" value="true"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:max_minority_bound" value="3"/>
+		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:min_rt_overlap" value="0.66"/>
+		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:intensity_filter" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:negative_mode" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:default_map_label" value="decharged features"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:verbose_level" value="0"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2019-10-22T10:00:43" search_engine="AccurateMassSearch" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="2">
+		<feature id="f_8308517420049663419">
+			<position dim="0">355.507999999979973</position>
+			<position dim="1">235.144546436815318</position>
+			<intensity>12743.556641</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.054042e-04</overallquality>
+			<charge>0</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[b6db36a2-5130-11e9-8f91-784f43534648]"/>
+					<UserParam type="stringList" name="description" value="[Lenacil]"/>
+					<UserParam type="string" name="modifications" value="M+H;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C13H18N2O2"/>
+					<UserParam type="float" name="mz_error_ppm" value="1.998710010875114"/>
+					<UserParam type="float" name="mz_error_Da" value="4.699848196025869e-04"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T23.2"/>
+			<UserParam type="float" name="FWHM" value="7.11004114151001"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[12743.55710181579343]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[355.507999999979973]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[235.144546436815318]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+			<UserParam type="string" name="Group" value="13002802444478882467"/>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</feature>
+		<feature id="f_248283675846367528">
+			<position dim="0">518.841000000000008</position>
+			<position dim="1">332.108359495389948</position>
+			<intensity>77075.710938</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>7.195689e-04</overallquality>
+			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="1">
+					<UserParam type="stringList" name="identifier" value="[99675-03-3]"/>
+					<UserParam type="stringList" name="description" value="[Isofenphos-methyl]"/>
+					<UserParam type="string" name="modifications" value="M+H;1+"/>
+					<UserParam type="string" name="chemical_formula" value="C14H22NO4PS"/>
+					<UserParam type="float" name="mz_error_ppm" value="1.153370052587946"/>
+					<UserParam type="float" name="mz_error_Da" value="3.830433942653144e-04"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="label" value="T158_T810"/>
+			<UserParam type="float" name="FWHM" value="2.577003717422485"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[77075.70750051928917, 13072.681000091004535]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[518.841000000000008, 518.841000000000008]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[332.108359495389948, 333.11124488484495]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.002885389455002]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+			<UserParam type="string" name="Group" value="11077938174211635056"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+		</feature>
+	</featureList>
+</featureMap>

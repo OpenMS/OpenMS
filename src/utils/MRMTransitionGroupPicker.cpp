@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 // interfaces
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 // helpers
@@ -65,9 +67,44 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
+  @page UTILS_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
-  @brief Picks peaks in MRM chromatograms.
+  @brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
+
+    <CENTER>
+        <table>
+            <tr>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMTransitionGroupPicker \f$ \longrightarrow \f$</td>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
+            </tr>
+        </table>
+    </CENTER>
+
+
+  This tools accepts a set of chromatograms and picks peaks in them, correctly
+  grouping related transitions from the same precursor together. It will
+  perform the following steps:
+  - Step 1: find features (peaks) in individual chromatograms
+  - Step 2: merge these features to consensus features that span multiple chromatograms
+
+  Step 1 is performed by smoothing the individual chromatogram and applying the
+  PeakPickerHiRes.
+
+  Step 2 is performed by finding the largest peak overall and use this to
+  create a feature, propagating this through all chromatograms.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_MRMTransitionGroupPicker.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_MRMTransitionGroupPicker.html
 
 */
 
@@ -79,18 +116,17 @@ class TOPPMRMTransitionGroupPicker
 public:
 
   TOPPMRMTransitionGroupPicker() 
-    : TOPPBase("MRMTransitionGroupPicker", "", false)
+    : TOPPBase("MRMTransitionGroupPicker", "Picks peaks in SRM/MRM chromatograms.", false)
   {
   }
 
 protected:
 
-  typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; // this is the type in which we store the chromatograms for this analysis
   typedef ReactionMonitoringTransition TransitionType;
   typedef TargetedExperiment TargetedExpType;
-  typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; // a transition group holds the MSSpectra with the Chromatogram peaks from above
+  typedef MRMTransitionGroup<MSChromatogram, TransitionType> MRMTransitionGroupType;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -104,7 +140,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String &) const override
   {
     return MRMTransitionGroupPicker().getDefaults();
   }
@@ -161,20 +197,18 @@ protected:
       // Go through all transitions
       for (Size i = 0; i < assay_map[id].size(); i++)
       {
-        const TransitionType* transition = assay_map[id][i];
-        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-        MSChromatogram<ChromatogramPeak> chromatogram_old;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        RichPeakChromatogram chromatogram;
 
-        // copy old to new chromatogram
-        for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
+        // Check first whether we have a mapping (e.g. see -force option)
+        const TransitionType* transition = assay_map[id][i];
+        if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          ChromatogramPeak peak;
-          peak.setMZ(it->getRT());
-          peak.setIntensity(it->getIntensity());
-          chromatogram.push_back(peak);
+          OPENMS_LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
+          continue;
         }
+
+        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+        MSChromatogram chromatogram;
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram);
 
         chromatogram.setMetaValue("product_mz", transition->getProductMZ());
         chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
@@ -189,7 +223,7 @@ protected:
   };
 
   void run_(OpenSwath::SpectrumAccessPtr input,
-    FeatureMap & output, TargetedExpType& transition_exp)
+    FeatureMap & output, TargetedExpType& transition_exp, bool force)
   {
     MRMTransitionGroupPicker trgroup_picker;
     Param picker_param = getParam_().copy("algorithm:", true);
@@ -197,9 +231,9 @@ protected:
 
     MRMGroupMapper m;
     m.doMap(input, transition_exp);
-    if (!m.allAssaysHaveChromatograms() )
+    if (!m.allAssaysHaveChromatograms() && !force)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Not all assays could be mapped to chromatograms");
     }
 
@@ -218,19 +252,30 @@ protected:
       // Add to output
       for (Size i = 0; i < transition_group.getFeatures().size(); i++)
       {
-        output.push_back(transition_group.getFeatures()[i]);
+        MRMFeature mrmfeature = transition_group.getFeatures()[i];
+        // Prepare the subordinates for the mrmfeature (process all current
+        // features and then append all precursor subordinate features)
+        std::vector<Feature> allFeatures = mrmfeature.getFeatures();
+        for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
+        {
+          f_it->getConvexHulls().clear();
+          f_it->ensureUniqueId();
+        }
+        mrmfeature.setSubordinates(allFeatures); // add all the subfeatures as subordinates
+        output.push_back(mrmfeature);
       }
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String tr_file = getStringOption_("tr");
+    bool force = getFlag_("force");
 
-    boost::shared_ptr<MSExperiment<> > exp ( new MSExperiment<> );
+    boost::shared_ptr<PeakMap > exp ( new PeakMap );
     MzMLFile mzmlfile;
     mzmlfile.setLogType(log_type_);
     mzmlfile.load(in, *exp);
@@ -240,10 +285,19 @@ protected:
 
     FeatureMap output;
     OpenSwath::SpectrumAccessPtr input = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-    run_(input, output, transition_exp);
+    run_(input, output, transition_exp, force);
 
     output.ensureUniqueId();
-    output.setPrimaryMSRunPath(exp->getPrimaryMSRunPath());
+
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      output.setPrimaryMSRunPath({"file://" + File::basename(in)}, *exp);
+    }
+    else
+    {
+      output.setPrimaryMSRunPath({in}, *exp);
+    }      
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

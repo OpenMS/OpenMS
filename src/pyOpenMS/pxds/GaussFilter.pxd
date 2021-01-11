@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/GaussFilter.h>" namespace "OpenMS"
         GaussFilter() nogil except +
         GaussFilter(GaussFilter) nogil except +
 
-        void filter(MSSpectrum[Peak1D] & spectrum) nogil except +
-        void filter(MSChromatogram[ChromatogramPeak] & chromatogram) nogil except +
-        void filterExperiment(MSExperiment[Peak1D,ChromatogramPeak] & exp) nogil except +
+        void filter(MSSpectrum & spectrum) nogil except +
+        void filter(MSChromatogram & chromatogram) nogil except +
+        void filterExperiment(MSExperiment & exp) nogil except +
 

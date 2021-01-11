@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,18 +28,20 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -58,8 +60,8 @@ START_TEST(ConsensusXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusXMLFile * ptr = 0;
-ConsensusXMLFile* nullPointer = 0;
+ConsensusXMLFile * ptr = nullptr;
+ConsensusXMLFile* nullPointer = nullptr;
 START_SECTION((ConsensusXMLFile()))
 ptr = new ConsensusXMLFile();
 TEST_NOT_EQUAL(ptr, nullPointer)
@@ -97,16 +99,16 @@ TEST_EQUAL(map.getExperimentType() == "label-free", true)
 TEST_EQUAL(map.getMetaValue("name1") == DataValue("value1"), true)
 TEST_EQUAL(map.getMetaValue("name2") == DataValue(2), true)
 //file descriptions
-TEST_EQUAL(map.getFileDescriptions()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
-TEST_EQUAL(map.getFileDescriptions()[0].label, "label")
-TEST_EQUAL(map.getFileDescriptions()[0].size, 144)
-TEST_EQUAL(map.getFileDescriptions()[0].getMetaValue("name3") == DataValue("value3"), true)
-TEST_EQUAL(map.getFileDescriptions()[0].getMetaValue("name4") == DataValue(4), true)
-TEST_STRING_EQUAL(map.getFileDescriptions()[1].filename, "data/MapAlignmentFeatureMap2.xml")
-TEST_EQUAL(map.getFileDescriptions()[1].label, "")
-TEST_EQUAL(map.getFileDescriptions()[1].size, 0)
-TEST_EQUAL(map.getFileDescriptions()[1].getMetaValue("name5") == DataValue("value5"), true)
-TEST_EQUAL(map.getFileDescriptions()[1].getMetaValue("name6") == DataValue(6.0), true)
+TEST_EQUAL(map.getColumnHeaders()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
+TEST_EQUAL(map.getColumnHeaders()[0].label, "label")
+TEST_EQUAL(map.getColumnHeaders()[0].size, 144)
+TEST_EQUAL(map.getColumnHeaders()[0].getMetaValue("name3") == DataValue("value3"), true)
+TEST_EQUAL(map.getColumnHeaders()[0].getMetaValue("name4") == DataValue(4), true)
+TEST_STRING_EQUAL(map.getColumnHeaders()[1].filename, "data/MapAlignmentFeatureMap2.xml")
+TEST_EQUAL(map.getColumnHeaders()[1].label, "")
+TEST_EQUAL(map.getColumnHeaders()[1].size, 0)
+TEST_EQUAL(map.getColumnHeaders()[1].getMetaValue("name5") == DataValue("value5"), true)
+TEST_EQUAL(map.getColumnHeaders()[1].getMetaValue("name6") == DataValue(6.0), true)
 //data processing
 TEST_EQUAL(map.getDataProcessing().size(), 2)
 TEST_STRING_EQUAL(map.getDataProcessing()[0].getSoftware().getName(), "Software1")
@@ -206,33 +208,41 @@ TEST_REAL_SIMILAR(map[0].getIntensity(), 23000.238)
 END_SECTION
 
 START_SECTION((void store(const String &filename, const ConsensusMap &consensus_map)))
-std::string tmp_filename;
-NEW_TMP_FILE(tmp_filename);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
 
-ConsensusMap map, map2;
-ConsensusXMLFile f;
+  ConsensusMap map;
+  ConsensusXMLFile f;
 
-f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
-f.store(tmp_filename, map);
-f.load(tmp_filename, map2);
-TEST_EQUAL(map == map2, true)
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // make protIDs non-unique
+  map.getProteinIdentifications().push_back(map.getProteinIdentifications()[0]);
+  TEST_EXCEPTION(Exception::ParseError, f.store(tmp_filename, map))
+  map.getProteinIdentifications().pop_back(); // undo
+
+  f.store(tmp_filename, map);
+  WHITELIST("?xml-stylesheet")
+  TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), tmp_filename)
+
+
 END_SECTION
 
 START_SECTION([EXTRA](bool isValid(const String &filename)))
-ConsensusXMLFile f;
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
+  ConsensusXMLFile f;
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
 
-//test if written empty file
-// - this is invalid, so it is not tested :)
+  //test if written empty file
+  // - this is invalid, so it is not tested :)
 
-//test if written full file is valid
-ConsensusMap m;
-String tmp_filename;
-NEW_TMP_FILE(tmp_filename);
-f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
-f.store(tmp_filename, m);
-TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
+  //test if written full file is valid
+  ConsensusMap m;
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
+  f.store(tmp_filename, m);
+  TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

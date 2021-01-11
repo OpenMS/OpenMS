@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,6 @@
 #include <boost/math/distributions/normal.hpp>
 #include <unsupported/Eigen/NonLinearOptimization>
 
-#include <sstream>
-#include <iostream>
-
 using namespace std;
 
 // #define GAUSS_FITTER_VERBOSE
@@ -71,7 +68,7 @@ namespace OpenMS
 
       GaussFunctor(int dimensions, const std::vector<DPosition<2> >* data)
       : m_inputs(dimensions), 
-        m_values(data->size()), 
+        m_values(static_cast<int>(data->size())),
         m_data(data)
       {}
 
@@ -133,7 +130,7 @@ namespace OpenMS
       if (status == Eigen::LevenbergMarquardtSpace::ImproperInputParameters ||
           status == Eigen::LevenbergMarquardtSpace::TooManyFunctionEvaluation)
       {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the Gaussian to the data: Error " + String(status));
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GaussFitter", "Could not fit the Gaussian to the data: Error " + String(status));
       }
       
       x_init(2) = fabs(x_init(2)); // sigma can be negative, but |sigma| would actually be the correct solution
@@ -159,6 +156,21 @@ namespace OpenMS
         out.push_back(boost::math::pdf(ndf, evaluation_points[i]) * int0 );
       }
       return out;
+    }
+
+    double GaussFitter::GaussFitResult::eval(const double x) const
+    {
+      boost::math::normal_distribution<> ndf(x0, sigma);
+      double int0 = A / boost::math::pdf(ndf, x0); // intensity normalization factor of the max @ x0 (simply multiplying the CDF with A is wrong!)
+      return (boost::math::pdf(ndf, x) * int0 );
+    }
+
+    double GaussFitter::GaussFitResult::log_eval_no_normalize(const double x) const
+    {
+      //TODO we could cache log sigma but then we would need to make the members private and update log sigma whenever
+      // sigma is reset
+      //TODO for likelihood maximization also the halflogtwopi constant could be removed
+      return -log(sigma) - halflogtwopi - 0.5 * pow((x - x0) / sigma, 2.0);
     }
 
   }   //namespace Math

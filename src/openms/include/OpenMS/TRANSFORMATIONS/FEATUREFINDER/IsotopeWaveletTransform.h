@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -44,7 +44,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <cmath>
-#include <math.h>
+#include <cmath>
 #include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
@@ -74,15 +74,15 @@ public:
     /** @brief Internally used data structure. */
     struct BoxElement
     {
-      double mz; //<The monoisotopic position
-      UInt c; //<Note, this is not the charge (it is charge-1!!!)
-      double score; //<The associated score
-      double intens; //<The transformed intensity at the monoisotopic mass
+      double mz; ///<The monoisotopic position
+      UInt c; ///<Note, this is not the charge (it is charge-1!!!)
+      double score; ///<The associated score
+      double intens; ///<The transformed intensity at the monoisotopic mass
       double ref_intens;
-      double RT; //<The elution time (not the scan index)
-      UInt RT_index; //<The elution time (map) index
-      UInt MZ_begin; //<Index
-      UInt MZ_end; //<Index
+      double RT; ///<The elution time (not the scan index)
+      UInt RT_index; ///<The elution time (map) index
+      UInt MZ_begin; ///<Index
+      UInt MZ_end; ///<Index
     };
 
     typedef std::multimap<UInt, BoxElement> Box; ///<Key: RT index, value: BoxElement
@@ -99,12 +99,12 @@ public:
 
       /** Default constructor */
       TransSpectrum() :
-        reference_(NULL), trans_intens_(NULL)
+        reference_(nullptr), trans_intens_(nullptr)
       {
       }
 
       /** Copy constructor */
-      TransSpectrum(const MSSpectrum<PeakType>* reference) :
+      TransSpectrum(const MSSpectrum* reference) :
         reference_(reference)
       {
         trans_intens_ = new std::vector<float>(reference_->size(), 0.0);
@@ -161,49 +161,49 @@ public:
       }
 
       /** Returns a pointer to the reference spectrum. */
-      inline const MSSpectrum<PeakType>* getRefSpectrum()
+      inline const MSSpectrum* getRefSpectrum()
       {
         return reference_;
       }
 
       /** Returns a pointer to the reference spectrum. */
-      inline const MSSpectrum<PeakType>* getRefSpectrum() const
+      inline const MSSpectrum* getRefSpectrum() const
       {
         return reference_;
       }
 
       /** Attention: iterations will only performed over the reference spectrum.
           * You will have to use the "distance"-function in order to get the corresponding entry of the transform. */
-      inline typename MSSpectrum<PeakType>::const_iterator MZBegin(const double mz) const
+      inline typename MSSpectrum::const_iterator MZBegin(const double mz) const
       {
         return reference_->MZBegin(mz);
       }
 
       /** Attention: iterations will only performed over the reference spectrum.
           * You will have to use the "distance"-function in order to get the corresponding entry of the transform. */
-      inline typename MSSpectrum<PeakType>::const_iterator MZEnd(const double mz) const
+      inline typename MSSpectrum::const_iterator MZEnd(const double mz) const
       {
         return reference_->MZEnd(mz);
       }
 
       /** Attention: iterations will only performed over the reference spectrum.
           * You will have to use the "distance"-function in order to get the corresponding entry of the transform. */
-      inline typename MSSpectrum<PeakType>::const_iterator end() const
+      inline typename MSSpectrum::const_iterator end() const
       {
         return reference_->end();
       }
 
       /** Attention: iterations will only performed over the reference spectrum.
           * You will have to use the "distance"-function in order to get the corresponding entry of the transform. */
-      inline typename MSSpectrum<PeakType>::const_iterator begin() const
+      inline typename MSSpectrum::const_iterator begin() const
       {
         return reference_->begin();
       }
 
 protected:
 
-      const MSSpectrum<PeakType>* reference_; //<The reference spectrum
-      std::vector<float>* trans_intens_; //<The intensities of the transform
+      const MSSpectrum* reference_; ///<The reference spectrum
+      std::vector<float>* trans_intens_; ///<The intensities of the transform
 
     };
 
@@ -224,13 +224,13 @@ protected:
         * @param c_trans The transform.
         * @param c_ref The reference spectrum.
         * @param c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */
-    virtual void getTransform(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c);
+    virtual void getTransform(MSSpectrum& c_trans, const MSSpectrum& c_ref, const UInt c);
 
     /** @brief Computes the isotope wavelet transform of charge state @p c.
         * @param c_trans The transform.
         * @param c_ref The reference spectrum.
         * @param c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */
-    virtual void getTransformHighRes(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c);
+    virtual void getTransformHighRes(MSSpectrum& c_trans, const MSSpectrum& c_ref, const UInt c);
 
     /** @brief Given an isotope wavelet transformed spectrum @p candidates, this function assigns to every significant
         * pattern its corresponding charge state and a score indicating the reliability of the prediction. The result of this
@@ -251,47 +251,10 @@ protected:
         * average intensity in the wavelet transform.
         * @param check_PPMs If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
         * by computing the ppm difference between this mass and the averagine model. */
-    virtual void identifyCharge(const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c,
+    virtual void identifyCharge(const MSSpectrum& candidates, const MSSpectrum& ref, const UInt scan_index, const UInt c,
                                 const double ampl_cutoff, const bool check_PPMs);
 
-    virtual void initializeScan(const MSSpectrum<PeakType>& c_ref, const UInt c = 0);
-
-#ifdef OPENMS_HAS_CUDA
-    /** @brief Sets up all necessary arrays with correct boundaries and 'worst-case' sizes.
-        * @param scan The scan under consideration. */
-    virtual int initializeScanCuda(const MSSpectrum<PeakType>& scan, const UInt c = 0);
-
-    /** @brief Clean up. */
-    virtual void finalizeScanCuda();
-
-    /** @brief Computes The isotope wavelet transform of charge state (@p c+1) on a CUDA compatible GPU.
-        * @param c_trans Contains the reference spectrum (already by call) as well as the transformed intensities.
-        * @param c The charge state minus 1 (e.g. c=2 means charge state 3)*/
-    virtual void getTransformCuda(TransSpectrum& c_trans, const UInt c);
-
-    /** @brief Essentially the same as its namesake CPU-version, but on a CUDA compatible GPU device.
-* @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
-    * charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function @see getTransforms.)
-    * @param c The corresponding charge state minus 1 (e.g. c=2 means charge state 3)
-    * @param scan_index The index of the scan (w.r.t. to some map) currently under consideration.
-    * @param ampl_cutoff The thresholding parameter. This parameter is the only (and hence a really important)
-    * parameter of the isotope wavelet transform. On the basis of @p ampl_cutoff the program tries to distinguish between
-    * noise and signal. Please note that it is not a "simple" hard thresholding parameter in the sense of drawing a virtual
-    * line in the spectrum, which is then used as a guillotine cut. Maybe you should play around a bit with this parameter to
-    * get a feeling about its range. For peptide mass fingerprints on small data sets (like single MALDI-scans e.g.), it
-    * makes sense to start @p ampl_cutoff=0 or even @p ampl_cutoff=-1,
-    * indicating no thresholding at all. Note that also ampl_cutoff=0 triggers (a moderate) thresholding based on the
-    * average intensity in the wavelet transform.
-    * * @param check_PPMs If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
-    * by computing the ppm difference between this mass and the averagine model. */
-    virtual void identifyChargeCuda(const TransSpectrum& candidates, const UInt scan_index, const UInt c,
-                                    const double ampl_cutoff, const bool check_PPMs);
-
-    /** Sorts the associated spectrum @p by increasing intensities.
-        * @param sorted The spectrum to be sorted. */
-    virtual int sortCuda(MSSpectrum<PeakType>& sorted);
-#endif
-
+    virtual void initializeScan(const MSSpectrum& c_ref, const UInt c = 0);
 
     /** @brief A function keeping track of currently open and closed sweep line boxes.
         * This function is used by the isotope wavelet feature finder and must be called for each processed scan.
@@ -299,18 +262,15 @@ protected:
         * @param scan_index The index of the scan currently under consideration w.r.t. its MS map.
         * This information is necessary to sweep across the map after each scan has been evaluated.
         * @param RT_votes_cutoff See the IsotopeWaveletFF class. */
-    void updateBoxStates(const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
+    void updateBoxStates(const PeakMap& map, const Size scan_index, const UInt RT_interleave,
                          const UInt RT_votes_cutoff, const Int front_bound = -1, const Int end_bound = -1);
-
-
-    void mergeFeatures(IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff);
 
 
     /** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
         * @param map The original map containing the data set to be analyzed.
         * @param max_charge The maximal charge state under consideration.
         * @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
-    FeatureMap mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff);
+    FeatureMap mapSeeds2Features(const PeakMap& map, const UInt RT_votes_cutoff);
 
     /** @brief Returns the closed boxes. */
     virtual std::multimap<double, Box> getClosedBoxes()
@@ -321,7 +281,7 @@ protected:
         * @param left_iter The point left to the query.
         * @param mz_pos The query point.
         * @param right_iter The point right to the query. */
-    inline double getLinearInterpolation(const typename MSSpectrum<PeakType>::const_iterator& left_iter, const double mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
+    inline double getLinearInterpolation(const typename MSSpectrum::const_iterator& left_iter, const double mz_pos, const typename MSSpectrum::const_iterator& right_iter)
     {
       return left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity()) / (right_iter->getMZ() - left_iter->getMZ()) * (mz_pos - left_iter->getMZ());
     }
@@ -347,7 +307,7 @@ protected:
       sigma_ = sigma;
     }
 
-    virtual void computeMinSpacing(const MSSpectrum<PeakType>& c_ref);
+    virtual void computeMinSpacing(const MSSpectrum& c_ref);
 
     inline double getMinSpacing() const
     {
@@ -367,7 +327,7 @@ protected:
     IsotopeWaveletTransform();
 
 
-    inline void sampleTheCMarrWavelet_(const MSSpectrum<PeakType>& scan, const Int wavelet_length, const Int mz_index, const UInt charge);
+    inline void sampleTheCMarrWavelet_(const MSSpectrum& scan, const Int wavelet_length, const Int mz_index, const UInt charge);
 
 
     /** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score
@@ -385,7 +345,7 @@ protected:
         * @param seed_mz The predicted position of the monoisotopic peak.
         * @param c The charge state minus 1 (e.g. c=2 means charge state 3) for which the score should be determined.
         * @param ampl_cutoff The threshold. */
-    virtual double scoreThis_(const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff,
+    virtual double scoreThis_(const MSSpectrum& candidate, const UInt peak_cutoff,
                                   const double seed_mz, const UInt c, const double ampl_cutoff);
 
 
@@ -396,7 +356,7 @@ protected:
         * @param seed_mz The m/z position of the candidate pattern.
         * @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    virtual bool checkPositionForPlausibility_(const TransSpectrum& candidate, const MSSpectrum<PeakType>& ref, const double seed_mz,
+    virtual bool checkPositionForPlausibility_(const TransSpectrum& candidate, const MSSpectrum& ref, const double seed_mz,
                                                const UInt c, const UInt scan_index, const bool check_PPMs, const double transintens, const double prev_score);
 
     /** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
@@ -406,21 +366,21 @@ protected:
         * @param seed_mz The m/z position of the candidate pattern.
         * @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    virtual bool checkPositionForPlausibility_(const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const double seed_mz,
+    virtual bool checkPositionForPlausibility_(const MSSpectrum& candidate, const MSSpectrum& ref, const double seed_mz,
                                                const UInt c, const UInt scan_index, const bool check_PPMs, const double transintens, const double prev_score);
 
-    virtual std::pair<double, double> checkPPMTheoModel_(const MSSpectrum<PeakType>& ref, const double c_mz, const UInt c);
+    virtual std::pair<double, double> checkPPMTheoModel_(const MSSpectrum& ref, const double c_mz, const UInt c);
 
 
     /** @brief Computes the average (transformed) intensity (neglecting negative values) of @p scan. */
     inline double getAvIntens_(const TransSpectrum& scan);
     /** @brief Computes the average intensity (neglecting negative values) of @p scan. */
-    inline double getAvIntens_(const MSSpectrum<PeakType>& scan);
+    inline double getAvIntens_(const MSSpectrum& scan);
 
     /** @brief Computes the standard deviation (neglecting negative values) of the (transformed) intensities of @p scan. */
     inline double getSdIntens_(const TransSpectrum& scan, const double mean);
     /** @brief Computes the standard deviation (neglecting negative values) of the intensities of @p scan. */
-    inline double getSdIntens_(const MSSpectrum<PeakType>& scan, const double mean);
+    inline double getSdIntens_(const MSSpectrum& scan, const double mean);
 
     /** @brief Inserts a potential isotopic pattern into an open box or - if no such box exists - creates a new one.
         * @param mz The position of the pattern.
@@ -458,21 +418,21 @@ protected:
 
       @param scan The scan we are interested in.
     */
-    inline double getAvMZSpacing_(const MSSpectrum<PeakType>& scan);
+    inline double getAvMZSpacing_(const MSSpectrum& scan);
 
 
     /** @brief Clusters the seeds stored by push2TmpBox_.
         * @param candidates A isotope wavelet transformed spectrum.
         * @param ref The corresponding original spectrum (w.r.t. @p candidates).
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    void clusterSeeds_(const TransSpectrum& candidates, const MSSpectrum<PeakType>& ref,
+    void clusterSeeds_(const TransSpectrum& candidates, const MSSpectrum& ref,
                        const UInt scan_index, const UInt c, const bool check_PPMs);
 
     /** @brief Clusters the seeds stored by push2TmpBox_.
         * @param candidates A isotope wavelet transformed spectrum.
         * @param ref The corresponding original spectrum (w.r.t. @p candidates).
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    virtual void clusterSeeds_(const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref,
+    virtual void clusterSeeds_(const MSSpectrum& candidates, const MSSpectrum& ref,
                                const UInt scan_index, const UInt c, const bool check_PPMs);
 
 
@@ -480,7 +440,7 @@ protected:
         * signals whose isotopic pattern is nearly diminishing
         * @param map The experimental map.
         * @param box The box to be extended. */
-    void extendBox_(const MSExperiment<PeakType>& map, const Box box);
+    void extendBox_(const PeakMap& map, const Box& box);
 
     /** @brief Returns the monoisotopic mass (with corresponding decimal values) we would expect at @p c_mass.
         * @param c_mass The mass for which we would like to know the averagine decimal places. */
@@ -600,7 +560,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::getTransform(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
+  void IsotopeWaveletTransform<PeakType>::getTransform(MSSpectrum& c_trans, const MSSpectrum& c_ref, const UInt c)
   {
     Int spec_size((Int)c_ref.size());
     //in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
@@ -610,7 +570,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
       old = 0; old_pos = (my_local_pos - from_max_to_left_ - 1 >= 0) ? c_ref[my_local_pos - from_max_to_left_ - 1].getMZ() : c_ref[0].getMZ() - min_spacing_;
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
       c_diff = 0;
@@ -643,7 +603,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::getTransformHighRes(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
+  void IsotopeWaveletTransform<PeakType>::getTransformHighRes(MSSpectrum& c_trans, const MSSpectrum& c_ref, const UInt c)
   {
     Int spec_size((Int)c_ref.size());
     //in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
@@ -653,7 +613,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
 
 
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
@@ -681,7 +641,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::initializeScan(const MSSpectrum<PeakType>& c_ref, const UInt c)
+  void IsotopeWaveletTransform<PeakType>::initializeScan(const MSSpectrum& c_ref, const UInt c)
   {
     data_length_ = (UInt) c_ref.size();
     computeMinSpacing(c_ref);
@@ -690,7 +650,7 @@ protected:
     if (hr_data_) //We have to check this separately, because the simply estimation for LowRes data is destroyed by large gaps
     {
       UInt c_mz_cutoff;
-      typename MSSpectrum<PeakType>::const_iterator start_iter, end_iter;
+      typename MSSpectrum::const_iterator start_iter, end_iter;
       for (UInt i = 0; i < data_length_; ++i)
       {
         c_mz_cutoff =  IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[i].getMZ(), c + 1);
@@ -723,7 +683,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::computeMinSpacing(const MSSpectrum<PeakType>& c_ref)
+  void IsotopeWaveletTransform<PeakType>::computeMinSpacing(const MSSpectrum& c_ref)
   {
     min_spacing_ = INT_MAX;
     for (UInt c_conv_pos = 1; c_conv_pos < c_ref.size(); ++c_conv_pos)
@@ -733,16 +693,16 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::identifyCharge(const MSSpectrum<PeakType>& candidates,
-                                                         const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const double ampl_cutoff, const bool check_PPMs)
+  void IsotopeWaveletTransform<PeakType>::identifyCharge(const MSSpectrum& candidates,
+                                                         const MSSpectrum& ref, const UInt scan_index, const UInt c, const double ampl_cutoff, const bool check_PPMs)
   {
     Size scan_size(candidates.size());
-    typename ConstRefVector<MSSpectrum<PeakType> >::iterator iter;
-    typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
+    typename ConstRefVector<MSSpectrum >::iterator iter;
+    typename MSSpectrum::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
     double mz_cutoff, seed_mz, c_av_intens = 0, c_score = 0, c_sd_intens = 0, threshold = 0, help_mz, share, share_pos, bwd, fwd;
     UInt MZ_start, MZ_end;
 
-    MSSpectrum<PeakType> diffed(candidates);
+    MSSpectrum diffed(candidates);
     diffed[0].setIntensity(0); diffed[scan_size - 1].setIntensity(0);
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -755,7 +715,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -773,7 +733,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -791,7 +751,7 @@ protected:
     ofile.close();
 #endif
 
-    ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate(diffed.begin(), diffed.end());
+    ConstRefVector<MSSpectrum > c_sorted_candidate(diffed.begin(), diffed.end());
 
     //Sort the transform in descending order according to the intensities present in the transform
     c_sorted_candidate.sortByIntensity();
@@ -905,11 +865,11 @@ protected:
   }
 
   template <typename PeakType>
-  double IsotopeWaveletTransform<PeakType>::scoreThis_(const MSSpectrum<PeakType>& candidate,
+  double IsotopeWaveletTransform<PeakType>::scoreThis_(const MSSpectrum& candidate,
                                                            const UInt peak_cutoff, const double seed_mz, const UInt c, const double ampl_cutoff)
   {
     double c_score = 0, c_val;
-    typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
+    typename MSSpectrum::const_iterator c_left_iter2, c_right_iter2;
     Int signal_size((Int)candidate.size());
     //in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
     //for the sake of simplicity (we need here a signed int) we do not cast at every following comparison individually
@@ -1008,7 +968,7 @@ protected:
                                                            const UInt peak_cutoff, const double seed_mz, const UInt c, const double ampl_cutoff)
   {
     double c_score = 0, c_val;
-    typename MSSpectrum<PeakType>::const_iterator c_left_iter2, c_right_iter2;
+    typename MSSpectrum::const_iterator c_left_iter2, c_right_iter2;
     Int signal_size((Int)candidate.size());
 
     //p_h_ind indicates if we are looking for a whole or a peak
@@ -1077,8 +1037,8 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::clusterSeeds_(const MSSpectrum<PeakType>& candidate,
-                                                        const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const bool check_PPMs)
+  void IsotopeWaveletTransform<PeakType>::clusterSeeds_(const MSSpectrum& candidate,
+                                                        const MSSpectrum& ref, const UInt scan_index, const UInt c, const bool check_PPMs)
   {
     typename std::multimap<double, Box>::iterator iter;
     typename Box::iterator box_iter;
@@ -1086,13 +1046,12 @@ protected:
     double c_mz, av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
     double virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
-    typename std::pair<double, double> c_extend;
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
 
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       //Now, let's get the RT boundaries for the box
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
@@ -1188,7 +1147,7 @@ protected:
   }
 
   template <typename PeakType>
-  double IsotopeWaveletTransform<PeakType>::getAvIntens_(const MSSpectrum<PeakType>& scan)
+  double IsotopeWaveletTransform<PeakType>::getAvIntens_(const MSSpectrum& scan)
   {
     double av_intens = 0;
     for (UInt i = 0; i < scan.size(); ++i)
@@ -1202,7 +1161,7 @@ protected:
   }
 
   template <typename PeakType>
-  double IsotopeWaveletTransform<PeakType>::getSdIntens_(const MSSpectrum<PeakType>& scan, const double mean)
+  double IsotopeWaveletTransform<PeakType>::getSdIntens_(const MSSpectrum& scan, const double mean)
   {
     double res = 0, intens;
     for (UInt i = 0; i < scan.size(); ++i)
@@ -1217,7 +1176,7 @@ protected:
   }
 
   template <typename PeakType>
-  double IsotopeWaveletTransform<PeakType>::getAvMZSpacing_(const MSSpectrum<PeakType>& scan) //, Int start_index, Int end_index)
+  double IsotopeWaveletTransform<PeakType>::getAvMZSpacing_(const MSSpectrum& scan) //, Int start_index, Int end_index)
   {
     std::vector<double> diffs(scan.size() - 1, 0);
     for (UInt i = 0; i < scan.size() - 1; ++i)
@@ -1476,7 +1435,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::updateBoxStates(const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
+  void IsotopeWaveletTransform<PeakType>::updateBoxStates(const PeakMap& map, const Size scan_index, const UInt RT_interleave,
                                                           const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
   {
     typename std::multimap<double, Box>::iterator iter, iter2;
@@ -1545,7 +1504,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::extendBox_(const MSExperiment<PeakType>& map, const Box box)
+  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box& box)
   {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "**** CHECKING FOR BOX EXTENSIONS ****" << std::endl;
@@ -1611,14 +1570,14 @@ protected:
     }
 
     UInt pre_index =  box.begin()->second.RT_index - 1;
-    typename MSSpectrum<PeakType>::const_iterator c_iter =  map[pre_index].MZBegin(av_mz);
+    typename MSSpectrum::const_iterator c_iter =  map[pre_index].MZBegin(av_mz);
     double pre_elution = 0;
 
     double mz_start = map[pre_index + 1][box.begin()->second.MZ_begin].getMZ();
     double mz_end = map[pre_index + 1][box.begin()->second.MZ_end].getMZ();
 
-    typename MSSpectrum<PeakType>::const_iterator mz_start_iter = map[pre_index].MZBegin(mz_start), mz_end_iter = map[pre_index].MZBegin(mz_end);
-    for (typename MSSpectrum<PeakType>::const_iterator mz_iter = mz_start_iter; mz_iter != mz_end_iter; ++mz_iter)
+    typename MSSpectrum::const_iterator mz_start_iter = map[pre_index].MZBegin(mz_start), mz_end_iter = map[pre_index].MZBegin(mz_end);
+    for (typename MSSpectrum::const_iterator mz_iter = mz_start_iter; mz_iter != mz_end_iter; ++mz_iter)
     {
       pre_elution += mz_iter->getIntensity();
     }
@@ -1652,7 +1611,7 @@ protected:
 
   template <typename PeakType>
   void IsotopeWaveletTransform<PeakType>::clusterSeeds_(const TransSpectrum& candidates,
-                                                        const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const bool check_PPMs)
+                                                        const MSSpectrum& ref, const UInt scan_index, const UInt c, const bool check_PPMs)
   {
     typename std::multimap<double, Box>::iterator iter;
     typename Box::iterator box_iter;
@@ -1660,12 +1619,11 @@ protected:
     double c_mz, av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
     double virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
-    typename std::pair<double, double> c_extend;
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
@@ -1760,7 +1718,7 @@ protected:
   }
 
   template <typename PeakType>
-  FeatureMap IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff)
+  FeatureMap IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const PeakMap& map, const UInt RT_votes_cutoff)
   {
     FeatureMap feature_map;
     typename std::multimap<double, Box>::iterator iter;
@@ -1769,7 +1727,6 @@ protected:
     double av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0, mz_cutoff, sum_of_ref_intenses_g;
     bool restart = false;
 
-    typename std::pair<double, double> c_extend;
     for (iter = closed_boxes_.begin(); iter != closed_boxes_.end(); ++iter)
     {
       sum_of_ref_intenses_g = 0;
@@ -1820,7 +1777,7 @@ protected:
 
       c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
-      av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0;
+      av_intens = 0; av_ref_intens = 0; av_score = 0; av_mz = 0; av_RT = 0;
       //Now, let's get the RT boundaries for the box
       std::vector<DPosition<2> > point_set;
       double sum_of_ref_intenses_l;
@@ -1842,11 +1799,11 @@ protected:
         if (intenstype_ == "ref")
         {
           //Find monoisotopic max
-          const MSSpectrum<PeakType>& c_spec(map[box_iter->second.RT_index]);
+          const MSSpectrum& c_spec(map[box_iter->second.RT_index]);
           //'Correct' possible shift
           for (unsigned int i = 0; i < mz_cutoff; ++i)
           {
-            typename MSSpectrum<PeakType>::const_iterator h_iter = c_spec.MZBegin(c_mz + i * Constants::IW_NEUTRON_MASS / c_charge + Constants::IW_QUARTER_NEUTRON_MASS / (double)c_charge), hc_iter = c_spec.MZBegin(c_mz + i * Constants::IW_NEUTRON_MASS / c_charge);
+            typename MSSpectrum::const_iterator h_iter = c_spec.MZBegin(c_mz + i * Constants::IW_NEUTRON_MASS / c_charge + Constants::IW_QUARTER_NEUTRON_MASS / (double)c_charge), hc_iter = c_spec.MZBegin(c_mz + i * Constants::IW_NEUTRON_MASS / c_charge);
 
             hc_iter = c_spec.MZBegin(c_mz + i * Constants::IW_NEUTRON_MASS / c_charge);
 
@@ -1943,10 +1900,10 @@ protected:
   }
 
   template <typename PeakType>
-  bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_(const MSSpectrum<PeakType>& candidate,
-                                                                        const MSSpectrum<PeakType>& ref, const double seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const double transintens, const double prev_score)
+  bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_(const MSSpectrum& candidate,
+                                                                        const MSSpectrum& ref, const double seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const double transintens, const double prev_score)
   {
-    typename MSSpectrum<PeakType>::const_iterator iter, ref_iter;
+    typename MSSpectrum::const_iterator iter, ref_iter;
     UInt peak_cutoff;
     peak_cutoff = IsotopeWavelet::getNumPeakCutOff(seed_mz, c + 1);
 
@@ -1964,10 +1921,10 @@ protected:
     if (check_PPMs)
     {
       reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
-      typename MSSpectrum<PeakType>::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+      typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
       while (h_iter != ref.begin())
       {
         --h_iter;
@@ -1986,7 +1943,7 @@ protected:
         }
       }
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       if (real_mz <= 0 || real_intens <= 0)
       {
         return false;
@@ -1998,11 +1955,11 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
-        typename MSSpectrum<PeakType>::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+        typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
         while (h_iter != ref.begin())
         {
           --h_iter;
@@ -2020,7 +1977,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;
@@ -2038,8 +1995,8 @@ protected:
     }
 
     double mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos(real_mz, c + 1);
-    typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz - Constants::IW_QUARTER_NEUTRON_MASS / (c + 1.));
-    typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_l_MZ_iter, real_mz + mz_cutoff / (c + 1.), ref.end());
+    typename MSSpectrum::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz - Constants::IW_QUARTER_NEUTRON_MASS / (c + 1.));
+    typename MSSpectrum::const_iterator real_r_MZ_iter = ref.MZBegin(real_l_MZ_iter, real_mz + mz_cutoff / (c + 1.), ref.end());
     if (real_r_MZ_iter == ref.end())
     {
       --real_r_MZ_iter;
@@ -2062,9 +2019,9 @@ protected:
 
   template <typename PeakType>
   bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_(const TransSpectrum& candidate,
-                                                                        const MSSpectrum<PeakType>& ref, const double seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const double transintens, const double prev_score)
+                                                                        const MSSpectrum& ref, const double seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const double transintens, const double prev_score)
   {
-    typename MSSpectrum<PeakType>::const_iterator iter, ref_iter;
+    typename MSSpectrum::const_iterator iter, ref_iter;
     UInt peak_cutoff;
     peak_cutoff = IsotopeWavelet::getNumPeakCutOff(seed_mz, c + 1);
 
@@ -2082,10 +2039,10 @@ protected:
     if (check_PPMs)
     {
       reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
-      typename MSSpectrum<PeakType>::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+      auto h_iter = ref_iter, hc_iter = ref_iter;
       while (h_iter != ref.begin())
       {
         --h_iter;
@@ -2105,7 +2062,7 @@ protected:
       }
       ++h_iter;
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
       std::cout << "Plausibility check old_mz: " << iter->getMZ() << "\t" << real_mz << std::endl;
@@ -2122,11 +2079,11 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
-        typename MSSpectrum<PeakType>::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+        auto h_iter = ref_iter, hc_iter = ref_iter;
         while (h_iter != ref.begin())
         {
           --h_iter;
@@ -2144,7 +2101,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;
@@ -2162,8 +2119,8 @@ protected:
     }
 
     double mz_cutoff = IsotopeWavelet::getMzPeakCutOffAtMonoPos(real_mz, c + 1);
-    typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz - Constants::IW_QUARTER_NEUTRON_MASS / (c + 1.));
-    typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_l_MZ_iter, real_mz + mz_cutoff / (c + 1.), ref.end());
+    typename MSSpectrum::const_iterator real_l_MZ_iter = ref.MZBegin(real_mz - Constants::IW_QUARTER_NEUTRON_MASS / (c + 1.));
+    typename MSSpectrum::const_iterator real_r_MZ_iter = ref.MZBegin(real_l_MZ_iter, real_mz + mz_cutoff / (c + 1.), ref.end());
     if (real_r_MZ_iter == ref.end())
     {
       --real_r_MZ_iter;
@@ -2186,7 +2143,7 @@ protected:
   }
 
   template <typename PeakType>
-  std::pair<double, double> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_(const MSSpectrum<PeakType>& ref, const double c_mz, const UInt c)
+  std::pair<double, double> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_(const MSSpectrum& ref, const double c_mz, const UInt c)
   {
     double mass = c_mz * (c + 1) - Constants::IW_PROTON_MASS * (c);
     double ppms = getPPMs_(peptideMassRule_(mass), mass);
@@ -2208,4 +2165,4 @@ protected:
 
 #pragma clang diagnostic pop
 
-#endif
+

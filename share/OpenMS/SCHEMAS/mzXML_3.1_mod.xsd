@@ -1,0 +1,686 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by Patrick Pedrioli (Institute For Systems Biology) -->
+<!-- modified 3.1 scheme since XercesC validator throws 
+  180: Validation error in file 'MzXMLFile_test_568.tmp' line 20 column 18: element 'msInstrument' has identity constraint key with no value
+  180: Validation error in file 'MzXMLFile_test_568.tmp' line 39 column 10: keyref 'onlyValidMsInstrumentID' refers to out of scope key/unique
+  see http://stackoverflow.com/questions/3025365/traceability-with-xsd for more information
+  
+  furthermore, the schemaLocation URLs were changed from http:// to local URIs, since Xerces Validator might not support URL schemata (depending on how it was compiled)
+  
+  The original schema is mzXML_3.1.xsd stored right next to this file.
+  
+ -->
+<xs:schema targetNamespace="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:cff="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" elementFormDefault="qualified" attributeFormDefault="unqualified" version="3.1">
+	<xs:include schemaLocation="separation_technique_1.0.xsd"/>
+	<xs:include schemaLocation="general_types_1.0.xsd"/>
+	<xs:element name="msRun">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="parentFile" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Path to all the ancestor files (up to the native acquisition file) used to generate the current XML instance document.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:anySimpleType">
+								<xs:attribute name="fileName" type="xs:anyURI" use="required">
+									<xs:annotation>
+										<xs:documentation>Name of the parent file</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="fileType" use="required">
+									<xs:annotation>
+										<xs:documentation>Was the parent file a native acquisition file? Or was it processed data?</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="RAWData"/>
+											<xs:enumeration value="processedData"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="fileSha1" use="required">
+									<xs:annotation>
+										<xs:documentation>sha-1 sum of the parent file</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:length value="40"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+					<xs:key name="parentFileKey">
+						<xs:selector xpath="."/>
+						<xs:field xpath="@fileSha1"/>
+					</xs:key>
+				</xs:element>
+				<xs:element name="msInstrument" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>General information about the MS instrument.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="msManufacturer">
+								<xs:complexType>
+									<xs:complexContent>
+										<xs:extension base="cff:ontologyEntryType"/>
+									</xs:complexContent>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="msModel" type="cff:ontologyEntryType"/>
+							<xs:element name="msIonisation" type="cff:ontologyEntryType"/>
+							<xs:element name="msMassAnalyzer">
+								<xs:complexType>
+									<xs:complexContent>
+										<xs:extension base="cff:ontologyEntryType"/>
+									</xs:complexContent>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="msDetector" type="cff:ontologyEntryType"/>
+							<xs:element ref="cff:software"/>
+							<xs:element name="msResolution" type="cff:ontologyEntryType" minOccurs="0"/>
+							<xs:element ref="cff:operator" minOccurs="0"/>
+							<xs:sequence minOccurs="0" maxOccurs="unbounded">
+								<xs:element name="nameValue" type="cff:namevalueType">
+									<xs:annotation>
+										<xs:documentation>Any additional property of the instrument not included elsewhere in the instrument element.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="comment" type="xs:string" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>Additional comments.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+							</xs:sequence>
+						</xs:sequence>
+						<xs:attribute name="msInstrumentID" type="xs:int" use="optional"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="dataProcessing" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Description of any manipulation (from the first conversion to mzXML format until the creation of the current mzXML instance document) applied to the data.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="cff:software">
+								<xs:annotation>
+									<xs:documentation>Software used to convert the data. If data has been processed (e.g. profile > centroid) by any additional progs these should be added too.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:sequence minOccurs="0" maxOccurs="unbounded">
+								<xs:element name="processingOperation" type="cff:namevalueType">
+									<xs:annotation>
+										<xs:documentation>Any additional manipulation not included elsewhere in the dataProcessing element.</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+								<xs:element name="comment" type="xs:string" minOccurs="0">
+									<xs:annotation>
+										<xs:documentation>Additional comments</xs:documentation>
+									</xs:annotation>
+								</xs:element>
+							</xs:sequence>
+						</xs:sequence>
+						<xs:attribute name="intensityCutoff" type="xs:float" use="optional">
+							<xs:annotation>
+								<xs:documentation>Intensity threshold for including a peak in the XML output</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="centroided" type="xs:boolean" use="optional">
+							<xs:annotation>
+								<xs:documentation>Is the data centroided</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="deisotoped" type="xs:boolean" use="optional">
+							<xs:annotation>
+								<xs:documentation>Is the data deisotoped</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="chargeDeconvoluted" type="xs:boolean" use="optional">
+							<xs:annotation>
+								<xs:documentation>Has the charge state been deconvoluted</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="spotIntegration" type="xs:boolean" use="optional"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="separation" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Information about the separation technique, if any, used right before the acquisition.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="cff:separationTechnique" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="spotting" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Acquisition independent properties of a MALDI experiment.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="plate" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Information about a MALDI plate.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="plateManufacturer" type="cff:ontologyEntryType"/>
+										<xs:element name="plateModel" type="cff:ontologyEntryType"/>
+										<xs:element name="pattern" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="spottingPattern" type="cff:ontologyEntryType"/>
+													<xs:element name="orientation">
+														<xs:annotation>
+															<xs:documentation>Defines the orientation of the spotting pattern, with the IDs of the fist two consecutive spotted spots.</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:attribute name="firstSpotID" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>ID of the first spot spotted using "spottingPattern". This ID must have been defined also in the spot element.</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+															<xs:attribute name="secondSpotID" type="xs:string" use="required">
+																<xs:annotation>
+																	<xs:documentation>ID of the second spot spotted using "spottingPattern". This ID must have been defined also in the spot element.</xs:documentation>
+																</xs:annotation>
+															</xs:attribute>
+														</xs:complexType>
+														<xs:keyref name="onlyValidFirstSpotID" refer="cff:spotKey">
+															<xs:selector xpath="."/>
+															<xs:field xpath="@spotID"/>
+														</xs:keyref>
+														<xs:keyref name="onlyValidSecondSpotID" refer="cff:spotKey">
+															<xs:selector xpath="."/>
+															<xs:field xpath="@spotID"/>
+														</xs:keyref>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="spot" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Information about individual spots.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="maldiMatrix" type="cff:ontologyEntryType"/>
+												</xs:sequence>
+												<xs:attribute name="spotID" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>Unique identifier for the spot.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="spotXPosition" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>X cartesian position of the spot.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="spotYPosition" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>Y cartesian position of the spot.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="spotDiameter" type="xs:positiveInteger" use="optional"/>
+											</xs:complexType>
+											<xs:key name="spotKey">
+												<xs:selector xpath="."/>
+												<xs:field xpath="@spotID"/>
+											</xs:key>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="plateID" type="xs:positiveInteger" use="required">
+										<xs:annotation>
+											<xs:documentation>Unique identifier for the plate.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="spotXCount" type="xs:positiveInteger" use="required"/>
+									<xs:attribute name="spotYCount" type="xs:positiveInteger" use="required"/>
+								</xs:complexType>
+								<xs:key name="plateKey">
+									<xs:selector xpath="."/>
+									<xs:field xpath="@plateID"/>
+								</xs:key>
+							</xs:element>
+							<xs:element name="robot" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Information about the robot, if any, used to spot the plates.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="robotManufacturer" type="cff:ontologyEntryType"/>
+										<xs:element name="robotModel" type="cff:ontologyEntryType"/>
+									</xs:sequence>
+									<xs:attribute name="timePerSpot" type="xs:duration" use="required"/>
+									<xs:attribute name="deadVolume" type="xs:nonNegativeInteger" use="optional">
+										<xs:annotation>
+											<xs:documentation>Dead volume in ul of the spotting robot.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element ref="cff:scan" maxOccurs="unbounded"/>
+				<xs:element name="sha1" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>sha-1 sum for this file (from the beginning of the file up to (and including) the opening tag of sha1</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:length value="40"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="scanCount" type="xs:positiveInteger" use="optional">
+				<xs:annotation>
+					<xs:documentation>Total number of scans contained in the XML instance document. This number should be equal to the total number of scans in the original RAW data, unless some were not converted (e.g.: signal below threshold)..</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="startTime" type="xs:duration" use="optional">
+				<xs:annotation>
+					<xs:documentation>The time at which the run was started.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="endTime" type="xs:duration" use="optional">
+				<xs:annotation>
+					<xs:documentation>The time at which the run was ended.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="operator">
+		<xs:annotation>
+			<xs:documentation>Contact information for the person responsible for the instrument.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="xs:anySimpleType">
+					<xs:attribute name="first" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:documentation>First name</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="last" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:documentation>Last name</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="phone" type="xs:string" use="optional">
+						<xs:annotation>
+							<xs:documentation>Phone number</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="email" use="optional">
+						<xs:annotation>
+							<xs:documentation>email address</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:pattern value="(.)*[@](.)*\.(.)*"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="URI" type="xs:anyURI" use="optional">
+						<xs:annotation>
+							<xs:documentation>Uniform Resource Identifier</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:extension>
+			</xs:simpleContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="software">
+		<xs:annotation>
+			<xs:documentation>Software identifier</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="xs:anySimpleType">
+					<xs:attribute name="type" use="required">
+						<xs:annotation>
+							<xs:documentation>acquisition: acquisition software running the MS (instrument section)
+conversion: RAW data to XML converter utility (dataProcessing section)
+processing: any form of data processing software not included by the two previous definitions (dataProcessing section)</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:enumeration value="acquisition"/>
+								<xs:enumeration value="conversion"/>
+								<xs:enumeration value="processing"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="name" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:documentation>Name of the acquisition software</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="version" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:documentation>Version of the acquisition software. Legal patterns are n.m(a or b)</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="completionTime" type="xs:dateTime" use="optional">
+						<xs:annotation>
+							<xs:documentation>Time of completion of the dataProcessing operation</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:extension>
+			</xs:simpleContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="scan">
+		<xs:annotation>
+			<xs:documentation>The actual MS data is here</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="scanOrigin" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:attribute name="parentFileID" use="required">
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="40"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="num" type="xs:nonNegativeInteger" use="required"/>
+					</xs:complexType>
+					<xs:keyref name="onlyValidParentFileID" refer="cff:parentFileKey">
+						<xs:selector xpath="."/>
+						<xs:field xpath="@parentFileID"/>
+					</xs:keyref>
+				</xs:element>
+				<xs:element name="precursorMz" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Information about the precursor ion.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:float">
+								<xs:attribute name="precursorScanNum" type="xs:positiveInteger" use="optional">
+									<xs:annotation>
+										<xs:documentation>This is a unique identifier in case more than one precusor  were selected to generate the MS/MS spectra</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="precursorIntensity" type="xs:float" use="required">
+									<xs:annotation>
+										<xs:documentation>This is the Intensity of the parent Ion. It is required in case of future exporting to pkl format. This should be the intensity as measured by the instrument prior to any data elaboration</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="precursorCharge" type="xs:positiveInteger" use="optional">
+									<xs:annotation>
+										<xs:documentation>If the charge state of the precursor is know, than it should be stored here.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="possibleCharges" type="xs:string" use="optional">
+									<xs:annotation>
+										<xs:documentation>If the exact charge state of the precursor is not known but the guessed charge states can be emunmerated, they may be recorded here as a comma-separated string of integers (for example: 2,3,4)</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="windowWideness" type="xs:float" use="optional">
+									<xs:annotation>
+										<xs:documentation>This is the total wideness of the precursor mass selection window. </xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="activationMethod" use="optional">
+									<xs:annotation>
+										<xs:documentation>Activation or fragmentation method: ETD, ECD, CID, etc</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="ETD"/>
+											<xs:enumeration value="ECD"/>
+											<xs:enumeration value="CID"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="maldi" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Acquisition dependent properties of a MALDI experiment.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="plateID" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Unique plate ID. This ID must have been defined also in the plate element.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="spotID" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Unique spot ID. This ID must have been defined also in the spot element.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="laserShootCount" type="xs:positiveInteger" use="optional">
+							<xs:annotation>
+								<xs:documentation>Number of times the laser was fired to generate this scan.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="laserFrequency" type="xs:duration" use="optional">
+							<xs:annotation>
+								<xs:documentation>Frequency of the laser.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="laserIntensity" type="xs:positiveInteger" use="optional">
+							<xs:annotation>
+								<xs:documentation>Intensity of laser.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="collisionGas" type="xs:boolean" use="optional"/>
+					</xs:complexType>
+					<xs:keyref name="onlyValidPlateID" refer="cff:plateKey">
+						<xs:selector xpath="."/>
+						<xs:field xpath="@plateID"/>
+					</xs:keyref>
+					<xs:keyref name="onlyValidSpotID" refer="cff:spotKey">
+						<xs:selector xpath="."/>
+						<xs:field xpath="@spotID"/>
+					</xs:keyref>
+				</xs:element>
+				<xs:element name="peaks" nillable="1" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>This is the actual data encoded using base64. Byte order must be network. The order of the pairs must be m/z – intensity.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="cff:strictBase64Type">
+								<xs:attribute name="precision" use="optional">
+									<xs:annotation>
+										<xs:documentation>nr of bits used by each component</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:positiveInteger">
+											<xs:enumeration value="32"/>
+											<xs:enumeration value="64"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="byteOrder" type="xs:string" use="required" fixed="network">
+									<xs:annotation>
+										<xs:documentation>Byte order of the encoded binary information (must be network).</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="contentType" use="required">
+									<xs:annotation>
+										<xs:documentation>Order of the m/z intensity pairs (must be m/z-int).</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="m/z-int"/>
+											<xs:enumeration value="m/z"/>
+											<xs:enumeration value="m/z ruler"/>
+											<xs:enumeration value="TOF"/>
+											<xs:enumeration value="intensity"/>
+											<xs:enumeration value="S/N"/>
+											<xs:enumeration value="charge"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="compressionType" use="required">
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="none"/>
+											<xs:enumeration value="zlib"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="compressedLen" type="xs:int" use="required"/>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
+				<xs:sequence minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="nameValue" type="cff:namevalueType">
+						<xs:annotation>
+							<xs:documentation>This is reserved for describing properties of the scan not elsewhere included in the schema</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="comment" type="xs:string" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Additional comments</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:element ref="cff:scan" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="num" type="xs:positiveInteger" use="required">
+				<xs:annotation>
+					<xs:documentation>Scan number</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="msLevel" type="xs:positiveInteger" use="required">
+				<xs:annotation>
+					<xs:documentation>1: MS
+2: MS/MS
+...</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="peaksCount" type="xs:nonNegativeInteger" use="required">
+				<xs:annotation>
+					<xs:documentation>Total number of m/z-intensity pairs in the scan</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="polarity" use="optional">
+				<xs:annotation>
+					<xs:documentation>+: positive
+-: negative
+any</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="+"/>
+						<xs:enumeration value="-"/>
+						<xs:enumeration value="any"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="scanType" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="Full"/>
+						<xs:enumeration value="zoom"/>
+						<xs:enumeration value="SIM"/>
+						<xs:enumeration value="SRM"/>
+						<xs:enumeration value="CRM"/>
+						<xs:enumeration value="Q1"/>
+						<xs:enumeration value="Q3"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="filterLine" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>For Thermo instruments, a space to record the "filter line" string for the scan.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="centroided" type="xs:boolean" use="optional">
+				<xs:annotation>
+					<xs:documentation>This only maters if centroided attribute of dataProcessing element is 0 or absent.
+This attribute should be used only if some scans were processed and others not. If all scans were processed, than the corresponding attribute form the dataProcessing element should be used instead.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="deisotoped" type="xs:boolean" use="optional">
+				<xs:annotation>
+					<xs:documentation>This only maters if deisotoped attribute of dataProcessing element is 0 or absent.
+This attribute should be used only if some scans were processed and others not. If all scans were processed, than the corresponding attribute form the dataProcessing element should be used instead.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="chargeDeconvoluted" type="xs:boolean" use="optional" default="0">
+				<xs:annotation>
+					<xs:documentation>This only maters if chargeDeconvoluted attribute of dataProcessing element is 0 or absent.
+This attribute should be used only if some scans were processed and others not. If all scans were processed, than the corresponding attribute form the dataProcessing element should be used instead.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="retentionTime" type="xs:duration" use="optional">
+				<xs:annotation>
+					<xs:documentation>Retention time of the scan</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="ionisationEnergy" type="xs:float" use="optional"/>
+			<xs:attribute name="collisionEnergy" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>Collision energy used to fragment the parent ion.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="cidGasPressure" type="xs:float" use="optional"/>
+			<xs:attribute name="startMz" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>Setted low m/z boundary (this is the instrumetal setting)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="endMz" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>Setted high m/z boundary (this is the instrumetal setting)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="lowMz" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>Observed low m/z (this is what the actual data looks like)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="highMz" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>Observed high m/z (this is what the actual data looks like)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="basePeakMz" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>m/z of the base peak (most intense peak)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="basePeakIntensity" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>Intensity of the base peak (most intense peak)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="totIonCurrent" type="xs:float" use="optional">
+				<xs:annotation>
+					<xs:documentation>Total ion current (total intensity in the scan)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="msInstrumentID" type="xs:int" use="optional"/>
+		</xs:complexType>
+    <xs:key name="msInstrumentIDKey">
+      <xs:selector xpath="msRun/msInstrument"/>
+      <xs:field xpath="@msInstrumentID"/>
+    </xs:key>
+    <xs:keyref name="myValidMsInstrumentID" refer="cff:msInstrumentIDKey">
+			<xs:selector xpath="scan"/>
+			<xs:field xpath="@msInstrumentID"/>
+		</xs:keyref>
+	</xs:element>
+	<xs:simpleType name="strictBase64Type">
+		<xs:restriction base="xs:base64Binary">
+			<xs:pattern value="([A-Za-z0-9/\+=])*"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

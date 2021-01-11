@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -53,8 +53,8 @@ START_TEST(SvmTheoreticalSpectrumGeneratorSet, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-SvmTheoreticalSpectrumGeneratorSet* ptr = 0;
-SvmTheoreticalSpectrumGeneratorSet* nullPointer = 0;
+SvmTheoreticalSpectrumGeneratorSet* ptr = nullptr;
+SvmTheoreticalSpectrumGeneratorSet* nullPointer = nullptr;
 
 START_SECTION(SvmTheoreticalSpectrumGeneratorSet())
   ptr = new SvmTheoreticalSpectrumGeneratorSet();
@@ -108,11 +108,11 @@ START_SECTION(SvmTheoreticalSpectrumGenerator & getSvmModel(Size))
     NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge))
+START_SECTION(void simulate(PeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge))
 
-    RichPeakMap exp;
+    PeakMap exp;
     boost::random::mt19937_64 rnd_gen (0);
-    RichPeakSpectrum spec;
+    PeakSpectrum spec;
     AASequence peptide = AASequence::fromString("IFSQVGK");
 
     Param p = gen_set.getSvmModel(2).getDefaults();
@@ -121,7 +121,12 @@ START_SECTION(void simulate(RichPeakSpectrum & spectrum, const AASequence & pept
 
     gen_set.simulate(spec, peptide, rnd_gen, 2);
 
-    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+#if OPENMS_BOOST_VERSION_MINOR < 56
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+#else
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test_boost58.mzML"),exp);
+#endif
+
     if(exp.size())
     {
       TEST_EQUAL(spec.size(), exp[0].size());

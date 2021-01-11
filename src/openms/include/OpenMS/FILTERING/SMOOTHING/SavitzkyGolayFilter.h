@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
-#define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -107,48 +107,34 @@ public:
     SavitzkyGolayFilter();
 
     /// Destructor
-    virtual ~SavitzkyGolayFilter();
+    ~SavitzkyGolayFilter() override;
 
-    /**
-      @brief Removed the noise from an MSSpectrum containing profile data.
-    */
-    template <typename PeakType>
-    void filter(MSSpectrum<PeakType> & spectrum)
+    // low level template to filters spectra and chromatograms
+    // raw data and meta data needs to be copied to the output container before calling this function
+    template<class InputIt, class OutputIt>
+    void filter(InputIt first, InputIt last, OutputIt d_first)
     {
-      UInt n = (UInt)spectrum.size();
+      size_t n = std::distance(first, last);
 
-      typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
-      typename MSSpectrum<PeakType>::iterator last = spectrum.end();
-
-      //copy the data AND META DATA to the output container
-      MSSpectrum<PeakType> output = spectrum;
-
-      if (frame_size_ > n)
-      {
-        return;
-      }
+      if (frame_size_ > n) { return; }
 
       int i;
       UInt j;
       int mid = (frame_size_ / 2);
       double help;
 
-      typename MSSpectrum<PeakType>::iterator it_forward;
-      typename MSSpectrum<PeakType>::iterator it_help;
-      typename MSSpectrum<PeakType>::iterator out_it = output.begin();
-
       // compute the transient on
+      OutputIt out_it = d_first;
+
       for (i = 0; i <= mid; ++i)
       {
-        it_forward = (first - i);
+        InputIt it_forward = (first - i);
         help = 0;
-
         for (j = 0; j < frame_size_; ++j)
         {
           help += it_forward->getIntensity() * coeffs_[(i + 1) * frame_size_ - 1 - j];
           ++it_forward;
         }
-
 
         out_it->setPosition(first->getPosition());
         out_it->setIntensity(std::max(0.0, help));
@@ -157,10 +143,11 @@ public:
       }
 
       // compute the steady state output
-      it_help = (last - mid);
+      InputIt it_help = (last - mid);
+
       while (first != it_help)
       {
-        it_forward = (first - mid);
+        InputIt it_forward = (first - mid);
         help = 0;
 
         for (j = 0; j < frame_size_; ++j)
@@ -168,7 +155,6 @@ public:
           help += it_forward->getIntensity() * coeffs_[mid * frame_size_ + j];
           ++it_forward;
         }
-
 
         out_it->setPosition(first->getPosition());
         out_it->setIntensity(std::max(0.0, help));
@@ -179,7 +165,7 @@ public:
       // compute the transient off
       for (i = (mid - 1); i >= 0; --i)
       {
-        it_forward = (first - (frame_size_ - i - 1));
+        InputIt it_forward = (first - (frame_size_ - i - 1));
         help = 0;
 
         for (j = 0; j < frame_size_; ++j)
@@ -194,32 +180,38 @@ public:
         ++first;
       }
 
-      spectrum = output;
     }
 
-    template <typename PeakType>
-    void filter(MSChromatogram<PeakType> & chromatogram)
+    /**
+      @brief Removed the noise from an MSSpectrum containing profile data.
+    */
+    void filter(MSSpectrum & spectrum)
     {
+      // copy the data AND META DATA to the output container
+      MSSpectrum output = spectrum;
+      // filter
+      filter(spectrum.begin(), spectrum.end(), output.begin());
+      // swap back
+      std::swap(spectrum, output);
+    }
 
-      MSSpectrum<PeakType> filter_spectra;
-      for (typename MSChromatogram<PeakType>::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
-      {
-        filter_spectra.push_back(*it);
-      }
-      filter(filter_spectra);
-      chromatogram.clear(false);
-      for (typename MSSpectrum<PeakType>::const_iterator it = filter_spectra.begin(); it != filter_spectra.end(); ++it)
-      {
-        chromatogram.push_back(*it);
-      }
-
+    /**
+      @brief Removed the noise from an MSChromatogram
+    */
+    void filter(MSChromatogram & chromatogram)
+    {
+      // copy the data AND META DATA to the output container
+      MSChromatogram output = chromatogram;
+      // filter
+      filter(chromatogram.begin(), chromatogram.end(), output.begin());
+      // swap back
+      std::swap(chromatogram, output);
     }
 
     /**
       @brief Removed the noise from an MSExperiment containing profile data.
     */
-    template <typename PeakType>
-    void filterExperiment(MSExperiment<PeakType> & map)
+    void filterExperiment(PeakMap & map)
     {
       Size progress = 0;
       startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
@@ -239,14 +231,15 @@ public:
 protected:
     /// Coefficients
     std::vector<double> coeffs_;
+
     /// UInt of the filter kernel (number of pre-tabulated coefficients)
     UInt frame_size_;
+
     /// The order of the smoothing polynomial.
     UInt order_;
-    // Docu in base class
-    virtual void updateMembers_();
 
+    // Docu in base class
+    void updateMembers_() override;
   };
 
 } // namespace OpenMS
-#endif // OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -130,7 +130,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input mzML file containing the ER spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -163,7 +163,7 @@ protected:
     setMinFloat_("expansion_range", 0.0);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -219,10 +219,10 @@ protected:
 
 
     ConsensusMap results_map;
-    results_map.getFileDescriptions()[0].label = "light";
-    results_map.getFileDescriptions()[0].filename = in;
-    results_map.getFileDescriptions()[1].label = "heavy";
-    results_map.getFileDescriptions()[1].filename = in;
+    results_map.getColumnHeaders()[0].label = "light";
+    results_map.getColumnHeaders()[0].filename = in;
+    results_map.getColumnHeaders()[1].label = "heavy";
+    results_map.getColumnHeaders()[1].filename = in;
 
     FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
@@ -444,14 +444,13 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-
     if (feature_out != "")
     {
-      all_features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+      all_features.setPrimaryMSRunPath({in}, exp);
       FeatureXMLFile().store(feature_out, all_features);
     }
     writeDebug_("Writing output", 1);
-    results_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    results_map.setPrimaryMSRunPath({in}, exp);
     ConsensusXMLFile().store(out, results_map);
 
     return EXECUTION_OK;

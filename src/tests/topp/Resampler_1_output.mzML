@@ -143,17 +143,14 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="475.321" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="940.368" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="940.368" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
 								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="7817" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
@@ -161,7 +158,7 @@
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="480">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -182,11 +179,11 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=1">1</offset>
-		<offset idRef="spectrum=2">1</offset>
-		<offset idRef="spectrum=3">1</offset>
+		<offset idRef="spectrum=1">5378</offset>
+		<offset idRef="spectrum=2">7540</offset>
+		<offset idRef="spectrum=3">9674</offset>
 	</index>
 </indexList>
-<indexListOffset>1</indexListOffset>
+<indexListOffset>12669</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

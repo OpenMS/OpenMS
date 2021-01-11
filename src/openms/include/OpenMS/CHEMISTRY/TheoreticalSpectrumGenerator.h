@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,25 +28,40 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg, Eugen Netz $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
-#define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
   class AASequence;
 
   /**
-      @brief Generates theoretical spectra with various options
+      @brief Generates theoretical spectra for peptides with various options
 
-  @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
+      If the tool parameter add_metainfo is set to true,
+      ion names like y8+ or [M-H2O+2H]++ are written as strings in a StringDataArray with the name "IonNames"
+      and charges are written as integers in an IntegerDataArray with the name "Charges"
+      in the returned PeakSpectrum.
+
+      The getSpectrum function can be called with the same PeakSpectrum multiple times to add additional peaks.
+      If the PeakSpectrum already has DataArrays, then the first StringDataArray and the first IntegerDataArray
+      are extended. Therefore it is not recommended to add to or change the PeakSpectrum or these DataArrays
+      between calls of the getSpectrum function with the same PeakSpectrum.
+
+      @note The generation of neutral loss peaks is very slow in this class.
+      Something similar to the neutral loss precalculation used in TheoreticalSpectrumGeneratorXLMS
+      should be implemented here as well.
+
+      @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
 
       @ingroup Chemistry
   */
@@ -62,72 +77,78 @@ namespace OpenMS
     TheoreticalSpectrumGenerator();
 
     /// copy constructor
-    TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator & source);
+    TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source);
 
     /// destructor
-    virtual ~TheoreticalSpectrumGenerator();
+    ~TheoreticalSpectrumGenerator() override;
     //@}
 
     /// assignment operator
-    TheoreticalSpectrumGenerator & operator=(const TheoreticalSpectrumGenerator & tsg);
+    TheoreticalSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& tsg);
 
     /** @name Acessors
      */
     //@{
-    /// returns a spectrum with b and y peaks
-    virtual void getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-
-    /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    virtual void addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
-
-    /// adds the precursor peaks to the spectrum
-    virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-
-    /// Adds the common, most abundant immonium ions to the theoretical spectra
-    void addAbundantImmoniumIons(RichPeakSpectrum & spec) const;
+    /// Generates a spectrum for a peptide sequence, with the ion types that are set in the tool parameters
+    virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge) const;
 
     /// overwrite
-    void updateMembers_();
-
+    void updateMembers_() override;
     //@}
 
     protected:
-      /// helper to add an isotope cluster to a spectrum
-      void addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const;
 
-      /// helper to add a single peak to a spectrum
-      void addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const;
-   
-      /// helper for mapping residue type to letter
-      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
+    /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, MSSpectrum::Chunks& chunks, const Residue::ResidueType res_type, Int charge = 1) const;
 
-      /// helper to add full neutral loss ladders
-      void addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const;
+    /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    virtual void addPrecursorPeaks_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
 
-      bool add_b_ions_;
-      bool add_y_ions_; 
-      bool add_a_ions_; 
-      bool add_c_ions_;
-      bool add_x_ions_; 
-      bool add_z_ions_; 
-      bool add_first_prefix_ion_;
-      bool add_losses_;
-      bool add_metainfo_;
-      bool add_isotopes_;
-      bool add_precursor_peaks;
-      bool add_abundant_immonium_ions;
-      double a_intensity_;
-      double b_intensity_;
-      double c_intensity_;
-      double x_intensity_;
-      double y_intensity_;
-      double z_intensity_;
-      Int max_isotope_;
-      double rel_loss_intensity_;
-      double pre_int_;
-      double pre_int_H2O_;
-      double pre_int_NH3_;
+    /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addAbundantImmoniumIons_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
+
+    /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const Residue::ResidueType res_type, Int charge, double intensity) const;
+
+    /// helper for mapping residue type to letter
+    static char residueTypeToIonLetter_(const Residue::ResidueType res_type);
+
+    /// helper to add full neutral loss ladders (for isotope clusters), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, const Residue::ResidueType res_type, int charge) const;
+
+    /// helper to add full neutral loss ladders (for single peaks), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const std::map<EmpiricalFormula, String>& formula_str_cache, double intensity, const Residue::ResidueType res_type, bool add_metainfo, int charge) const;
+
+    bool add_b_ions_;
+    bool add_y_ions_;
+    bool add_a_ions_;
+    bool add_c_ions_;
+    bool add_x_ions_;
+    bool add_z_ions_;
+    bool add_first_prefix_ion_;
+    bool add_losses_;
+    bool add_metainfo_;
+    bool add_isotopes_;
+    int isotope_model_;
+    bool add_precursor_peaks_;
+    bool add_all_precursor_charges_ ;
+    bool add_abundant_immonium_ions_;
+    bool sort_by_position_;
+    double a_intensity_;
+    double b_intensity_;
+    double c_intensity_;
+    double x_intensity_;
+    double y_intensity_;
+    double z_intensity_;
+
+    Int max_isotope_;
+    double rel_loss_intensity_;
+    double max_isotope_probability_;
+    double pre_int_;
+    double pre_int_H2O_;
+    double pre_int_NH3_;
+
+    // formula.toString() is extremely expensive, so we use a member map to remember what String belongs to which formula
+    //mutable std::map<EmpiricalFormula, String> formula_str_cache_;
   };
 }
-#endif
-

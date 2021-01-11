@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QList>
 #include <QtCore/QString>
@@ -122,17 +121,8 @@ print s
 
   */
 
-
   const char Base64::encoder_[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   const char Base64::decoder_[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
-
-  Base64::Base64()
-  {
-  }
-
-  Base64::~Base64()
-  {
-  }
 
   void Base64::encodeStrings(const std::vector<String>& in, String& out, bool zlib_compression, bool append_null_byte)
   {
@@ -165,25 +155,26 @@ print s
         switch (zlib_error)
         {
         case Z_MEM_ERROR:
-          throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, compressed_length);
+          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
 
         case Z_BUF_ERROR:
           compressed_length *= 2;
         }
-      }
-      while (zlib_error == Z_BUF_ERROR);
+      } while (zlib_error == Z_BUF_ERROR);
 
       if (zlib_error != Z_OK)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compression error?");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
 
       it = reinterpret_cast<Byte*>(&compressed[0]);
       end = it + compressed_length;
+      // TODO check integer overflow
       out.resize((Size)ceil(compressed_length / 3.) * 4); //resize output array in order to have enough space for all characters
     }
     else
     {
+      // TODO check integer overflow
       out.resize((Size)ceil(str.size() / 3.) * 4); //resize output array in order to have enough space for all characters
       it = reinterpret_cast<Byte*>(&str[0]);
       end = it + str.size();
@@ -276,7 +267,7 @@ print s
 
       if (base64_uncompressed.isEmpty())
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decompression error?");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
       }
     }
   }

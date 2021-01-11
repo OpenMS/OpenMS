@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="../../XSL/IdXML.xsl"?>
-<IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="./../XSL/IdXML.xsl"?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" peak_mass_tolerance="0.3" >
 		<VariableModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
@@ -78,11 +78,11 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.325378417969" RT="1736.66821289062" >
-			<PeptideHit score="0.0344827586206897" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14" >
+			<PeptideHit score="0.0344827586206897" sequence="YIC[47.021464]D[10.0]NQDTISSK" charge="2" aa_before="K" aa_after="L" prot="PH_14" >
 				<UserParam type="float" name="OMSSA_score" value="0.0173429321700537"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-		</PeptideIdentification>
+				<UserParam type="string" name="target_decoy" value="target"/>           
+			</PeptideHit>                                                                   
+		</PeptideIdentification>                                                                
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="443.711242675781" RT="1738.03344726562" >
 			<PeptideHit score="0.0344827586206897" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14" >
 				<UserParam type="float" name="OMSSA_score" value="0.00395109914742618"/>
@@ -132,7 +132,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.32470703125" RT="1804.15795898438" >
-			<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14" >
+			<PeptideHit score="0.0" sequence="YIC[47.021464]D[10.0]NQDTISSK" charge="2" aa_before="K" aa_after="L" prot="PH_14" >
 				<UserParam type="float" name="OMSSA_score" value="3.85390695500564e-05"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
@@ -155,12 +155,6 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="408.840087890625" RT="1880.01599121094" >
-			<PeptideHit score="0.0454545454545455" sequence="GM(Oxidation)LWAVFEQK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_5" >
-				<UserParam type="float" name="OMSSA_score" value="0.0850109548251393"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.732391357422" RT="1906.96594238281" >
 			<PeptideHit score="0.0454545454545455" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_14" >
 				<UserParam type="float" name="OMSSA_score" value="0.0917668515948288"/>
@@ -168,7 +162,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.327209472656" RT="1918.60864257812" >
-			<PeptideHit score="0.0344827586206897" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14" >
+			<PeptideHit score="0.0344827586206897" sequence="YIC[47.021464]D[10.0]NQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14" >
 				<UserParam type="float" name="OMSSA_score" value="0.0326599590408071"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>

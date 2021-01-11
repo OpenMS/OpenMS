@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,9 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h> //ONLY used for checking if pepxml transformation produced a reusable id file
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -51,8 +54,8 @@ START_TEST(PepXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PepXMLFile * ptr = 0;
-PepXMLFile* nullPointer = 0;
+PepXMLFile * ptr = nullptr;
+PepXMLFile* nullPointer = nullptr;
 PepXMLFile file;
 START_SECTION(PepXMLFile())
 ptr = new PepXMLFile();
@@ -70,7 +73,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   String pep_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
   String mz_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
   String exp_name = "PepXMLFile_test";
-  MSExperiment<> experiment;
+  PeakMap experiment;
   MzMLFile().load(mz_file, experiment);
   SpectrumMetaDataLookup lookup;
   lookup.readSpectra(experiment.getSpectra());
@@ -114,7 +117,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(first.getMZ(), 538.605); // recomputed
   TEST_EQUAL(first.getHits().size(), 1);
   PeptideHit pep_hit = first.getHits()[0];
-  TEST_EQUAL(pep_hit.getSequence().toString(), "(Glu->pyro-Glu)ELNKEMAAEKAKAAAG");
+  TEST_EQUAL(pep_hit.getSequence().toString(), ".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "ELNKEMAAEKAKAAAG");
   TEST_EQUAL(pep_hit.getRank(), 1);
 
@@ -173,13 +176,37 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
   TEST_EQUAL(fix_mods.size(), 1)
-  TEST_EQUAL(var_mods.size(), 5)
+  TEST_EQUAL(var_mods.size(), 12)
 
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Ammonia-loss (N-term C)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (N-term E)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Oxidation (M)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (N-term Q)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+1") != var_mods.end(), true)
+  TEST_EQUAL(var_mods[0], "Ammonia-loss (N-term C)")
+  TEST_EQUAL(var_mods[1], "Glu->pyro-Glu (N-term E)")
+  TEST_EQUAL(var_mods[2], "Oxidation (M)")
+  TEST_EQUAL(var_mods[3], "Gln->pyro-Glu (N-term Q)")
+
+  TEST_EQUAL(var_mods[4], "M[1.0]")
+  TEST_EQUAL(var_mods[5], ".n[2.0]")
+  TEST_EQUAL(var_mods[6], ".c[2.0]")
+  TEST_EQUAL(var_mods[7], ".n[2.5]")
+  TEST_EQUAL(var_mods[8], ".n[2.5]")
+  TEST_EQUAL(var_mods[9], ".n[-2.5]")
+  TEST_EQUAL(var_mods[10], ".n[2.5]")
+  TEST_EQUAL(var_mods[11], ".c[3.4]")
+
+  /* TODO Probably would be nicer to have the following as fullID for readability
+   *  (with the other notation you can't see if it has AA restrictions or if it is protein term)
+   *  Actually, I am not sure if you get problems, when you later search by fullID and
+   *  erroneously find the another modification with different AA specificity!
+   *  We could still use the above notation when writing it to a sequence in
+   *  bracket notation
+  TEST_EQUAL(var_mods[4], "+1 (M)")
+  TEST_EQUAL(var_mods[5], "+2 (N-term M)")
+  TEST_EQUAL(var_mods[6], "+2 (Protein C-term L)")
+  TEST_EQUAL(var_mods[7], "+2.5 (N-term)")
+  TEST_EQUAL(var_mods[8], "+2.5 (Protein N-term)")
+  TEST_EQUAL(var_mods[9], "-2.5 (N-term)")
+  TEST_EQUAL(var_mods[10], "+2.5 (Protein N-term)")
+  TEST_EQUAL(var_mods[11], "+3.4 (Protein C-term)")
+   */
 
   // wrong "experiment_name" produces an exception:
   TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
@@ -429,6 +456,29 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
 }
 END_SECTION
 
+// store PepXML with mzML file information
+START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "PepXMLFile_test.mzML", const String& mz_name = "", bool peptideprophet_analyzed = false))
+{
+  vector<ProteinIdentification> proteins;
+  vector<PeptideIdentification> peptides;
+  String mzML_filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
+  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
+  PepXMLFile().load(filename, proteins, peptides);
+
+  // Test PeptideProphet-analyzed pepxml.
+  String cm_file_out;
+  NEW_TMP_FILE(cm_file_out);
+  PepXMLFile().store(cm_file_out, proteins, peptides, mzML_filename, "test", true);
+
+  FuzzyStringComparator fsc;
+  fsc.setAcceptableAbsolute(1e-7);
+  fsc.setAcceptableRelative(1.0 + 1e-7);
+  // fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
+  String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_mzML.pepxml");
+  TEST_EQUAL(fsc.compareFiles(cm_file_out.c_str(), filename_out.c_str()), true)
+}
+END_SECTION
+
 START_SECTION(void keepNativeSpectrumName(bool keep) )
 {
   // tested above in the [EXTRA] store as we store / load once with
@@ -462,8 +512,8 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
   TEST_EQUAL(fix_mods.size(), reread_fix_mods.size())
   TEST_EQUAL(var_mods.size(), reread_var_mods.size())
 
-  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), reread_fix_mods[0]) != var_mods.end(), true)
-  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), reread_fix_mods[0]) != fix_mods.end(), true)
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), "Carbamidomethyl (C)") != fix_mods.end(), true)
 
   for (size_t i = 0; i < reread_var_mods.size(); ++i)
   {

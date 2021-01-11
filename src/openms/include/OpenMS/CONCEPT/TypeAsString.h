@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_TYPEASSTRING_H
-#define OPENMS_CONCEPT_TYPEASSTRING_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -89,10 +88,10 @@ namespace OpenMS
   template <typename Type>
   std::string typeAsString(const Type & /* unused */ = Type())
   {
-#if ! defined(__PRETTY_FUNCTION__)
-    return "[ Sorry, OpenMS::typeAsString() relies upon extension __PRETTY_FUNCTION__ ]";
+#if ! defined(OPENMS_PRETTY_FUNCTION)
+    return "[ Sorry, OpenMS::typeAsString() relies upon extension OPENMS_PRETTY_FUNCTION ]";
 #else
-    std::string pretty(__PRETTY_FUNCTION__);
+    std::string pretty(OPENMS_PRETTY_FUNCTION);
     static char const context_left[] = "with Type =";
     static char const context_right[] = "]";
     size_t left = pretty.find(context_left);
@@ -108,5 +107,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // #ifdef
 

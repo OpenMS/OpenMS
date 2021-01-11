@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,17 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+#include <OpenMS/CONCEPT/LogStream.h> // OPENMS_LOG_DEBUG
 #include <OpenMS/MATH/MISC/RANSAC.h> // RANSAC algorithm
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h> // RANSAC model
 
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
-#include <algorithm>
 
 namespace OpenMS
 {
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      const std::vector<std::pair<double, double> >& pairs, double rsq_limit,
       double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size)
   {
     size_t n = sampling_size;
@@ -56,43 +54,43 @@ namespace OpenMS
 
     if (n < 5)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
-          boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
+          String(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
     }
 
     if (pairs.size() < 30)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
-          boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
+          String(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>().ransac(pairs, n, k, t, d);
+    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>::ransac(pairs, n, k, t, d);
     double bestrsq = Math::RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
 
     if (bestrsq < rsq_limit)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
-          boost::lexical_cast<std::string>(bestrsq) + " is below limit of " +
-          boost::lexical_cast<std::string>(rsq_limit) +
+          String(bestrsq) + " is below limit of " +
+          String(rsq_limit) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
     if (new_pairs.size() < d)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " +
-          boost::lexical_cast<std::string>(new_pairs.size()) +
-          " is below limit of " + boost::lexical_cast<std::string>(d) +
+          String(new_pairs.size()) +
+          " is below limit of " + String(d) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
     return new_pairs;
   }
 
-  int MRMRTNormalizer::jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::jackknifeOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for
     // the data points with one removed pair. The combination resulting in
@@ -115,7 +113,7 @@ namespace OpenMS
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
 
-  int MRMRTNormalizer::residualOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::residualOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and residuals are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
@@ -135,13 +133,13 @@ namespace OpenMS
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersIterative(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
-      double coverage_limit, bool use_chauvenet, std::string method)
+      const std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      double coverage_limit, bool use_chauvenet, const std::string& method)
   {
-    if (pairs.size() < 2)
+    if (pairs.size() < 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Need at least 2 points for the regression.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Need at least 3 data points to remove outliers for the regression.");
     }
 
     // Removes outliers from vector of pairs until upper rsq and lower coverage limits are reached.
@@ -150,11 +148,11 @@ namespace OpenMS
 
     std::vector<std::pair<double, double> > pairs_corrected;
 
-    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    for (auto it = pairs.begin(); it != pairs.end(); ++it)
     {
       x.push_back(it->first);
       y.push_back(it->second);
-      LOG_DEBUG << "RT Normalization pairs: " << it->first << " : " << it->second << std::endl;
+      OPENMS_LOG_DEBUG << "RT Normalization pairs: " << it->first << " : " << it->second << std::endl;
     }
 
     double rsq;
@@ -174,12 +172,12 @@ namespace OpenMS
         std::vector<double> residuals;
 
         // calculate residuals
-        for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+        for (auto it = pairs.begin(); it != pairs.end(); ++it)
         {
           double intercept = lin_reg.getIntercept();
           double slope = (double)lin_reg.getSlope();
-          residuals.push_back(abs(it->second - (intercept + it->first * slope)));
-          LOG_DEBUG << " RT Normalization residual is " << residuals.back() << std::endl;
+          residuals.push_back(fabs(it->second - (intercept + it->first * slope)));
+          OPENMS_LOG_DEBUG << " RT Normalization residual is " << residuals.back() << std::endl;
         }
 
         int pos;
@@ -196,13 +194,13 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Method ") + method + " is not a valid method for removeOutliersIterative");
         }
 
         // remove if residual is an outlier according to Chauvenet's criterion
         // or if testing is turned off
-        LOG_DEBUG << " Got outlier candidate " << pos << "(" << x[pos] << " / " << y[pos] << std::endl;
+        OPENMS_LOG_DEBUG << " Got outlier candidate " << pos << "(" << x[pos] << " / " << y[pos] << std::endl;
         if (!use_chauvenet || chauvenet(residuals, pos))
         {
           x.erase(x.begin() + pos);
@@ -222,16 +220,16 @@ namespace OpenMS
     if (rsq < rsq_limit)
     {
       // If the rsq is below the limit, this is an indication that something went wrong!
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
-          boost::lexical_cast<std::string>(rsq) + " is below limit of " +
-          boost::lexical_cast<std::string>(rsq_limit) +
+          String(rsq) + " is below limit of " +
+          String(rsq_limit) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
     for (Size i = 0; i < x.size(); i++)
     {
-      pairs_corrected.push_back(std::make_pair(x[i], y[i]));
+      pairs_corrected.emplace_back(x[i], y[i]);
     }
 
 #ifdef DEBUG_MRMRTNORMALIZER
@@ -246,23 +244,17 @@ namespace OpenMS
     return pairs_corrected;
   }
 
-  bool MRMRTNormalizer::chauvenet(std::vector<double>& residuals, int pos)
+  bool MRMRTNormalizer::chauvenet(const std::vector<double>& residuals, int pos)
   {
     double criterion = 1.0 / (2 * residuals.size());
     double prob = MRMRTNormalizer::chauvenet_probability(residuals, pos);
 
-    LOG_DEBUG << " Chauvinet testing " << prob << " < " << criterion << std::endl;
-    if (prob < criterion)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    OPENMS_LOG_DEBUG << " Chauvinet testing " << prob << " < " << criterion << std::endl;
+    return prob < criterion;
+
   }
 
-  double MRMRTNormalizer::chauvenet_probability(std::vector<double>& residuals, int pos)
+  double MRMRTNormalizer::chauvenet_probability(const std::vector<double>& residuals, int pos)
   {
     double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
     double stdev = std::sqrt(
@@ -276,4 +268,39 @@ namespace OpenMS
     return prob;
   }
 
+  bool MRMRTNormalizer::computeBinnedCoverage(const std::pair<double,double> & rtRange, 
+      const std::vector<std::pair<double, double> > & pairs, int nrBins, 
+      int minPeptidesPerBin, int minBinsFilled)
+  {
+    std::vector<int> binCounter(nrBins, 0);
+    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
+    {
+      double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
+      normRT *= nrBins;
+      int bin = (int)normRT;
+      if (bin >= nrBins)
+      {
+        // this should never happen, but just to make sure
+        std::cerr << "MRMRTNormalizer::computeBinnedCoverage : computed bin was too large (" << 
+          bin << "), setting it to the maximum of " << nrBins - 1 << std::endl;
+        bin = nrBins - 1;
+      }
+      binCounter[ bin ]++;
+    }
+
+    int binsFilled = 0;
+    for (Size i = 0; i < binCounter.size(); i++)
+    {
+      OPENMS_LOG_DEBUG <<" In bin " << i << " out of " << binCounter.size() << 
+        " we have " << binCounter[i] << " peptides " << std::endl;
+      if (binCounter[i] >= minPeptidesPerBin) 
+      {
+        binsFilled++;
+      }
+    }
+
+    return (binsFilled >= minBinsFilled);
+  }
+
 }
+

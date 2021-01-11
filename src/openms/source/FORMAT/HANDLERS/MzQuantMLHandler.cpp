@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,17 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <set>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <algorithm>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -54,7 +45,7 @@ namespace OpenMS
     MzQuantMLHandler::MzQuantMLHandler(const MSQuantifications& msq, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      msq_(0),
+      msq_(nullptr),
       cmsq_(&msq)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo")); //TODO unimod -> then automatise CVList writing
@@ -64,7 +55,7 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       msq_(&msq),
-      cmsq_(0)
+      cmsq_(nullptr)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
     }
@@ -321,8 +312,7 @@ namespace OpenMS
 
       if (tag_ == "PeptideSequence")
       {
-        AASequence p = AASequence::fromString(String(sm_.convert(chars)));
-        PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), p);
+        PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), AASequence::fromString(String(sm_.convert(chars))));
         cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
         return;
       }
@@ -821,7 +811,7 @@ namespace OpenMS
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
         }
-        if (dit->getSoftware().getName() == "ITRAQAnalyzer")
+        if (dit->getSoftware().getName() == "ITRAQAnalyzer") // tool does not exist any more. replace by IsobaricAnalyzer?
         {
           softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
         }
@@ -1026,7 +1016,7 @@ namespace OpenMS
         assay_xml += "\t\t\t</Label>\n";
         assay_xml += "\t\t</Assay>\n";
 
-        // for SILACAnalyzer/iTRAQAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ
+        // for SILACAnalyzer/IsobaricAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ/TMT
         study_xml += "\t<StudyVariable id=\"v_" + vr + "\" name=\"noname\">\n";
         study_xml += "\t\t\t<Assay_refs>a_" + String(ait->uid_) + "</Assay_refs>\n";
         study_xml += "\t</StudyVariable>\n";
@@ -1236,7 +1226,7 @@ namespace OpenMS
                 peptide_xml += String("\t\t\t<EvidenceRef feature_ref=\"f_") + String(fid[i]) + String("\" assay_refs=\"") + ass_refs + String("\" id_refs=\"") + cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() + String("\" identificationFile_ref=\"") + idfile_ref + String("\"/>\n");
                 peptide_xml += String("\t\t</PeptideConsensus>\n");
               }
-              //~ TODO ratios, when available (not yet for the iTRAQ tuples of iTRAQAnalyzer)
+              //~ TODO ratios, when available (not yet for the iTRAQ tuples of IsobaricAnalyzer)
             }
             peptide_xml += String("\t</PeptideConsensusList>\n");
           }

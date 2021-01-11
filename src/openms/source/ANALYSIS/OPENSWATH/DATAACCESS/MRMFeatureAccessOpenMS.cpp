@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 namespace OpenMS
@@ -70,7 +69,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureOpenMS::getRT(std::vector<double>& rt)
+  void FeatureOpenMS::getRT(std::vector<double>& rt) const
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
@@ -80,7 +79,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureOpenMS::getIntensity(std::vector<double>& intens)
+  void FeatureOpenMS::getIntensity(std::vector<double>& intens) const
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
@@ -90,12 +89,12 @@ namespace OpenMS
     }
   }
 
-  float FeatureOpenMS::getIntensity()
+  float FeatureOpenMS::getIntensity() const
   {
     return feature_->getIntensity();
   }
 
-  double FeatureOpenMS::getRT()
+  double FeatureOpenMS::getRT() const
   {
     return feature_->getRT();
   }
@@ -106,11 +105,13 @@ namespace OpenMS
 
   boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
+    OPENMS_PRECONDITION(features_.find(nativeID) != features_.end(), "Feature needs to exist");
     return boost::static_pointer_cast<OpenSwath::IFeature>(features_[nativeID]);
   }
 
   boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
+    OPENMS_PRECONDITION(precursor_features_.find(nativeID) != precursor_features_.end(), "Precursor feature needs to exist");
     return boost::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
   }
 
@@ -134,26 +135,29 @@ namespace OpenMS
     return v;
   }
 
-  float MRMFeatureOpenMS::getIntensity()
+  float MRMFeatureOpenMS::getIntensity() const
   {
     return mrmfeature_.getIntensity();
   }
 
-  double MRMFeatureOpenMS::getRT()
+  double MRMFeatureOpenMS::getRT() const
   {
     return mrmfeature_.getRT();
   }
 
-  size_t MRMFeatureOpenMS::size()
+  size_t MRMFeatureOpenMS::size() const
   {
     return features_.size();
   }
 
   // default instances
-  MSSpectrum<Peak1D> chromat;
-  SignalToNoiseOpenMS<Peak1D> default_signal_to_noise_openms(chromat, 1.0, 3, true);
+  MSSpectrum spec;
+  MSChromatogram chrom;
+  SignalToNoiseOpenMS< MSSpectrum> spec_signal_to_noise_openms(spec, 1.0, 3, true);
+  SignalToNoiseOpenMS< MSChromatogram > chrom_signal_to_noise_openms(chrom, 1.0, 3, true);
 
-  MRMTransitionGroup<MSSpectrum<Peak1D>, ReactionMonitoringTransition> trgroup;
-  TransitionGroupOpenMS<MSSpectrum<Peak1D>, ReactionMonitoringTransition> default_transition_group_openms(trgroup);
+  MRMTransitionGroup<MSSpectrum, ReactionMonitoringTransition> trgroup;
+  TransitionGroupOpenMS<MSSpectrum, ReactionMonitoringTransition> default_transition_group_openms(trgroup);
 
 } //end namespace OpenMS
+

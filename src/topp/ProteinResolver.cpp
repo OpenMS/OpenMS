@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ using namespace OpenMS;
          <dd>For each MSD group, the ISD group, the protein indices, the peptide indices, the number of peptides in MSD group, the number
               of proteins in ISD and the number of proteins in ISD are written to the output file</dd>
         <dt>Protein table</dt>
-        <dd>The resulting text file contains one protein per line<dd>
+        <dd>The resulting text file contains one protein per line</dd>
         <dt>Peptide table</dt>
         <dd>The output file will contain one peptide per line and all proteins which contain that specific peptide</dd>
         <dt>Statistics:</dt>
@@ -231,7 +231,7 @@ protected:
   Param resolver_params_; // parameters for ProteinResolver
   Param design_params_; // parameters for QuantitativeExperimentalDesign
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("fasta", "<file>", "", "Input database file", true, false);
     setValidFormats_("fasta", ListUtils::create<String>("fasta"));
@@ -492,7 +492,7 @@ protected:
     return basename;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -512,7 +512,7 @@ protected:
     //-------------------------------------------------------------
     if (input_list.empty() && input_path.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "All input options are empty.");
     }
 
@@ -521,7 +521,7 @@ protected:
     //-------------------------------------------------------------
     if (output_pep_table.empty() && ouput_prot_groups.empty() && output_prot_table.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "All output options are empty.");
     }
 
@@ -593,7 +593,7 @@ protected:
 
       if (list.size() == 0)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
       }
 

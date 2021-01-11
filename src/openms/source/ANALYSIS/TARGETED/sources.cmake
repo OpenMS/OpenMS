@@ -3,6 +3,8 @@ set(directory source/ANALYSIS/TARGETED)
 
 ### list all filenames of the directory here
 set(sources_list
+MetaboTargetedAssay.cpp
+MRMMapping.cpp
 PrecursorIonSelectionPreprocessing.cpp
 PrecursorIonSelection.cpp
 OfflinePrecursorIonSelection.cpp

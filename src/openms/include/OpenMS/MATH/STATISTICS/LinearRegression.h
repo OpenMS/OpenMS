@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
-#define OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -89,9 +88,7 @@ public:
       }
 
       /// Destructor
-      virtual ~LinearRegression()
-      {
-      }
+      virtual ~LinearRegression() = default;
 
       /**
           @brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$
@@ -167,6 +164,12 @@ public:
       /// Non-mutable access to relative standard deviation
       double getRSD() const;
 
+      /// given x compute y = slope * x + intercept
+      static inline double computePointY(double x, double slope, double intercept)
+      {
+        return slope * x + intercept;
+      }
+
 protected:
 
       /// The intercept of the fitted line with the y-axis
@@ -215,17 +218,6 @@ private:
 
     }; //class
 
-
-    namespace
-    {
-      //given x compute y = slope * x + intercept
-      double computePointY(double x, double slope, double intercept)
-      {
-        return slope * x + intercept;
-      }
-
-    } //namespace
-
     //x, y, w must be of same size
     template <typename Iterator>
     double LinearRegression::computeChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, double slope, double intercept)
@@ -270,11 +262,12 @@ private:
 
       if (pass)
       {
-        if (compute_goodness) computeGoodness_(points, confidence_interval_P);
+        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
       }
     }
 
@@ -324,11 +317,12 @@ private:
 
       if (nonsingular)
       {
-        if (compute_goodness) computeGoodness_(points, confidence_interval_P);
+        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
     }
 
@@ -336,4 +330,3 @@ private:
 } // namespace OpenMS
 
 
-#endif

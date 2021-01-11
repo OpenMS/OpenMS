@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -54,8 +54,8 @@ START_TEST(FuzzyStringComparator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FuzzyStringComparator* inst_ptr = 0;
-FuzzyStringComparator* nullPointer = 0;
+FuzzyStringComparator* inst_ptr = nullptr;
+FuzzyStringComparator* nullPointer = nullptr;
 START_SECTION((FuzzyStringComparator()))
 {
 	inst_ptr = new FuzzyStringComparator;
@@ -385,57 +385,6 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 }
 END_SECTION
 
-#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
-START_SECTION(([EXTRA] Test double extraction if we have to cope with libc++ stream extraction bug))
-{
-  std::ostringstream log;
-	{
-		FuzzyStringComparator fsc;
-		log.str("");
-		fsc.setLogDestination(log);
-		fsc.setVerboseLevel(2);
-		fsc.setAcceptableRelative(1.00021);
-		fsc.setAcceptableAbsolute(0.0);
-		bool result = (fsc.compareStrings(".9999E4","1.0001E4")!=0);
-		TEST_EQUAL(result,true);
-		// STATUS(log.str());
-	}
-	{
-		FuzzyStringComparator fsc;
-		log.str("");
-		fsc.setLogDestination(log);
-		fsc.setVerboseLevel(2);
-		fsc.setAcceptableRelative(1.00021);
-		fsc.setAcceptableAbsolute(0.0);
-		bool result = (fsc.compareStrings(".9999E+4","1.0001E+4")!=0);
-		TEST_EQUAL(result,true);
-		// STATUS(log.str());
-	}
-	{
-		FuzzyStringComparator fsc;
-		log.str("");
-		fsc.setLogDestination(log);
-		fsc.setVerboseLevel(2);
-		fsc.setAcceptableRelative(1.00021);
-		fsc.setAcceptableAbsolute(0.0);
-		bool result = (fsc.compareStrings("-.9999E+4","-1.0001E+4")!=0);
-		TEST_EQUAL(result,true);
-		// STATUS(log.str());
-	}
-	{
-		FuzzyStringComparator fsc;
-		log.str("");
-		fsc.setLogDestination(log);
-		fsc.setVerboseLevel(2);
-		fsc.setAcceptableRelative(1.00021);
-		fsc.setAcceptableAbsolute(0.0);
-		bool result = (fsc.compareStrings("0.9999E+4","1.E+4")!=0);
-		TEST_EQUAL(result,true);
-		// STATUS(log.str());
-	}
-}
-END_SECTION
-#endif
 
 START_SECTION((bool compareStreams(std::istream &input_1, std::istream &input_2)))
 {

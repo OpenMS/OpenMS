@@ -15,5 +15,5 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFileMascot.h>" namespace "OpenMS":
         PepXMLFileMascot(PepXMLFileMascot) nogil except + #wrap-ignore
 
         # TODO map
-        # void load(String & filename, libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides) nogil except +
+        # void load(const String & filename, libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides) nogil except +
 

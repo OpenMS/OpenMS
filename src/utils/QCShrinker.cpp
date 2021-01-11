@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,12 +98,12 @@ class TOPPQCShrinker :
 {
 public:
   TOPPQCShrinker() :
-    TOPPBase("QCShrinker", "This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.", false)
+    TOPPBase("QCShrinker", "This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.", false, {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
   {
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", ListUtils::create<String>("qcML"));
@@ -116,7 +116,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("qcML"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

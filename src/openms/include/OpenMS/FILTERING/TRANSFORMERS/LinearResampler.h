@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H
-#define OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H
+#pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -74,32 +74,31 @@ public:
     }
 
     /// Destructor.
-    ~LinearResampler()
+    ~LinearResampler() override
     {
     }
 
     /**
         @brief Applies the resampling algorithm to an MSSpectrum.
     */
-    template <typename PeakType>
-    void raster(MSSpectrum<PeakType>& spectrum)
+    void raster(MSSpectrum& spectrum)
     {
       //return if nothing to do
       if (spectrum.empty()) return;
 
-      typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
-      typename MSSpectrum<PeakType>::iterator last = spectrum.end();
+      typename MSSpectrum::iterator first = spectrum.begin();
+      typename MSSpectrum::iterator last = spectrum.end();
 
       double end_pos = (last - 1)->getMZ();
       double start_pos = first->getMZ();
       int number_raw_points = static_cast<int>(spectrum.size());
       int number_resampled_points = static_cast<int>(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      typename std::vector<PeakType> resampled_peak_container;
+      std::vector<Peak1D> resampled_peak_container;
       resampled_peak_container.resize(number_resampled_points);
 
       // generate the resampled peaks at positions origin+i*spacing_
-      typename std::vector<PeakType>::iterator it = resampled_peak_container.begin();
+      std::vector<Peak1D>::iterator it = resampled_peak_container.begin();
       for (int i = 0; i < number_resampled_points; ++i)
       {
         it->setMZ(start_pos + i * spacing_);
@@ -130,11 +129,11 @@ public:
 
 
         // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-        double intensity = (it + left_index)->getIntensity();
-        intensity += (first + i)->getIntensity() * distance_right / spacing_;
+        double intensity = static_cast<double>((it + left_index)->getIntensity());
+        intensity += static_cast<double>((first + i)->getIntensity()) * distance_right / spacing_;
         (it + left_index)->setIntensity(intensity);
-        intensity = (it + right_index)->getIntensity();
-        intensity += (first + i)->getIntensity() * distance_left;
+        intensity = static_cast<double>((it + right_index)->getIntensity());
+        intensity += static_cast<double>((first + i)->getIntensity()) * distance_left;
         (it + right_index)->setIntensity(intensity);
       }
 
@@ -144,8 +143,7 @@ public:
     /**
         @brief Resamples the data in an MSExperiment.
     */
-    template <typename PeakType>
-    void rasterExperiment(MSExperiment<PeakType>& exp)
+    void rasterExperiment(PeakMap& exp)
     {
       startProgress(0, exp.size(), "resampling of data");
       for (Size i = 0; i < exp.size(); ++i)
@@ -161,7 +159,7 @@ protected:
     /// Spacing of the resampled data
     double spacing_;
 
-    virtual void updateMembers_()
+    void updateMembers_() override
     {
       spacing_ =  param_.getValue("spacing");
     }
@@ -171,4 +169,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H

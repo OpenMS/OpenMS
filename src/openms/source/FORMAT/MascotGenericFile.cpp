@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,18 +32,24 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
 
-#define HIGH_PRECISION 8
-#define LOW_PRECISION 6
+#include <iomanip>     // setw
+
+#define HIGH_PRECISION 5
+#define LOW_PRECISION 3
 
 using namespace std;
 
@@ -68,7 +74,7 @@ namespace OpenMS
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
     defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance");
     defaults_.setValidStrings("fragment_error_units", ListUtils::create<String>("mmu,Da"));
-    defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers");
+    defaults_.setValue("charges", "1,2,3", "Charge states to consider, given as a comma separated list of integers (only used for spectra without precursor charge information)");
     defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -88,6 +94,8 @@ namespace OpenMS
     defaults_.setMinInt("number_of_hits", 0);
     defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
     defaults_.setValidStrings("skip_spectrum_charges", ListUtils::create<String>("true,false"));
+    defaults_.setValue("decoy", "false", "Set to true if mascot should generate the decoy database.");
+    defaults_.setValidStrings("decoy", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", ListUtils::create<String>("advanced"));
     defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", ListUtils::create<String>("advanced"));
@@ -132,9 +140,14 @@ namespace OpenMS
 
   void MascotGenericFile::store(const String& filename, const PeakMap& experiment, bool compact)
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::MGF))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MGF) + "'");
+    }
+
     if (!File::writable(filename))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     ofstream os(filename.c_str());
     store(os, filename, experiment, compact);
@@ -143,7 +156,9 @@ namespace OpenMS
 
   void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment, bool compact)
   {
-    const streamsize precision = os.precision(); // may get changed, so back-up
+    // stream formatting may get changed, so back up:
+    const ios_base::fmtflags old_flags = os.flags();
+    const streamsize old_precision = os.precision();
 
     store_compact_ = compact;
     if (param_.getValue("internal:content") != "peaklist_only")
@@ -151,7 +166,9 @@ namespace OpenMS
     if (param_.getValue("internal:content") != "header_only")
       writeMSExperiment_(os, filename, experiment);
 
-    os.precision(precision); // reset precision
+    // reset formatting:
+    os.flags(old_flags);
+    os.precision(old_precision);
   }
 
   void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
@@ -229,9 +246,16 @@ namespace OpenMS
     writeParameterHeader_("FORMVER", os);
     os << "1.01" << "\n";
 
-    //db name
+    // db name
     writeParameterHeader_("DB", os);
     os << param_.getValue("database") << "\n";
+
+    // decoys
+    if (param_.getValue("decoy").toBool() == true)
+    {
+      writeParameterHeader_("DECOY", os);
+      os << 1 << "\n";
+    }
 
     // search type
     writeParameterHeader_("SEARCH", os);
@@ -249,48 +273,48 @@ namespace OpenMS
       os << "AUTO" << "\n";
     }
 
-    //cleavage enzyme
+    // cleavage enzyme
     writeParameterHeader_("CLE", os);
     os << param_.getValue("enzyme") << "\n";
 
-    //average/monoisotopic
+    // average/monoisotopic
     writeParameterHeader_("MASS", os);
     os << param_.getValue("mass_type") << "\n";
 
-    //fixed modifications
+    // fixed modifications
     vector<String> fixed_mods = param_.getValue("fixed_modifications");
     writeModifications_(fixed_mods, os);
 
-    //variable modifications
+    // variable modifications
     vector<String> var_mods = param_.getValue("variable_modifications");
     writeModifications_(var_mods, os, true);
 
-    //instrument
+    // instrument
     writeParameterHeader_("INSTRUMENT", os);
     os << param_.getValue("instrument") << "\n";
 
-    //missed cleavages
+    // missed cleavages
     writeParameterHeader_("PFA", os);
     os << param_.getValue("missed_cleavages") << "\n";
 
-    //precursor mass tolerance
+    // precursor mass tolerance
     writeParameterHeader_("TOL", os);
     os << param_.getValue("precursor_mass_tolerance") << "\n";
 
-    //ion mass tolerance_
+    // ion mass tolerance_
     writeParameterHeader_("ITOL", os);
     os << param_.getValue("fragment_mass_tolerance") << "\n";
 
-    //taxonomy
+    // taxonomy
     writeParameterHeader_("TAXONOMY", os);
     os << param_.getValue("taxonomy") << "\n";
 
-    //charge
+    // charge
     writeParameterHeader_("CHARGE", os);
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream& os, const PeakSpectrum& spec, const String& filename)
+  void MascotGenericFile::writeSpectrum(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
   {
     Precursor precursor;
     if (spec.getPrecursors().size() > 0)
@@ -303,17 +327,16 @@ namespace OpenMS
     }
     if (spec.size() >= 10000)
     {
-      throw Exception::InvalidValue(
-              __FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as "
-                                                       "MGF has more than 10.000 peaks, which is the maximum upper limit. "
-                                                       "Only centroided data is allowed. This is most likely raw data.",
-              String(spec.size()));
+      String msg = "Spectrum to be written as MGF has " + String(spec.size()) +
+        " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       msg);
     }
     double mz(precursor.getMZ()), rt(spec.getRT());
 
     if (mz == 0)
     {
-      //retention time
+      // retention time
       cout << "No precursor m/z information for spectrum with rt " << rt
            << " present, skipping spectrum!\n";
     }
@@ -323,18 +346,52 @@ namespace OpenMS
       os << "BEGIN IONS\n";
       if (!store_compact_)
       {
-        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
-           << "_" << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
+             << "_" << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
+                os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+        }
       }
       else
       {
-        os << "TITLE=" << setprecision(HIGH_PRECISION) << mz << "_"
-           << setprecision(LOW_PRECISION) << rt << "_"
-           << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
+             << setprecision(LOW_PRECISION) << rt << "_"
+             << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+        }
       }
 
       int charge(precursor.getCharge());
@@ -344,7 +401,8 @@ namespace OpenMS
         bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
         if (!skip_spectrum_charges)
         {
-          os << "CHARGE=" << charge << "\n";
+          String cs = charge < 0 ? "-" : "+";
+          os << "CHARGE=" << charge << cs << "\n";
         }
       }
 
@@ -362,7 +420,7 @@ namespace OpenMS
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
           if (intensity == 0.0) continue; // skip zero-intensity peaks
-          os << setprecision(HIGH_PRECISION) << it->getMZ() << " "
+          os << fixed << setprecision(HIGH_PRECISION) << it->getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }
       }
@@ -390,17 +448,29 @@ namespace OpenMS
     QFileInfo fileinfo(filename.c_str());
     QString filtered_filename = fileinfo.completeBaseName();
     filtered_filename.remove(QRegExp("[^a-zA-Z0-9]"));
+
+
+    String native_id_type_accession;
+    vector<SourceFile> sourcefiles = experiment.getExperimentalSettings().getSourceFiles();
+    if (sourcefiles.empty())
+    {
+      native_id_type_accession = "UNKNOWN";
+    }
+    else
+    {
+      native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+    }
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {
       this->setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
-        writeSpectrum_(os, experiment[i], filtered_filename);
+        writeSpectrum(os, experiment[i], filtered_filename, native_id_type_accession);
       }
       else if (experiment[i].getMSLevel() == 0)
       {
-        LOG_WARN << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
+        OPENMS_LOG_WARN << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
       }
     }
     // close file

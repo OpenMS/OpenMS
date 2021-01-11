@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,8 @@ START_TEST(ITRAQLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ITRAQLabeler* ptr = 0;
-ITRAQLabeler* null_ptr = 0;
+ITRAQLabeler* ptr = nullptr;
+ITRAQLabeler* null_ptr = nullptr;
 START_SECTION(ITRAQLabeler())
 {
 	ptr = new ITRAQLabeler();
@@ -156,10 +156,10 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 
   TEST_EQUAL(f_maps[0].size(), 2)
 
-  set<String> protein_accessions1 = f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+  set<String> protein_accessions1 = f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessionsSet();
   TEST_EQUAL(protein_accessions1.size(), 1)
 
-  set<String> protein_accessions2 = f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+  set<String> protein_accessions2 = f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessionsSet();
   TEST_EQUAL(protein_accessions2.size(), 2)
 }
 END_SECTION
@@ -199,7 +199,7 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   FeatureMap fm1;
 
   SimTypes::MSSimExperiment exp;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   IntList il;
   il.push_back(0);
   spec.setMetaValue("parent_feature_ids",  il);
@@ -245,7 +245,7 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   TEST_EQUAL(exp.size(), 1)
   Size count(0);
   double expected_val4[4] = {0, 100, 100, 0};
-  for (MSSpectrum<>::const_iterator it=exp[0].begin(); it!=exp[0].end() && it->getMZ()<118.0; ++it)
+  for (MSSpectrum::const_iterator it=exp[0].begin(); it!=exp[0].end() && it->getMZ()<118.0; ++it)
   {
     TEST_REAL_SIMILAR(it->getIntensity(), expected_val4[count]);
     ++count;
@@ -282,7 +282,7 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   TEST_EQUAL(exp.size(), 1)
   count=0;
   double expected_val8[8] = {0, 125, 25, 0, 50, 0, 100, 0};
-  MSSpectrum<>::const_iterator it=exp[0].begin();
+  MSSpectrum::const_iterator it=exp[0].begin();
   for (; it!=exp[0].end(); ++it)
   {
     TEST_REAL_SIMILAR(it->getIntensity(),  expected_val8[count]);
@@ -295,7 +295,7 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = ITRAQLabeler::create();
-  BaseLabeler* nullPointer = 0;
+  BaseLabeler* nullPointer = nullptr;
   TEST_NOT_EQUAL(labeler, nullPointer)
   delete labeler;
 }

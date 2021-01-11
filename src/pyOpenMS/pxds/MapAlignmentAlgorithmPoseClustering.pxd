@@ -20,11 +20,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
                    TransformationDescription &
                    ) nogil except +
 
-        void align(MSExperiment[Peak1D,ChromatogramPeak],
+        void align(MSExperiment,
                    TransformationDescription &
                    ) nogil except +
 
         void setReference (FeatureMap) nogil except +
-        void setReference (MSExperiment[Peak1D,ChromatogramPeak]) nogil except +
+        void setReference (MSExperiment) nogil except +
 
 

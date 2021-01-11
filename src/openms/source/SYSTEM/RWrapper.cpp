@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,73 +35,105 @@
 #include <OpenMS/SYSTEM/RWrapper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QProcess>
-#include <QtCore/QStringList>
 
 namespace OpenMS
 {
 
-  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args )
+  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args, const QString& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
   {
+    if (find_R && !findR(executable, verbose))
+    {
+      return false;
+    }
+    
     String fullscript;
     try
     {
-      fullscript = findScript(script_file);
+      fullscript = findScript(script_file, verbose);
     }
     catch (...)
     {
       return false;
     }
 
-    LOG_INFO << "Running R script '" << fullscript << "' ..." << std::flush;
-    if (!findR())
-    {
-      return false;
-    }
-
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels);
+    if (verbose) OPENMS_LOG_INFO << "Running R script '" << fullscript << "' ...";
 
     QStringList args;
     args << "--vanilla" << "--quiet" << fullscript.toQString();
     args.append(cmd_args);
 
-    p.start("Rscript", args);
+    QProcess p;
+    p.start(executable, args);
     p.waitForFinished(-1);
 
     if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
     {
-      LOG_INFO << " failed" << std::endl;
-      LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
-      LOG_ERROR << QString(p.readAllStandardError()).toStdString() << std::endl;
-      LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
-      LOG_ERROR << QString(p.readAllStandardOutput()).toStdString() << std::endl;
-      LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+      if (verbose)
+      {
+        OPENMS_LOG_INFO << " failed" << std::endl;
+        OPENMS_LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
+        OPENMS_LOG_ERROR << QString(p.readAllStandardError()).toStdString();
+        OPENMS_LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
+        OPENMS_LOG_ERROR << QString(p.readAllStandardOutput()).toStdString();
+        OPENMS_LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+      }
       return false;
     }
-    LOG_INFO << " success" << std::endl;
+    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
 
     return true;
   }
 
-  bool RWrapper::findR( bool verbose /*= true*/ )
+  bool RWrapper::findR( const QString& executable /*= "Rscript"*/, bool verbose /*= true*/ )
   {
-    QStringList args;
-    args << "--vanilla" << "-e" << "sessionInfo()";
+    if (verbose) OPENMS_LOG_INFO << "Finding R interpreter 'Rscript' ...";
+
+    QStringList args(QStringList() << "--vanilla" << "-e" << "sessionInfo()");
     QProcess p;
-    p.start("Rscript", args);
+    p.setProcessChannelMode(QProcess::MergedChannels); // stdout receives all messages (stderr is empty)
+    p.start(executable, args);
     p.waitForFinished(-1);
 
-    if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+    if (p.error() == QProcess::FailedToStart)
     {
-      if (verbose) LOG_ERROR << " Could not find 'Rscript' executable. Make sure it's in your system path and try again." << std::endl;
+      if (verbose)
+      {
+        OPENMS_LOG_INFO << " failed" << std::endl;
+        String out = QString(p.readAllStandardOutput()).toStdString();
+        OPENMS_LOG_ERROR << "Error: Could not find or run '" << executable.toStdString() << "' executable (FailedToStart).\n";
+        if (!out.empty())
+        {
+          OPENMS_LOG_ERROR << "Output was:\n------>\n"
+                    << out
+                    << "\n<------\n";
+        }
+        OPENMS_LOG_ERROR << "Please install 'Rscript', make sure it's in PATH and is flagged as executable." << std::endl;
+      }
+
       return false;
     }
+    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
+
+    if (verbose) OPENMS_LOG_INFO << "Trying to invoke 'Rscript' ...";
+    if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
+    {
+      if (verbose)
+      {
+        OPENMS_LOG_INFO << " failed" << std::endl;
+        OPENMS_LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "')\n"
+                  << "Output was:\n------>\n"
+                  << QString(p.readAllStandardOutput()).toStdString()
+                  << "\n<------\n"
+                  << "Make sure 'Rscript' is installed properly." << std::endl;
+      }
+      return false;
+    }
+    if (verbose) OPENMS_LOG_INFO << " success" << std::endl;
+
     return true;
   }
 
@@ -114,8 +146,8 @@ namespace OpenMS
     }
     catch (...)
     {
-      if (verbose) LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, script_file);
+      if (verbose) OPENMS_LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, script_file);
     }
     return s;
   }

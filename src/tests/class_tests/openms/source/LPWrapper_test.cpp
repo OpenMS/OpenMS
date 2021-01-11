@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ START_TEST(LPWrapper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-LPWrapper* ptr = 0;
-LPWrapper* null_ptr = 0;
+LPWrapper* ptr = nullptr;
+LPWrapper* null_ptr = nullptr;
 START_SECTION(LPWrapper())
 {
 	ptr = new LPWrapper();
@@ -66,7 +66,6 @@ START_SECTION(~LPWrapper())
 END_SECTION
 
 LPWrapper lp;
-//lp.setSolver(LPWrapper::SOLVER_GLPK);
 std::vector<double> values(2,0.5);
 std::vector<Int> indices;
 indices.push_back(0);
@@ -80,7 +79,7 @@ END_SECTION
 
 
 
-START_SECTION((Int addRow(std::vector< Int > row_indices, std::vector< double > row_values, const String &name)))
+START_SECTION((Int addRow(fewer args)))
 {
   lp.addColumn();
   lp.addRow(indices,values,String("row1"));
@@ -99,7 +98,7 @@ START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< dou
 }
 END_SECTION
 
-START_SECTION((Int addRow(std::vector< Int > &row_indices, std::vector< double > &row_values, const String &name, double lower_bound, double upper_bound, Type type)))
+START_SECTION((Int addRow(all args)))
 {
   lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
@@ -308,22 +307,7 @@ START_SECTION((void readProblem(String filename, String format)))
 #if COINOR_SOLVER==1
   else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
     {
-      TEST_EXCEPTION(Exception::NotImplemented, lp.readProblem("/bla/bluff/blblb/sdfhsdjf/test.txt","LP"))
-    }
-#endif
-}
-END_SECTION
-
-START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
-{
-  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
-      String tmp_filename;
-      NEW_TMP_FILE(tmp_filename);
-      lp.writeProblem(tmp_filename,LPWrapper::FORMAT_LP);
-      LPWrapper lp2;
-      lp2.setSolver(LPWrapper::SOLVER_GLPK);
-      lp2.readProblem(tmp_filename,"LP");
+      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
       TEST_EQUAL(lp.getNumberOfColumns(),2)
       TEST_EQUAL(lp.getNumberOfRows(),3)
       TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
@@ -340,11 +324,54 @@ START_SECTION((void writeProblem(const String &filename, const WriteFormat forma
       TEST_EQUAL(lp.getElement(2,0),3)
       TEST_EQUAL(lp.getElement(2,1),2)
     }
+#endif
+}
+END_SECTION
+
+START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
+{
 #if COINOR_SOLVER==1
-  else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
-  {
-    TEST_EXCEPTION(Exception::NotImplemented, lp.writeProblem("/bla/bluff/blblb/sdfhsdjf/test.txt",LPWrapper::FORMAT_LP))
-  }
+    String tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
+    LPWrapper lp2;
+    lp2.readProblem(tmp_filename,"MPS");
+    TEST_EQUAL(lp2.getNumberOfColumns(),2)
+    TEST_EQUAL(lp2.getNumberOfRows(),3)
+    TEST_EQUAL(lp2.getColumnType(0),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getColumnType(1),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getObjective(0),1)
+    TEST_EQUAL(lp2.getObjective(1),0)
+    TEST_EQUAL(lp2.getRowUpperBound(0),0)
+    TEST_EQUAL(lp2.getRowUpperBound(1),12)
+    TEST_EQUAL(lp2.getRowUpperBound(2),12)
+    TEST_EQUAL(lp2.getElement(0,0),1)
+    TEST_EQUAL(lp2.getElement(0,1),-1)
+    TEST_EQUAL(lp2.getElement(1,0),2)
+    TEST_EQUAL(lp2.getElement(1,1),3)
+    TEST_EQUAL(lp2.getElement(2,0),3)
+    TEST_EQUAL(lp2.getElement(2,1),2)
+#else
+    String tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    lp.writeProblem(tmp_filename, LPWrapper::FORMAT_LP);
+    LPWrapper lp2;
+    lp2.readProblem(tmp_filename, "LP");
+    TEST_EQUAL(lp2.getNumberOfColumns(), 2)
+    TEST_EQUAL(lp2.getNumberOfRows(), 3)
+    TEST_EQUAL(lp2.getColumnType(0), LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getColumnType(1), LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getObjective(0), 1)
+    TEST_EQUAL(lp2.getObjective(1), 0)
+    TEST_EQUAL(lp2.getRowUpperBound(0), 0)
+    TEST_EQUAL(lp2.getRowUpperBound(1), 12)
+    TEST_EQUAL(lp2.getRowUpperBound(2), 12)
+    TEST_EQUAL(lp2.getElement(0, 0), 1)
+    TEST_EQUAL(lp2.getElement(0, 1), -1)
+    TEST_EQUAL(lp2.getElement(1, 0), 2)
+    TEST_EQUAL(lp2.getElement(1, 1), 3)
+    TEST_EQUAL(lp2.getElement(2, 0), 3)
+    TEST_EQUAL(lp2.getElement(2, 1), 2)
 #endif
 }
 END_SECTION
@@ -354,32 +381,40 @@ START_SECTION((Int solve(SolverParam &solver_param, const Size verbose_level=0))
   LPWrapper lp2;
   lp2.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
   lp2.setObjectiveSense(LPWrapper::MAX);
-  LPWrapper::SolverParam param;
-  lp2.solve(param);
+  LPWrapper::SolverParam param2;
+  lp2.solve(param2);
   TEST_EQUAL(lp2.getColumnValue(0),1)
   TEST_EQUAL(lp2.getColumnValue(1),1)
 
   // Test an integer problem
-  lp2.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test_integer.mps"),"MPS");
-  lp2.setObjectiveSense(LPWrapper::MAX);
-  lp2.solve(param);
-  TEST_EQUAL(lp2.getColumnValue(0),2)
-  TEST_EQUAL(lp2.getColumnValue(1),2)
+  LPWrapper  lp3;
+  lp3.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test_integer.mps"),"MPS");
+  lp3.setObjectiveSense(LPWrapper::MAX);
+  LPWrapper::SolverParam param3;
+  lp3.solve(param3);
+  TEST_EQUAL(lp3.getColumnValue(0),2)
+  TEST_EQUAL(lp3.getColumnValue(1),2)
 }
 END_SECTION
 
-LPWrapper::SolverParam param;
-lp.solve(param);
+
+
+// Test an integer problem
+LPWrapper  lp4;
+lp4.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test_integer.mps"),"MPS");
+lp4.setObjectiveSense(LPWrapper::MAX);
+LPWrapper::SolverParam param4;
+lp4.solve(param4);
 START_SECTION((SolverStatus getStatus()))
 {
-  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
+  if(lp4.getSolver() == LPWrapper::SOLVER_GLPK)
     {
-      TEST_EQUAL(lp.getStatus(),LPWrapper::OPTIMAL)
+      TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
     }
 #if COINOR_SOLVER==1
   else
   {
-    TEST_EQUAL(lp.getStatus(),LPWrapper::UNDEFINED)
+    TEST_EQUAL(lp4.getStatus(),LPWrapper::UNDEFINED)
   }
 #endif
 
@@ -388,20 +423,20 @@ END_SECTION
 
 START_SECTION((double getObjectiveValue()))
 {
-  TEST_REAL_SIMILAR(lp.getObjectiveValue(),2)
+  TEST_REAL_SIMILAR(lp4.getObjectiveValue(),2)
 }
 END_SECTION
 
 START_SECTION((double getColumnValue(Int index)))
 {
-  TEST_REAL_SIMILAR(lp.getColumnValue(0),2)
-  TEST_REAL_SIMILAR(lp.getColumnValue(1),2)
+  TEST_REAL_SIMILAR(lp4.getColumnValue(0),2)
+  TEST_REAL_SIMILAR(lp4.getColumnValue(1),2)
 }
 END_SECTION
 
 START_SECTION((Int getNumberOfNonZeroEntriesInRow(Int idx)))
 {
-  TEST_EQUAL(lp.getNumberOfNonZeroEntriesInRow(0),2)
+  TEST_EQUAL(lp4.getNumberOfNonZeroEntriesInRow(0),2)
 }
 END_SECTION
 
@@ -410,7 +445,7 @@ START_SECTION((void getMatrixRow(Int idx,std::vector<Int>& indexes)))
   std::vector<Int> idxs,idxs2;
   idxs.push_back(0);
   idxs.push_back(1);
-  lp.getMatrixRow(0,idxs2);
+  lp4.getMatrixRow(0,idxs2);
   TEST_EQUAL(idxs2.size(),idxs.size())
   for(Size i = 0; i < idxs2.size();++i)
     {
@@ -419,24 +454,22 @@ START_SECTION((void getMatrixRow(Int idx,std::vector<Int>& indexes)))
 }
 END_SECTION
 
-START_SECTION((void setSolver(const SOLVER s)))
-{
-  lp.setSolver(LPWrapper::SOLVER_GLPK);
-  TEST_EQUAL(lp.getSolver(),LPWrapper::SOLVER_GLPK)
-}
-END_SECTION
-
 START_SECTION((SOLVER getSolver() const ))
 {
-  TEST_EQUAL(lp.getSolver(),LPWrapper::SOLVER_GLPK)
+
+#if COINOR_SOLVER==1
+  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
+#else
+  TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)
+#endif
 }
 END_SECTION
 
 START_SECTION(([LPWrapper::SolverParam] SolverParam()))
 {
   LPWrapper::SolverParam* sptr = new LPWrapper::SolverParam();
-  LPWrapper::SolverParam* snull_ptr = 0;
-	TEST_NOT_EQUAL(sptr, snull_ptr)
+  LPWrapper::SolverParam* snull_ptr = nullptr;
+  TEST_NOT_EQUAL(sptr, snull_ptr)
   TEST_EQUAL(sptr->message_level,3)
   TEST_EQUAL(sptr->branching_tech,4)
   TEST_EQUAL(sptr->backtrack_tech,3)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Vipul Patel $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
@@ -61,10 +60,10 @@ public:
     MapAlignmentAlgorithmSpectrumAlignment();
 
     /// Destructor
-    virtual ~MapAlignmentAlgorithmSpectrumAlignment();
+    ~MapAlignmentAlgorithmSpectrumAlignment() override;
 
     /// Align peak maps
-    virtual void align(std::vector<MSExperiment<> >&, std::vector<TransformationDescription>&);
+    virtual void align(std::vector<PeakMap >&, std::vector<TransformationDescription>&);
 
 private:
     /// Copy constructor is not implemented -> private
@@ -150,7 +149,7 @@ private:
         @param aligned map which has to be aligned.
         @param transformation container for rebuilding the alignment only by specific data-points
     */
-    void prepareAlign_(const std::vector<MSSpectrum<>*>& pattern, MSExperiment<>& aligned, std::vector<TransformationDescription>& transformation);
+    void prepareAlign_(const std::vector<MSSpectrum*>& pattern, PeakMap& aligned, std::vector<TransformationDescription>& transformation);
 
     /**
         @brief filtered the MSLevel to gain only MSLevel 1
@@ -162,7 +161,7 @@ private:
 
         @exception Exception::IllegalArgument is thrown if no spectra are contained in @p peakmap
     */
-    void msFilter_(MSExperiment<>& peakmap, std::vector<MSSpectrum<>*>& spectrum_pointer_container);
+    void msFilter_(PeakMap& peakmap, std::vector<MSSpectrum*>& spectrum_pointer_container);
 
     /**
         @brief function for the test if cell i,j of the grid is inside the band
@@ -195,8 +194,8 @@ private:
         @param ybegin indicate the beginning of the aligned sequence
         @param yend indicate the end of the aligned sequence
     */
-    Int bestk_(const std::vector<MSSpectrum<>*>& pattern,
-              std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer,
+    Int bestk_(const std::vector<MSSpectrum*>& pattern,
+              std::vector<MSSpectrum*>& aligned, std::map<Size, std::map<Size, float> >& buffer,
               bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend);
 
     /**
@@ -220,13 +219,13 @@ private:
         @param column_row_orientation indicate the order of the matrix
     */
     float scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin,
-                            const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned,
+                            const std::vector<MSSpectrum*>& pattern, std::vector<MSSpectrum*>& aligned,
                             std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation);
 
     /**
         @brief return the score of two given MSSpectra by calling the scorefunction
     */
-    float scoring_(const MSSpectrum<>& a, MSSpectrum<>& b);
+    float scoring_(const MSSpectrum& a, MSSpectrum& b);
 
     /**
         @brief affine gap cost Alignment
@@ -250,8 +249,8 @@ private:
         @exception Exception::OutOfRange if a out of bound appear @p pattern or @p aligned
     */
     void affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend,
-                        const std::vector<MSSpectrum<>*>& pattern, 
-                        std::vector<MSSpectrum<>*>& aligned,
+                        const std::vector<MSSpectrum*>& pattern,
+                        std::vector<MSSpectrum*>& aligned,
                         std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, 
                         std::vector<int>& xcoordinatepattern);
 
@@ -270,8 +269,8 @@ private:
         @param ycoordinate  save the retention times of an anchor points
         @param xcoordinatepattern save the reference position of the anchor points from the pattern
     */
-    void bucketFilter_(const std::vector<MSSpectrum<>*>& pattern,
-                       std::vector<MSSpectrum<>*>& aligned, std::vector<Int>& xcoordinate, 
+    void bucketFilter_(const std::vector<MSSpectrum*>& pattern,
+                       std::vector<MSSpectrum*>& aligned, std::vector<Int>& xcoordinate,
                        std::vector<float>& ycoordinate, std::vector<Int>& xcoordinatepattern);
 
     /**
@@ -294,7 +293,7 @@ private:
         @param pattern template map.
         @param aligned map to be aligned.
     */
-    void debugFileCreator_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned);
+    void debugFileCreator_(const std::vector<MSSpectrum*>& pattern, std::vector<MSSpectrum*>& aligned);
 
     /**
         @brief Rounding the score of two spectra, only necessary for debugging
@@ -330,9 +329,8 @@ private:
     ///Container holding the score of each cell(matchmatrix,insertmatrix, traceback)
     std::vector<float> scoredistribution_; //save the cell i, j , matchscore, insertscore, traceback
     //docu in base class
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H

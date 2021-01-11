@@ -76,7 +76,7 @@
 			<softwareRef ref="so_in_0" />
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
-	<dataProcessingList count="1">
+	<dataProcessingList count="3">
 		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000543" name="data processing action" />
@@ -121,6 +121,18 @@
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
+		<dataProcessing id="dp_sp_0_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+		<dataProcessing id="dp_sp_4_bi_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
 		<spectrumList count="5" defaultDataProcessingRef="dp_sp_0">
@@ -135,7 +147,7 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4200.76" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-				<binaryDataArrayList count="2">
+				<binaryDataArrayList count="3">
 					<binaryDataArray encodedLength="2208">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -147,6 +159,12 @@
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>QdRXR2aMn0a0CBRH2oiPRrdGC0e09S5HHkhJR3nEf0ZxA4dGk99cShCp5EnLRKlI3c5BR63FmUamR5BG2I3tRhhrikaq/6BGNd+kRoqvkUZEhtFGZaN3RsHW+EYD1yJH0uaBRkxwkEb4PkJHQUhdR3VQl0aXq35Gx7+pRtzUXUal12lHmfMzR0bCv0YKreJG7vk8R9DajUZ40pJGyYxnRj3pjkfp4EtHnjBxRlGHzUbDgqtGZTduRigCckeD+GdHh/aqRikZG0cl9ANHD/KPRiRxxUYc5n9GXD/lRkdyhUbqlD9IV90HSGtjL0crpERHUJYVRw34IUhLaixIecMFSEOyh0buK3pH46NiRmdUmUbumVhGM1DQRowrn0YwQLBGpe6BRpOnEEcIjgNHaOmBRioE00ZO581GFBXjRvTLv0bCnH1GThKvRtv/0UYJ8OBGthHFRswGqUevCIpHkaLsRlEgF0fGHQBHUXfkRq7vzUbk/jpIGWsBSATmpkbjdhtHACp+R2QMHUf8HQ9H4AbGRnNpdEZ1911G+lvQRpqIvkbDkh9IN5CURt+7EEhVC4FGdK5ORw47uUYXdF1GJHYLR5C1vUY0uKNKyueASkin2knobLdIgS5DRw60gEbaE+dGOAinRp6Gp0alA5hGZyTPRsP+20aG6ZxGybu9SakWmEna+cFIs9KuR+4Uj0aywGVG2ZF9RzChMEfKOpRGfiPlRwRZ+Udw1xBHMMibRjrzj0bV4pdGe/fQSqmdukrqSDdKPg1DScnv1Ecnbt1Gi16ZRgNY30bOJPpHtMXUR7DZGkdd/6ZH69YYR9KIjkZiwwdHjF9GR/E3pkZY4LlGIgJnRpVag0YlOQJHkD3/RrMPn0h8wO5IBHHUSNZfCUg6Eb9Gt7oAR2/37EY/HM1GDKCrRtxfsUb2OYNG0IhfSOyAJEiDN5VHeAzGRtO7kEcG2G9HCSTYRopLukYZvJdGUh5URnyrZkbzkqJGleFKRupsg0YrTX1GBsJqRoEaeEYjZJBG+c4YR8PlEEdhu9RGkmEASJCTikdzUkZG2Tf5RtJOIkeGzQNH1G9RR5pyfEfgHOBGuQGwR5l/OUcn749G</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="207" encodedLength="1104" >
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>0k9LQUic/0C0y5dBmQhOQX7SQEFKIH9B315KQX5mPEEMW1lBaFV7QcJHeUFOLXhBp/WDQYc2XEGfe2lBYJ98QTePo0FGwXtBZ/N7QewYdUGfjXNBLktiQUQpZkFDJ3lB96KMQaT5XUF8H4RBb1uNQUV5k0FxNmVB3t1nQU51cEEz64JBqmF0QW1qZkE9xVxBXEqVQbeBgkEIAW9BmoF2QZr9iUGBj3tByA27QdiecUFBJ2lBzcROQdgGkEHRqIBBC4VsQVu+hkGLw5VBhBVbQToPc0EwK2tBWZaUQSsTnEGSMp5B8HeRQVBsi0EkjIVB38mMQcs4lUEag5lB5ZCbQV6+aEF+945BNTR4QWIxrkHa/IZBIQGcQTLXpUFAnI5BrUeIQREko0E7Z49B3JOIQdTEoEEXtZJB8GORQQTMjUHqoo1BIPGPQaBxnEFZk6hByOmXQVa6mEHmwKRBq/CJQe20lEFmb5xBIgKTQXARn0Fr3p9BJlWjQQENz0EKCK1BfYGZQRlInkG7X6hB4cqbQeBNjUGvsJFBzp2UQQjYskGDra5BK9uCQTZJrEGSuI9BK8mtQR8TskFGi5RBv1bOQepk3kErzqtBFuirQYudq0EUNqlBHd29QSuKoEFd/+1ByE+ZQVVQyEESE6BB/0+2QT1crkGKBMZBvD6uQTjGrEHyXK5Bkr25QZtSpkGyG5lBFaS+Qfqm00G+MNpBIeLRQWozuUH56fVBZnTIQXXyAULw+vBBw5m8QXFku0Hkt7tBLAy3QRuLxkHiurNBBGPhQYcsvEF4PLlBXNO+QewgxkEP7uNBzZvnQXmGukH1IA5CTvnoQXtLrUFH2OZBNk2pQSyJlUHYyP5B4BQLQltNu0EYzMJBt6++QZNh0UFBl61BT0GpQVwdFkJpigRCcPreQSIv5UHKkZlBe7HOQaNh5EE6TPdB9PHAQe/P6EFWIutB8Sr9QUxHvEE+CLRB9PaAQaId20GjsMBBkI6KQRmbrEGPeKZBcWi0QQb+rkHBuOpB0ubtQR47xUEBE9tB9aMBQlwm8EHO7MRByaTjQZRH9EG0ev5BMRTcQa7c90HnvB9CbYILQgHNDUITMfZB</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -161,12 +179,10 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4201.26" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="564.34021" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -179,7 +195,7 @@
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="4428">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -206,12 +222,10 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4201.49" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="733.9208374" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -224,7 +238,7 @@
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="9656">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -251,12 +265,10 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4201.77" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="504.5991516" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -269,7 +281,7 @@
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="5568">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -296,7 +308,7 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4202.03" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-				<binaryDataArrayList count="2">
+				<binaryDataArrayList count="3">
 					<binaryDataArray encodedLength="2604">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -309,6 +321,12 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>WlhWRql6XkeuGl5HLOF8RtMglkay3whHgb9/R4sygEf44K9GoUeQRpnrskY2DodGd1WIRp3IUkqAkPBJ+1yTSD1XgEdC5F5GMxdkRiE+2EbcbnxGabBuRqASe0Ze4L5GVx66RoHLYkYHKL1GvJ6HRmZcQkcNWztHRZCmRrd5q0ZyKndGHbqLRjdrL0dXkGBHxVsCR28FRkZGrVxG1/qNRmlGkEapbSJHwAA8R7ZmvUbgA2RGK8ofR5g13EYOEIZGZ96dRvuhxEaC7HlGH+qMR11FJkcfwa1GqLiDRl18lkaXBOhGFyGARol6hEaSXB5H0hMfR3SWBEcJWadGpwaFRt6gfUZGkz1H6X9WRrmCiEa8koxGFoifRmAOWkZQtKhG+kj1Rqj4tEaUe0xGdt2cRgjoP0gZh5FGBaINSMGRFkfXADFHxMP0Ro8ygkYWSiFIm9g5SK+YuEcsk1NGErbARrrJYEcyDxRH3wAGR8ixv0aXg2JH/N2jRiF5hUbVOlVGGWaSRgrCH0eQ/wdHKSCbRqf+DEc1HrFGL/6FRpoAAUfy8cRGlPPLR93tdEdWf8VGoMeTRuJ/l0b+LZ9G9Ob5R4TszkcjbTpHF5Q1R23F80ayV5tGSMiURi66gkaZt2lG4PCXRg2xikZysVNIrjM9SC/ihUcCLZdG5edfRtGJyUb0y5FGNoERRzfMk0rT8mVKyj/KSZwjcUgWVA1HpSmQRqp5sUaadpRGeIJbRgbTiUblqJhGfM+qRgEqgEZzF71Jb0F+RuO+pEmlO9NIt9dSR5G4uUZxbpRH9CBBR2zdaEaUc01GzYkjSFhD5UegzOlGHneCRgMykUa/KtVK9eG9SseBPEoFCWpJlzC/R0g7i0aG+nBGaciYRoq2eUZj2JFGUM6vRi07C0jvoetHoM9iR0wwl0Y0Pc5H+MH6Rn31pEbVYphGkWGvRi9xgkYawYxHR29nR7e62Eanfp5GTf6cRqEBdkb2H0RGe7FRRgo1eUZfoXdG4YYrR4c8I0dQOYZG0RaFSBoXFEktZLRIlYwWSBcmL0eQCYBGdfX5Rj0xgkYY6JFGiwP1Rr95tEanRoFGY0WTSHKdm0hOp79HsuIhR6VmkEYVQJlHJF6UR3FPPUdDpYJG5W2JRhpz20bq+IBGlAWERkJAdUbiUKxGp02oRrw8gUatzHNGhvLCRvNOu0bPKJBGU8rVRgb6H0eF+A1HRJ3iRzAON0eyq2pGb+QaR7i5DkeOOuJGzdZ1RjrphkZ6E3lHf0JZR2gaJEcCiY1GWPXIR+gURUcUME5G4CiDRg==</binary>
 					</binaryDataArray>
+					<binaryDataArray arrayLength="244" encodedLength="1304" >
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>koU0QW3qTUHKQl9BuYQ0QeAMU0GWQVNBvqtsQSmCU0GVYXxBmV3HQeF5f0EiVnlBa39TQa+2e0F/VnpB8m99QdVfgUH4BltBIYRHQaNad0GJxV5BXY4mQXp+SEFtio1BlRFoQR9pVUGdimlB1858QVePhUG6DnVBRFlPQfXfeEHzJmBBYu5cQY2Jq0Glj4ZBPbWCQRSxbkHBPW9BbLtYQUcBb0Hm9YJBLIqIQXe7hkEq0XNBOuF1QUhIgkETOq1BmztxQW3yrUFxcndBKgiRQUIwkEFi+YtBnq57QYwAfUHNpY9B9AF/QezPfkE2wsdBRe9tQZEQlEF3bYRBDpAoQbmDbUEFwYVBqYh/QZVVcEGF+19BYsOYQThKgUFqp8BBpniFQcWQgEF2RINBkF+tQTh8lkE1SZhBRkmbQYJSoUG79ZRBuEaLQVcUfEGlFJlBcZSZQTUarUHKM8tBBJ+BQVeeqkH6yptBkOOOQZxslUGedZJBbvRyQf7QlUGaoYtBPK6GQb1HqEF4bpRBZ4iSQb4glUE8KZlBhIx/QX1ukUGgvKVBlSyXQRclnkExXo1BKr+XQfp3n0H2p31B19CmQR6HnEG67p9Br3+YQY90jEEE7m9BEHePQcVfh0EhXYhBSVWNQXcPkkH2Pq1B1dOrQRnbpkGZ26JBiNGFQfnirkFCKdtBr54MQfPVq0GStaxBqHCsQfpMqUGn6KBBxRSqQWqmuEG6erFBCiORQfP6ykFsfqdB8y+iQaS5kEHR8K9BYWNmQfJsrkEZjKtBft/BQVX71UGizMRBDcnZQcjxmkHnBWlBehy8QQ8ztkFMofFBrh60QUHVx0EqrrtBvNK6QX7Fu0FvIblB1H/KQRSko0GUq8BBd0ymQeoPpUEkeb9BQ4PRQTQztEFzBsFBNS/AQWPWpUG6+sxB0yDMQSHd7kGZA8pB4Hi9QUqtwEHfsdpBkEvUQaGl9kGnWgJCFwX8QXTSykHLyH5B1DOpQQaQpkGU55RBtIoFQq7v40F0tapB5DW8QUsQwkHYl71BWZXFQYh18UHhzddBD8/AQTKLnEH9mphBYW/SQQyex0GiXdxBETHJQXePykFBtuFBGhjlQYct20F38vVBLa3uQYPDyEFoBtlBn+O0QRaSzEF4Bs9Bsx/iQdao3UFqhLxBUjW6QZQ9qkHcDbxBdiLIQULlBULU7wZCtBO6Qbl4yUEatt5B4TEFQitVFUIY7cRBkyTeQemS3kHIKBVCtAfLQcwszEGfmPtBABEvQgAa+EFMYOlB2UgGQmXl8kGZo+hBKNIaQg==</binary>
+					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
 		</spectrumList>
@@ -316,13 +334,13 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=12663">8253</offset>
-		<offset idRef="scan=12664">13075</offset>
-		<offset idRef="scan=12665">22441</offset>
-		<offset idRef="scan=12666">39657</offset>
-		<offset idRef="scan=12667">50741</offset>
+		<offset idRef="scan=12663">8925</offset>
+		<offset idRef="scan=12664">15208</offset>
+		<offset idRef="scan=12665">24262</offset>
+		<offset idRef="scan=12666">41166</offset>
+		<offset idRef="scan=12667">51938</offset>
 	</index>
 </indexList>
-<indexListOffset>56161</indexListOffset>
+<indexListOffset>59019</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

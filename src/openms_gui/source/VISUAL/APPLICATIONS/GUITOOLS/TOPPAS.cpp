@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,12 +58,15 @@
 */
 
 //QT
-#include <QtGui/QApplication>
-#include <QtGui/QSplashScreen>
+#include <QApplication>
+#include <QPainter>
+#include <QtWidgets/QSplashScreen>
 #include <QtCore/QDir>
+
 
 //OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
@@ -94,7 +97,7 @@ const char* tool_name = "TOPPAS";
 // description of the usage of this TOPP tool
 //-------------------------------------------------------------
 
-void print_usage(Logger::LogStream& stream = Log_info)
+void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 {
   stream << "\n"
          << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"
@@ -133,8 +136,8 @@ int main(int argc, const char** argv)
   // '-debug' given
   if (param.exists("debug"))
   {
-    LOG_INFO << "Debug flag provided. Enabling 'LOG_DEBUG' ..." << std::endl;
-    Log_debug.insert(cout); // allows to use LOG_DEBUG << "something" << std::endl;
+    OPENMS_LOG_INFO << "Debug flag provided. Enabling 'OPENMS_LOG_DEBUG' ..." << std::endl;
+    OpenMS_Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
   }
 
   // test if unknown options were given
@@ -145,8 +148,8 @@ int main(int argc, const char** argv)
     // in Param.h
     if (!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
     {
-      LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-      print_usage(Log_error);
+      OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
+      print_usage(OpenMS_Log_error);
       return 1;
     }
   }
@@ -156,7 +159,7 @@ int main(int argc, const char** argv)
 
     if (param.exists("execute") || param.exists("out_dir"))
     {
-      LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl;
+      OPENMS_LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl;
       return 1;
     }
 
@@ -168,10 +171,14 @@ int main(int argc, const char** argv)
 
     a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(openToppasFile(QString)));
 
-    // Create the splashscreen that is displayed while the application loads
-    QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPAS_Splashscreen.png"));
-    splash_screen->show();
-    splash_screen->showMessage("Loading parameters");
+    // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
+    QPixmap qpm(":/TOPPAS_Splashscreen.png");
+    QPainter pt_ver(&qpm);
+    pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
+    pt_ver.setPen(QColor(44, 50, 152));
+    pt_ver.drawText(490, 84, VersionInfo::getVersion().toQString());
+    QSplashScreen splash_screen(qpm);
+    splash_screen.show();
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
@@ -183,11 +190,11 @@ int main(int argc, const char** argv)
 
     if (param.exists("misc"))
     {
-      mw->loadFiles(param.getValue("misc"), splash_screen);
+      mw->loadFiles(param.getValue("misc"), &splash_screen);
     }
-    else // remember this new window as obsolete once a real workflow is loaded without this window being touched
-    {    // if this is not desired, simply call newPipeline() without arguments
-      mw->newPipeline(mw->IDINITIALUNTITLED);
+    else 
+    {
+      mw->newPipeline();
     }
 
     // We are about to show the application.
@@ -196,8 +203,7 @@ int main(int argc, const char** argv)
     {
     }
     stop_watch.stop();
-    splash_screen->close();
-    delete splash_screen;
+    splash_screen.close();
 
 #ifdef OPENMS_WINDOWSPLATFORM
     FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)

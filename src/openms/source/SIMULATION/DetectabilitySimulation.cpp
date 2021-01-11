@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,22 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <vector>
-#include <iostream>
 
 using std::vector;
 using std::cout;
@@ -78,7 +71,7 @@ namespace OpenMS
 
   void DetectabilitySimulation::filterDetectability(SimTypes::FeatureMapSim& features)
   {
-    LOG_INFO << "Detectability Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "Detectability Simulation ... started" << std::endl;
     if (param_.getValue("dt_simulation_on") == "true")
     {
       svmFilter_(features);
@@ -120,7 +113,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dt_model_file_ + " is not readable");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dt_model_file_ + " is not readable");
     }
 
     // load additional parameters
@@ -129,7 +122,7 @@ namespace OpenMS
       String add_paramfile = dt_model_file_ + "_additional_parameters";
       if (!File::readable(add_paramfile))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: SVM parameter file " + add_paramfile + " is not readable");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: SVM parameter file " + add_paramfile + " is not readable");
       }
 
       Param additional_parameters;
@@ -139,20 +132,20 @@ namespace OpenMS
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No border length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No sigma defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No sigma defined in additional parameters file.");
       }
 
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
@@ -167,7 +160,7 @@ namespace OpenMS
     }
     // loading training data
     String sample_file = dt_model_file_ + "_samples";
-    svm_problem* training_data = NULL;
+    svm_problem* training_data = nullptr;
     if (File::readable(sample_file))
     {
       training_data = encoder.loadLibSVMProblem(sample_file);
@@ -175,11 +168,11 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
     }
 
 
-    LOG_INFO << "Predicting peptide detectabilities..    " << endl;
+    OPENMS_LOG_INFO << "Predicting peptide detectabilities..    " << endl;
 
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
 

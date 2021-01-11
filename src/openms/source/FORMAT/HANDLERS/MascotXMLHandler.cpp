@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <xercesc/sax2/Attributes.hpp>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 using namespace std;
 using namespace xercesc;
@@ -483,9 +482,9 @@ namespace OpenMS
       else if (tag_ == "CLE")
       {
         String temp_string = (character_buffer_.trim());
-        if (EnzymesDB::getInstance()->hasEnzyme(temp_string))
+        if (ProteaseDB::getInstance()->hasEnzyme(temp_string))
         {
-          search_parameters_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(temp_string);
+          search_parameters_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(temp_string));
         }
       }
       else if (tag_ == "TOL")
@@ -669,7 +668,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tmp_mod);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_mod);
         }
       }
       return mods;

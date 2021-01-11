@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_INTERPOLATIONMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_INTERPOLATIONMODEL_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
@@ -81,7 +80,7 @@ public:
     }
 
     /// destructor
-    virtual ~InterpolationModel()
+    ~InterpolationModel() override
     {
     }
 
@@ -99,7 +98,7 @@ public:
     }
 
     /// access model predicted intensity at position @p pos
-    IntensityType getIntensity(const PositionType & pos) const
+    IntensityType getIntensity(const PositionType & pos) const override
     {
       return interpolation_.value(pos[0]);
     }
@@ -137,7 +136,7 @@ public:
     }
 
     /// get reasonable set of samples from the model (i.e. for printing)
-    void getSamples(SamplesType & cont) const
+    void getSamples(SamplesType & cont) const override
     {
       cont = SamplesType();
       BaseModel<1>::PeakType peak;
@@ -155,13 +154,13 @@ public:
     /// "center" of the model, particular definition (depends on the derived model)
     virtual CoordinateType getCenter() const
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /// set sample/supporting points of interpolation wrt params.
     virtual void setSamples()
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /**
@@ -186,7 +185,7 @@ protected:
     CoordinateType interpolation_step_;
     CoordinateType scaling_;
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       BaseModel<1>::updateMembers_();
       interpolation_step_ = this->param_.getValue("interpolation_step");
@@ -196,4 +195,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_INTERPOLATIONMODEL_H

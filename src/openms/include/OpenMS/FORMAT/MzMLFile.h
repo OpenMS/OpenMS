@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,19 +28,19 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZMLFILE_H
-#define OPENMS_FORMAT_MZMLFILE_H
+#pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 namespace OpenMS
@@ -60,7 +60,7 @@ public:
     ///Default constructor
     MzMLFile();
     ///Destructor
-    ~MzMLFile();
+    ~MzMLFile() override;
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();
@@ -74,27 +74,33 @@ public:
     /**
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
-      @p map has to be a MSExperiment or have the same interface.
+      @p filename The filename with the data
+      @p map Is an MSExperiment
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <typename MapType>
-    void load(const String& filename, MapType& map)
-    {
-      map.reset();
+    void load(const String& filename, PeakMap& map);
 
-      //set DocumentIdentifier
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
+    /**
+      @brief Loads a map from a MzML file stored in a buffer (in memory).
 
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
-      handler.setOptions(options_);
-      safeParse_(filename, &handler);
-    }
+      @p filename The buffer with the data
+      @p map Is an MSExperiment
+
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    void loadBuffer(const std::string& buffer, PeakMap& map);
 
     /**
       @brief Only count the number of spectra and chromatograms from a file
+
+      This method honors PeakOptions (if specified) for spectra, i.e. only spectra within the specified
+      RT range and MS levels are counted.
+      If PeakOptions have no filters set (the default), then spectra and chromatogram counts
+      are taken from the counts attribute of the spectrumList/chromatogramList tags (the
+      parsing skips all intermediate data and ends as soon as both counts are available).
+
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
 
@@ -105,13 +111,15 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    template <typename MapType>
-    void store(const String& filename, const MapType& map) const
-    {
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
-      handler.setOptions(options_);
-      save_(filename, &handler);
-    }
+    void store(const String& filename, const PeakMap& map) const;
+
+    /**
+      @brief Stores a map in an output string.
+
+      @p output An empty string to store the result
+      @p map has to be an MSExperiment
+    */
+    void storeBuffer(std::string & output, const PeakMap& map) const;
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
@@ -131,21 +139,7 @@ public:
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
-    template <typename MapType>
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count = false, bool skip_first_pass = false)
-    {
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
-
-      // Second pass through the data, now read the spectra!
-      {
-        MapType dummy;
-        Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        handler.setMSDataConsumer(consumer);
-        safeParse_(filename_in, &handler);
-      }
-    }
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer
@@ -161,23 +155,7 @@ public:
       @param map Map to store the resulting spectra and chromatograms
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
-    template <typename MapType>
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map, bool skip_full_count = false, bool skip_first_pass = false)
-    {
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
-
-      // Second pass through the data, now read the spectra!
-      {
-        PeakFileOptions tmp_options(options_);
-        Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
-        tmp_options.setAlwaysAppendData(true);
-        handler.setOptions(tmp_options);
-        handler.setMSDataConsumer(consumer);
-
-        safeParse_(filename_in, &handler);
-      }
-    }
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Checks if a file validates against the XML schema.
@@ -197,31 +175,21 @@ public:
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
+    /**
+     * @brief Gets info on centroidedness of spectra based on their metadata
+     * 
+     * @param filename File name of the mzML file to be checked
+     * 
+     * @return Map from MS level to pair of counts (centroided, non-centroided)
+     * 
+     * @exception Exception::FileNotFound is thrown if the file could not be opened
+    */
+    std::map<UInt,std::pair<Size,Size>> getCentroidInfo(const String& filename);
+
 protected:
 
-
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
-    template <typename MapType>
-    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count)
-    {
-      // Create temporary objects and counters
-      PeakFileOptions tmp_options(options_);
-      Size scount = 0, ccount = 0;
-      MapType experimental_settings;
-      Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-
-      // set temporary options for handler
-      tmp_options.setSizeOnly(true);
-      tmp_options.setMetadataOnly( skip_full_count );
-      handler.setOptions(tmp_options);
-
-      safeParse_(filename_in, &handler);
-
-      // After parsing, collect information
-      handler.getCounts(scount, ccount);
-      consumer->setExpectedSize(scount, ccount);
-      consumer->setExperimentalSettings(experimental_settings);
-    }
+    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
 
     /// Safe parse that catches exceptions and handles them accordingly
     void safeParse_(const String & filename, Internal::XMLHandler * handler);
@@ -237,4 +205,4 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZMLFILE_H
+

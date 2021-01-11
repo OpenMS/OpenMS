@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASINPUTFILELISTVERTEX_H
-#define OPENMS_VISUAL_TOPPASINPUTFILELISTVERTEX_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -55,27 +54,25 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASInputFileListVertex();
+    TOPPASInputFileListVertex() = default;
     /// Constructor
-    TOPPASInputFileListVertex(const QStringList & files);
+    TOPPASInputFileListVertex(const QStringList& files);
     /// Copy constructor
-    TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs);
+    TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) = default;
     /// Destructor
-    virtual ~TOPPASInputFileListVertex();
+    ~TOPPASInputFileListVertex() override = default;
     /// Assignment operator
-    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs);
+    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs) = default;
     /// returns "InputVertex"
-    virtual String getName() const;
+    String getName() const override;
     /// Sets the list of files
     void setFilenames(const QStringList & files);
     /// Starts all tools below this node
-    virtual void run();
+    void run() override;
     // documented in base class
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget);
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
     // documented in base class
-    virtual QRectF boundingRect() const;
-    // documented in base class
-    virtual QPainterPath shape() const;
+    QRectF boundingRect() const override;
     /// Checks if the given list of file names is valid
     bool fileNamesValid();
     /// Shows the dialog for editing the files
@@ -89,7 +86,7 @@ public:
 
 public slots:
     /// Called by an outgoing edge when it has changed
-    virtual void outEdgeHasChanged();
+    void outEdgeHasChanged() override;
 
 protected:
 
@@ -101,10 +98,9 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
     //@}
 
   };
 }
 
-#endif

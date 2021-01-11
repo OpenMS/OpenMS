@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,25 +28,20 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <fstream>
-#include <limits>
 
 namespace OpenMS
 {
@@ -79,7 +74,7 @@ namespace OpenMS
 
     Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > > traces;
 
-    SignalToNoiseEstimatorMeanIterative<RichPeakSpectrum> sne;
+    SignalToNoiseEstimatorMeanIterative<PeakSpectrum> sne;
     LinearResampler resampler;
 
     // Split the whole map into traces (== MRM transitions)
@@ -100,15 +95,15 @@ namespace OpenMS
       std::cerr << "Starting feature finding #chromatograms=" << map_->getChromatograms().size() << ", #spectra=" << map_->size() << std::endl;
     }
 
-    std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator first_it = map_->getChromatograms().begin();
+    std::vector<MSChromatogram >::const_iterator first_it = map_->getChromatograms().begin();
     for (; first_it != map_->getChromatograms().end(); ++first_it)
     {
       // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
-      RichPeakSpectrum chromatogram;
+      PeakSpectrum chromatogram;
       //typename std::vector<std::pair<double, Peak1D> >::const_iterator it3 = it2->second.begin();
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
+      for (MSChromatogram::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
       {
-        RichPeak1D peak;
+        Peak1D peak;
         peak.setMZ(it->getRT());
         peak.setIntensity(it->getIntensity());
         chromatogram.push_back(peak);
@@ -125,7 +120,7 @@ namespace OpenMS
       {
         // resample the chromatogram, first find minimal distance and use this as resampling distance
         double min_distance(std::numeric_limits<double>::max()), old_rt(0);
-        for (RichPeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+        for (PeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
         {
           if (write_debuginfo)
           {
@@ -159,7 +154,7 @@ namespace OpenMS
       filter.setParameters(filter_param);
 
       // calculate signal to noise levels
-      RichPeakSpectrum sn_chrom;
+      PeakSpectrum sn_chrom;
       Param sne_param(sne.getParameters());
       // set window length to whole range, we expect only at most one signal
       if (write_debuginfo)
@@ -173,30 +168,33 @@ namespace OpenMS
         continue;
       }
       sne.setParameters(sne_param);
-      sne.init(chromatogram.begin(), chromatogram.end());
+      sne.init(chromatogram);
 
       if (write_debuginfo)
       {
         std::cerr << first_it->getPrecursor().getMZ() << " " << first_it->getProduct().getMZ() << " ";
       }
-      for (RichPeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
+
+      PeakSpectrum::FloatDataArray signal_to_noise;
+      for (Size i = 0; i < chromatogram.size(); ++i)
       {
-        double sn(sne.getSignalToNoise(sit));
-        sit->setMetaValue("SN", sn);
+        double sn(sne.getSignalToNoise(i));
+        signal_to_noise.push_back(sn);
         if (write_debuginfo)
         {
-          std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
+          std::cerr << chromatogram[i].getMZ() << " " << chromatogram[i].getIntensity() << " " << sn << std::endl;
         }
         if (min_signal_to_noise_ratio == 0 || sn > min_signal_to_noise_ratio)
         {
-          sn_chrom.push_back(*sit);
+          sn_chrom.push_back(chromatogram[i]);
         }
       }
+      chromatogram.getFloatDataArrays().push_back(signal_to_noise);
 
       // now find sections in the chromatogram which have high s/n value
       double last_rt(0);
       std::vector<std::vector<DPosition<2> > > sections;
-      for (RichPeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
+      for (PeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
       {
         if (write_debuginfo)
         {
@@ -302,7 +300,7 @@ namespace OpenMS
             p.setIntensity(filter_spec[j].getIntensity());
             data_to_fit.push_back(p);
           }
-          InterpolationModel* model_rt = 0;
+          InterpolationModel* model_rt = nullptr;
           double quality = fitRT_(data_to_fit, model_rt);
 
           Feature f;
@@ -418,7 +416,7 @@ param.setValue( "deltaRelError", deltaRelError_);
     quality = fitter.fit1d(rt_input_data, model);
 
     // Check quality
-    if (boost::math::isnan(quality)) quality = -1.0;
+    if (std::isnan(quality)) quality = -1.0;
 
     return quality;
   }

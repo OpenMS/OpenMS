@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,37 +32,24 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_OPENSWATH_TEST_H
-#define OPENMS_OPENSWATH_TEST_H
+#pragma once
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenSWATH_Test
 {
 
   using namespace OpenMS;
 
-  // Above are the definitions using real chromatograms.
-  // Below are the definitions using spectra objects to store the data.
-  //
-  // This is necessary as long as peak picking cannot be done on chromatograms
-  // natively.  the classes needed at the moment are SavitzkyGolayFilter,
-  // GaussFilter, PeakPickerHiRes -- SignalToNoiseEstimatorMedian seems to work
-  // already.
-#if 0
-  typedef MSChromatogram<ChromatogramPeak> RichPeakChromatogram;
-  typedef MRMTransitionGroup<MSChromatogram, ChromatogramPeak> MRMTransitionGroupType;
-#else
-  typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
   typedef OpenSwath::LightTransition TransitionType;
   //typedef ReactionMonitoringTransition TransitionType;
-  typedef MRMTransitionGroup<RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
-#endif
+  typedef MRMTransitionGroup<MSChromatogram, TransitionType> MRMTransitionGroupType;
 
   MRMFeature createMockFeature()
   {
@@ -218,40 +205,40 @@ namespace OpenSWATH_Test
     MRMTransitionGroupType transition_group;
     {
       String native_id = "tr3";
-      RichPeakChromatogram chrom;
+      MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
 
       TransitionType tr;
       tr.library_intensity = 10000;
       tr.product_mz = 618.31;
-      tr.charge = 1;
+      tr.fragment_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }
     {
       String native_id = "tr1";
-      RichPeakChromatogram chrom;
+      MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
 
       TransitionType tr;
       tr.library_intensity = 1;
       tr.product_mz = 628.435;
-      tr.charge = 1;
+      tr.fragment_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }
     {
       String native_id = "tr5";
-      RichPeakChromatogram chrom;
+      MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
 
       TransitionType tr;
       tr.library_intensity = 2000;
       tr.product_mz = 628.435;
-      tr.charge = 1;
+      tr.fragment_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }
@@ -261,4 +248,3 @@ namespace OpenSWATH_Test
 
 }
 
-#endif

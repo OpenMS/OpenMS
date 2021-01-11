@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,10 +55,20 @@
         </UL>
         If you already have the 64bit version, you probably encountered a bug in our software. Please contact the mailing list (see OpenMS.de).
 
+      <LI><B>How to disable the OpenMS update check.</B><BR>
+				Starting with OpenMS 2.1 all TOPP tools will check for updated versions of the tools online and will print an information message if a newer version is available. This version check occurs only once per day and tool. Information on which tools are executed will be collected anonymously to identify which tools are no longer used and to optimally distribute development resources. If the feature causes problems or concerns, it can be disabled at build or runtime:  
+				- build time: disabling it in the build script (switch ENABLE_UPDATE_CHECK to "OFF" )
+				- runtime: setting the environment variable (OPENMS_DISABLE_UPDATE_CHECK to "ON")
+				
+      <LI><B>How can I change the temporary directory that OpenMS uses?</B><BR>
+        By default OpenMS will use the system wide temporary directory (defined
+        either by TMPDIR, TEMP or TMP environmental variable). You can override
+        this by setting the parameter "temp_dir" in the OpenMS.ini or setting
+        the environmental variable OPENMS_TMPDIR.
 
       <LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
-				The Thermo interface expects an english locale setting. Otherwise it will silently forget to
-				return peak data. Set your locale to english and it should work.
+				The Thermo interface expects an English locale setting. Otherwise it will silently forget to
+				return peak data. Set your locale to English and it should work.
 
 			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B><BR>
 				If a error message similar to
@@ -76,15 +86,15 @@
 			<LI><B>A TOPP tool crashes when loading a certain input file. Other files work properly.</B><BR>
 				If an XML input file is used, please check if the file is valid.
 
-				For most XML data formats, this can be done using the @em FileInfo tool:
-				@code
+				For most XML data formats, this can be done using the @ref TOPP_FileInfo tool:
+				@code{.sh}
  FileInfo -v -in <file>
-				@endcode
+@endcode
 
 				You can also check for corrupt data in peak files:
-				@code
+				@code{.sh}
  FileInfo -c -in <file>
-				@endcode
+@endcode
 
 		</UL>
 */

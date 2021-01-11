@@ -18,8 +18,8 @@ cdef extern from "<OpenMS/FORMAT/DTA2DFile.h>" namespace "OpenMS":
         DTA2DFile() nogil except +
         DTA2DFile(DTA2DFile) nogil except +
 
-        void storeTIC(String filename, MSExperiment[Peak1D,ChromatogramPeak] & peakmap) nogil except +
-        void store(String filename, MSExperiment[Peak1D,ChromatogramPeak] & peakmap) nogil except +
-        void load(String filename, MSExperiment[Peak1D,ChromatogramPeak] & peakmap) nogil except +
+        void storeTIC(String filename, MSExperiment & peakmap) nogil except +
+        void store(String filename, MSExperiment & peakmap) nogil except +
+        void load(String filename, MSExperiment & peakmap) nogil except +
         PeakFileOptions  getOptions() nogil except +
 

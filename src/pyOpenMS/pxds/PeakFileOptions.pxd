@@ -50,11 +50,13 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         void setSortChromatogramsByRT(bool doSort) nogil except +
         bool getSortChromatogramsByRT() nogil except +
 
-        void setSizeOnly(bool only) nogil except +
-        bool getSizeOnly() nogil except +
+        bool hasFilters() nogil except +
 
         void setFillData(bool only) nogil except +
         bool getFillData() nogil except +
+
+        void setSkipXMLChecks(bool only) nogil except +
+        bool getSkipXMLChecks() nogil except +
 
         bool getWriteIndex() nogil except +
         void setWriteIndex(bool write_index) nogil except +
@@ -65,3 +67,12 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         NumpressConfig getNumpressConfigurationIntensity() nogil except +
         void setNumpressConfigurationIntensity(NumpressConfig config) nogil except +
 
+        NumpressConfig getNumpressConfigurationFloatDataArray() nogil except +
+        void setNumpressConfigurationFloatDataArray(NumpressConfig config) nogil except +
+
+        void setForceMQCompatability(bool forceMQ) nogil except +
+        bool getForceMQCompatability() nogil except +
+
+        void setForceTPPCompatability(bool forceTPP) nogil except +
+        bool getForceTPPCompatability() nogil except +
+        

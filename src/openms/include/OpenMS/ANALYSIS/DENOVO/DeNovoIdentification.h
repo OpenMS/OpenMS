@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DENOVO_DENOVOIDENTIFICATION_H
-#define OPENMS_ANALYSIS_DENOVO_DENOVOIDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -61,7 +60,7 @@ public:
     DeNovoIdentification();
 
     /// destructor
-    virtual ~DeNovoIdentification();
+    ~DeNovoIdentification() override;
 
     /// copy constructor
     DeNovoIdentification(const DeNovoIdentification & rhs);
@@ -70,14 +69,13 @@ public:
     /// assignment operator
     DeNovoIdentification & operator=(const DeNovoIdentification & rhs);
 
-    /// performs an ProteinIdentification run on a RichPeakMap
-    virtual void getIdentifications(std::vector<PeptideIdentification> & ids, const RichPeakMap & exp) = 0;
+    /// performs an ProteinIdentification run on a PeakMap
+    virtual void getIdentifications(std::vector<PeptideIdentification> & ids, const PeakMap & exp) = 0;
 
     /// performs an ProteinIdentification run on a PeakSpectrum
-    virtual void getIdentification(PeptideIdentification & id, const RichPeakSpectrum & spectrum) = 0;
+    virtual void getIdentification(PeptideIdentification & id, const PeakSpectrum & spectrum) = 0;
 
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_DENOVO_DENOVOIDENTIFICATION_H

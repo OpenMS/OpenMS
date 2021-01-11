@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -54,10 +54,10 @@ namespace OpenMS
 	 : public FeatureGroupingAlgorithm
 	{
 		public:
-			void group(const vector< FeatureMap >&, ConsensusMap& map)
+			void group(const vector< FeatureMap >&, ConsensusMap& map) override
 			{
-			  map.getFileDescriptions()[0].filename = "bla";
-				map.getFileDescriptions()[0].size = 5;
+			  map.getColumnHeaders()[0].filename = "bla";
+				map.getColumnHeaders()[0].size = 5;
 			}
 	};
 }
@@ -67,8 +67,8 @@ START_TEST(FeatureGroupingAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FGA* ptr = 0;
-FGA* nullPointer = 0;
+FGA* ptr = nullptr;
+FGA* nullPointer = nullptr;
 START_SECTION((FeatureGroupingAlgorithm()))
 	ptr = new FGA();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -83,28 +83,28 @@ START_SECTION((virtual void group(const vector< FeatureMap > &maps, ConsensusMap
 	vector< FeatureMap > in;
 	ConsensusMap map;
 	fga.group(in,map);
-	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
+	TEST_EQUAL(map.getColumnHeaders()[0].filename, "bla")
 END_SECTION
 
 START_SECTION((static void registerChildren()))
 {
 	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[0],FeatureGroupingAlgorithmLabeled::getProductName());
 	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[1],FeatureGroupingAlgorithmUnlabeled::getProductName());
-	TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(), 3)
+  TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(), 4)
 }
 END_SECTION
 
 START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, ConsensusMap& out) const))
 {
 	vector<ConsensusMap> maps(2);
-	maps[0].getFileDescriptions()[0].filename = "file1";
-	maps[0].getFileDescriptions()[0].size = 1;
-	maps[0].getFileDescriptions()[1].filename = "file2";
-	maps[0].getFileDescriptions()[1].size = 1;
-	maps[1].getFileDescriptions()[0].filename = "file3";
-	maps[1].getFileDescriptions()[0].size = 1;
-	maps[1].getFileDescriptions()[1].filename = "file4";
-	maps[1].getFileDescriptions()[1].size = 1;
+	maps[0].getColumnHeaders()[0].filename = "file1";
+	maps[0].getColumnHeaders()[0].size = 1;
+	maps[0].getColumnHeaders()[1].filename = "file2";
+	maps[0].getColumnHeaders()[1].size = 1;
+	maps[1].getColumnHeaders()[0].filename = "file3";
+	maps[1].getColumnHeaders()[0].size = 1;
+	maps[1].getColumnHeaders()[1].filename = "file4";
+	maps[1].getColumnHeaders()[1].size = 1;
 
 	Feature feat1, feat2, feat3, feat4;
 
@@ -134,9 +134,9 @@ START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, Consen
 
 	algo->transferSubelements(maps, out);
 
-	TEST_EQUAL(out.getFileDescriptions().size(), 4);
-	TEST_EQUAL(out.getFileDescriptions()[0].filename, "file1");
-	TEST_EQUAL(out.getFileDescriptions()[3].filename, "file4");
+	TEST_EQUAL(out.getColumnHeaders().size(), 4);
+	TEST_EQUAL(out.getColumnHeaders()[0].filename, "file1");
+	TEST_EQUAL(out.getColumnHeaders()[3].filename, "file4");
 	TEST_EQUAL(out.size(), 1);
 	TEST_EQUAL(out[0].size(), 4);
 

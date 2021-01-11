@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
@@ -101,12 +101,12 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return CompNovoIdentificationCID().getDefaults();
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format", true);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -119,7 +119,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -176,17 +176,27 @@ protected:
     ProteinIdentification prot_id;
     prot_id.setIdentifier(identifier);
     prot_id.setDateTime(now);
-    prot_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
+    // annotate "spectra_data" metavalue
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      prot_id.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      prot_id.setPrimaryMSRunPath({in}, exp);
+    }      
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.charges = "+2-+3";
     if (algorithm_param.getValue("tryptic_only").toBool())
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("Trypsin");
+      search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
     }
     else
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("no cleavage");
+      search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("no cleavage"));
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");
@@ -195,7 +205,7 @@ protected:
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
     search_parameters.fragment_mass_tolerance = (double)algorithm_param.getValue("fragment_mass_tolerance");
     search_parameters.precursor_mass_tolerance = (double)algorithm_param.getValue("precursor_mass_tolerance");
-    search_parameters.fragment_mass_tolerance_ppm = false;    
+    search_parameters.fragment_mass_tolerance_ppm = false;
     search_parameters.precursor_mass_tolerance_ppm = false;
     prot_id.setSearchParameters(search_parameters);
     prot_id.setSearchEngineVersion("0.9beta");

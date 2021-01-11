@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,11 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XMLFile.h>
+
+#include <OpenMS/CONCEPT/Macros.h>
+
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
@@ -41,9 +44,13 @@
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
+
 #include <fstream>
 #include <iomanip> // setprecision etc.
+
+#include <boost/shared_ptr.hpp>
 
 using namespace std;
 
@@ -93,13 +100,15 @@ private:
 
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
     {
-      // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FeatureXMLFile, is used again)
+      // ensure handler->reset() is called to save memory (in case the XMLFile
+      // reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
 
+      StringManager sm;
       //try to open file
       if (!File::exists(filename))
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       // initialize parser
@@ -109,23 +118,28 @@ private:
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-      xercesc::SAX2XMLReader * parser = xercesc::XMLReaderFactory::createXMLReader();
+      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
       parser->setContentHandler(handler);
       parser->setErrorHandler(handler);
 
-      //is it bzip2 or gzip compressed?
-      std::ifstream file(filename.c_str());
-      char tmp_bz[3];
-      file.read(tmp_bz, 2);
-      tmp_bz[2] = '\0';
-      String bz = String(tmp_bz);
-      xercesc::InputSource * source;
+      // peak ahead into the file: is it bzip2 or gzip compressed?
+      String bz;
+      {
+        std::ifstream file(filename.c_str());
+        char tmp_bz[3];
+        file.read(tmp_bz, 2);
+        tmp_bz[2] = '\0';
+        bz = String(tmp_bz);
+      }
+
+      boost::shared_ptr< xercesc::InputSource > source;
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -136,11 +150,11 @@ private:
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
       if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
       {
-        source = new CompressedInputSource(StringManager().convert(filename.c_str()), bz);
+        source.reset(new CompressedInputSource(sm.convert(filename).c_str(), bz));
       }
       else
       {
-        source = new xercesc::LocalFileInputSource(StringManager().convert(filename.c_str()));
+        source.reset(new xercesc::LocalFileInputSource(sm.convert(filename).c_str()));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
@@ -152,20 +166,94 @@ private:
       try
       {
         parser->parse(*source);
-        delete(parser);
-        delete source;
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
+            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
       {
-        //nothing to do here, as this exception is used to softly abort the parsing for whatever reason.
+        // nothing to do here, as this exception is used to softly abort the
+        // parsing for whatever reason.
+      }
+      catch (...)
+      {
+        // re-throw
+        throw;
+      }
+    }
+
+    void XMLFile::parseBuffer_(const std::string & buffer, XMLHandler * handler)
+    {
+      // ensure handler->reset() is called to save memory (in case the XMLFile
+      // reader, e.g. FeatureXMLFile, is used again)
+      XMLCleaner_ clean(handler);
+
+      StringManager sm;
+
+      // initialize parser
+      try
+      {
+        xercesc::XMLPlatformUtils::Initialize();
+      }
+      catch (const xercesc::XMLException & toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+      }
+
+      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
+
+      parser->setContentHandler(handler);
+      parser->setErrorHandler(handler);
+
+      // TODO: handle non-plaintext
+      // peak ahead into the file: is it bzip2 or gzip compressed?
+      // String bz = buffer.substr(0, 2);
+
+      boost::shared_ptr< xercesc::InputSource > source;
+      {
+        auto fake_id = sm.convert("inMemory");
+        source.reset(new xercesc::MemBufInputSource(reinterpret_cast<const unsigned char *>(buffer.c_str()), buffer.size(), fake_id.c_str()));
+      }
+      // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
+      if (!enforced_encoding_.empty())
+      {
+        static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
+        source->setEncoding(s_enc);
+      }
+      // try to parse file
+      try
+      {
+        parser->parse(*source);
+      }
+      catch (const xercesc::XMLException & toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
+            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+      }
+      catch (const xercesc::SAXException & toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+      }
+      catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
+      {
+        // nothing to do here, as this exception is used to softly abort the
+        // parsing for whatever reason.
+      }
+      catch (...)
+      {
+        // re-throw
+        throw;
       }
     }
 
@@ -179,7 +267,7 @@ private:
 
       if (!os)
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       // write data and close stream
@@ -197,7 +285,7 @@ private:
     {
       if (schema_location_.empty())
       {
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       String current_location = File::find(schema_location_);
       return XMLValidator().isValid(filename, current_location, os);

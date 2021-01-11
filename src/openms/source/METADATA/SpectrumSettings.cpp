@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Peak data", "Raw data"};
+  const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Centroid", "Profile"};
 
   SpectrumSettings::SpectrumSettings() :
     MetaInfoInterface(),
@@ -59,43 +59,8 @@ namespace OpenMS
   {
   }
 
-  SpectrumSettings::SpectrumSettings(const SpectrumSettings & source) :
-    MetaInfoInterface(source),
-    type_(source.type_),
-    native_id_(source.native_id_),
-    comment_(source.comment_),
-    instrument_settings_(source.instrument_settings_),
-    source_file_(source.source_file_),
-    acquisition_info_(source.acquisition_info_),
-    precursors_(source.precursors_),
-    products_(source.products_),
-    identification_(source.identification_),
-    data_processing_(source.data_processing_)
-  {
-  }
-
   SpectrumSettings::~SpectrumSettings()
   {
-  }
-
-  SpectrumSettings & SpectrumSettings::operator=(const SpectrumSettings & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    type_ = source.type_;
-    native_id_ = source.native_id_;
-    comment_ = source.comment_;
-    instrument_settings_ = source.instrument_settings_;
-    acquisition_info_ = source.acquisition_info_;
-    source_file_ = source.source_file_;
-    precursors_ = source.precursors_;
-    products_ = source.products_;
-    identification_ = source.identification_;
-    data_processing_ = source.data_processing_;
-
-    return *this;
   }
 
   bool SpectrumSettings::operator==(const SpectrumSettings & rhs) const
@@ -281,9 +246,10 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const 
+  const std::vector< boost::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }
 
 }
+

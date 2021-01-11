@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
-
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/config.h>
 
 namespace OpenMS
 {
@@ -103,9 +99,7 @@ namespace OpenMS
     // construct outer hull if required
     if (outer_points_.empty() && map_points_.size() > 0)
     {
-
       // walk the outer hull
-      outer_points_.clear();
       outer_points_.reserve(map_points_.size() * 2);
 
       // traverse lower m/z's of RT scans
@@ -235,7 +229,7 @@ namespace OpenMS
     }
     compressed_map[middle_it->first] = middle_it->second; // copy last scan
     if (succ_it != map_points_.end())
-      throw Exception::BufferOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::BufferOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
     //std::cout << "compressed CH from " << map_points_.size() << " to " << compressed_map.size() << "\n";
     Size saved_points = map_points_.size() - compressed_map.size();
@@ -249,7 +243,7 @@ namespace OpenMS
   {
     if ((map_points_.empty()) && outer_points_.size() > 0) // we cannot answer the query as we lack the internal data structure
     { // (if you need this you need to augment encloses() to work on outer_points_ only)
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     if (map_points_.has(point[0]))

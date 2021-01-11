@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,21 +28,23 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <map>
 #include <numeric>
@@ -176,7 +178,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "This is the name of the input file (RT prediction). It is assumed that the file type is idXML. Alternatively you can provide a .txt file having a sequence and the corresponding rt per line.\n", false);
     setValidFormats_("in", ListUtils::create<String>("idXML,txt"));
@@ -186,6 +188,10 @@ protected:
     setValidFormats_("in_negative", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file: the model in libsvm format");
     setValidFormats_("out", ListUtils::create<String>("txt"));
+    registerOutputFile_("out_oligo_params", "<file>", "", "output file with additional model parameters when using the OLIGO kernel", false);
+    setValidFormats_("out_oligo_params", ListUtils::create<String>("paramXML"));
+    registerOutputFile_("out_oligo_trainset", "<file>", "", "output file with the used training dataset when using the OLIGO kernel", false);
+    setValidFormats_("out_oligo_trainset", ListUtils::create<String>("txt"));
     registerStringOption_("svm_type", "<type>", "NU_SVR", "the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n", false);
     setValidStrings_("svm_type", ListUtils::create<String>("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
     registerDoubleOption_("nu", "<float>", 0.5, "the nu parameter [0..1] of the svm (for nu-SVR)", false);
@@ -291,7 +297,7 @@ protected:
     }
   }
 
-  ExitCodes main_(Int, const char**)
+  ExitCodes main_(Int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
@@ -304,7 +310,7 @@ protected:
     SVMWrapper svm;
     svm.setLogType(log_type_);
     LibSVMEncoder encoder;
-    svm_problem* encoded_training_sample = 0;
+    svm_problem* encoded_training_sample = nullptr;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     map<SVMWrapper::SVM_parameter_type, double> start_values;
     map<SVMWrapper::SVM_parameter_type, double> step_sizes;
@@ -362,12 +368,12 @@ protected:
     String outputfile_name = getStringOption_("out");
     additive_cv = getFlag_("additive_cv");
     skip_cv = getFlag_("cv:skip_cv");
-    if (skip_cv) LOG_INFO << "Cross-validation disabled!\n";
-    else LOG_INFO << "Cross-validation enabled!\n";
+    if (skip_cv) OPENMS_LOG_INFO << "Cross-validation disabled!\n";
+    else OPENMS_LOG_INFO << "Cross-validation enabled!\n";
 
     float total_gradient_time = getDoubleOption_("total_gradient_time");
     max_std = getDoubleOption_("max_std");
-    if (!separation_prediction && total_gradient_time   < 0)
+    if (!separation_prediction && total_gradient_time < 0)
     {
       writeLog_("No total gradient time given for RT prediction. Aborting!");
       printUsage_();
@@ -390,8 +396,8 @@ protected:
     }
     else
     {
-      writeLog_("Illegal svm type given. Svm type has to be either "
-                + String("NU_SVR or EPSILON_SVR for rt prediction and ")
+      writeLog_("Illegal SVM type given. SVM type has to be either "
+                + String("NU_SVR or EPSILON_SVR for RT prediction and ")
                 + "C_SVC for separation prediction. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
@@ -841,6 +847,8 @@ protected:
 
     if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
     {
+      // TODO What happens if the sequence exceeds this size? No error, but does it impact performance?
+      // Why this magic number?
       UInt maximum_sequence_length = 50;
       encoded_training_sample =
         encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
@@ -963,7 +971,22 @@ protected:
     // If the oligo-border kernel is used some additional information has to be stored
     if (temp_type == SVMWrapper::OLIGO)
     {
-      training_sample.store(outputfile_name + "_samples");
+      String outfile_name = getStringOption_("out");
+      String param_outfile_name = getStringOption_("out_oligo_params");
+      String trainset_outfile_name = getStringOption_("out_oligo_trainset");
+
+      // Fallback to reasonable defaults if additional outfiles are not specified = empty.
+      if (param_outfile_name.empty())
+      {
+        param_outfile_name = outfile_name + "_additional_parameters";
+        writeLog_("Warning: Using OLIGO kernel but out_oligo_params was not specified. Trying to write to: " + param_outfile_name);
+      }
+      if (trainset_outfile_name.empty())
+      {
+        trainset_outfile_name = outfile_name + "_samples";
+        writeLog_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
+      }
+      training_sample.store(trainset_outfile_name);
       additional_parameters.setValue("kernel_type", temp_type);
 
       if (!separation_prediction)
@@ -984,7 +1007,7 @@ protected:
         additional_parameters.setValue("sigma", svm.getDoubleParameter(SVMWrapper::SIGMA));
       }
       ParamXMLFile paramFile;
-      paramFile.store(outputfile_name + "_additional_parameters", additional_parameters);
+      paramFile.store(param_outfile_name, additional_parameters);
     }
 
     return EXECUTION_OK;

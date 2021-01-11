@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,24 +28,25 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/FORMAT/GzipInputStream.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/GzipIfstream.h>
 
 using namespace xercesc;
 
 namespace OpenMS
 {
-  GzipInputStream::GzipInputStream(const   String & file_name) :
+  GzipInputStream::GzipInputStream(const String & file_name) :
     gzip_(new GzipIfstream(file_name.c_str())), file_current_index_(0)
   {
   }
 
-  GzipInputStream::GzipInputStream(const   char * file_name) :
+  GzipInputStream::GzipInputStream(const char * file_name) :
     gzip_(new GzipIfstream(file_name)), file_current_index_(0)
   {
   }
@@ -61,9 +62,9 @@ namespace OpenMS
     delete gzip_;
   }
 
-  XMLSize_t GzipInputStream::readBytes(XMLByte * const  to_fill, const XMLSize_t  max_to_read)
+  XMLSize_t GzipInputStream::readBytes(XMLByte * const to_fill, const XMLSize_t max_to_read)
   {
-    //  Figure out whether we can really read.
+    // Figure out whether we can really read.
     if (gzip_->streamEnd())
     {
       return 0;
@@ -77,7 +78,7 @@ namespace OpenMS
 
   const XMLCh * GzipInputStream::getContentType() const
   {
-    return 0;
+    return nullptr;
   }
 
 } // namespace OpenMS

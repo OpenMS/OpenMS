@@ -9,8 +9,10 @@ BasicStatistics.h
 GammaDistributionFitter.h
 GaussFitter.h
 GumbelDistributionFitter.h
+GumbelMaxLikelihoodFitter.h
 Histogram.h
 LinearRegression.h
+LinearRegressionWithoutIntercept.h
 RegressionUtils.h
 QuadraticRegression.h
 PosteriorErrorProbabilityModel.h
@@ -28,4 +30,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\MATH\\STATISTICS" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

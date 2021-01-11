@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,19 +32,19 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_METADATABROWSER_H
-#define OPENMS_VISUAL_METADATABROWSER_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 //QT
-#include <QtGui/QDialog>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QTreeWidget>
 class QTreeWidgetItem;
 class QPushButton;
 class QStackedWidget;
@@ -109,19 +109,17 @@ namespace OpenMS
 public:
 
     /// Constructor with flag for edit mode
-    MetaDataBrowser(bool editable = FALSE, QWidget * parent = 0, bool modal = FALSE);
+    MetaDataBrowser(bool editable = false, QWidget * parent = nullptr, bool modal = false);
 
     /// Adds a peak map
-    template <class PeakType>
-    void add(MSExperiment<PeakType> & exp)
+    void add(PeakMap & exp)
     {
       add(static_cast<ExperimentalSettings &>(exp));
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
     }
 
     /// Adds a peak spectrum
-    template <class PeakType>
-    void add(MSSpectrum<PeakType> & spectrum)
+    void add(MSSpectrum & spectrum)
     {
       //spectrum settings
       add(static_cast<SpectrumSettings &>(spectrum));
@@ -210,35 +208,35 @@ protected:
 
     ///@name Visualizer for the different classes
     //@{
-    void visualize_(ExperimentalSettings & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(SpectrumSettings & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(MetaInfoInterface & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Sample & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(HPLC & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Digestion & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Modification & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Tagging & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Gradient & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Software & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(ScanWindow & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(SourceFile & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(ContactPerson & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Instrument & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(IonSource & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(IonDetector & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(MassAnalyzer & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(DataProcessingPtr & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(ProteinIdentification & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(ProteinHit & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(PeptideHit & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Acquisition & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(AcquisitionInfo & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(MetaInfoDescription & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Precursor & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(Product & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(InstrumentSettings & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(PeptideIdentification & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(DocumentIdentifier & meta, QTreeWidgetItem * parent = 0);
+    void visualize_(ExperimentalSettings & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(SpectrumSettings & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(MetaInfoInterface & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Sample & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(HPLC & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Digestion & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Modification & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Tagging & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Gradient & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Software & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(ScanWindow & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(SourceFile & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(ContactPerson & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Instrument & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(IonSource & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(IonDetector & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(MassAnalyzer & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(DataProcessingPtr & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(ProteinIdentification & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(ProteinHit & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(PeptideHit & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Acquisition & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(AcquisitionInfo & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(MetaInfoDescription & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Precursor & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(Product & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(InstrumentSettings & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(PeptideIdentification & meta, QTreeWidgetItem * parent = nullptr);
+    void visualize_(DocumentIdentifier & meta, QTreeWidgetItem * parent = nullptr);
     //@}
 
     /// Visualizes all elements of a container
@@ -280,4 +278,3 @@ protected:
     QTreeWidget * treeview_;
   };
 }
-#endif

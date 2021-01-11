@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,29 +32,47 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATACHAININGCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATACHAININGCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+
+#include <vector>
+#include <memory>
 
 namespace OpenMS
 {
 
   /**
-    @brief Consumer class that passes all operations on to a set of consumers
+    @brief Consumer class that passes all consumed data through a set of operations
 
     This consumer allows to chain multiple data consumers and applying them in
     a pre-specified order. This can be useful if a certain operation on a
     dataset needs to be performed but some pre-processing (data reduction etc.)
     or post-processing (writing to disk, caching on disk). The different
-    processing steps can be added to the chaining consumer(in the correct
+    processing steps can be added to the chaining consumer (in the correct
     order) without knowledge of the specific pre/post processing steps.
+
+    Usage:
+
+    @code
+    MSDataTransformingConsumer * transforming_consumer_first = new MSDataTransformingConsumer(); // apply some transformation
+    MSDataTransformingConsumer * transforming_consumer_second = new MSDataTransformingConsumer(); // apply second transformation
+    MSDataWritingConsumer * writing_consumer = new MSDataWritingConsumer(outfile); // writing to disk
+
+    std::vector<Interfaces::IMSDataConsumer *> consumer_list;
+    consumer_list.push_back(transforming_consumer_first);
+    consumer_list.push_back(transforming_consumer_second);
+    consumer_list.push_back(writing_consumer);
+    MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);
+
+    // now chaining_consumer can be passed to a function expecting a IMSDataConsumer interface
+    @endcode
 
   */
   class OPENMS_DLLAPI MSDataChainingConsumer :
-    public Interfaces::IMSDataConsumer< MSExperiment<> >
+    public Interfaces::IMSDataConsumer
   {
-    std::vector<Interfaces::IMSDataConsumer<> *> consumers_;
+    std::vector<Interfaces::IMSDataConsumer *> consumers_;
 
   public:
 
@@ -69,26 +87,29 @@ namespace OpenMS
      *
      * Pass a list of consumers that should be called sequentially
      *
-     * @note This does not transfers ownership - it is the callers
+     * @note By default, this does not transfers ownership - it is the callers
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer<> *> consumers);
+    MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer *> consumers);
 
     /**
      * @brief Destructor
      *
+     * Does nothing. Does not destroy underlying consumers, therefore is the
+     * responsibility of the caller to destroy all consumers.
+     *
      */
-    ~MSDataChainingConsumer();
+    ~MSDataChainingConsumer() override;
 
     /**
      * @brief Append a consumer to the chain of consumers to be executed
      *
-     * @note This does not transfers ownership - it is the callers
+     * @note This does not transfer ownership - it is the callers
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    void appendConsumer(Interfaces::IMSDataConsumer<> * consumer);
+    void appendConsumer(Interfaces::IMSDataConsumer * consumer);
 
     /**
      * @brief Set experimental settings for all consumers
@@ -96,7 +117,7 @@ namespace OpenMS
      * Will set the experimental settings for all chained consumers
      *
      */
-    void setExperimentalSettings(const ExperimentalSettings & settings);
+    void setExperimentalSettings(const ExperimentalSettings & settings) override;
 
     /**
      * @brief Set expected size for all consumers
@@ -104,22 +125,22 @@ namespace OpenMS
      * Will set the expected size for all chained consumers
      *
      */
-    void setExpectedSize(Size s_size, Size c_size);
+    void setExpectedSize(Size s_size, Size c_size) override;
 
     /**
      * @brief Call all consumers in the specified order for the given spectrum
      *
      */
-    void consumeSpectrum(SpectrumType & s);
+    void consumeSpectrum(SpectrumType & s) override;
 
     /**
      * @brief Call all consumers in the specified order for the given chromatogram
      *
      */
-    void consumeChromatogram(ChromatogramType & c);
+    void consumeChromatogram(ChromatogramType & c) override;
 
   };
 
 } //end namespace OpenMS
 
-#endif
+

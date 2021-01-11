@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,12 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzQuantMLValidator.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -59,6 +59,11 @@ namespace OpenMS
 
   void MzQuantMLFile::store(const String & filename, const MSQuantifications & cmsq) const
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::MZQUANTML))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZIDENTML) + "'");
+    }
+
     Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
     save_(filename, &handler);
   }

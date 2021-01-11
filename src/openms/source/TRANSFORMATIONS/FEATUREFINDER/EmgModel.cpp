@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <numeric>
 
 namespace OpenMS
 {
@@ -100,10 +97,10 @@ namespace OpenMS
     for (UInt i = 0; pos < max_; ++i)
     {
       pos = min_ + i * interpolation_step_;
-      double tmp = pos - retention_;
+      double diff = pos - retention_;
 
       // data.push_back (Simplified EMG)
-      data.push_back((part1 * sqrt_2pi * exp(part2 - (tmp / symmetry_)) / (1 + exp(term_sq2 * ((tmp / width_) - part3)))));
+      data.push_back((part1 * sqrt_2pi * exp(part2 - (diff / symmetry_)) / (1 + exp(term_sq2 * ((diff / width_) - part3)))));
     }
 
     interpolation_.setScale(interpolation_step_);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,20 +28,21 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <cstdlib>
 #include <vector>
@@ -149,14 +150,14 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
-                                           "Note: In mode 'inspect_out' an Inspect results file is read.");
-    setValidFormats_("in", ListUtils::create<String>("mzXML,mzData"));
+                                           "Note: In mode 'inspect_out' an Inspect results (txt) file is read.");
+    setValidFormats_("in", ListUtils::create<String>("mzXML,mzData,txt"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
-                                             "Note: In mode 'inspect_in' an Inspect input file is written.");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+                                             "Note: In mode 'inspect_in' an Inspect input file is written as txt.");
+    setValidFormats_("out", ListUtils::create<String>("idXML,txt"));
     registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
                                 "write an Inspect input file and generate a trie database");
     registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
@@ -182,8 +183,10 @@ protected:
     registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
     registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
     registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
-    registerOutputFile_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false); // TODO: Which file format?
-    registerInputFile_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false); // TODO: Which file format?
+    registerOutputFile_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false);
+    setValidFormats_("inspect_output", ListUtils::create<String>("txt"));
+    registerInputFile_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false);
+    setValidFormats_("inspect_input", ListUtils::create<String>("txt"));
     registerFlag_("multicharge", "attempt to guess the precursor charge and mass,\n"
                                  "and consider multiple charge states if feasible");
     registerIntOption_("max_modifications_pp", "<num>", -1, "number of PTMs permitted in a single peptide.", false);
@@ -206,7 +209,7 @@ protected:
     registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
   }
 
-  ExitCodes main_(Int, const char**)
+  ExitCodes main_(Int, const char**) override
   {
     //-------------------------------------------------------------
     // (1) variables
@@ -358,7 +361,7 @@ protected:
       string_buffer = File::absolutePath(string_buffer);
       if (inspect_in)
       {
-        MSExperiment<Peak1D> experiment;
+        PeakMap experiment;
         String type;
         try
         {
@@ -833,7 +836,7 @@ protected:
         {
           QString output = builder.readAll();
           // set the search engine and its version and the score type
-          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n";
+          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) OPENMS_LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n";
         }
       }
       else protein_identification.setSearchEngine("InsPecT");
@@ -848,14 +851,14 @@ protected:
           {
             sp.mass_type = ProteinIdentification::MONOISOTOPIC;
           }
-          else 
+          else
           {
             sp.mass_type = ProteinIdentification::AVERAGE;
           }
 
-          if (EnzymesDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme())) 
+          if (ProteaseDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme()))
           {
-            sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(inspect_infile.getEnzyme());
+            sp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(inspect_infile.getEnzyme()));
           }
           sp.fragment_mass_tolerance = inspect_infile.getPeakMassTolerance();
           sp.precursor_mass_tolerance = inspect_infile.getPrecursorMassTolerance();
@@ -873,6 +876,13 @@ protected:
           if (exit_code == EXECUTION_OK)
           {
             vector<ProteinIdentification> protein_identifications(1, protein_identification);
+
+            // write all (!) parameters as metavalues to the search parameters
+            if (!protein_identifications.empty())
+            {
+              DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+            }
+
             idXML_file.store(output_filename, protein_identifications, peptide_identifications);
           }
         }

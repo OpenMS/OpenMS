@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,31 +28,22 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange, Alexandra Zerck $
 // --------------------------------------------------------------------------
 
 #include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <omp.h>
 #endif
 #endif
-
-#include <cmath>
-#include <vector>
-#include <algorithm>
 
 //#define DEBUG_PEAK_PICKING2 1
 
@@ -170,7 +161,7 @@ namespace OpenMS
     defaults_.setMinInt("deconvolution:fitting:max_iteration", 1);
 
     //this->subsections_.push_back("SignalToNoiseEstimationParameter");
-    SignalToNoiseEstimatorMeanIterative<MSSpectrum<> > sne;      // make sure this is the same as in pick()!
+    SignalToNoiseEstimatorMeanIterative<MSSpectrum> sne;      // make sure this is the same as in pick()!
     Param param_sne_defaults =  sne.getDefaults();
     Param::ParamIterator param_it = param_sne_defaults.begin();
     for (; param_it != param_sne_defaults.end(); ++param_it)
@@ -516,7 +507,7 @@ namespace OpenMS
     peak_left_index = distance(first, area.left);
     peak_right_index = distance(first, area.right);
 
-    // The minimal raw data points per peak should be 2
+    // The minimal profile data points per peak should be 2
     if ((distance(area.left, area.max) > 0) && (distance(area.max, area.right) > 0))
     {
 #ifdef DEBUG_PEAK_PICKING
@@ -593,7 +584,7 @@ namespace OpenMS
     // positions -scale and +scale the peak value should correspond to the noise_level_
     //double lambda = sqrt((-noise_level_*(-peak_bound_+noise_level_)))/(noise_level_*scale_);
 
-    MSSpectrum<> lorentz_peak;
+    MSSpectrum lorentz_peak;
     lorentz_peak.reserve(n);
 
     // TODO: switch the type of the transform
@@ -605,7 +596,7 @@ namespace OpenMS
     for (Int i = 0; i < n; ++i)
     {
       double p = i * spacing + start;
-      MSSpectrum<>::value_type peak(p, lorentz_(peak_bound_in, lambda, 0, p));
+      MSSpectrum::value_type peak(p, lorentz_(peak_bound_in, lambda, 0, p));
       lorentz_peak.push_back(peak);
     }
 
@@ -857,7 +848,7 @@ namespace OpenMS
     // put peak into peak vector using default values for the widths and peak type
     peaks_DC.push_back(PeakShape(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK));
 
-    // adjust the positions and get their initial intensities from the raw data
+    // adjust the positions and get their initial intensities from the profile data
     for (Size i = 0; i < num_peaks; ++i)
     {
       peaks_DC[i].mz_position = area.left->getMZ() + dist / 2 + i * dist;
@@ -1042,7 +1033,7 @@ namespace OpenMS
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
 
-  void PeakPickerCWT::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
+  void PeakPickerCWT::pickExperiment(const PeakMap & input, PeakMap & output)
   {
     // if estimatePeakWidth-flag is set estimate it
     if (param_.getValue("estimate_peak_width") == "true")
@@ -1050,7 +1041,7 @@ namespace OpenMS
       double p_w = estimatePeakWidth(input);
       if (p_w == 0.)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "estimatePeakWidth()", "Peak width could not be determined from data!");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "estimatePeakWidth()", "Peak width could not be determined from data!");
       }
       else
       {
@@ -1093,7 +1084,7 @@ namespace OpenMS
 
   }
 
-  void PeakPickerCWT::pick(const MSSpectrum<> & input, MSSpectrum<> & output) const
+  void PeakPickerCWT::pick(const MSSpectrum & input, MSSpectrum & output) const
   {
     // copy the spectrum meta data
     output.clear(true);
@@ -1103,7 +1094,7 @@ namespace OpenMS
     output.setMSLevel(input.getMSLevel());
     output.setName(input.getName());
     //make sure the data type is set correctly
-    output.setType(SpectrumSettings::PEAKS);
+    output.setType(SpectrumSettings::CENTROID);
 
     // nearly empty spectra shouldn't be picked
     if (input.size() < 2)
@@ -1139,10 +1130,10 @@ namespace OpenMS
     // vector of peak endpoint positions
     // std::vector<double> peak_endpoints;
 
-    // copy the raw data into a std::vector<Peak1D>
-    MSSpectrum<> raw_peak_array;
+    // copy the profile data into a std::vector<Peak1D>
+    MSSpectrum raw_peak_array;
     // signal to noise estimator
-    SignalToNoiseEstimatorMeanIterative<MSSpectrum<> > sne;
+    SignalToNoiseEstimatorMeanIterative<MSSpectrum> sne;
     Param sne_param(param_.copy("SignalToNoiseEstimationParameter:", true));
     sne.setParameters(sne_param);
 
@@ -1151,7 +1142,7 @@ namespace OpenMS
     PeakIterator it_pick_begin = raw_peak_array.begin();
     PeakIterator it_pick_end   = raw_peak_array.end();
 
-    sne.init(it_pick_begin, it_pick_end);
+    sne.init(raw_peak_array);
 
     // Upper peak width bound
     double fwhm_upper_bound = (double)param_.getValue("fwhm_upper_bound_factor") * scale_;
@@ -1188,7 +1179,7 @@ namespace OpenMS
       {
         // if the signal to noise ratio at the max position is too small
         // the peak isn't considered
-        if ((area.max != it_pick_end) && (sne.getSignalToNoise(area.max) < signal_to_noise_))
+        if ((area.max != it_pick_end) && (sne.getSignalToNoise((Size) distance(raw_peak_array.begin(),area.max)) < signal_to_noise_))
         {
           it_pick_begin = area.max;
           distance_from_scan_border = distance(raw_peak_array.begin(), it_pick_begin);
@@ -1231,7 +1222,7 @@ namespace OpenMS
              && (shape.getFWHM() >= fwhm_bound_)
              && (shape.getFWHM() <= fwhm_upper_bound))
           {
-            shape.signal_to_noise = sne.getSignalToNoise(area.max);
+            shape.signal_to_noise = sne.getSignalToNoise((Size) distance(raw_peak_array.begin(),area.max));
             peak_shapes.push_back(shape);
             ++number_of_peaks;
           }
@@ -1257,8 +1248,7 @@ namespace OpenMS
 
       }               //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt, area, distance_from_scan_border, ms_level, direction))
       it_pick_begin = raw_peak_array.begin();
-    }
-    while (number_of_peaks != 0);
+    } while (number_of_peaks != 0);
 
     // start the nonlinear optimization for all peaks in split
 #ifdef DEBUG_PEAK_PICKING
@@ -1447,7 +1437,7 @@ namespace OpenMS
     }         // if (peak_shapes.size() > 0)
   }
 
-  double PeakPickerCWT::estimatePeakWidth(const MSExperiment<> & input)
+  double PeakPickerCWT::estimatePeakWidth(const PeakMap & input)
   {
     // The peak widths which are tested
     // Note that the limit is 1 Da in Peak Width. The Wavelet has a certain tolerance, but very broad peaks (e.g. top-down MS) will not be found
@@ -1492,7 +1482,7 @@ namespace OpenMS
       // ... for different peak widths
       for (Size w = 0; w < test_widths.size(); ++w)
       {
-        MSSpectrum<> spec;
+        MSSpectrum spec;
         param_.setValue("peak_width", test_widths[w]);
         updateMembers_();
 #ifdef DEBUG_PEAK_PICKING2

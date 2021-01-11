@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -58,8 +58,8 @@ START_TEST(MassTrace, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MassTrace* d_ptr = 0;
-MassTrace* nullPointer = 0;
+MassTrace* d_ptr = nullptr;
+MassTrace* nullPointer = nullptr;
 START_SECTION((MassTrace()))
 {
     d_ptr = new MassTrace;
@@ -452,9 +452,6 @@ test_mt.setSmoothedIntensities(smoothed_ints);
 
 START_SECTION((double getIntensity(bool smoothed) const))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(true));
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(false));
-
   test_mt.estimateFWHM(true);
 
   double smoothed_area = test_mt.getIntensity(true);
@@ -511,7 +508,7 @@ test_mt2.updateWeightedMeanMZ();
 START_SECTION((double getFWHM() const))
 {
   double test_mt_fwhm = test_mt.getFWHM();
-  TEST_REAL_SIMILAR(test_mt_fwhm, 4.01);
+  TEST_REAL_SIMILAR(test_mt_fwhm, 3.05481743986255);
 }
 END_SECTION
                                          
@@ -600,8 +597,8 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
   double test_fwhm1 = test_mt.estimateFWHM(false);
   double test_fwhm2 = test_mt.estimateFWHM(true);
 
-  TEST_REAL_SIMILAR(test_fwhm1, 4.01);
-  TEST_REAL_SIMILAR(test_fwhm2, 4.01);
+  TEST_REAL_SIMILAR(test_fwhm1, 3.07921244222942);
+  TEST_REAL_SIMILAR(test_fwhm2, 3.05481743986255);
 }
 END_SECTION
 
@@ -610,6 +607,7 @@ START_SECTION(static MT_QUANTMETHOD getQuantMethod(const String& val))
   
   TEST_EQUAL(MassTrace::getQuantMethod("area"), MassTrace::MT_QUANT_AREA)
   TEST_EQUAL(MassTrace::getQuantMethod("median"), MassTrace::MT_QUANT_MEDIAN)
+  TEST_EQUAL(MassTrace::getQuantMethod("max_height"), MassTrace::MT_QUANT_HEIGHT)
   TEST_EQUAL(MassTrace::getQuantMethod("somethingwrong"), MassTrace::SIZE_OF_MT_QUANTMETHOD)
 
 END_SECTION
@@ -628,6 +626,11 @@ START_SECTION((void setQuantMethod(MT_QUANTMETHOD method)))
   // should return the median of the intensities
   TEST_REAL_SIMILAR(raw_mt.getIntensity(false), 542293.0);
   TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_MEDIAN);
+
+  // test max_height
+  raw_mt.setQuantMethod(MassTrace::MT_QUANT_HEIGHT);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false), 33329535.0);
+  TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_HEIGHT);
 
   TEST_EXCEPTION(Exception::InvalidValue, raw_mt.setQuantMethod(MassTrace::SIZE_OF_MT_QUANTMETHOD))
 

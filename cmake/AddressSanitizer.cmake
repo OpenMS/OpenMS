@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -44,10 +44,12 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     message(WARNING "AddressSanitizer can only be enabled for GCC and Clang")
   else()
     # add AddressSanitizer also for compiler
-    add_definitions( -fsanitize=address
-                     -fno-omit-frame-pointer)
+    add_compile_options( -fsanitize=address
+                         -fno-omit-frame-pointer)
     # add AddressSanitizer also for linker
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fsanitize=address")
   endif()
 else()
   message(WARNING "AddressSanitizer is supported for OpenMS debug mode only")

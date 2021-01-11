@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -50,8 +51,8 @@ START_TEST(PeakIndex, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakIndex* ptr = 0;
-PeakIndex* nullPointer = 0;
+PeakIndex* ptr = nullptr;
+PeakIndex* nullPointer = nullptr;
 START_SECTION((PeakIndex()))
 {
 	ptr = new PeakIndex();
@@ -162,7 +163,7 @@ START_SECTION((template <typename FeatureMapType> const FeatureMapType::value_ty
 }
 END_SECTION
 
-MSExperiment<> exp;
+PeakMap exp;
 exp.resize(3);
 exp[0].setRT(1);
 exp[0].resize(15);

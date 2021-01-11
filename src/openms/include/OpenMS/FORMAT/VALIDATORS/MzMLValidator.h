@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
-
+#pragma once
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-
 
 namespace OpenMS
 {
@@ -56,24 +52,24 @@ public:
       /**
         @brief Constructor
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
-            */
+        @param mapping The mapping rules
+        @param cv @em All controlled vocabularies required for the mapping
+      */
       MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor
-      virtual ~MzMLValidator();
+      ~MzMLValidator() override;
 
 protected:
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       // Docu in base class
-      virtual String getPath_(UInt remove_from_end = 0) const;
+      String getPath_(UInt remove_from_end = 0) const override;
 
       // Docu in base class
-      virtual void handleTerm_(const String & path, const CVTerm & parsed_term);
+      void handleTerm_(const String & path, const CVTerm & parsed_term) override;
 
       ///CV terms which can have a value (term => value type)
       Map<String, std::vector<CVTerm> > param_groups_;
@@ -103,4 +99,3 @@ private:
 
 } // namespace OpenMS
 
-#endif

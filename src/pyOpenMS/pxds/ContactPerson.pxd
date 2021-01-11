@@ -1,8 +1,8 @@
 from SourceFile cimport *
 from DateTime cimport *
 from DocumentIdentifier cimport *
-from MetaInfoInterface cimport *
 from libcpp.vector cimport vector as libcpp_vector
+from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ContactPerson.h>" namespace "OpenMS":
 

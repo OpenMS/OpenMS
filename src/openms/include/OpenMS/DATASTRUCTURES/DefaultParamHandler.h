@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H
-#define OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -43,6 +42,7 @@
 
 namespace OpenMS
 {
+  class MetaInfoInterface;
   /**
       @brief A base class for all classes handling default parameters.
 
@@ -133,6 +133,18 @@ public:
     /// Non-mutable access to the registered subsections
     const std::vector<String>& getSubsections() const;
 
+    /**
+    * @brief Writes all parameters to meta values
+    *
+    * Parameters are written with 'name' as key and 'value' as value
+    *
+    * @param write_this  Params to be written
+    * @param write_here  a MetaInfoInterface object into which the meta values will be written
+    * @param key_prefix  Will be added in front of the parameter name for the meta value key.
+    *                    If the prefix isn't empty and doesn't end with a colon one will be added.
+    */
+    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix = "");
+
 protected:
     /**
         @brief This method is used to update extra member variables at the end of the setParameters() method.
@@ -191,4 +203,3 @@ private:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H

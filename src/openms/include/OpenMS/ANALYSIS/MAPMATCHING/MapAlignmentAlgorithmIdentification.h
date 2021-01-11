@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,9 @@
 // $Authors: Eva Lange, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H
+#pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -55,6 +55,7 @@ namespace OpenMS
 
     PeptideIdentification instances are grouped by sequence of the respective best-scoring PeptideHit and retention time data is collected (PeptideIdentification::getRT()).
     ID groups with the same sequence in different maps represent points of correspondence between the maps and form the basis of the alignment.
+    Only the best PSM per spectrum is considered as the correct identification.
 
     Each map is aligned to a reference retention time scale.
     This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups).
@@ -76,27 +77,31 @@ public:
     MapAlignmentAlgorithmIdentification();
 
     /// Destructor
-    virtual ~MapAlignmentAlgorithmIdentification();
+    ~MapAlignmentAlgorithmIdentification() override;
 
     // Set a reference for the alignment
     template <typename DataType> void setReference(DataType& data)
     {
       reference_.clear();
       if (data.empty()) return; // empty input resets the reference
+      use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       SeqToList rt_data;
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
       if (reference_.empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not extract retention time information from the reference file");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not extract retention time information from the reference file");
       }
     }
 
     /**
       @brief Align feature maps, consensus maps, peak maps, or peptide identifications.
 
-      @param data Vector of input data (FeatureMap, ConsensusMap, MSExperiment<> or @p vector<PeptideIdentification>) that should be aligned.
+      @param data Vector of input data (FeatureMap, ConsensusMap, PeakMap or @p vector<PeptideIdentification>) that should be aligned.
       @param transformations Vector of RT transformations that will be computed.
+      @param reference_index Index in @p data of the reference to align to, if any
+
+      @throw Exception::MissingInformation Not enough suitable RT data to perform alignment
     */
     template <typename DataType>
     void align(std::vector<DataType>& data,
@@ -111,10 +116,10 @@ public:
       bool use_internal_reference = (reference_index >= 0);
       if (use_internal_reference)
       {
-        if (reference_index >= data.size())
+        if (reference_index >= static_cast<Int>(data.size()))
         {
           throw Exception::IndexOverflow(__FILE__, __LINE__,
-                                         __PRETTY_FUNCTION__, reference_index,
+                                         OPENMS_PRETTY_FUNCTION, reference_index,
                                          data.size());
         }
         setReference(data[reference_index]);
@@ -157,6 +162,18 @@ protected:
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
 
+    /// Use feature RT instead of RT from best peptide ID in the feature.
+    bool use_feature_rt_;
+
+    /// Minimum score to reach for a peptide to be considered
+    double min_score_;
+
+    /// Actually use the above defined score_cutoff? Needed since it is hard to define a non-cutting score for a user.
+    bool score_cutoff_;
+
+    /// Score better?
+    bool (*better_) (double,double) = [](double, double) {return true;};
+
     /**
       @brief Compute the median retention time for each peptide sequence
 
@@ -188,7 +205,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(MSExperiment<>& experiment, SeqToList& rt_data);
+    bool getRetentionTimes_(PeakMap& experiment, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data ("RT" MetaInfo) from peptide IDs contained in feature maps or consensus maps
@@ -196,6 +213,8 @@ protected:
       The following global flags (mutually exclusive) influence the processing:\n
       Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
       Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
+      Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
+      determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
 
       @param features Input features for RT data
       @param rt_data Lists of RT values for diff. peptide sequences (output)
@@ -205,11 +224,26 @@ protected:
     template <typename MapType>
     bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
     {
-      bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
+      if (!score_cutoff_)
+      {
+        better_ = [](double, double)
+        {return true;};
+      }
+      else if (features[0].getPeptideIdentifications()[0].isHigherScoreBetter())
+      {
+        better_ = [](double a, double b)
+        { return a >= b; };
+      }
+      else
+      {
+        better_ = [](double a, double b)
+        { return a <= b; };
+      }
+
       for (typename MapType::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
-        if (use_feature_rt)
+        if (use_feature_rt_)
         {
           // find the peptide ID closest in RT to the feature centroid:
           String sequence;
@@ -222,12 +256,16 @@ protected:
             if (!pep_it->getHits().empty())
             {
               any_hit = true;
-              double current_distance = abs(pep_it->getRT() - feat_it->getRT());
+              double current_distance = fabs(pep_it->getRT() -
+                                             feat_it->getRT());
               if (current_distance < rt_distance)
               {
                 pep_it->sort();
-                sequence = pep_it->getHits()[0].getSequence().toString();
-                rt_distance = current_distance;
+                if (better_(pep_it->getHits()[0].getScore(), min_score_))
+                {
+                  sequence = pep_it->getHits()[0].getSequence().toString();
+                  rt_distance = current_distance;
+                }
               }
             }
           }
@@ -240,7 +278,7 @@ protected:
         }
       }
 
-      if (!use_feature_rt &&
+      if (!use_feature_rt_ &&
           param_.getValue("use_unassigned_peptides").toBool())
       {
         getRetentionTimes_(features.getUnassignedPeptideIdentifications(),
@@ -299,5 +337,3 @@ private:
   };
 
 } // namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H

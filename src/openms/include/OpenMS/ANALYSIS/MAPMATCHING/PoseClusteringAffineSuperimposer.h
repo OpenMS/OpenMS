@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -73,8 +72,8 @@ public:
     PoseClusteringAffineSuperimposer();
 
     /// Destructor
-    virtual
-    ~PoseClusteringAffineSuperimposer()
+    
+    ~PoseClusteringAffineSuperimposer() override
     {}
 
     /**
@@ -96,7 +95,7 @@ public:
 
       @exception IllegalArgument is thrown if the input maps are invalid.
     */
-    virtual void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation);
+    void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation) override;
 
     /// Perform alignment on vector of 1D peaks
     virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription & transformation);
@@ -116,4 +115,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H

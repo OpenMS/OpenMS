@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ typedef BaseFeature::QualityType QualityType;
 
 ///constructor and destructor test
 DataFilters* ptr;
-DataFilters* nullPointer = 0;
+DataFilters* nullPointer = nullptr;
 START_SECTION((DataFilters()))
 	ptr = new DataFilters();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -66,8 +66,8 @@ START_SECTION(([EXTRA]~DataFilters()))
 	delete ptr;	
 END_SECTION
 
-DataFilters::DataFilter* ptr2 = 0;
-DataFilters::DataFilter* nullPointer2 = 0;
+DataFilters::DataFilter* ptr2 = nullptr;
+DataFilters::DataFilter* nullPointer2 = nullptr;
 
 START_SECTION(([EXTRA]DataFilters::DataFilter()))
 	ptr2 = new DataFilters::DataFilter();
@@ -95,17 +95,17 @@ DataFilters::DataFilter filter_12;
 
 START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
 
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "The value '' was used but is not valid! Invalid filter format.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "The value 'not_enough_arguments' was used but is not valid! Invalid filter format.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("invalid_fieldname = 0"), "The value 'invalid_fieldname' was used but is not valid! Invalid field name.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity invalid_operator 5"), "The value 'invalid_operator' was used but is not valid! Invalid operator.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "The value 'string without enclosing quotation marks' was used but is not valid! Invalid value.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "the value '' was used but is not valid; invalid filter format")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "the value 'not_enough_arguments' was used but is not valid; invalid filter format")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("invalid_fieldname = 0"), "the value 'invalid_fieldname' was used but is not valid; invalid field name")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity invalid_operator 5"), "the value 'invalid_operator' was used but is not valid; invalid operator")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "the value 'string without enclosing quotation marks' was used but is not valid; invalid value")
 	//second argument of binary relation missing:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Charge = "), "The value '=' was used but is not valid! Invalid filter format.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Charge = "), "the value '=' was used but is not valid; invalid filter format")
 	//string value and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Quality = \"a string\""), "The value 'a string' was used but is not valid! Invalid value.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Quality = \"a string\""), "the value 'a string' was used but is not valid; invalid value")
 	//operation "exists" and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity exists"), "The value 'exists' was used but is not valid! Invalid operator.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity exists"), "the value 'exists' was used but is not valid; invalid operator")
 	
 	filter_1.fromString("Intensity <= 201.334");
 	filter_2.fromString("Intensity >= 1000");
@@ -126,12 +126,12 @@ END_SECTION
 
 START_SECTION(([EXTRA]String DataFilter::toString() const))
 	
-	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334")
-	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000")
-	TEST_STRING_EQUAL(filter_3.toString(), "Charge = 4")
-	TEST_STRING_EQUAL(filter_4.toString(), "Quality <= 1")
-	TEST_STRING_EQUAL(filter_5.toString(), "Meta::test_int <= 0")
-	TEST_STRING_EQUAL(filter_6.toString(), "Meta::test_double = 0")
+	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334000000000003")
+	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000.0")
+	TEST_STRING_EQUAL(filter_3.toString(), "Charge = 4.0")
+	TEST_STRING_EQUAL(filter_4.toString(), "Quality <= 1.0")
+	TEST_STRING_EQUAL(filter_5.toString(), "Meta::test_int <= 0.0")
+	TEST_STRING_EQUAL(filter_6.toString(), "Meta::test_double = 0.0")
 	TEST_STRING_EQUAL(filter_7.toString(), "Meta::test_string = \"hello world 2\"")
 	TEST_STRING_EQUAL(filter_8.toString(), "Meta::test_dummy exists")
 	TEST_STRING_EQUAL(filter_9.toString(), "Meta::test_string >= \"a string\"")
@@ -291,7 +291,7 @@ c_feature_3.setCharge(4);
 c_feature_3.setQuality((QualityType) 1.);
 
 ///construct some test peaks
-MSSpectrum<Peak1D> spec;
+MSSpectrum spec;
 Peak1D peak;
 peak.setIntensity(201.334f);
 spec.push_back(peak);
@@ -300,7 +300,7 @@ spec.push_back(peak);
 peak.setIntensity(0.001f);
 spec.push_back(peak);
 
-MSSpectrum<Peak1D>::FloatDataArrays& mdas = spec.getFloatDataArrays();
+MSSpectrum::FloatDataArrays& mdas = spec.getFloatDataArrays();
 mdas.resize(3);
 
 mdas[0].setName("test_int");
@@ -318,7 +318,7 @@ mdas[1][2] = 100.01f;
 mdas[2].setName("test_dummy");
 mdas[2].resize(3);
 
-START_SECTION((template < class PeakType > bool passes(const MSSpectrum< PeakType > &spectrum, Size peak_index) const ))
+START_SECTION((template < class PeakType > bool passes(const MSSpectrum &spectrum, Size peak_index) const ))
 
 	filters.add(filter_1); // "Intensity <= 201.334"
 	TEST_EQUAL(filters.passes(spec,0), true) // 201.334
@@ -447,9 +447,9 @@ START_SECTION(([DataFilters::DataFilter] String toString() const ))
   DataFilters::DataFilter df1;
   df1.field = DataFilters::INTENSITY;
   df1.op = DataFilters::LESS_EQUAL;
-  df1.value = 25.3;
+  df1.value = 25.5;
 
-  TEST_EQUAL(df1.toString(), "Intensity <= 25.3")
+  TEST_EQUAL(df1.toString(), "Intensity <= 25.5")
 
   df1.field = DataFilters::META_DATA;
   df1.meta_name = "meta-value";

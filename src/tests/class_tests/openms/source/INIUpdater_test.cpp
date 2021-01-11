@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,8 @@ START_TEST(INIUpdater, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-INIUpdater* ptr = 0;
-INIUpdater* null_ptr = 0;
+INIUpdater* ptr = nullptr;
+INIUpdater* null_ptr = nullptr;
 START_SECTION(INIUpdater())
 {
 	ptr = new INIUpdater();
@@ -107,9 +107,6 @@ START_SECTION((bool getNewToolName(const String &old_name, const String &tools_t
 
   i.getNewToolName("PeakPicker", "wavelet", new_name);
   TEST_EQUAL(new_name, "PeakPickerWavelet");
-
-  i.getNewToolName("ITRAQAnalyzer", "4plex", new_name);
-  TEST_EQUAL(new_name, "ITRAQAnalyzer");
 
   i.getNewToolName("FileInfo", "", new_name);
   TEST_EQUAL(new_name, "FileInfo");

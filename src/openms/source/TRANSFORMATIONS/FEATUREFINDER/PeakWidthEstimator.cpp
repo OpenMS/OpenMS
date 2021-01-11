@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,26 +33,21 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/MATH/MISC/BSpline2d.h>
-
-#include <vector>
-#include <algorithm>
 
 namespace OpenMS
 {
 
-  PeakWidthEstimator::PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries)
+  PeakWidthEstimator::PeakWidthEstimator(const PeakMap & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries)
   {
     std::vector<double> peaks_mz;
     std::vector<double> peaks_width;
-    MSExperiment<Peak1D>::ConstIterator it_rt;
+    PeakMap::ConstIterator it_rt;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
     for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
          it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
          ++it_rt, ++it_rt_boundaries)
     {
-      MSSpectrum<Peak1D>::ConstIterator it_mz;
+      MSSpectrum::ConstIterator it_mz;
       std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
       for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
            it_mz < it_rt->end() && it_mz_boundary < it_rt_boundaries->end();
@@ -69,7 +64,7 @@ namespace OpenMS
       
     if (!(*bspline_).ok())
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unable to fit B-spline to data.", "");
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unable to fit B-spline to data.", "");
     }
   }
   
@@ -97,7 +92,7 @@ namespace OpenMS
 
     if (width < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Estimated peak width is negative.", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Estimated peak width is negative.", "");
     }
 
     return width;

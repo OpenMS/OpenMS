@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,24 +28,21 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/EGHFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #define DEBUG_EGHFITTER
 
 namespace OpenMS
 {
-  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
   {
     Size n = m_data->n;
     RawDataArrayType set = m_data->set;
@@ -84,7 +81,7 @@ namespace OpenMS
   }
 
   // compute Jacobian matrix for the different parameters
-  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
   {
     Size n =  m_data->n;
     RawDataArrayType set = m_data->set;
@@ -216,11 +213,11 @@ namespace OpenMS
     tau_ = x_init[3];
 
 #ifdef DEBUG_EGHFITTER
-    LOG_DEBUG << "Fitter returned \n";
-    LOG_DEBUG << "height:       " << height_ << "\n";
-    LOG_DEBUG << "retention:    " << retention_ << "\n";
-    LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
-    LOG_DEBUG << "tau:          " << tau_ << std::endl;
+    OPENMS_LOG_DEBUG << "Fitter returned \n";
+    OPENMS_LOG_DEBUG << "height:       " << height_ << "\n";
+    OPENMS_LOG_DEBUG << "retention:    " << retention_ << "\n";
+    OPENMS_LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
+    OPENMS_LOG_DEBUG << "tau:          " << tau_ << std::endl;
 #endif
 
     // build model
@@ -258,7 +255,7 @@ namespace OpenMS
     }
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-    if (boost::math::isnan(correlation))
+    if (std::isnan(correlation))
       correlation = -1.0;
 
     return correlation;
@@ -271,23 +268,26 @@ namespace OpenMS
     for (Size i = 0; i < set.size(); ++i)
       sum += set[i].getIntensity();
 
-    // calculate the median
-    //Size median = 0;
-    //float count = 0.0;
+    // find maximum = apex
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
     for (Size i = 0; i < set.size(); ++i)
     {
-      //count += set[i].getIntensity();
-      //if ( count <= sum / 2 ) median = i;
-
       if (set[i].getIntensity() > apex)
       {
         apex = set[i].getIntensity();
         apex_rt = i;
       }
-
     }
+
+    // calculate the median
+    /*Size median = 0;
+    float count = 0.0;
+    for (Size i = 0; i < set.size(); ++i)
+    {
+      count += set[i].getIntensity();
+      if ( count <= sum / 2 ) median = i;
+    }*/
 
     // calculate the height of the peak
     height_ = set[apex_rt].getIntensity();
@@ -295,27 +295,14 @@ namespace OpenMS
     // calculate retention time
     retention_ = set[apex_rt].getPos();
 
-
     // guess A / B for alpha = 0.5 -> left/right half max distance
 
     Size i = apex_rt;
-    while (i > 0)
-    {
-      if (set[i].getIntensity() / height_ < 0.5)
-        break;
-      else
-        --i;
-    }
+    while (i > 0 && (set[i].getIntensity() / height_) >= 0.5) --i;
     CoordinateType A = retention_ - set[i + 1].getPos();
 
     i = apex_rt;
-    while (i < set.size())
-    {
-      if (set[i].getIntensity() / height_ < 0.5)
-        break;
-      else
-        ++i;
-    }
+    while (i < set.size() && (set[i].getIntensity() / height_) >= 0.5) ++i;
     CoordinateType B = set[i - 1].getPos() - retention_;
 
     // compute estimates for tau / sigma_square based on A/B
@@ -325,13 +312,13 @@ namespace OpenMS
     sigma_square_ = (-1 / (2 * log_alpha)) * (B * A);
 
 #ifdef DEBUG_EGHFITTER
-    LOG_DEBUG << "Initial parameters\n";
-    LOG_DEBUG << "height:       " << height_ << "\n";
-    LOG_DEBUG << "retention:    " << retention_ << "\n";
-    LOG_DEBUG << "A:            " << A << "\n";
-    LOG_DEBUG << "B:            " << B << "\n";
-    LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
-    LOG_DEBUG << "tau:          " << tau_ << std::endl;
+    OPENMS_LOG_DEBUG << "Initial parameters\n";
+    OPENMS_LOG_DEBUG << "height:       " << height_ << "\n";
+    OPENMS_LOG_DEBUG << "retention:    " << retention_ << "\n";
+    OPENMS_LOG_DEBUG << "A:            " << A << "\n";
+    OPENMS_LOG_DEBUG << "B:            " << B << "\n";
+    OPENMS_LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
+    OPENMS_LOG_DEBUG << "tau:          " << tau_ << std::endl;
 #endif
   }
 

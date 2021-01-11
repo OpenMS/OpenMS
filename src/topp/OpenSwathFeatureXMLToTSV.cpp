@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/Feature.h>
+
 #include <fstream>
+#include <clocale>
 
 using namespace OpenMS;
 
@@ -71,8 +77,7 @@ using namespace OpenMS;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathFeatureXMLToTSV.cli
-
-  <B>The algorithm parameters for the Analyzer filter are:</B>
+  <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_OpenSwathFeatureXMLToTSV.html
 
 */
@@ -141,15 +146,15 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   String full_peptide_name = "NA";
   String protein_name = "NA";
   String decoy = "NA";
-  int charge = -1;
+  String charge = "NA";
 
-  const OpenMS::TargetedExperiment::Peptide &pep = transition_exp.getPeptideByRef(peptide_ref);
-
-  if (&pep == NULL)
+  if (!transition_exp.hasPeptide(peptide_ref))
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Did not find the peptide " + peptide_ref + " in the targeted experiment.");
   }
+
+  const OpenMS::TargetedExperiment::Peptide &pep = transition_exp.getPeptideByRef(peptide_ref);
 
   sequence = pep.sequence;
   if (pep.protein_refs.size() > 0)
@@ -161,21 +166,20 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // handle charge
   if (pep.hasCVTerm("MS:1000041"))
   {
-    charge = pep.getCVTerms()["MS:1000041"][0].getValue().toString().toInt();
+    charge = pep.getCVTerms()["MS:1000041"][0].getValue().toString();
   }
-  else
+  else if (pep.hasCharge())
   {
-    charge = pep.getChargeState();
+    charge = (String)pep.getChargeState();
   }
-  if (charge == -1 && !full_peptide_name.empty())
+  if (charge == "NA" && !full_peptide_name.empty())
   {
     // deal with FullPeptideNames like PEPTIDE/2
     std::vector<String> substrings;
     full_peptide_name.split("/", substrings);
     if (substrings.size() == 2)
     {
-      //mytransition.FullPeptideName = substrings[0];
-      charge = substrings[1].toInt();
+      charge = substrings[1];
     }
   }
 
@@ -198,7 +202,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     }
     else if (transition->getCVTerms().has("MS:1002007") && transition->getCVTerms().has("MS:1002008"))    // both == illegal
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Peptide " + peptide_ref + " cannot be target and decoy at the same time.");
     }
     else
@@ -224,7 +228,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Did not find the peptide " + peptide_ref + " in the targeted experiment.");
   }
 
@@ -249,12 +253,10 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   String meta_values = "";
   for (Size i = 0; i < meta_value_names.size(); i++)
   {
-    meta_values += (String)feature_it->getMetaValue(meta_value_names[i]) + "\t";
+    meta_values += feature_it->getMetaValue(meta_value_names[i]).toString() + "\t";
   }
 
   // Write out the individual transition
-  char intensity_char[40];
-  char intensity_apex_char[40];
   if (short_format)
   {
     String aggr_Peak_Area = "";
@@ -262,13 +264,11 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     String aggr_Fragment_Annotation = "";
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
-      sprintf(intensity_char, "%f", sub_it->getIntensity());
-      aggr_Peak_Area += (String)intensity_char + ";";
+      aggr_Peak_Area += String(sub_it->getIntensity()) + ";";
 
       if (sub_it->metaValueExists("peak_apex_int"))
       {
-        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
-        aggr_Peak_Apex += (String)intensity_apex_char + ";";
+        aggr_Peak_Apex += String((double)sub_it->getMetaValue("peak_apex_int")) + ";";
       }
       else
       {
@@ -289,19 +289,15 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else
   {
-    char mz_char[40];
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
       os.precision(writtenDigits(double()));
-      sprintf(intensity_char, "%f", sub_it->getIntensity());
-      sprintf(mz_char, "%f", sub_it->getMZ());
       String apex = "NA";
       if (sub_it->metaValueExists("peak_apex_int"))
       {
-        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
-        apex = (String) intensity_apex_char;
+        apex = String((double)sub_it->getMetaValue("peak_apex_int"));
       }
-      os << line << meta_values << (String)intensity_char << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << (String)mz_char << std::endl;
+      os << line << meta_values << String(sub_it->getIntensity()) << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << String(sub_it->getMZ()) << std::endl;
     }
   }
 }
@@ -309,7 +305,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 Feature *find_best_feature(const std::vector<Feature *> &features, String score_)
 {
   double best_score = -std::numeric_limits<double>::max();
-  Feature *best_feature = NULL;
+  Feature *best_feature = nullptr;
 
   for (Size i = 0; i < features.size(); i++)
   {
@@ -350,9 +346,9 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
   for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); ++peptide_it)
   {
     Feature *bestfeature = find_best_feature(peptide_it->second, best_score);
-    if (bestfeature == NULL)
+    if (bestfeature == nullptr)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Did not find best feature for peptide " + peptide_it->first);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find best feature for peptide " + peptide_it->first);
     }
     write_out_body_(os, bestfeature, transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);
   }
@@ -371,7 +367,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -403,9 +399,8 @@ protected:
     endProgress();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
-
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
     String out = getStringOption_("out");
@@ -433,21 +428,25 @@ protected:
     std::ofstream os(out.c_str());
     //set high precision for writing of floating point numbers
     os.precision(writtenDigits(double()));
-
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, out);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
     }
 
     // write the csv header (we need to know which parameters are in the map to do that)
     if (file_list.empty())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No input files given ");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No input files given ");
     }
     FeatureMap feature_map;
     FeatureXMLFile feature_file;
     feature_file.setLogType(log_type_);
+    // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
+    // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
+    // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
+    String locale_before = String(OpenMS::Internal::OpenMS_locale);
     feature_file.load(file_list[0], feature_map);
+    setlocale(LC_ALL, locale_before.c_str());
     if (feature_map.getIdentifier().size() == 0)
     {
       feature_map.setIdentifier("run0");
@@ -456,7 +455,7 @@ protected:
 
     if (feature_map.empty() && file_list.size() > 1)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Feature map " + file_list[0] + " is empty.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature map " + file_list[0] + " is empty.");
     }
     else if (feature_map.empty())
     {
@@ -465,7 +464,6 @@ protected:
     }
 
     write_out_header(os, feature_map, /* main_var_name, */ meta_value_names, short_format);
-
     String filename;
     filename = file_list[0];
     if (getFlag_("test"))
@@ -521,7 +519,6 @@ protected:
 
 int main(int argc, const char **argv)
 {
-
   TOPPOpenSwathFeatureXMLToTSV tool;
   int code = tool.main(argc, argv);
   return code;

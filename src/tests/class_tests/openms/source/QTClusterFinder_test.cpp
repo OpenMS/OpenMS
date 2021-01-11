@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,8 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,9 +54,9 @@ START_TEST(QTClusterFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-QTClusterFinder* ptr = 0;
-QTClusterFinder* nullPointer = 0;
-BaseGroupFinder* base_nullPointer = 0;
+QTClusterFinder* ptr = nullptr;
+QTClusterFinder* nullPointer = nullptr;
+BaseGroupFinder* base_nullPointer = nullptr;
 
 START_SECTION((QTClusterFinder()))
 {
@@ -69,9 +71,10 @@ END_SECTION
 
 START_SECTION((static BaseGroupFinder* create()))
 {
-	BaseGroupFinder* base_ptr = 0;
+	BaseGroupFinder* base_ptr = nullptr;
 	base_ptr = QTClusterFinder::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer);
+  delete base_ptr;
 }
 END_SECTION
 
@@ -132,7 +135,8 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
   QTClusterFinder finder;
 	Param param = finder.getDefaults();
 	param.setValue("distance_RT:max_difference", 5.1);
-	param.setValue("distance_MZ:max_difference", 0.1);
+  param.setValue("distance_MZ:max_difference", 0.1);
+  param.setValue("nr_partitions", 1);
 	finder.setParameters(param);
 	ConsensusMap result;
 	finder.run(input, result);

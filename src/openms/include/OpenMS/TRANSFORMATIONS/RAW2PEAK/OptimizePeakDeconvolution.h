@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPEAKDECONVOLUTION_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPEAKDECONVOLUTION_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
@@ -132,7 +131,7 @@ public:
       charge_(opt.charge_){}
 
     ///Destructor
-    virtual ~OptimizePeakDeconvolution(){}
+    ~OptimizePeakDeconvolution() override{}
     //@}
 
     /**	@name Assignment
@@ -189,10 +188,9 @@ protected:
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
     void setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge);
 
-    void updateMembers_();
+    void updateMembers_() override;
   }; // class
 
 } // namespace OpenMS
 
 
-#endif

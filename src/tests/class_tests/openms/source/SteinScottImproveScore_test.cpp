@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Vipul Patel $
 // --------------------------------------------------------------------------
 
@@ -53,8 +53,8 @@ START_TEST(SteinScottImproveScore, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-SteinScottImproveScore* ptr = 0;
-SteinScottImproveScore* nullPointer = 0;
+SteinScottImproveScore* ptr = nullptr;
+SteinScottImproveScore* nullPointer = nullptr;
 
 START_SECTION(SteinScottImproveScore())
 	ptr = new SteinScottImproveScore();
@@ -82,7 +82,7 @@ END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	
-	MSSpectrum<> spectrum;
+	MSSpectrum spectrum;
 	spectrum.setRT(1);
 	
 		spectrum.setMSLevel(1);
@@ -101,7 +101,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
 END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
-	MSSpectrum<> spectrum1,spectrum2;
+	MSSpectrum spectrum1,spectrum2;
 	spectrum1.setRT(1);
 	spectrum2.setRT(1);
 	spectrum1.setMSLevel(1);

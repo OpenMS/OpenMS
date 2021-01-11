@@ -1,36 +1,32 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
+from Types cimport *
+from String cimport *
 from InstrumentSettings cimport *
-from Precursor cimport *
-from Peak1D cimport *
 from SourceFile cimport *
 from PeptideIdentification cimport *
-from libcpp cimport bool
-from libcpp.vector cimport vector as libcpp_vector
-from DataValue cimport *
-from String cimport *
-from Types cimport *
 from DataProcessing cimport *
-
 from Product cimport *
 from AcquisitionInfo cimport *
-from InstrumentSettings cimport *
-from SourceFile cimport *
+from Precursor cimport *
+from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
-    cdef cppclass ChromatogramSettings:
+    cdef cppclass ChromatogramSettings(MetaInfoInterface):
+        # wrap-inherits:
+        #    MetaInfoInterface
+        #
+        # wrap-doc:
+        #   Description of the chromatogram settings, provides meta-information
+        #   about a single chromatogram.
 
         ChromatogramSettings() nogil except +
         ChromatogramSettings(ChromatogramSettings) nogil except +
 
-        Product getProduct() nogil except +
-        void setProduct(Product p) nogil except +
+        Product getProduct() nogil except + # wrap-doc:Access to the product ion
+        void setProduct(Product p) nogil except + # wrap-doc:Set the product ion
 
-        # returns the native identifier for the spectrum, used by the acquisition software.
-        String getNativeID() nogil except +
-        # sets the native identifier for the spectrum, used by the acquisition software.
-        void setNativeID(String native_id) nogil except +
+        String getNativeID() nogil except + # wrap-doc:returns the native identifier for the spectrum, used by the acquisition software.
+        void setNativeID(String native_id) nogil except + # wrap-doc:sets the native identifier for the spectrum, used by the acquisition software.
 
         # returns the free-text comment
         String getComment() nogil except +
@@ -64,6 +60,7 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
         # sets the chromatogram type
         void setChromatogramType(ChromatogramType type) nogil except +
+        ChromatogramType getChromatogramType() nogil except +
 
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::ChromatogramSettings":

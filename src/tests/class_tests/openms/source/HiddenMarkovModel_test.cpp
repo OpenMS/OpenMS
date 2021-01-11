@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 ///////////////////////////
 
 #include <iostream>
+#include <sstream>
 
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -91,12 +92,12 @@ the_hmm.addNewState(state_AB_3);
 the_hmm.addNewState(state_C_3);
 the_hmm.addNewState(state_end);
 
-HiddenMarkovModel* ptr = 0;
-HiddenMarkovModel* nullPointer = 0;
-HMMState* state_ptr = 0;
-HMMState* state_ptr2 = 0;
+HiddenMarkovModel* ptr = nullptr;
+HiddenMarkovModel* nullPointer = nullptr;
+HMMState* state_ptr = nullptr;
+HMMState* state_ptr2 = nullptr;
 HMMState* state_ptr3 = new HMMState("base", true);
-HMMState* state_nullPointer = 0;
+HMMState* state_nullPointer = nullptr;
 
 // Hidden Markov Model State Tests
 START_SECTION([EXTRA](HMMState()))
@@ -108,7 +109,7 @@ START_SECTION([EXTRA](virtual ~HMMState()))
 	delete state_ptr;
 END_SECTION
 
-state_ptr = 0;
+state_ptr = nullptr;
 
 START_SECTION([EXTRA](HMMState(const String& name, bool hidden = true)))
 	state_ptr = new HMMState("state_name_hidden", true);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -39,8 +39,13 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <ctime>
 #include <algorithm> // for std::sort and std::adjacent_find
+// array_wrapper needs to be included before it is used
+// only in boost1.64+. See issue #2790
+#if OPENMS_BOOST_VERSION_MINOR >= 64
+#include <boost/serialization/array_wrapper.hpp>
+#endif
 #include <boost/accumulators/statistics/covariance.hpp>
-#include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
+#include <boost/typeof/incr_registration_group.hpp>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -70,7 +75,7 @@ START_SECTION((static UInt64 getUniqueId()))
 {
   STATUS("OpenMS::UniqueIdGenerator::getUniqueId(): " << OpenMS::UniqueIdGenerator::getUniqueId());
   /* test for collisions, test will be different for every test execution */
-  OpenMS::UniqueIdGenerator::setSeed(std::time(0));
+  OpenMS::UniqueIdGenerator::setSeed(std::time(nullptr));
   std::vector<OpenMS::UInt64> ids;
   ids.reserve(nofIdsToGenerate);
   for (unsigned i=0; i<nofIdsToGenerate; ++i)
@@ -137,6 +142,29 @@ START_SECTION((static void setSeed(UInt seed)))
       TEST_EQUAL(ids[i],  ids2[i]);
     }
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   /* test for collisions, test will be different for every test execution */
+  OpenMS::UniqueIdGenerator::setSeed(std::time(nullptr));
+  std::vector<OpenMS::UInt64> ids;
+  ids.reserve(nofIdsToGenerate);
+#pragma omp parallel for
+  for (int i = 0; i < static_cast<int>(nofIdsToGenerate); ++i)
+  {
+    OpenMS::UInt64 tmp = OpenMS::UniqueIdGenerator::getUniqueId();
+#pragma omp critical (add_test)
+    {
+      ids.push_back(tmp);
+    }
+  }
+  std::sort(ids.begin(), ids.end());
+  // check if the generated ids contain (at least) two equal ones
+  std::vector<OpenMS::UInt64>::iterator iter = std::adjacent_find(ids.begin(), ids.end());
+  TEST_EQUAL(iter == ids.end(), true);
 }
 END_SECTION
 

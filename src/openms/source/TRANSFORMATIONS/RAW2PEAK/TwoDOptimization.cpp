@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <map>
-#include <eigen3/Eigen/Core>
 
 using Eigen::VectorXd;
 
@@ -82,7 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator & it, MSExperiment<> & ms_exp)
+  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator & it, PeakMap & ms_exp)
   {
     IsotopeCluster::ChargedIndexSet::const_iterator iter = it->second.peaks.begin();
     for (; iter != it->second.peaks.end(); ++iter)
@@ -179,8 +175,8 @@ namespace OpenMS
     std::multimap<double, IsotopeCluster>::iterator iso_map_iter = m_data->iso_map_iter;
     Size total_nr_peaks = m_data->total_nr_peaks;
     const std::map<Int, std::vector<PeakIndex> > & matching_peaks = m_data->matching_peaks;
-    const MSExperiment<> & picked_peaks = m_data->picked_peaks;
-    MSExperiment<Peak1D>::ConstIterator raw_data_first = m_data->raw_data_first;
+    const PeakMap & picked_peaks = m_data->picked_peaks;
+    PeakMap::ConstIterator raw_data_first = m_data->raw_data_first;
     const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
 
     Size num_scans = signal2D.size() / 2;
@@ -221,7 +217,7 @@ namespace OpenMS
                         + signal2D[2 * current_scan].second + current_point)->getIntensity() << std::endl;
 #endif
 
-        size_t current_peak = 0;
+        // size_t current_peak = 0;
         peak_iter = iso_map_iter->second.peaks.begin();
         while (peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first != curr_scan_idx)
           ++peak_iter;
@@ -265,7 +261,7 @@ namespace OpenMS
 #endif
             computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
           }
-          ++current_peak;
+          // ++current_peak;
           ++peak_iter;
 
         }                        // end while
@@ -374,8 +370,8 @@ namespace OpenMS
     Size total_nr_peaks = m_data->total_nr_peaks;
     const std::map<Int, std::vector<PeakIndex> > & matching_peaks = m_data->matching_peaks;
     std::vector<double> ov_weight(matching_peaks.size(), 0);
-    const MSExperiment<> & picked_peaks = m_data->picked_peaks;
-    MSExperiment<Peak1D>::ConstIterator raw_data_first = m_data->raw_data_first;
+    const PeakMap & picked_peaks = m_data->picked_peaks;
+    PeakMap::ConstIterator raw_data_first = m_data->raw_data_first;
     const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
 //          std::vector<double> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
 //          std::vector<double> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
@@ -415,7 +411,7 @@ namespace OpenMS
 
 #endif
 
-        size_t current_peak = 0;
+        // size_t current_peak = 0;
         peak_iter = iso_map_iter->second.peaks.begin();
         while (peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first != curr_scan_idx)
           ++peak_iter;
@@ -498,7 +494,7 @@ namespace OpenMS
             J(counter_posf, total_nr_peaks + 3 * map_idx  + 1) = ddl_left * weight + ddl_left_old;
             J(counter_posf, total_nr_peaks + 3 * map_idx  + 2) = ddl_right * weight + ddl_right_old;
           }
-          ++current_peak;
+          // ++current_peak;
           ++peak_iter;
 
         }                        // end while

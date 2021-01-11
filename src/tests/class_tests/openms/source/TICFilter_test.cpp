@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Volker Mosthaf, Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -41,6 +41,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -51,8 +53,8 @@ START_TEST(TICFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-TICFilter* e_ptr = 0;
-TICFilter* e_nullPointer = 0;
+TICFilter* e_ptr = nullptr;
+TICFilter* e_nullPointer = nullptr;
 START_SECTION((TICFilter()))
 	e_ptr = new TICFilter;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,21 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
+
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <QSvgRenderer>
+#include <QtCore/QFileInfo>
 
 #include <iostream>
 
@@ -47,23 +52,93 @@ namespace OpenMS
   int TOPPASVertex::global_debug_indent_ = 0;
 #endif
 
-  TOPPASVertex::TOPPASVertex() :
-    QObject(),
-    QGraphicsItem(),
-    in_edges_(),
-    out_edges_(),
-    edge_being_created_(false),
-    pen_color_(),
-    brush_color_(),
-    dfs_color_(DFS_WHITE),
-    dfs_parent_(0),
-    topo_sort_marked_(false),
-    topo_nr_(0),
-    round_total_(-1),
-    round_counter_(0),
-    finished_(false),
-    reachable_(true),
-    allow_output_recycling_(false)
+  TOPPASVertex::TOPPASFilenames::TOPPASFilenames(const QStringList& filenames)
+  {
+    append(filenames);
+  }
+
+  int TOPPASVertex::TOPPASFilenames::size() const
+  {
+    return filenames_.size();
+  }
+
+  const QStringList& TOPPASVertex::TOPPASFilenames::get() const
+  {
+    return filenames_;
+  }
+  const QString& TOPPASVertex::TOPPASFilenames::operator[](int i) const
+  {
+    return filenames_[i];
+  }
+
+  void TOPPASVertex::TOPPASFilenames::set(const QStringList& filenames)
+  {
+    filenames_.clear();
+    this->append(filenames);
+  }
+
+  void TOPPASVertex::TOPPASFilenames::set(const QString& filename, int i)
+  {
+    check_(filename);
+    filenames_[i] = filename;
+  }
+
+  void TOPPASVertex::TOPPASFilenames::push_back(const QString& filename)
+  {
+    check_(filename);
+    filenames_.push_back(filename);
+  }
+
+  void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
+  {
+    for (const QString& fn : filenames)
+    {
+      check_(fn);
+      push_back(fn);
+    }
+  }
+
+  QStringList TOPPASVertex::TOPPASFilenames::getSuffixCounts() const
+  {
+    // display file type(s)
+    Map<QString, Size> suffices;
+    for (const QString& fn : filenames_)
+    {
+      QStringList l = QFileInfo(fn).completeSuffix().split('.');
+      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
+      ++suffices[suf];
+    }
+    QStringList text_l;
+    for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
+    {
+      if (suffices.size() > 1)
+        text_l.push_back("." + sit->first + "(" + String(sit->second).toQString() + ")");
+      else
+        text_l.push_back("." + sit->first);
+    }
+    return text_l;
+  }
+
+  void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
+  {
+    const Size max_filename_length = 255;
+#ifdef OPENMS_WINDOWSPLATFORM
+    // on Windows, constraint applies to the whole path:
+    if (filename.count() > max_filename_length)
+    {
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename.toStdString(), max_filename_length);
+    }
+#else
+    // on Unix (Linux/Mac), constraint applies to the file name:
+    if (File::basename(filename).size() > max_filename_length)
+    {
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(filename), max_filename_length);
+    }
+#endif
+  }
+
+
+  TOPPASVertex::TOPPASVertex()
   {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setZValue(42);
@@ -79,7 +154,6 @@ namespace OpenMS
     pen_color_(rhs.pen_color_),
     brush_color_(rhs.brush_color_),
     dfs_color_(rhs.dfs_color_),
-    dfs_parent_(rhs.dfs_parent_),
     topo_sort_marked_(rhs.topo_sort_marked_),
     topo_nr_(rhs.topo_nr_),
     round_total_(rhs.round_total_),
@@ -94,9 +168,6 @@ namespace OpenMS
     setPos(rhs.pos());
   }
 
-  TOPPASVertex::~TOPPASVertex()
-  {
-  }
 
   TOPPASVertex& TOPPASVertex::operator=(const TOPPASVertex& rhs)
   {
@@ -106,10 +177,8 @@ namespace OpenMS
     pen_color_ = rhs.pen_color_;
     brush_color_ = rhs.brush_color_;
     dfs_color_ = rhs.dfs_color_;
-    dfs_parent_ = rhs.dfs_parent_;
     topo_sort_marked_ = rhs.topo_sort_marked_;
     topo_nr_ = rhs.topo_nr_;
-
     round_total_ = rhs.round_total_;
     round_counter_ = rhs.round_counter_;
     finished_ = rhs.finished_;
@@ -119,6 +188,47 @@ namespace OpenMS
     setPos(rhs.pos());
 
     return *this;
+  }
+
+  void TOPPASVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape)
+  {
+    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+    if (isSelected())
+    {
+      pen.setWidth(2);
+      painter->setBrush(brush_color_.darker(130));
+      pen.setColor(Qt::darkBlue);
+    }
+    else
+    {
+      painter->setBrush(brush_color_);
+    }
+    painter->setPen(pen);
+
+    QPainterPath path;
+    if (round_shape) path.addRoundRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)), 20);
+    else path.addRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)));
+    painter->drawPath(path);
+
+    pen.setColor(pen_color_);
+    painter->setPen(pen);
+
+    // topo sort number
+    painter->drawText(boundingRect().x() + 7, boundingRect().y() + 20, QString::number(topo_nr_));
+    
+    // recycling status
+    if (this->allow_output_recycling_)
+    {
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
+      svg_renderer->render(painter, QRectF(-7, boundingRect().y() + 9.0, 14, 14));
+    }
+  }
+
+  QPainterPath TOPPASVertex::shape() const
+  {
+    QPainterPath shape;
+    shape.addRoundRect(boundingRect(), 20, 20);
+    return shape;
   }
 
   bool TOPPASVertex::isUpstreamFinished() const
@@ -144,7 +254,7 @@ namespace OpenMS
     if (inEdgesBegin() == inEdgesEnd())
     {
       error_msg = "buildRoundPackages() called on vertex with no input edges!\n";
-      LOG_ERROR << error_msg;
+      OPENMS_LOG_ERROR << error_msg;
       return false;
     }
 
@@ -208,7 +318,7 @@ namespace OpenMS
     // all incoming edges should have the same number of rounds!
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex* tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv_upstream = (*it)->getSourceVertex();
 
       // fill files for each round
       int param_index_src_out = (*it)->getSourceOutParam();
@@ -218,16 +328,16 @@ namespace OpenMS
         VertexRoundPackage rpg;
         rpg.edge = *it;
         int upstream_round = round;
-        if (tv->allow_output_recycling_ && upstream_round >= tv->round_total_)
+        if (tv_upstream->allow_output_recycling_ && upstream_round >= tv_upstream->round_total_)
         {
-          upstream_round %= tv->round_total_;
+          upstream_round %= tv_upstream->round_total_;
         }
-        rpg.filenames = tv->getFileNames(param_index_src_out, upstream_round);
+        rpg.filenames.set(tv_upstream->getFileNames(param_index_src_out, upstream_round));
 
         // hack for merger vertices, as they have multiple incoming edges with -1 as index
         while (pkg[round].count(param_index_tgt_in))
         {
-          --param_index_tgt_in;
+          --param_index_tgt_in; // find free slot, i.e. -2, -3 ....
         }
 
         pkg[round][param_index_tgt_in] = rpg; // index by incoming edge number
@@ -240,15 +350,15 @@ namespace OpenMS
   {
     if ((Size)round >= output_files_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, round, output_files_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, round, output_files_.size());
     }
     RoundPackage rp = output_files_[round];
     if (rp.find(param_index) == rp.end())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
     }
     //String s = String(rp[param_index].filenames.join("\" \""));
-    return rp[param_index].filenames;
+    return rp[param_index].filenames.get();
   }
 
   QStringList TOPPASVertex::getFileNames() const
@@ -262,7 +372,7 @@ namespace OpenMS
            it != output_files_[r].end();
            ++it)
       {
-        fl.append(it->second.filenames);
+        fl.append(it->second.filenames.get());
       }
     }
     return fl;
@@ -403,16 +513,6 @@ namespace OpenMS
     dfs_color_ = color;
   }
 
-  TOPPASVertex * TOPPASVertex::getDFSParent()
-  {
-    return dfs_parent_;
-  }
-
-  void TOPPASVertex::setDFSParent(TOPPASVertex* parent)
-  {
-    dfs_parent_ = parent;
-  }
-
   Size TOPPASVertex::incomingEdgesCount()
   {
     return in_edges_.size();
@@ -487,7 +587,7 @@ namespace OpenMS
 
   void TOPPASVertex::run()
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
   bool TOPPASVertex::invertRecylingMode()

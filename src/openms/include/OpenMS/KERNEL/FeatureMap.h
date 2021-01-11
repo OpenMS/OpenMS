@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,20 @@
 // $Authors: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_FEATUREMAP_H
-#define OPENMS_KERNEL_FEATUREMAP_H
+#pragma once
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
+
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -60,7 +63,7 @@ namespace OpenMS
   /// Each feature contributes one vote (=state)
   struct OPENMS_DLLAPI AnnotationStatistics
   {
-    std::vector<Size> states; //< count each state, indexing by BaseFeature::AnnotationState
+    std::vector<Size> states; ///< count each state, indexing by BaseFeature::AnnotationState
 
     AnnotationStatistics();
 
@@ -80,9 +83,9 @@ namespace OpenMS
   /**
     @brief A container for features.
 
-    A map is a container holding 2-dimensional features,
-    which in turn represent chemical entities (peptides, proteins, etc.) found
-    in a 2-dimensional experiment.
+    A feature map is a container holding features, which represent chemical
+    entities (peptides, proteins, small molecules etc.) found in an LC-MS/MS
+    experiment.
 
     Maps are implemented as vectors of features and have basically the same interface
     as an STL vector has (model of Random Access Container and Back Insertion Sequence).
@@ -97,7 +100,8 @@ namespace OpenMS
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
-    public UniqueIdIndexer<FeatureMap>
+    public UniqueIdIndexer<FeatureMap>,
+    public MapUtilities<FeatureMap>
   {
 public:
     /**
@@ -128,8 +132,9 @@ public:
     using privvec::back; // FeatureXMLFile
 
     using privvec::push_back;
+    using privvec::emplace_back;
     using privvec::pop_back; // FeatureXMLFile
-    using privvec::erase; // source/VISUAL/Spectrum2DCanvas.cpp 2871, FeatureMap_test 599
+    using privvec::erase; // source/VISUAL/Plot2DCanvas.cpp 2871, FeatureMap_test 599
 
     //@{
     typedef Feature FeatureType;
@@ -155,7 +160,7 @@ public:
     OPENMS_DLLAPI FeatureMap(const FeatureMap& source);
 
     /// Destructor
-    OPENMS_DLLAPI virtual ~FeatureMap();
+    OPENMS_DLLAPI ~FeatureMap() override;
     //@}
 
     /// Assignment operator
@@ -212,7 +217,7 @@ public:
     //@}
 
     // Docu in base class
-    OPENMS_DLLAPI void updateRanges();
+    OPENMS_DLLAPI void updateRanges() override;
 
     /// Swaps the feature content (plus its range information) of this map with the content of @p from
     OPENMS_DLLAPI void swapFeaturesOnly(FeatureMap& from);
@@ -249,8 +254,12 @@ public:
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e. 
+    /// If it doesn't exist, fallback to @param s.
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
+
     /// get the file path to the first MS run
-    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
+    OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
     /**
       @brief Clears all data and meta data
@@ -308,10 +317,9 @@ protected:
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
+
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureMap& map);
 
 } // namespace OpenMS
-
-#endif // OPENMS_KERNEL_DFEATUREMAP_H

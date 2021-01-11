@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,12 @@
 // $Authors: Mathias Walzer, Timo Sachsenberg$
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
-#define OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <set>
 
@@ -60,7 +61,7 @@ public:
     /// default constructor
     WindowMower();
     /// destructor
-    virtual ~WindowMower();
+    ~WindowMower() override;
 
     /// copy constructor
     WindowMower(const WindowMower& source);
@@ -111,15 +112,17 @@ public:
         if (end) break;
       }
 
-      // replace the old peaks by the new ones
-      spectrum.clear(false);
-      for (ConstIterator it = old_spectrum.begin(); it != old_spectrum.end(); ++it)
+      // select peaks that were retained
+      std::vector<Size> indices;
+      for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
       {
         if (positions.find(it->getMZ()) != positions.end())
         {
-          spectrum.push_back(*it);
+          Size index(it - spectrum.begin());
+          indices.push_back(index);
         }
       }
+      spectrum.select(indices);
     }
 
     void filterPeakSpectrum(PeakSpectrum& spectrum);
@@ -173,40 +176,40 @@ public:
         }
       }
 
-      if (peaks_in_window.empty()) // last window is empty -> no special handling needed
+      if (!peaks_in_window.empty()) // last window is not empty
       {
-        out.sortByPosition();
-        spectrum = out;
-        return;
+        // Note that the last window might be much smaller than windowsize.
+        // Therefore the number of peaks copied from this window should be adapted accordingly.
+        // Otherwise a lot of noise peaks are copied from each end of a spectrum.
+
+        double last_window_size = peaks_in_window.back().getMZ() - window_start;
+        double last_window_size_fraction = last_window_size / windowsize_;
+        Size last_window_peakcount = static_cast<Size>(std::round(last_window_size_fraction * peakcount_));
+
+        if (peaks_in_window.size() > last_window_peakcount)
+        { // sort for last_window_peakcount highest peaks
+          std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), 
+                            reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+          std::copy(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, back_inserter(out));
+        }
+        else
+        {
+          std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
+        }
       }
 
-      // Note that the last window might be much smaller than windowsize.
-      // Therefor the number of peaks copied from this window should be adapted accordingly.
-      // Otherwise a lot of noise peaks are copied from each end of a spectrum.
-
-      double last_window_size = peaks_in_window.back().getMZ() - window_start;
-      double last_window_size_fraction = last_window_size / windowsize_;
-      Size last_window_peakcount = last_window_size_fraction * peakcount_;
-
-      if (last_window_peakcount) // handle single peak in last window (will produce no proper fraction)
+      // select peaks that were retained
+      std::vector<Size> indices;
+      for (typename SpectrumType::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
       {
-        last_window_peakcount = 1;
+        if (std::find(out.begin(), out.end(), *it) != out.end())
+        {
+          Size index(it - spectrum.begin());
+          indices.push_back(index);
+        }
       }
+      spectrum.select(indices);
 
-      // sort for last_window_peakcount highest peaks
-      std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
-
-      if (peaks_in_window.size() > last_window_peakcount)
-      {
-        std::copy(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, back_inserter(out));
-      }
-      else
-      {
-        std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
-      }
-
-      out.sortByPosition();
-      spectrum = out;
       return;
     }
 
@@ -219,4 +222,4 @@ private:
 
 }
 
-#endif //OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
+

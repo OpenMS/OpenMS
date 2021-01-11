@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_MATH_STATISTICS_GUMBELDISTRIBUTIONFITTER_H
-#define OPENMS_MATH_STATISTICS_GUMBELDISTRIBUTIONFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -74,6 +73,9 @@ public:
         double a;
         /// scale parameter b
         double b;
+
+        double eval(double x) const;
+        double log_eval_no_normalize(double x) const ;
       };
 
       /// Default constructor
@@ -93,6 +95,17 @@ public:
       */
       GumbelDistributionFitResult fit(std::vector<DPosition<2> > & points);
 
+      /**
+          @brief Fits a gumbel distribution to the given data x values. Fills a
+          weighted histogram first and generates y values.
+
+          @param x Input x values
+          @param w Input weights
+
+          @exception Exception::UnableToFit is thrown if fitting cannot be performed
+      */
+      GumbelDistributionFitResult fitWeighted(const std::vector<double> & x, const std::vector<double> & w);
+
 protected:
 
       GumbelDistributionFitResult init_param_;
@@ -106,4 +119,3 @@ private:
   }
 }
 
-#endif

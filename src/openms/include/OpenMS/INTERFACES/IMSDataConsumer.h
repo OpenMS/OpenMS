@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,15 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_INTERFACES_IMSDATACONSUMER_H
-#define OPENMS_INTERFACES_IMSDATACONSUMER_H
+#pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/config.h>
+#include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
+
 namespace Interfaces
 {
 
@@ -60,16 +60,17 @@ namespace Interfaces
       occur if the ExperimentalSettings and the size of the experiment are not
       set before consuming any spectra.
 
+      Implementations in OpenMS can be found in OpenMS/FORMAT/DATAACCESS
+
       @note The member functions setExpectedSize and setExperimentalSettings
       are expected to be called before consuming starts.
 
     */
-    template <typename MapType = MSExperiment<> >
     class OPENMS_DLLAPI IMSDataConsumer
     {
     public:
-      typedef typename MapType::SpectrumType SpectrumType;
-      typedef typename MapType::ChromatogramType ChromatogramType;
+      typedef MSSpectrum SpectrumType;
+      typedef MSChromatogram ChromatogramType;
 
       virtual ~IMSDataConsumer() {}
 
@@ -107,7 +108,7 @@ namespace Interfaces
         @param expectedSpectra Number of spectra expected
         @param expectedChromatograms Number of chromatograms expected
       */
-      virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) = 0;
+      virtual void setExpectedSize(size_t expectedSpectra, size_t expectedChromatograms) = 0;
 
       /**
         @brief Set experimental settings (meta-data) of the data to be consumed
@@ -123,7 +124,8 @@ namespace Interfaces
       virtual void setExperimentalSettings(const ExperimentalSettings& exp) = 0;
     };
 
+    typedef IMSDataConsumer IMSDataConsumer;
+
 } //end namespace Interfaces
 } //end namespace OpenMS
 
-#endif

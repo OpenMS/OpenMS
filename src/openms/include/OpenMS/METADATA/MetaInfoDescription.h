@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFODESCRIPTION_H
-#define OPENMS_METADATA_METAINFODESCRIPTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -51,14 +50,18 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    MetaInfoDescription();
+    MetaInfoDescription() = default;
     /// Copy constructor
-    MetaInfoDescription(const MetaInfoDescription & source);
+    MetaInfoDescription(const MetaInfoDescription &) = default;
+    /// Move constructor
+    MetaInfoDescription(MetaInfoDescription&&) = default;
     /// Destructor
     ~MetaInfoDescription();
 
     /// Assignment operator
-    MetaInfoDescription & operator=(const MetaInfoDescription & source);
+    MetaInfoDescription & operator=(const MetaInfoDescription &) = default;
+    /// Move assignment operator
+    MetaInfoDescription& operator=(MetaInfoDescription&&) & = default;
 
     /// Equality operator
     bool operator==(const MetaInfoDescription & rhs) const;
@@ -82,4 +85,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_METAINFODESCRIPTION_H

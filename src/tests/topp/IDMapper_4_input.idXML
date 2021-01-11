@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="." db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<VariableModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+		<VariableModification name="Deamidated (Q)" />
+		<VariableModification name="Deamidated (N)" />
+		<VariableModification name="Gln-&gt;pyro-Glu (Q)" />
+		<VariableModification name="Glu-&gt;pyro-Glu (E)" />
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="MS-GF+" search_engine_version="Beta (v9176)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="XP_005270768.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="XP_005267021.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="XP_005252817.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="XP_005251116.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="XP_005249876.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="XP_005249875.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="XP_005247510.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="XP_005247509.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="XP_005247508.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="XP_005247507.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="XP_005247505.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="XP_005247504.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="XP_005247503.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="XP_005247502.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="XP_005247501.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="Q9Y446" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="Q93052" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="Q16762" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="Q05707-3" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="Q05707-2" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="Q05707" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="P63261" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="P60709" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="P10153" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="O60684" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="O15131" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="NP_066933.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="NP_036448.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="NP_009114.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="NP_005569.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_30" accession="NP_003303.2" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="NP_002925.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_32" accession="NP_002260.2" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="NP_001605.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_34" accession="NP_001257412.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_35" accession="NP_001186883.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_36" accession="NP_001161143.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_37" accession="NP_001092.1" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_38" accession="K7EM38" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_39" accession="J3KT65" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_40" accession="I3L4N8" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_41" accession="I3L3R2" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_42" accession="I3L3I0" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_43" accession="I3L1U9" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_44" accession="G5E9R0" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_45" accession="F5H4G7" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_46" accession="F5GYL8" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_47" accession="E7EVS6" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_48" accession="C9JXK9" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_49" accession="C9JUT4" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="1025.95422363281" RT="2521.4367" spectrum_reference="controllerType=0 controllerNumber=1 scan=6089" >
+			<PeptideHit score="196" sequence="YAQTPAN(Deamidated)M(Oxidation)FYIVAC(Carbamidomethyl)DNR" charge="2" aa_before="R R" aa_after="D D" protein_refs="PH_23 PH_31" >
+				<UserParam type="float" name="MS:1002049" value="196"/>
+				<UserParam type="float" name="MS:1002050" value="216"/>
+				<UserParam type="float" name="MS:1002053" value="3.5447886e-12"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="8.24003e+006"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="1.427787"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="92.3,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.000919"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="1025.9554"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2519"/>
+				<UserParam type="float" name="calcMZ" value="1025.95349983968"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="125"/>
+				<UserParam type="int" name="end" value="141"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="39474.921875"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="986.991333007813" RT="2525.3019" spectrum_reference="controllerType=0 controllerNumber=1 scan=6107" >
+			<PeptideHit score="240" sequence="EAAWAITNATSGGTPEQIR" charge="2" aa_before="K K K K K K K K" aa_after="Y Y Y Y Y Y Y Y" protein_refs="PH_0 PH_1 PH_24 PH_25 PH_27 PH_32 PH_45 PH_46" >
+				<UserParam type="float" name="MS:1002049" value="240"/>
+				<UserParam type="float" name="MS:1002050" value="292"/>
+				<UserParam type="float" name="MS:1002053" value="8.966142e-10"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="6.23929e+006"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="0.06183967"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="86.6,81.3"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.000696"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="986.9904"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2525"/>
+				<UserParam type="float" name="calcMZ" value="986.98978549803"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="427"/>
+				<UserParam type="int" name="end" value="445"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="46285.03515625"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="978.00341796875" RT="2529.7188" spectrum_reference="controllerType=0 controllerNumber=1 scan=6128" >
+			<PeptideHit score="131" sequence="TYITDPVSAPC(Carbamidomethyl)APPLQPK" charge="2" aa_before="K K K K K K K K K K K K K K" aa_after="G G G G G G G G G G G G G G" protein_refs="PH_6 PH_7 PH_8 PH_9 PH_10 PH_11 PH_12 PH_13 PH_14 PH_16 PH_29 PH_36 PH_48 PH_49" >
+				<UserParam type="float" name="MS:1002049" value="131"/>
+				<UserParam type="float" name="MS:1002050" value="164"/>
+				<UserParam type="float" name="MS:1002053" value="3.0393522e-08"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="1.3206e+007"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="-0.93612075"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="78.3,78.8"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.001473"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="978.0004"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2531"/>
+				<UserParam type="float" name="calcMZ" value="978.00077599578"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="354"/>
+				<UserParam type="int" name="end" value="371"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="81902.859375"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="1005.50134277344" RT="2538.8377" spectrum_reference="controllerType=0 controllerNumber=1 scan=6172" >
+			<PeptideHit score="189" sequence="FLGTEPEPDAVGLDSGHIR" charge="2" aa_before="R R R" aa_after="G G G" protein_refs="PH_17 PH_30 PH_34" >
+				<UserParam type="float" name="MS:1002049" value="189"/>
+				<UserParam type="float" name="MS:1002050" value="210"/>
+				<UserParam type="float" name="MS:1002053" value="1.005723e-10"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="1.5036e+007"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="-3.5206735"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="91.2,85.6"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.001677"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="1005.497"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2542"/>
+				<UserParam type="float" name="calcMZ" value="1005.49998604358"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="188"/>
+				<UserParam type="int" name="end" value="206"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="81870.1015625"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="977.538818359375" RT="2544.7853" spectrum_reference="controllerType=0 controllerNumber=1 scan=6202" >
+			<PeptideHit score="140" sequence="VAPEEHPVLLTEAPLNPK" charge="2" aa_before="R R R R R R R R R R R R R R R" aa_after="A A A A A A A A A A A A A A A" protein_refs="PH_4 PH_5 PH_21 PH_22 PH_33 PH_35 PH_37 PH_38 PH_39 PH_40 PH_41 PH_42 PH_43 PH_44 PH_47" >
+				<UserParam type="float" name="MS:1002049" value="140"/>
+				<UserParam type="float" name="MS:1002050" value="174"/>
+				<UserParam type="float" name="MS:1002053" value="2.517824e-09"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="1.13351e+009"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="1.9980075"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="76.0,90.7"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.126445"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="977.5383"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2562"/>
+				<UserParam type="float" name="calcMZ" value="977.53584023363"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="15"/>
+				<UserParam type="int" name="end" value="32"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="96244.2421875"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="977.533264160156" RT="2557.329" spectrum_reference="controllerType=0 controllerNumber=1 scan=6266" >
+			<PeptideHit score="159" sequence="VAPEEHPVLLTEAPLNPK" charge="2" aa_before="R R R R R R R R R R R R R R R" aa_after="A A A A A A A A A A A A A A A" protein_refs="PH_4 PH_5 PH_21 PH_22 PH_33 PH_35 PH_37 PH_38 PH_39 PH_40 PH_41 PH_42 PH_43 PH_44 PH_47" >
+				<UserParam type="float" name="MS:1002049" value="159"/>
+				<UserParam type="float" name="MS:1002050" value="181"/>
+				<UserParam type="float" name="MS:1002053" value="9.529712e-11"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="1.13351e+009"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="-3.996015"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="100.0,99.9"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.126445"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="977.5325"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2562"/>
+				<UserParam type="float" name="calcMZ" value="977.53584023363"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="15"/>
+				<UserParam type="int" name="end" value="32"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="4.13393075e06"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="977.533081054688" RT="2571.3143" spectrum_reference="controllerType=0 controllerNumber=1 scan=6338" >
+			<PeptideHit score="163" sequence="VAPEEHPVLLTEAPLNPK" charge="2" aa_before="R R R R R R R R R R R R R R R" aa_after="A A A A A A A A A A A A A A A" protein_refs="PH_4 PH_5 PH_21 PH_22 PH_33 PH_35 PH_37 PH_38 PH_39 PH_40 PH_41 PH_42 PH_43 PH_44 PH_47" >
+				<UserParam type="float" name="MS:1002049" value="163"/>
+				<UserParam type="float" name="MS:1002050" value="195"/>
+				<UserParam type="float" name="MS:1002053" value="1.0664418e-09"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="1.13351e+009"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="-3.996015"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="99.9,99.9"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.126445"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="977.5325"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2562"/>
+				<UserParam type="float" name="calcMZ" value="977.53584023363"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="15"/>
+				<UserParam type="int" name="end" value="32"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="3.23128875e06"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="977.53662109375" RT="2585.2744" spectrum_reference="controllerType=0 controllerNumber=1 scan=6410" >
+			<PeptideHit score="144" sequence="VAPEEHPVLLTEAPLNPK" charge="2" aa_before="R R R R R R R R R R R R R R R" aa_after="A A A A A A A A A A A A A A A" protein_refs="PH_4 PH_5 PH_21 PH_22 PH_33 PH_35 PH_37 PH_38 PH_39 PH_40 PH_41 PH_42 PH_43 PH_44 PH_47" >
+				<UserParam type="float" name="MS:1002049" value="144"/>
+				<UserParam type="float" name="MS:1002050" value="170"/>
+				<UserParam type="float" name="MS:1002053" value="2.988369e-10"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="1.13351e+009"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="-3.996015"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="100.0,98.7"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.126445"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="977.5325"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2562"/>
+				<UserParam type="float" name="calcMZ" value="977.53584023363"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="15"/>
+				<UserParam type="int" name="end" value="32"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="2.49657765625e05"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="979.470764160156" RT="2586.8981" spectrum_reference="controllerType=0 controllerNumber=1 scan=6418" >
+			<PeptideHit score="102" sequence="DLAGAPPGEVVGC(Carbamidomethyl)FTPQSR" charge="2" aa_before="R R R" aa_after="R R R" protein_refs="PH_2 PH_15 PH_28" >
+				<UserParam type="float" name="MS:1002049" value="102"/>
+				<UserParam type="float" name="MS:1002050" value="140"/>
+				<UserParam type="float" name="MS:1002053" value="2.6489735e-07"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="3.36661e+007"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="-0.31157044"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="87.3,84.9"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.003755"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="979.4757"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2591"/>
+				<UserParam type="float" name="calcMZ" value="979.47545670228"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="572"/>
+				<UserParam type="int" name="end" value="590"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="1.146788671875e05"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="975.967407226563" RT="2604.8485" spectrum_reference="controllerType=0 controllerNumber=1 scan=6508" >
+			<PeptideHit score="194" sequence="IGTDGTQVAMVQFTDDPR" charge="2" aa_before="K K K K K" aa_after="T T T T T" protein_refs="PH_3 PH_18 PH_19 PH_20 PH_26" >
+				<UserParam type="float" name="MS:1002049" value="194"/>
+				<UserParam type="float" name="MS:1002050" value="218"/>
+				<UserParam type="float" name="MS:1002053" value="1.4893755e-11"/>
+				<UserParam type="float" name="MS:1002054" value="0"/>
+				<UserParam type="float" name="MS:1002055" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:AmbiguousMatch" value="0"/>
+				<UserParam type="string" name="CPTAC-CAP:FractionDecomposition" value="100.0,100.0"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorArea" value="1.68837e+008"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorError(ppm)" value="-1.9386852"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorPurity" value="80.8,82.6"/>
+				<UserParam type="string" name="CPTAC-CAP:PrecursorRelAb" value="0.018834"/>
+				<UserParam type="string" name="CPTAC-CAP:QueryPrecursorMz" value="975.9636"/>
+				<UserParam type="string" name="CPTAC-CAP:RTAtPrecursorHalfElution" value="2622"/>
+				<UserParam type="float" name="calcMZ" value="975.96492180573"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="1065"/>
+				<UserParam type="int" name="end" value="1082"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<UserParam type="string" name="MS:1001141" value="94719.8984375"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -51,8 +51,8 @@ using namespace OpenMS::Math;
 using std::stringstream;
 
 // default ctor
-GaussModel* ptr = 0;
-GaussModel* nullPointer = 0;
+GaussModel* ptr = nullptr;
+GaussModel* nullPointer = nullptr;
 START_SECTION((GaussModel()))
 	ptr = new GaussModel();
   TEST_EQUAL(ptr->getName(), "GaussModel")

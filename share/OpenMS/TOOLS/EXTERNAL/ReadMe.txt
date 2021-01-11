@@ -26,9 +26,9 @@ scanned for *.ttd files.
 Additionally you can create an environment variable OPENMS_TTD_PATH and use it to point to one (!) custom directory of your choice.
 This is useful when upgrading OpenMS to another version while keeping all your custom *.ttd files.
 
-If you encounter a bug, mail to the developers at
-  General OpenMS discussion <open-ms-general@lists.sourceforge.net>
-, and provide the output of GenericWrapper (ideally with '-debug 10' option enabled) and your input files (if applicable).
+If you encounter a bug, file a bug report via https://github.com/OpenMS/OpenMS/issues
+and provide the output of GenericWrapper (ideally with '-debug 10' option enabled)
+and your input files (if applicable).
 
 After adding/removing *.ttd files you need to restart any open instances of TOPPAS to see the updated list of types for GenericWrapper.
 
@@ -38,7 +38,8 @@ After adding/removing *.ttd files you need to restart any open instances of TOPP
 ===========================
 
 Hints -- read(!):
- - When mapping filenames while building the command line in 'cloptions', wrap them in QUOTES! (to avoid the 'spaces in filenames' problem)
+ - When mapping a SINGLE filename while building the command line in 'cloptions', wrap them in QUOTES! (to avoid the 'spaces in filenames' problem)
+ - When mapping a LIST of filenames (from ITEMLIST parameters) while building the command line in 'cloptions', NO NOT QUOTE! (GenericWrapper will do this automatically)
  - Find a good name for <type> - it should be descriptive duplicate names are not allowed
 
 If you want to wrap your own tools and write custom *.ttd files,

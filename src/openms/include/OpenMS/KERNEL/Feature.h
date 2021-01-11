@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_FEATURE_H
-#define OPENMS_KERNEL_FEATURE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -48,20 +47,21 @@ namespace OpenMS
 
   /** @brief An LC-MS feature.
 
-  The Feature class is used to describe the two-dimensional signal caused by a
-  peptide.	It can store a charge state and a list of peptide identifications.
-  The area occupied by the Feature in the LC-MS data set is represented by a
-  list of convex hulls (one for each isotopic peak).	There is also a convex
-  hull for the entire Feature.	The model description can store the parameters
-  of a two-dimensional theoretical model of the underlying signal in LC-MS.
-  Currently, non-peptide compounds are also represented as features.
+  The Feature class is used to describe the two-dimensional signal caused by an
+  analyte. It can store a charge state and a list of peptide identifications
+  (for peptides). The area occupied by the Feature in the LC-MS data set is
+  represented by a list of convex hulls (one for each isotopic peak). There is
+  also a convex hull for the entire Feature. The model description can store
+  the parameters of a two-dimensional theoretical model of the underlying
+  signal in LC-MS. Currently, non-peptide compounds are also represented as
+  features.
 
   By convention in %OpenMS, the position of a feature is defined as maximum
   position of the model for the retention time dimension and the mass of the
-  monoisotopic peak for the m/z dimension.	The intensity of a feature is
+  monoisotopic peak for the m/z dimension. The intensity of a feature is
   (proportional to) its total ion count.
 
-  Feature is derived from RichPeak2D.	 Also inherited is a MetaInfoInterface.
+  Feature is derived from RichPeak2D. Also inherited is a MetaInfoInterface.
   Features as usually are contained in a FeatureMap. See also FeatureHandle and
   ConsensusFeature.
 
@@ -77,11 +77,17 @@ public:
     /// Default constructor
     Feature();
 
+    /// explicit C'tor from BaseFeature
+    explicit Feature(const BaseFeature& base);
+
     /// Copy constructor
     Feature(const Feature& feature);
 
+    /// Move constructor
+    Feature(Feature&&) noexcept;
+
     /// Destructor
-    ~Feature();
+    ~Feature() override;
     //@}
 
     /// @name Model and quality methods
@@ -124,6 +130,9 @@ public:
 
     /// Assignment operator
     Feature& operator=(const Feature& rhs);
+
+    /// Move assignment operator
+    Feature& operator=(Feature&&) & noexcept;
 
     /// Equality operator
     bool operator==(const Feature& rhs) const;
@@ -195,4 +204,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_FEATURE_H

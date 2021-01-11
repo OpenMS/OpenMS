@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -44,9 +44,9 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmIsotopeWavelet FFASS;
 
-FFASS* ptr = 0;
-FFASS* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FFASS* ptr = nullptr;
+FFASS* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmIsotopeWavelet()))
 	ptr = new FFASS;
@@ -57,7 +57,7 @@ START_SECTION(IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRDataCud
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(MSSpectrum<PeakType>* createHRData(const UInt i))
+START_SECTION(MSSpectrum* createHRData(const UInt i))
 	NOT_TESTABLE
 END_SECTION
 

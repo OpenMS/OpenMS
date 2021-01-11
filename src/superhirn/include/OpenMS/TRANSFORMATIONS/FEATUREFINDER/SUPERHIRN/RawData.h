@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Florian Zeller $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Lukas Mueller, Markus Mueller $
 // --------------------------------------------------------------------------
 //
@@ -43,13 +43,12 @@
  *
  */
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_RAWDATA_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_RAWDATA_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
 #include <vector>
-#include <ostream>
+#include <iosfwd>
 
 #include <OpenMS/config.h>
 
@@ -62,7 +61,7 @@ namespace OpenMS
 
 public:
 
-    RawData() {}
+    RawData() = default;
     RawData(std::vector<double> &, std::vector<double> &);
     virtual ~RawData();
 
@@ -112,4 +111,3 @@ protected:
 
 } // ns
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_RAWDATA_H

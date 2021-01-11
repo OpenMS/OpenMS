@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,10 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <map>
 
@@ -81,7 +81,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "FASTA input file");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
@@ -92,20 +92,20 @@ protected:
     registerIntOption_("min_length", "<number>", 6, "minimum length of peptide", false);
     registerIntOption_("out_option", "<number>", 1, "indicate 1 (peptide table only), 2 (statistics only) or (both peptide table + statistics)", false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("motif", "<string>", "M", "the motif for the restricted peptidome", false);
     setMinInt_("missed_cleavages", 0);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
     std::vector<FASTAFile::FASTAEntry> protein_data;
     FASTAFile file;
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     vector<AASequence> temp_peptides;
     PeptideIdentification peptide_identification;
     ProteinIdentification protein_identification;
@@ -147,7 +147,7 @@ protected:
     // This should be updated if more cleavage enzymes are available
     String enzyme_name = getStringOption_("enzyme");
     digestor.setEnzyme(enzyme_name);
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
     digestor.setMissedCleavages(missed_cleavages);
 
     for (UInt i = 0; i < protein_data.size(); ++i)
@@ -349,7 +349,7 @@ protected:
         }
       }
       UInt pro_count = 0;
-      for (UInt a = 0; a < PROTEINS.size() - 1; ++a)
+      for (UInt a = 0; a + 1 < PROTEINS.size(); ++a)
       {
         if (PROTEINS[a] == PROTEINS[a + 1])
         {

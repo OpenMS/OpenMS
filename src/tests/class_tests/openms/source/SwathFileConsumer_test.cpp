@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 using namespace OpenMS;
 
@@ -54,11 +54,11 @@ static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath:
   return left.lower < right.lower;
 }
 
-void getSwathFile(MSExperiment<>& exp, int nr_swathes=32, bool ms1=true)
+void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true)
 {
   if (ms1)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(100); p.setIntensity(200);
     s.push_back(p);
@@ -66,7 +66,7 @@ void getSwathFile(MSExperiment<>& exp, int nr_swathes=32, bool ms1=true)
   }
   for (int i = 0; i< nr_swathes; i++)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(2);
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);
@@ -87,8 +87,8 @@ START_TEST(SwathFileConsumer, "$Id$")
 // Test "regular" / in memory consumer
 {
 
-RegularSwathFileConsumer* regular_sfc_ptr = 0;
-RegularSwathFileConsumer* regular_sfc_nullPointer = 0;
+RegularSwathFileConsumer* regular_sfc_ptr = nullptr;
+RegularSwathFileConsumer* regular_sfc_nullPointer = nullptr;
 
 START_SECTION(([EXTRA] RegularSwathFileConsumer()))
   regular_sfc_ptr = new RegularSwathFileConsumer;
@@ -102,7 +102,7 @@ END_SECTION
 START_SECTION(([EXTRA] consumeAndRetrieve))
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -133,7 +133,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_known_boundaries))
 {
   // Using the second constructor
   std::vector< OpenSwath::SwathMap > boundaries;
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
   for (int i = 0; i< 32; i++)
   {
@@ -178,7 +178,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_scrambled))
   // of the MS2 spectra and consumer another 5 MS2 spectra.
 
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
 
   regular_sfc_ptr->consumeSpectrum(exp.getSpectra()[6]);   // MS2
@@ -224,7 +224,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_scrambled_known_boundaries))
 {
   // Using the second constructor
   std::vector< OpenSwath::SwathMap > boundaries;
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
   // add some extra windows for confusion
   for (int i = 0; i < 2; i++)
@@ -312,7 +312,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
   int nr_swath = 32;
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, false);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -343,7 +343,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
 {
   int nr_swath = 0;
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, true);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -373,7 +373,7 @@ END_SECTION
 START_SECTION(([EXTRA] void consumeChromatogram(MapType::ChromatogramType &) )) 
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSChromatogram<> c;
+  MSChromatogram c;
   regular_sfc_ptr->consumeChromatogram(c);
   TEST_EQUAL(true, true)
   delete regular_sfc_ptr;
@@ -383,7 +383,7 @@ END_SECTION
 START_SECTION(([EXTRA] void consumeSpectrum(MapType::SpectrumType & s))) 
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.setMSLevel(1);
   regular_sfc_ptr->consumeSpectrum(s);
 
@@ -411,8 +411,8 @@ END_SECTION
 // - shared functions in the base class are already tested, only test I/O here
 {
 
-CachedSwathFileConsumer* cached_sfc_ptr = 0;
-CachedSwathFileConsumer* cached_sfc_nullPointer = 0;
+CachedSwathFileConsumer* cached_sfc_ptr = nullptr;
+CachedSwathFileConsumer* cached_sfc_nullPointer = nullptr;
 
 START_SECTION(([EXTRA] CachedSwathFileConsumer()))
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 0, std::vector<int>());
@@ -430,7 +430,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve))
   int nr_swath = 2;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -468,7 +468,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
   int nr_swath = 2;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, false);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -500,7 +500,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
   int nr_swath = 0;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, true);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)

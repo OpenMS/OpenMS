@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,13 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_MATH_STATISTICS_GAUSSFITTER_H
-#define OPENMS_MATH_STATISTICS_GAUSSFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
+#include <cmath>
 #include <vector>
 
 namespace OpenMS
@@ -61,7 +62,7 @@ namespace OpenMS
 public:
 
       /// struct of parameters of a Gaussian distribution
-      struct GaussFitResult
+      struct OPENMS_DLLAPI GaussFitResult
       {
 public:
         GaussFitResult()
@@ -77,6 +78,28 @@ public:
 
         /// parameter sigma of Gaussian distribution (width)
         double sigma;
+
+
+        /**
+          @brief Evaluate the current density Gaussian model at the specified point.
+
+          Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+          This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+          or after fitting.
+        */
+        double eval(double x) const;
+
+        /**
+          @brief Evaluate the current log density of the Gaussian model at the specified point.
+
+          Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+          This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+          or after fitting.
+        */
+        double log_eval_no_normalize(double x) const;
+
+      private:
+        double halflogtwopi = 0.5*log(2.0*Constants::PI);
       };
 
       /// Constructor
@@ -112,8 +135,7 @@ protected:
       GaussFitResult init_param_;
 
 private:
-
-      /// Copy constructor (not implemented)
+     /// Copy constructor (not implemented)
       GaussFitter(const GaussFitter & rhs);
 
       /// Assignment operator (not implemented)
@@ -122,4 +144,3 @@ private:
   }
 }
 
-#endif

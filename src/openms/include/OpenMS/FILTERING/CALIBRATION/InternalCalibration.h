@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#pragma once
 
-#ifndef OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-#define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -73,9 +72,9 @@ namespace OpenMS
     /// helper class, describing a lock mass
     struct LockMass
     {
-      double mz; //< m/z of the lock mass (incl. adducts)
-      unsigned int ms_level;   //< MS level where it occurs
-      int charge;     //< charge of the ion (to find isotopes)
+      double mz; ///< m/z of the lock mass (incl. adducts)
+      unsigned int ms_level;   ///< MS level where it occurs
+      int charge;     ///< charge of the ion (to find isotopes)
 
       LockMass(double mz_, int lvl_, int charge_)
         : mz(mz_),
@@ -83,8 +82,6 @@ namespace OpenMS
          charge(charge_)
       {}
     };
-
-  
 
     /** 
       @brief Extract calibrants from Raw data (mzML)
@@ -108,7 +105,7 @@ namespace OpenMS
       @return Number of calibration masses found
 
     */
-    Size fillCalibrants(const MSExperiment<> exp,
+    Size fillCalibrants(const PeakMap exp,
                         const std::vector<InternalCalibration::LockMass>& ref_masses,
                         double tol_ppm,
                         bool lock_require_mono,
@@ -186,10 +183,11 @@ namespace OpenMS
       @param file_models_plot Output PNG image model parameters (pass empty string to skip)
       @param file_residuals Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
       @param file_residuals_plot Output PNG image of the ppm errors of calibrants (pass empty string to skip)
+      @param rscript_executable Full path to the Rscript executable
       @return true upon successful calibration
 
     */
-    bool calibrate(MSExperiment<>& exp, 
+    bool calibrate(PeakMap& exp, 
                    const IntList& target_mslvl,
                    MZTrafoModel::MODELTYPE model_type,
                    double rt_chunk,
@@ -199,15 +197,15 @@ namespace OpenMS
                    const String& file_models = "",
                    const String& file_models_plot = "",
                    const String& file_residuals = "",
-                   const String& file_residuals_plot = "");
+                   const String& file_residuals_plot = "",
+                   const String& rscript_executable = "Rscript");
 
     /*
-      @brief Transform a spectrum (data+precursor)
+      @brief Transform a precursor's m/z
 
-      All peaks are calibrated in m/z.
-      Precursor m/z remains untouched (if present).
+      Calibrate m/z of precursors.
 
-      @param spec Uncalibrated MSSpectrum
+      @param pcs Uncalibrated Precursors
       @param trafo The calibration function to apply
     */
     static void applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo);
@@ -215,13 +213,13 @@ namespace OpenMS
     /*
       @brief Transform a spectrum (data+precursor)
 
-      All peaks are calibrated in m/z.
-      Precursor m/z remains untouched (if present).
+      See applyTransformation(MSExperiment, ...) for details.
 
       @param spec Uncalibrated MSSpectrum
+      @param target_mslvl List (can be unsorted) of MS levels to calibrate
       @param trafo The calibration function to apply
     */
-    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo);
+    static void applyTransformation(PeakMap::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo);
 
     /*
       @brief Transform spectra from a whole map (data+precursor)
@@ -229,7 +227,7 @@ namespace OpenMS
       All data peaks and precursor information (if present) are calibrated in m/z.
 
       Only spectra whose MS-level is contained in 'target_mslvl' are calibrated.
-      If a fragmentation spectrum's precursor information originates from an MS level in 'target_mslvl',
+      In addition, if a fragmentation spectrum's precursor information originates from an MS level in 'target_mslvl',
       the precursor (not the spectrum itself) is also subjected to calibration.
       E.g., If we only have MS and MS/MS spectra: for 'target_mslvl' = {1} then all MS1 spectra and MS2 precursors are calibrated.
       If 'target_mslvl' = {2}, only MS2 spectra (not their precursors) are calibrated.
@@ -240,9 +238,34 @@ namespace OpenMS
       @param target_mslvl List (can be unsorted) of MS levels to calibrate
       @param trafo The calibration function to apply
     */
-    static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
+    static void applyTransformation(PeakMap& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
   
   protected:
+
+    /// statistics when adding peptide calibrants
+    struct CalibrantStats_
+    {
+      CalibrantStats_(const double tol_ppm)
+        : tol_ppm_(tol_ppm)
+      {};
+      Size cnt_empty = 0; ///< cases of empty PepIDs (no hits)
+      Size cnt_nomz = 0; ///< cases of no m/z value
+      Size cnt_nort = 0; ///< cases of no RT value
+      Size cnt_decal = 0; ///< cases of large gap (>tol_ppm) between theoretical peptide weight (from sequence) and precursor mass
+      Size cnt_total = 0; ///< total number of cases
+
+      void print() const
+      {
+        if (cnt_empty > 0) OPENMS_LOG_WARN << "Warning: " << cnt_empty << "/" << cnt_total << " calibrations points were skipped, since they have no peptide sequence!" << std::endl;
+        if (cnt_nomz > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nomz << "/" << cnt_total << " calibrations points were skipped, since they have no m/z value!" << std::endl;
+        if (cnt_nort > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nort << "/" << cnt_total << " calibrations points were skipped, since they have no RT value!" << std::endl;
+        if (cnt_decal > 0) OPENMS_LOG_WARN << "Warning: " << cnt_decal << "/" << cnt_total << " calibrations points were skipped, since their theoretical weight is more than " << tol_ppm_ << " ppm away from their measured mass!" << std::endl;
+      }
+
+      private:
+      const double tol_ppm_; ///< tolerance used for counting cnt_decal
+    };
+
     /**
       @brief Add(no prior clear) calibrants to internal list.
       
@@ -254,18 +277,29 @@ namespace OpenMS
       Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
       larger outliers are removed before accepting an ID as calibrant.
 
-      @param pep_ids Peptide ids (e.g. from an idXML file)
+      @param pep_id A single PeptideID (e.g. from an idXML file); only the top peptide hit is used
       @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+      @param stats Update stats, if calibrant cannot be used (no RT, no MZ, no sequence, out-of tolerance)
 
     */
-    void fillIDs_( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm );
+    void fillID_( const PeptideIdentification& pep_id, const double tol_ppm, CalibrantStats_& stats);
+
+    /// calls fillID_ on all PeptideIDs
+    void fillIDs_(const std::vector<PeptideIdentification>& pep_ids, const double tol_ppm, CalibrantStats_& stats);
+
+    /// determine if sequence is within tol_ppm and update stats; fills mz_ref with the theoretical m/z of the sequence
+    bool isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref);
+
+    /*
+     @brief Calibrate m/z of a spectrum, ignoring precursors!
+
+     This method is not exposed as public, because its easy to be misused on spectra while forgetting about the precursors of high-level spectra.
+    */
+    static void applyTransformation_(PeakMap::SpectrumType& spec, const MZTrafoModel& trafo);
 
   private:
     CalibrationData cal_data_;
-
-
   }; // class InternalCalibration
   
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H

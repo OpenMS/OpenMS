@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DENOVO_DENOVOALGORITHM_H
-#define OPENMS_ANALYSIS_DENOVO_DENOVOALGORITHM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/DENOVO/DeNovoIonScoring.h>
@@ -61,7 +60,7 @@ public:
     DeNovoAlgorithm();
 
     /// destructor
-    virtual ~DeNovoAlgorithm();
+    ~DeNovoAlgorithm() override;
 
     /// copy constructor
     DeNovoAlgorithm(const DeNovoAlgorithm & rhs);
@@ -70,12 +69,11 @@ public:
     /// assignment operator
     DeNovoAlgorithm & operator=(const DeNovoAlgorithm & rhs);
 
-    virtual void generateCandidates(std::vector<PeptideIdentification> & candidates, const std::vector<std::vector<DeNovoIonScoring::IonScore> > & ion_scores, const RichPeakMap & exp) = 0;
+    virtual void generateCandidates(std::vector<PeptideIdentification> & candidates, const std::vector<std::vector<DeNovoIonScoring::IonScore> > & ion_scores, const PeakMap & exp) = 0;
 
-    virtual void generateCandidates(PeptideIdentification & candidates, std::vector<DeNovoIonScoring::IonScore> & ion_scores, const RichPeakSpectrum & spec) = 0;
+    virtual void generateCandidates(PeptideIdentification & candidates, std::vector<DeNovoIonScoring::IonScore> & ion_scores, const PeakSpectrum & spec) = 0;
 
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_DENOVO_DENOVOALGORITHM_H

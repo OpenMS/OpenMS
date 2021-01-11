@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -49,8 +49,8 @@ START_TEST(ExtendedIsotopeFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ExtendedIsotopeFitter1D* ptr = 0;
-ExtendedIsotopeFitter1D* nullPointer = 0;
+ExtendedIsotopeFitter1D* ptr = nullptr;
+ExtendedIsotopeFitter1D* nullPointer = nullptr;
 START_SECTION(ExtendedIsotopeFitter1D())
 {
 	ptr = new ExtendedIsotopeFitter1D();

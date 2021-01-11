@@ -1,4 +1,4 @@
-NAME          LPWrapper_test.lp
+NAME          LPWrapper_test_integer.mps
 ROWS
  N  OBJROW  
  L  Const_1 

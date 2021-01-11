@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -49,8 +49,8 @@ START_TEST(XMLValidator, "XMLValidator")
 using namespace OpenMS;
 using namespace std;
 
-XMLValidator* ptr = 0;
-XMLValidator* nullPointer = 0;
+XMLValidator* ptr = nullptr;
+XMLValidator* nullPointer = nullptr;
 START_SECTION((XMLValidator()))
 	ptr = new XMLValidator;
 	TEST_NOT_EQUAL(ptr, nullPointer)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 //
 
 
 #include <unsupported/Eigen/NonLinearOptimization>
-
-#include <sstream>
-#include <cmath>
 
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 
@@ -50,14 +47,19 @@ namespace OpenMS
 {
   namespace Math
   {
+    double GumbelDistributionFitter::GumbelDistributionFitResult::log_eval_no_normalize(const double x) const
+    {
+      // -log b is a constant again
+      double diff = (x - a)/b;
+      return -log(b) - diff - exp(- diff);
+    }
+
     GumbelDistributionFitter::GumbelDistributionFitter()
     {
       init_param_ = GumbelDistributionFitResult(0.25, 0.1);
     }
 
-    GumbelDistributionFitter::~GumbelDistributionFitter()
-    {
-    }
+    GumbelDistributionFitter::~GumbelDistributionFitter() = default;
 
     void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult & param)
     {
@@ -70,12 +72,16 @@ namespace OpenMS
       int values() const { return m_values; }
 
       GumbelDistributionFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data)
-      : m_inputs(dimensions), m_values(data->size()), m_data(data) {}
+      : m_inputs(dimensions), 
+        m_values(static_cast<int>(data->size())), 
+        m_data(data) 
+      {
+      }
 
       int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
       {
-        double a = x(0);
-        double b = x(1);
+        double a = x(0); //location
+        double b = x(1); //scale
 
         UInt i = 0;
         for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
@@ -126,7 +132,7 @@ namespace OpenMS
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GumbelDistributionFitter", "Could not fit the gumbel distribution to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GumbelDistributionFitter", "Could not fit the gumbel distribution to the data");
       }
 
 #ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
@@ -136,7 +142,7 @@ namespace OpenMS
       cout << formula.str() << endl;
 #endif
 
-      return GumbelDistributionFitResult (x_init(0), x_init(1));
+      return {x_init(0), x_init(1)};
     }
 
   }   //namespace Math

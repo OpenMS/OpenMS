@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,20 +28,18 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 
 #include <fstream>
@@ -131,12 +129,12 @@ namespace OpenMS
       ++cluster_sizes[clusters[i_outer].size()]; // for stats
     }
 
-    LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
+    OPENMS_LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
     for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
     {
-      LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+      OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
     }
-    LOG_INFO << " --> Window count before: " << list.size() << "\n"
+    OPENMS_LOG_INFO << " --> Window count before: " << list.size() << "\n"
              << "     Window count after : " << list_new.size() << "\n";
 
     // replace with clustered version
@@ -160,7 +158,7 @@ namespace OpenMS
   {
     WindowList result;
 
-    EnzymaticDigestion digest;
+    ProteaseDigestion digest;
 
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 
@@ -222,7 +220,7 @@ namespace OpenMS
       for (Size c = 0; c < charges.size(); ++c)
       {
         // calculate exclusion window
-        double mz = pep_seqs[i].getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
+        double mz = pep_seqs[i].getMZ(charges[c]);
         double rt_start = std::max(0.0, relative_rt ? (rts[i] - rel_rt_window_size * rts[i]) : rts[i] - abs_rt_window_size);
         double rt_stop =                relative_rt ? (rts[i] + rel_rt_window_size * rts[i]) : rts[i] + abs_rt_window_size;
 
@@ -281,11 +279,11 @@ namespace OpenMS
     {
       if (pep_id_iter->getHits().size() > 1)
       {
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pep_id_iter->getHits().size());
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pep_id_iter->getHits().size());
       }
       if (!pep_id_iter->hasRT())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide identification contains no RT information.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide identification contains no RT information.");
       }
       double rt = pep_id_iter->getRT();
 
@@ -309,7 +307,7 @@ namespace OpenMS
         bool charge_found = false;
         for (Size c = 0; c < charges.size(); ++c)
         {
-          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
+          double mz = pep_hit_iter->getSequence().getMZ(charges[c]);
           result.push_back(IEWindow(rt_start, rt_stop, mz));
           if (charges[c] == charge)
           {
@@ -318,14 +316,14 @@ namespace OpenMS
         }
         if (!charge_found) // if not already done, consider annotated charge of peptide (unless its 0)
         {
-          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
+          double mz = pep_hit_iter->getSequence().getMZ(charge);
           result.push_back(IEWindow(rt_start, rt_stop, mz));
         }
       }
     }
 
     if (charge_invalid_count > 0)
-      LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
+      OPENMS_LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
 
     mergeOverlappingWindows_(result);
     writeToFile_(out_path, result);
@@ -339,7 +337,7 @@ namespace OpenMS
     outs.precision(8);
     if (!outs)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot open output file '" + out_path + "'.");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot open output file '" + out_path + "'.");
     }
 
     for (Size i = 0; i < windows.size(); ++i)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -38,8 +38,6 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 using std::vector;
 
@@ -56,13 +54,13 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformRetentionTimes(
-    MSExperiment<>& msexp, const TransformationDescription& trafo,
+    PeakMap& msexp, const TransformationDescription& trafo,
     bool store_original_rt)
   {
     msexp.clearRanges();
 
     // Transform spectra
-    for (MSExperiment<>::iterator mse_iter = msexp.begin();
+    for (PeakMap::iterator mse_iter = msexp.begin();
          mse_iter != msexp.end(); ++mse_iter)
     {
       double rt = mse_iter->getRT();
@@ -73,7 +71,7 @@ namespace OpenMS
     // Also transform chromatograms
     for (Size i = 0; i < msexp.getNrChromatograms(); ++i)
     {
-      MSChromatogram<ChromatogramPeak>& chromatogram = msexp.getChromatogram(i);
+      MSChromatogram& chromatogram = msexp.getChromatogram(i);
       vector<double> original_rts;
       if (store_original_rt) original_rts.reserve(chromatogram.size());
       for (Size j = 0; j < chromatogram.size(); j++)

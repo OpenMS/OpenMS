@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,22 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 //#define DAC_DEBUG
 //#define ESTIMATE_PRECURSOR_DEBUG
@@ -125,7 +120,6 @@ namespace OpenMS
         }
       }
     }
-    return;
   }
 
   void CompNovoIdentification::getIdentification(PeptideIdentification & id, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec)
@@ -228,10 +222,11 @@ namespace OpenMS
 
     new_ETD_spec = ETD_copy;
 
+    static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
 
     Peak1D p;
     p.setIntensity(1.0f);
-    p.setPosition(19.0);
+    p.setPosition(oxonium_mass);
 
     new_CID_spec.push_back(p);
 
@@ -513,22 +508,6 @@ namespace OpenMS
       getETDSpectrum_(ETD_sim_spec, mod_string, charge);
       getCIDSpectrum_(CID_sim_spec, mod_string, charge);
 
-
-      /*RichPeakSpectrum CID_sim_pilis_spec;
-      cerr << "PILIS Model disabled: " << endl;
-      exit(1);
-      //pilis_model_.getSpectrum (CID_sim_pilis_spec, it->getSequence(), charge);
-      CID_sim_pilis_spec.sortByPosition();
-
-      for (RichPeakSpectrum::ConstIterator pit = CID_sim_pilis_spec.begin(); pit != CID_sim_pilis_spec.end(); ++pit)
-      {
-          Peak1D p;
-          p.setPosition(pit->getPosition()[0]);
-          p.setIntensity(pit->getIntensity());
-          CID_sim_spec.push_back(p);
-      }
-      */
-
       normalizer.filterSpectrum(ETD_sim_spec);
       normalizer.filterSpectrum(CID_sim_spec);
 
@@ -561,90 +540,6 @@ namespace OpenMS
 
     id.setHits(hits);
     id.assignRanks();
-
-    return;
-  }
-
-  void CompNovoIdentification::getETDSpectrum_(PeakSpectrum & spec, const String & sequence, Size /* charge */, double prefix, double suffix)
-  {
-    Peak1D p;
-    p.setIntensity(1.0f);
-
-    double c_pos(17.0 + prefix);     // TODO high mass accuracy!!
-    double z_pos(3.0 + suffix);
-    //double b_pos(0.0 + prefix);
-    //double y_pos(18.0 + suffix);
-    // sometimes also b and y ions are in this spectrum
-
-#ifdef ETD_SPECTRUM_DEBUG
-    cerr << "ETDSpectrum for " << sequence << " " << prefix << " " << suffix << endl;
-#endif
-
-    for (Size i = 0; i != sequence.size() - 1; ++i)
-    {
-      char aa(sequence[i]);
-      char aa_cterm(sequence[i + 1]);
-#ifdef ETD_SPECTRUM_DEBUG
-      cerr << aa << " " << aa_cterm << endl;
-#endif
-
-      c_pos += aa_to_weight_[aa];
-      //b_pos += aa_to_weight_[aa];
-
-      char aa2(sequence[sequence.size() - i - 1]);
-      z_pos += aa_to_weight_[aa2];
-      //y_pos += aa_to_weight_[aa2];
-
-#ifdef ETD_SPECTRUM_DEBUG
-      cerr << b_pos << " " << c_pos << " " << y_pos << " " << z_pos << endl;
-#endif
-
-      if (aa_cterm != 'P')
-      {
-        // c-ions
-        if (c_pos + 1 >= min_mz_ && c_pos + 1 <= max_mz_)
-        {
-          //p.setIntensity(0.3);
-          //p.setPosition(c_pos);
-          //spec.push_back(p);
-          for (Size j = 0; j != max_isotope_; ++j)
-          {
-            p.setIntensity(isotope_distributions_[(int)c_pos][j]);
-            p.setPosition(c_pos + 1 + j);
-            spec.push_back(p);
-          }
-        }
-      }
-
-      if (aa2 != 'P')
-      {
-        // z-ions
-        if (z_pos >= min_mz_ && z_pos <= max_mz_)
-        {
-          p.setIntensity(0.3f);
-          p.setPosition(z_pos);
-          spec.push_back(p);
-
-          for (Size j = 0; j != max_isotope_; ++j)
-          {
-            p.setIntensity(isotope_distributions_[(int)z_pos][j]);
-            p.setPosition(z_pos + 1 + j);
-            spec.push_back(p);
-          }
-        }
-      }
-    }
-
-    spec.sortByPosition();
-
-#ifdef ETD_SPECTRUM_DEBUG
-    for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
-    {
-      cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
-    }
-#endif
-
-    return;
   }
 
   void CompNovoIdentification::reducePermuts_(set<String> & permuts, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, double prefix, double suffix)
@@ -732,7 +627,8 @@ namespace OpenMS
 // divide and conquer algorithm of the sequencing
   void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<double, CompNovoIonScoring::IonScore> & ion_scores)
   {
-    double offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
+    static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
+    double offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);
     double offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
 
 #ifdef DAC_DEBUG

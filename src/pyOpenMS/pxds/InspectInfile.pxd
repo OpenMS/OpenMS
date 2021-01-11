@@ -12,14 +12,14 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         InspectInfile(InspectInfile) nogil except +
 
         bool operator==(InspectInfile & inspect_infile) nogil except +
-        void store(String & filename) nogil except +
-        void handlePTMs(String & modification_line, String & modifications_filename, bool monoisotopic) nogil except +
+        void store(const String & filename) nogil except +
+        void handlePTMs(const String & modification_line, const String & modifications_filename, bool monoisotopic) nogil except +
         String  getSpectra() nogil except +
-        void setSpectra(String & spectra) nogil except +
+        void setSpectra(const String & spectra) nogil except +
         String  getDb() nogil except +
-        void setDb(String & db) nogil except +
+        void setDb(const String & db) nogil except +
         String  getEnzyme() nogil except +
-        void setEnzyme(String & enzyme) nogil except +
+        void setEnzyme(const String & enzyme) nogil except +
         Int getModificationsPerPeptide() nogil except +
         void setModificationsPerPeptide(Int modifications_per_peptide) nogil except +
         UInt getBlind() nogil except +
@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         UInt getMulticharge() nogil except +
         void setMulticharge(UInt multicharge) nogil except +
         String  getInstrument() nogil except +
-        void setInstrument(String & instrument) nogil except +
+        void setInstrument(const String & instrument) nogil except +
         Int getTagCount() nogil except +
         void setTagCount(Int TagCount) nogil except +
 

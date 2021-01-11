@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -50,9 +50,9 @@ START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFinderAlgorithmMRM* ptr = 0;
-FeatureFinderAlgorithmMRM* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FeatureFinderAlgorithmMRM* ptr = nullptr;
+FeatureFinderAlgorithmMRM* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION(FeatureFinderAlgorithmMRM())
 {
@@ -74,7 +74,7 @@ START_SECTION((virtual void run()))
 	FeatureFinder ff;
   ff.setLogType(ProgressLogger::NONE);
 
-  MSExperiment<> exp;
+  PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
 
 	FeatureMap features, seeds;
@@ -103,7 +103,7 @@ END_SECTION
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
 {
-  FeatureFinderAlgorithm* ptr2 = 0;
+  FeatureFinderAlgorithm* ptr2 = nullptr;
   ptr2 = FeatureFinderAlgorithmMRM::create();
   TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
 }

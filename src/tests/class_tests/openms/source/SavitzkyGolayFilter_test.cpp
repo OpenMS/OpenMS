@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
@@ -39,7 +39,6 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 ///////////////////////////
 
@@ -50,8 +49,8 @@ START_TEST(SavitzkyGolayFilter<D>, "$Id$")
 
 using namespace OpenMS;
 
-SavitzkyGolayFilter* dsg_ptr = 0;
-SavitzkyGolayFilter* dsg_nullPointer = 0;
+SavitzkyGolayFilter* dsg_ptr = nullptr;
+SavitzkyGolayFilter* dsg_nullPointer = nullptr;
 START_SECTION((SavitzkyGolayFilter()))
   dsg_ptr = new SavitzkyGolayFilter;
   TEST_NOT_EQUAL(dsg_ptr, dsg_nullPointer)
@@ -65,10 +64,10 @@ Param param;
 param.setValue("polynomial_order",2);
 param.setValue("frame_length",3);
 
-START_SECTION((template < typename PeakType > void filter(MSSpectrum< PeakType > &spectrum)))
-  MSSpectrum<Peak1D> spectrum;
+START_SECTION((template < typename PeakType > void filter(MSSpectrum &spectrum)))
+  MSSpectrum spectrum;
   spectrum.resize(5);
-  MSSpectrum<Peak1D>::Iterator it = spectrum.begin();
+  MSSpectrum::Iterator it = spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
   	it->setIntensity(0.0f);
@@ -100,10 +99,10 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
 
 	param.setValue("frame_length",4);
 
-	MSExperiment<RichPeak1D> exp;
+	PeakMap exp;
   exp.resize(4);
 
-  RichPeak1D p;
+  Peak1D p;
   for (int i=0; i<9; ++i)
   {
   	p.setIntensity(0.0f);

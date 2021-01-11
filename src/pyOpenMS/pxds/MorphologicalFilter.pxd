@@ -15,6 +15,6 @@ cdef extern from "<OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>" namespace "
         MorphologicalFilter()      nogil except +
         # MorphologicalFilter(MorphologicalFilter)      nogil except + #private
 
-        void filter(MSSpectrum[Peak1D] & spectrum)      nogil except +
-        void filterExperiment(MSExperiment[Peak1D,ChromatogramPeak] & exp)      nogil except +
+        void filter(MSSpectrum & spectrum)      nogil except +
+        void filterExperiment(MSExperiment & exp)      nogil except +
 

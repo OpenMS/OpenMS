@@ -1,8 +1,6 @@
-import pdb
 import argparse
 import pyopenms as pms
 from common import addDataProcessing, writeParamsIfRequested, updateDefaults
-from  collections import Counter
 
 
 def id_mapper(in_file, id_file, out_file, params, use_centroid_rt,

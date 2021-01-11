@@ -17,6 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
 
         bool operator==(TargetedExperiment) nogil except +
         bool operator!=(TargetedExperiment) nogil except +
+
         TargetedExperiment operator+(TargetedExperiment)    nogil except +
         TargetedExperiment iadd(TargetedExperiment)   nogil except + # wrap-as:operator+=
 
@@ -58,15 +59,20 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
         void setProteins(libcpp_vector[Protein] proteins) nogil except +
         libcpp_vector[Protein] getProteins() nogil except +
         Protein getProteinByRef(String ref) nogil except +
+        bool hasProtein(String ref) nogil except +
         void addProtein(Protein protein) nogil except +
 
         # compound list
         void setCompounds(libcpp_vector[Compound] rhs) nogil except +
         libcpp_vector[Compound] getCompounds() nogil except +
         void addCompound(Compound rhs) nogil except +
+        bool hasCompound(String ref) nogil except +
+        Compound getCompoundByRef(String ref) nogil except +
 
+        # peptide list
         void setPeptides(libcpp_vector[Peptide] rhs) nogil except +
         libcpp_vector[Peptide] getPeptides() nogil except +
+        bool hasPeptide(String ref) nogil except +
         Peptide getPeptideByRef(String ref) nogil except +
         void addPeptide(Peptide rhs) nogil except +
 
@@ -86,4 +92,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
         void setSourceFiles(libcpp_vector[SourceFile] source_files) nogil except +
         libcpp_vector[SourceFile] getSourceFiles() nogil except +
         void addSourceFile(SourceFile source_file) nogil except +
+
+        bool containsInvalidReferences() nogil except +
 

@@ -20,7 +20,7 @@ def link(in_files, out_file, keep_subelements, params):
     algorithm.setParameters(algorithm_parameters)
 
     out_map = pms.ConsensusMap()
-    fds = out_map.getFileDescriptions()
+    fds = out_map.getColumnHeaders()
     if link_features:
         f = pms.FeatureXMLFile()
         maps = []
@@ -29,13 +29,13 @@ def link(in_files, out_file, keep_subelements, params):
             f.load(in_file, map_)
 
             # set filedescriptions
-            fd = fds.get(i, pms.FileDescription())
+            fd = fds.get(i, pms.ColumnHeader())
             fd.filename = in_file
             fd.size = map_.size()
             fd.unique_id = map_.getUniqueId()
             fds[i] = fd
             maps.append(map_)
-        out_map.setFileDescriptions(fds)
+        out_map.setColumnHeaders(fds)
         algorithm.group(maps, out_map)
     else:
         f = pms.ConsensusXMLFile()
@@ -49,12 +49,12 @@ def link(in_files, out_file, keep_subelements, params):
         if not keep_subelements:
             for i in range(len(in_files)):
                 # set filedescriptions
-                fd = fds.get(i, pms.FileDescription())
+                fd = fds.get(i, pms.ColumnHeader())
                 fd.filename = in_files[i]
                 fd.size = maps[i].size()
                 fd.unique_id = maps[i].getUniqueId()
                 fds[i] = fd
-            out_map.setFileDescriptions(fds)
+            out_map.setColumnHeaders(fds)
         else:
             algorithm.transferSubelements(maps, out_map)
 

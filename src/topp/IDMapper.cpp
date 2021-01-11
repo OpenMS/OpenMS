@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
@@ -129,7 +130,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
     setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
@@ -147,29 +148,35 @@ protected:
     setMinFloat_("mz_tolerance", 0.0);
     registerStringOption_("mz_measure", "<choice>", p.getEntry("mz_measure").valid_strings[0], "Unit of 'mz_tolerance'.", false);
     setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
-    registerStringOption_("mz_reference", "<choice>", p.getEntry("mz_reference").valid_strings[0], "Source of m/z values for peptide identifications. If 'precursor', the precursor-m/z from the idXML is used. If 'peptide',\nmasses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.\n('peptide' should be used together with 'feature:use_centroid_mz' to avoid false-positive matches.)", false);
+    registerStringOption_("mz_reference", "<choice>", p.getEntry("mz_reference").valid_strings[1], "Source of m/z values for peptide identifications. If 'precursor', the precursor-m/z from the idXML is used. If 'peptide',\nmasses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.\n('peptide' should be used together with 'feature:use_centroid_mz' to avoid false-positive matches.)", false);
     setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
-    registerFlag_("ignore_charge", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.");
+    registerFlag_("ignore_charge", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.", true);
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Additional options for featureXML input");
-    registerFlag_("feature:use_centroid_rt", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.");
-    registerFlag_("feature:use_centroid_mz", "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you should usually set this flag to avoid false-positive matches.)");
+    registerStringOption_("feature:use_centroid_rt", "<choice>", "false", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.", false);
+    setValidStrings_("feature:use_centroid_rt", ListUtils::create<String>("true,false"));
+    registerStringOption_("feature:use_centroid_mz", "<choice>", "true", "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you should usually set this flag to avoid false-positive matches.)", false);
+    setValidStrings_("feature:use_centroid_mz", ListUtils::create<String>("true,false"));
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
     registerFlag_("consensus:annotate_ids_with_subelements", "Store the map index of the sub-feature in the peptide ID.", true);
+
+    registerTOPPSubsection_("spectra", "Additional options for mzML input");
+    registerInputFile_("spectra:in", "<file>", "", "MS run used to annotated unidentified spectra to features or consensus features.", false);
+    setValidFormats_("spectra:in", ListUtils::create<String>("mzML"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
-    // LOG_DEBUG << "Starting..." << endl;
+    // OPENMS_LOG_DEBUG << "Starting..." << endl;
 
     //----------------------------------------------------------------
     // load ids
     //----------------------------------------------------------------
-    // LOG_DEBUG << "Loading idXML..." << endl;
+    // OPENMS_LOG_DEBUG << "Loading idXML..." << endl;
     String id = getStringOption_("id");
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
@@ -185,17 +192,18 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       __PRETTY_FUNCTION__,
+                                       OPENMS_PRETTY_FUNCTION,
                                        "wrong id fileformat");
     }
 
     String in = getStringOption_("in");
+    String spectra = getStringOption_("spectra:in");
     String out = getStringOption_("out");
     in_type = FileHandler::getType(in);
     //----------------------------------------------------------------
     //create mapper
     //----------------------------------------------------------------
-    // LOG_DEBUG << "Creating mapper..." << endl;
+    // OPENMS_LOG_DEBUG << "Creating mapper..." << endl;
     IDMapper mapper;
     Param p = mapper.getParameters();
     p.setValue("rt_tolerance", getDoubleOption_("rt_tolerance"));
@@ -210,18 +218,29 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::CONSENSUSXML)
     {
-      // LOG_DEBUG << "Processing consensus map..." << endl;
+      // OPENMS_LOG_DEBUG << "Processing consensus map..." << endl;
       ConsensusXMLFile file;
       ConsensusMap map;
       file.load(in, map);
 
+      PeakMap exp;
+      if (!spectra.empty())
+      {
+        MzMLFile().load(spectra, exp);
+      }
+
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
 
-      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements);
+      mapper.annotate(map, peptide_ids, protein_ids, 
+                      measure_from_subelements, annotate_ids_with_subelements,
+                      exp);
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+
+      // sort list of peptide identifications in each consensus feature by map index
+      map.sortPeptideIdentificationsByMapIndex();
 
       file.store(out, map);
     }
@@ -231,14 +250,22 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::FEATUREXML)
     {
-      // LOG_DEBUG << "Processing feature map..." << endl;
+      // OPENMS_LOG_DEBUG << "Processing feature map..." << endl;
       FeatureMap map;
       FeatureXMLFile file;
       file.load(in, map);
 
+      PeakMap exp;
+
+      if (!spectra.empty())
+      {
+        MzMLFile().load(spectra, exp);
+      }
+
       mapper.annotate(map, peptide_ids, protein_ids,
-                      getFlag_("feature:use_centroid_rt"),
-                      getFlag_("feature:use_centroid_mz"));
+                      (getStringOption_("feature:use_centroid_rt") == "true"),
+                      (getStringOption_("feature:use_centroid_mz") == "true"),
+                      exp);
 
       //annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
@@ -251,7 +278,7 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::MZQUANTML)
     {
-      // LOG_DEBUG << "Processing mzq ..." << endl;
+      // OPENMS_LOG_DEBUG << "Processing mzq ..." << endl;
       MSQuantifications msq;
       MzQuantMLFile file;
       file.load(in, msq);
@@ -270,7 +297,7 @@ protected:
       file.store(out, msq);
     }
 
-    // LOG_DEBUG << "Done." << endl;
+    // OPENMS_LOG_DEBUG << "Done." << endl;
     return EXECUTION_OK;
   }
 

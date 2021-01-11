@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,8 @@ START_TEST(PeakPickerSH, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerSH* ptr = 0;
-PeakPickerSH* null_ptr = 0;
+PeakPickerSH* ptr = nullptr;
+PeakPickerSH* null_ptr = nullptr;
 START_SECTION(PeakPickerSH())
 {
 	ptr = new PeakPickerSH();
@@ -67,13 +67,13 @@ START_SECTION((virtual ~PeakPickerSH()))
 }
 END_SECTION
 
-START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output, float fWindowWidth)))
+START_SECTION((template < typename PeakType > void pick(const MSSpectrum &input, MSSpectrum &output, float fWindowWidth)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &output)))
+START_SECTION((void pickExperiment(const PeakMap &input, PeakMap &output)))
 {
   // TODO
 }

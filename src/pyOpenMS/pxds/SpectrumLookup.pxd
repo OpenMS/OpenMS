@@ -9,9 +9,11 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
         SpectrumLookup() nogil except +
         # SpectrumLookup(SpectrumLookup) nogil except + # private
 
+        double rt_tolerance
+
         bool empty() nogil except +
 
-        void readSpectra(MSExperiment[Peak1D, ChromatogramPeak] spectra, String scan_regexp) nogil except +
+        void readSpectra(MSExperiment spectra, String scan_regexp) nogil except +
 
         Size findByRT(double rt) nogil except +
 
@@ -30,5 +32,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
 
         void addReferenceFormat(String regexp) nogil except +
 
-        # Int extractScanNumber(String native_id, const boost::regex& scan_regexp, bool no_error = false) nogil except +
+        # # NAMESPACE # Int extractScanNumber(const String & native_id, boost::regex & scan_regexp, bool no_error) nogil except +
+
+        Int extractScanNumber(const String& native_id, const String& native_id_type_accession) nogil except +
 

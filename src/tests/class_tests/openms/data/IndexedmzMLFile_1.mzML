@@ -20,7 +20,7 @@
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
 		</sample>
 	</sampleList>
-	<softwareList count="6">
+	<softwareList count="7">
 		<software id="so_in_0" version="1.1 Beta 7" >
 			<cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur" />
 		</software>
@@ -37,6 +37,9 @@
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 		<software id="so_dp_sp_0_pm_3" version="1.12.0" >
+			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
+		</software>
+		<software id="so_dp_sp_0_pm_4" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 	</softwareList>
@@ -284,6 +287,11 @@
 				<userParam name="parameter: peak_options:numpress:intensity_error" type="xsd:double" value="0.0001"/>
 				<userParam name="parameter: spectra:select_polarity" type="xsd:string" value=""/>
 			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_4">
+				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
+			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2005-07-20T14:44:22">
@@ -371,21 +379,9 @@
 			</spectrum>
 		</spectrumList>
 		<chromatogramList count="1" defaultDataProcessingRef="dp_sp_0">
-      <chromatogram id="TIC" index="0" defaultArrayLength="48">
-						<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
+			<chromatogram id="TIC" index="0" defaultArrayLength="48">
+				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
 					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -393,8 +389,6 @@
 					<product>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -417,13 +411,13 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="controllerType=0 controllerNumber=1 scan=1">23674</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=2">345273</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=1">24146</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=2">345745</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC">665094</offset>
+		<offset idRef="TIC">665563</offset>
 	</index>
 </indexList>
-<indexListOffset>668598</indexListOffset>
+<indexListOffset>667742</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

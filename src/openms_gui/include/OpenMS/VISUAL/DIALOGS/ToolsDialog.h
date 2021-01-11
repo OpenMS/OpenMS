@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/LayerData.h>
 
 class QLabel;
 class QComboBox;
@@ -44,9 +46,7 @@ class QPushButton;
 class QRadioButton;
 class QString;
 
-#include <QtGui/QDialog>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <QtWidgets/QDialog>
 
 namespace OpenMS
 {
@@ -78,11 +78,12 @@ public:
         @param parent Qt parent widget
         @param ini_file The file name of the temporary INI file created by this dialog
         @param default_dir The default directory for loading and storing INI files
-        @param layertype The type of data (determines the applicable tools)
+        @param layer_type The type of data (determines the applicable tools)
+        @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layertype);
+    ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
     ///Destructor
-    ~ToolsDialog();
+    ~ToolsDialog() override;
 
     /// to get the parameter name for output. Empty if no output was selected.
     String getOutput();
@@ -116,11 +117,19 @@ private:
     String default_dir_;
     /// name of ini-file
     QString filename_;
+    /// Mapping of file extension to layer type to determine the type of a tool
+    std::map<String, LayerData::DataType> tool_map_;
 
     ///Disables the ok button and input/output comboboxes
     void disable_();
     ///Enables the ok button and input/output comboboxes
     void enable_();
+    /// Generates an .ini file for a given tool name and loads it into a Param object.
+    Param getParamFromIni_(const String& tool_name);
+    /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
+    std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
+    // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
+    void setInputOutputCombo_(const Param& p);
 
 protected slots:
 
@@ -137,4 +146,3 @@ protected slots:
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H

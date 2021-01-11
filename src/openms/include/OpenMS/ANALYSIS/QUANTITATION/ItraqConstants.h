@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
-#define OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -61,11 +60,11 @@ public:
     /// stores information on an iTRAQ channel
     struct ChannelInfo
     {
-      String description;       // description given by experimentalist (e.g. lung tissue)
-      Int name;       // 114-117 or 113 to 121
-      Int id;           // 0-4 or 0-8
-      Peak2D::CoordinateType center;       // expected centroid of peak in MZ
-      bool active;       // channel actually added to the experiment?
+      String description;       ///< description given by experimentalist (e.g. lung tissue)
+      Int name;       ///< 114-117 or 113 to 121
+      Int id;           ///< 0-4 or 0-8
+      Peak2D::CoordinateType center;       ///< expected centroid of peak in MZ
+      bool active;       ///< channel actually added to the experiment?
     };
 
     /// maps iTRAQ channel (e.g. 117) to more information
@@ -153,4 +152,3 @@ public:
 
 } // !namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H

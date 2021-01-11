@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,35 +28,24 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FILEHANDLER_H
-#define OPENMS_FORMAT_FILEHANDLER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/FORMAT/MS2File.h>
-#include <OpenMS/FORMAT/XMassFile.h>
-
-#include <OpenMS/FORMAT/MsInspectFile.h>
-#include <OpenMS/FORMAT/SpecArrayFile.h>
-#include <OpenMS/FORMAT/KroenikFile.h>
-
-#include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
 namespace OpenMS
 {
+  class PeakFileOptions;
+  class MSSpectrum;
+  class MSExperiment;
+  class FeatureMap;
+
   /**
     @brief Facilitates file handling by file type recognition.
 
@@ -86,6 +75,33 @@ public:
 
     /// Determines the file type from a file name
     static FileTypes::Type getTypeByFileName(const String& filename);
+
+    /**
+       @brief Check if @p filename has the extension @p type 
+               
+       If the extension is not known (e.g. '.tmp') this is also allowed.
+       However, if the extension is another one (neither @p type nor unknown), false is returned.
+    */
+    static bool hasValidExtension(const String& filename, const FileTypes::Type type);
+
+
+    /**
+      @brief If filename contains an extension, it will be removed (including the '.'). Special extensions, known to OpenMS, e.g. '.mzML.gz' will be recognized as well.
+
+      E.g. 'experiment.featureXML' becomes 'experiment' and 'c:\files\data.mzML.gz' becomes 'c:\files\data'
+      If the extension is unknown, the everything in the basename of the file after the last '.' is removed. E.g. 'future.newEnding' becomes 'future'
+      If the filename does not contain '.', but the path (if any) does, nothing is removed, e.g. '/my.dotted.dir/filename' is returned unchanged.
+    */
+    static String stripExtension(const String& filename);
+
+    /**
+      @brief Tries to find and remove a known file extension, and append the new one.
+
+      Internally calls 'stripExtension()' and adds the new suffix to the result.
+      E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
+      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
+    */
+    static String swapExtension(const String& filename, const FileTypes::Type new_type);
 
     /**
       @brief Determines the file type of a file by parsing the first few lines
@@ -121,134 +137,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <class PeakType>
-    bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
-    {
-      // setting the flag for hash recomputation only works if source file entries are rewritten 
-      OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
-
-      //determine file type
-      FileTypes::Type type;
-      if (force_type != FileTypes::UNKNOWN)
-      {
-        type = force_type;
-      }
-      else
-      {
-        try
-        {
-          type = getType(filename);
-        }
-        catch (Exception::FileNotFound)
-        {
-          return false;
-        }
-      }
-
-      //load right file
-      switch (type)
-      {
-      case FileTypes::DTA:
-        exp.reset();
-        exp.resize(1);
-        DTAFile().load(filename, exp[0]);
-        break;
-
-      case FileTypes::DTA2D:
-      {
-        DTA2DFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::MZXML:
-      {
-        MzXMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::MZDATA:
-      {
-        MzDataFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-      break;
-
-      case FileTypes::MZML:
-      {
-        MzMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-        ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true);
-      }
-      break;
-
-      case FileTypes::MGF:
-      {
-        MascotGenericFile f;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::MS2:
-      {
-        MS2File f;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::XMASS:
-        exp.reset();
-        exp.resize(1);
-        XMassFile().load(filename, exp[0]);
-        XMassFile().importExperimentalSettings(filename, exp);
-
-        break;
-
-      default:
-        return false;
-
-        break;
-      }
-
-      if (rewrite_source_file)
-      {
-        SourceFile src_file;
-        src_file.setNameOfFile(File::basename(filename));
-        String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
-        
-        // make sure we end up with at most 3 forward slashes       
-        String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
-        src_file.setPathToFile(uri);
-        // this is more complicated since the data formats allowed by mzML are very verbose.
-        // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
-        src_file.setFileType(FileTypes::typeToMZML(type));
-
-        if (compute_hash)
-        {
-          src_file.setChecksum(computeFileHash(filename), SourceFile::SHA1);
-        }
-
-        exp.getSourceFiles().clear();
-        exp.getSourceFiles().push_back(src_file);
-      }
-
-      return true;
-    }
+    bool loadExperiment(const String& filename, MSExperiment& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true);
 
     /**
       @brief Stores an MSExperiment to a file
@@ -261,67 +150,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    template <class PeakType>
-    void storeExperiment(const String& filename, const MSExperiment<PeakType>& exp, ProgressLogger::LogType log = ProgressLogger::NONE)
-    {
-      //load right file
-      switch (getTypeByFileName(filename))
-      {
-      case FileTypes::DTA2D:
-      {
-        DTA2DFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.store(filename, exp);
-      }
-      break;
-
-      case FileTypes::MZXML:
-      {
-        MzXMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        if (!exp.getChromatograms().empty())
-        {
-          MSExperiment<PeakType> exp2 = exp;
-          ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
-          f.store(filename, exp2);
-        }
-        else
-        {
-          f.store(filename, exp);
-        }
-      }
-      break;
-
-      case FileTypes::MZDATA:
-      {
-        MzDataFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        if (!exp.getChromatograms().empty())
-        {
-          MSExperiment<PeakType> exp2 = exp;
-          ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
-          f.store(filename, exp2);
-        }
-        else
-        {
-          f.store(filename, exp);
-        }
-      }
-      break;
-
-      default:
-      {
-        MzMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.store(filename, exp);
-      }
-      break;
-      }
-    }
+    void storeExperiment(const String& filename, const MSExperiment& exp, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads a file into a FeatureMap
@@ -351,4 +180,3 @@ private:
 
 } //namespace
 
-#endif //OPENMS_FORMAT_FILEHANDLER_H

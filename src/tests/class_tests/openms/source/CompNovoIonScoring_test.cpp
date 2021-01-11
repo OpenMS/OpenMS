@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -41,6 +41,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -49,8 +52,8 @@ START_TEST(CompNovoIonScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CompNovoIonScoring* ptr = 0;
-CompNovoIonScoring* nullPointer = 0;
+CompNovoIonScoring* ptr = nullptr;
+CompNovoIonScoring* nullPointer = nullptr;
 START_SECTION(CompNovoIonScoring())
 {
 	ptr = new CompNovoIonScoring();
@@ -79,11 +82,11 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
   tsg_param.setValue("add_losses", "true");
-  tsg_param.setValue("add_isotopes", "true");
+  tsg_param.setValue("isotope_model", "coarse");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  PeakSpectrum rspec;
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -94,9 +97,19 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
     spec.push_back(p);
   }
 
-  RichPeakSpectrum rspec_ETD;
-  tsg.addPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), Residue::ZIon, 1);
-  tsg.addPrecursorPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), 2);
+  PeakSpectrum rspec_ETD;
+
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_z_ions", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 1, 1);
+
+  tsg_param.setValue("add_z_ions", "false");
+  tsg_param.setValue("add_precursor_peaks", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 2, 2);
+
   PeakSpectrum spec_ETD;
   for (Size i = 0; i != rspec_ETD.size(); ++i)
   {
@@ -114,11 +127,11 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   spec.setPrecursors(precs);
   spec_ETD.setPrecursors(precs);
 
-	Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
-	CompNovoIonScoring cnis;
+  Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
+  CompNovoIonScoring cnis;
   cnis.scoreSpectra(ion_scores, spec, spec_ETD, 1018.48, 1);
 
-  for (Map<double, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+  for (auto it = ion_scores.begin(); it != ion_scores.end(); ++it)
   {
 /*
 y1 175.118952187571
@@ -144,11 +157,10 @@ b8 844.383559313971
     if (fabs(it->first - 903.468292000971) < 0.001 ||
         fabs(it->first - 756.399878084171) < 0.001 ||
         fabs(it->first - 659.347114231171) < 0.001 ||
-				fabs(it->first - 659.328) < 0.001 ||
         fabs(it->first - 546.263050250571) < 0.001 ||
         fabs(it->first - 475.225936461371) < 0.001 ||
         fabs(it->first - 361.183009010571) < 0.001 ||
-				fabs(it->first - 361.164) < 0.001 ||
+	fabs(it->first - 361.159) < 0.001 ||
         fabs(it->first - 304.161545285171) < 0.001 ||
         fabs(it->first - 175.118952187571) < 0.001 ||
         fabs(it->first - 263.102633417371) < 0.001 ||
@@ -159,8 +171,9 @@ b8 844.383559313971
         fabs(it->first - 715.340966216371) < 0.001 ||
         fabs(it->first - 844.383559313971) < 0.001 ||
         //After introducing mass fix, other peaks also match (PR #1440)
-        fabs(it->first - 474.248) < 0.001 ||
-        fabs(it->first - 545.285) < 0.001)
+        fabs(it->first - 474.243) < 0.001 ||
+        fabs(it->first - 659.323) < 0.001 ||
+        fabs(it->first - 545.28) < 0.001)
 
     {
       TEST_EQUAL(it->second.score > 1, true)

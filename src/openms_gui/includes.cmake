@@ -8,8 +8,8 @@ include(source/VISUAL/MISC/sources.cmake)
 include(source/VISUAL/VISUALIZER/sources.cmake)
 include(source/VISUAL/ANNOTATION/sources.cmake)
 include(source/VISUAL/sources.cmake)
-include(include/OpenMS/VISUAL/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
-include(include/OpenMS/VISUAL/DIALOGS/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
+#include(include/OpenMS/VISUAL/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
+#include(include/OpenMS/VISUAL/DIALOGS/UIC/sources.cmake) ## uic are "sources" of OpenMS because they add .ui depedencies to the lib
 
 set(OpenMSVisual_sources_h  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
@@ -27,4 +27,5 @@ list(APPEND OpenMSVisual_sources ${OpenMSVisual_sources_h})
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?
-list(REMOVE_DUPLICATES OpenMSVisual_sources)
+#list(REMOVE_DUPLICATES OpenMSVisual_sources)
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -48,42 +48,18 @@ namespace OpenMS
     specificity_type_(AA),
     affected_amino_acids_("")
   {
-
-  }
-
-  Modification::Modification(const Modification & source) :
-    SampleTreatment(source),
-    reagent_name_(source.reagent_name_),
-    mass_(source.mass_),
-    specificity_type_(source.specificity_type_),
-    affected_amino_acids_(source.affected_amino_acids_)
-  {
-
   }
 
   Modification::~Modification()
   {
-
-  }
-
-  Modification & Modification::operator=(const Modification & source)
-  {
-    if (&source == this)
-      return *this;
-
-    SampleTreatment::operator=(source);
-    reagent_name_ = source.reagent_name_;
-    mass_ = source.mass_;
-    specificity_type_ = source.specificity_type_;
-    affected_amino_acids_ = source.affected_amino_acids_;
-
-    return *this;
   }
 
   bool Modification::operator==(const SampleTreatment & rhs) const
   {
     if (type_ != rhs.getType())
+    {
       return false;
+    }
 
     const Modification * tmp = dynamic_cast<const Modification *>(&rhs);
     return SampleTreatment::operator==(* tmp) &&
@@ -140,3 +116,4 @@ namespace OpenMS
   }
 
 }
+

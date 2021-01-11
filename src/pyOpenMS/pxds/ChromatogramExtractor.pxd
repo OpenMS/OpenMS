@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
         ChromatogramExtractor()                  nogil except +
         ChromatogramExtractor(ChromatogramExtractor)   nogil except + 
 
-        void extractChromatograms(MSExperiment[Peak1D, ChromatogramPeak] & input,
-                                  MSExperiment[Peak1D, ChromatogramPeak] & output, 
+        void extractChromatograms(MSExperiment & input,
+                                  MSExperiment & output, 
                                   TargetedExperiment & transition_exp,
                                   double extract_window,
                                   bool ppm,
@@ -25,8 +25,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
                                   String filter) nogil except +
 
         # TODO immutable types by reference
-        # void extract_value_tophat(MSSpectrum[Peak1D] input, double mz,
+        # void extract_value_tophat(MSSpectrum input, double mz,
         #  Size peak_idx, double integrated_intensity, double extract_window, bool ppm)
-        # void extract_value_bartlett(MSSpectrum[Peak1D] input, double mz, 
+        # void extract_value_bartlett(MSSpectrum input, double mz,
         #  Size peak_idx, double integrated_intensity, double extract_window, bool ppm)
     

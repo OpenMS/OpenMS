@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,12 +48,8 @@
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <QDir>
-#include <QFile>
 #include <QCoreApplication>
-#include <QtCore/QTimer>
 #include <QtCore/QDateTime>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -61,7 +57,7 @@ using namespace std;
   
 namespace OpenMS
 {
-  void UpdateCheck::run(const String& tool_name, const String& version)
+  void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
   {
     String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
 
@@ -93,7 +89,15 @@ namespace OpenMS
     bool first_run(false);
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
-      Param p = File::getSystemParameters(); // initializes .OpenMS folder
+      // create OpenMS folder for .ver files
+      String home_path = File::getOpenMSHomePath();
+      String dirname = home_path + "/.OpenMS";
+      QDir dir(dirname.toQString());
+
+      if (!dir.exists())
+      {
+        dir.mkpath(".");
+      }
 
       // touch file to create it and set initial modification time stamp
       QFile f;
@@ -116,15 +120,18 @@ namespace OpenMS
         struct utimbuf new_times;
         stat(version_file_name.c_str(), &old_stat);
         new_times.actime = old_stat.st_atime; // keep accession time unchanged 
-        new_times.modtime = time(NULL);  // mod time to current time
+        new_times.modtime = time(nullptr);  // mod time to current time
         utime(version_file_name.c_str(), &new_times);          
 
-        LOG_INFO << "The OpenMS team is collecting use statistics for quality control and funding purposes." << endl;
-        LOG_INFO << "We will never give out your personal data but you may disable this functionality by " << endl;
-        LOG_INFO << "setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS to OFF." << endl;
-        
+        if (debug_level > 0)
+        {
+          OPENMS_LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
+          OPENMS_LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
+          OPENMS_LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
+        }
+      
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-        char const * argv2[] = { "dummyname", NULL };
+        char const * argv2[] = { "dummyname", nullptr };
         int argc = 1;
         QCoreApplication event_loop(argc, const_cast<char**>(argv2));
         NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
@@ -136,23 +143,31 @@ namespace OpenMS
 
         if (!query->hasError())
         {
-          LOG_INFO << "Connecting to REST server successful. " << endl;
+          if (debug_level > 0)
+          {
+            OPENMS_LOG_INFO << "Connecting to REST server successful. " << endl;
+          }
+
           QString response = query->getResponse();
           VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
           if (server_version != VersionInfo::VersionDetails::EMPTY)
           {
             if (VersionInfo::getVersionStruct() < server_version)
             {
-              LOG_INFO << "Version " + version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
+              OPENMS_LOG_INFO << "Version " + version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
             }
           }
         }
         else
         {
-          LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
-          LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+          if (debug_level > 0)
+          {
+            OPENMS_LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
+            OPENMS_LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+          }
         }
         delete query;
+        event_loop.quit();
       }
     }
   }

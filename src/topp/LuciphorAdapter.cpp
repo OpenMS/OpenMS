@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Petra Gutenbrunner $
+// $Maintainer: Petra Gutenbrunner, Oliver Alka $
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -42,13 +42,12 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QDir>
+#include <QProcessEnvironment>
 
 #include <cstddef>
 #include <fstream>
@@ -117,14 +116,16 @@ protected:
     String predicted_pep;
     double delta_score;
     double predicted_pep_score;
+    double global_flr;
+    double local_flr;
     
-    LuciphorPSM() : scan_nr(-1), scan_idx(-1), charge(-1), delta_score(-1), predicted_pep_score(-1) {}
-  };
+    LuciphorPSM() : scan_nr(-1), scan_idx(-1), charge(-1), delta_score(-1), predicted_pep_score(-1), global_flr(-1), local_flr(-1) {}
+    };
 
   // lists of allowed parameter values:
   vector<String> fragment_methods_, fragment_error_units_, score_selection_method_;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input spectrum file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -132,10 +133,10 @@ protected:
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out", "<file>", "", "Output file", false);
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    
-    registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
+
+    registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
     registerStringOption_("fragment_method", "<choice>", fragment_methods_[0], "Fragmentation method", false);
     setValidStrings_("fragment_method", fragment_methods_);
@@ -179,15 +180,21 @@ protected:
     setMinInt_("num_threads", 0);
 
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
-    setValidStrings_("run_mode", ListUtils::create<String>("0,1")); 
+    setValidStrings_("run_mode", ListUtils::create<String>("0,1"));
+
+    registerDoubleOption_("rt_tolerance", "<num>", 0.01, "Set the retention time tolerance (for the mapping of identifications to spectra in case multiple search engines were used)", false);
+    setMinFloat_("rt_tolerance", 0.0);
+    
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
+    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
+    registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
   
   String makeModString_(const String& mod_name)
   {
-    ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    String residue = mod.getOrigin();
-    
-    return String(residue +  " " + mod.getDiffMonoMass());    
+    const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
+    const String& residue = mod->getOrigin();
+    return String(residue +  " " + mod->getDiffMonoMass());    
   }
  
   ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in,
@@ -271,21 +278,6 @@ protected:
     output << "               ## 4 = write HCD non-parametric models to disk (HCD-mode only option)\n";
   }
   
-  void removeTempDir_(const String& temp_dir)
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-  
   struct LuciphorPSM splitSpecId_(const String& spec_id)
   {
     struct LuciphorPSM l_psm;
@@ -334,9 +326,15 @@ protected:
     }
     return EXECUTION_OK;
   }
-  
+
   String parseLuciphorOutput_(const String& l_out, map<int, LuciphorPSM>& l_psms, const SpectrumLookup& lookup)
   {
+    if (!File::exists(l_out))
+    {
+      OPENMS_LOG_ERROR << "LuciPhor2 was not able to provide an output. Please set debug >= 4 for additional information." << std::endl;
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, l_out);
+    }
+
     CsvFile tsvfile(l_out, '\t');
     String spec_id = "";
         
@@ -350,12 +348,13 @@ protected:
       }
       
       spec_id = elements[0];
-      struct LuciphorPSM l_psm = splitSpecId_(spec_id);      
+      struct LuciphorPSM l_psm = splitSpecId_(spec_id);
       l_psm.scan_idx = lookup.findByScanNumber(l_psm.scan_nr);
       l_psm.predicted_pep = elements[2];
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
-      
+      l_psm.global_flr = elements[10].toDouble();
+      l_psm.local_flr = elements[11].toDouble();
       if (l_psms.count(l_psm.scan_idx) > 0)
       {
         return "Duplicate scannr existing " + String(l_psm.scan_nr) + ".";
@@ -363,9 +362,6 @@ protected:
       l_psms[l_psm.scan_idx] = l_psm;
     }    
     return "";
-    
-    String msg = "Spectrum could not be parsed";
-    throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, spec_id, msg);
   }
   
   // remove all modifications which are LuciPHOr2 target modifications,
@@ -381,11 +377,11 @@ protected:
     // set C-term/N-term modification
     if (original_seq.hasNTerminalModification())
     {
-      seq_converted.setNTerminalModification(original_seq.getNTerminalModification());
+      seq_converted.setNTerminalModification(original_seq.getNTerminalModificationName());
     }
     if (original_seq.hasCTerminalModification())
     {
-      seq_converted.setCTerminalModification(original_seq.getCTerminalModification());
+      seq_converted.setCTerminalModification(original_seq.getCTerminalModificationName());
     }
     
     // set all modifications, which were not changed by LuciPHOr2
@@ -393,7 +389,7 @@ protected:
     {
       if (original_seq.getResidue(i).isModified())
       {
-        String mod = original_seq.getResidue(i).getModification();
+        String mod = original_seq.getResidue(i).getModificationName();
         
         // no target modification, modification can be set
         bool found = false;
@@ -426,7 +422,7 @@ protected:
         {
           if (seq.getResidue(i).isModified())
           {
-            writeLog_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModification() + ", " + iter->second + ")");
+            writeLog_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModificationName() + ", " + iter->second + ")");
             return PARSE_ERROR;
           }
           else 
@@ -457,7 +453,7 @@ protected:
   String getSelectionMethod_(const PeptideIdentification& pep_id, String search_engine)
   {
     String selection_method = "";
-    if (pep_id.getScoreType() == "Posterior Error Probability" || search_engine == "Percolator")
+    if (pep_id.getScoreType() == "Posterior Error Probability" || pep_id.getScoreType() == "pep" || search_engine == "Percolator")
     {
       selection_method = score_selection_method_[0];
     }
@@ -472,21 +468,19 @@ protected:
     else
     {
       String msg = "SELECTION_METHOD parameter could not be set. Only Mascot, X! Tandem, or Posterior Error Probability score types are supported.";
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
     }
     return selection_method;
   }
   
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
-    vector<PeptideIdentification> pep_ids;
-    vector<ProteinIdentification> prot_ids;
-    
+    String java_executable = getStringOption_("java_executable");
     if (!getFlag_("force"))
     {
-      if (!JavaInfo::canRun("java"))
+      if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java not found, or the Java process timed out. Java is needed to run LuciPHOr2. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable. If you are certain java is installed, please set the 'force' flag in order to avoid this error message.");
+        writeLog_("Fatal error: Java is needed to run LuciPHOr2!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
@@ -495,34 +489,50 @@ protected:
       writeLog_("The installation of Java was not checked.");
     }
 
-    // create temporary directory
-    String temp_dir, conf_file;
-    temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
+    //tmp_dir
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     // create a temporary config file for LuciPHOr2 parameters
-    conf_file = temp_dir + "luciphor2_input_template.txt";
+    String conf_file = tmp_dir.getPath() + "luciphor2_input_template.txt";
     
     String id = getStringOption_("id");
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    double rt_tolerance = getDoubleOption_("rt_tolerance");
     
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
-    
-    // convert input to pepXML if necessary
+
+    vector<PeptideIdentification> pep_ids;
+    vector<ProteinIdentification> prot_ids;
+
+    PeakMap exp;
+    MzMLFile file;
+    file.setLogType(log_type_);
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+
+    file.load(in, exp);
+    exp.sortSpectra(true);
+
+    // convert idXML input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(id, prot_ids, pep_ids);
-      IDFilter::keepNBestHits(pep_ids, 1); // Luciphor only calculates the best hit
-      
-      // create a tempory pepXML file for LuciPHOR2 input
-      String in_file_name = File::removeExtension(File::basename(id));
-      id = temp_dir + in_file_name + ".pepXML";
-      
-      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false);
+      if (!pep_ids.empty())
+      {
+        IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
+      }
+      // create a temporary pepXML file for LuciPHOR2 input
+      String id_file_name = FileHandler::swapExtension(File::basename(id), FileTypes::PEPXML);
+      id = tmp_dir.getPath() + id_file_name;
+
+      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false, rt_tolerance);
     }
     else
     {
@@ -548,48 +558,40 @@ protected:
       return ret;
     }
     
-    writeConfigurationFile_(conf_file, config_map);    
-    QString executable = getStringOption_("executable").toQString();
-    
-    // Hack for KNIME. Looks for LUCIPHOR_PATH in the environment which is set in binaries.ini
-    QProcessEnvironment env;
-    String luciphorpath = "LUCIPHOR_PATH";
-    QString qluciphorpath = env.systemEnvironment().value(luciphorpath.toQString());
+    writeConfigurationFile_(conf_file, config_map);
 
-    if (!qluciphorpath.isEmpty())
-    {
-      executable = qluciphorpath;
-    }
+    // memory for JVM
+    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    int java_permgen = getIntOption_("java_permgen");
+
+    QString executable = getStringOption_("executable").toQString();
 
     QStringList process_params; // the actual process is Java, not LuciPHOr2!
-    process_params << "-jar" << executable << conf_file.toQString();                   
-
-    // execute LuciPHOr2    
-    int status = QProcess::execute("java", process_params);
-    if (status != 0)
+    process_params << java_memory;
+    
+    if (java_permgen > 0)
     {
-      writeLog_("Fatal error: Running LuciPHOr2 returned an error code. Does the LuciPHOr2 executable (.jar file) exist?");
-      return EXTERNAL_PROGRAM_ERROR;
+      process_params << "-XX:MaxPermSize=" + QString::number(java_permgen);
     }
-    
-    MSExperiment<> exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
 
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    f.load(in, exp);
-    exp.sortSpectra(true);
-    
+    process_params << "-jar" << executable << conf_file.toQString();
+
+    //-------------------------------------------------------------
+    // LuciPHOr2
+    //-------------------------------------------------------------
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
+
     SpectrumLookup lookup;
-    lookup.rt_tolerance = 0.05;
+    lookup.rt_tolerance = rt_tolerance;
     lookup.readSpectra(exp.getSpectra());
       
     map<int, LuciphorPSM> l_psms;    
     ProteinIdentification::SearchParameters search_params;
-    
+
     String error = parseLuciphorOutput_(out, l_psms, lookup);
     if (error != "")
     {
@@ -611,8 +613,19 @@ protected:
     
     for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
-      Size scan_idx = lookup.findByRT(pep_id->getRT());
-      
+      Size scan_idx;
+      const String& ID_native_ids = pep_id->getMetaValue("spectrum_reference");
+      try
+      {
+        scan_idx = lookup.findByNativeID(ID_native_ids);
+      }
+      catch (Exception::ElementNotFound&)
+      {
+        // fall-back if native ids are missing
+        writeLog_("Unable to map native ID of identification to spectrum native ID. " + ID_native_ids);
+        scan_idx = lookup.findByRT(pep_id->getRT());
+      }
+
       vector<PeptideHit> scored_peptides;
       if (!pep_id->getHits().empty())
       {
@@ -633,6 +646,8 @@ protected:
           }
           scored_hit.setMetaValue("search_engine_sequence", scored_hit.getSequence().toString());
           scored_hit.setMetaValue("Luciphor_pep_score", l_psm.predicted_pep_score);
+          scored_hit.setMetaValue("Luciphor_global_flr", l_psm.global_flr);
+          scored_hit.setMetaValue("Luciphor_local_flr", l_psm.local_flr);
           scored_hit.setScore(l_psm.delta_score);
           scored_hit.setSequence(predicted_seq);
         }
@@ -655,10 +670,14 @@ protected:
       new_pep_id.assignRanks();
       pep_out.push_back(new_pep_id);
     }
+
+    // store which modifications have been localized
+    for (auto& p : prot_ids)
+    {
+      p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
+    }
     IdXMLFile().store(out, prot_ids, pep_out);
 
-    removeTempDir_(temp_dir);
-    
     return EXECUTION_OK;
   }
 };
@@ -668,3 +687,5 @@ int main(int argc, const char** argv)
   LuciphorAdapter tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

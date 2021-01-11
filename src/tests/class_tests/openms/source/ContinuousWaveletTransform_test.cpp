@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
@@ -47,8 +47,8 @@ START_TEST(ContinuousWaveletTransform, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ContinuousWaveletTransform* ptr = 0;
-ContinuousWaveletTransform* nullPointer = 0;
+ContinuousWaveletTransform* ptr = nullptr;
+ContinuousWaveletTransform* nullPointer = nullptr;
 START_SECTION((ContinuousWaveletTransform()))
   ptr = new ContinuousWaveletTransform();
 	TEST_NOT_EQUAL(ptr, nullPointer)

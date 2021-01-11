@@ -43,23 +43,22 @@ class TestChromatogramExtractorAlgorithm(unittest.TestCase):
 
         trafo = pyopenms.TransformationDescription()
 
+        # Start with length zero
         tmp_out = [ pyopenms.OSChromatogram() for i in range(len(targeted))]
+        self.assertEqual(len(tmp_out[0].getIntensityArray()), 0)
+
         extractor = pyopenms.ChromatogramExtractorAlgorithm()
-        mz_extraction_window = 10
+        mz_extraction_window = 10.0
         ppm = False
-        extractor.extractChromatograms(saccess, tmp_out, targeted, mz_extraction_window, ppm, b"tophat")
-        # void extractChromatograms(
-        #     shared_ptr[ ISpectrumAccess ] input,
-        #     libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
-        #     libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
-        #     double mz_extraction_window,
-        #     bool ppm, String filter) nogil except + # wrap-ignore
+        extractor.extractChromatograms(saccess, tmp_out, targeted, mz_extraction_window, ppm, -1.0, b"tophat")
 
         # Basically test that the output is non-zero (e.g. the data is
         # correctly relayed to python)
         # The functionality is not tested here!
         self.assertEqual(len(tmp_out), len(targeted))
         self.assertNotEqual(len(tmp_out), 0)
+
+        # End with different length
         self.assertEqual(len(tmp_out[0].getIntensityArray()), exp_size)
         self.assertNotEqual(len(tmp_out[0].getIntensityArray()), 0)
         self.assertNotEqual(len(tmp_out[0].getTimeArray()), 0)

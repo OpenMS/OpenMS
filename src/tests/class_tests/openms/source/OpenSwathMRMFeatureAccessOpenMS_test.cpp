@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,13 +36,15 @@
 #include <OpenMS/test_config.h>
 
 #include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
+///////////////////////////
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-///////////////////////////
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -54,8 +56,8 @@ START_TEST(MRMFeatureAccessOpenMS, "$Id$")
 
 //FeatureOpenMS
 {
-FeatureOpenMS* ptr = 0;
-FeatureOpenMS* nullPointer = 0;
+FeatureOpenMS* ptr = nullptr;
+FeatureOpenMS* nullPointer = nullptr;
 
 START_SECTION(FeatureOpenMS())
 {
@@ -74,8 +76,8 @@ END_SECTION
 
 //MRMFeatureOpenMS
 {
-MRMFeatureOpenMS* ptr = 0;
-MRMFeatureOpenMS* nullPointer = 0;
+MRMFeatureOpenMS* ptr = nullptr;
+MRMFeatureOpenMS* nullPointer = nullptr;
 
 START_SECTION(MRMFeatureOpenMS())
 {
@@ -94,13 +96,13 @@ END_SECTION
 
 //TransitionGroupOpenMS
 {
-TransitionGroupOpenMS <MSSpectrum<Peak1D>, ReactionMonitoringTransition>* ptr = 0;
-TransitionGroupOpenMS <MSSpectrum<Peak1D>, ReactionMonitoringTransition>* nullPointer = 0;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* ptr = nullptr;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* nullPointer = nullptr;
 
 START_SECTION(TransitionGroupOpenMS())
 {
-  MRMTransitionGroup <MSSpectrum <Peak1D>, ReactionMonitoringTransition> trgroup;
-  ptr = new TransitionGroupOpenMS <MSSpectrum <Peak1D>, ReactionMonitoringTransition> (trgroup);
+  MRMTransitionGroup <MSChromatogram, ReactionMonitoringTransition> trgroup;
+  ptr = new TransitionGroupOpenMS < MSChromatogram, ReactionMonitoringTransition> (trgroup);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -114,13 +116,13 @@ END_SECTION
 
 //SignalToNoiseOpenMS
 {
-SignalToNoiseOpenMS<Peak1D>* ptr = 0;
-SignalToNoiseOpenMS<Peak1D>* nullPointer = 0;
+SignalToNoiseOpenMS<MSSpectrum>* ptr = nullptr;
+SignalToNoiseOpenMS<MSSpectrum>* nullPointer = nullptr;
 
 START_SECTION(SignalToNoiseOpenMS())
 {
-  OpenMS::MSSpectrum<> chromat;
-  ptr = new SignalToNoiseOpenMS<Peak1D>(chromat, 1.0, 3.0, true);
+  OpenMS::MSSpectrum chromat;
+  ptr = new SignalToNoiseOpenMS<MSSpectrum>(chromat, 1.0, 3.0, true);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -149,7 +151,7 @@ START_SECTION(double getValueAtRT(double RT))
   };
   std::vector<double> intensity (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  MSSpectrum<> s;
+  MSSpectrum s;
   for (Size i = 0; i < mz.size(); i++)
   {
     Peak1D p;
@@ -157,7 +159,7 @@ START_SECTION(double getValueAtRT(double RT))
     p.setIntensity(intensity[i]);
     s.push_back(p);
   }
-  SignalToNoiseOpenMS<Peak1D> ff(s, 200, 50, true);
+  SignalToNoiseOpenMS<MSSpectrum> ff(s, 200, 50, true);
 
   double value200 = 0.987854524;
   double value210 = 1.02162;

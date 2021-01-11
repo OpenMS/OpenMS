@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,24 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PepNovoInfile.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/PTMXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <algorithm>
-#include <set>
 #include <fstream>
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 
@@ -92,11 +83,11 @@ namespace OpenMS
   {
     String locations, key, type;
 
-    ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(modification).getTermSpecificity();
-    String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
-    double mass = ModificationsDB::getInstance()->getModification(modification).getDiffMonoMass();
-    String full_name = ModificationsDB::getInstance()->getModification(modification).getFullName();
-    String full_id = ModificationsDB::getInstance()->getModification(modification).getFullId();
+    ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(modification)->getTermSpecificity();
+    String origin = ModificationsDB::getInstance()->getModification(modification)->getOrigin();
+    double mass = ModificationsDB::getInstance()->getModification(modification)->getDiffMonoMass();
+    String full_name = ModificationsDB::getInstance()->getModification(modification)->getFullName();
+    String full_id = ModificationsDB::getInstance()->getModification(modification)->getFullId();
 
 
     if (variable)
@@ -119,7 +110,7 @@ namespace OpenMS
     case ResidueModification::ANYWHERE: locations = "ALL";
       break;
 
-    default: throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Term_Specificity", String(ts));
+    default: throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid term specificity", String(ts));
     }
 
     if (ts == ResidueModification::C_TERM)
@@ -132,11 +123,11 @@ namespace OpenMS
     }
 
     //cout<<"origin: "<<origin<<"    loc: "<<locations<<endl;
-    if (origin == "C-term")
+    if ((ts == ResidueModification::C_TERM) && (origin == "X"))
     {
       origin = "C_TERM";
     }
-    else if (origin == "N-term")
+    else if ((ts == ResidueModification::N_TERM) && (origin == "X"))
     {
       origin = "N_TERM";
     }
@@ -147,12 +138,10 @@ namespace OpenMS
 
     if (mass >= 0)
     {
-      key += "+" + String(Math::round(mass));
+      key += "+";
     }
-    else
-    {
-      key += String(Math::round(mass));
-    }
+    key += String(int(Math::round(mass)));
+
 
     String line = "";
     line += origin.toUpper();

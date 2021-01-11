@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,14 +29,15 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
-#define OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
@@ -57,7 +58,7 @@ public:
     /// default constructor
     ThresholdMower();
     /// destructor
-    virtual ~ThresholdMower();
+    ~ThresholdMower() override;
 
     /// copy constructor
     ThresholdMower(const ThresholdMower & source);
@@ -73,17 +74,16 @@ public:
     template <typename SpectrumType>
     void filterSpectrum(SpectrumType & spectrum)
     {
-      // sort by intensity
-      spectrum.sortByIntensity();
-
-      // find right position to erase
-      typename SpectrumType::PeakType p;
       threshold_ = ((double)param_.getValue("threshold"));
-      p.setIntensity(threshold_);
-      spectrum.erase(
-        spectrum.begin(),
-        lower_bound(spectrum.begin(), spectrum.end(), p, typename SpectrumType::PeakType::IntensityLess())
-        );
+      std::vector<Size> indices;
+      for (Size i = 0; i != spectrum.size(); ++i)
+      {
+        if (spectrum[i].getIntensity() >= threshold_)
+        {
+          indices.push_back(i);
+        } 
+      }
+      spectrum.select(indices);
     }
 
     void filterPeakSpectrum(PeakSpectrum & spectrum);
@@ -100,4 +100,3 @@ private:
 
 }
 
-#endif //OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz$
-// $Authors: Guillaume Belz$
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XMASSFILE_H
-#define OPENMS_FORMAT_XMASSFILE_H
+#pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -80,28 +80,27 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be read
     */
-    template <class PeakType>
-    void load(const String & filename, MSSpectrum<PeakType> & spectrum)
+    void load(const String & filename, MSSpectrum & spectrum)
     {
       Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
 
       Internal::FidHandler fid(filename);
       if (!fid)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       //  Delete old spectrum
       spectrum.clear(true);
 
       //temporary variables
-      PeakType p;
+      Peak1D p;
 
       while (spectrum.size() < acqus.getSize())
       {
         //fill peak
-        p.setPosition((typename PeakType::PositionType)acqus.getPosition(fid.getIndex()));
-        p.setIntensity((typename PeakType::IntensityType)fid.getIntensity());
+        p.setPosition((Peak1D::PositionType)acqus.getPosition(fid.getIndex()));
+        p.setIntensity((Peak1D::IntensityType)fid.getIntensity());
         spectrum.push_back(p);
       }
       fid.close();
@@ -110,7 +109,7 @@ public:
       spectrum.setRT(0.0);
       spectrum.setMSLevel(1);
       spectrum.setName("Xmass analysis file " + acqus.getParam("$ID_raw"));
-      spectrum.setType(SpectrumSettings::RAWDATA);
+      spectrum.setType(SpectrumSettings::PROFILE);
       spectrum.setNativeID("spectrum=xsd:" + acqus.getParam("$ID_raw").remove('<').remove('>'));
       spectrum.setComment("no comment");
 
@@ -173,13 +172,12 @@ public:
     /**
         @brief Import settings from a XMass file.
 
-@param filename File from which the experimental settings should be loaded.
-@param exp MSExperiment where the experimental settings will be stored.
+        @param filename File from which the experimental settings should be loaded.
+        @param exp MSExperiment where the experimental settings will be stored.
 
-@exception Exception::FileNotFound is thrown if the file could not be opened.
+        @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    template <class PeakType>
-    void importExperimentalSettings(const String & filename, MSExperiment<PeakType> & exp)
+    void importExperimentalSettings(const String & filename, PeakMap & exp)
     {
       Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
 
@@ -239,13 +237,11 @@ public:
 
         @exception Exception::FileNotWritable is thrown
     */
-    template <typename SpectrumType>
-    void store(const String & /*filename*/, const SpectrumType & /*spectrum*/)
+    void store(const String & /*filename*/, const MSSpectrum & /*spectrum*/)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XMASSFILE_H

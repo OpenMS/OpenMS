@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,34 +28,23 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/config.h>
 
 namespace OpenMS
 {
   ConsensusFeature::ConsensusFeature() :
     BaseFeature(), handles_(), ratios_()
   {
-  }
-
-  ConsensusFeature::ConsensusFeature(const ConsensusFeature& rhs) :
-    BaseFeature(rhs), handles_(rhs.handles_), ratios_()
-  {
-    ratios_ = rhs.ratios_;
   }
 
   ConsensusFeature::ConsensusFeature(const BaseFeature& feature) :
@@ -70,20 +59,9 @@ namespace OpenMS
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature& element) :
-    BaseFeature(element), handles_(), ratios_()
+    BaseFeature(element, map_index), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
-  }
-
-  ConsensusFeature& ConsensusFeature::operator=(const ConsensusFeature& rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    BaseFeature::operator=(rhs);
-    handles_ = rhs.handles_;
-    ratios_ = rhs.ratios_;
-    return *this;
   }
 
   ConsensusFeature::~ConsensusFeature()
@@ -93,6 +71,7 @@ namespace OpenMS
   void ConsensusFeature::insert(const ConsensusFeature& cf)
   {
     handles_.insert(cf.handles_.begin(), cf.handles_.end());
+    peptides_.insert(peptides_.end(), cf.getPeptideIdentifications().begin(), cf.getPeptideIdentifications().end());
   }
 
   void ConsensusFeature::insert(const FeatureHandle& handle)
@@ -100,7 +79,7 @@ namespace OpenMS
     if (!(handles_.insert(handle).second))
     {
       String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The set already contained an element with this key.", key);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }
 
@@ -120,7 +99,18 @@ namespace OpenMS
   void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
   {
     insert(FeatureHandle(map_index, element));
-    peptides_.insert(peptides_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
+    // annotate map index to peptide identification
+    std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
+    for (std::vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    {
+      it->setMetaValue("map_index", map_index);
+    }
+    peptides_.insert(peptides_.end(), ids.begin(), ids.end());
+  }
+
+  void ConsensusFeature::setFeatures(HandleSetType h)
+  {
+    handles_ = std::move(h);
   }
 
   const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
@@ -278,11 +268,11 @@ namespace OpenMS
     {
       Int q = it->getCharge();
       if (q == 0)
-        LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
+        OPENMS_LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
       double adduct_mass;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, fm.size());
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, fm.size());
       if (fm[index].metaValueExists("dc_charge_adduct_mass"))
       {
         adduct_mass = (double) fm[index].getMetaValue("dc_charge_adduct_mass");
@@ -295,7 +285,7 @@ namespace OpenMS
       if (intensity_weighted_averaging)
         weighting_factor = it->getIntensity() / intensity;
       rt += it->getRT() * weighting_factor;
-      m += (it->getMZ() * q - adduct_mass) * weighting_factor;
+      m += (it->getMZ() * abs(q) - adduct_mass) * weighting_factor;
     }
 
     // compute the average position and intensity

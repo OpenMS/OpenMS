@@ -1,15 +1,20 @@
 #ifndef __PYTHON_MS_DATA_CONSUMER_HPP__
 #define __PYTHON_MS_DATA_CONSUMER_HPP__
 
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
-class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>  {
+// see ../pxds/PythonMSDataConsumer.pxd for Cython def
+class PythonMSDataConsumer :
+  virtual public OpenMS::Interfaces::IMSDataConsumer
+{
 
-    typedef OpenMS::MSExperiment<>::SpectrumType SpectrumType;
-    typedef OpenMS::MSExperiment<>::ChromatogramType ChromatogramType;
+    typedef OpenMS::PeakMap::SpectrumType SpectrumType;
+    typedef OpenMS::PeakMap::ChromatogramType ChromatogramType;
 
+    // typedefs for function ptr (helper fxn to convert C++ type to Python object)
+    // see ../addons/MzMLFile.pyx
     typedef PyObject* (*SpectrumToPythonWrapper) (const SpectrumType &);
     typedef PyObject* (*ChromatogramToPythonWrapper) (const ChromatogramType &);
     typedef PyObject* (*ExperimentalSettingsToPythonWrapper) (const OpenMS::ExperimentalSettings &);
@@ -23,23 +28,28 @@ class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>
         ExperimentalSettingsToPythonWrapper wrap_experimental_settings_;
 
     public:
-         PythonMSDataConsumer(PyObject *py_consumer,
-                              SpectrumToPythonWrapper wrap_spectrum,
-                              ChromatogramToPythonWrapper wrap_chromatogram,
-                              ExperimentalSettingsToPythonWrapper wrap_experimental_settings)
-         : py_consumer_(py_consumer),
-           wrap_spectrum_(wrap_spectrum),
-           wrap_chromatogram_(wrap_chromatogram),
-           wrap_experimental_settings_(wrap_experimental_settings)
-         {
-            Py_INCREF(py_consumer_);
-         };
 
-         ~PythonMSDataConsumer() {
-            Py_DECREF(py_consumer_);
-         };
+        /// Constructor
+        PythonMSDataConsumer(PyObject *py_consumer,
+                             SpectrumToPythonWrapper wrap_spectrum,
+                             ChromatogramToPythonWrapper wrap_chromatogram,
+                             ExperimentalSettingsToPythonWrapper wrap_experimental_settings) :
+          py_consumer_(py_consumer),
+          wrap_spectrum_(wrap_spectrum),
+          wrap_chromatogram_(wrap_chromatogram),
+          wrap_experimental_settings_(wrap_experimental_settings)
+        {
+           Py_INCREF(py_consumer_);
+        };
+
+        /// Destructor
+        ~PythonMSDataConsumer()
+        {
+           Py_DECREF(py_consumer_);
+        };
 
 
+        /// Consume spectrum (call Python method "consumeSpectrum" of the py_consumer_ object from C++)
         virtual void consumeSpectrum(SpectrumType & spec)
         {
             PyObject * py_spec = wrap_spectrum_(spec);
@@ -53,6 +63,7 @@ class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>
             Py_DECREF(r);
         };
 
+        /// Consume chromatogram (call Python method "consumeChromatogram" of the py_consumer_ object from C++)
         virtual void consumeChromatogram(ChromatogramType & chrom)
         {
             PyObject * py_chrom = wrap_chromatogram_(chrom);

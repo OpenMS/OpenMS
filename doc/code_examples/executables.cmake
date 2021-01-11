@@ -11,6 +11,7 @@ Tutorial_ComparatorUtils
 Tutorial_DPosition
 Tutorial_DRange
 Tutorial_Element
+Tutorial_Enzyme
 Tutorial_EmpiricalFormula
 Tutorial_FeatureFinder
 Tutorial_FeatureMap
@@ -18,15 +19,19 @@ Tutorial_FileIO
 Tutorial_FileIO_mzML
 Tutorial_FileIO_Consumer
 Tutorial_GaussFilter
+Tutorial_IdentificationClasses
 Tutorial_Labeled
+Tutorial_MSChromatogram
 Tutorial_MSExperiment
 Tutorial_MSSpectrum
 Tutorial_MapAlignment
 Tutorial_MetaInfo
 Tutorial_Param
 Tutorial_PeakPickerCWT
+Tutorial_Precursor
 Tutorial_RangeManager
 Tutorial_Residue
+Tutorial_ResidueModification
 Tutorial_SavitzkyGolayFilter
 Tutorial_TOFCalibration
 Tutorial_TheoreticalSpectrumGenerator
@@ -42,7 +47,7 @@ set(EXAMPLES_executables ${EXAMPLES_executables} ${executables_list})
 
 # --------------------------------------------------------------------------
 set(executables_list
-Tutorial_GUI_Spectrum1D
+Tutorial_GUI_Plot1D
 Tutorial_GUI_ParamEditor
 Tutorial_GUI_ListEditor
 )

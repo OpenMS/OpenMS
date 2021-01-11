@@ -3,25 +3,41 @@ set(directory source/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list
-MRMIonSeries.cpp
-MRMAssay.cpp
-MRMDecoy.cpp
-MRMRTNormalizer.cpp
-TransitionTSVReader.cpp
-SwathMapMassCorrection.cpp
-OpenSwathHelper.cpp
-OpenSwathScoring.cpp
-ChromatogramExtractor.cpp
-ChromatogramExtractorAlgorithm.cpp
-SpectrumAddition.cpp
-MRMTransitionGroupPicker.cpp
-DIAHelper.cpp
-DIAScoring.cpp
-DIAPrescoring.cpp
-MRMFeatureFinderScoring.cpp
-ConfidenceScoring.cpp
-PeakPickerMRM.cpp
-SwathWindowLoader.cpp
+  ChromatogramExtractor.cpp
+  ChromatogramExtractorAlgorithm.cpp
+  ConfidenceScoring.cpp
+  DIAHelper.cpp
+  DIAPrescoring.cpp
+  DIAScoring.cpp
+  IonMobilityScoring.cpp
+  MasstraceCorrelator.cpp
+  MRMAssay.cpp
+  MRMDecoy.cpp
+  MRMFeatureFilter.cpp
+  MRMFeatureFinderScoring.cpp
+  MRMFeaturePicker.cpp
+  MRMFeatureQC.cpp
+  MRMBatchFeatureSelector.cpp
+  MRMFeatureSelector.cpp
+  MRMIonSeries.cpp
+  MRMRTNormalizer.cpp
+  MRMTransitionGroupPicker.cpp
+  OpenSwathHelper.cpp
+  OpenSwathScores.cpp
+  OpenSwathScoring.cpp
+  OpenSwathTSVWriter.cpp
+  OpenSwathOSWWriter.cpp
+  OpenSwathWorkflow.cpp
+  PeakIntegrator.cpp
+  PeakPickerMRM.cpp
+  SONARScoring.cpp
+  SwathMapMassCorrection.cpp
+  SwathWindowLoader.cpp
+  SwathQC.cpp
+  SpectrumAddition.cpp
+  TargetedSpectraExtractor.cpp
+  TransitionTSVFile.cpp
+  TransitionPQPFile.cpp
 )
 
 ### add path to the filenames

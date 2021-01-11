@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,12 +95,16 @@ class TOPPDecharger :
 {
 public:
   TOPPDecharger() :
-    TOPPBase("Decharger", "Decharges and merges different feature charge variants of the same peptide.")
+    TOPPBase("Decharger", "Decharges and merges different feature charge variants of the same peptide.", true,
+             { // citation(s), specific for this tool
+              { "Bielow C, Ruzek S, Huber CG, Reinert K", "Optimal decharging and clustering of charge ladders generated in ESI-MS", "J Proteome Res 2010; 9: 2688", "10.1021/pr100177k" }
+             }
+            )
   {
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -114,7 +118,7 @@ protected:
     registerSubsection_("algorithm", "Feature decharging algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
     FeatureDeconvolution fdc;
@@ -123,7 +127,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -166,8 +170,8 @@ protected:
 
     writeDebug_("Saving output files", 1);
 
-    cm.getFileDescriptions()[0].filename = infile;
-    cm2.getFileDescriptions()[0].filename = infile;
+    cm.getColumnHeaders()[0].filename = infile;
+    cm2.getColumnHeaders()[0].filename = infile;
 
     //annotate output with data processing info
     addDataProcessing_(map_out, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));

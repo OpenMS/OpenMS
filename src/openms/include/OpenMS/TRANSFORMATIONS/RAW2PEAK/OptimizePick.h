@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,18 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPICK_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPICK_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <eigen3/Eigen/Core>
-#include <eigen3/unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
+#include <unsupported/Eigen/NonLinearOptimization>
 
 #include <vector>
 
@@ -47,9 +46,9 @@ namespace OpenMS
 {
   namespace OptimizationFunctions
   {
-    /// Raw data vector type
+    /// Profile data vector type
     typedef std::vector<Peak1D> RawDataVector;
-    /// Raw data iterator type
+    /// Profile data iterator type
     typedef RawDataVector::iterator PeakIterator;
 
     /** @brief Class for the penalty factors used during the optimization.
@@ -99,7 +98,7 @@ public:
 
     struct Data
     {
-      /// Positions and intensity values of the raw data
+      /// Positions and intensity values of the profile data
       std::vector<double> positions;
       std::vector<double> signal;
       /// This container contains the peak shapes to be optimized
@@ -127,9 +126,9 @@ public:
       const Data * m_data;
     };
 
-    /// Raw data vector type
+    /// Profile data vector type
     typedef std::vector<Peak1D> RawDataVector;
-    /// Raw data iterator type
+    /// Profile data iterator type
     typedef RawDataVector::iterator PeakIterator;
 
 
@@ -172,4 +171,3 @@ protected:
   };
 }
 
-#endif

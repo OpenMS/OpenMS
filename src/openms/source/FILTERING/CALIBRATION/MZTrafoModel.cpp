@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,13 +38,8 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 #include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <algorithm>
-#include <iterator>
-#include <map>
 
 namespace OpenMS
 {
@@ -65,7 +60,7 @@ namespace OpenMS
 
   const std::string MZTrafoModel::names_of_modeltype[] = {"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"};
 
-  Math::RANSACParam* MZTrafoModel::ransac_params_ = NULL;
+  Math::RANSACParam* MZTrafoModel::ransac_params_ = nullptr;
   double MZTrafoModel::limit_offset_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_scale_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_power_ = std::numeric_limits<double>::max(); // no limit by default
@@ -85,7 +80,7 @@ namespace OpenMS
 
   void MZTrafoModel::setRANSACParams( const Math::RANSACParam& p )
   {
-    if (ransac_params_ != NULL) delete ransac_params_;
+    if (ransac_params_ != nullptr) delete ransac_params_;
     ransac_params_ = new Math::RANSACParam(p);
     //std::cerr << p.toString();
   }
@@ -129,11 +124,12 @@ namespace OpenMS
     if (use_ppm_) // the above prediction is the ppm error
     { // ... so we convert to actual mass diff
       predict = Math::ppmToMass(-predict, mz) + mz;
-    } else
+    }
+    else
     {
       predict = (-predict) + mz;
     }
-    return(predict);
+    return predict;
   }
 
   bool MZTrafoModel::train( const CalibrationData& cd, MODELTYPE md, bool use_RANSAC, double rt_left /*= -std::numeric_limits<double>::max()*/, double rt_right /*= std::numeric_limits<double>::max() */ )
@@ -175,20 +171,20 @@ namespace OpenMS
 
     if (obs_mz.empty())
     {
-      //LOG_ERROR << "Input to calibration model is empty!" << std::endl;
+      //OPENMS_LOG_ERROR << "Input to calibration model is empty!" << std::endl;
       return false;
     }
 
     if (use_RANSAC)
     {
-      if (ransac_params_ == NULL)
+      if (ransac_params_ == nullptr)
       {
-        throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TrafoModel::train(): no RANSAC parameters were set before calling train(). Internal error!");
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TrafoModel::train(): no RANSAC parameters were set before calling train(). Internal error!");
       }
       if (!(md == LINEAR || md == QUADRATIC))
       {
-        LOG_ERROR << "RANSAC is implemented for LINEAR and QUADRATIC models only! Please disable RANSAC or choose the LINEAR or QUADRATIC model." << std::endl;
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        OPENMS_LOG_ERROR << "RANSAC is implemented for LINEAR and QUADRATIC models only! Please disable RANSAC or choose the LINEAR or QUADRATIC model." << std::endl;
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
 
@@ -312,7 +308,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& /*e*/)
     {
-      //LOG_ERROR << "Exception during model fitting: " << e.getMessage() << std::endl;
+      //OPENMS_LOG_ERROR << "Exception during model fitting: " << e.getMessage() << std::endl;
       return false;
     }
   }
@@ -320,7 +316,7 @@ namespace OpenMS
   Size MZTrafoModel::findNearest( const std::vector<MZTrafoModel>& tms, double rt )
   {
     // no peak => no search
-    if (tms.size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one model to determine the nearest model!");
+    if (tms.size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one model to determine the nearest model!");
 
     // search for position for inserting
     std::vector<MZTrafoModel>::const_iterator it = lower_bound(tms.begin(), tms.end(), rt, MZTrafoModel::RTLess());
@@ -367,7 +363,7 @@ namespace OpenMS
 
   void MZTrafoModel::getCoefficients( double& intercept, double& slope, double& power )
   {
-    if (!isTrained()) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Model is not trained yet.");
+    if (!isTrained()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Model is not trained yet.");
 
     intercept = coeff_[0];
     slope = coeff_[1];

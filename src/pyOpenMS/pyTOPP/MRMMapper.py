@@ -4,14 +4,14 @@ import pyopenms
 """
 python pyTOPP/MRMMapper.py --in ../source/TEST/TOPP/MRMMapping_input.chrom.mzML  \
         --tr ../source/TEST/TOPP/MRMMapping_input.TraML --out MRMMapper.tmp.out \
-        && diff MRMMapper.tmp.out ../source/TEST/TOPP/MRMMapping_output.chrom.mzML 
+        && diff MRMMapper.tmp.out ../source/TEST/TOPP/MRMMapping_output.chrom.mzML
 
 """
 
 def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance, allow_unmapped=True, allow_double_mappings=False):
 
     output = copy.copy(chromatogram_map)
-    output.clear(False); 
+    output.clear(False);
     empty_chromats = []
     output.setChromatograms(empty_chromats);
 
@@ -42,7 +42,7 @@ def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance
             output.addChromatogram(chrom)
 
     if notmapped > 0:
-        print "Could not find mapping for", notmapped, "chromatogram(s)" 
+        print "Could not find mapping for", notmapped, "chromatogram(s)"
 
 
     dp = pyopenms.DataProcessing()
@@ -79,7 +79,7 @@ def main(options):
     targeted = pyopenms.TargetedExperiment();
     tramlfile = pyopenms.TraMLFile();
     tramlfile.load(traml_in, targeted);
-     
+
     output = algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance)
 
     pyopenms.MzMLFile().store(out, output);
@@ -87,7 +87,7 @@ def main(options):
 def handle_args():
     import argparse
 
-    usage = "" 
+    usage = ""
     usage += "\nMRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)"
 
     parser = argparse.ArgumentParser(description = usage )

@@ -125,6 +125,7 @@ var data_control_chart = [<xsl:for-each select="ns:qcML/ns:runQuality">
             MS2count: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000007']/@value"/>" ,
             PSMcount: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000029']/@value"/>" ,
             FEATUREcount: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000046']/@value"/>" ,
+            idFEATUREcount: "<xsl:value-of select="ns:qualityParameter[@accession = 'QC:0000058']/@value"/>" ,
     },
     </xsl:for-each>];
                         </script>
@@ -368,12 +369,15 @@ control_metric.append("g").selectAll(".dot")
 
                 <table>
                   <tr>
-                    <td rowspan="2" width="200" height="20">Feature Finding</td>
+                    <td rowspan="3" width="200" height="20">Feature Finding</td>
                     <td width="400" height="30">Name</td>
                     <td width="400" height="30">Value</td>
                   </tr>
                   <tr>
                         <xsl:apply-templates select="ns:qualityParameter[@accession = 'QC:0000046']"/>
+                  </tr>
+                  <tr>
+                        <xsl:apply-templates select="ns:qualityParameter[@accession = 'QC:0000058']"/>
                   </tr>
                 </table>
                 </p>

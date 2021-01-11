@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
+#pragma once
 
 #include <vector>
 #include <OpenMS/config.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -58,7 +58,7 @@ namespace OpenMS
 
   public:
     /// Applies the given transformation to a peak map
-    static void transformRetentionTimes(MSExperiment<>& msexp,
+    static void transformRetentionTimes(PeakMap& msexp,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 
@@ -106,5 +106,4 @@ namespace OpenMS
   };
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
 

@@ -45,19 +45,19 @@
           <precursor>
             <isolationWindow>
               <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="19" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="4" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
             </isolationWindow>
             <selectedIonList count="1">
               <selectedIon>
                 <cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-                <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
+                <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
                 <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
               </selectedIon>
             </selectedIonList>
             <activation>
-              <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="0" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
-            <cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+              <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="20" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+              <cvParam cvRef="MS" accession="MS:1000242" name="blackbody infrared radiative dissociation" />
           </activation>
         </precursor>
           <product>
@@ -87,8 +87,8 @@
           <precursor>
             <isolationWindow>
               <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="8" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
             </isolationWindow>
             <selectedIonList count="1">
               <selectedIon>
@@ -98,8 +98,8 @@
               </selectedIon>
             </selectedIonList>
             <activation>
-              <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="0" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
-            <cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+              <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="500" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+              <cvParam cvRef="MS" accession="MS:1000282" name="sustained off-resonance irradiation" />
           </activation>
         </precursor>
           <product>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/MzMLFile.h>
+///////////////////////////
+
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -59,169 +60,239 @@ START_TEST(MzMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+class TICConsumer : 
+    public Interfaces::IMSDataConsumer
+{
+
+    typedef PeakMap MapType;
+    typedef MapType::SpectrumType SpectrumType;
+    typedef MapType::ChromatogramType ChromatogramType;
+
+public:
+  double TIC;
+  int nr_spectra;
+  long int nr_peaks;
+
+  // Create new consumer, set TIC to zero
+  TICConsumer() :
+    TIC(0.0),
+    nr_spectra(0.0),
+    nr_peaks(0)
+    {}
+
+  void consumeSpectrum(SpectrumType & s) override
+  {
+    for (Size i = 0; i < s.size(); i++) 
+    { 
+      TIC += s[i].getIntensity(); 
+    }
+    nr_peaks += s.size();
+    nr_spectra++;
+  }
+
+  void consumeChromatogram(ChromatogramType& /* c */) override {}
+  void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override {}
+  void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
+};
+
 //Note: This code generates the test files for meta data arrays of different types. Do not delete it!
+#if 0
+{
+  //template spectrum with 100 peaks
+  MSSpectrum template_spec;
+  for (Size i=0; i<100; ++i)
+  {
+    Peak1D p;
+    p.setIntensity(i);
+    p.setMZ(i);
+    template_spec.push_back(p);
+  }
+  
+  MSSpectrum spec;
+  PeakMap exp;
+  Size spectrum_number = 0;
+  Size array_number = 1;
+  
+  //spectrum 1 - 3 float arrays of size 50,100,200
+  spec = template_spec; ++spectrum_number; array_number = 1;
+  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setRT(1.0 * spectrum_number);
+  spec.setName(String("spectum number=") + spectrum_number);
+  Size array_size=50;
+  for (Size i=0; i<3; ++i)
+  {
+    spec.getFloatDataArrays().resize(i+1);
+    for (Size j=0; j<array_size; ++j)
+    {
+      spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
+    }
+    spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
+    array_size *=2;
+    array_number +=1;
+  }
+  exp.push_back(spec);
+  
+  //spectrum 2 - 3 string arrays of size 50,100,200
+  spec = template_spec; ++spectrum_number; array_number = 1;
+  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setRT(1.0 * spectrum_number);
+  spec.setName(String("spectum number=") + spectrum_number);
+  array_size=50;
+  for (Size i=0; i<3; ++i)
+  {
+    spec.getStringDataArrays().resize(i+1);
+    for (Size j=0; j<array_size; ++j)
+    {
+      spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
+    }
+    spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
+    array_size *=2;
+    array_number +=1;
+  }
+  exp.push_back(spec);
+  
+  //spectrum 3 - 3 integer arrays of size 50,100,200
+  spec = template_spec; ++spectrum_number; array_number = 1;
+  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setRT(1.0 * spectrum_number);
+  spec.setName(String("spectum number=") + spectrum_number);
+  array_size=50;
+  for (Size i=0; i<3; ++i)
+  {
+    spec.getIntegerDataArrays().resize(i+1);
+    for (Size j=0; j<array_size; ++j)
+    {
+      spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
+    }
+    spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
+    array_size *=2;
+    array_number +=1;
+  }
+  exp.push_back(spec);
+  
+  
+  //spectrum 4 - 2 float arrays of size 50,100 + 1 string arrays of size 200 + 3 integer arrays of size 50,100,200
+  spec = template_spec; ++spectrum_number; array_number = 1;
+  spec.setNativeID(String("index=") + spectrum_number);
+  spec.setRT(1.0 * spectrum_number);
+  spec.setName(String("spectum number=") + spectrum_number);
+  array_size=50;
+  for (Size i=0; i<2; ++i)
+  {
+    spec.getFloatDataArrays().resize(i+1);
+    for (Size j=0; j<array_size; ++j)
+    {
+      spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
+    }
+    spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
+    array_size *=2;
+    array_number +=1;
+  }
+  array_size=200;
+  for (Size i=0; i<1; ++i)
+  {
+    spec.getStringDataArrays().resize(i+1);
+    for (Size j=0; j<array_size; ++j)
+    {
+      spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
+    }
+    spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
+    array_size *=2;
+    array_number +=1;
+  }
+  array_size=50;
+  for (Size i=0; i<3; ++i)
+  {
+    spec.getIntegerDataArrays().resize(i+1);
+    for (Size j=0; j<array_size; ++j)
+    {
+      spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
+    }
+    spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
+    array_size *=2;
+    array_number +=1;
+  }
+  exp.push_back(spec);
+  
+  MzMLFile f;
+  f.store("data/MzMLFile_6_uncompressed.mzML",exp);
+  f.getOptions().setCompression(true);
+  f.store("data/MzMLFile_6_compressed.mzML",exp);
 
-////template spectrum with 100 peaks
-//MSSpectrum<> template_spec;
-//for (Size i=0; i<100; ++i)
-//{
-//  Peak1D p;
-//  p.setIntensity(i);
-//  p.setMZ(i);
-//  template_spec.push_back(p);
-//}
-//
-//MSSpectrum<> spec;
-//MSExperiment<> exp;
-//Size spectrum_number = 0;
-//Size array_number = 1;
-//
-////spectrum 1 - 3 float arrays of size 50,100,200
-//spec = template_spec; ++spectrum_number; array_number = 1;
-//spec.setNativeID(String("index=") + spectrum_number);
-//spec.setRT(1.0 * spectrum_number);
-//spec.setName(String("spectum number=") + spectrum_number);
-//Size array_size=50;
-//for (Size i=0; i<3; ++i)
-//{
-//  spec.getFloatDataArrays().resize(i+1);
-//  for (Size j=0; j<array_size; ++j)
-//  {
-//    spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
-//  }
-//  spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
-//  array_size *=2;
-//  array_number +=1;
-//}
-//exp.push_back(spec);
-//
-////spectrum 2 - 3 string arrays of size 50,100,200
-//spec = template_spec; ++spectrum_number; array_number = 1;
-//spec.setNativeID(String("index=") + spectrum_number);
-//spec.setRT(1.0 * spectrum_number);
-//spec.setName(String("spectum number=") + spectrum_number);
-//array_size=50;
-//for (Size i=0; i<3; ++i)
-//{
-//  spec.getStringDataArrays().resize(i+1);
-//  for (Size j=0; j<array_size; ++j)
-//  {
-//    spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
-//  }
-//  spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
-//  array_size *=2;
-//  array_number +=1;
-//}
-//exp.push_back(spec);
-//
-////spectrum 3 - 3 integer arrays of size 50,100,200
-//spec = template_spec; ++spectrum_number; array_number = 1;
-//spec.setNativeID(String("index=") + spectrum_number);
-//spec.setRT(1.0 * spectrum_number);
-//spec.setName(String("spectum number=") + spectrum_number);
-//array_size=50;
-//for (Size i=0; i<3; ++i)
-//{
-//  spec.getIntegerDataArrays().resize(i+1);
-//  for (Size j=0; j<array_size; ++j)
-//  {
-//    spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
-//  }
-//  spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
-//  array_size *=2;
-//  array_number +=1;
-//}
-//exp.push_back(spec);
-//
-//
-////spectrum 4 - 2 float arrays of size 50,100 + 1 string arrays of size 200 + 3 integer arrays of size 50,100,200
-//spec = template_spec; ++spectrum_number; array_number = 1;
-//spec.setNativeID(String("index=") + spectrum_number);
-//spec.setRT(1.0 * spectrum_number);
-//spec.setName(String("spectum number=") + spectrum_number);
-//array_size=50;
-//for (Size i=0; i<2; ++i)
-//{
-//  spec.getFloatDataArrays().resize(i+1);
-//  for (Size j=0; j<array_size; ++j)
-//  {
-//    spec.getFloatDataArrays()[i].push_back(100*(i+1) + j);
-//  }
-//  spec.getFloatDataArrays()[i].setName(String("array number=") + array_number);
-//  array_size *=2;
-//  array_number +=1;
-//}
-//array_size=200;
-//for (Size i=0; i<1; ++i)
-//{
-//  spec.getStringDataArrays().resize(i+1);
-//  for (Size j=0; j<array_size; ++j)
-//  {
-//    spec.getStringDataArrays()[i].push_back(String(100*(i+1) + j));
-//  }
-//  spec.getStringDataArrays()[i].setName(String("array number=") + array_number);
-//  array_size *=2;
-//  array_number +=1;
-//}
-//array_size=50;
-//for (Size i=0; i<3; ++i)
-//{
-//  spec.getIntegerDataArrays().resize(i+1);
-//  for (Size j=0; j<array_size; ++j)
-//  {
-//    spec.getIntegerDataArrays()[i].push_back(100*(i+1) + j);
-//  }
-//  spec.getIntegerDataArrays()[i].setName(String("array number=") + array_number);
-//  array_size *=2;
-//  array_number +=1;
-//}
-//exp.push_back(spec);
-//
-//MzMLFile f;
-//f.store("data/MzMLFile_6_uncompressed.mzML",exp);
-//f.getOptions().setCompression(true);
-//f.store("data/MzMLFile_6_compressed.mzML",exp);
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-/*
-
-MzMLFile* ptr = 0;
-MzMLFile* nullPointer = 0;
-START_SECTION((MzMLFile()))
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  MzMLFile* ptr = 0;
+  MzMLFile* nullPointer = 0;
+  START_SECTION((MzMLFile()))
   ptr = new MzMLFile;
   TEST_NOT_EQUAL(ptr, nullPointer)
-END_SECTION
+  END_SECTION
 
-START_SECTION((~MzMLFile()))
+  START_SECTION((~MzMLFile()))
   delete ptr;
-END_SECTION
+  END_SECTION
 
-START_SECTION(([EXTRA] Chromatogram section))
+  START_SECTION(([EXTRA] Chromatogram section))
   MzMLFile file;
   PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getChromatograms().size(), 2)
   TEST_EQUAL(exp.getChromatograms()[0].size(), 15)
   TEST_EQUAL(exp.getChromatograms()[1].size(), 10)
-END_SECTION
+  END_SECTION
 
-START_SECTION(const PeakFileOptions& getOptions() const)
+  START_SECTION(const PeakFileOptions& getOptions() const)
   MzMLFile file;
   TEST_EQUAL(file.getOptions().hasMSLevels(),false)
-END_SECTION
+  END_SECTION
 
-START_SECTION(PeakFileOptions& getOptions())
+  START_SECTION(PeakFileOptions& getOptions())
   MzMLFile file;
   file.getOptions().addMSLevel(1);
   TEST_EQUAL(file.getOptions().hasMSLevels(),true);
-END_SECTION
-*/
+  END_SECTION
+}
+#endif
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
+
+START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount)))
+{
   MzMLFile file;
-  MSExperiment<> exp;
+  Size spectra_count, chrom_count;
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 4);
+  TEST_EQUAL(chrom_count, 2);
+  
+  file.getOptions().addMSLevel(2); // only count MS2 scans
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 1);
+  TEST_EQUAL(chrom_count, 2);
+
+  file.getOptions().addMSLevel(1); // only count MS1 + MS2 scans
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 4);
+  TEST_EQUAL(chrom_count, 2);
+
+  file.getOptions().clearMSLevels();
+  file.getOptions().setRTRange(makeRange(5.0, 5.25));
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 2);
+  TEST_EQUAL(chrom_count, 2);
+
+  file.getOptions().addMSLevel(1); // only count MS1 and range
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 1);
+  TEST_EQUAL(chrom_count, 2);
+
+}
+END_SECTION
+
+
+START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
+{
+  MzMLFile file;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   //test DocumentIdentifier addition
@@ -301,7 +372,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
   //-------------------------- spectrum 0 --------------------------
   {
-    const MSSpectrum<>& spec = exp[0];
+    const MSSpectrum& spec = exp[0];
     //peaks
     TEST_EQUAL(spec.size(),15)
     for (UInt i=0; i<15; ++i)
@@ -313,8 +384,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getMSLevel(),1)
     TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MS1SPECTRUM)
     TEST_EQUAL(spec.getFloatDataArrays().size(),0)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.1)
+    TEST_REAL_SIMILAR(spec.getDriftTime(),7.1)
+    TEST_EQUAL(spec.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,400.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
@@ -347,11 +420,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getDataProcessing()[1]->getProcessingActions().size(),1)
     TEST_EQUAL(spec.getDataProcessing()[1]->getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
     TEST_EQUAL(spec.getDataProcessing()[1]->isMetaEmpty(),false)
-}
+  }
 
   //-------------------------- spectrum 1 --------------------------
   {
-    const MSSpectrum<>& spec = exp[1];
+    const MSSpectrum& spec = exp[1];
     //peaks
     TEST_EQUAL(spec.size(),10)
     for (Size i=0; i<10; ++i)
@@ -362,8 +435,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     //general info
     TEST_EQUAL(spec.getMSLevel(),2)
     TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MSNSPECTRUM)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.2)
+    // in the mzML, drift time is stored in precursor only but we still create a spectrum attribute for convenience
+    TEST_REAL_SIMILAR(spec.getDriftTime(),8.1)
+    TEST_EQUAL(spec.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND)
     TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),3)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,100.0)
@@ -393,6 +469,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIntensity(),120053)
     TEST_EQUAL(spec.getPrecursors()[0].getCharge(),2)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(),5.55)
+    TEST_REAL_SIMILAR(spec.getPrecursors()[0].getDriftTime(),8.1)
+    TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().size(),2)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::PD),1)
@@ -404,6 +482,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[1],3)
     TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[2],4)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(),15.55)
+    TEST_REAL_SIMILAR(spec.getPrecursors()[1].getDriftTime(),-1) // none set
+    TEST_EQUAL(spec.getPrecursors()[1].getDriftTimeUnit(), Precursor::DriftTimeUnit::NONE) // none set
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowLowerOffset(),16.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowUpperOffset(),17.77)
     TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().size(),1)
@@ -438,12 +518,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getDataProcessing()[1]->getProcessingActions().size(),1)
     TEST_EQUAL(spec.getDataProcessing()[1]->getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
     TEST_EQUAL(spec.getDataProcessing()[1]->isMetaEmpty(),false)
-
   }
 
   //-------------------------- spectrum 2 --------------------------
   {
-    const MSSpectrum<>& spec = exp[2];
+    const MSSpectrum& spec = exp[2];
     //peaks
     TEST_EQUAL(spec.size(),15)
     for (UInt i=0; i<15; ++i)
@@ -455,7 +534,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getMSLevel(),1)
     TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MS1SPECTRUM)
     TEST_EQUAL(spec.getFloatDataArrays().size(),0)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.3)
     TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
@@ -495,7 +574,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
   //-------------------------- spectrum 3 (no peaks) --------------------------
   {
-    const MSSpectrum<>& spec = exp[3];
+    const MSSpectrum& spec = exp[3];
     //peaks
     TEST_EQUAL(spec.size(),0)
     //general info
@@ -504,7 +583,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MS1SPECTRUM)
     TEST_EQUAL(spec.getInstrumentSettings().getZoomScan(),true)
     TEST_EQUAL(spec.getFloatDataArrays().size(),0)
-    TEST_EQUAL(spec.getType(),SpectrumSettings::RAWDATA)
+    TEST_EQUAL(spec.getType(),SpectrumSettings::PROFILE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,110.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,905.0)
@@ -628,27 +707,27 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   /////////////////////// TESTING SPECIAL CASES ///////////////////////
 
   //load a second time to make sure everything is re-initialized correctly
-  MSExperiment<> exp2;
+  PeakMap exp2;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp2);
   TEST_EQUAL(exp==exp2,true)
 
   //load minimal file
-  MSExperiment<> exp3;
+  PeakMap exp3;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_2_minimal.mzML"),exp3);
   TEST_EQUAL(exp3.size(), 0)
 
   //load file with huge CDATA and whitespaces in CDATA
-  MSExperiment<> exp4;
+  PeakMap exp4;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp4);
   TEST_EQUAL(exp4.size(), 1)
   TEST_EQUAL(exp4[0].size(), 997530)
 
   //test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
-  MSExperiment<> exp_ucomp;
+  PeakMap exp_ucomp;
   STATUS("Reading uncompressed...")
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"), exp_ucomp);
   STATUS("Reading uncompressed done.")
-  MSExperiment<> exp_comp;
+  PeakMap exp_comp;
   STATUS("Reading compressed...")
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_compressed.mzML"), exp_comp);
   STATUS("Reading compressed done.")
@@ -664,7 +743,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     for (Size p = 0; p < exp_ucomp[s].size(); ++p)
     {
       TEST_REAL_SIMILAR(exp_ucomp[s][p].getMZ(),exp_comp[s][p].getMZ())
-      TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_comp[s][p].getIntensity())
+        TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_comp[s][p].getIntensity())
     }
     //check content of float arrays
     for (Size a = 0; a < exp_ucomp[s].getFloatDataArrays().size(); ++a)
@@ -693,22 +772,22 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   }
 
   //Testing gzip compression of a whole file
-  MSExperiment<> exp_whole_comp;
+  PeakMap exp_whole_comp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz"),exp_whole_comp);
   TEST_EQUAL(exp_ucomp.size(),exp_whole_comp.size())
   for (Size s=0; s< exp_ucomp.size(); ++s)
   {
     //check if the same number of peak and meta data arrays is present
     TEST_EQUAL(exp_ucomp[s].size(),exp_whole_comp[s].size())
-    TEST_EQUAL(exp_ucomp[s].getFloatDataArrays().size(),exp_whole_comp[s].getFloatDataArrays().size())
-    TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays().size(),exp_whole_comp[s].getIntegerDataArrays().size())
-    TEST_EQUAL(exp_ucomp[s].getStringDataArrays().size(),exp_whole_comp[s].getStringDataArrays().size())
-    //check content of peak array
-    for (Size p=0; p< exp_ucomp[s].size(); ++p)
-    {
-      TEST_REAL_SIMILAR(exp_ucomp[s][p].getMZ(),exp_whole_comp[s][p].getMZ())
-      TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_whole_comp[s][p].getIntensity())
-    }
+      TEST_EQUAL(exp_ucomp[s].getFloatDataArrays().size(),exp_whole_comp[s].getFloatDataArrays().size())
+      TEST_EQUAL(exp_ucomp[s].getIntegerDataArrays().size(),exp_whole_comp[s].getIntegerDataArrays().size())
+      TEST_EQUAL(exp_ucomp[s].getStringDataArrays().size(),exp_whole_comp[s].getStringDataArrays().size())
+      //check content of peak array
+      for (Size p=0; p< exp_ucomp[s].size(); ++p)
+      {
+        TEST_REAL_SIMILAR(exp_ucomp[s][p].getMZ(),exp_whole_comp[s][p].getMZ())
+        TEST_REAL_SIMILAR(exp_ucomp[s][p].getIntensity(),exp_whole_comp[s][p].getIntensity())
+      }
     //check content of float arrays
     for (Size a=0; a<exp_ucomp[s].getFloatDataArrays().size(); ++a)
     {
@@ -736,7 +815,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   }
 
   //Testing bzip2 compression of a whole file
-  MSExperiment<> exp_bz;
+  PeakMap exp_bz;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2"),exp_bz);
   TEST_EQUAL(exp_ucomp.size(),exp_bz.size())
   for (Size s=0; s< exp_ucomp.size(); ++s)
@@ -778,16 +857,16 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
   }
   //Testing corrupted files
-  MSExperiment<> exp_cor;
+  PeakMap exp_cor;
   TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
-  MSExperiment<> exp_cor2;
+  PeakMap exp_cor2;
   TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
 
   {
     //Testing automated sorting of files
-    MSExperiment<> exp_inverse;
-    MSSpectrum<> spec;
-    MSChromatogram<> chrom;
+    PeakMap exp_inverse;
+    MSSpectrum spec;
+    MSChromatogram chrom;
     Peak1D sp;
     ChromatogramPeak cp;
     // create spectrum and chromatogram in inversed order
@@ -800,7 +879,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
     exp_inverse.addSpectrum(spec);
     exp_inverse.addChromatogram(chrom);
-    MSExperiment<> exp_sorted(exp_inverse);
+    PeakMap exp_sorted(exp_inverse);
     exp_sorted.sortSpectra(true);
     exp_sorted.sortChromatograms(true);
     MzMLFile file;
@@ -809,17 +888,19 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(exp_inverse.getSpectrum(0).isSorted(), false);
     TEST_EQUAL(exp_inverse.getChromatogram(0).isSorted(), false);
     file.store(tmp_filename, exp_inverse);
-    MSExperiment<> exp_sorted_on_load;
+    PeakMap exp_sorted_on_load;
     file.load(tmp_filename, exp_sorted_on_load);
     TEST_EQUAL(exp_sorted_on_load.getSpectrum(0).isSorted(), true);
     TEST_EQUAL(exp_sorted_on_load.getChromatogram(0).isSorted(), true);
   }
+}
 END_SECTION
 
 START_SECTION([EXTRA] load only meta data)
+{
   MzMLFile file;
   file.getOptions().setMetadataOnly(true);
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),0)
@@ -827,36 +908,40 @@ START_SECTION([EXTRA] load only meta data)
   TEST_EQUAL(exp.getContacts().size(),2)
   TEST_EQUAL(exp.getSourceFiles().size(),1);
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
+}
 END_SECTION
 
-
 START_SECTION([EXTRA] load with restricted MS levels)
+{
   MzMLFile file;
   file.getOptions().addMSLevel(1);
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),3)
   TEST_REAL_SIMILAR(exp[0].getRT(),5.1)
   TEST_REAL_SIMILAR(exp[1].getRT(),5.3)
   TEST_REAL_SIMILAR(exp[2].getRT(),5.4)
+}
 END_SECTION
 
-
 START_SECTION([EXTRA] load with restricted RT range)
+{
   MzMLFile file;
   file.getOptions().setRTRange(makeRange(5.15,5.35));
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
   TEST_EQUAL(exp.size(),2)
   TEST_REAL_SIMILAR(exp[0].getRT(),5.2)
   TEST_REAL_SIMILAR(exp[1].getRT(),5.3)
+}
 END_SECTION
 
 START_SECTION([EXTRA] load with restricted m/z range)
+{
   MzMLFile file;
   file.getOptions().setMZRange(makeRange(6.5,9.5));
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),4)
@@ -871,12 +956,14 @@ START_SECTION([EXTRA] load with restricted m/z range)
   TEST_REAL_SIMILAR(exp[2][1].getMZ(),8.0)
   TEST_REAL_SIMILAR(exp[2][2].getMZ(),9.0)
   TEST_EQUAL(exp[3].size(),0)
+}
 END_SECTION
 
 START_SECTION([EXTRA] load intensity range)
+{
   MzMLFile file;
   file.getOptions().setIntensityRange(makeRange(6.5,9.5));
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),4)
@@ -891,47 +978,39 @@ START_SECTION([EXTRA] load intensity range)
   TEST_REAL_SIMILAR(exp[2][1].getIntensity(),8.0)
   TEST_REAL_SIMILAR(exp[2][2].getIntensity(),7.0)
   TEST_EQUAL(exp[3].size(),0)
-END_SECTION
-
-START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount)))
-{
-  MzMLFile file;
-  file.getOptions().setSizeOnly(true);
-  Size spectra_count, chrom_count;
-  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
-  TEST_EQUAL(spectra_count, 4);
-  TEST_EQUAL(chrom_count, 2);
 }
 END_SECTION
 
+
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
+{
   MzMLFile file;
 
   //test with full file
   {
     //load map
-    MSExperiment<> exp_original;
-    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
+    PeakMap exp_original;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp_original);
     //store map
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
-    file.store(tmp_filename,exp_original);
+    file.store(tmp_filename, exp_original);
     //load written map
-    MSExperiment<> exp;
-    file.load(tmp_filename,exp);
+    PeakMap exp;
+    file.load(tmp_filename, exp);
     //test if everything worked
-    TEST_EQUAL(exp==exp_original,true)
+    TEST_EQUAL(exp == exp_original, true)
     //NOTE: If it does not work, use this code to find out where the difference is
-    TEST_EQUAL(exp.size()==exp_original.size(),true)
-    TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
-    TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)
-    TEST_EQUAL(exp[0]==exp_original[0],true)
-    TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]),true)
-    TEST_EQUAL(exp[1]==exp_original[1],true)
-    TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]),true)
-    TEST_EQUAL(exp[2]==exp_original[2],true)
-    TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]),true)
-    TEST_EQUAL(exp[3]==exp_original[3],true)
+    TEST_EQUAL(exp.size() == exp_original.size(), true)
+    TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original), true)
+    TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]), true)
+    TEST_EQUAL(exp[0] == exp_original[0], true)
+    TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]), true)
+    TEST_EQUAL(exp[1] == exp_original[1], true)
+    TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]), true)
+    TEST_EQUAL(exp[2] == exp_original[2], true)
+    TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]), true)
+    TEST_EQUAL(exp[3] == exp_original[3], true)
     TEST_EQUAL(exp.getChromatograms().size(), exp_original.getChromatograms().size());
     TEST_EQUAL(exp.getChromatograms() == exp_original.getChromatograms(), true);
   }
@@ -939,7 +1018,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
   //test with empty map
   {
 
-    MSExperiment<> empty, exp;
+    PeakMap empty, exp;
 
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
@@ -950,15 +1029,15 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
   //test with one empty spectrum
   {
-    MSExperiment<> empty, exp;
+    PeakMap empty, exp;
     empty.resize(1);
     empty[0].setRT(17.1234);
 
     //this will be set when writing (forced by mzML)
     empty[0].setNativeID("spectrum=0");
     empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-		empty[0].getDataProcessing().push_back( DataProcessingPtr(new DataProcessing) );
-		empty[0].getDataProcessing()[0]->getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
+    empty[0].getDataProcessing().push_back( DataProcessingPtr(new DataProcessing) );
+    empty[0].getDataProcessing()[0]->getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
     empty[0].getAcquisitionInfo().setMethodOfCombination("no combination");
     empty[0].getAcquisitionInfo().resize(1);
 
@@ -969,16 +1048,16 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     TEST_EQUAL(exp==empty,true)
 
     //NOTE: If it does not work, use this code to find out where the difference is
-//    TEST_EQUAL(exp.size()==empty.size(),true)
-//    TEST_EQUAL(exp.ExperimentalSettings::operator==(empty),true)
-//    TEST_EQUAL(exp[0].SpectrumSettings::operator==(empty[0]),true)
-//    TEST_EQUAL(exp[0]==empty[0],true);
+    //    TEST_EQUAL(exp.size()==empty.size(),true)
+    //    TEST_EQUAL(exp.ExperimentalSettings::operator==(empty),true)
+    //    TEST_EQUAL(exp[0].SpectrumSettings::operator==(empty[0]),true)
+    //    TEST_EQUAL(exp[0]==empty[0],true);
   }
 
   //test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
   {
     //load map
-    MSExperiment<> exp_original;
+    PeakMap exp_original;
     file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_original);
     //store map
     std::string tmp_filename;
@@ -986,18 +1065,56 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     file.getOptions().setCompression(true);
     file.store(tmp_filename,exp_original);
     //load written map
-    MSExperiment<> exp;
+    PeakMap exp;
     file.load(tmp_filename,exp);
     //test if everything worked
     TEST_EQUAL(exp == exp_original,true)
   }
 
+}
+END_SECTION
+
+START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const))
+{
+  MzMLFile file;
+
+  // test with full file
+  {
+    // load map
+    PeakMap exp_original;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp_original);
+
+    // store map in our output buffer
+    std::string out;
+    file.storeBuffer(out, exp_original);
+    TEST_EQUAL(out.size(), 36857)
+    TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
+    TEST_EQUAL(out.substr(36857 - 99, 36857 - 1), "</indexList>\n<indexListOffset>36409</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+
+    TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+    TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+  }
+
+  //test with empty map
+  {
+    PeakMap empty;
+
+    //store map
+    std::string out;
+    file.storeBuffer(out, empty);
+    TEST_EQUAL(out.size(), 3167)
+    TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
+    TEST_EQUAL(out.substr(3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+  }
+
+}
 END_SECTION
 
 START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
+{
   std::string tmp_filename;
   MzMLFile file;
-  MSExperiment<> e;
+  PeakMap e;
 
   //written empty file
   NEW_TMP_FILE(tmp_filename);
@@ -1012,13 +1129,15 @@ START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr)
 
   //indexed file
   TEST_EQUAL(file.isValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML")),true)
+}
 END_SECTION
 
 START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+{
   std::string tmp_filename;
   MzMLFile file;
   StringList errors, warnings;
-  MSExperiment<> e;
+  PeakMap e;
 
   //written empty file
   NEW_TMP_FILE(tmp_filename);
@@ -1033,7 +1152,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
   TEST_EQUAL(errors.size(),0)
-  TEST_EQUAL(warnings.size(),8) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
+  TEST_EQUAL(warnings.size(),2) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
 
   //valid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
@@ -1050,21 +1169,67 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 
   //indexed MzML
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML"), errors, warnings),true)
-  TEST_EQUAL(errors.size(),0)
-  TEST_EQUAL(warnings.size(),0)
+  TEST_EQUAL(errors.size(), 0)
+  TEST_EQUAL(warnings.size(), 0)
 
   //invalid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
-  TEST_EQUAL(errors.size(),8)
-  TEST_EQUAL(warnings.size(),1)
-//  for (Size i=0; i<errors.size(); ++i)
-//  {
-//    cout << "ERROR: " << errors[i] << endl;
-//  }
-//  for (Size i=0; i<warnings.size(); ++i)
-//  {
-//    cout << "WARNING: " << warnings[i] << endl;
-//  }
+  TEST_EQUAL(errors.size(), 8)
+  TEST_EQUAL(warnings.size(), 1)
+  //  for (Size i=0; i<errors.size(); ++i)
+  //  {
+  //    cout << "ERROR: " << errors[i] << endl;
+  //  }
+  //  for (Size i=0; i<warnings.size(); ++i)
+  //  {
+  //    cout << "WARNING: " << warnings[i] << endl;
+  //  }
+}
+END_SECTION
+
+START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false))
+{
+  // Create the consumer, set output file name, transform
+  TICConsumer consumer;
+  MzMLFile mzml;
+  String in = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+
+  PeakFileOptions opt = mzml.getOptions();
+  opt.setFillData(true); // whether to actually load any data
+  opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+  opt.setMaxDataPoolSize(100);
+  opt.setAlwaysAppendData(false);
+  mzml.setOptions(opt);
+  mzml.transform(in, &consumer, true, true);
+
+  TEST_EQUAL(consumer.nr_spectra, 4)
+  TEST_EQUAL(consumer.nr_peaks, 40)
+  TEST_REAL_SIMILAR(consumer.TIC, 350)
+}
+END_SECTION
+
+START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false))
+{
+  // Create the consumer, set output file name, transform
+  TICConsumer consumer;
+  MzMLFile mzml;
+  PeakMap map;
+  String in = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+
+  PeakFileOptions opt = mzml.getOptions();
+  opt.setFillData(true); // whether to actually load any data
+  opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+  opt.setMaxDataPoolSize(100);
+  opt.setAlwaysAppendData(false);
+  mzml.setOptions(opt);
+  mzml.transform(in, &consumer, map, true, true);
+
+  TEST_EQUAL(consumer.nr_spectra, 4)
+  TEST_EQUAL(consumer.nr_peaks, 40)
+  TEST_REAL_SIMILAR(consumer.TIC, 350)
+
+  TEST_EQUAL(map.getNrSpectra(), 4)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

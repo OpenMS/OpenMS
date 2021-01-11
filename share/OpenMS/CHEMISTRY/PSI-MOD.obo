@@ -2667,31 +2667,32 @@ property_value: TermSpec: "none"
 is_a: MOD:00905 ! modified L-cysteine residue
 is_a: MOD:01155 ! lipoconjugated residue
 
-[Term]
-id: MOD:00117
-name: S-(L-isoglutamyl)-L-cysteine
-def: "A protein modification that effectively crosslinks an L-cysteine residue and an L-glutamine residue by a thioester bond to form S-(L-isoglutamyl)-L-cysteine." [ChEBI:22021, DeltaMass:0, PubMed:6838833, RESID:AA0108]
-comment: Cross-link 2; DeltaMass calculates the mass difference from glutamic acid rather than glutamine.
-subset: PSI-MOD slim
-synonym: "(S)-2-amino-5-((R)-2-amino-2-carboxyethyl)sulfanyl-5-oxopentanoic acid" EXACT RESID-systematic []
-synonym: "(S,R)-2-amino-4-[S-(2-amino-2-carboxyethyl)thiocarboxy]butanoic acid" EXACT RESID-alternate []
-synonym: "2-amino-5-(2-amino-2-carboxyethyl)thio-5-oxopentanoic acid" EXACT RESID-alternate []
-synonym: "gamma-(S-cysteinyl)glutamic acid" EXACT RESID-alternate []
-synonym: "Isoglutamyl cysteine thioester (Cys-Gln)" EXACT UniProt-feature []
-synonym: "S-gamma-glutamyl (crosslinked to cysteine)" EXACT DeltaMass-label []
-property_value: DiffAvg: "-17.03"
-property_value: DiffFormula: "C 0 H -3 N -1 O 0 S 0"
-property_value: DiffMono: "-17.026549"
-property_value: Formula: "C 8 H 10 N 2 O 3 S 1"
-property_value: MassAvg: "214.24"
-property_value: MassMono: "214.041213"
-property_value: Origin: "C, Q"
-property_value: Source: "Natural"
-property_value: TermSpec: "none"
-is_a: MOD:00395 ! thioester crosslinked residues
-is_a: MOD:00905 ! modified L-cysteine residue
-is_a: MOD:00907 ! modified L-glutamine residue
-is_a: MOD:00946 ! crosslinked residues with loss of ammonia
+## Made unreadable, because of conflict with a UniMod modification. This Mod has never been read into OpenMS before anyway.
+##[Term]
+##id: MOD:00117
+##name: S-(L-isoglutamyl)-L-cysteine
+##def: "A protein modification that effectively crosslinks an L-cysteine residue and an L-glutamine residue by a thioester bond to form S-(L-isoglutamyl)-L-cysteine." [ChEBI:22021, DeltaMass:0, PubMed:6838833, RESID:AA0108]
+##comment: Cross-link 2; DeltaMass calculates the mass difference from glutamic acid rather than glutamine.
+##subset: PSI-MOD slim
+##synonym: "(S)-2-amino-5-((R)-2-amino-2-carboxyethyl)sulfanyl-5-oxopentanoic acid" EXACT RESID-systematic []
+##synonym: "(S,R)-2-amino-4-[S-(2-amino-2-carboxyethyl)thiocarboxy]butanoic acid" EXACT RESID-alternate []
+##synonym: "2-amino-5-(2-amino-2-carboxyethyl)thio-5-oxopentanoic acid" EXACT RESID-alternate []
+##synonym: "gamma-(S-cysteinyl)glutamic acid" EXACT RESID-alternate []
+##synonym: "Isoglutamyl cysteine thioester (Cys-Gln)" EXACT UniProt-feature []
+##synonym: "S-gamma-glutamyl (crosslinked to cysteine)" EXACT DeltaMass-label []
+##property_value: DiffAvg: "-17.03"
+##property_value: DiffFormula: "C 0 H -3 N -1 O 0 S 0"
+##property_value: DiffMono: "-17.026549"
+##property_value: Formula: "C 8 H 10 N 2 O 3 S 1"
+##property_value: MassAvg: "214.24"
+##property_value: MassMono: "214.041213"
+##property_value: Origin: "C, Q"
+##property_value: Source: "Natural"
+##property_value: TermSpec: "none"
+##is_a: MOD:00395 ! thioester crosslinked residues
+##is_a: MOD:00905 ! modified L-cysteine residue
+##is_a: MOD:00907 ! modified L-glutamine residue
+##is_a: MOD:00946 ! crosslinked residues with loss of ammonia
 
 [Term]
 id: MOD:00118
@@ -3065,30 +3066,31 @@ is_a: MOD:00692 ! uncategorized crosslink
 is_a: MOD:00912 ! modified L-lysine residue
 is_a: MOD:00916 ! modified L-serine residue
 
-[Term]
-id: MOD:00133
-name: N6-(L-isoglutamyl)-L-lysine
-def: "A protein modification that effectively crosslinks an L-glutamine residue and an L-lysine residue by an isopeptide bond to form N6-(L-isoglutamyl)-L-lysine." [ChEBI:21863, DeltaMass:0, PubMed:2461365, PubMed:5637041, PubMed:5656070, PubMed:8598899, RESID:AA0124]
-comment: Cross-link 2.
-subset: PSI-MOD slim
-synonym: "(S,S)-2-amino-6-[(4-amino-4-carboxybutanoyl)amino]hexanoic acid" EXACT RESID-systematic []
-synonym: "gamma-(N6-lysyl)glutamic acid" EXACT RESID-alternate []
-synonym: "Isoglutamyl lysine isopeptide (Lys-Gln) (interchain with Q-...)" EXACT UniProt-feature []
-synonym: "N alpha -(gamma-Glutamyl)-lysine" EXACT DeltaMass-label []
-synonym: "N(epsilon)-(gamma-glutamyl)lysine" EXACT RESID-alternate []
-property_value: DiffAvg: "-17.03"
-property_value: DiffFormula: "C 0 H -3 N -1 O 0"
-property_value: DiffMono: "-17.026549"
-property_value: Formula: "C 11 H 17 N 3 O 3"
-property_value: MassAvg: "239.27"
-property_value: MassMono: "239.126991"
-property_value: Origin: "K, Q"
-property_value: Source: "Natural"
-property_value: TermSpec: "none"
-is_a: MOD:00688 ! isopeptide crosslinked residues
-is_a: MOD:00907 ! modified L-glutamine residue
-is_a: MOD:00912 ! modified L-lysine residue
-is_a: MOD:00946 ! crosslinked residues with loss of ammonia
+## Made unreadable, because of conflict with a UniMod modification. This Mod has never been read into OpenMS before anyway.
+##[Term]
+##id: MOD:00133
+##name: N6-(L-isoglutamyl)-L-lysine
+##def: "A protein modification that effectively crosslinks an L-glutamine residue and an L-lysine residue by an isopeptide bond to form N6-(L-isoglutamyl)-L-lysine." [ChEBI:21863, DeltaMass:0, PubMed:2461365, PubMed:5637041, PubMed:5656070, PubMed:8598899, RESID:AA0124]
+##comment: Cross-link 2.
+##subset: PSI-MOD slim
+##synonym: "(S,S)-2-amino-6-[(4-amino-4-carboxybutanoyl)amino]hexanoic acid" EXACT RESID-systematic []
+##synonym: "gamma-(N6-lysyl)glutamic acid" EXACT RESID-alternate []
+##synonym: "Isoglutamyl lysine isopeptide (Lys-Gln) (interchain with Q-...)" EXACT UniProt-feature []
+##synonym: "N alpha -(gamma-Glutamyl)-lysine" EXACT DeltaMass-label []
+##synonym: "N(epsilon)-(gamma-glutamyl)lysine" EXACT RESID-alternate []
+##property_value: DiffAvg: "-17.03"
+##property_value: DiffFormula: "C 0 H -3 N -1 O 0"
+##property_value: DiffMono: "-17.026549"
+##property_value: Formula: "C 11 H 17 N 3 O 3"
+##property_value: MassAvg: "239.27"
+##property_value: MassMono: "239.126991"
+##property_value: Origin: "K, Q"
+##property_value: Source: "Natural"
+##property_value: TermSpec: "none"
+##is_a: MOD:00688 ! isopeptide crosslinked residues
+##is_a: MOD:00907 ! modified L-glutamine residue
+##is_a: MOD:00912 ! modified L-lysine residue
+##is_a: MOD:00946 ! crosslinked residues with loss of ammonia
 
 [Term]
 id: MOD:00134

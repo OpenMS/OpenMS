@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 using namespace std;
 
@@ -47,10 +48,14 @@ namespace OpenMS
   {
   }
 
-  BaseFeature::BaseFeature(const BaseFeature& rhs) :
-    RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
-    peptides_(rhs.peptides_)
+  BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index) :
+      RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
+      peptides_(rhs.peptides_)
   {
+    for (auto& pep : this->peptides_)
+    {
+      pep.setMetaValue("map_index", map_index);
+    }
   }
 
   BaseFeature::BaseFeature(const RichPeak2D& point) :
@@ -58,23 +63,18 @@ namespace OpenMS
   {
   }
 
-  BaseFeature::BaseFeature(const Peak2D& point) :
-    RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
+  BaseFeature::BaseFeature(const FeatureHandle& fh) :
+    RichPeak2D(fh),
+    quality_(0.0),
+    charge_(fh.getCharge()),
+    width_(fh.getWidth()),
+    peptides_()
   {
   }
 
-  BaseFeature& BaseFeature::operator=(const BaseFeature& rhs)
+  BaseFeature::BaseFeature(const Peak2D& point) :
+    RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
   {
-    if (&rhs == this)
-      return *this;
-
-    RichPeak2D::operator=(rhs);
-    quality_ = rhs.quality_;
-    charge_ = rhs.charge_;
-    width_ = rhs.width_;
-    peptides_ =  rhs.peptides_;
-
-    return *this;
   }
 
   bool BaseFeature::operator==(const BaseFeature& rhs) const

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H
-#define OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -54,7 +53,7 @@ public:
     TMTSixPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTSixPlexQuantitationMethod();
+    ~TMTSixPlexQuantitationMethod() = default;
 
     /// Copy c'tor
     TMTSixPlexQuantitationMethod(const TMTSixPlexQuantitationMethod& other);
@@ -65,15 +64,15 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getName() const;
+    const String& getMethodName() const override;
 
-    const IsobaricChannelList& getChannelInformation() const;
+    const IsobaricChannelList& getChannelInformation() const override;
 
-    Size getNumberOfChannels() const;
+    Size getNumberOfChannels() const override;
 
-    virtual Matrix<double> getIsotopeCorrectionMatrix() const;
+    Matrix<double> getIsotopeCorrectionMatrix() const override;
 
-    Size getReferenceChannel() const;
+    Size getReferenceChannel() const override;
 
     /// @}
 
@@ -92,9 +91,8 @@ public:
     void setDefaultParams_();
 
     /// implemented for DefaultParamHandler
-    void updateMembers_();
+    void updateMembers_() override;
 
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H

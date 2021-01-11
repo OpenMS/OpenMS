@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,88 +29,88 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATATRANSFORMINGCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATATRANSFORMINGCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
 
 namespace OpenMS
 {
 
     /**
-      @brief Empty (NOP) function
-    */
-    OPENMS_DLLAPI extern void FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */);
-
-    /**
-      @brief Empty (NOP) function
-    */
-    OPENMS_DLLAPI extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* c */);
-
-    /**
       @brief Transforming consumer of MS data
 
-      Is able to transform a spectra on the fly while it is read using a
-      function pointer that can be set on the object.
+      Is able to work on spectrum/chromatogram on the fly while it is read using a
+      lambda function provided by the user.
+      The lambda can transform the spectrum/chromatogram in-place or just extract some
+      information and store it in locally captured variables. 
+      Just make sure the captured variables are still in scope when this consumer is used.
+
     */
     class OPENMS_DLLAPI MSDataTransformingConsumer :
-      public Interfaces::IMSDataConsumer<>
+      public Interfaces::IMSDataConsumer
     {
 
     public:
-      typedef MSExperiment<> MapType;
-      typedef MapType::SpectrumType SpectrumType;
-      typedef MapType::ChromatogramType ChromatogramType;
 
       /**
         @brief Constructor
       */
-      MSDataTransformingConsumer()
-      {
-        sprocessing_ptr_ = &FunctionSpectrumNOP; // setting default processing action to noop
-        cprocessing_ptr_ = &FunctionChromatogramNOP; // setting default processing action to noop
-      }
+      MSDataTransformingConsumer();
 
       /// Default destructor
-      virtual ~MSDataTransformingConsumer() { }
+      ~MSDataTransformingConsumer() override;
 
-      virtual void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */)
-      {
-        // do nothing
-      }
+      /// ignored
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override;
 
-      virtual void consumeSpectrum(SpectrumType & s)
-      {
-        // apply the given function to it
-        (*sprocessing_ptr_)(s);
-      }
+      void consumeSpectrum(SpectrumType& s) override;
 
-      virtual void setSpectraProcessingPtr( void (*sproptr)(SpectrumType&) )
-      {
-        sprocessing_ptr_ = sproptr;
-      }
+      /**
+        @brief Sets the lambda function to be called for every spectrum which is passed to this interface
 
-      virtual void consumeChromatogram(ChromatogramType & c)
-      {
-        // apply the given function to it
-        (*cprocessing_ptr_)(c);
-      }
+        The lambda can contain locally captured variables, which allow to change some state. Make sure
+        that the captured variables are still in scope (i.e. not destroyed at the point of calling the lambda).
+        Pass a nullptr if the spectrum should be left unchanged.
+      */
+      virtual void setSpectraProcessingFunc( std::function<void (SpectrumType&)> f_spec );
 
-      virtual void setChromatogramProcessingPtr( void (*cproptr)(ChromatogramType&) )
-      {
-        cprocessing_ptr_ = cproptr;
-      }
+      void consumeChromatogram(ChromatogramType& c) override;
 
-      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {}
+      /**
+        @brief Sets the lambda function to be called for every chromatogram which is passed to this interface
+
+        The lambda can contain locally captured variables, which allow to change some state. Make sure
+        that the captured variables are still in scope (i.e. not destroyed at the point of calling the lambda).
+        Pass a nullptr if the chromatogram should be left unchanged.
+      */
+      virtual void setChromatogramProcessingFunc( std::function<void (ChromatogramType&)> f_chrom );
+
+      /**
+        @brief Sets the lambda function to be called when setExperimentalSettings is called via this interface
+
+        The lambda can contain locally captured variables, which allow to change some state. Make sure
+        that the captured variables are still in scope (i.e. not destroyed at the point of calling the lambda).
+        Pass a nullptr if nothing should happen (default).
+      */
+      virtual void setExperimentalSettingsFunc( std::function<void (const OpenMS::ExperimentalSettings&)> f_exp_settings );
+
+      /// ignored
+      void setExperimentalSettings(const OpenMS::ExperimentalSettings&) override;
 
     protected:
-      void (*sprocessing_ptr_)(SpectrumType&);
-      void (*cprocessing_ptr_)(ChromatogramType&);
+      std::function<void (SpectrumType&)> lambda_spec_;
+      std::function<void (ChromatogramType&)> lambda_chrom_;
+      std::function<void (const OpenMS::ExperimentalSettings&)> lambda_exp_settings_;
     };
 
 } //end namespace OpenMS
 
-#endif // OPENMS_FORMAT_DATAACCESS_MSDATATRANSFORMINGCONSUMER_H

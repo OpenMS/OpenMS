@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 #include <algorithm>
 #include <cmath>
 
 #include <boost/math/special_functions/acosh.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 
 using std::max;
@@ -117,7 +115,7 @@ namespace OpenMS
     //termination states.
     if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
     {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeak:", "Could not fit the data: Error " + String(status));
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-OptimizePeak:", "Could not fit the data: Error " + String(status));
     }
 
     // iterate over all peaks and store the optimized values in peaks
@@ -135,9 +133,9 @@ namespace OpenMS
       {
         PeakShape p = peaks[global_peak_number + current_peak];
         double x_left_endpoint = p.mz_position - 1 / p.left_width * sqrt(p.height / 1 - 1);
-        double x_rigth_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
+        double x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
         double area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
-        double area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_rigth_endpoint));
+        double area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
         peaks[global_peak_number + current_peak].area = area_left + area_right;
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "Lorentz " << area_left << " " << area_right
@@ -148,14 +146,14 @@ namespace OpenMS
       {
         PeakShape p = peaks[global_peak_number + current_peak];
         double x_left_endpoint = p.mz_position - 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-        double x_rigth_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+        double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
         double area_left = p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint)) / cosh(p.left_width * (p.mz_position - x_left_endpoint)));
-        double area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_rigth_endpoint)) / cosh(p.right_width * (p.mz_position - x_rigth_endpoint)));
+        double area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint)) / cosh(p.right_width * (p.mz_position - x_right_endpoint)));
         peaks[global_peak_number + current_peak].area = area_left + area_right;
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "Sech " << area_left << " " << area_right
                   << " " << peaks[global_peak_number + current_peak].area << std::endl;
-        std::cout << p.mz_position << " " << x_left_endpoint << " " << x_rigth_endpoint << std::endl;
+        std::cout << p.mz_position << " " << x_left_endpoint << " " << x_right_endpoint << std::endl;
 #endif
       }
     }

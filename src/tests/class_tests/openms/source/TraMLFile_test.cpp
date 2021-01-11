@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -36,9 +36,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+///////////////////////////
+
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,8 +50,8 @@ START_TEST(TraMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-TraMLFile * ptr = 0;
-TraMLFile * nullPointer = 0;
+TraMLFile * ptr = nullptr;
+TraMLFile * nullPointer = nullptr;
 
 START_SECTION((TraMLFile()))
 {
@@ -67,9 +68,7 @@ END_SECTION
 
 START_SECTION((void load(const String &filename, TargetedExperiment & id)))
 {
-  TraMLFile file;
-  TargetedExperiment exp;
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp);
+  NOT_TESTABLE // tested below
 }
 END_SECTION
 
@@ -85,7 +84,6 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   file.store(tmp_filename, exp_original);
-  //file.store("include.traML", TargetedExperiment());
   //load written map
   TargetedExperiment exp;
   file.load(tmp_filename, exp);

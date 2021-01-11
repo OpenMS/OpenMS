@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@
 namespace OpenMS
 {
   void MapConversion::convert(UInt64 const input_map_index,
-                              MSExperiment<>& input_map,
+                              PeakMap& input_map,
                               ConsensusMap& output_map,
                               Size n)
   {
@@ -70,7 +70,7 @@ namespace OpenMS
                                             element_index));
     }
 
-    output_map.getFileDescriptions()[input_map_index].size = n;
+    output_map.getColumnHeaders()[input_map_index].size = n;
     output_map.updateRanges();
   }
 
@@ -119,7 +119,7 @@ namespace OpenMS
     {
       output_map.push_back(ConsensusFeature(input_map_index, input_map[element_index]));
     }
-    output_map.getFileDescriptions()[input_map_index].size = static_cast<Size>(input_map.size());
+    output_map.getColumnHeaders()[input_map_index].size = static_cast<Size>(input_map.size());
     output_map.setProteinIdentifications(input_map.getProteinIdentifications());
     output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
     output_map.updateRanges();

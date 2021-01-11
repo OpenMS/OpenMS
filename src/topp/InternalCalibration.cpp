@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,9 +40,12 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <vector>
 
@@ -111,7 +114,7 @@ using namespace std;
      The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
   
   2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
-    Each line represents one lock mass in the format: <m/z>, <ms-level>, <charge>
+    Each line represents one lock mass in the format: \<m/z\>, \<ms-level\>, \<charge\>
     Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
 
     Example:
@@ -133,6 +136,8 @@ using namespace std;
   Usually, peptide ID's provide calibration points for MS1 precursors, i.e. are suitable for MS1. They are applicable for MS2 only if
   the same mass analyzer was used (e.g. Q-Exactive). In other words, MS/MS spectra acquired using the ion trap analyzer of a Velos cannot be calibrated using
   peptide ID's.
+  Precursor m/z associated to higher-level MS spectra are corrected if their precursor spectra are subject to calibration, 
+  e.g. precursor information within MS2 spectra is calibrated if target ms-level is set to 1.
   Lock masses ('cal:lock_in') can be specified freely for MS1 and/or MS2.
 
 
@@ -162,13 +167,14 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // data
     registerInputFile_("in", "<file>", "", "Input peak file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerOutputFile_("out", "<file>", "", "Output file ");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", {"mzML"});
+    registerInputFile_("rscript_executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false, false, {"is_executable"});
         
     addEmptyLine_();
 
@@ -177,13 +183,13 @@ protected:
     // transformation
     registerTOPPSubsection_("cal", "Chose one of two optional input files ('id_in' or 'lock_in') to define the calibration masses/function");
     registerInputFile_("cal:id_in", "<file>", "", "Identifications or features whose peptide ID's serve as calibration masses.", false);
-    setValidFormats_("cal:id_in", ListUtils::create<String>("idXML,featureXML"));
+    setValidFormats_("cal:id_in", {"idXML", "featureXML"});
     registerInputFile_("cal:lock_in", "<file>", "", "Input file containing reference m/z values (text file with each line as: m/z ms-level charge) which occur in all scans.", false);
-    setValidFormats_("cal:lock_in", ListUtils::create<String>("csv"));
+    setValidFormats_("cal:lock_in", {"csv"});
     registerOutputFile_("cal:lock_out", "<file>", "", "Optional output file containing peaks from 'in' which were matched to reference m/z values. Useful to see which peaks were used for calibration.", false);
-    setValidFormats_("cal:lock_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("cal:lock_out", {"mzML"});
     registerOutputFile_("cal:lock_fail_out", "<file>", "", "Optional output file containing lock masses which were NOT found or accepted(!) in data from 'in'. Useful to see which peaks were used for calibration.", false);
-    setValidFormats_("cal:lock_fail_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("cal:lock_fail_out", {"mzML"});
     registerFlag_("cal:lock_require_mono", "Require all lock masses to be monoisotopic, i.e. not the iso1, iso2 etc ('charge' column is used to determine the spacing). Peaks which are not mono-isotopic are not used.");
     registerFlag_("cal:lock_require_iso", "Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used.");
     registerStringOption_("cal:model_type", 
@@ -195,7 +201,7 @@ protected:
 
     addEmptyLine_();
     
-    registerIntList_("ms_level", "i j ...", ListUtils::create<int>("1,2,3"), "Target MS levels to apply the transformation onto. Does not affect calibrant collection.", false);
+    registerIntList_("ms_level", "i j ...", {1, 2, 3}, "Target MS levels to apply the transformation onto. Does not affect calibrant collection.", false);
     
     registerDoubleOption_("RT_chunking", "<RT window in [sec]>", 300, "RT window (one-sided, i.e. left->center, or center->right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model.", false);
     
@@ -213,28 +219,26 @@ protected:
     
     registerTOPPSubsection_("goodness", "Thresholds for accepting calibration success");
     registerDoubleOption_("goodness:median", "<threshold>", 4.0, "The median ppm error of calibrated masses must be smaller than this threshold.", false);
-    registerDoubleOption_("goodness:MAD", "<threshold>", 1.0, "The median absolute deviation of the ppm error of calibrated masses must be smaller than this threshold.", false);
+    registerDoubleOption_("goodness:MAD", "<threshold>", 2.0, "The median absolute deviation of the ppm error of calibrated masses must be smaller than this threshold.", false);
 
     registerTOPPSubsection_("quality_control", "Tables and plots to verify calibration performance");
     registerOutputFile_("quality_control:models", "<table>", "", "Table of model parameters for each spectrum.", false);
-    setValidFormats_("quality_control:models", ListUtils::create<String>("csv"));
+    setValidFormats_("quality_control:models", {"csv"});
     registerOutputFile_("quality_control:models_plot", "<image>", "", "Plot image of model parameters for each spectrum.", false);
-    setValidFormats_("quality_control:models_plot", ListUtils::create<String>("png"));
+    setValidFormats_("quality_control:models_plot", {"png"});
     registerOutputFile_("quality_control:residuals", "<table>", "", "Table of pre- and post calibration errors.", false);
-    setValidFormats_("quality_control:residuals", ListUtils::create<String>("csv"));
+    setValidFormats_("quality_control:residuals", {"csv"});
     registerOutputFile_("quality_control:residuals_plot", "<image>", "", "Plot image of pre- and post calibration errors.", false);
-    setValidFormats_("quality_control:residuals_plot", ListUtils::create<String>("png"));
-
-
+    setValidFormats_("quality_control:residuals_plot", {"png"});
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
     String in = getStringOption_("in");
-    String out = getStringOption_("out"); 
+    String out = getStringOption_("out");
     String cal_id = getStringOption_("cal:id_in");
     String cal_lock = getStringOption_("cal:lock_in");
     String file_cal_lock_out = getStringOption_("cal:lock_out");
@@ -245,7 +249,7 @@ protected:
 
     if (((int)!cal_lock.empty() + (int)!cal_id.empty()) != 1)
     {
-      LOG_ERROR << "Conflicting input given. Please provide only ONE of either 'cal:id_in' or 'cal:lock_in'!" << std::endl;
+      OPENMS_LOG_ERROR << "Conflicting input given. Please provide only ONE of either 'cal:id_in' or 'cal:lock_in'!" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -254,7 +258,7 @@ protected:
     //-------------------------------------------------------------
 
     // Raw data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
     mz_file.load(in, exp);
@@ -297,7 +301,7 @@ protected:
         iter->split(",", vec);
         if (vec.size() != 3)
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
         }
         ref_masses.push_back(InternalCalibration::LockMass(vec[0].toDouble(), vec[1].toInt(), vec[2].toInt()));
       }
@@ -312,15 +316,15 @@ protected:
       // write matched lock mass peaks
       if (!file_cal_lock_out.empty())
       {
-        LOG_INFO << "\nWriting matched lock masses to mzML file '" << file_cal_lock_out << "'." << std::endl;
-        MSExperiment<> exp_out;
+        OPENMS_LOG_INFO << "\nWriting matched lock masses to mzML file '" << file_cal_lock_out << "'." << std::endl;
+        PeakMap exp_out;
         exp_out.set2DData(ic.getCalibrationPoints(), CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_out, exp_out);
       }
       if (!file_cal_lock_fail_out.empty())
       {
-        LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
-        MSExperiment<> exp_out;
+        OPENMS_LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
+        PeakMap exp_out;
         exp_out.set2DData(failed_points, CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_fail_out, exp_out);
       }
@@ -330,8 +334,17 @@ protected:
 
     if (ic.getCalibrationPoints().empty())
     {
-      LOG_ERROR << "No calibration points found! Check your Raw data and calibration masses. Aborting!" << std::endl;
-      return UNEXPECTED_RESULT;
+      OPENMS_LOG_ERROR << "No calibration points found! Check your Raw data and calibration masses." << std::endl;
+      if (!getFlag_("force"))
+      {
+        OPENMS_LOG_ERROR << "Set the 'force' flag to true if you want to continue with uncalibrated data." << std::endl;
+        return UNEXPECTED_RESULT;
+      }
+      OPENMS_LOG_ERROR << "The 'force' flag was set to true. Storing uncalibrated data to '-out'." << std::endl;
+      // do not calibrate
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CALIBRATION));
+      mz_file.store(out, exp);
+      return EXECUTION_OK;
     }
       
     //
@@ -345,15 +358,24 @@ protected:
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 
+    String file_models_plot = getStringOption_("quality_control:models_plot");
+    String file_residuals_plot = getStringOption_("quality_control:residuals_plot");
+    String rscript_executable;
+    if (!file_models_plot.empty() || !file_residuals_plot.empty())
+    { // only check for existance of Rscript if output files are requested...
+      rscript_executable = getStringOption_("rscript_executable");
+    }
+
     if (!ic.calibrate(exp, ms_level, md, rt_chunk, use_RANSAC, 
                       getDoubleOption_("goodness:median"),
                       getDoubleOption_("goodness:MAD"), 
                       getStringOption_("quality_control:models"),
-                      getStringOption_("quality_control:models_plot"),
+                      file_models_plot,
                       getStringOption_("quality_control:residuals"),
-                      getStringOption_("quality_control:residuals_plot")))
+                      file_residuals_plot,
+                      rscript_executable))
     {
-      LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
+      OPENMS_LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
       return UNEXPECTED_RESULT;
     }
  

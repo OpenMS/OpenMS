@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ACQUISITIONINFO_H
-#define OPENMS_METADATA_ACQUISITIONINFO_H
+#pragma once
 
 #include <OpenMS/METADATA/Acquisition.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -59,14 +58,18 @@ private:
 
 public:
     /// Constructor
-    AcquisitionInfo();
+    AcquisitionInfo() = default;
     /// Copy constructor
-    AcquisitionInfo(const AcquisitionInfo& source);
+    AcquisitionInfo(const AcquisitionInfo&) = default;
+    /// Move constructor
+    AcquisitionInfo(AcquisitionInfo&&) = default;
     /// Destructor
-    ~AcquisitionInfo();
+    ~AcquisitionInfo() = default;
 
     /// Assignment operator
-    AcquisitionInfo& operator=(const AcquisitionInfo& source);
+    AcquisitionInfo& operator=(const AcquisitionInfo&) = default;
+    /// Move assignment operator
+    AcquisitionInfo& operator=(AcquisitionInfo&&) & = default;
 
     /// Equality operator
     bool operator==(const AcquisitionInfo& rhs) const;
@@ -100,4 +103,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_ACQUISITIONINFO_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,8 @@ START_TEST(KroenikFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-KroenikFile* ptr = 0;
-KroenikFile* null_ptr = 0;
+KroenikFile* ptr = nullptr;
+KroenikFile* null_ptr = nullptr;
 START_SECTION(KroenikFile())
 {
 	ptr = new KroenikFile();
@@ -95,7 +95,7 @@ END_SECTION
 START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
 {
   KroenikFile f;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,19 +28,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
-
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
 // #define MIN_DOUBLE_MZ 900.0
 
@@ -115,9 +112,7 @@ namespace OpenMS
     return *this;
   }
 
-  CompNovoIdentificationBase::~CompNovoIdentificationBase()
-  {
-  }
+  CompNovoIdentificationBase::~CompNovoIdentificationBase() = default;
 
   void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum & spec, const String & sequence, double prefix, double suffix)
   {
@@ -149,11 +144,14 @@ namespace OpenMS
     }
 
     spec.sortByPosition();
-    return;
   }
 
   void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, double prefix, double suffix)
   {
+    if (isotope_distributions_.empty())
+    {
+      initIsotopeDistributions_();
+    }
     static double h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
     static double nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
     static double co_mass = EmpiricalFormula("CO").getMonoWeight();
@@ -223,8 +221,6 @@ namespace OpenMS
           }
         }
 
-
-
         if (y_pos > min_mz_ && y_pos < max_mz_)
         {
           // y-ions
@@ -268,8 +264,8 @@ namespace OpenMS
 
     // if Q1 abundant loss of water -> pyroglutamic acid formation
 
-    if (sequence[0] == 'Q' && prefix == 0 && suffix == 0)
-    {
+    //if (sequence[0] == 'Q' && prefix == 0 && suffix == 0)
+    //{
       /*
       for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
       {
@@ -284,12 +280,8 @@ namespace OpenMS
   spec.push_back(p);
       }
       */
-    }
-
-
+    //}
     spec.sortByPosition();
-
-    return;
   }
 
   void CompNovoIdentificationBase::filterPermuts_(set<String> & permut)
@@ -310,7 +302,6 @@ namespace OpenMS
       }
     }
     permut = tmp;
-    return;
   }
 
   Size CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String & peptide) const
@@ -332,7 +323,7 @@ namespace OpenMS
     return missed_cleavages;
   }
 
-  void CompNovoIdentificationBase::permute_(String prefix, String s, set<String> & permutations)
+  void CompNovoIdentificationBase::permute_(const String& prefix, String s, set<String> & permutations)
   {
     if (s.size() <= 1)
     {
@@ -369,8 +360,6 @@ namespace OpenMS
     {
       decomp_cache_[mass]  = decomps;
     }
-
-    return;
   }
 
   void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
@@ -412,7 +401,7 @@ namespace OpenMS
       right = new_right;
 
 
-      if (!(right - left > 1))
+      if (right - left <= 1)
       {
         return;
       }
@@ -478,7 +467,6 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         max = 0;
       }
     }
-    return;
   }
 
   // s1 should be the original spectrum
@@ -581,21 +569,20 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
       }
     }
     decomps = tmp;
-    return;
   }
 
   void CompNovoIdentificationBase::initIsotopeDistributions_()
   {
-    IsotopeDistribution iso_dist(max_isotope_);
+    CoarseIsotopePatternGenerator solver(max_isotope_);
     for (Size i = 1; i <= max_mz_ * 2; ++i)
     {
-      iso_dist.estimateFromPeptideWeight((double)i);
+      auto iso_dist = solver.estimateFromPeptideWeight((double)i);
       iso_dist.renormalize();
       vector<double> iso(max_isotope_, 0.0);
 
       for (Size j = 0; j != iso_dist.size(); ++j)
       {
-        iso[j] = iso_dist.getContainer()[j].second;
+        iso[j] = iso_dist.getContainer()[j].getIntensity();
       }
       isotope_distributions_[i] = iso;
     }
@@ -636,7 +623,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     return seq;
   }
 
-  void    CompNovoIdentificationBase::updateMembers_()
+  void CompNovoIdentificationBase::updateMembers_()
   {
     // init residue mass table
     String residue_set(param_.getValue("residue_set"));
@@ -667,16 +654,16 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
-      ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
+      ResidueModification mod = it->getModification();
       char aa = ' ';
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
-        cerr << "Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+        cerr << "Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        aa = mod.getOrigin()[0];
+        aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)
@@ -691,14 +678,14 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         }
         else
         {
-          cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
+          cerr << "Warning: cannot handle modification " << mod.getName() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
           continue;
         }
       }
 
       //cerr << "Setting fixed modification " << it->getModification() << " of amino acid '" << aa << "'; weight = " << aa_to_weight_[aa] << endl;
 
-      const Residue * res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModificationName());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }
@@ -708,19 +695,19 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
-      ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
+      ResidueModification mod = it->getModification();
       char aa = (*actual_mod_name)[0];
       char origin_aa = ' ';
       ++actual_mod_name;
 
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
-        cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+        cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        origin_aa = mod.getOrigin()[0];
+        origin_aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)
@@ -735,13 +722,13 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         }
         else
         {
-          cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
+          cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << mod.getName() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
           continue;
         }
       }
 
       //cerr << "Mapping variable modification " << it->getModification() << " to letter '" << aa << "' (@" << origin_aa << "); weight = " << aa_to_weight_[aa] << endl;
-      const Residue * res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModificationName());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }
@@ -753,8 +740,6 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     {
         cerr << it->first << " " << precisionWrapper(it->second) << endl;
     }*/
-
-    initIsotopeDistributions_();
 
     Param decomp_param(mass_decomp_algorithm_.getParameters());
     decomp_param.setValue("tolerance", fragment_mass_tolerance_);
@@ -770,6 +755,92 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         min_aa_weight_ = it->second;
       }
     }
+  }
+
+  void CompNovoIdentificationBase::getETDSpectrum_(PeakSpectrum & spec, const String & sequence, Size /* charge */, double prefix, double suffix)
+  {
+    if (isotope_distributions_.empty())
+    {
+      initIsotopeDistributions_();
+    }
+
+    Peak1D p;
+    p.setIntensity(1.0f);
+
+    double c_pos(17.0 + prefix);     // TODO high mass accuracy!!
+    double z_pos(3.0 + suffix);
+    //double b_pos(0.0 + prefix);
+    //double y_pos(18.0 + suffix);
+    // sometimes also b and y ions are in this spectrum
+
+    #ifdef ETD_SPECTRUM_DEBUG
+    cerr << "ETDSpectrum for " << sequence << " " << prefix << " " << suffix << endl;
+    #endif
+
+    for (Size i = 0; i != sequence.size() - 1; ++i)
+    {
+      char aa(sequence[i]);
+      char aa_cterm(sequence[i + 1]);
+      #ifdef ETD_SPECTRUM_DEBUG
+      cerr << aa << " " << aa_cterm << endl;
+      #endif
+
+      c_pos += aa_to_weight_[aa];
+      //b_pos += aa_to_weight_[aa];
+
+      char aa2(sequence[sequence.size() - i - 1]);
+      z_pos += aa_to_weight_[aa2];
+      //y_pos += aa_to_weight_[aa2];
+
+      #ifdef ETD_SPECTRUM_DEBUG
+      cerr << b_pos << " " << c_pos << " " << y_pos << " " << z_pos << endl;
+      #endif
+
+      if (aa_cterm != 'P')
+      {
+        // c-ions
+        if (c_pos + 1 >= min_mz_ && c_pos + 1 <= max_mz_)
+        {
+          //p.setIntensity(0.3);
+          //p.setPosition(c_pos);
+          //spec.push_back(p);
+          for (Size j = 0; j != max_isotope_; ++j)
+          {
+            p.setIntensity(isotope_distributions_[(int)c_pos][j]);
+            p.setPosition(c_pos + 1 + j);
+            spec.push_back(p);
+          }
+        }
+      }
+
+      if (aa2 != 'P')
+      {
+        // z-ions
+        if (z_pos >= min_mz_ && z_pos <= max_mz_)
+        {
+          p.setIntensity(0.3f);
+          p.setPosition(z_pos);
+          spec.push_back(p);
+
+          for (Size j = 0; j != max_isotope_; ++j)
+          {
+            p.setIntensity(isotope_distributions_[(int)z_pos][j]);
+            p.setPosition(z_pos + 1 + j);
+            spec.push_back(p);
+          }
+        }
+      }
+    }
+
+    spec.sortByPosition();
+
+    #ifdef ETD_SPECTRUM_DEBUG
+    for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    {
+      cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
+    }
+    #endif
+
     return;
   }
 

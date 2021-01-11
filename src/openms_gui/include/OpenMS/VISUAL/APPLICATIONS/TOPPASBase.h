@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,32 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
-#define OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
 
 //QT
-#include <QtGui/QMainWindow>
-#include <QtGui/QWorkspace>
-#include <QtGui/QButtonGroup>
-#include <QtCore/QProcess>
-#include <QtGui/QSplashScreen>
-#include <QNetworkReply>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtNetwork/QNetworkReply>
+#include <QtWidgets/QSplashScreen>
 
 class QToolBar;
 class QListWidget;
 class QTextEdit;
-class QWorkspace;
+class QMdiArea;
 class QLabel;
 class QWidget;
 class QTreeWidget;
@@ -64,10 +63,11 @@ class QNetworkAccessManager;
 
 namespace OpenMS
 {
+  class EnhancedWorkSpace;
+  class EnhancedTabBar;
   class TOPPASWidget;
   class TOPPASScene;
-  class TOPPASTabBar;
-  class TOPPASLogWindow;
+  class LogWindow;
   class TOPPASResources;
 
   /**
@@ -84,9 +84,9 @@ namespace OpenMS
 public:
 
     ///Constructor
-    TOPPASBase(QWidget* parent = 0);
+    TOPPASBase(QWidget* parent = nullptr);
     ///Destructor
-    virtual ~TOPPASBase();
+    ~TOPPASBase() override;
 
     /**
 @brief Loads the preferences from the filename given.
@@ -103,11 +103,11 @@ public slots:
     /// opens the file in a new window
     void addTOPPASFile(const String& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
-    void openFileDialog();
+    void openFilesByDialog();
     /// shows the dialog for opening example files
     void openExampleDialog();
-    /// shows the dialog for creating a new file (pass IDINITIALUNTITLED as @p id if its the first call)
-    void newPipeline(const int id = -1);
+    /// creates a new tab
+    void newPipeline();
     /// shows the dialog for including another workflow in the currently opened one
     void includePipeline();
     /// shows the dialog for saving the current file and updates the current tab caption
@@ -127,7 +127,7 @@ public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget* w);
+    void updateTabBar(QMdiSubWindow* w);
     /// Shows the 'About' dialog
     void showAboutDialog();
     /// shows the URL stored in the data of the sender QAction
@@ -186,10 +186,10 @@ protected slots:
 
     /// enable/disable menu entries depending on the current state
     void updateMenu();
-    /// Shows the widget as window in the workspace (the special_id is only used for the first untitled widget (to be able to auto-close it later)
-    void showAsWindow_(TOPPASWidget* sw, const String& caption, const int special_id = -1);
+    /// Shows the widget as window in the workspace
+    void showAsWindow_(TOPPASWidget* sw, const String& caption);
     /// Inserts a new TOPP tool in the current window at (x,y)
-    void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
+    void insertNewVertex_(double x, double y, QTreeWidgetItem* item = nullptr);
     /// Inserts the @p item in the middle of the current window
     void insertNewVertexInCenter_(QTreeWidgetItem* item);
 
@@ -206,7 +206,7 @@ protected slots:
 protected:
 
     /// Log output window
-    TOPPASLogWindow* log_;
+    LogWindow* log_;
     /// Workflow Description window
     QTextEdit* desc_;
 
@@ -217,7 +217,7 @@ protected:
     //@}
 
     /// Main workspace
-    QWorkspace* ws_;
+    EnhancedWorkspace* ws_;
 
     /// OpenMS homepage workflow browser
     QWebView* webview_;
@@ -227,7 +227,7 @@ protected:
     QNetworkReply* network_reply_;
 
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-    TOPPASTabBar* tab_bar_;
+    EnhancedTabBar* tab_bar_;
 
     /// Tree view of all available TOPP tools
     QTreeWidget* tools_tree_view_;
@@ -259,36 +259,23 @@ protected:
     static qreal z_value_;
 
     ///returns a pointer to the active TOPPASWidget (0 if none is active)
-    TOPPASWidget* activeWindow_() const;
+    TOPPASWidget* activeSubWindow_() const;
 
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent* event);
-    void keyPressEvent(QKeyEvent* e);
+    void closeEvent(QCloseEvent* event) override;
+    void keyPressEvent(QKeyEvent* e) override;
     //@}
-
-    ///Log message states
-    enum LogState
-    {
-      LS_NOTICE, ///< Notice
-      LS_WARNING, ///< Warning
-      LS_ERROR ///< Fatal error
-    };
-    /// Shows a log message in the log_ window
-    void showLogMessage_(LogState state, const String& heading, const String& body);
 
     /// The clipboard
     TOPPASScene* clipboard_scene_;
 
 
 public:
-    /// use this for the first call to newPipeline(), to ensure that the first empty (and unmodified) workspace is closed iff existing workflows are loaded
-    static int const IDINITIALUNTITLED = 1000;
-
     /// @name common functions used in TOPPAS and TOPPView
     //@{
     /// Creates and fills a tree widget with all available tools
-    static TOPPASTreeView* createTOPPToolsTreeWidget(QWidget* parent_widget = 0);
+    static TOPPASTreeView* createTOPPToolsTreeWidget(QWidget* parent_widget = nullptr);
 
     /// Saves the workflow in the provided TOPPASWidget to a user defined location.
     /// Returns the full file name or "" if no valid one is selected.
@@ -307,4 +294,3 @@ public:
 
 } //namespace
 
-#endif // OPENMS_APPLICATIONS_TOPPASBASE_H

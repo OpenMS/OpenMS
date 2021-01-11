@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,8 +48,8 @@ START_TEST(ProtXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ProtXMLFile* ptr = 0;
-ProtXMLFile* nullPointer = 0;
+ProtXMLFile* ptr = nullptr;
+ProtXMLFile* nullPointer = nullptr;
 ProtXMLFile file;
 START_SECTION(ProtXMLFile())
   ptr = new ProtXMLFile();
@@ -67,7 +67,7 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
   PeptideIdentification peptides;
   String prot_file;
 
-        StringList ids = ListUtils::create<String>("16627578304933075941,13229490167902618598");
+  StringList ids = ListUtils::create<String>("16627578304933075941,13229490167902618598");
   // we do this twice, just to check that members are correctly reset etc..
   for (Int i=0;i<2;++i)
   {
@@ -116,7 +116,7 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
     TEST_EQUAL(peptides.getHits()[0].getSequence(), aa_seq);
     TEST_EQUAL(peptides.getHits()[0].getCharge(), 2);
     TEST_EQUAL(peptides.getHits()[0].getScore(), 0.8633);
-    set<String> protein_accessions = peptides.getHits()[0].extractProteinAccessions();
+    set<String> protein_accessions = peptides.getHits()[0].extractProteinAccessionsSet();
     TEST_EQUAL(protein_accessions.size(), 1);
     TEST_EQUAL(*protein_accessions.begin(), "P02787|TRFE_HUMAN");
     TEST_EQUAL(peptides.getHits()[0].getMetaValue("is_unique"), true);

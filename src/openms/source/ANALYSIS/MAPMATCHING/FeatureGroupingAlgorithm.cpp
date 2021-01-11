@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,18 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 // Derived classes are included here
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
-#include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -50,11 +49,11 @@ namespace OpenMS
   //register products here
   void FeatureGroupingAlgorithm::registerChildren()
   {
-    // deprecated:
-    // Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmIdentification::getProductName(), &FeatureGroupingAlgorithmIdentification::create );
     Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmLabeled::getProductName(), &FeatureGroupingAlgorithmLabeled::create);
     Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmUnlabeled::getProductName(), &FeatureGroupingAlgorithmUnlabeled::create);
     Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmQT::getProductName(), &FeatureGroupingAlgorithmQT::create);
+    Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmKD::getProductName(), &FeatureGroupingAlgorithmKD::create);
+
   }
 
   FeatureGroupingAlgorithm::FeatureGroupingAlgorithm() :
@@ -64,7 +63,7 @@ namespace OpenMS
 
   void FeatureGroupingAlgorithm::group(const vector<ConsensusMap>& maps, ConsensusMap& out)
   {
-    LOG_WARN << "FeatureGroupingAlgorithm::group() does not support ConsensusMaps directly. Converting to FeatureMaps." << endl;
+    OPENMS_LOG_WARN << "FeatureGroupingAlgorithm::group() does not support ConsensusMaps directly. Converting to FeatureMaps." << endl;
 
     vector<FeatureMap> maps_f;
     for (Size i = 0; i < maps.size(); ++i)
@@ -81,17 +80,17 @@ namespace OpenMS
   {
     // accumulate file descriptions from the input maps:
     // cout << "Updating file descriptions..." << endl;
-    out.getFileDescriptions().clear();
-    // mapping: (map index, original id) -> new id
+    out.getColumnHeaders().clear();
+    // mapping: (input file index / map index assigned by the linkers, old map index) -> new map index
     map<pair<Size, UInt64>, Size> mapid_table;
     for (Size i = 0; i < maps.size(); ++i)
     {
       const ConsensusMap& consensus = maps[i];
-      for (ConsensusMap::FileDescriptions::const_iterator desc_it = consensus.getFileDescriptions().begin(); desc_it != consensus.getFileDescriptions().end(); ++desc_it)
+      for (ConsensusMap::ColumnHeaders::const_iterator desc_it = consensus.getColumnHeaders().begin(); desc_it != consensus.getColumnHeaders().end(); ++desc_it)
       {
         Size counter = mapid_table.size();
         mapid_table[make_pair(i, desc_it->first)] = counter;
-        out.getFileDescriptions()[counter] = desc_it->second;
+        out.getColumnHeaders()[counter] = desc_it->second;
       }
     }
 
@@ -130,6 +129,43 @@ namespace OpenMS
         }
       }
       *cons_it = adjusted;
+
+      for (auto& id : cons_it->getPeptideIdentifications())
+      {
+        // if old_map_index is not present, there was no map_index in the beginning,
+        // therefore the newly assigned map_index cannot be "corrected"
+        // -> remove the MetaValue to be consistent.
+        if (id.metaValueExists("old_map_index"))
+        {
+          Size old_map_index = id.getMetaValue("old_map_index");
+          Size file_index = id.getMetaValue("map_index");
+          Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
+          id.setMetaValue("map_index", new_idx);
+          id.removeMetaValue("old_map_index");
+        }
+        else
+        {
+          id.removeMetaValue("map_index");
+        }
+      }
+    }
+    for (auto& id : out.getUnassignedPeptideIdentifications())
+    {
+      // if old_map_index is not present, there was no map_index in the beginning,
+      // therefore the newly assigned map_index cannot be "corrected"
+      // -> remove the MetaValue to be consistent.
+      if (id.metaValueExists("old_map_index"))
+      {
+        Size old_map_index = id.getMetaValue("old_map_index");
+        Size file_index = id.getMetaValue("map_index");
+        Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
+        id.setMetaValue("map_index", new_idx);
+        id.removeMetaValue("old_map_index");
+      }
+      else
+      {
+        id.removeMetaValue("map_index");
+      }
     }
   }
 
@@ -137,4 +173,4 @@ namespace OpenMS
   {
   }
 
-}
+} //namespace OpenMS

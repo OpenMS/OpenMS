@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMMEDIAN_H
-#define OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMMEDIAN_H
+#pragma once
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
@@ -93,7 +92,7 @@ public:
      * @brief returns whether consensus feature passes filters
      * returns whether consensus feature @p cf_it in @p map passes accession
      * regexp @p acc_filter and description regexp @p desc_filter
-     * @param cf_it consenus feature
+     * @param cf_it consensus feature
      * @param map consensus map
      * @param acc_filter string describing the regular expression for filtering accessions
      * @param desc_filter string describing the regular expression for filtering descriptions
@@ -103,4 +102,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMMEDIAN_H

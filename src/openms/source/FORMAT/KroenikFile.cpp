@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,17 +34,9 @@
 
 #include <OpenMS/FORMAT/KroenikFile.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
 #include <OpenMS/FORMAT/TextFile.h>
-
-#include <vector>
 
 namespace OpenMS
 {
@@ -81,7 +73,7 @@ namespace OpenMS
 
       if (parts.size() != 14)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                     String("Failed parsing in line ")
                                     + String((it - input.begin()) + 1)
                                     + ": missing 14 tab-separated entries (got "
@@ -131,7 +123,7 @@ namespace OpenMS
       feature_map.push_back(f);
     }
 
-    LOG_INFO << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
+    OPENMS_LOG_INFO << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
   }
 
 } // namespace OpenMS

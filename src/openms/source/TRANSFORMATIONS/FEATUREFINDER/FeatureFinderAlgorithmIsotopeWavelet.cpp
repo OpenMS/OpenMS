@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,18 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <iostream>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -84,11 +79,11 @@ namespace OpenMS
   {
   }
 
-  MSSpectrum<FeatureFinderAlgorithmIsotopeWavelet::PeakType>* FeatureFinderAlgorithmIsotopeWavelet::createHRData(const UInt i)
+  MSSpectrum* FeatureFinderAlgorithmIsotopeWavelet::createHRData(const UInt i)
   {
-    MSSpectrum<PeakType> spec((*this->map_)[i]);
+    MSSpectrum spec((*this->map_)[i]);
 
-    const MSSpectrum<PeakType>& specr((*this->map_)[i]);
+    const MSSpectrum& specr((*this->map_)[i]);
 
     for (UInt j = 0; j < spec.size() - 1; ++j)
     {
@@ -97,7 +92,7 @@ namespace OpenMS
     }
     spec[spec.size() - 1].setMZ(-1); spec[spec.size() - 1].setIntensity(-1);
 
-    ConstRefVector<MSSpectrum<PeakType> > c_sorted_spec(spec.begin(), spec.end());
+    ConstRefVector<MSSpectrum> c_sorted_spec(spec.begin(), spec.end());
     //Sort in ascending order according to the intensities present in the transform
     c_sorted_spec.sortByPosition();
 
@@ -129,7 +124,7 @@ namespace OpenMS
       bound = (1. / max_charge_) / 2. / 4.;
     }
 
-    MSSpectrum<PeakType>* new_spec = new MSSpectrum<PeakType>;
+    MSSpectrum* new_spec = new MSSpectrum;
     new_spec->reserve(200000);
     new_spec->setRT(((*this->map_)[i]).getRT());
     PeakType p; p.setMZ(specr[0].getMZ()); p.setIntensity(specr[0].getIntensity());
@@ -185,7 +180,7 @@ namespace OpenMS
     IsotopeWaveletTransform<PeakType>* iwt = new IsotopeWaveletTransform<PeakType>(min_mz, max_mz, max_charge_, max_size, hr_data_, intensity_type_);
     for (UInt i = 0; i < this->map_->size(); ++i)
     {
-      const MSSpectrum<PeakType>& c_ref((*this->map_)[i]);
+      const MSSpectrum& c_ref((*this->map_)[i]);
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
       std::cout << ::std::fixed << ::std::setprecision(6) << "Spectrum " << i + 1 << " (" << (*this->map_)[i].getRT() << ") of " << this->map_->size() << " ... ";
@@ -206,7 +201,7 @@ namespace OpenMS
         iwt->initializeScan((*this->map_)[i]);
         for (UInt c = 0; c < max_charge_; ++c)
         {
-          MSSpectrum<PeakType> c_trans(c_ref);
+          MSSpectrum c_trans(c_ref);
 
           iwt->getTransform(c_trans, c_ref, c);
 
@@ -238,9 +233,9 @@ namespace OpenMS
       {
         for (UInt c = 0; c < max_charge_; ++c)
         {
-          MSSpectrum<PeakType>* new_spec = createHRData(i);
+          MSSpectrum* new_spec = createHRData(i);
           iwt->initializeScan(*new_spec, c);
-          MSSpectrum<PeakType> c_trans(*new_spec);
+          MSSpectrum c_trans(*new_spec);
 
           iwt->getTransformHighRes(c_trans, *new_spec, c);
 
@@ -267,7 +262,7 @@ namespace OpenMS
 #endif
           this->ff_->setProgress(++progress_counter_);
 
-          delete (new_spec); new_spec = NULL;
+          delete (new_spec); new_spec = nullptr;
         }
       }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using std::vector;
 
@@ -70,7 +69,7 @@ namespace OpenMS
     // TODO: add other enzymes
     if (param.getValue("Digestion:enzyme") != "Trypsin")
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "18 O Labeling requires digestion with Trypsin");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "18 O Labeling requires digestion with Trypsin");
     }
   }
 
@@ -79,7 +78,7 @@ namespace OpenMS
     // no action here .. just check for 2 channels
     if (features.size() != 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(features.size()) + " channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(features.size()) + " channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!");
     }
   }
 
@@ -214,10 +213,10 @@ namespace OpenMS
     features_to_simulate.push_back(final_feature_map);
 
     consensus_.setProteinIdentifications(final_feature_map.getProteinIdentifications());
-    ConsensusMap::FileDescription map_description;
+    ConsensusMap::ColumnHeader map_description;
     map_description.label = "Simulation (Labeling Consensus)";
     map_description.size = features_to_simulate.size();
-    consensus_.getFileDescriptions()[0] = map_description;
+    consensus_.getColumnHeaders()[0] = map_description;
   }
 
   Feature O18Labeler::mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const

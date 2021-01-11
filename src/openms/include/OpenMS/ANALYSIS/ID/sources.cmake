@@ -4,7 +4,10 @@ set(directory include/OpenMS/ANALYSIS/ID)
 ### list all header files of the directory here
 set(sources_list_h
 AccurateMassSearchEngine.h
+AhoCorasickAmbiguous.h
 AScore.h
+BasicProteinInferenceAlgorithm.h
+BayesianProteinInferenceAlgorithm.h
 ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h
@@ -14,15 +17,29 @@ ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
 ConsensusIDAlgorithmSimilarity.h
 ConsensusIDAlgorithmWorst.h
+ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
+FIAMSDataProcessor.h
+FIAMSScheduler.h
 HiddenMarkovModel.h
+IDBoostGraph.h
 IDDecoyProbability.h
+IDConflictResolverAlgorithm.h
 IDMapper.h
+IDMergerAlgorithm.h
 IDRipper.h
+IDScoreGetterSetter.h
+IDScoreSwitcherAlgorithm.h
+MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideProteinResolution.h
+PrecursorPurity.h
 ProtonDistributionModel.h
 PeptideIndexing.h
+PercolatorFeatureSetHelper.h
+SimpleSearchEngineAlgorithm.h
+SiriusAdapterAlgorithm.h
+SiriusMSConverter.h
 )
 
 ### add path to the filenames
@@ -35,4 +52,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\ANALYSIS\\ID" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

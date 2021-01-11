@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H
-#define OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
@@ -41,6 +40,7 @@
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
 #include <vector>
@@ -48,11 +48,33 @@
 namespace OpenMS
 {
   /**
-    @brief This class stores an prediction of an SRM/MRM transition
+    @brief A description of a targeted experiment containing precursor and production ions.
+
+    A targeted experiment contains transitions used in SRM/MRM as well as
+    SWATH-MS/DIA analysis using a targeted approach. This container holds
+    descriptions of the precursors and product ions analyzed in such a targeted
+    experiment. Generally, the precursor ions can be peptides or small
+    molecules (for metabolomics) and each precursor has a set of product ions
+    associated with it.
+
+    The TargetedExperiment can be stored to disk either in .traml format using
+    the @ref TraMLFile "TraMLFile" or in .tsv format using the TransitionTSVFile.
+
   */
   class OPENMS_DLLAPI TargetedExperiment
   {
 public:
+    
+    struct OPENMS_DLLAPI SummaryStatistics
+    {
+      Size protein_count;
+      Size peptide_count;
+      Size compound_count;
+      Size transition_count;
+      std::map<ReactionMonitoringTransition::DecoyTransitionType, size_t> decoy_counts; ///< # target/decoy transitions
+      bool contains_invalid_references;
+    };
+
 
     typedef TargetedExperimentHelper::CV CV;
     typedef TargetedExperimentHelper::Protein Protein;
@@ -63,10 +85,13 @@ public:
     typedef TargetedExperimentHelper::Publication Publication;
     typedef TargetedExperimentHelper::Instrument Instrument;
     typedef TargetedExperimentHelper::Prediction Prediction;
+    typedef TargetedExperimentHelper::Interpretation Interpretation;
     typedef ReactionMonitoringTransition Transition;
+    typedef Residue IonType; // IonType enum of Interpretation class
 
     typedef std::map<String, const Protein *> ProteinReferenceMapType;
     typedef std::map<String, const Peptide *> PeptideReferenceMapType;
+    typedef std::map<String, const Compound *> CompoundReferenceMapType;
 
     /** @name Constructors and destructors
     */
@@ -104,7 +129,7 @@ public:
 
       @param rhs The targeted experiment to add to this one.
     */
-    TargetedExperiment & operator+=(const TargetedExperiment & rhs);
+    TargetedExperiment& operator+=(const TargetedExperiment & rhs);
 
     /**
       @brief Clears all data and meta data
@@ -112,6 +137,9 @@ public:
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
+
+    /// return summary stats about this TE.
+    SummaryStatistics getSummary() const;
 
     /** @name Accessors
     */
@@ -165,7 +193,9 @@ public:
 
     const std::vector<Protein> & getProteins() const;
 
-    const Protein & getProteinByRef(const String & ref);
+    const Protein & getProteinByRef(const String & ref) const;
+
+    bool hasProtein(const String & ref) const;
 
     void addProtein(const Protein & protein);
 
@@ -180,7 +210,13 @@ public:
 
     const std::vector<Peptide> & getPeptides() const;
 
-    const Peptide & getPeptideByRef(const String & ref);
+    bool hasPeptide(const String & ref) const;
+
+    const Peptide & getPeptideByRef(const String & ref) const;
+
+    bool hasCompound(const String & ref) const;
+
+    const Compound & getCompoundByRef(const String & ref) const;
 
     void addPeptide(const Peptide & rhs);
 
@@ -223,11 +259,24 @@ public:
     void sortTransitionsByProductMZ();
     //@}
 
+    /**
+      @brief Checks whether the data structure (and the underlying TraML file) contains invalid references
+
+      First checks whether all of the references are unique (protein, peptide,
+      compound). Secondly, checks that each reference is valid and points
+      either to a protein, peptide or compound. 
+
+      Returns false if the file is valid.
+    */
+    bool containsInvalidReferences() const;
+
 protected:
 
-    void createProteinReferenceMap_();
+    void createProteinReferenceMap_() const;
 
-    void createPeptideReferenceMap_();
+    void createPeptideReferenceMap_() const;
+
+    void createCompoundReferenceMap_() const;
 
     std::vector<CV> cvs_;
 
@@ -255,22 +304,27 @@ protected:
 
     std::vector<SourceFile> source_files_;
 
-    ProteinReferenceMapType protein_reference_map_;
+    mutable ProteinReferenceMapType protein_reference_map_;
 
-    bool protein_reference_map_dirty_;
+    mutable bool protein_reference_map_dirty_;
 
-    PeptideReferenceMapType peptide_reference_map_;
+    mutable PeptideReferenceMapType peptide_reference_map_;
 
-    bool peptide_reference_map_dirty_;
+    mutable bool peptide_reference_map_dirty_;
+
+    mutable CompoundReferenceMapType compound_reference_map_;
+
+    mutable bool compound_reference_map_dirty_;
 
   };
-
 
   namespace TargetedExperimentHelper
   {
   } // namespace TargetedExperimentHelper
 
+  /// prints out the summary statistics
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const TargetedExperiment::SummaryStatistics& s);
+
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,20 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-
-#include <algorithm>
-#include <numeric>
-#include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -58,18 +53,17 @@ namespace OpenMS
   {
     defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks (in seconds).");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
-    // defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
 
     // NOTE: the algorithm will only act upon the "fixed" value, if you would
     // like to use the "auto" setting, you will have to call filterByPeakWidth
     // yourself
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
     defaults_.setValidStrings("width_filtering", ListUtils::create<String>("off,fixed,auto"));
-    defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_fwhm", 1.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
     defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
     this->setLogType(CMD);
@@ -142,7 +136,7 @@ namespace OpenMS
 
     if (mt_length != tr.getSize())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
     }
 
@@ -544,7 +538,7 @@ namespace OpenMS
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();
-
+          new_mt.setQuantMethod(mt.getQuantMethod());
           if (pw_filtering_ != "fixed")
           {
             new_mt.estimateFWHM(true);
@@ -569,15 +563,19 @@ namespace OpenMS
     // looking at the unit test, this method gives better fits than lowess smoothing
     // reference paper uses lowess smoothing
 
-    MSSpectrum<PeakType> spectrum;
-    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
+    MSSpectrum spectrum;
+    for (Size i = 0; i != mt.getSize(); ++i)
+    {
+      spectrum.push_back(Peak1D(mt[i].getRT(), mt[i].getIntensity()));
+    }
+
     SavitzkyGolayFilter sg;
     Param param;
     param.setValue("polynomial_order", 2);
     param.setValue("frame_length", std::max(3, win_size)); // frame length must be at least polynomial_order+1, otherwise SG will fail
     sg.setParameters(param);
     sg.filter(spectrum);
-    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
+    MSSpectrum::iterator iter = spectrum.begin();
     std::vector<double> smoothed_intensities;
     for (; iter != spectrum.end(); ++iter)
     {

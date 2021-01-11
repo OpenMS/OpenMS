@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse$
-// $Authors: Hendrik Brauer, Oiver Kohlbacher, Johannes Junker$
+// $Authors: Hendrik Brauer, Oliver Kohlbacher, Johannes Junker$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -47,8 +47,8 @@ START_TEST(ConsensusMapNormalizerAlgorithmThreshold, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMapNormalizerAlgorithmThreshold* ptr = 0;
-ConsensusMapNormalizerAlgorithmThreshold* nullPointer = 0;
+ConsensusMapNormalizerAlgorithmThreshold* ptr = nullptr;
+ConsensusMapNormalizerAlgorithmThreshold* nullPointer = nullptr;
 START_SECTION(ConsensusMapNormalizerAlgorithmThreshold())
 {
   ptr = new ConsensusMapNormalizerAlgorithmThreshold();

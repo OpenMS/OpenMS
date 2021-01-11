@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MRM_MRMFRAGMENTSELECTION_H
-#define OPENMS_ANALYSIS_MRM_MRMFRAGMENTSELECTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -72,20 +71,19 @@ public:
     MRMFragmentSelection(const MRMFragmentSelection & rhs);
 
     /// destructor
-    virtual ~MRMFragmentSelection();
+    ~MRMFragmentSelection() override;
     //@}
 
     /// assignment operator
     MRMFragmentSelection & operator=(const MRMFragmentSelection & rhs);
 
     /// selects accordingly to the parameters the best peaks of spec and writes them into selected_peaks
-    void selectFragments(std::vector<RichPeak1D> & selected_peaks, const RichPeakSpectrum & spec);
+    void selectFragments(std::vector<Peak1D> & selected_peaks, const PeakSpectrum & spec);
 
 protected:
 
-    /// returns true if the selection of peak is allowed, according to the parameters set
-    bool peakselectionIsAllowed_(const RichPeak1D & peak);
+    /// returns true if the selection of peak is allowed, according to the parameters set and the ion name
+    bool peakselectionIsAllowed_(const String& name, const int charge);
   };
 }
 
-#endif

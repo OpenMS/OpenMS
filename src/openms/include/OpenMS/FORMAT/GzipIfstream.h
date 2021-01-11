@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_GZIPIFSTREAM_H
-#define OPENMS_FORMAT_GZIPIFSTREAM_H
+#pragma once
 
 #include <OpenMS/config.h>
+
 #include <zlib.h>
 
 namespace OpenMS
@@ -118,9 +118,9 @@ protected:
     ///a gzFile object(void*) . Necessary for decompression
     gzFile gzfile_;
     ///counts the last read duffer
-    int     n_buffer_;
+    int n_buffer_;
     ///saves the last returned error by the read function
-    int     gzerror_;
+    int gzerror_;
     ///true if end of file is reached
     bool stream_at_end_;
 
@@ -136,7 +136,7 @@ protected:
 
   inline bool GzipIfstream::isOpen() const
   {
-    return gzfile_ != NULL;
+    return gzfile_ != nullptr;
   }
 
   inline bool GzipIfstream::streamEnd() const
@@ -151,4 +151,3 @@ protected:
     }*/
 
 } //namespace OpenMS
-#endif //OPENMS_FORMAT_GZIPIFSTREAM_H

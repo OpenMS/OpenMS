@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,16 +42,16 @@ namespace OpenMS
   {
   }
 
-  void SeedListGenerator::generateSeedList(const MSExperiment<>& experiment,
+  void SeedListGenerator::generateSeedList(const PeakMap& experiment,
                                            SeedList& seeds)
   {
     seeds.clear();
-    for (MSExperiment<>::ConstIterator exp_it = experiment.begin();
+    for (PeakMap::ConstIterator exp_it = experiment.begin();
          exp_it != experiment.end(); ++exp_it)
     {
       if (exp_it->getMSLevel() == 2) // MS2 spectrum -> look for precursor
       {
-        MSExperiment<>::ConstIterator prec_it =
+        PeakMap::ConstIterator prec_it =
           experiment.getPrecursorSpectrum(exp_it);
         const vector<Precursor>& precursors = exp_it->getPrecursors();
         DPosition<2> point(prec_it->getRT(), precursors[0].getMZ());
@@ -74,8 +74,7 @@ namespace OpenMS
         pep_it->sort();
         const PeptideHit& hit = pep_it->getHits().front();
         Int charge = hit.getCharge();
-        mz = hit.getSequence().getMonoWeight(Residue::Full, charge) /
-             double(charge);
+        mz = hit.getSequence().getMZ(charge);
       }
       else
       {
@@ -97,9 +96,9 @@ namespace OpenMS
       DPosition<2> point(cons_it->getRT(), cons_it->getMZ());
       // for each sub-map in the consensus map, add a seed at the position of
       // this consensus feature:
-      for (ConsensusMap::FileDescriptions::const_iterator file_it =
-             consensus.getFileDescriptions().begin(); file_it !=
-           consensus.getFileDescriptions().end(); ++file_it)
+      for (ConsensusMap::ColumnHeaders::const_iterator file_it =
+             consensus.getColumnHeaders().begin(); file_it !=
+           consensus.getColumnHeaders().end(); ++file_it)
         seed_lists[file_it->first].push_back(point);
       // for each feature contained in the consensus feature, remove the seed of
       // the corresponding map:
