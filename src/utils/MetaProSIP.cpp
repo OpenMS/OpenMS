@@ -231,7 +231,7 @@ public:
 
       if (debug)
       {
-        LOG_DEBUG << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
+        OPENMS_LOG_DEBUG << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }
 
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
