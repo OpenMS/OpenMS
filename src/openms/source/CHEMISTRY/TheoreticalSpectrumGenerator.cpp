@@ -216,6 +216,15 @@ namespace OpenMS
     if (ion_names_dynamic) delete ion_names;
 
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
+
+    // set MS Level
+    spectrum.setMSLevel(2);
+
+    // set precursor
+    Precursor prec;
+    prec.setCharge(max_charge + 1);
+    prec.setMZ(peptide.getMZ(max_charge +1, Residue::Full));
+    spectrum.getPrecursors().push_back(prec);
   }
 
 

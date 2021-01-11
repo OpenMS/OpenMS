@@ -129,9 +129,13 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
   }
 
+  TEST_REAL_SIMILAR(peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
+
   spec.clear(true);
   ptr->getSpectrum(spec, peptide, 1, 2);
   TEST_EQUAL(spec.size(), 22)
+
+  TEST_REAL_SIMILAR(peptide.getMZ(3, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   spec.clear(true);
   Param param(ptr->getParameters());
@@ -188,6 +192,8 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ptr->setParameters(param);
   ptr->getSpectrum(spec, new_peptide, 1, 1);
   TEST_EQUAL(spec.size(), 52-1)
+
+  TEST_REAL_SIMILAR(new_peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   vector<double> generated;
   for (Size i = 0; i != spec.size(); ++i)
@@ -339,6 +345,8 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   spec.clear(true);
   ptr->getSpectrum(spec, peptide, 3, 3);
   TEST_EQUAL(spec.size(), 30)
+
+  TEST_REAL_SIMILAR(peptide.getMZ(4, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   ion_names.clear();
   // ions without losses
