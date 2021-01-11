@@ -620,15 +620,21 @@ namespace OpenMS
     tsv_file.addLine("Precursor adduct summary for target PSMs:");
     tsv_file.addLine("Precursor adduct:PSMs:PSMs(%)");
 
-    map<size_t, String> count2adduct;
+    vector<pair<size_t, String>> count2adduct;
     size_t total_psms{};
     for (const auto& ac : adduct2count)
     {
-      count2adduct[ac.second] = ac.first;
+      count2adduct.push_back({ac.second, ac.first});
       total_psms += ac.second;
     }
 
-    for (const auto& ca : boost::adaptors::reverse(count2adduct))
+    std::sort(count2adduct.begin(), count2adduct.end(), 
+      [](const pair<size_t, String> & a, const pair<size_t, String> & b) -> bool
+      { 
+         return std::tie(a.first, a.second) > std::tie(b.first, b.second);
+      }); 
+
+    for (const auto& ca : count2adduct)
     {
       tsv_file.addLine(ca.second + " : " + String(ca.first) + " : " + String(100.0 * (double)ca.first / (double)total_psms));
     }

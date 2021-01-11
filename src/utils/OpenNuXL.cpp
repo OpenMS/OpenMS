@@ -736,8 +736,8 @@ protected:
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
-    registerDoubleOption_("report:peptideFDR", "<num>", 0.0, "Maximum q-value of non-cross-linked peptides. (0 = disabled).", false, true);
-    registerDoubleList_("report:xlFDR", "<num>", { 0.0 }, "Maximum q-value of cross-linked peptides. (0 = disabled). If multiple values are provided, multiple output files will be created.", false, true);
+    registerDoubleOption_("report:peptideFDR", "<num>", 0.01, "Maximum q-value of non-cross-linked peptides. (0 = disabled).", false, true);
+    registerDoubleList_("report:xlFDR", "<num>", { 0.01, 0.1, 1.0 }, "Maximum q-value of cross-linked peptides. (0 = disabled). If multiple values are provided, multiple output files will be created.", false, true);
 
     registerInputFile_("percolator_executable", "<executable>", 
  // choose the default value according to the platform where it will be executed
@@ -753,7 +753,7 @@ protected:
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
 
     registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
-    setValidStrings_("RNPxl:presets", {"none", "RNA", "DNA", "RNA-4SU", "RNA-DEB"});
+    setValidStrings_("RNPxl:presets", {"none", "RNA", "DNA", "RNA-4SU", "RNA-DEB", "DNA-DEB"});
 
     registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
 
