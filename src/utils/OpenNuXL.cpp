@@ -352,7 +352,8 @@ protected:
           "G:C5H6O3;ribose-H2O-HPO3",
           "C:C5H6O3;ribose-H2O-HPO3",
           "A:C5H6O3;ribose-H2O-HPO3"};
-      can_cross_link = "UCGA";
+
+      can_cross_link = "U";
     }
     else if (p == "DNA")
     {

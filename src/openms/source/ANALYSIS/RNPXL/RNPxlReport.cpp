@@ -564,7 +564,7 @@ namespace OpenMS
     for (const auto& e : protein_report_entries)
     {
       tsv_file.addLine(String(">") + e.accession + "\t(" + String(e.count) + ")");
-      tsv_file.addLine(e.annotated_sequence);
+      tsv_file.addLine("SEQUENCE: " + e.annotated_sequence);
       //tsv_file.addLine("Cross-link localizations:");
       for (const auto& aa_loc : e.aa_level_localization)
       {
