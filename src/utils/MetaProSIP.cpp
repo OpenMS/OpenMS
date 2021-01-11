@@ -814,7 +814,7 @@ public:
     for (Size i = 0; i != sip_peptide_cluster.size(); ++i)
     {
       const vector<SIPPeptide>& current_cluster = sip_peptide_cluster[i];
-      for (vector<SIPPeptide>::const_iterator sit = current_cluster.begin(); sit != current_cluster.end(); ++sit)
+      for (auto sit = current_cluster.begin(); sit != current_cluster.end(); ++sit)
       {
         // skip natural peptides for repoting if flag is set
         if (report_natural_peptides || sit->incorporations.back().rate >= 5.0)
@@ -844,10 +844,10 @@ public:
       createBinnedPeptideRIAData_(n_heatmap_bins, new_sip_cluster, binned_peptide_ria, class_labels);
       plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
 
-      LOG_INFO << "Plotting filtered spectra for quality report" << endl;
+      OPENMS_LOG_INFO << "Plotting filtered spectra for quality report" << endl;
     plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
 
-      LOG_INFO << "Plotting correlation score and weight distribution" << endl;
+      OPENMS_LOG_INFO << "Plotting correlation score and weight distribution" << endl;
       plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
 
       if (file_extension != "pdf") // html doesn't support pdf as image
@@ -857,10 +857,10 @@ public:
     }
     else
     {
-      LOG_INFO << "No SIP labeled peptides found. No plots generated." << endl;
+      OPENMS_LOG_INFO << "No SIP labeled peptides found. No plots generated." << endl;
       if (!report_natural_peptides)
       {
-        LOG_INFO << "You might still generate plots for the unlabeled peptides by enabling reporting of natural (unlabeled) peptides." << endl;
+        OPENMS_LOG_INFO << "You might still generate plots for the unlabeled peptides by enabling reporting of natural (unlabeled) peptides." << endl;
       }
     }
   }
@@ -1882,22 +1882,22 @@ class MetaProSIPXICExtraction
 public:
   // input: PeakMap, retention time and m/z values used to extract an XIC in windows of +- m/z and rt tolerance
   // output: a vector of XICs
-  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_toelrance_ppm, double rt_tolerance_s, const PeakMap& peak_map)
+  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_tolerance_ppm, double rt_tolerance_s, const PeakMap& peak_map)
   {
     // point on first spectrum in tolerance window
-    PeakMap::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
+    auto rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
 
     // point on after last spectrum in tolerance window
-    PeakMap::ConstIterator rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
+    auto rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
 
     // create set containing all rts of spectra in tolerance window
     set<double> all_rts;
-    for (PeakMap::ConstIterator rt_it = rt_begin; rt_it != rt_end; ++rt_it)
+    for (auto rt_it = rt_begin; rt_it != rt_end; ++rt_it)
     {
       all_rts.insert(rt_it->getRT());
     }
 
-    vector<vector<double> > xics(xic_mzs.size(), vector<double>());
+    vector<vector<double>> xics(xic_mzs.size(), vector<double>());
 
     for (Size i = 0; i < xic_mzs.size(); ++i)
     {
@@ -1909,7 +1909,7 @@ public:
       }
 
       double mz_da = mz_tolerance_ppm * xic_mzs[i] * 1e-6; // mz tolerance in Dalton
-      MSExperiment<>::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
+      auto it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
 
       for (; it != peak_map.areaEndConst(); ++it)
       {
@@ -1937,17 +1937,17 @@ public:
   }
 
   // similar to above but with variable errors
-  static vector<vector<double> > extractXICVariableMZWindows(double seed_rt, vector<pair<double, double> > xic_mz_windows, double rt_tolerance_s, const MSExperiment<Peak1D>& peak_map)
+  static vector<vector<double> > extractXICVariableMZWindows(double seed_rt, vector<pair<double, double> > xic_mz_windows, double rt_tolerance_s, const MSExperiment& peak_map)
   {
     // point on first spectrum in tolerance window
-    MSExperiment<>::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
+    auto rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
 
     // point on after last spectrum in tolerance window
-    MSExperiment<>::ConstIterator rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
+    auto rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
 
     // create set containing all rts of spectra in tolerance window
     set<double> all_rts;
-    for (MSExperiment<>::ConstIterator rt_it = rt_begin; rt_it != rt_end; ++rt_it)
+    for (auto rt_it = rt_begin; rt_it != rt_end; ++rt_it)
     {
       all_rts.insert(rt_it->getRT());
     }
@@ -1963,7 +1963,7 @@ public:
         xic[*sit] = 0;
       }
 
-      MSExperiment<>::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mz_windows[i].first, xic_mz_windows[i].second);
+      auto it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mz_windows[i].first, xic_mz_windows[i].second);
 
       for (; it != peak_map.areaEndConst(); ++it)
       {
@@ -1974,13 +1974,13 @@ public:
         }
         else
         {
-          LOG_WARN << "RT: " << rt << " not contained in rt set." << endl;
+          OPENMS_LOG_WARN << "RT: " << rt << " not contained in rt set." << endl;
         }
       }
 
       // copy map to vector for easier processing
       vector<double> v;
-      for (map<double, double>::const_iterator it = xic.begin(); it != xic.end(); ++it)
+      for (auto it = xic.begin(); it != xic.end(); ++it)
       {
         v.push_back(it->second);
       }
@@ -1990,7 +1990,6 @@ public:
     return xics;
   }
   
-
   static vector<double> correlateXICsToMono(const vector<vector<double> >& xics)
   {
     vector<double> rrs(xics.size(), 0); // correlation of isotopic xics to monoisotopic xic
@@ -2054,7 +2053,7 @@ public:
   //   Then, the extraction windows for the n-th isotopic trace (with n>=5) must range from: seed_mz + n*mass_diff/charge to seed_mz + (n-5)*mass_diff/charge + 5 * (13C-12C)/charge
   //   For n < 5: seed_mz + n * mass_diff/charge to seed_mz + n * (13C-12C)/charge
   //   (+/- the additional error tolerances)
-  static vector<double> extractXICsOfIsotopeTracesVariableWindows(Size element_count, double mass_diff, double mz_tolerance_ppm, double rt_tolerance_s, double seed_rt, double seed_mz, double charge, const MSExperiment<Peak1D>& peak_map, const double min_corr_mono = -1.0)
+  static vector<double> extractXICsOfIsotopeTracesVariableWindows(Size element_count, double mass_diff, double mz_tolerance_ppm, double rt_tolerance_s, double seed_rt, double seed_mz, double charge, const MSExperiment& peak_map, const double min_corr_mono = -1.0)
   {
     vector<pair<double, double> > xic_mz_windows;
 
@@ -2117,9 +2116,9 @@ public:
     }     
 
     // determine rt window of 20s around seed
-    MSExperiment<>::ConstIterator seed_rt_minus_20 = peak_map.RTBegin(seed_rt - 20.0);
-    MSExperiment<>::ConstIterator seed_rt_it = peak_map.RTBegin(seed_rt);
-    MSExperiment<>::ConstIterator seed_rt_plus_20 = peak_map.RTBegin(seed_rt + 20.0);
+    auto seed_rt_minus_20 = peak_map.RTBegin(seed_rt - 20.0);
+    auto seed_rt_it = peak_map.RTBegin(seed_rt);
+    auto seed_rt_plus_20 = peak_map.RTBegin(seed_rt + 20.0);
 
     // index offset (nummber of scans) required to reach +/- 20s in XIC double vector
     Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
@@ -2180,8 +2179,8 @@ public:
       double median_slope = Math::median(slopes.begin(), slopes.end());
       double median_intercept = Math::median(intercepts.begin(), intercepts.end());
 
-      LOG_DEBUG << "Median slope: " << median_slope << endl;
-      LOG_DEBUG << "Median intercept (offset from apex): " << (median_intercept - apex_idx)  << endl;
+      OPENMS_LOG_DEBUG << "Median slope: " << median_slope << endl;
+      OPENMS_LOG_DEBUG << "Median intercept (offset from apex): " << (median_intercept - apex_idx)  << endl;
 
       for (Size k = 0; k != xics.size(); ++k)
       {
