@@ -133,7 +133,7 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge, UInt precursor_charge) const
   {
     if (peptide.empty())
     {
@@ -222,8 +222,14 @@ namespace OpenMS
 
     // set precursor
     Precursor prec;
-    prec.setCharge(max_charge + 1);
-    prec.setMZ(peptide.getMZ(max_charge +1, Residue::Full));
+
+    if (precursor_charge == 0)
+    {
+      precursor_charge = max_charge +1;
+    }
+
+    prec.setCharge(precursor_charge);
+    prec.setMZ(peptide.getMZ(precursor_charge, Residue::Full));
     spectrum.getPrecursors().push_back(prec);
   }
 
