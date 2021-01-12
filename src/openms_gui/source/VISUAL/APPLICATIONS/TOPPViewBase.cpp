@@ -2008,15 +2008,6 @@ namespace OpenMS
         return;
       }
 
-      // set precursor information
-      /*vector<Precursor> precursors;
-      Precursor precursor;
-      precursor.setMZ(aa_sequence.getMZ(charge));
-      precursor.setCharge(charge);
-      precursors.push_back(precursor);
-      spectrum.setPrecursors(precursors);
-      spectrum.setMSLevel(2);*/
-
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));

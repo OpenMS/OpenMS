@@ -180,11 +180,11 @@ namespace OpenMS
         precomputed_MS2[i_f].push_back(p);
       }
 
-      /*precomputed_MS2[i_f].setMSLevel(2);
+      precomputed_MS2[i_f].setMSLevel(2);
       Precursor prec;
       prec.setMZ(features[i_f].getMZ());
       precomputed_MS2[i_f].setPrecursors(std::vector<Precursor>(1, prec));
-      precomputed_MS2[i_f].setMetaValue("FeatureID", static_cast<String>(features[i_f].getUniqueId()));*/
+      precomputed_MS2[i_f].setMetaValue("FeatureID", static_cast<String>(features[i_f].getUniqueId()));
 
 
       // validate features meta values exist and are valid:

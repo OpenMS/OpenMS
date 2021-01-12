@@ -129,6 +129,7 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
   }
 
+  TEST_EQUAL(spec.getMSLevel(), 2);
   TEST_REAL_SIMILAR(peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   spec.clear(true);
@@ -437,6 +438,14 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   ptr->getSpectrum(spec, AASequence::fromString("A"), 1, 1);
   TEST_EQUAL(spec.size(), 0)
 
+  spec.clear(true);
+  ptr->getSpectrum(spec, peptide, 1, 1, 4);
+  ptr->getSpectrum(spec, new_peptide, 1, 3);
+  ABORT_IF(spec.getPrecursors().size() != 2);
+  TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), peptide.getMZ(4));
+  TEST_EQUAL(spec.getPrecursors()[0].getCharge(), 4);
+  TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), new_peptide.getMZ(4));
+  TEST_EQUAL(spec.getPrecursors()[1].getCharge(), 4);
 
 //  // for quick benchmarking of implementation chances
 //  param = ptr->getParameters();
