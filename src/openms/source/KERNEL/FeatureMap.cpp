@@ -477,4 +477,16 @@ namespace OpenMS
     return result;
   }
 
+
+  const IdentificationData& FeatureMap::getIdentificationData() const
+  {
+    return id_data_;
+  }
+
+
+  IdentificationData& FeatureMap::getIdentificationData()
+  {
+    return id_data_;
+  }
+
 }

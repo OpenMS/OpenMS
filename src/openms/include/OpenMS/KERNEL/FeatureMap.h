@@ -307,6 +307,10 @@ public:
 
     OPENMS_DLLAPI std::set<IdentificationDataInternal::InputMatchRef> getUnassignedInputMatches() const;
 
+    OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
+
+    OPENMS_DLLAPI IdentificationData& getIdentificationData();
+
 protected:
 
     /// protein identifications
