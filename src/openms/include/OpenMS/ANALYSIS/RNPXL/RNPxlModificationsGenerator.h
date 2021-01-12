@@ -60,7 +60,7 @@ namespace OpenMS
   {
     struct MyStringLengthCompare
     {
-      bool operator () (const std::string & p_lhs, const std::string & p_rhs)
+      bool operator () (const std::string & p_lhs, const std::string & p_rhs) const
       {
         const size_t lhsLength = p_lhs.length() ;
         const size_t rhsLength = p_rhs.length() ;
