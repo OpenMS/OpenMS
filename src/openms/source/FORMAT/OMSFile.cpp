@@ -66,12 +66,12 @@ namespace OpenMS
   }
 
 
-  OMSFile::OMSFileStore::OMSFileStore(const String& filename,
-                                      const IdentificationData& id_data):
+  OMSFile::OMSFileStore::OMSFileStore(const String& filename, LogType log_type):
     db_name_("store_" + filename.toQString() + "_" +
-             QString::number(UniqueIdGenerator::getUniqueId())),
-    id_data_(id_data)
+             QString::number(UniqueIdGenerator::getUniqueId()))
   {
+    setLogType(log_type);
+
     // delete output file if present:
     File::remove(filename);
 
@@ -134,7 +134,7 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeVersionAndDate()
+  void OMSFile::OMSFileStore::storeVersionAndDate_()
   {
     createTable_("version",
                  "OMSFile INT NOT NULL, "       \
@@ -301,20 +301,25 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeMetaInfo_(const MetaInfoInterface& info,
-                                             const String& parent_table,
-                                             Key parent_id)
+  QSqlQuery OMSFile::OMSFileStore::getQueryMetaInfo_(const String& parent_table)
   {
-    if (info.isMetaEmpty()) return;
-
-    // this assumes the "..._MetaInfo" and "DataValue" tables exist already!
     String table = parent_table + "_MetaInfo";
-
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
                   ":parent_id, "                                    \
                   ":name, "                                         \
                   ":data_value_id)");
+    return query;
+  }
+
+
+  void OMSFile::OMSFileStore::storeMetaInfo_(const MetaInfoInterface& info,
+                                             Key parent_id, QSqlQuery& query)
+  {
+    if (info.isMetaEmpty()) return;
+
+    // this assumes the "..._MetaInfo" and "DataValue" tables exist already,
+    // and the query has been prepared using "getQueryMetaInfo_"!
     query.bindValue(":parent_id", parent_id);
     // this is inefficient, but MetaInfoInterface doesn't support iteration:
     vector<String> info_keys;
@@ -396,9 +401,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeScoreTypes()
+  void OMSFile::OMSFileStore::storeScoreTypes_(const IdentificationData& id_data)
   {
-    if (id_data_.getScoreTypes().empty()) return;
+    if (id_data.getScoreTypes().empty()) return;
 
     createTableCVTerm_();
     createTable_(
@@ -413,7 +418,7 @@ namespace OpenMS
                   ":id, "                                   \
                   ":cv_term_id, "                           \
                   ":higher_better)");
-    for (const ID::ScoreType& score_type : id_data_.getScoreTypes())
+    for (const ID::ScoreType& score_type : id_data.getScoreTypes())
     {
       Key cv_id = storeCVTerm_(score_type.cv_term);
       query.bindValue(":id", Key(&score_type)); // use address as primary key
@@ -428,9 +433,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeInputFiles()
+  void OMSFile::OMSFileStore::storeInputFiles_(const IdentificationData& id_data)
   {
-    if (id_data_.getInputFiles().empty()) return;
+    if (id_data.getInputFiles().empty()) return;
 
     createTable_("ID_InputFile",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
@@ -444,7 +449,7 @@ namespace OpenMS
                   ":name, "                            \
                   ":experimental_design_id, "          \
                   ":primary_files)");
-    for (const ID::InputFile& input : id_data_.getInputFiles())
+    for (const ID::InputFile& input : id_data.getInputFiles())
     {
       query.bindValue(":id", Key(&input));
       query.bindValue(":name", input.name.toQString());
@@ -462,9 +467,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeProcessingSoftwares()
+  void OMSFile::OMSFileStore::storeProcessingSoftwares_(const IdentificationData& id_data)
   {
-    if (id_data_.getProcessingSoftwares().empty()) return;
+    if (id_data.getProcessingSoftwares().empty()) return;
 
     createTable_("ID_ProcessingSoftware",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
@@ -478,8 +483,7 @@ namespace OpenMS
                   ":name, "                                         \
                   ":version)");
     bool any_scores = false; // does any software have assigned scores stored?
-    for (const ID::ProcessingSoftware& software :
-           id_data_.getProcessingSoftwares())
+    for (const ID::ProcessingSoftware& software : id_data.getProcessingSoftwares())
     {
       if (!software.assigned_scores.empty()) any_scores = true;
       query.bindValue(":id", Key(&software));
@@ -508,8 +512,7 @@ namespace OpenMS
         ":software_id, "                                                \
         ":score_type_id, "                                              \
         ":score_type_order)");
-      for (const ID::ProcessingSoftware& software :
-             id_data_.getProcessingSoftwares())
+      for (const ID::ProcessingSoftware& software : id_data.getProcessingSoftwares())
       {
         query.bindValue(":software_id", Key(&software));
         Size counter = 0;
@@ -528,9 +531,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeDBSearchParams()
+  void OMSFile::OMSFileStore::storeDBSearchParams_(const IdentificationData& id_data)
   {
-    if (id_data_.getDBSearchParams().empty()) return;
+    if (id_data.getDBSearchParams().empty()) return;
 
     if (!tableExists_(db_name_, "ID_MoleculeType")) createTableMoleculeType_();
 
@@ -574,7 +577,7 @@ namespace OpenMS
                   ":missed_cleavages, "                   \
                   ":min_length, "                         \
                   ":max_length)");
-    for (const ID::DBSearchParam& param : id_data_.getDBSearchParams())
+    for (const ID::DBSearchParam& param : id_data.getDBSearchParams())
     {
       query.bindValue(":id", Key(&param));
       query.bindValue(":molecule_type_id", int(param.molecule_type) + 1);
@@ -617,9 +620,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeProcessingSteps()
+  void OMSFile::OMSFileStore::storeProcessingSteps_(const IdentificationData& id_data)
   {
-    if (id_data_.getProcessingSteps().empty()) return;
+    if (id_data.getProcessingSteps().empty()) return;
 
     createTable_(
       "ID_ProcessingStep",
@@ -640,17 +643,16 @@ namespace OpenMS
                   ":search_param_id)");
     bool any_input_files = false;
     // use iterator here because we need one to look up the DB search params:
-    for (ID::ProcessingStepRef step_ref =
-           id_data_.getProcessingSteps().begin(); step_ref !=
-           id_data_.getProcessingSteps().end(); ++step_ref)
+    for (ID::ProcessingStepRef step_ref = id_data.getProcessingSteps().begin();
+         step_ref != id_data.getProcessingSteps().end(); ++step_ref)
     {
       const ID::ProcessingStep& step = *step_ref;
       if (!step.input_file_refs.empty()) any_input_files = true;
       query.bindValue(":id", Key(&step));
       query.bindValue(":software_id", Key(&(*step.software_ref)));
       query.bindValue(":date_time", step.date_time.get().toQString());
-      auto pos = id_data_.getDBSearchSteps().find(step_ref);
-      if (pos != id_data_.getDBSearchSteps().end())
+      auto pos = id_data.getDBSearchSteps().find(step_ref);
+      if (pos != id_data.getDBSearchSteps().end())
       {
         query.bindValue(":search_param_id", Key(&(*pos->second)));
       }
@@ -678,8 +680,7 @@ namespace OpenMS
                     ":processing_step_id, "                             \
                     ":input_file_id)");
 
-      for (const ID::ProcessingStep& step :
-             id_data_.getProcessingSteps())
+      for (const ID::ProcessingStep& step : id_data.getProcessingSteps())
       {
         query.bindValue(":processing_step_id", Key(&step));
         for (ID::InputFileRef input_file_ref : step.input_file_refs)
@@ -693,14 +694,13 @@ namespace OpenMS
         }
       }
     }
-    storeMetaInfos_(id_data_.getProcessingSteps(),
-                    "ID_ProcessingStep");
+    storeMetaInfos_(id_data.getProcessingSteps(), "ID_ProcessingStep");
   }
 
 
-  void OMSFile::OMSFileStore::storeInputItems()
+  void OMSFile::OMSFileStore::storeInputItems_(const IdentificationData& id_data)
   {
-    if (id_data_.getInputItems().empty()) return;
+    if (id_data.getInputItems().empty()) return;
 
     createTable_("ID_InputItem",
                  "id INTEGER PRIMARY KEY NOT NULL, "                    \
@@ -718,7 +718,7 @@ namespace OpenMS
                   ":input_file_id, "                  \
                   ":rt, "                             \
                   ":mz)");
-    for (const ID::InputItem& input_item : id_data_.getInputItems())
+    for (const ID::InputItem& input_item : id_data.getInputItems())
     {
       query.bindValue(":id", Key(&input_item)); // use address as primary key
       query.bindValue(":data_id", input_item.data_id.toQString());
@@ -752,13 +752,13 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeMetaInfos_(id_data_.getInputItems(), "ID_InputItem");
+    storeMetaInfos_(id_data.getInputItems(), "ID_InputItem");
   }
 
 
-  void OMSFile::OMSFileStore::storeParentSequences()
+  void OMSFile::OMSFileStore::storeParentSequences_(const IdentificationData& id_data)
   {
-    if (id_data_.getParentSequences().empty()) return;
+    if (id_data.getParentSequences().empty()) return;
 
     if (!tableExists_(db_name_, "ID_MoleculeType")) createTableMoleculeType_();
 
@@ -782,7 +782,7 @@ namespace OpenMS
                   ":description, "                          \
                   ":coverage, "                             \
                   ":is_decoy)");
-    for (const ID::ParentSequence& parent : id_data_.getParentSequences())
+    for (const ID::ParentSequence& parent : id_data.getParentSequences())
     {
       query.bindValue(":id", Key(&parent)); // use address as primary key
       query.bindValue(":accession", parent.accession.toQString());
@@ -797,14 +797,13 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeScoredProcessingResults_(id_data_.getParentSequences(),
-                                  "ID_ParentSequence");
+    storeScoredProcessingResults_(id_data.getParentSequences(), "ID_ParentSequence");
   }
 
 
-  void OMSFile::OMSFileStore::storeParentGroupSets()
+  void OMSFile::OMSFileStore::storeParentGroupSets_(const IdentificationData& id_data)
   {
-    if (id_data_.getParentGroupSets().empty()) return;
+    if (id_data.getParentGroupSets().empty()) return;
 
     createTable_("ID_ParentGroupSet",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
@@ -849,8 +848,7 @@ namespace OpenMS
       ":parent_id)");
 
     Size counter = 0;
-    for (const ID::ParentGroupSet& grouping :
-           id_data_.getParentGroupSets())
+    for (const ID::ParentGroupSet& grouping : id_data.getParentGroupSets())
     {
       Key grouping_id = Key(&grouping);
       query_grouping.bindValue(":id", grouping_id);
@@ -904,8 +902,7 @@ namespace OpenMS
       }
     }
 
-    storeScoredProcessingResults_(id_data_.getParentGroupSets(),
-                                  "ID_ParentGroupSet");
+    storeScoredProcessingResults_(id_data.getParentGroupSets(), "ID_ParentGroupSet");
   }
 
 
@@ -925,9 +922,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeIdentifiedCompounds()
+  void OMSFile::OMSFileStore::storeIdentifiedCompounds_(const IdentificationData& id_data)
   {
-    if (id_data_.getIdentifiedCompounds().empty()) return;
+    if (id_data.getIdentifiedCompounds().empty()) return;
 
     if (!tableExists_(db_name_, "ID_IdentifiedMolecule"))
     {
@@ -958,8 +955,7 @@ namespace OpenMS
                            ":name, "                                    \
                            ":smile, "                                   \
                            ":inchi)");
-    for (const ID::IdentifiedCompound& compound :
-           id_data_.getIdentifiedCompounds())
+    for (const ID::IdentifiedCompound& compound : id_data.getIdentifiedCompounds())
     {
       // use address as primary key:
       query_molecule.bindValue(":id", Key(&compound));
@@ -981,15 +977,15 @@ namespace OpenMS
                       OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
     }
-    storeScoredProcessingResults_(id_data_.getIdentifiedCompounds(),
+    storeScoredProcessingResults_(id_data.getIdentifiedCompounds(),
                                   "ID_IdentifiedMolecule");
   }
 
 
-  void OMSFile::OMSFileStore::storeIdentifiedSequences()
+  void OMSFile::OMSFileStore::storeIdentifiedSequences_(const IdentificationData& id_data)
   {
-    if (id_data_.getIdentifiedPeptides().empty() &&
-        id_data_.getIdentifiedOligos().empty()) return;
+    if (id_data.getIdentifiedPeptides().empty() &&
+        id_data.getIdentifiedOligos().empty()) return;
 
     if (!tableExists_(db_name_, "ID_IdentifiedMolecule"))
     {
@@ -1004,8 +1000,7 @@ namespace OpenMS
     bool any_parent_matches = false;
     // store peptides:
     query.bindValue(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
-    for (const ID::IdentifiedPeptide& peptide :
-           id_data_.getIdentifiedPeptides())
+    for (const ID::IdentifiedPeptide& peptide : id_data.getIdentifiedPeptides())
     {
       if (!peptide.parent_matches.empty()) any_parent_matches = true;
       query.bindValue(":id", Key(&peptide)); // use address as primary key
@@ -1016,11 +1011,11 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeScoredProcessingResults_(id_data_.getIdentifiedPeptides(),
+    storeScoredProcessingResults_(id_data.getIdentifiedPeptides(),
                                   "ID_IdentifiedMolecule");
     // store RNA oligos:
     query.bindValue(":molecule_type_id", int(ID::MoleculeType::RNA) + 1);
-    for (const ID::IdentifiedOligo& oligo : id_data_.getIdentifiedOligos())
+    for (const ID::IdentifiedOligo& oligo : id_data.getIdentifiedOligos())
     {
       if (!oligo.parent_matches.empty()) any_parent_matches = true;
       query.bindValue(":id", Key(&oligo)); // use address as primary key
@@ -1032,19 +1027,18 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeScoredProcessingResults_(id_data_.getIdentifiedOligos(),
+    storeScoredProcessingResults_(id_data.getIdentifiedOligos(),
                                   "ID_IdentifiedMolecule");
 
     if (any_parent_matches)
     {
       createTableParentMatches_();
-      for (const ID::IdentifiedPeptide& peptide :
-             id_data_.getIdentifiedPeptides())
+      for (const ID::IdentifiedPeptide& peptide : id_data.getIdentifiedPeptides())
       {
         if (peptide.parent_matches.empty()) continue;
         storeParentMatches_(peptide.parent_matches, Key(&peptide));
       }
-      for (const ID::IdentifiedOligo& oligo : id_data_.getIdentifiedOligos())
+      for (const ID::IdentifiedOligo& oligo : id_data.getIdentifiedOligos())
       {
         if (oligo.parent_matches.empty()) continue;
         storeParentMatches_(oligo.parent_matches, Key(&oligo));
@@ -1116,9 +1110,9 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeAdducts()
+  void OMSFile::OMSFileStore::storeAdducts_(const IdentificationData& id_data)
   {
-    if (id_data_.getAdducts().empty()) return;
+    if (id_data.getAdducts().empty()) return;
 
     createTable_(
       "AdductInfo",
@@ -1136,7 +1130,7 @@ namespace OpenMS
                   ":formula, "                      \
                   ":charge, "                       \
                   ":mol_multiplier)");
-    for (const AdductInfo& adduct : id_data_.getAdducts())
+    for (const AdductInfo& adduct : id_data.getAdducts())
     {
       query.bindValue(":id", Key(&adduct));
       query.bindValue(":name", adduct.getName().toQString());
@@ -1152,9 +1146,27 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeInputMatches()
+  OMSFile::Key OMSFile::OMSFileStore::getAddress_(const ID::IdentifiedMolecule& molecule_var)
   {
-    if (id_data_.getInputMatches().empty()) return;
+    switch (molecule_var.getMoleculeType())
+    {
+      case ID::MoleculeType::PROTEIN:
+        return Key(&(*molecule_var.getIdentifiedPeptideRef()));
+      case ID::MoleculeType::COMPOUND:
+        return Key(&(*molecule_var.getIdentifiedCompoundRef()));
+      case ID::MoleculeType::RNA:
+        return Key(&(*molecule_var.getIdentifiedOligoRef()));
+      default:
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION,
+                                         "invalid molecule type");
+    }
+  }
+
+
+  void OMSFile::OMSFileStore::storeInputMatches_(const IdentificationData& id_data)
+  {
+    if (id_data.getInputMatches().empty()) return;
 
     String table_def =
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
@@ -1180,31 +1192,11 @@ namespace OpenMS
                   ":adduct_id, "                                \
                   ":charge)");
     bool any_peak_annotations = false;
-    for (const ID::InputMatch& match :
-           id_data_.getInputMatches())
+    for (const ID::InputMatch& match : id_data.getInputMatches())
     {
       if (!match.peak_annotations.empty()) any_peak_annotations = true;
       query.bindValue(":id", Key(&match)); // use address as primary key
-      Key molecule_id;
-      const ID::IdentifiedMolecule& molecule_var =
-        match.identified_molecule_var;
-      switch (molecule_var.getMoleculeType())
-      {
-      case ID::MoleculeType::PROTEIN:
-        molecule_id = Key(&(*molecule_var.getIdentifiedPeptideRef()));
-        break;
-      case ID::MoleculeType::COMPOUND:
-        molecule_id = Key(&(*molecule_var.getIdentifiedCompoundRef()));
-        break;
-      case ID::MoleculeType::RNA:
-        molecule_id = Key(&(*molecule_var.getIdentifiedOligoRef()));
-        break;
-      default:
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION,
-                                         "invalid molecule type");
-      }
-      query.bindValue(":identified_molecule_id", molecule_id);
+      query.bindValue(":identified_molecule_id", getAddress_(match.identified_molecule_var));
       query.bindValue(":input_item_id", Key(&(*match.input_item_ref)));
       if (match.adduct_opt)
       {
@@ -1221,8 +1213,7 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeScoredProcessingResults_(id_data_.getInputMatches(),
-                                  "ID_InputMatch");
+    storeScoredProcessingResults_(id_data.getInputMatches(), "ID_InputMatch");
 
     if (any_peak_annotations)
     {
@@ -1246,8 +1237,7 @@ namespace OpenMS
         ":peak_mz, "                                                \
         ":peak_intensity)");
 
-      for (const ID::InputMatch& match :
-             id_data_.getInputMatches())
+      for (const ID::InputMatch& match : id_data.getInputMatches())
       {
         if (match.peak_annotations.empty()) continue;
         query.bindValue(":parent_id", Key(&match));
@@ -1280,38 +1270,202 @@ namespace OpenMS
   }
 
 
-  void OMSFile::store(const String& filename, const IdentificationData& id_data)
+  void OMSFile::OMSFileStore::store(const IdentificationData& id_data)
   {
-    OMSFileStore helper(filename, id_data);
-    startProgress(0, 13, "Writing data to file");
+    startProgress(0, 13, "Writing identification data to file");
     // generally, create tables only if we have data to write - no empty ones!
-    helper.storeVersionAndDate();
-    nextProgress();
-    helper.storeInputFiles();
-    nextProgress();
-    helper.storeScoreTypes();
-    nextProgress();
-    helper.storeProcessingSoftwares();
-    nextProgress();
-    helper.storeDBSearchParams();
-    nextProgress();
-    helper.storeProcessingSteps();
-    nextProgress();
-    helper.storeInputItems();
-    nextProgress();
-    helper.storeParentSequences();
-    nextProgress();
-    helper.storeParentGroupSets();
-    nextProgress();
-    helper.storeIdentifiedCompounds();
-    nextProgress();
-    helper.storeIdentifiedSequences();
-    nextProgress();
-    helper.storeAdducts();
-    nextProgress();
-    helper.storeInputMatches();
+    storeVersionAndDate_();
+    nextProgress(); // 1
+    storeInputFiles_(id_data);
+    nextProgress(); // 2
+    storeScoreTypes_(id_data);
+    nextProgress(); // 3
+    storeProcessingSoftwares_(id_data);
+    nextProgress(); // 4
+    storeDBSearchParams_(id_data);
+    nextProgress(); // 5
+    storeProcessingSteps_(id_data);
+    nextProgress(); // 6
+    storeInputItems_(id_data);
+    nextProgress(); // 7
+    storeParentSequences_(id_data);
+    nextProgress(); // 8
+    storeParentGroupSets_(id_data);
+    nextProgress(); // 9
+    storeIdentifiedCompounds_(id_data);
+    nextProgress(); // 10
+    storeIdentifiedSequences_(id_data);
+    nextProgress(); // 11
+    storeAdducts_(id_data);
+    nextProgress(); // 12
+    storeInputMatches_(id_data);
     endProgress();
     // @TODO: store input match groups
+  }
+
+
+  void OMSFile::OMSFileStore::storeFeatureAndSubordinates_(
+    const Feature& feature, int& feature_id, int parent_id,
+    QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull)
+  {
+    query_feat.bindValue(":id", feature_id);
+    query_feat.bindValue(":rt", feature.getRT());
+    query_feat.bindValue(":mz", feature.getMZ());
+    query_feat.bindValue(":intensity", feature.getIntensity());
+    query_feat.bindValue(":charge", feature.getCharge());
+    query_feat.bindValue(":width", feature.getWidth());
+    query_feat.bindValue(":overall_quality", feature.getOverallQuality());
+    query_feat.bindValue(":rt_quality", feature.getQuality(0));
+    query_feat.bindValue(":mz_quality", feature.getQuality(1));
+    if (feature.hasPrimaryID())
+    {
+      query_feat.bindValue(":primary_molecule_id", getAddress_(feature.getPrimaryID()));
+    }
+    else // use NULL value
+    {
+      query_feat.bindValue(":primary_molecule_id", QVariant(QVariant::Int));
+    }
+    query_feat.bindValue(":unique_id", qint64(feature.getUniqueId()));
+    if (parent_id >= 0) // feature is a subordinate
+    {
+      query_feat.bindValue(":subordinate_of", parent_id);
+    }
+    else // use NULL value
+    {
+      query_feat.bindValue(":subordinate_of", QVariant(QVariant::Int));
+    }
+    if (!query_feat.exec())
+    {
+      raiseDBError_(query_feat.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error inserting data");
+    }
+    storeMetaInfo_(feature, feature_id, query_meta);
+    // store convex hulls:
+    const vector<ConvexHull2D>& hulls = feature.getConvexHulls();
+    if (!hulls.empty())
+    {
+      query_hull.bindValue(":parent_id", feature_id);
+      for (int i = 0; i < int(hulls.size()); ++i)
+      {
+        query_hull.bindValue(":index", i);
+        for (const ConvexHull2D::PointType& point : hulls[i].getHullPoints())
+        {
+          query_hull.bindValue(":point_x", point.getX());
+          query_hull.bindValue(":point_y", point.getY());
+          if (!query_hull.exec())
+          {
+            raiseDBError_(query_hull.lastError(), __LINE__,
+                          OPENMS_PRETTY_FUNCTION, "error inserting data");
+          }
+        }
+
+      }
+    }
+    // recurse into subordinates:
+    parent_id = feature_id;
+    for (const Feature& sub : feature.getSubordinates())
+    {
+      storeFeatureAndSubordinates_(sub, ++feature_id, parent_id,
+                                   query_feat, query_meta, query_hull);
+    }
+  }
+
+
+  void OMSFile::OMSFileStore::storeFeatures_(const FeatureMap& features)
+  {
+    if (features.empty()) return;
+
+    createTable_("FEAT_Feature",
+                 "id INTEGER PRIMARY KEY NOT NULL, " \
+                 "rt REAL, "                         \
+                 "mz REAL, "                         \
+                 "intensity REAL, "                  \
+                 "charge INTEGER, "                  \
+                 "width REAL, "                      \
+                 "overall_quality REAL, "            \
+                 "rt_quality REAL, "                 \
+                 "mz_quality REAL, "                 \
+                 "primary_molecule_id INTEGER, "     \
+                 "unique_id INTEGER, "               \
+                 "subordinate_of INTEGER, "          \
+                 "FOREIGN KEY (primary_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
+                 "FOREIGN KEY (subordinate_of) INTEGER REFERENCES FEAT_Feature (id), " \
+                 "CHECK (id > subordinate_of)"); // check to prevent cycles
+
+    QSqlQuery query_feat(QSqlDatabase::database(db_name_));
+    query_feat.prepare("INSERT INTO FEAT_Feature VALUES (" \
+                       ":id, "                             \
+                       ":rt, "                             \
+                       ":mz, "                             \
+                       ":intensity, "                      \
+                       ":charge, "                         \
+                       ":width, "                          \
+                       ":overall_quality, "                \
+                       ":rt_quality, "                     \
+                       ":mz_quality, "                     \
+                       ":primary_molecule_id, "            \
+                       ":unique_id, "                      \
+                       ":subordinate_of)");
+    QSqlQuery query_meta;
+    if (anyMetaInfos_(features))
+    {
+      createTableMetaInfo_("FEAT_Feature");
+      query_meta = getQueryMetaInfo_("FEAT_Feature");
+    }
+    QSqlQuery query_hull(QSqlDatabase::database(db_name_));
+    if (anyConvexHulls_(features))
+    {
+      createTable_("FEAT_ConvexHull",
+                   "parent_id INTEGER NOT NULL, "                       \
+                   "index INTEGER NOT NULL CHECK (index >= 0), "        \
+                   "point_x REAL, "                                     \
+                   "point_y REAL, "                                     \
+                   "FOREIGN KEY (parent_id) REFERENCES FEAT_Feature (id)");
+      query_hull.prepare("INSERT INTO FEAT_ConvexHull VALUES (" \
+                         ":parent_id, "                         \
+                         ":index, "                             \
+                         ":point_x, "                           \
+                         ":point_y)");
+    }
+
+    // features and their subordinates are stored in DFS-like order:
+    int feature_id = 0;
+    for (const Feature& feat : features)
+    {
+      storeFeatureAndSubordinates_(feat, feature_id, -1, query_feat,
+                                   query_meta, query_hull);
+    }
+  }
+
+
+
+  void OMSFile::OMSFileStore::store(const FeatureMap& features)
+  {
+    if (features.getIdentificationData().empty())
+    {
+      storeVersionAndDate_();
+    }
+    else
+    {
+      store(features.getIdentificationData());
+    }
+    startProgress(0, 13, "Writing feature data to file");
+    storeFeatures_(features);
+    endProgress();
+  }
+
+
+  void OMSFile::store(const String& filename, const IdentificationData& id_data)
+  {
+    OMSFileStore helper(filename, log_type_);
+    helper.store(id_data);
+  }
+
+
+  void OMSFile::store(const String& filename, const FeatureMap& features)
+  {
+    OMSFileStore helper(filename, log_type_);
+    helper.store(features);
   }
 
 

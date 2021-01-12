@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <QtSql/QSqlDatabase>
@@ -43,8 +44,6 @@
 
 namespace OpenMS
 {
-  class IdentificationData;
-
   /**
       @brief This class supports reading and writing of OMS files.
 
@@ -55,9 +54,10 @@ namespace OpenMS
   public:
 
     /// Constructor (with option to set log type)
-    explicit OMSFile(LogType log_type = LogType::NONE)
+    explicit OMSFile(LogType log_type = LogType::NONE):
+      log_type_(log_type)
     {
-      setLogType(log_type);
+      setLogType(log_type); // @TODO: move logging to OMSFileLoad
     }
 
     /** @brief Write out an IdentificationData object to SQL-based OMS file
@@ -67,6 +67,14 @@ namespace OpenMS
      *
      */
     void store(const String& filename, const IdentificationData& id_data);
+
+    /** @brief Write out a feature map to SQL-based OMS file
+     *
+     * @param filename The output file
+     * @param features The feature map
+     *
+     */
+    void store(const String& filename, const FeatureMap& features);
 
     /** @brief Read in a OMS file and construct an IdentificationData
      *
@@ -80,6 +88,8 @@ namespace OpenMS
 
     using Key = qint64;
 
+    LogType log_type_;
+
     // convenience functions:
 
     static bool tableExists_(const String& db_name, const String& table_name);
@@ -88,40 +98,46 @@ namespace OpenMS
                               const char* function, const String& context);
 
     // store helper class:
-    class OMSFileStore
+    class OMSFileStore: public ProgressLogger
     {
     public:
-      OMSFileStore(const String& filename, const IdentificationData& id_data);
+      OMSFileStore(const String& filename, LogType log_type);
 
       ~OMSFileStore();
 
-      void storeVersionAndDate();
+      void store(const IdentificationData& id_data);
 
-      void storeScoreTypes();
-
-      void storeInputFiles();
-
-      void storeProcessingSoftwares();
-
-      void storeDBSearchParams();
-
-      void storeProcessingSteps();
-
-      void storeInputItems();
-
-      void storeParentSequences();
-
-      void storeParentGroupSets();
-
-      void storeIdentifiedCompounds();
-
-      void storeIdentifiedSequences();
-
-      void storeAdducts();
-
-      void storeInputMatches();
+      void store(const FeatureMap& features);
 
     private:
+      void storeVersionAndDate_();
+
+      void storeScoreTypes_(const IdentificationData& id_data);
+
+      void storeInputFiles_(const IdentificationData& id_data);
+
+      void storeProcessingSoftwares_(const IdentificationData& id_data);
+
+      void storeDBSearchParams_(const IdentificationData& id_data);
+
+      void storeProcessingSteps_(const IdentificationData& id_data);
+
+      void storeInputItems_(const IdentificationData& id_data);
+
+      void storeParentSequences_(const IdentificationData& id_data);
+
+      void storeParentGroupSets_(const IdentificationData& id_data);
+
+      void storeIdentifiedCompounds_(const IdentificationData& id_data);
+
+      void storeIdentifiedSequences_(const IdentificationData& id_data);
+
+      void storeAdducts_(const IdentificationData& id_data);
+
+      void storeInputMatches_(const IdentificationData& id_data);
+
+      void storeFeatures_(const FeatureMap& features);
+
       void createTable_(const String& name, const String& definition,
                         bool may_exist = false);
 
@@ -137,8 +153,10 @@ namespace OpenMS
 
       void createTableMetaInfo_(const String& parent_table);
 
-      void storeMetaInfo_(const MetaInfoInterface& info,
-                          const String& parent_table, Key parent_id);
+      QSqlQuery getQueryMetaInfo_(const String& parent_table);
+
+      void storeMetaInfo_(const MetaInfoInterface& info, Key parent_id,
+                          QSqlQuery& query);
 
       void createTableAppliedProcessingStep_(const String& parent_table);
 
@@ -147,6 +165,8 @@ namespace OpenMS
         const String& parent_table, Key parent_id);
 
       void createTableIdentifiedMolecule_();
+
+      Key getAddress_(const IdentificationData::IdentifiedMolecule& molecule_var);
 
       void createTableParentMatches_();
 
@@ -158,6 +178,7 @@ namespace OpenMS
                            const String& parent_table)
       {
         bool table_created = false;
+        QSqlQuery query; // prepare query only once and only if needed
         for (const auto& element : container)
         {
           if (!element.isMetaEmpty())
@@ -166,8 +187,9 @@ namespace OpenMS
             {
               createTableMetaInfo_(parent_table);
               table_created = true;
+              query = getQueryMetaInfo_(parent_table);
             }
-            storeMetaInfo_(element, parent_table, Key(&element));
+            storeMetaInfo_(element, Key(&element), query);
           }
         }
       }
@@ -199,10 +221,38 @@ namespace OpenMS
         storeMetaInfos_(container, parent_table);
       }
 
+      void storeFeature_(const FeatureMap& features);
+
+      void storeFeatureAndSubordinates_(
+        const Feature& feature, int& feature_id, int parent_id,
+        QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull);
+
+      template <typename FeatureContainer>
+      bool anyMetaInfos_(const FeatureContainer& features)
+      {
+        if (features.empty()) return false;
+        for (const Feature& feature : features)
+        {
+          if (!feature.isMetaEmpty()) return true;
+          if (anyMetaInfos_(feature.getSubordinates())) return true;
+        }
+        return false;
+      }
+
+      template <typename FeatureContainer>
+      bool anyConvexHulls_(const FeatureContainer& features)
+      {
+        if (features.empty()) return false;
+        for (const Feature& feature : features)
+        {
+          if (!feature.getConvexHulls().empty()) return true;
+          if (anyConvexHulls_(feature.getSubordinates())) return true;
+        }
+        return false;
+      }
+ 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
-
-      const IdentificationData& id_data_;
     };
 
     // load helper class:
