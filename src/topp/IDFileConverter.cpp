@@ -590,16 +590,6 @@ protected:
 
       else if (in_type == FileTypes::FASTA)
       {
-        // handle out type
-        const String out = getStringOption_("out");
-        FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
-        if (out_type != FileTypes::MZML)
-        {
-          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
-          printUsage_();
-          return ILLEGAL_PARAMETERS;
-        }
-
         MSExperiment exp;
         TheoreticalSpectrumGenerator tsg;
 
@@ -636,9 +626,24 @@ protected:
             exp.addSpectrum(spec);
           }
         }
+        logger.endProgress();
 
+        // handle out type
+        const String out = getStringOption_("out");
+        FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+        if (out_type != FileTypes::MZML)
+        {
+          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+
+        logger.startProgress(0, 1, "Storing...");
+        
         MzMLFile mz_file;
         mz_file.store(out, exp);
+
+        logger.endProgress();
 
         return EXECUTION_OK;
       }
