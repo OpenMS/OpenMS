@@ -220,12 +220,8 @@ protected:
     p.setValue("enzym", "Trypsin", "Enzym used to digest the fasta proteins");
     p.setValidStrings("enzym", all_enzymes);
     //todo: set some reasonable bounderies
-    p.setValue("min_charge", 0, "Minimum precursor charge");
-    p.setMinInt("min_charge", -9);
-    p.setMaxInt("min_charge", 9);
-    p.setValue("max_charge", 9, "Maximum precursor charge");
-    p.setMinInt("max_charge", -9);
-    p.setMaxInt("max_charge", 9);
+    p.setValue("min_charge", 1, "Minimum precursor charge");
+    p.setValue("max_charge", 1, "Maximum precursor charge");
     return p; 
   }
   void registerOptionsAndFlags_() override
@@ -601,6 +597,13 @@ protected:
         p.remove("enzym");
         p.remove("min_charge");
         p.remove("max_charge");
+
+        if (min_charge > max_charge)
+        {
+          writeLog_("Error: 'fasta_to_mzml:min_charge' must be smaller than or equal to 'fasta_to_mzml:max_charge'.");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
 
         tsg.setParameters(p);
 
