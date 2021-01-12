@@ -225,32 +225,23 @@ namespace OpenMS
 
       void storeFeatureAndSubordinates_(
         const Feature& feature, int& feature_id, int parent_id,
-        QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull);
+        QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull,
+        QSqlQuery& query_match);
 
-      template <typename FeatureContainer>
-      bool anyMetaInfos_(const FeatureContainer& features)
+      /// check whether a predicate is true for any feature (or subordinate thereof) in a container
+      template <class FeatureContainer, class Predicate>
+      bool anyFeaturePredicate_(const FeatureContainer& features, const Predicate& pred)
       {
         if (features.empty()) return false;
         for (const Feature& feature : features)
         {
-          if (!feature.isMetaEmpty()) return true;
-          if (anyMetaInfos_(feature.getSubordinates())) return true;
+          if (pred(feature)) return true;
+          if (anyFeaturePredicate_(feature.getSubordinates(), pred)) return true;
         }
         return false;
       }
 
-      template <typename FeatureContainer>
-      bool anyConvexHulls_(const FeatureContainer& features)
-      {
-        if (features.empty()) return false;
-        for (const Feature& feature : features)
-        {
-          if (!feature.getConvexHulls().empty()) return true;
-          if (anyConvexHulls_(feature.getSubordinates())) return true;
-        }
-        return false;
-      }
- 
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
     };

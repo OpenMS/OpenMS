@@ -220,10 +220,10 @@ protected:
     std::vector<PeptideIdentification> peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
-    boost::optional<IdentificationDataInternal::IdentifiedMolecule> primary_id_;
+    boost::optional<IdentificationData::IdentifiedMolecule> primary_id_;
 
     /// set of input matches (e.g. PSMs) supporting IDs of this feature
-    std::set<IdentificationDataInternal::InputMatchRef> input_matches_;
+    std::set<IdentificationData::InputMatchRef> input_matches_;
   };
 
 } // namespace OpenMS

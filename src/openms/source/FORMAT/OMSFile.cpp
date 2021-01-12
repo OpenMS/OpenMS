@@ -1306,7 +1306,8 @@ namespace OpenMS
 
   void OMSFile::OMSFileStore::storeFeatureAndSubordinates_(
     const Feature& feature, int& feature_id, int parent_id,
-    QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull)
+    QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull,
+    QSqlQuery& query_match)
   {
     query_feat.bindValue(":id", feature_id);
     query_feat.bindValue(":rt", feature.getRT());
@@ -1344,7 +1345,7 @@ namespace OpenMS
     const vector<ConvexHull2D>& hulls = feature.getConvexHulls();
     if (!hulls.empty())
     {
-      query_hull.bindValue(":parent_id", feature_id);
+      query_hull.bindValue(":feature_id", feature_id);
       for (int i = 0; i < int(hulls.size()); ++i)
       {
         query_hull.bindValue(":index", i);
@@ -1361,12 +1362,26 @@ namespace OpenMS
 
       }
     }
+    // store (ID) input matches:
+    if (!feature.getInputMatches().empty())
+    {
+      query_match.bindValue(":feature_id", feature_id);
+      for (ID::InputMatchRef ref : feature.getInputMatches())
+      {
+        query_match.bindValue(":input_match_id", Key(&(*ref)));
+        if (!query_match.exec())
+        {
+          raiseDBError_(query_match.lastError(), __LINE__,
+                        OPENMS_PRETTY_FUNCTION, "error inserting data");
+        }
+      }
+    }
     // recurse into subordinates:
     parent_id = feature_id;
     for (const Feature& sub : feature.getSubordinates())
     {
       storeFeatureAndSubordinates_(sub, ++feature_id, parent_id,
-                                   query_feat, query_meta, query_hull);
+                                   query_feat, query_meta, query_hull, query_match);
     }
   }
 
@@ -1407,25 +1422,45 @@ namespace OpenMS
                        ":unique_id, "                      \
                        ":subordinate_of)");
     QSqlQuery query_meta;
-    if (anyMetaInfos_(features))
+    // if (anyMetaInfos_(features))
+    if (anyFeaturePredicate_(features, [](const Feature& feature) {
+      return !feature.isMetaEmpty();
+    }))
     {
       createTableMetaInfo_("FEAT_Feature");
       query_meta = getQueryMetaInfo_("FEAT_Feature");
     }
     QSqlQuery query_hull(QSqlDatabase::database(db_name_));
-    if (anyConvexHulls_(features))
+    // if (anyConvexHulls_(features))
+    if (anyFeaturePredicate_(features, [](const Feature& feature) {
+      return !feature.getConvexHulls().empty();
+    }))
     {
       createTable_("FEAT_ConvexHull",
-                   "parent_id INTEGER NOT NULL, "                       \
+                   "feature_id INTEGER NOT NULL, "                      \
                    "index INTEGER NOT NULL CHECK (index >= 0), "        \
                    "point_x REAL, "                                     \
                    "point_y REAL, "                                     \
                    "FOREIGN KEY (parent_id) REFERENCES FEAT_Feature (id)");
       query_hull.prepare("INSERT INTO FEAT_ConvexHull VALUES (" \
-                         ":parent_id, "                         \
+                         ":feature_id, "                        \
                          ":index, "                             \
                          ":point_x, "                           \
                          ":point_y)");
+    }
+    QSqlQuery query_match(QSqlDatabase::database(db_name_));
+    if (anyFeaturePredicate_(features, [](const Feature& feature) {
+      return !feature.getInputMatches().empty();
+    }))
+    {
+      createTable_("FEAT_InputMatch",
+                   "feature_id INTEGER NOT NULL, "                      \
+                   "input_match_id INTEGER NOT NULL, "                  \
+                   "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id), " \
+                   "FOREIGN KEY (input_match_id) REFERENCES ID_InputMatch (id)");
+      query_match.prepare("INSERT INTO FEAT_InputMatch VALUES (" \
+                          ":feature_id, "                        \
+                          ":input_match_id)");
     }
 
     // features and their subordinates are stored in DFS-like order:
@@ -1433,7 +1468,7 @@ namespace OpenMS
     for (const Feature& feat : features)
     {
       storeFeatureAndSubordinates_(feat, feature_id, -1, query_feat,
-                                   query_meta, query_hull);
+                                   query_meta, query_hull, query_match);
     }
   }
 
