@@ -90,7 +90,7 @@ namespace OpenMS
      */
     //@{
     /// Generates a spectrum for a peptide sequence, with the ion types that are set in the tool parameters
-    virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge) const;
+    virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge, UInt precursor_charge = 0) const;
 
     /// overwrite
     void updateMembers_() override;
