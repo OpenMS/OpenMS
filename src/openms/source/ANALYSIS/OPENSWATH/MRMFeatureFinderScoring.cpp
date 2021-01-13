@@ -150,8 +150,10 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_ms1_fullscan", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_mi", "false", "Use the MS1 MI score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_mi", ListUtils::create<String>("true,false"));
-    scores_to_use.setValue("use_uis_scores", "false", "Use UIS scores for peptidoform identification ", ListUtils::create<String>("advanced"));
+    scores_to_use.setValue("use_uis_scores", "false", "Use UIS scores for peptidoform identification", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_uis_scores", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ionseries_scores", "true", "Use MS2-level b/y ion-series scores for peptidoform identification", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ionseries_scores", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
@@ -1052,6 +1054,7 @@ namespace OpenMS
     su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();
     su_.use_ms1_mi               = param_.getValue("Scores:use_ms1_mi").toBool();
     su_.use_uis_scores           = param_.getValue("Scores:use_uis_scores").toBool();
+    su_.use_ionseries_scores     = param_.getValue("Scores:use_ionseries_scores").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,

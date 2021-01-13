@@ -200,6 +200,7 @@ namespace OpenMS
     params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration"));
     params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom"));
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
+    params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("write_convex_hull", "true");

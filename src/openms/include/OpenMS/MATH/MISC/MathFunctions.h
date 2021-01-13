@@ -324,6 +324,24 @@ namespace OpenMS
       return lgamma(double(x+1));
     }
 
+    /**
+       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @x
+    */
+    template <typename T1, typename T2> typename T1::value_type quantile_(const T1 &x, T2 q)
+    {
+      if (q < 0.0) q = 0.;
+      if (q > 1.0) q = 1.;
+
+      const auto n  = x.size();
+      const auto id = (n - 1) * q;
+      const auto lo = floor(id);
+      const auto hi = ceil(id);
+      const auto qs = x[lo];
+      const auto h  = (id - lo);
+
+      return (1.0 - h) * qs + h * x[hi];
+    }
+
   } // namespace Math
 } // namespace OpenMS
 

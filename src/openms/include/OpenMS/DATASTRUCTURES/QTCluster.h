@@ -335,7 +335,7 @@ public:
       double optimizeAnnotations_();
 
       /// compute seq table, mapping: peptides -> best distance per input map
-      void makeSeqTable_(std::map<std::set<AASequence>, std::vector<double>>& seq_table) const;
+      void makeSeqTable_(std::map<AASequence, std::vector<double>>& seq_table) const;
       
       /// report elements that are compatible with the optimal annotation
       void recomputeNeighbors_();

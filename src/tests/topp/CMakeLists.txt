@@ -2903,6 +2903,7 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
          -Alignment:align_algorithm:max_rt_shift 0
+         -Linking:min_nr_diffs_per_bin 10
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false

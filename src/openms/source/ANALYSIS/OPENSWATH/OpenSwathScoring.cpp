@@ -200,7 +200,7 @@ namespace OpenMS
     diascoring.dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
 
     // Peptide-specific scores
-    if (compound.isPeptide())
+    if (compound.isPeptide() && su_.use_ionseries_scores)
     {
       // Presence of b/y series score
       OpenMS::AASequence aas;

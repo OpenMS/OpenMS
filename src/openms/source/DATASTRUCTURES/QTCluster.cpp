@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <numeric> // for make_pair
+#include <algorithm> // for set_intersection
 
 using std::map;
 using std::vector;
@@ -154,18 +155,19 @@ namespace OpenMS
     // Ensure we only add compatible peptide annotations. If the cluster center
     // has an annotation, then each added neighbor should have the same
     // annotation. If the center element has no annotation we add all elements
-    // and select the optimal annotation later, using optimizeAnnotations_ 
+    // and select the optimal annotation later, using optimizeAnnotations_
     if (use_IDs_)
     {
+
       bool one_empty = (center_point.getAnnotations().empty() || element->getAnnotations().empty());
       if (!one_empty) // both are annotated
       {
-        //TODO shouldn't an overlap of at least one Sequence suffice?
-        if (center_point.getAnnotations() != element->getAnnotations()) 
-        {
-          // Both annotations are non-empty and are unequal, we don't add
-          return;
-        }
+        set<AASequence> intersect;
+        // overlap of at least one sequence is enough
+        std::set_intersection(center_point.getAnnotations().begin(), center_point.getAnnotations().end(),
+                              element->getAnnotations().begin(), element->getAnnotations().end(),
+                              std::inserter(intersect, intersect.begin()));
+        if (intersect.empty()) return;
       }
     }
 
@@ -294,7 +296,7 @@ namespace OpenMS
         internal_distance += neighbor.second.distance;
       }
       // add max. distance for missing cluster elements:
-      internal_distance += (num_other - neighbors_.size()) * max_distance_;
+      internal_distance += double(num_other - neighbors_.size()) * max_distance_;
     }
     else // find the annotation that gives the best quality
     {
@@ -341,7 +343,7 @@ namespace OpenMS
         "QTCluster::optimizeAnnotations_ cannot work on finalized cluster")
 
     // mapping: peptides -> best distance per input map
-    map<set<AASequence>, vector<double> > seq_table;
+    map<AASequence, vector<double> > seq_table;
 
     makeSeqTable_(seq_table);
 
@@ -350,12 +352,11 @@ namespace OpenMS
     double max_distance_ = data_->max_distance_;
     
     // combine annotation-specific and unspecific distances 
-    // (all unspecific ones are grouped as empty set<AASequence>):
-    map<set<AASequence>, vector<double> >::iterator unspecific =
-      seq_table.find(set<AASequence>());
+    // (all unspecific ones are grouped as empty AASequence):
+    auto unspecific = seq_table.find(AASequence());
     if (unspecific != seq_table.end())
     {
-      for (map<set<AASequence>, vector<double> >::iterator it =
+      for (auto it =
              seq_table.begin(); it != seq_table.end(); ++it)
       {
         if (it == unspecific)
@@ -368,10 +369,9 @@ namespace OpenMS
     }
 
     // compute distance totals -> best annotation set has smallest value:
-    map<set<AASequence>, vector<double> >::iterator best_pos =
-      seq_table.begin();
+    auto best_pos = seq_table.begin();
     double best_total = num_maps_ * max_distance_;
-    for (map<set<AASequence>, vector<double> >::iterator it =
+    for (auto it =
            seq_table.begin(); it != seq_table.end(); ++it)
     {
       double total = std::accumulate(it->second.begin(), it->second.end(), 0.0);
@@ -384,7 +384,8 @@ namespace OpenMS
 
     if (best_pos != seq_table.end())
     {
-      data_->annotations_ = best_pos->first;
+      //TODO can we accumulate the union of possible annotations and set the best as "representative"?
+      data_->annotations_ = {best_pos->first};
     }
 
     recomputeNeighbors_();
@@ -408,8 +409,10 @@ namespace OpenMS
       for (std::multimap<double, const GridFeature*>::const_iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
+        std::set<AASequence> intersect;
         const std::set<AASequence>& current = df_it->second->getAnnotations();
-        if (current.empty() || (current == annotations_))
+        std::set_intersection(current.begin(), current.end(), annotations_.begin(), annotations_.end(), std::inserter(intersect, intersect.begin()));
+        if (!intersect.empty() || current.empty())
         {
           neighbors_[n_it->first] = Neighbor{df_it->first, df_it->second};
           break; // found the best element for this input map
@@ -418,7 +421,7 @@ namespace OpenMS
     }
   }
 
-  void QTCluster::makeSeqTable_(map<set<AASequence>, vector<double>>& seq_table) const
+  void QTCluster::makeSeqTable_(map<AASequence, vector<double>>& seq_table) const
   {
     // get copies of members that are used in this function
     Size num_maps_ = data_->num_maps_;
@@ -435,22 +438,36 @@ namespace OpenMS
           df_it != n_it->second.end(); ++df_it)
       {
         double dist = df_it->first;
-        const std::set<AASequence>& current = df_it->second->getAnnotations();
-        map<std::set<AASequence>, vector<double> >::iterator pos =
-          seq_table.find(current);
-        if (pos == seq_table.end())
+        for (const auto& current : df_it->second->getAnnotations())
         {
-          // new set of annotations, fill vector with max distance for all maps
-          seq_table[current].resize(num_maps_, max_distance_);
-          seq_table[current][map_index] = dist;
+          const auto& pos = seq_table.find(current);
+          if (pos == seq_table.end())
+          {
+            // new set of annotations, fill vector with max distance for all maps
+            seq_table[current].resize(num_maps_, max_distance_);
+            seq_table[current][map_index] = dist;
+          }
+          else
+          {
+            // new dist. value for this input map
+            pos->second[map_index] = min(dist, pos->second[map_index]);
+          }
         }
-        else
+
+        if (df_it->second->getAnnotations().empty()) // unannotated feature
         {
-          // new dist. value for this input map
-          pos->second[map_index] = min(dist, pos->second[map_index]);
-        }
-        if (current.empty()) // unannotated feature
-        {
+          const auto& pos = seq_table.find(AASequence());
+          if (pos == seq_table.end())
+          {
+            // new set of annotations, fill vector with max distance for all maps
+            seq_table[AASequence()].resize(num_maps_, max_distance_);
+            seq_table[AASequence()][map_index] = dist;
+          }
+          else
+          {
+            // new dist. value for this input map
+            pos->second[map_index] = min(dist, pos->second[map_index]);
+          }
           // no need to check further (annotation-specific distances are worse
           // than this unspecific one):
           break;
