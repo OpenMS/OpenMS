@@ -809,7 +809,7 @@ public:
     vector<vector<SIPPeptide> > new_sip_cluster; // filtered (clustered) SIP peptides
     
     // for all clusters
-    int old_cluster_index(-1);
+    size_t old_cluster_index(-1);
     for (Size i = 0; i != sip_peptide_cluster.size(); ++i)
     {
       const vector<SIPPeptide>& current_cluster = sip_peptide_cluster[i];
@@ -837,14 +837,14 @@ public:
     {
       // heat map based on peptide RIAs
       OPENMS_LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
-      vector<vector<double> > binned_peptide_ria;
+      vector<vector<double>> binned_peptide_ria;
       vector<String> class_labels;
 
       createBinnedPeptideRIAData_(n_heatmap_bins, new_sip_cluster, binned_peptide_ria, class_labels);
       plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
 
       OPENMS_LOG_INFO << "Plotting filtered spectra for quality report" << endl;
-    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
+      plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
 
       OPENMS_LOG_INFO << "Plotting correlation score and weight distribution" << endl;
       plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
