@@ -2194,7 +2194,8 @@ public:
           {
             cx[j - offset] = cx[j];
           }
-        } else if (offset < 0)
+        } 
+        else if (offset < 0)
         {
           for (int j = cx.size() + offset - 1; j >= 0; --j)
           {
