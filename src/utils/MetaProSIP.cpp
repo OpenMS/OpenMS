@@ -252,7 +252,6 @@ public:
 
     const size_t n = x.size();
 
-    //Wm5::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
     CubicSpline2d spline(x, y);
 
     if (debug)
@@ -1879,7 +1878,7 @@ public:
 
 class MetaProSIPXICExtraction
 {
-public:
+public:  
   // input: PeakMap, retention time and m/z values used to extract an XIC in windows of +- m/z and rt tolerance
   // output: a vector of XICs
   static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_tolerance_ppm, double rt_tolerance_s, const PeakMap& peak_map)
@@ -1903,10 +1902,7 @@ public:
     {
       // create and initialize xic to contain values for all rts
       map<double, double> xic; // rt to summed intensity
-      for (set<double>::const_iterator sit = all_rts.begin(); sit != all_rts.end(); ++sit)
-      {
-        xic[*sit] = 0;
-      }
+      for (double sit : all_rts) { xic[sit] = 0; }
 
       double mz_da = mz_tolerance_ppm * xic_mzs[i] * 1e-6; // mz tolerance in Dalton
       auto it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
@@ -1926,7 +1922,7 @@ public:
 
       // copy map to vector for easier processing
       vector<double> v;
-      for (map<double, double>::const_iterator xic_it = xic.begin(); xic_it != xic.end(); ++xic_it)
+      for (auto xic_it = xic.begin(); xic_it != xic.end(); ++xic_it)
       {
         v.push_back(xic_it->second);
       }
@@ -1958,10 +1954,7 @@ public:
     {
       // create and initialize xic to contain values for all rts
       map<double, double> xic; // rt to summed intensity
-      for (set<double>::const_iterator sit = all_rts.begin(); sit != all_rts.end(); ++sit)
-      {
-        xic[*sit] = 0;
-      }
+      for (double sit : all_rts) { xic[sit] = 0; }
 
       auto it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mz_windows[i].first, xic_mz_windows[i].second);
 
@@ -2040,9 +2033,6 @@ public:
 
     return xic_intensities;
   }
-
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
 
   // For unlabeled peptides, distances between isotopic peaks are dominated by the 13C-12C m/z difference
   // If non-carbon labeling elements are used we need to make sure that peaks are collected at the correct position by changing the mass difference to the labeling element.
@@ -2242,8 +2232,6 @@ public:
   }
 
 };
-
-#pragma GCC pop_options
 
 class RIntegration
 {
