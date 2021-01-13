@@ -262,6 +262,9 @@ namespace OpenMS
      */ 
     void addClusterElements_(const Grid& grid, QTCluster& cluster);
 
+    /**
+     * @brief Looks up the matching bin for @p rt in bin_tolerances_ and checks if @p dist is in the allowed range.
+     */
     bool distIsOutlier_(double dist, double rt);
 
 protected:

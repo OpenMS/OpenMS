@@ -116,10 +116,12 @@ namespace OpenMS
       // map string "modified sequence/charge" to all RTs the feature has been observed in the different maps
       std::unordered_map<String, std::vector<double>> ided_feat_rts;
       //std::unordered_map<String, std::vector<const typename MapType::FeatureType*>> ided_feats;
+      double minRT = std::numeric_limits<double>::max();
       for (const auto& map : input_maps)
       {
         for (const auto& feat : map)
         {
+          if (feat.getRT() < minRT) minRT = feat.getRT();
           const auto& pepIDs = feat.getPeptideIdentifications();
           if (!pepIDs.empty())
           {
@@ -191,7 +193,8 @@ namespace OpenMS
 
       Size cnt = 0;
       vector<double> tmp_diffs, last_tmp_diffs;
-      double start_rt = 0.;
+      // we calculate minRT (instead of starting first bin at 0) since RTs may start in the "negative" region after alignment.
+      double start_rt = minRT;
       double min_tolerance = 20;
       double tol, q2, q3 = 0.;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
@@ -790,15 +793,8 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   bool QTClusterFinder::distIsOutlier_(double dist, double rt)
   {
     if (bin_tolerances_.empty()) return false;
-    const auto& it = bin_tolerances_.lower_bound(rt);
-    if (it == bin_tolerances_.end())
-    {
-      return dist >= (--bin_tolerances_.end())->second;
-    }
-    else
-    {
-      return dist >= it->second;
-    }
+    auto it = bin_tolerances_.lower_bound(rt);
+    return dist >= (--it)->second;
   }
   
   QTClusterFinder::~QTClusterFinder() = default;
