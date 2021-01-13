@@ -109,7 +109,8 @@ protected:
     setValidFormats_("out_promex", ListUtils::create<String>("ms1ft"), false);
 
     registerOutputFileList_("out_topFD", "<file for MS1, file for MS2, ...>", {""},
-                            "topFD format output files (msalign) - spectrum level deconvoluted masses per ms level", false);
+                            "topFD format output files (msalign) - spectrum level deconvoluted masses per ms level. The file name for MSn should end with msn.msalign to be able to be recognized by TopPIC. "
+                            "For example, -out_topFD [name]_ms1.msalign [name]_ms2.msalign", false);
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
 
     registerIntOption_("mzml_mass_charge",
@@ -121,14 +122,13 @@ protected:
     setMinInt_("mzml_mass_charge", -1);
     setMaxInt_("mzml_mass_charge", 1);
 
-
-    registerDoubleList_("tol",
+    /*registerDoubleList_("tol",
                         "<ms1_tol, ms2_tol, ...>",
                         {10.0, 10.0},
                         "ppm tolerance for MS1, 2, ...  "
                         "(e.g., -tol 10.0 15.0 to specify 10.0 and 15.0 ppm for MS1 and MS2, respectively)",
                         false);
-
+*/
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
@@ -136,7 +136,11 @@ protected:
                        false,
                        false);
 
+    setMinInt_("write_detail", 0);
+    setMaxInt_("write_detail", 1);
+
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
+    setMinInt_("max_MS_level", 1);
 
     registerIntOption_("use_ensamble_spectrum",
                        "",
@@ -145,20 +149,29 @@ protected:
                        false,
                        false);
 
+    setMinInt_("use_ensamble_spectrum", 0);
+    setMaxInt_("use_ensamble_spectrum", 1);
+
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
+    setMinInt_("use_RNA_averagine", 0);
+    setMaxInt_("use_RNA_averagine", 1);
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
+    fd_defaults.setValue("tol", DoubleList{10.0, 10.0}, "ppm tolerance, controlled by -tol option");
     fd_defaults.setValue("min_charge", 1);
     fd_defaults.setValue("max_charge", 100);
     fd_defaults.setValue("min_mz", -1.0);
+    fd_defaults.addTag("min_mz", "advanced");
     fd_defaults.setValue("max_mz", -1.0);
+    fd_defaults.addTag("max_mz", "advanced");
     fd_defaults.setValue("min_RT", -1.0);
+    fd_defaults.addTag("min_RT", "advanced");
     fd_defaults.setValue("max_RT", -1.0);
+    fd_defaults.addTag("max_RT", "advanced");
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
-    fd_defaults.setValue("tol", DoubleList{10.0, 10.0}, "ppm tolerance, controlled by -tol option");
-    fd_defaults.addTag("tol", "advanced"); // hide entry
+    //fd_defaults.addTag("tol", "advanced"); // hide entry
     fd_defaults.setValue("min_peaks", IntList{3, 1});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", .0, "intensity threshold");
@@ -166,32 +179,33 @@ protected:
     fd_defaults.setValue("min_isotope_cosine",
                          DoubleList{.75, .75},
                          "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
-    fd_defaults.addTag("min_isotope_cosine", "advanced");
+    //fd_defaults.addTag("min_isotope_cosine", "advanced");
 
     fd_defaults.setValue("max_mass_count",
                          IntList{-1, -1},
                          "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
     fd_defaults.addTag("max_mass_count", "advanced");
+
+
     fd_defaults.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
     fd_defaults.addTag("RT_window", "advanced");
+
+    fd_defaults.remove("max_mass_count");
+    fd_defaults.remove("min_mass_count");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("mass_error_da",
                          1.5,
                          "da tolerance for feature tracing. Due to frequent isotope errer, 1.5 Da is recommended.");
-    mf_defaults.addTag("mass_error_ppm", "advanced"); // hide entry
-    mf_defaults.setValue("trace_termination_criterion", "outlier");
-    mf_defaults.addTag("trace_termination_criterion", "advanced"); // hide entry
-    mf_defaults.setValue("reestimate_mt_sd", "false", "");
-    mf_defaults.addTag("reestimate_mt_sd", "advanced"); // hide entry
+    mf_defaults.remove("mass_error_ppm"); // hide entry
+    mf_defaults.remove("trace_termination_criterion");
+    mf_defaults.remove("reestimate_mt_sd");
+    mf_defaults.remove("noise_threshold_int");
+    mf_defaults.remove("min_sample_rate");
+    mf_defaults.remove("trace_termination_outliers"); // hide entry
+    mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     mf_defaults.setValue("quant_method", "area", "");
     mf_defaults.addTag("quant_method", "advanced"); // hide entry
-    mf_defaults.setValue("noise_threshold_int", .0, "");
-    mf_defaults.addTag("noise_threshold_int", "advanced"); // hide entry
-    mf_defaults.setValue("min_sample_rate", 0.01, "");
-    mf_defaults.addTag("min_sample_rate", "advanced"); // hide entry
-    mf_defaults.addTag("trace_termination_outliers", "advanced"); // hide entry
-    mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     mf_defaults.setValue("min_isotope_cosine", .75, "controlled by -min_isotope_cosine option");
     mf_defaults.addTag("min_isotope_cosine", "advanced");
 
@@ -392,7 +406,7 @@ protected:
 
     auto fd = FLASHDeconvAlgorithm();
     Param fd_param = getParam_().copy("Algorithm:", true);
-    fd_param.setValue("tol", getParam_().getValue("tol"));
+    //fd_param.setValue("tol", getParam_().getValue("tol"));
     fd.setParameters(fd_param);
     fd.calculateAveragine(useRNAavg);
     auto avg = fd.getAveragine();
@@ -400,6 +414,9 @@ protected:
     Param mf_param = getParam_().copy("FeatureTracing:", true);
     DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
     //mf_param.setValue("mass_error_ppm", ms1tol);
+    mf_param.setValue("noise_threshold_int", .0, "");
+    mf_param.setValue("reestimate_mt_sd", "false", "");
+    mf_param.setValue("trace_termination_criterion", "outlier");
     mf_param.setValue("trace_termination_outliers", 20);
     //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
     mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
@@ -476,7 +493,6 @@ protected:
       {
         continue;
       }
-      OPENMS_LOG_INFO <<4<< endl;
       //if (msLevel < currentMaxMSLevel)
       //{
       //  lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..

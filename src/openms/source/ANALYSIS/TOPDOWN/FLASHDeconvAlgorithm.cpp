@@ -45,25 +45,29 @@ namespace OpenMS
   {
     prevMassBinVector = std::vector<std::vector<Size>>();
     prevMinBinLogMassVector = std::vector<double>();
+    defaults_.setValue("tol",
+                       DoubleList{10.0, 5.0},
+                       "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
+
+    defaults_.setValue("min_mass", 50.0, "minimum mass (Da)");
+    defaults_.setValue("max_mass", 100000.0, "maximum mass (Da)");
+
+    defaults_.setValue("min_charge", 1, "minimum charge state (can be negative for negative mode)");
+    defaults_.setValue("max_charge", 100, "maximum charge state (can be negative for negative mode)");
+
     defaults_.setValue("min_mz", -1.0, "if set to positive value, minimum m/z to deconvolute.");
     defaults_.setValue("max_mz", -1.0, "if set to positive value, maximum m/z to deconvolute.");
     defaults_.setValue("min_RT", -1.0, "if set to positive value, minimum RT to deconvolute.");
     defaults_.setValue("max_RT", -1.0, "if set to positive value, maximum RT to deconvolute.");
 
-    defaults_.setValue("min_charge", 1, "minimum charge state (can be negative for negative mode)");
-    defaults_.setValue("max_charge", 100, "maximum charge state (can be negative for negative mode)");
-    defaults_.setValue("min_mass", 50.0, "minimum mass (Da)");
-    defaults_.setValue("max_mass", 100000.0, "maximum mass (Da)");
-    defaults_.setValue("min_peaks",
-                       IntList{3, 1},
-                       "minimum number of supporting peaks for MS1, 2, ...  (e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively)");
-    defaults_.setValue("tol",
-                       DoubleList{10.0, 5.0},
-                       "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
-
     defaults_.setValue("min_isotope_cosine",
                        DoubleList{.75, .75},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+
+    defaults_.setValue("min_peaks",
+                       IntList{3, 1},
+                       "minimum number of supporting peaks for MS1, 2, ...  (e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively)");
+
     //defaults_.setValue("min_charge_score",
     //                   DoubleList{.0, .0},
     //                   "charge score threshold for MS1, 2, ... (e.g., -min_charge_score 0.7 0.3 to specify 0.7 and 0.3 for MS1 and MS2, respectively)");
@@ -80,6 +84,7 @@ namespace OpenMS
                        "minimum mass count per spec for MS1, 2, ... "
                        "this parameter is only for real time acquisition. "
                        "the parameter may not be satisfied in case spectrum quality is too poor. (e.g., -max_mass_count -1 2 to specify no min limit and 2 for MS1 and MS2, respectively. -1 specifies unlimited)");
+    defaults_.addTag("min_mass_count", "advanced");
 
     defaults_.setValue("min_intensity", .0, "intensity threshold");
     defaults_.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
