@@ -71,13 +71,13 @@ END_SECTION
 
 START_SECTION((bool hasResidue(const String& name) const))
   TEST_EQUAL(ptr->hasResidue("BLUBB"), false)
-	TEST_EQUAL(ptr->hasResidue("LYS"), true)
+	TEST_EQUAL(ptr->hasResidue("Lys"), true)
 	TEST_EQUAL(ptr->hasResidue("K"), true)
 END_SECTION
 
 START_SECTION(bool hasResidue(const Residue* residue) const)
 	TEST_EXCEPTION(Exception::InvalidValue, ptr->hasResidue(ptr->getResidue("BLUBB")))
-	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("LYS")), true)
+	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("Lys")), true)
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("K")), true)
 END_SECTION
 
@@ -117,38 +117,6 @@ END_SECTION
 
 START_SECTION(void setResidues(const String& filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
-END_SECTION
-
-START_SECTION(ResidueIterator beginResidue())
-	ResidueDB::ResidueIterator it = ptr->beginResidue();
-	Size count(0);
-	while (it != ptr->endResidue())
-	{
-		++it;
-		++count;
-	}
-
-	TEST_EQUAL(count >= 22, true)
-END_SECTION
-
-START_SECTION(ResidueIterator endResidue())
-	NOT_TESTABLE // tested above
-END_SECTION
-
-START_SECTION(ResidueConstIterator beginResidue() const)
-	const ResidueDB* const_ptr = ptr;
-	ResidueDB::ResidueConstIterator it = const_ptr->beginResidue();
-	Size count(0);
-	while (it != const_ptr->endResidue())
-	{
-		++it;
-		++count;
-	}
-	TEST_EQUAL(count >= 22, true)
-END_SECTION
-
-START_SECTION(ResidueConstIterator endResidue() const)
-	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(Size getNumberOfModifiedResidues() const)

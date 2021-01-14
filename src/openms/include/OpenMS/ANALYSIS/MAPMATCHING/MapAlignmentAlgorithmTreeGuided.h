@@ -102,6 +102,12 @@ public:
                              std::vector<Size>& trafo_order);
 
     /**
+     * @brief Align feature maps tree guided using align() of @ref OpenMS::MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
+    */
+    void align(std::vector<FeatureMap>& data,
+               std::vector<TransformationDescription>& transformations);
+
+    /**
      * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
      *
      * @param feature_maps Vector of input maps for size information.

@@ -49,6 +49,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
@@ -81,6 +82,49 @@ namespace OpenMS
   using namespace Math;
   using namespace Internal;
 
+  /// returns an MSExp with a single spec (converted from @p exp_sptr's chromatograms at index  @p index (or ondisc_sptr, if that should be empty)
+  Plot1DCanvas::ExperimentSharedPtrType prepareChromatogram(Size index, Plot1DCanvas::ExperimentSharedPtrType exp_sptr, Plot1DCanvas::ODExperimentSharedPtrType ondisc_sptr)
+  {
+    // create a managed pointer fill it with a spectrum containing the chromatographic data
+    LayerData::ExperimentSharedPtrType chrom_exp_sptr(new LayerData::ExperimentType());
+    chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
+    LayerData::ExperimentType::SpectrumType spectrum;
+
+    // retrieve chromatogram (either from in-memory or on-disc representation)
+    MSChromatogram current_chrom = exp_sptr->getChromatograms()[index];
+    if (current_chrom.empty())
+    {
+      current_chrom = ondisc_sptr->getChromatogram(index);
+    }
+
+    // fill "dummy" spectrum with chromatogram data
+    for (const ChromatogramPeak& cpeak : current_chrom)
+    {
+      spectrum.emplace_back(cpeak.getRT(), cpeak.getIntensity());
+    }
+
+    spectrum.getFloatDataArrays() = current_chrom.getFloatDataArrays();
+    spectrum.getIntegerDataArrays() = current_chrom.getIntegerDataArrays();
+    spectrum.getStringDataArrays() = current_chrom.getStringDataArrays();
+
+    // Add at least one data point to the chromatogram, otherwise
+    // "addLayer" will fail and a segfault occurs later
+    if (current_chrom.empty())
+    {
+      spectrum.emplace_back(-1, 0);
+    }
+    chrom_exp_sptr->addSpectrum(spectrum);
+
+    // store peptide_sequence if available
+    if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))
+    {
+      chrom_exp_sptr->setMetaValue("peptide_sequence", current_chrom.getPrecursor().getMetaValue("peptide_sequence"));
+    }
+
+    return chrom_exp_sptr;
+  }
+
+
   Plot1DCanvas::Plot1DCanvas(const Param& preferences, QWidget* parent) :
     PlotCanvas(preferences, parent),
     mirror_mode_(false),
@@ -111,11 +155,13 @@ namespace OpenMS
   {
   }
 
-  bool Plot1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr, ODExperimentSharedPtrType ondisc_sptr, const String& filename,
-                                       const String& caption,
-                                       ExperimentSharedPtrType exp_sptr,
-                                       const int index,
-                                       const bool multiple_select)
+  bool Plot1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
+                                   ODExperimentSharedPtrType ondisc_sptr,
+                                   OSWDataSharedPtrType chrom_annotation,
+                                   const int index,
+                                   const String& filename,
+                                   const String& caption,
+                                   const bool multiple_select)
   {
     // we do not want addLayer to trigger repaint, since we have not set the chromatogram data!
     this->blockSignals(true);
@@ -124,8 +170,11 @@ namespace OpenMS
       this->blockSignals(false);
     });
 
+    // convert from chromatogram to spectrum --- hacky!!!
+    ExperimentSharedPtrType converted_spec = prepareChromatogram(index, chrom_exp_sptr, ondisc_sptr);
+
     // add chromatogram data as peak spectrum
-    if (!addLayer(chrom_exp_sptr, ondisc_sptr, filename))
+    if (!addLayer(converted_spec, ondisc_sptr, filename))
     {
       return false;
     }
@@ -134,7 +183,8 @@ namespace OpenMS
     setIntensityMode(Plot1DCanvas::IM_NONE);
 
     getCurrentLayer().setName(caption);
-    getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
+    getCurrentLayer().getChromatogramData() = chrom_exp_sptr; // save the original chromatogram data so that we can access it later
+    getCurrentLayer().getChromatogramAnnotation() = chrom_annotation; // copy over shared-ptr to OSW-sql data (if available)
     //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
     getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
     getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", multiple_select ? "true" : "false");
@@ -1216,8 +1266,10 @@ namespace OpenMS
 
   void Plot1DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
   {
-    if (!peak.isValid())
+    if (!peak.isValid() || peak.peak >= getCurrentLayer().getCurrentSpectrum().size())
+    {
       return;
+    }              
 
     //determine coordinates;
     double mz = 0.0;

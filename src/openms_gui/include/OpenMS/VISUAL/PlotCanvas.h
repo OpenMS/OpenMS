@@ -146,6 +146,7 @@ public:
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
     typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
     typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+    typedef LayerData::OSWDataSharedPtrType OSWDataSharedPtrType;
     /// Main data type (features)
     typedef LayerData::FeatureMapType FeatureMapType;
     /// Main managed data type (features)
@@ -600,6 +601,31 @@ public slots:
 
     ///Updates layer @p i when the data in the corresponding file changes
     virtual void updateLayer(Size i) = 0;
+
+
+    /**
+       @brief converts a distance in axis values to pixel values 
+    */
+    inline void dataToWidgetDistance(double x, double y, QPoint& point)
+    {
+      dataToWidget_(x, y, point);
+      // substract the 'offset'
+      QPoint zero;
+      dataToWidget_(0, 0, zero);
+      point -= zero;
+    }
+
+    /**
+      @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y px in chart coordinates
+    */
+    inline PointType widgetToDataDistance(double x, double y)
+    {
+      PointType point = widgetToData_(x, y);
+      // substract the 'offset'
+      PointType zero = widgetToData_(0, 0);
+      point -= zero;
+      return point;
+    }
 
 signals:
 

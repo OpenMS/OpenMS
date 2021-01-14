@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/VISUAL/TableView.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -51,31 +52,35 @@ namespace OpenMS
 
     @htmlinclude OpenMS_DigestSimulation.parameters
   */
-  class SpectraIdentificationViewWidget :
+  class OPENMS_GUI_DLLAPI SpectraIDViewTab :
     public QWidget,
-    public DefaultParamHandler
+    public DefaultParamHandler,
+    public DataTabBase
   {
     Q_OBJECT
   public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
+    SpectraIDViewTab(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
-    ~SpectraIdentificationViewWidget() override = default;
+    ~SpectraIDViewTab() override = default;
 
-    /// set layer data and create table anew
-    void setLayer(LayerData* model);
+    // docu in base class
+    bool hasData(const LayerData* layer) override;
+
+    /// set layer data and create table anew; if given a nullptr, behaves as clear()
+    void updateEntries(LayerData* model) override;
     /// get layer data
     LayerData* getLayer();
 
-    /// clears all visible data from table widget and void the layer
-    void clear();
+    /// clears all visible data from table widget and voids the layer
+    void clear() override;
 
     /// Helper member to block outgoing signals
     bool ignore_update = false; 
   
   protected slots:
     /// Rebuild table entries
-    void updateEntries();
+    void updateEntries_();
   signals:
     /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
     void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);

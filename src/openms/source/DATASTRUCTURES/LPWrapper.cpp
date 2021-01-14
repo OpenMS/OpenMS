@@ -104,7 +104,7 @@ namespace OpenMS
     {
       ++row_index;
     }
-    glp_set_mat_row(lp_problem_, index, row_indices_.size() - 1, row_indices_.data(), row_values_.data());
+    glp_set_mat_row(lp_problem_, index, (int)row_indices_.size() - 1, row_indices_.data(), row_values_.data());
     glp_set_row_name(lp_problem_, index, name.c_str());
     return index - 1;
 #endif
@@ -144,7 +144,7 @@ namespace OpenMS
     {
       ++column_index;
     }
-    glp_set_mat_col(lp_problem_, index, column_indices_.size() - 1, column_indices_.data(), column_values_.data());
+    glp_set_mat_col(lp_problem_, index, (int)column_indices_.size() - 1, column_indices_.data(), column_values_.data());
     glp_set_col_name(lp_problem_, index, name.c_str());
     return index - 1;
 #endif
@@ -468,13 +468,13 @@ namespace OpenMS
   }
 
 #if COINOR_SOLVER == 1
-  void LPWrapper::readProblem(const String& filename, const String& /*format*/) // format=(LP,MPS,GLPK)
+  void LPWrapper::readProblem(const String& filename, const String& /*format*/)
   {
     // delete old model and create a new model in its place (using same ptr)
     delete model_;
     model_ = new CoinModel(filename.c_str());
   }
-#else      
+#else
   void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
   {
     // delete old model and create a new model in its place (using same ptr)

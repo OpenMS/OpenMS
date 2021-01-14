@@ -56,11 +56,11 @@ public:
     TVSpectraViewController(TOPPViewBase* parent);
 
 public slots:
-    /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(int index);
+    /// Behavior for showSpectrumAsNew1D
+    virtual void showSpectrumAsNew1D(int index);
 
-    /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(const std::vector<int>& indices);
+    /// Behavior for showChromatogramsAsNew1D
+    virtual void showChromatogramsAsNew1D(const std::vector<int>& indices);
 
     /// Behavior for activate1DSpectrum
     virtual void activate1DSpectrum(int index);

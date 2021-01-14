@@ -563,7 +563,6 @@ protected:
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        ConsensusMap::ColumnHeaders::iterator file_it = columns_headers_.begin();
         double light = q.second.total_abundances.find(1)->second;
         double middle = q.second.total_abundances.find(2)->second;
         double heavy = q.second.total_abundances.find(3)->second;
@@ -788,7 +787,7 @@ protected:
       IdXMLFile().load(in, proteins, peptides);
       for (Size i = 0; i < proteins.size(); ++i)
       {
-        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString(Qt::ISODate);
+        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
       }
 
       ed = getExperimentalDesignIds_(design_file, proteins);

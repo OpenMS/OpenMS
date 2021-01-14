@@ -28,78 +28,87 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTreeWidget>
 
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerData.h>
+
+class QLineEdit;
+class QComboBox;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace OpenMS
 {
+  class TreeView;
+  struct OSWIndexTrace;
+
   /**
     @brief Hierarchical visualization and selection of spectra.
 
     @ingroup PlotWidgets
   */
-  class SpectraViewWidget :
-    public QWidget
+  class OPENMS_GUI_DLLAPI DIATreeTab :
+    public QWidget, public DataTabBase
   {
     Q_OBJECT
-public:
+  public:
     /// Constructor
-    SpectraViewWidget(QWidget * parent = nullptr);
+    DIATreeTab(QWidget* parent = nullptr);
     /// Destructor
-    ~SpectraViewWidget() = default;
+    ~DIATreeTab() = default;
 
-    QTreeWidget* getTreeWidget();
-    QComboBox* getComboBox();
-    void updateEntries(const LayerData & cl);
+    // docu in base class
+    bool hasData(const LayerData* layer) override;
+
+    /// refresh the table using data from @p cl
+    /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
+    void updateEntries(LayerData* cl) override;
     /// remove all visible data
     void clear();
-    /// do we have data to show?
-    bool hasData() const
-    {
-      return has_data_;
-    }
-signals:
-    void spectrumSelected(int);
-    void spectrumSelected(std::vector<int> indices);
-    void spectrumDoubleClicked(int);
-    void spectrumDoubleClicked(std::vector<int> indices);
-    void showSpectrumAs1D(int);
-    void showSpectrumAs1D(std::vector<int> indices);
-    void showSpectrumMetaData(int);
-private:
-    QLineEdit * spectra_search_box_;
-    QComboBox * spectra_combo_box_;
-    QTreeWidget * spectra_treewidget_;
-    /// cache to store mapping of chromatogram precursors to chromatogram indices
-    std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
 
-    /// do we currently show data? 
-    bool has_data_ = false;
+  signals:
+    /// emitted when a protein, peptide, feature or transition was selected
+    void entityClicked(const OSWIndexTrace& trace);
+    /// emitted when a protein, peptide, feature or transition was double-clicked
+    void entityDoubleClicked(const OSWIndexTrace& trace);
 
-    /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
-    const PeakMap* last_peakmap_ = nullptr;
+  private:
+    QLineEdit* spectra_search_box_ = nullptr;
+    QComboBox* spectra_combo_box_ = nullptr;
+    TreeView* dia_treewidget_ = nullptr;
 
-private slots:
-   /// fill the search-combo-box with current column header names
+    /// points to the data which is currently shown
+    /// Useful to avoid useless repaintings, which would loose the open/close state of internal tree nodes and selected items
+    OSWData* current_data_ = nullptr;
+
+    /** 
+      @brief convert a tree item to a pointer into an OSWData structure
+
+      @param item The tree item (protein, peptide,...) that was clicked
+      @return The index into the current OSWData @p current_data_
+    **/
+    OSWIndexTrace prepareSignal_(QTreeWidgetItem* item);
+
+  private slots:
+    /// fill the search-combo-box with current column header names
     void populateSearchBox_();
     /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
     void spectrumSearchText_();
-    /// allows to show/hide columns
-    void spectrumBrowserHeaderContextMenu_(const QPoint &);
-    void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
-    void searchAndShow_(); ///< searches using text box and plots the spectrum
-    void spectrumDoubleClicked_(QTreeWidgetItem *); ///< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
-    void spectrumContextMenu_(const QPoint &);
+    /// emits entityClicked() for all subitems
+    void rowSelectionChange_(QTreeWidgetItem*, QTreeWidgetItem*);
+    /// emits entityClicked() for all subitems
+    void rowClicked_(QTreeWidgetItem*, int col);
+    /// emits entityDoubleClicked() for all subitems
+    void rowDoubleClicked_(QTreeWidgetItem*, int col);
+    /// searches using text box and plots the spectrum
+    void searchAndShow_();
   };
 }
 

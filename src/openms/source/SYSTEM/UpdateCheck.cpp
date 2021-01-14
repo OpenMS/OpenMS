@@ -167,6 +167,7 @@ namespace OpenMS
           }
         }
         delete query;
+        event_loop.quit();
       }
     }
   }

@@ -42,13 +42,14 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 
 
@@ -63,19 +64,19 @@ using namespace std;
 
 namespace OpenMS
 {
-  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
+  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view) :
     TVControllerBase(parent),
     spec_id_view_(spec_id_view)
   {
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int index)
   {
     // Show spectrum "index" without selecting an identification
-    showSpectrumAs1D(index, -1, -1);
+    showSpectrumAsNew1D(index, -1, -1);
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
@@ -176,14 +177,9 @@ namespace OpenMS
 
     // mass precision to match a peak's m/z to a feature m/z
     // m/z values of features are usually an average over multiple scans...
-    double ppm = 0.5;
+    constexpr double ppm = 0.5;
 
-    vector<QColor> cols;
-    cols.push_back(Qt::blue);
-    cols.push_back(Qt::green);
-    cols.push_back(Qt::red);
-    cols.push_back(Qt::gray);
-    cols.push_back(Qt::darkYellow);
+    vector<QColor> cols{ Qt::blue, Qt::green, Qt::red, Qt::gray, Qt::darkYellow };
 
     if (!current_layer.getCurrentSpectrum().isSorted())
     {
