@@ -210,6 +210,8 @@ protected:
 
   bool quantify_decoys_;
 
+  const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
+
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):

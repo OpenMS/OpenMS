@@ -278,7 +278,7 @@ protected:
     const StringList RNA_mapping = {"A->A", "C->C", "G->G", "U->U"};
 
     const String p = getStringOption_("RNPxl:presets");
-    if (p == "RNA")
+    if (p == "RNA-UV (U)" || p == "RNA-UV (UCGA)")
     {
       nucleotides = RNA_nucleotides;
 
@@ -352,8 +352,8 @@ protected:
           "G:C5H6O3;ribose-H2O-HPO3",
           "C:C5H6O3;ribose-H2O-HPO3",
           "A:C5H6O3;ribose-H2O-HPO3"};
-
-      can_cross_link = "U";
+      
+      can_cross_link = (p == "RNA-UV (U)") ? "U" : "UCGA" ;
     }
     else if (p == "DNA")
     {
@@ -455,7 +455,7 @@ protected:
 
       can_cross_link = "CTGA";
     }
-    else if (p == "RNA-4SU")
+    else if (p == "RNA-UV (4SU)")
     {
       nucleotides = RNA_nucleotides;
       nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
@@ -753,7 +753,7 @@ protected:
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
 
     registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
-    setValidStrings_("RNPxl:presets", {"none", "RNA", "DNA", "RNA-4SU", "RNA-DEB", "DNA-DEB"});
+    setValidStrings_("RNPxl:presets", {"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV (4SU)", "DNA", "RNA-DEB", "DNA-DEB"});
 
     registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
 

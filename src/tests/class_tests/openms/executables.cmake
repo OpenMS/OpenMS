@@ -488,6 +488,7 @@ set(analysis_executables_list
   IDRipper_test
   IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
+  IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
   InclusionExclusionList_test
   IsobaricChannelExtractor_test

@@ -971,6 +971,7 @@ namespace OpenMS
       }
     }
 
+    // get one letter code of unmodified version
     const String& res = aas.peptide_.back()->getOneLetterCode();
     if (specificity == ResidueModification::PROTEIN_C_TERM)
     {
