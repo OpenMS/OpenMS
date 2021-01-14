@@ -181,9 +181,6 @@ public:
         @exception Exception::ParseError
     */
     void set(const String& date);
-
-protected:
   };
 
 } // namespace OPENMS
-

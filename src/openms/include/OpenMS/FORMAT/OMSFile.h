@@ -64,7 +64,6 @@ namespace OpenMS
      *
      * @param filename The output file
      * @param id_data The IdentificationData object
-     *
      */
     void store(const String& filename, const IdentificationData& id_data);
 
@@ -72,17 +71,22 @@ namespace OpenMS
      *
      * @param filename The output file
      * @param features The feature map
-     *
      */
     void store(const String& filename, const FeatureMap& features);
 
-    /** @brief Read in a OMS file and construct an IdentificationData
+    /** @brief Read in a OMS file and construct an IdentificationData object
      *
      * @param filename The input file
      * @param id_data The IdentificationData object
-     *
      */
     void load(const String& filename, IdentificationData& id_data);
+
+    /** @brief Read in a OMS file and construct a feature map
+     *
+     * @param filename The input file
+     * @param features The feature map
+     */
+    void load(const String& filename, FeatureMap& features);
 
   protected:
 
@@ -151,7 +155,8 @@ namespace OpenMS
 
       Key storeCVTerm_(const CVTerm& cv_term);
 
-      void createTableMetaInfo_(const String& parent_table);
+      void createTableMetaInfo_(const String& parent_table,
+                                const String& key_column = "id");
 
       QSqlQuery getQueryMetaInfo_(const String& parent_table);
 
@@ -241,46 +246,55 @@ namespace OpenMS
         return false;
       }
 
+      void storeMapMetaData_(const FeatureMap& features);
+
+      void storeDataProcessing_(const FeatureMap& features);
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
     };
 
     // load helper class:
-    class OMSFileLoad
+    class OMSFileLoad: public ProgressLogger
     {
     public:
-      OMSFileLoad(const String& filename, IdentificationData& id_data);
+      OMSFileLoad(const String& filename, LogType log_type);
 
       ~OMSFileLoad();
 
-      // static CVTerm loadCVTerm_(int id);
+      void load(IdentificationData& id_data);
 
-      void loadScoreTypes();
-
-      void loadInputFiles();
-
-      void loadProcessingSoftwares();
-
-      void loadDBSearchParams();
-
-      void loadProcessingSteps();
-
-      void loadInputItems();
-
-      void loadParentSequences();
-
-      void loadParentGroupSets();
-
-      void loadIdentifiedCompounds();
-
-      void loadIdentifiedSequences();
-
-      void loadAdducts();
-
-      void loadInputMatches();
+      void load(FeatureMap& features);
 
     private:
+      // static CVTerm loadCVTerm_(int id);
+
+      void loadScoreTypes_(IdentificationData& id_data);
+
+      void loadInputFiles_(IdentificationData& id_data);
+
+      void loadProcessingSoftwares_(IdentificationData& id_data);
+
+      void loadDBSearchParams_(IdentificationData& id_data);
+
+      void loadProcessingSteps_(IdentificationData& id_data);
+
+      void loadInputItems_(IdentificationData& id_data);
+
+      void loadParentSequences_(IdentificationData& id_data);
+
+      void loadParentGroupSets_(IdentificationData& id_data);
+
+      void loadIdentifiedCompounds_(IdentificationData& id_data);
+
+      void loadIdentifiedSequences_(IdentificationData& id_data);
+
+      void loadAdducts_(IdentificationData& id_data);
+
+      void loadInputMatches_(IdentificationData& id_data);
+
+      void loadDataProcessing_(FeatureMap& features);
+
       static DataValue makeDataValue_(const QSqlQuery& query);
 
       bool prepareQueryMetaInfo_(QSqlQuery& query, const String& parent_table);
@@ -306,8 +320,6 @@ namespace OpenMS
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
-
-      IdentificationData& id_data_;
 
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
       std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;

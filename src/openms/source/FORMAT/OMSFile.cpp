@@ -286,17 +286,19 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::createTableMetaInfo_(const String& parent_table)
+  void OMSFile::OMSFileStore::createTableMetaInfo_(const String& parent_table,
+                                                   const String& key_column)
   {
     if (!tableExists_(db_name_, "DataValue")) createTableDataValue_();
 
+    String parent_ref = parent_table + " (" + key_column + ")";
     createTable_(
       parent_table + "_MetaInfo",
-      "parent_id INTEGER NOT NULL, "                                    \
-      "name TEXT NOT NULL, "                                            \
-      "data_value_id INTEGER NOT NULL, "                                \
-      "FOREIGN KEY (parent_id) REFERENCES " + parent_table + " (id), "  \
-      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), "         \
+      "parent_id INTEGER NOT NULL, "                            \
+      "name TEXT NOT NULL, "                                    \
+      "data_value_id INTEGER NOT NULL, "                        \
+      "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
+      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
       "UNIQUE (parent_id, name)");
   }
 
@@ -1469,9 +1471,83 @@ namespace OpenMS
     {
       storeFeatureAndSubordinates_(feat, feature_id, -1, query_feat,
                                    query_meta, query_hull, query_match);
+      nextProgress();
     }
   }
 
+
+  void OMSFile::OMSFileStore::storeMapMetaData_(const FeatureMap& features)
+  {
+    createTable_("FEAT_MapMetaData",
+                 "unique_id INTEGER, "          \
+                 "identifier TEXT, "            \
+                 "file_path TEXT, "             \
+                 "file_type TEXT");
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    // @TODO: worth using a prepared query for just one insert?
+    query.prepare("INSERT INTO FEAT_MapMetaData VALUES (" \
+                  ":unique_id, "                          \
+                  ":identifier, "                         \
+                  ":file_path, "                          \
+                  ":file_type)");
+    query.bindValue(":unique_id", qint64(features.getUniqueId()));
+    query.bindValue(":identifier", features.getIdentifier().toQString());
+    query.bindValue(":file_path", features.getLoadedFilePath().toQString());
+    String file_type = FileTypes::typeToName(features.getLoadedFileType());
+    query.bindValue(":file_type", file_type.toQString());
+    if (!query.exec())
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error inserting data");
+    }
+    if (!features.isMetaEmpty())
+    {
+      createTableMetaInfo_("FEAT_MapMetaData", "unique_id");
+      QSqlQuery query_meta = getQueryMetaInfo_("FEAT_MapMetaData");
+      storeMetaInfo_(features, qint64(features.getUniqueId()), query_meta);
+    }
+  }
+
+
+  void OMSFile::OMSFileStore::storeDataProcessing_(const FeatureMap& features)
+  {
+    if (features.getDataProcessing().empty()) return;
+
+    createTable_("FEAT_DataProcessing",
+                 "index INTEGER NOT NULL, "     \
+                 "software_name TEXT, "         \
+                 "software_version TEXT, "      \
+                 "processing_actions TEXT, "    \
+                 "completion_time TEXT");
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO FEAT_DataProcessing VALUES (" \
+                  ":index, "                                 \
+                  ":software_name, "                         \
+                  ":software_version, "                      \
+                  ":processing_actions, "                    \
+                  ":completion_time)");
+    int index = 0;
+    for (const DataProcessing& proc : features.getDataProcessing())
+    {
+      query.bindValue(":index", index);
+      query.bindValue(":software_name", proc.getSoftware().getName().toQString());
+      query.bindValue(":software_version", proc.getSoftware().getVersion().toQString());
+      String actions;
+      for (DataProcessing::ProcessingAction action : proc.getProcessingActions())
+      {
+        if (!actions.empty()) actions += ","; // @TODO: use different separator?
+        actions += DataProcessing::NamesOfProcessingAction[action];
+      }
+      query.bindValue(":processing_actions", actions.toQString());
+      query.bindValue(":completion_time", proc.getCompletionTime().get().toQString());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+      index++;
+    }
+  }
 
 
   void OMSFile::OMSFileStore::store(const FeatureMap& features)
@@ -1484,7 +1560,11 @@ namespace OpenMS
     {
       store(features.getIdentificationData());
     }
-    startProgress(0, 13, "Writing feature data to file");
+    startProgress(0, features.size() + 2, "Writing feature data to file");
+    storeMapMetaData_(features);
+    nextProgress();
+    storeDataProcessing_(features);
+    nextProgress();
     storeFeatures_(features);
     endProgress();
   }
@@ -1504,12 +1584,12 @@ namespace OpenMS
   }
 
 
-  OMSFile::OMSFileLoad::OMSFileLoad(const String& filename,
-                                    IdentificationData& id_data):
+  OMSFile::OMSFileLoad::OMSFileLoad(const String& filename, LogType log_type):
     db_name_("load_" + filename.toQString() + "_" +
-             QString::number(UniqueIdGenerator::getUniqueId())),
-    id_data_(id_data)
+             QString::number(UniqueIdGenerator::getUniqueId()))
   {
+    setLogType(log_type);
+
     // open database:
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", db_name_);
     db.setDatabaseName(filename.toQString());
@@ -1549,7 +1629,7 @@ namespace OpenMS
   // }
 
 
-  void OMSFile::OMSFileLoad::loadScoreTypes()
+  void OMSFile::OMSFileLoad::loadScoreTypes_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_ScoreType")) return;
     if (!tableExists_(db_name_, "CVTerm")) // every score type is a CV term
@@ -1575,13 +1655,13 @@ namespace OpenMS
                      query.value("cv_identifier_ref").toString());
       bool higher_better = query.value("higher_better").toInt();
       ID::ScoreType score_type(cv_term, higher_better);
-      ID::ScoreTypeRef ref = id_data_.registerScoreType(score_type);
+      ID::ScoreTypeRef ref = id_data.registerScoreType(score_type);
       score_type_refs_[query.value("id").toLongLong()] = ref;
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadInputFiles()
+  void OMSFile::OMSFileLoad::loadInputFiles_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_InputFile")) return;
 
@@ -1599,13 +1679,13 @@ namespace OpenMS
       String primary_files = query.value("primary_files").toString();
       vector<String> pf_list = ListUtils::create<String>(primary_files);
       input.primary_files.insert(pf_list.begin(), pf_list.end());
-      ID::InputFileRef ref = id_data_.registerInputFile(input);
+      ID::InputFileRef ref = id_data.registerInputFile(input);
       input_file_refs_[query.value("id").toLongLong()] = ref;
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadProcessingSoftwares()
+  void OMSFile::OMSFileLoad::loadProcessingSoftwares_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_ProcessingSoftware")) return;
 
@@ -1646,8 +1726,7 @@ namespace OpenMS
           software.assigned_scores.push_back(score_type_refs_[score_type_id]);
         }
       }
-      ID::ProcessingSoftwareRef ref =
-        id_data_.registerProcessingSoftware(software);
+      ID::ProcessingSoftwareRef ref = id_data.registerProcessingSoftware(software);
       processing_software_refs_[id] = ref;
     }
   }
@@ -1758,7 +1837,7 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadDBSearchParams()
+  void OMSFile::OMSFileLoad::loadDBSearchParams_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_DBSearchParam")) return;
 
@@ -1812,13 +1891,13 @@ namespace OpenMS
       param.missed_cleavages = query.value("missed_cleavages").toUInt();
       param.min_length = query.value("min_length").toUInt();
       param.max_length = query.value("max_length").toUInt();
-      ID::SearchParamRef ref = id_data_.registerDBSearchParam(param);
+      ID::SearchParamRef ref = id_data.registerDBSearchParam(param);
       search_param_refs_[id] = ref;
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadProcessingSteps()
+  void OMSFile::OMSFileLoad::loadProcessingSteps_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_ProcessingStep")) return;
 
@@ -1873,20 +1952,20 @@ namespace OpenMS
       QVariant opt_search_param_id = query.value("search_param_id");
       if (opt_search_param_id.isNull()) // no DB search params available
       {
-        ref = id_data_.registerProcessingStep(step);
+        ref = id_data.registerProcessingStep(step);
       }
       else
       {
         ID::SearchParamRef search_param_ref =
           search_param_refs_[opt_search_param_id.toLongLong()];
-        ref = id_data_.registerProcessingStep(step, search_param_ref);
+        ref = id_data.registerProcessingStep(step, search_param_ref);
       }
       processing_step_refs_[id] = ref;
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadInputItems()
+  void OMSFile::OMSFileLoad::loadInputItems_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_InputItem")) return;
 
@@ -1917,13 +1996,13 @@ namespace OpenMS
       if (!mz.isNull()) input_item.mz = mz.toDouble();
       Key id = query.value("id").toLongLong();
       if (have_meta_info) handleQueryMetaInfo_(subquery_info, input_item, id);
-      ID::InputItemRef ref = id_data_.registerInputItem(input_item);
+      ID::InputItemRef ref = id_data.registerInputItem(input_item);
       input_item_refs_[id] = ref;
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadParentSequences()
+  void OMSFile::OMSFileLoad::loadParentSequences_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_ParentSequence")) return;
 
@@ -1962,21 +2041,20 @@ namespace OpenMS
       {
         handleQueryAppliedProcessingStep_(subquery_step, parent, id);
       }
-      ID::ParentSequenceRef ref = id_data_.registerParentSequence(parent);
+      ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
       parent_refs_[id] = ref;
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadParentGroupSets()
+  void OMSFile::OMSFileLoad::loadParentGroupSets_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_ParentGroupSet")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ParentGroupSet "  \
-                    "ORDER BY grouping_order ASC"))
+    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY grouping_order ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -1992,14 +2070,12 @@ namespace OpenMS
 
     QSqlQuery subquery_group(db);
     subquery_group.setForwardOnly(true);
-    subquery_group.prepare("SELECT * FROM ID_ParentGroup "  \
-                           "WHERE grouping_id = :id");
+    subquery_group.prepare("SELECT * FROM ID_ParentGroup WHERE grouping_id = :id");
 
     QSqlQuery subquery_parent(db);
     subquery_parent.setForwardOnly(true);
     subquery_parent.prepare(
-      "SELECT parent_id FROM ID_ParentGroup_ParentSequence " \
-      "WHERE group_id = :id");
+      "SELECT parent_id FROM ID_ParentGroup_ParentSequence WHERE group_id = :id");
 
     while (query.next())
     {
@@ -2056,12 +2132,12 @@ namespace OpenMS
         grouping.groups.insert(pair.second);
       }
 
-      id_data_.registerParentGroupSet(grouping);
+      id_data.registerParentGroupSet(grouping);
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadIdentifiedCompounds()
+  void OMSFile::OMSFileLoad::loadIdentifiedCompounds_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_IdentifiedCompound")) return;
 
@@ -2078,12 +2154,10 @@ namespace OpenMS
     }
     // @TODO: can we combine handling of meta info and applied processing steps?
     QSqlQuery subquery_info(db);
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_IdentifiedMolecule");
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_IdentifiedMolecule");
     QSqlQuery subquery_step(db);
     bool have_applied_steps =
-      prepareQueryAppliedProcessingStep_(subquery_step,
-                                         "ID_IdentifiedMolecule");
+      prepareQueryAppliedProcessingStep_(subquery_step, "ID_IdentifiedMolecule");
 
     while (query.next())
     {
@@ -2102,8 +2176,7 @@ namespace OpenMS
       {
         handleQueryAppliedProcessingStep_(subquery_step, compound, id);
       }
-      ID::IdentifiedCompoundRef ref =
-        id_data_.registerIdentifiedCompound(compound);
+      ID::IdentifiedCompoundRef ref = id_data.registerIdentifiedCompound(compound);
       identified_molecule_vars_[id] = ref;
     }
   }
@@ -2135,7 +2208,7 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadIdentifiedSequences()
+  void OMSFile::OMSFileLoad::loadIdentifiedSequences_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_IdentifiedMolecule")) return;
 
@@ -2186,8 +2259,7 @@ namespace OpenMS
       {
         handleQueryParentMatch_(subquery_parent, peptide.parent_matches, id);
       }
-      ID::IdentifiedPeptideRef ref =
-        id_data_.registerIdentifiedPeptide(peptide);
+      ID::IdentifiedPeptideRef ref = id_data.registerIdentifiedPeptide(peptide);
       identified_molecule_vars_[id] = ref;
     }
 
@@ -2215,7 +2287,7 @@ namespace OpenMS
       {
         handleQueryParentMatch_(subquery_parent, oligo.parent_matches, id);
       }
-      ID::IdentifiedOligoRef ref = id_data_.registerIdentifiedOligo(oligo);
+      ID::IdentifiedOligoRef ref = id_data.registerIdentifiedOligo(oligo);
       identified_molecule_vars_[id] = ref;
     }
   }
@@ -2249,7 +2321,7 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadAdducts()
+  void OMSFile::OMSFileLoad::loadAdducts_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "AdductInfo")) return;
 
@@ -2267,13 +2339,13 @@ namespace OpenMS
       AdductInfo adduct(query.value("name").toString(), formula,
                         query.value("charge").toInt(),
                         query.value("mol_multiplier").toInt());
-      ID::AdductRef ref = id_data_.registerAdduct(adduct);
+      ID::AdductRef ref = id_data.registerAdduct(adduct);
       adduct_refs_[query.value("id").toLongLong()] = ref;
     }
   }
 
 
-  void OMSFile::OMSFileLoad::loadInputMatches()
+  void OMSFile::OMSFileLoad::loadInputMatches_(IdentificationData& id_data)
   {
     if (!tableExists_(db_name_, "ID_InputMatch")) return;
 
@@ -2329,41 +2401,104 @@ namespace OpenMS
       {
         handleQueryPeakAnnotation_(subquery_ann, match, id);
       }
-      ID::InputMatchRef ref = id_data_.registerInputMatch(match);
+      ID::InputMatchRef ref = id_data.registerInputMatch(match);
       input_match_refs_[id] = ref;
     }
   }
 
 
+  void OMSFile::OMSFileLoad::load(IdentificationData& id_data)
+  {
+    startProgress(0, 12, "Reading identification data from file");
+    loadInputFiles_(id_data);
+    nextProgress();
+    loadScoreTypes_(id_data);
+    nextProgress();
+    loadProcessingSoftwares_(id_data);
+    nextProgress();
+    loadDBSearchParams_(id_data);
+    nextProgress();
+    loadProcessingSteps_(id_data);
+    nextProgress();
+    loadInputItems_(id_data);
+    nextProgress();
+    loadParentSequences_(id_data);
+    nextProgress();
+    loadParentGroupSets_(id_data);
+    nextProgress();
+    loadIdentifiedCompounds_(id_data);
+    nextProgress();
+    loadIdentifiedSequences_(id_data);
+    nextProgress();
+    loadAdducts_(id_data);
+    nextProgress();
+    loadInputMatches_(id_data);
+    endProgress();
+    // @TODO: load input match groups
+  }
+
+
+  void OMSFile::OMSFileLoad::loadDataProcessing_(FeatureMap& features)
+  {
+    if (!tableExists_(db_name_, "FEAT_DataProcessing")) return;
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY index ASC"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+
+    while (query.next())
+    {
+      DataProcessing proc;
+      Software sw(query.value("software_name").toString(),
+                  query.value("software_version").toString());
+      proc.setSoftware(sw);
+      vector<String> actions =
+        ListUtils::create<String>(query.value("processing_actions").toString());
+      for (const String& action : actions)
+      {
+        auto pos = find(begin(DataProcessing::NamesOfProcessingAction),
+                          end(DataProcessing::NamesOfProcessingAction), action);
+        if (pos != end(DataProcessing::NamesOfProcessingAction))
+        {
+          Size index = pos - begin(DataProcessing::NamesOfProcessingAction);
+          proc.getProcessingActions().insert(DataProcessing::ProcessingAction(index));
+        }
+        else // @TODO: throw an exception here?
+        {
+          OPENMS_LOG_ERROR << "Error: unknown data processing action '" << action << "' - skipping";
+        }
+      }
+      DateTime time;
+      time.set(query.value("completion_time").toString());
+      proc.setCompletionTime(time);
+      features.getDataProcessing().push_back(proc);
+    }
+  }
+
+
+  void OMSFile::OMSFileLoad::load(FeatureMap& features)
+  {
+    load(features.getIdentificationData()); // load IDs, if any
+    startProgress(0, 12, "Reading feature data from file");
+
+  }
+
+
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
-    OMSFileLoad helper(filename, id_data);
-    startProgress(0, 12, "Reading data from file");
-    helper.loadInputFiles();
-    nextProgress();
-    helper.loadScoreTypes();
-    nextProgress();
-    helper.loadProcessingSoftwares();
-    nextProgress();
-    helper.loadDBSearchParams();
-    nextProgress();
-    helper.loadProcessingSteps();
-    nextProgress();
-    helper.loadInputItems();
-    nextProgress();
-    helper.loadParentSequences();
-    nextProgress();
-    helper.loadParentGroupSets();
-    nextProgress();
-    helper.loadIdentifiedCompounds();
-    nextProgress();
-    helper.loadIdentifiedSequences();
-    nextProgress();
-    helper.loadAdducts();
-    nextProgress();
-    helper.loadInputMatches();
-    endProgress();
-    // @TODO: load parent sequence groups and input match groups
+    OMSFileLoad helper(filename, log_type_);
+    helper.load(id_data);
+  }
+
+
+  void OMSFile::load(const String& filename, FeatureMap& features)
+  {
+    OMSFileLoad helper(filename, log_type_);
+    helper.load(features);
   }
 
 }
