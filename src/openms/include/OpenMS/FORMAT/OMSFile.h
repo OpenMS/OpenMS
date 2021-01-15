@@ -293,7 +293,16 @@ namespace OpenMS
 
       void loadInputMatches_(IdentificationData& id_data);
 
+      void loadMapMetaData_(FeatureMap& features);
+
       void loadDataProcessing_(FeatureMap& features);
+
+      void loadFeatures_(FeatureMap& features);
+
+      Feature loadFeatureAndSubordinates_(QSqlQuery& query_feat,
+                                          boost::optional<QSqlQuery>& query_meta,
+                                          boost::optional<QSqlQuery>& query_hull,
+                                          boost::optional<QSqlQuery>& query_match);
 
       static DataValue makeDataValue_(const QSqlQuery& query);
 

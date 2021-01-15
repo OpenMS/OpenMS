@@ -1320,6 +1320,7 @@ namespace OpenMS
     query_feat.bindValue(":overall_quality", feature.getOverallQuality());
     query_feat.bindValue(":rt_quality", feature.getQuality(0));
     query_feat.bindValue(":mz_quality", feature.getQuality(1));
+    query_feat.bindValue(":unique_id", qint64(feature.getUniqueId()));
     if (feature.hasPrimaryID())
     {
       query_feat.bindValue(":primary_molecule_id", getAddress_(feature.getPrimaryID()));
@@ -1328,7 +1329,6 @@ namespace OpenMS
     {
       query_feat.bindValue(":primary_molecule_id", QVariant(QVariant::Int));
     }
-    query_feat.bindValue(":unique_id", qint64(feature.getUniqueId()));
     if (parent_id >= 0) // feature is a subordinate
     {
       query_feat.bindValue(":subordinate_of", parent_id);
@@ -1348,11 +1348,13 @@ namespace OpenMS
     if (!hulls.empty())
     {
       query_hull.bindValue(":feature_id", feature_id);
-      for (int i = 0; i < int(hulls.size()); ++i)
+      for (uint i = 0; i < hulls.size(); ++i)
       {
-        query_hull.bindValue(":index", i);
-        for (const ConvexHull2D::PointType& point : hulls[i].getHullPoints())
+        query_hull.bindValue(":hull_index", i);
+        for (uint j = 0; j < hulls[i].getHullPoints().size(); ++j)
         {
+          const ConvexHull2D::PointType& point = hulls[i].getHullPoints()[j];
+          query_hull.bindValue(":point_index", j);
           query_hull.bindValue(":point_x", point.getX());
           query_hull.bindValue(":point_y", point.getY());
           if (!query_hull.exec())
@@ -1402,8 +1404,8 @@ namespace OpenMS
                  "overall_quality REAL, "            \
                  "rt_quality REAL, "                 \
                  "mz_quality REAL, "                 \
-                 "primary_molecule_id INTEGER, "     \
                  "unique_id INTEGER, "               \
+                 "primary_molecule_id INTEGER, "     \
                  "subordinate_of INTEGER, "          \
                  "FOREIGN KEY (primary_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
                  "FOREIGN KEY (subordinate_of) INTEGER REFERENCES FEAT_Feature (id), " \
@@ -1420,8 +1422,8 @@ namespace OpenMS
                        ":overall_quality, "                \
                        ":rt_quality, "                     \
                        ":mz_quality, "                     \
-                       ":primary_molecule_id, "            \
                        ":unique_id, "                      \
+                       ":primary_molecule_id, "            \
                        ":subordinate_of)");
     QSqlQuery query_meta;
     // if (anyMetaInfos_(features))
@@ -1440,13 +1442,15 @@ namespace OpenMS
     {
       createTable_("FEAT_ConvexHull",
                    "feature_id INTEGER NOT NULL, "                      \
-                   "index INTEGER NOT NULL CHECK (index >= 0), "        \
+                   "hull_index INTEGER NOT NULL CHECK (hull_index >= 0), " \
+                   "point_index INTEGER NOT NULL CHECK (point_index >= 0), " \
                    "point_x REAL, "                                     \
                    "point_y REAL, "                                     \
-                   "FOREIGN KEY (parent_id) REFERENCES FEAT_Feature (id)");
+                   "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id)");
       query_hull.prepare("INSERT INTO FEAT_ConvexHull VALUES (" \
                          ":feature_id, "                        \
-                         ":index, "                             \
+                         ":hull_index, "                        \
+                         ":point_index, "                       \
                          ":point_x, "                           \
                          ":point_y)");
     }
@@ -2438,6 +2442,33 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileLoad::loadMapMetaData_(FeatureMap& features)
+  {
+    if (!tableExists_(db_name_, "FEAT_MapMetaData")) return;
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM FEAT_MapMetaData"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+
+    query.next(); // there should be only one row
+    Key id = query.value("unique_id").toLongLong();
+    features.setUniqueId(id);
+    features.setIdentifier(query.value("identifier").toString());
+    features.setLoadedFilePath(query.value("file_path").toString());
+    String file_type = query.value("file_type").toString();
+    features.setLoadedFilePath(FileTypes::nameToType(file_type));
+    QSqlQuery query_meta(QSqlDatabase::database(db_name_));
+    if (prepareQueryMetaInfo_(query_meta, "FEAT_MapMetaData"))
+    {
+      handleQueryMetaInfo_(query_meta, features, id);
+    }
+  }
+
+
   void OMSFile::OMSFileLoad::loadDataProcessing_(FeatureMap& features)
   {
     if (!tableExists_(db_name_, "FEAT_DataProcessing")) return;
@@ -2480,11 +2511,142 @@ namespace OpenMS
   }
 
 
+  Feature OMSFile::OMSFileLoad::loadFeatureAndSubordinates_(
+    QSqlQuery& query_feat, boost::optional<QSqlQuery>& query_meta,
+    boost::optional<QSqlQuery>& query_hull, boost::optional<QSqlQuery>& query_match)
+  {
+    Feature feature;
+    int id = query_feat.value("id").toInt();
+    feature.setRT(query_feat.value("rt").toDouble());
+    feature.setMZ(query_feat.value("mz").toDouble());
+    feature.setIntensity(query_feat.value("intensity").toDouble());
+    feature.setCharge(query_feat.value("charge").toInt());
+    feature.setWidth(query_feat.value("width").toDouble());
+    feature.setOverallQuality(query_feat.value("overall_quality").toDouble());
+    feature.setQuality(0, query_feat.value("rt_quality").toDouble());
+    feature.setQuality(1, query_feat.value("mz_quality").toDouble());
+    feature.setUniqueId(query_feat.value("unique_id").toLongLong());
+    QVariant primary_id = query_feat.value("primary_molecule_id"); // optional
+    if (!primary_id.isNull())
+    {
+      feature.setPrimaryID(identified_molecule_vars_[primary_id.toLongLong()]);
+    }
+    // meta data:
+    if (query_meta)
+    {
+      handleQueryMetaInfo_(*query_meta, feature, id);
+    }
+    // convex hulls:
+    if (query_hull)
+    {
+      query_hull->bindValue(":id", id);
+      if (!query_hull->exec())
+      {
+        raiseDBError_(query_hull->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error reading from database");
+      }
+      while (query_hull->next())
+      {
+        Size hull_index = query_hull->value("hull_index").toUInt();
+        // first row should have max. hull index (sorted descending):
+        if (feature.getConvexHulls().size() <= hull_index)
+        {
+          feature.getConvexHulls().resize(hull_index + 1);
+        }
+        ConvexHull2D::PointType point(query_hull->value("point_x").toDouble(),
+                                      query_hull->value("point_y").toDouble());
+        // @TODO: this may be inefficient (see implementation of "addPoint"):
+        feature.getConvexHulls()[hull_index].addPoint(point);
+      }
+    }
+    // input matches:
+    if (query_match)
+    {
+      query_match->bindValue(":id", id);
+      if (!query_match->exec())
+      {
+        raiseDBError_(query_match->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error reading from database");
+      }
+      while (query_match->next())
+      {
+        Key input_match_id = query_match->value("input_match_id").toLongLong();
+        feature.addInputMatch(input_match_refs_[input_match_id]);
+      }
+    }
+    // subordinates:
+    QSqlQuery query_sub(QSqlDatabase::database(db_name_));
+    query_sub.setForwardOnly(true);
+    QString sql = "SELECT * FROM FEAT_Feature WHERE subordinate_of = " +
+      QString(id) + " ORDER BY id ASC";
+    if (!query_sub.exec(sql))
+    {
+      raiseDBError_(query_sub.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    while (query_sub.next())
+    {
+      Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
+                                                query_hull, query_match);
+      feature.getSubordinates().push_back(sub);
+    }
+    return feature;
+  }
+
+
+  void OMSFile::OMSFileLoad::loadFeatures_(FeatureMap& features)
+  {
+    if (!tableExists_(db_name_, "FEAT_Feature")) return;
+
+    QSqlDatabase db = QSqlDatabase::database(db_name_);
+
+    // start with top-level features only:
+    QSqlQuery query_feat(db);
+    query_feat.setForwardOnly(true);
+    if (!query_feat.exec("SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC"))
+    {
+      raiseDBError_(query_feat.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+    // prepare sub-queries (optional - corresponding tables may not be present):
+    boost::optional<QSqlQuery> query_meta(db);
+    if (!prepareQueryMetaInfo_(*query_meta, "FEAT_Feature"))
+    {
+      query_meta = boost::none;
+    }
+    boost::optional<QSqlQuery> query_hull;
+    if (tableExists_(db_name_, "FEAT_ConvexHull"))
+    {
+      query_hull = QSqlQuery(db);
+      query_hull->prepare("SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
+                         "ORDER BY hull_index DESC, point_index ASC");
+    }
+    boost::optional<QSqlQuery> query_match;
+    if (tableExists_(db_name_, "FEAT_InputMatch"))
+    {
+      query_match = QSqlQuery(db);
+      query_match->prepare("SELECT * FROM FEAT_InputMatch WHERE feature_id = :id");
+    }
+
+    while (query_feat.next())
+    {
+      Feature feature = loadFeatureAndSubordinates_(query_feat, query_meta,
+                                                    query_hull, query_match);
+      features.push_back(feature);
+    }
+  }
+
+
   void OMSFile::OMSFileLoad::load(FeatureMap& features)
   {
     load(features.getIdentificationData()); // load IDs, if any
-    startProgress(0, 12, "Reading feature data from file");
-
+    startProgress(0, 3, "Reading feature data from file");
+    loadMapMetaData_(features);
+    nextProgress();
+    loadDataProcessing_(features);
+    nextProgress();
+    loadFeatures_(features);
+    endProgress();
   }
 
 
