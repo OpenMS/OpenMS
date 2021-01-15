@@ -808,7 +808,7 @@ protected:
 
     registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g U:  U:-H2O, ..., U:H2O+PO3.", false, false);
 
-    registerStringOption_("RNPxl:scoring", "<method>", "fast", "Scoring algorithm used in prescoring (fast: total-loss, slow: all losses).", false, false);
+    registerStringOption_("RNPxl:scoring", "<method>", "slow", "Scoring algorithm used in prescoring (fast: total-loss only, slow: all losses).", false, false);
     setValidStrings_("RNPxl:scoring", {"fast", "slow"});
 
     registerStringOption_("RNPxl:decoys", "<bool>", "true", "Generate decoys internally (recommended).", false, false);
@@ -4719,7 +4719,6 @@ static void scoreXLIons_(
     DoubleList XL_FDR = getDoubleList_("report:xlFDR");
 
     StringList nt_groups = getStringList_("RNPxl:nt_groups");
-
 
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
