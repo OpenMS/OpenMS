@@ -671,6 +671,20 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     if (rewrite_source_file)
     {
       SourceFile src_file;
+      if (exp.getSourceFiles().empty()) // copy settings like native ID format
+      {
+        OPENMS_LOG_WARN << "No source file annotated." << endl;
+      }
+      else 
+      {
+        if (exp.getSourceFiles().size() > 1) 
+        {
+          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() 
+                          << " will take only first one as for rewriting." << endl;
+        }
+        src_file = exp.getSourceFiles()[0];
+      }
+      
       src_file.setNameOfFile(File::basename(filename));
       String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
 
