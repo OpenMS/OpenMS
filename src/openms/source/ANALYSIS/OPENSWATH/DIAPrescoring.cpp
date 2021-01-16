@@ -68,7 +68,7 @@ namespace OpenMS
   {
     for (std::size_t i = 0; i < trans.size(); ++i)
     {
-      res.push_back(std::make_pair(trans[i].product_mz, trans[i].library_intensity));
+      res.emplace_back(trans[i].product_mz, trans[i].library_intensity);
     }
   }
 
@@ -127,48 +127,105 @@ namespace OpenMS
     } //end of forloop over spectra
   }
 
+
   void DiaPrescore::score(OpenSwath::SpectrumPtr spec,
                           const std::vector<OpenSwath::LightTransition>& lt,
                           double& dotprod,
-                          double& manhattan)
+                          double& manhattan) const
+  {
+    std::vector<std::pair<double, double> > res;
+    std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
+    int chg = 1;
+    for (const auto& transition : lt)
+    {
+      if (transition.fragment_charge != 0) chg = transition.fragment_charge;
+      DIAHelpers::addIsotopes2Spec(transition.getProductMZ(), transition.getLibraryIntensity(), spectrumWIso, nr_isotopes_, chg);
+    }
+    spectrumWIsoNegPreIso.resize(spectrumWIso.size());
+    std::copy(spectrumWIso.begin(), spectrumWIso.end(), spectrumWIsoNegPreIso.begin());
+    for (const auto& transition : lt)
+    {
+      if (transition.fragment_charge != 0) chg = transition.fragment_charge;
+      DIAHelpers::addPreisotopeWeights(transition.getProductMZ(), spectrumWIso, 2, 0.0);
+      DIAHelpers::addPreisotopeWeights(transition.getProductMZ(), spectrumWIsoNegPreIso, 2, -0.5);
+    }
+
+    // compare against the spectrum with 0 weight preIsotope peaks
+    std::vector<double> mzTheor, intTheor;
+    DIAHelpers::extractFirst(spectrumWIso, mzTheor);
+    DIAHelpers::extractSecond(spectrumWIso, intTheor);
+    std::vector<double> intExp, mzExp;
+    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp);
+    std::transform(intExp.begin(), intExp.end(), intExp.begin(), OpenSwath::mySqrt());
+    std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), OpenSwath::mySqrt());
+
+    double intExpTotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
+    double intTheorTotal = std::accumulate(intTheor.begin(), intTheor.end(), 0.0);
+
+    OpenSwath::normalize(intExp, intExpTotal, intExp);
+    OpenSwath::normalize(intTheor, intTheorTotal, intTheor);
+
+    manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), intTheor.begin());
+
+    // compare against the spectrum with negative weight preIsotope peaks
+    std::vector<double> intTheor2;
+    // WARNING: This was spectrumWIso and therefore with 0 preIso weights before! Was this a bug?
+    // Otherwise we dont need the second spectrum at all.
+    DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheor2);
+    std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
+
+    intExpTotal = OpenSwath::norm(intExp.begin(), intExp.end());
+    intTheorTotal = OpenSwath::norm(intTheor2.begin(), intTheor2.end());
+
+    OpenSwath::normalize(intExp, intExpTotal, intExp);
+    OpenSwath::normalize(intTheor2, intTheorTotal, intTheor2);
+
+    dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheor2.begin());
+  }
+
+  /*void DiaPrescore::scoreDDA(OpenSwath::SpectrumPtr spec,
+                          const std::vector<OpenSwath::LightTransition>& lt,
+                          double& dotprod,
+                          double& manhattan) const
   {
     std::vector<std::pair<double, double> > res;
     getMZIntensityFromTransition(lt, res);
-    std::vector<double> firstIstotope, theomasses;
-    DIAHelpers::extractFirst(res, firstIstotope);
-    std::vector<std::pair<double, double> > spectrum, spectrum2;
-    DIAHelpers::addIsotopes2Spec(res, spectrum, nr_charges_);
-    spectrum2.resize(spectrum.size());
-    std::copy(spectrum.begin(), spectrum.end(), spectrum2.begin());
-    //std::cout << spectrum.size() << std::endl;
-    DIAHelpers::addPreisotopeWeights(firstIstotope, spectrum, 2, 0.0);
+    double monoIsoMZ = lt.begin()->getPrecursorMZ();
+    std::vector<double> transitionmzs, theomasses;
+    DIAHelpers::extractFirst(res, transitionmzs);
+    std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
+    DIAHelpers::addIsotopes2Spec(res, spectrumWIso, nr_charges_);
+    spectrumWIsoNegPreIso.resize(spectrumWIso.size());
+    std::copy(spectrumWIso.begin(), spectrumWIso.end(), spectrumWIsoNegPreIso.begin());
+    //std::cout << spectrumWIso.size() << std::endl;
+    DIAHelpers::addPreisotopeWeights(transitionmzs, spectrumWIso, 2, 0.0);
     //extracts masses from spectrum
-    DIAHelpers::extractFirst(spectrum, theomasses);
-    std::vector<double>  theorint;
-    DIAHelpers::extractSecond(spectrum, theorint);
+    DIAHelpers::extractFirst(spectrumWIso, theomasses);
+    std::vector<double>  intTheor;
+    DIAHelpers::extractSecond(spectrumWIso, intTheor);
     std::vector<double> intExp, mzExp;
     DIAHelpers::integrateWindows(spec, theomasses, dia_extract_window_, intExp, mzExp);
     std::transform(intExp.begin(), intExp.end(), intExp.begin(), OpenSwath::mySqrt());
-    std::transform(theorint.begin(), theorint.end(), theorint.begin(), OpenSwath::mySqrt());
+    std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), OpenSwath::mySqrt());
 
-    double intExptotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
-    double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(), 0.0);
+    double intExpTotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
+    double intTheorTotal = std::accumulate(intTheor.begin(), intTheor.end(), 0.0);
 
-    OpenSwath::normalize(intExp, intExptotal, intExp);
-    OpenSwath::normalize(theorint, intTheorTotal, theorint);
+    OpenSwath::normalize(intExp, intExpTotal, intExp);
+    OpenSwath::normalize(intTheor, intTheorTotal, intTheor);
 
-    manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
+    manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), intTheor.begin());
 
-    //std::cout << spectrum.size() << std::endl;
-    DIAHelpers::addPreisotopeWeights(firstIstotope, spectrum2, 2, -0.5);
+    //std::cout << spectrumWIso.size() << std::endl;
+    DIAHelpers::addPreisotopeWeights(transitionmzs, spectrumWIsoNegPreIso, 2, -0.5);
     std::vector<double>  theorint2;
-    DIAHelpers::extractSecond(spectrum, theorint2);
+    DIAHelpers::extractSecond(spectrumWIso, theorint2);
     std::transform(theorint2.begin(), theorint2.end(), theorint2.begin(), OpenSwath::mySqrt());
 
-    intExptotal = OpenSwath::norm(intExp.begin(), intExp.end());
+    intExpTotal = OpenSwath::norm(intExp.begin(), intExp.end());
     intTheorTotal = OpenSwath::norm(theorint2.begin(), theorint2.end());
 
-    OpenSwath::normalize(intExp, intExptotal, intExp);
+    OpenSwath::normalize(intExp, intExpTotal, intExp);
     OpenSwath::normalize(theorint2, intTheorTotal, theorint2);
 
     //    std::copy(intExp.begin(), intExp.end(), std::ostream_iterator<double>(std::cout, ", "));
@@ -177,6 +234,7 @@ namespace OpenMS
     //    std::cout << std::endl;
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint2.begin());
   }
+*/
 
   void DiaPrescore::updateMembers_()
   {

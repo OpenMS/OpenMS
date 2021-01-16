@@ -815,6 +815,8 @@ namespace OpenMS
         // TODO get it working with imrmfeature
         if (su_.use_elution_model_score_)
         {
+          //TODO wouldn't a weighted elution model score be much better? lower intensity traces usually will not have
+          // a nice profile
           scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
           mrmfeature.addScore("var_elution_model_fit_score", scores.elution_model_fit_score);
         }
@@ -838,8 +840,13 @@ namespace OpenMS
           mrmfeature.addScore("var_isotope_overlap_score", scores.isotope_overlap);
           mrmfeature.addScore("var_massdev_score", scores.massdev_score);
           mrmfeature.addScore("var_massdev_score_weighted", scores.weighted_massdev_score);
-          mrmfeature.addScore("var_bseries_score", scores.bseries_score);
-          mrmfeature.addScore("var_yseries_score", scores.yseries_score);
+
+          if (su_.use_ionseries_scores)
+          {
+            mrmfeature.addScore("var_bseries_score", scores.bseries_score);
+            mrmfeature.addScore("var_yseries_score", scores.yseries_score);
+          }
+
           mrmfeature.addScore("var_dotprod_score", scores.dotprod_score_dia);
           mrmfeature.addScore("var_manhatt_score", scores.manhatt_score_dia);
           if (su_.use_ms1_correlation)

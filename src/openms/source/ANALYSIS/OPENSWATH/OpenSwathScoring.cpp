@@ -200,7 +200,8 @@ namespace OpenMS
     diascoring.dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
 
     // Peptide-specific scores
-    if (compound.isPeptide() && su_.use_ionseries_scores)
+    // useless for FFID
+    if (compound.isPeptide() && !compound.sequence.empty() && su_.use_ionseries_scores)
     {
       // Presence of b/y series score
       OpenMS::AASequence aas;
@@ -257,9 +258,20 @@ namespace OpenMS
 
       if (compound.isPeptide())
       {
-        diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                          precursor_charge, scores.ms1_isotope_correlation,
-                                          scores.ms1_isotope_overlap);
+        if (!compound.sequence.empty())
+        {
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, scores.ms1_isotope_correlation,
+                                            scores.ms1_isotope_overlap,
+                                            AASequence::fromString(compound.sequence).getFormula(Residue::Full, precursor_charge));
+        }
+        else
+        {
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
+                                            precursor_charge, scores.ms1_isotope_correlation,
+                                            scores.ms1_isotope_overlap,
+                                            "");
+        }
+
       }
       else
       {
@@ -458,12 +470,14 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     std::vector<std::string> native_ids;
-    OpenSwath::MRMScoring mrmscore_;
-    for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
+    for (const auto& trans : transitions)
+    {
+      native_ids.push_back(trans.getNativeID());
+    }
 
     if (su_.use_library_score_)
     {
-      mrmscore_.calcLibraryScore(imrmfeature, transitions,
+      OpenSwath::MRMScoring::calcLibraryScore(imrmfeature, transitions,
           scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan,
           scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
     }
@@ -473,7 +487,7 @@ namespace OpenMS
     {
       // rt score is delta iRT
       double normalized_experimental_rt = normalized_feature_rt;
-      double rt_score = mrmscore_.calcRTScore(pep, normalized_experimental_rt);
+      double rt_score = OpenSwath::MRMScoring::calcRTScore(pep, normalized_experimental_rt);
 
       scores.normalized_experimental_rt = normalized_experimental_rt;
       scores.raw_rt_score = rt_score;

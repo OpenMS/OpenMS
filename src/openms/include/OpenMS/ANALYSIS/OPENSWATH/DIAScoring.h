@@ -136,6 +136,9 @@ public:
     /// Precursor isotope scores for precursors (peptides and metabolites)
     void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
                                 double& isotope_corr, double& isotope_overlap, const std::string& sum_formula = "") const;
+    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
+                                double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
+
 
     /// b/y ion scores
     void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
@@ -204,6 +207,14 @@ private:
                                 const std::vector<double>& isotopes_int, 
                                 int putative_fragment_charge,
                                 const std::string& sum_formula = "") const;
+
+    double scoreIsotopePattern_(double product_mz,
+                                const std::vector<double>& isotopes_int,
+                                const EmpiricalFormula& sum_formula) const;
+
+    double scoreIsotopePattern_(double product_mz,
+                                const std::vector<double>& isotopes_int,
+                                const IsotopeDistribution& isotope_dist) const;
 
     // Parameters
     double dia_extract_window_;

@@ -139,7 +139,7 @@ namespace OpenMS
     // exclude some redundant/uninformative scores:
     // @TODO: intensity bias introduced by "peak_apices_sum"?
     // names of scores to use as SVM features
-    String score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
+    String score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_ms1_isotope_correlation_score,var_ms1_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
 
     defaults_.setValue(
       "svm:predictors", 
@@ -201,6 +201,12 @@ namespace OpenMS
     params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom"));
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
     params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
+    // precursor transition = first product transition, additionally biased
+    params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
+    //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra around the apex,
+    // to complete ion ladders (and make this score more robust).
+
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("write_convex_hull", "true");
@@ -222,6 +228,7 @@ namespace OpenMS
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
+    feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
 
     double rt_uncertainty(0);
     bool with_external_ids = !peptides_ext.empty();
@@ -523,6 +530,10 @@ namespace OpenMS
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
 
+    //TODO MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
+    // Would be nice if we could only do the fitting once, since it is one of the bottlenecks.
+    // What is the intention of this post-processing here anyway? Does it filter anything?
+    // If so, why not filter based on the corresponding Swath/MRM score?
     if (elution_model_ != "none")
     {
       ElutionModelFitter emf;
@@ -651,7 +662,7 @@ namespace OpenMS
     {
       TargetedExperiment::Peptide peptide;
       const AASequence &seq = pm_it->first;
-      peptide.sequence = seq.toString();
+
 
       // @NOTE: Technically, "TargetedExperiment::Peptide" stores the unmodified
       // sequence and the modifications separately. Unfortunately, creating the
@@ -668,6 +679,8 @@ namespace OpenMS
       // TODO add own data structure for them
       if (seq.toUnmodifiedString().hasPrefix("XXX")) // seed
       {
+        // This will force the SWATH scores to consider it like an unidentified peptide and e.g. use averagine isotopes
+        peptide.sequence = "";
         // we do not have to aggregate their retention times, therefore just
         // iterate over the entries
         const ChargeMap& cm = pm_it->second;
@@ -722,6 +735,7 @@ namespace OpenMS
       }
       else
       {
+        peptide.sequence = seq.toString();
         // keep track of protein accessions:
         set<String> current_accessions;
         // internal/external pair
@@ -916,6 +930,8 @@ namespace OpenMS
       transition.setLibraryIntensity(iso_it->getIntensity());
       transition.setMetaValue("annotation", annotation);
       transition.setPeptideRef(peptide_id);
+
+      //TODO what about transition charge? A lot of DIA scores depend on it and default to charge 1 otherwise.
       library_.addTransition(transition);
       isotope_probs_[transition_name] = iso_it->getIntensity();
     }

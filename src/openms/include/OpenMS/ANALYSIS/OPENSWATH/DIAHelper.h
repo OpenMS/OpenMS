@@ -128,7 +128,7 @@ namespace OpenMS
                               std::vector<std::pair<double, double> >& modmass, //!< [out]
                               double charge = 1.);
 
-    /// add negative pre-isotope weights to spectrum
+    /// add (potentially negative) pre-isotope weights to spectrum
     OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
                               std::vector<std::pair<double, double> >& isotopeSpec, // output
                               UInt nrpeaks = 2, //nr of pre-isotope peaks
@@ -136,10 +136,23 @@ namespace OpenMS
                               double mannmass = 1.000482, //
                               double charge = 1.);
 
+    /// add negative pre-isotope weights to spectrum
+    OPENMS_DLLAPI void addPreisotopeWeights(double mz,
+                                            std::vector<std::pair<double, double> >& isotopeSpec, // output
+                                            UInt nrpeaks = 2, //nr of pre-isotope peaks
+                                            double preIsotopePeaksWeight = -0.5, // weight of pre-isotope peaks
+                                            double mannmass = 1.000482, //
+                                            double charge = 1.);
+
     /// given an experimental spectrum add isotope pattern.
     OPENMS_DLLAPI void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
                           std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                          double charge = 1.);
+                          Size nr_isotopes, double charge = 1.);
+
+    /// given a peak of experimental mz and intensity, add isotope pattern to a "spectrum".
+    OPENMS_DLLAPI void addIsotopes2Spec(double mz, double ity,
+                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                          Size nrIsotopes, double charge);
 
     /// sorts vector of pairs by first
     OPENMS_DLLAPI void sortByFirst(std::vector<std::pair<double, double> >& tmp);

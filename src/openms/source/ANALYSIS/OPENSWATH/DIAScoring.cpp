@@ -201,17 +201,42 @@ namespace OpenMS
   }
 
   /// Precursor isotope scores
+  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
+                                          double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const
+  {
+    // collect the potential isotopes of this peak
+    int charge_state = sum_formula.getCharge();
+    double max_ratio;
+    int nr_occurrences;
+    std::vector<double> isotopes_int;
+    for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
+    {
+      double left  = precursor_mz + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double right = left;
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      double mz, intensity;
+      DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      isotopes_int.push_back(intensity);
+    }
+
+    // calculate the scores:
+    // isotope correlation (forward) and the isotope overlap (backward) scores
+    isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, sum_formula);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurrences, max_ratio);
+    isotope_overlap = max_ratio;
+  }
+
   void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state,
                                           double& isotope_corr, double& isotope_overlap, const std::string& sum_formula) const
   {
     // collect the potential isotopes of this peak
     double max_ratio;
-    int nr_occurences;
+    int nr_occurrences;
     std::vector<double> isotopes_int;
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
     {
       double left  = precursor_mz + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
-      double right = precursor_mz + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double right = left;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       double mz, intensity;
       DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
@@ -221,7 +246,7 @@ namespace OpenMS
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
     isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, charge_state, sum_formula);
-    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurences, max_ratio);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurrences, max_ratio);
     isotope_overlap = max_ratio;
   }
 
@@ -236,27 +261,27 @@ namespace OpenMS
     double mz, intensity, left, right;
     std::vector<double> yseries, bseries;
     OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
-    for (Size it = 0; it < bseries.size(); it++)
+    for (const auto& ion_mz : bseries)
     {
-      left = bseries[it];
-      right = bseries[it];
+      left = ion_mz;
+      right = ion_mz;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      double ppmdiff = Math::getPPMAbs(mz, bseries[it]);
+      double ppmdiff = Math::getPPMAbs(mz, ion_mz);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         bseries_score++;
       }
     }
-    for (Size it = 0; it < yseries.size(); it++)
+    for (const auto& ion_mz : yseries)
     {
-      left = yseries[it];
-      right = yseries[it];
+      left = ion_mz;
+      right = ion_mz;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      double ppmdiff = Math::getPPMAbs(mz, yseries[it]);
+      double ppmdiff = Math::getPPMAbs(mz, ion_mz);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         yseries_score++;
@@ -313,8 +338,7 @@ namespace OpenMS
       {
         double left = transitions[k].getProductMZ() +
                         iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
-        double right = transitions[k].getProductMZ() +
-                        iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
+        double right = left;
         DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
         double mz, intensity;
         DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
@@ -339,7 +363,7 @@ namespace OpenMS
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
       double left = mono_mz  - C13C12_MASSDIFF_U / (double) ch;
-      double right = mono_mz - C13C12_MASSDIFF_U / (double) ch;
+      double right = left;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
@@ -362,14 +386,14 @@ namespace OpenMS
       }
       if (ratio > max_ratio) {max_ratio = ratio;}
 
-      double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1000000 / mono_mz;
+      double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1e6 / mono_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
       if (ratio > 1 && ddiff_ppm < peak_before_mono_max_ppm_diff_)
       {
         //isotope_overlap += 1.0 * rel_intensity;
 
-        nr_occurences += 1.0; // we count how often this happens...
+        nr_occurences += 1; // we count how often this happens...
 
 #ifdef MRMSCORING_TESTING
         cout << " _ overlap diff ppm  " << ddiff_ppm << " and inten ratio " << ratio << " with " << mono_int << endl;
@@ -383,12 +407,11 @@ namespace OpenMS
                                           int putative_fragment_charge,
                                           const std::string& sum_formula) const
   {
+    //TODO actually we only need the charge if the sum_formula is empty. Not well designed.
     OPENMS_PRECONDITION(putative_fragment_charge != 0, "Charge needs to be set"); // charge can be positive and negative
 
-    typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
-
-    TheoreticalIsotopePattern isotopes;
     IsotopeDistribution isotope_dist;
+
     if (!sum_formula.empty())
     {
       // create the theoretical distribution from the sum formula
@@ -399,11 +422,34 @@ namespace OpenMS
     {
       // create the theoretical distribution from the peptide weight
       CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
-      isotope_dist = solver.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
+      isotope_dist = solver.estimateFromPeptideWeight(std::fabs((product_mz - C13C12_MASSDIFF_U * putative_fragment_charge) * putative_fragment_charge));
     }
 
+    return scoreIsotopePattern_(product_mz,
+      isotopes_int,
+      isotope_dist);
 
-    for (IsotopeDistribution::Iterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
+  } //end of dia_isotope_corr_sub
+
+  double DIAScoring::scoreIsotopePattern_(double product_mz,
+                                          const std::vector<double>& isotopes_int,
+                                          const EmpiricalFormula& empf) const
+  {
+    return scoreIsotopePattern_(product_mz,
+                                isotopes_int,
+                                empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_)));
+
+  }
+
+  double DIAScoring::scoreIsotopePattern_(double product_mz,
+                                          const std::vector<double>& isotopes_int,
+                                          const IsotopeDistribution& isotope_dist) const
+  {
+    typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
+
+    TheoreticalIsotopePattern isotopes;
+
+    for (IsotopeDistribution::ConstIterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
     {
       isotopes.intensity.push_back(it->getIntensity());
     }
@@ -435,5 +481,4 @@ namespace OpenMS
     return int_score;
 
   } //end of dia_isotope_corr_sub
-
 }

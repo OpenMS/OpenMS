@@ -52,7 +52,7 @@ namespace OpenMS
 
     void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)
     {
-      OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needst to be larger than zero.");
+      OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needs to be larger than zero.");
 
       if (mz_extraction_ppm)
       {
@@ -252,7 +252,7 @@ namespace OpenMS
       }
     } // end getBYSeries
 
-    void getAveragineIsotopeDistribution(const double product_mz,
+    void  getAveragineIsotopeDistribution(const double product_mz,
                                          std::vector<std::pair<double, double> >& isotopesSpec,
                                          const double charge,
                                          const int nr_isotopes,
@@ -286,21 +286,35 @@ namespace OpenMS
       }
     }
 
-    //given an experimental spectrum add isotope pattern.
+    /// given an experimental spectrum add isotope pattern.
     void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
                           std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                          double charge)
+                          Size nrIsotopes, double charge)
     {
 
       for (std::size_t i = 0; i < spec.size(); ++i)
       {
         std::vector<std::pair<double, double> > isotopes;
-        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge);
+        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge, nrIsotopes);
         for (Size j = 0; j < isotopes.size(); ++j)
         {
           isotopes[j].second *= spec[i].second; //multiple isotope intensity by spec intensity
           isotopeMasses.push_back(isotopes[j]);
         }
+      }
+    }
+
+    /// given a peak of experimental mz and intensity, add isotope pattern to a "spectrum".
+    void addIsotopes2Spec(double mz, double ity,
+                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                          Size nrIsotopes, double charge)
+    {
+      std::vector<std::pair<double, double> > isotopes;
+      getAveragineIsotopeDistribution(mz, isotopes, charge, nrIsotopes);
+      for (Size j = 0; j < isotopes.size(); ++j)
+      {
+        isotopes[j].second *= ity; //multiple isotope intensity by spec intensity
+        isotopeMasses.push_back(isotopes[j]);
       }
     }
 
@@ -312,15 +326,28 @@ namespace OpenMS
     {
       for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
       {
-        double mul = 1.;
+        Size mul = 1;
         for (UInt j = 0; j < nrpeaks; ++j, ++mul)
         {
-          isotopeSpec.push_back(
-            std::make_pair(firstIsotopeMasses[i] - (mul * mannmass) / charge,
-                           preIsotopePeaksWeight));
+          isotopeSpec.emplace_back(firstIsotopeMasses[i] - (mul * mannmass) / charge,
+                           preIsotopePeaksWeight);
         }
       }
       sortByFirst(isotopeSpec);
+    }
+
+    //Add masses before first isotope
+    void addPreisotopeWeights(double mz,
+                              std::vector<std::pair<double, double> >& isotopeSpec, // output
+                              UInt nrpeaks, double preIsotopePeaksWeight, // weight of pre isotope peaks
+                              double mannmass, double charge)
+    {
+      Size mul = 1;
+      for (UInt j = 0; j < nrpeaks; ++j, ++mul)
+      {
+        isotopeSpec.emplace_back(mz - (mul * mannmass) / charge,
+                                 preIsotopePeaksWeight);
+      }
     }
 
     struct MassSorter :
