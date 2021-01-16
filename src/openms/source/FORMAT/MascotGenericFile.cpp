@@ -454,7 +454,7 @@ namespace OpenMS
     vector<SourceFile> sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {
-      OPENMS_LOG_WARN << "MascatGenericFile: no native ID accession." << endl;
+      OPENMS_LOG_WARN << "MascotGenericFile: no native ID accession." << endl;
       native_id_type_accession = "UNKNOWN";
     }
     else
@@ -462,7 +462,7 @@ namespace OpenMS
       native_id_type_accession = experiment.getSourceFiles()[0].getNativeIDTypeAccession();
       if (native_id_type_accession.empty())
       {
-        OPENMS_LOG_WARN << "MascatGenericFile: empty native ID accession." << endl;
+        OPENMS_LOG_WARN << "MascotGenericFile: empty native ID accession." << endl;
         native_id_type_accession = "UNKNOWN";
       }
     }

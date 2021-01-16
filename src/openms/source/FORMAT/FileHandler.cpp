@@ -680,7 +680,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
         if (exp.getSourceFiles().size() > 1) 
         {
           OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() 
-                          << " will take only first one as for rewriting." << endl;
+                          << " will take only first one for rewriting." << endl;
         }
         src_file = exp.getSourceFiles()[0];
       }
