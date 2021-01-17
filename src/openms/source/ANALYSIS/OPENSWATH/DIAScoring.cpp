@@ -204,7 +204,9 @@ namespace OpenMS
   void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
                                           double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const
   {
-    // collect the potential isotopes of this peak
+    //TODO precursor_mz can be received from the empirical formula (if required non-empty)
+
+    //collect the potential isotopes of this peak
     int charge_state = sum_formula.getCharge();
     double max_ratio;
     int nr_occurrences;
@@ -221,7 +223,7 @@ namespace OpenMS
 
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
-    isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, sum_formula);
+    isotope_corr = scoreIsotopePattern_(isotopes_int, sum_formula);
     largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurrences, max_ratio);
     isotope_overlap = max_ratio;
   }
