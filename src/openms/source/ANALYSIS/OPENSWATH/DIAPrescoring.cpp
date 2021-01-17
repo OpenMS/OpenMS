@@ -143,13 +143,19 @@ namespace OpenMS
     }
     spectrumWIsoNegPreIso.resize(spectrumWIso.size());
     std::copy(spectrumWIso.begin(), spectrumWIso.end(), spectrumWIsoNegPreIso.begin());
+    double totalNegWeight = 0.5; // how much of ONE transition should be negatively weighted at the prePeaks (distributed equally on them)
+    UInt nrNegPeaks = 2;
     for (const auto& transition : lt)
     {
       if (transition.fragment_charge != 0) chg = transition.fragment_charge;
-      DIAHelpers::addPreisotopeWeights(transition.getProductMZ(), spectrumWIso, 2, 0.0);
-      DIAHelpers::addPreisotopeWeights(transition.getProductMZ(), spectrumWIsoNegPreIso, 2, -0.5);
+      DIAHelpers::addPreisotopeWeights(transition.getProductMZ(), spectrumWIso, nrNegPeaks, 0.0);
+      DIAHelpers::addPreisotopeWeights(transition.getProductMZ(),
+                                       spectrumWIsoNegPreIso,
+                                       nrNegPeaks,
+                                       -totalNegWeight/(double(lt.size() * nrNegPeaks)));
     }
-
+    DIAHelpers::sortByFirst(spectrumWIso);
+    DIAHelpers::sortByFirst(spectrumWIsoNegPreIso);
     // compare against the spectrum with 0 weight preIsotope peaks
     std::vector<double> mzTheor, intTheor;
     DIAHelpers::extractFirst(spectrumWIso, mzTheor);
@@ -172,13 +178,10 @@ namespace OpenMS
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights before! Was this a bug?
     // Otherwise we dont need the second spectrum at all.
     DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheor2);
-    std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
-
-    intExpTotal = OpenSwath::norm(intExp.begin(), intExp.end());
-    intTheorTotal = OpenSwath::norm(intTheor2.begin(), intTheor2.end());
-
-    OpenSwath::normalize(intExp, intExpTotal, intExp);
+    intTheorTotal = OpenSwath::norm(intTheor2.begin(), intTheor2.end()); // use norm since we want absolute values
     OpenSwath::normalize(intTheor2, intTheorTotal, intTheor2);
+    // Why does one want to use the sqrt here? Wont work with negative values anyway.
+    //std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
 
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheor2.begin());
   }
