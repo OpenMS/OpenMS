@@ -127,7 +127,6 @@ namespace OpenMS
     } //end of forloop over spectra
   }
 
-
   void DiaPrescore::score(OpenSwath::SpectrumPtr spec,
                           const std::vector<OpenSwath::LightTransition>& lt,
                           double& dotprod,
@@ -143,7 +142,7 @@ namespace OpenMS
     }
     spectrumWIsoNegPreIso.resize(spectrumWIso.size());
     std::copy(spectrumWIso.begin(), spectrumWIso.end(), spectrumWIsoNegPreIso.begin());
-    double totalNegWeight = 0.5; // how much of ONE transition should be negatively weighted at the prePeaks (distributed equally on them)
+    double totalNegWeight = 1. / nr_isotopes_; // how much of ONE transition should be negatively weighted at the prePeaks (distributed equally on them)
     UInt nrNegPeaks = 2;
     for (const auto& transition : lt)
     {
@@ -152,7 +151,7 @@ namespace OpenMS
       DIAHelpers::addPreisotopeWeights(transition.getProductMZ(),
                                        spectrumWIsoNegPreIso,
                                        nrNegPeaks,
-                                       -totalNegWeight/(double(lt.size() * nrNegPeaks)));
+                                       -totalNegWeight / (double(lt.size() * nrNegPeaks)));
     }
     DIAHelpers::sortByFirst(spectrumWIso);
     DIAHelpers::sortByFirst(spectrumWIsoNegPreIso);
@@ -180,8 +179,7 @@ namespace OpenMS
     DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheor2);
     intTheorTotal = OpenSwath::norm(intTheor2.begin(), intTheor2.end()); // use norm since we want absolute values
     OpenSwath::normalize(intTheor2, intTheorTotal, intTheor2);
-    // Why does one want to use the sqrt here? Wont work with negative values anyway.
-    //std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
+    std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
 
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheor2.begin());
   }
@@ -191,6 +189,7 @@ namespace OpenMS
     dia_extract_window_ = (double) param_.getValue(
       "dia_extraction_window");
     nr_isotopes_ = (int) param_.getValue("nr_isotopes");
+    //TODO nr_charges_ is never used???
     nr_charges_ = (int) param_.getValue("nr_charges");
   }
 
