@@ -208,12 +208,10 @@ private:
                                 int putative_fragment_charge,
                                 const std::string& sum_formula = "") const;
 
-    double scoreIsotopePattern_(double product_mz,
-                                const std::vector<double>& isotopes_int,
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                 const EmpiricalFormula& sum_formula) const;
 
-    double scoreIsotopePattern_(double product_mz,
-                                const std::vector<double>& isotopes_int,
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                 const IsotopeDistribution& isotope_dist) const;
 
     // Parameters

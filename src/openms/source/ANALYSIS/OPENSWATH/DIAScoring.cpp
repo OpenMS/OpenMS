@@ -425,24 +425,19 @@ namespace OpenMS
       isotope_dist = solver.estimateFromPeptideWeight(std::fabs((product_mz - C13C12_MASSDIFF_U * putative_fragment_charge) * putative_fragment_charge));
     }
 
-    return scoreIsotopePattern_(product_mz,
-      isotopes_int,
-      isotope_dist);
+    return scoreIsotopePattern_(isotopes_int, isotope_dist);
 
   } //end of dia_isotope_corr_sub
 
-  double DIAScoring::scoreIsotopePattern_(double product_mz,
-                                          const std::vector<double>& isotopes_int,
+  double DIAScoring::scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                           const EmpiricalFormula& empf) const
   {
-    return scoreIsotopePattern_(product_mz,
-                                isotopes_int,
+    return scoreIsotopePattern_(isotopes_int,
                                 empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_)));
 
   }
 
-  double DIAScoring::scoreIsotopePattern_(double product_mz,
-                                          const std::vector<double>& isotopes_int,
+  double DIAScoring::scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                           const IsotopeDistribution& isotope_dist) const
   {
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
