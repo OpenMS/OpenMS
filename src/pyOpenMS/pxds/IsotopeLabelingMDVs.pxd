@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
           const Feature & normalized_feature,
           const libcpp_vector[double] & experiment_data, const String & isotopic_purity_name) nogil except +
 
-        #void calculateIsotopicPurities(
+        # void calculateIsotopicPurities(
         #  const FeatureMap & normalized_feature,
         #  const libcpp_vector[ DoubleList ] & experiment_data, const libcpp_vector[String] & isotopic_purity_name) nogil except +
 
