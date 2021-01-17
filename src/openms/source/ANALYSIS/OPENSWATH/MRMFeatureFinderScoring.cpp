@@ -933,7 +933,7 @@ namespace OpenMS
         pep_hit_.setScore(mrmfeature.getMetaValue("xx_swath_prelim_score"));
       }
 
-      if (pep->isPeptide())
+      if (pep->isPeptide() && !pep->sequence.empty())
       {
         pep_hit_.setSequence(AASequence::fromString(pep->sequence));
         mrmfeature.setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);

@@ -131,7 +131,6 @@ namespace OpenMS
     template<class LocalPeakType>
     double fitRT_(std::vector<LocalPeakType> & rt_input_data, InterpolationModel * & model) const
     {
-      double quality;
       EmgFitter1D fitter_emg1D;
       fitter_emg1D.setParameters(fitter_emg1D_params_);
       // Construct model for rt

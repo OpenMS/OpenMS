@@ -183,59 +183,6 @@ namespace OpenMS
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheor2.begin());
   }
 
-  /*void DiaPrescore::scoreDDA(OpenSwath::SpectrumPtr spec,
-                          const std::vector<OpenSwath::LightTransition>& lt,
-                          double& dotprod,
-                          double& manhattan) const
-  {
-    std::vector<std::pair<double, double> > res;
-    getMZIntensityFromTransition(lt, res);
-    double monoIsoMZ = lt.begin()->getPrecursorMZ();
-    std::vector<double> transitionmzs, theomasses;
-    DIAHelpers::extractFirst(res, transitionmzs);
-    std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
-    DIAHelpers::addIsotopes2Spec(res, spectrumWIso, nr_charges_);
-    spectrumWIsoNegPreIso.resize(spectrumWIso.size());
-    std::copy(spectrumWIso.begin(), spectrumWIso.end(), spectrumWIsoNegPreIso.begin());
-    //std::cout << spectrumWIso.size() << std::endl;
-    DIAHelpers::addPreisotopeWeights(transitionmzs, spectrumWIso, 2, 0.0);
-    //extracts masses from spectrum
-    DIAHelpers::extractFirst(spectrumWIso, theomasses);
-    std::vector<double>  intTheor;
-    DIAHelpers::extractSecond(spectrumWIso, intTheor);
-    std::vector<double> intExp, mzExp;
-    DIAHelpers::integrateWindows(spec, theomasses, dia_extract_window_, intExp, mzExp);
-    std::transform(intExp.begin(), intExp.end(), intExp.begin(), OpenSwath::mySqrt());
-    std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), OpenSwath::mySqrt());
-
-    double intExpTotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
-    double intTheorTotal = std::accumulate(intTheor.begin(), intTheor.end(), 0.0);
-
-    OpenSwath::normalize(intExp, intExpTotal, intExp);
-    OpenSwath::normalize(intTheor, intTheorTotal, intTheor);
-
-    manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), intTheor.begin());
-
-    //std::cout << spectrumWIso.size() << std::endl;
-    DIAHelpers::addPreisotopeWeights(transitionmzs, spectrumWIsoNegPreIso, 2, -0.5);
-    std::vector<double>  theorint2;
-    DIAHelpers::extractSecond(spectrumWIso, theorint2);
-    std::transform(theorint2.begin(), theorint2.end(), theorint2.begin(), OpenSwath::mySqrt());
-
-    intExpTotal = OpenSwath::norm(intExp.begin(), intExp.end());
-    intTheorTotal = OpenSwath::norm(theorint2.begin(), theorint2.end());
-
-    OpenSwath::normalize(intExp, intExpTotal, intExp);
-    OpenSwath::normalize(theorint2, intTheorTotal, theorint2);
-
-    //    std::copy(intExp.begin(), intExp.end(), std::ostream_iterator<double>(std::cout, ", "));
-    //    std::cout << std::endl;
-    //    std::copy(theorint2.begin(), theorint2.end(), std::ostream_iterator<double>(std::cout, ", "));
-    //    std::cout << std::endl;
-    dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint2.begin());
-  }
-*/
-
   void DiaPrescore::updateMembers_()
   {
     dia_extract_window_ = (double) param_.getValue(

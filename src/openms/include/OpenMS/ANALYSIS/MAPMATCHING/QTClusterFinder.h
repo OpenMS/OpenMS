@@ -155,7 +155,8 @@ namespace OpenMS
     /// Set of features already used
     std::unordered_set<const OpenMS::GridFeature*> already_used_;
 
-    ///
+    /// Map of median RTs to allowed linking tolerances (on the same RT scale) for unIDed features.
+    /// This should be interpreted as bins from the current median RT to the next.
     std::map<double, double> bin_tolerances_;
 
     /**
