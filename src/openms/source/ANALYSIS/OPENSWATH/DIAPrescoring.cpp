@@ -179,7 +179,8 @@ namespace OpenMS
     DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheor2);
     intTheorTotal = OpenSwath::norm(intTheor2.begin(), intTheor2.end()); // use norm since we want absolute values
     OpenSwath::normalize(intTheor2, intTheorTotal, intTheor2);
-    std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
+    // Sqrt does not work if we actually have negative values now
+    //std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
 
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheor2.begin());
   }
