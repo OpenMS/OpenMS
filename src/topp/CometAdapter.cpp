@@ -549,7 +549,7 @@ protected:
     // merge duplicates, targeting the same AA
     Map<String, double> mods;
     // Comet sets Carbamidometyl (C) as modification as default even if not specified.
-    // Therefor there is the need to set it to 0, unless its set as flag (see loop below)
+    // Therefore there is the need to set it to 0, unless its set as flag (see loop below)
     mods["add_C_cysteine"] = 0;
 
     for (const auto& fm : fixed_modifications)
