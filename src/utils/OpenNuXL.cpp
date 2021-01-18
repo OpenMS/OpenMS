@@ -637,9 +637,11 @@ protected:
         "C:C4H6O2;DEB",
         "C:C4H4O;DEB-H2O",
         "C:C4H5N3O;C'",  // needed for marker ion
-        "C:C8H11N3O3;DEB+C'"
+        "C:C8H11N3O3;DEB+C'",
+        "C:C8H8N2O3;DEB+C'-NH3",
         "C:C8H9N3O2;DEB+C'-H2O",
         "C:C13H20N3O9P1;DEB+C",
+        "C:C13H17N2O9P1;DEB+C-NH3",
         "C:C13H18N3O8P1;DEB+C-H2O",
 //      "C:C13H19N3O6;DEB+C-HPO3", 
 //      "C:C13H17N3O5;DEB+C-H3PO4",
@@ -662,10 +664,11 @@ protected:
         "A:C9H9N5O1;DEB+A'-H2O",    // not in Fanni's list
         "A:C9H8N4O2;DEB+A'-NH3",    // C4H6O2 + C5H5N5 - NH3
         "A:C14H20N5O8P1;DEB+A",     // C4H6O2 + C10H14N5O6P
+        "A:C14H17N4O8P1;DEB+A-NH3",     // C4H6O2 + C10H14N5O6P - NH3
         "A:C14H18N5O7P1;DEB+A-H2O", // not in Fanni's list
         "A:C10H9N5O;A-H3PO4-H2O", // Fanni
-//      "A:C14H19N5O3;DEB+A-HPO3",  // C4H6O2 + C10H14N5O6P - HPO3
-//      "A:C14H17N5O2;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
+//      "A:C14H19N5O5;DEB+A-HPO3",  // C4H6O2 + C10H14N5O6P - HPO3
+//      "A:C14H17N5O4;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
       };
 
       can_cross_link = "CTGA";
