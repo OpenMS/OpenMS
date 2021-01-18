@@ -219,9 +219,9 @@ protected:
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     p.setValue("enzym", "Trypsin", "Enzym used to digest the fasta proteins");
     p.setValidStrings("enzym", all_enzymes);
-    //todo: set some reasonable bounderies
-    p.setValue("min_charge", 1, "Minimum precursor charge");
-    p.setValue("max_charge", 1, "Maximum precursor charge");
+    p.setValue("min_charge", 1, "Minimum charge");
+    p.setValue("max_charge", 1, "Maximum charge");
+    p.setValue("precursor_charge", 0, "Manually set precursor charge. (default: 0, meaning max_charge + 1 will be used as precursor charge)");
     return p; 
   }
   void registerOptionsAndFlags_() override
@@ -594,9 +594,11 @@ protected:
         String enzym = p.getValue("enzym");
         Int min_charge = p.getValue("min_charge");
         Int max_charge = p.getValue("max_charge");
+        Int pc_charge = p.getValue("precursor_charge");
         p.remove("enzym");
         p.remove("min_charge");
         p.remove("max_charge");
+        p.remove("precursor_charge");
 
         if (min_charge > max_charge)
         {
@@ -625,7 +627,7 @@ protected:
           for (const auto& peptide : digested_peptides)
           {
             PeakSpectrum spec;
-            tsg.getSpectrum(spec, peptide, min_charge, max_charge);
+            tsg.getSpectrum(spec, peptide, min_charge, max_charge, pc_charge);
             exp.addSpectrum(spec);
           }
         }
