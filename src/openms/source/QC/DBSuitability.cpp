@@ -597,7 +597,7 @@ namespace OpenMS
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)
   {
-    if (num_top_db == 0 || num_top_novo == 0)
+    if (num_top_db == 0 && num_top_novo == 0)
     {
       throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No suitability data found. Can't apply correction factor."));
     }
