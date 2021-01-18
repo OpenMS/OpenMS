@@ -3,6 +3,7 @@ set(directory source/ANALYSIS/QUANTITATION)
 
 ### list all filenames of the directory here
 set(sources_list
+FeatureFindingIntact.cpp
 IsobaricChannelExtractor.cpp
 IsobaricIsotopeCorrector.cpp
 IsobaricNormalizer.cpp

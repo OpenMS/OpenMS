@@ -32,146 +32,22 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/FeatureFindingIntact.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
-using namespace OpenMS;
-using namespace std;
-
-//-------------------------------------------------------------
-//Doxygen docu
-//-------------------------------------------------------------
-/**
-    @page TOPP_FeatureFinderIntact TOPP_FeatureFinderIntact
-
-    @brief TOPP_FeatureFinderIntact The intact protein feature detection for quantification (centroided).
- */
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-
-class TOPPFeatureFinderIntact :
-    public TOPPBase,
-    public ProgressLogger
+namespace OpenMS
 {
-public:
-  TOPPFeatureFinderIntact():
-    TOPPBase("FeatureFinderIntact", "The intact protein feature detection for quantification", false, {}, false), ProgressLogger()
+  typedef FeatureFindingIntact::FeatureHypothesis FeatureHypothesis;
+
+  FeatureFindingIntact::FeatureFindingIntact():
+      ProgressLogger()
   {
     this->setLogType(CMD);
   }
 
-private:
-  double local_rt_range_;
-  double local_mz_range_;
-  double charge_lower_bound_;
-  double charge_upper_bound_;
-  bool use_smoothed_intensities_;
+  FeatureFindingIntact::~FeatureFindingIntact(){}
 
-protected:
-  void registerOptionsAndFlags_() override
-  {
-    registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
-
-//    registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
-//    setValidFormats_("out", ListUtils::create<String>("featureXML"));
-  }
-
-public:
-  ExitCodes main_(int, const char**) override
-  {
-    //-------------------------------------------------------------
-    // parameter handling
-    //-------------------------------------------------------------
-    // TODO: need to update this value (came from FeatureFindingMetabo)
-    local_mz_range_ = 6.5 ; // MZ range where to look for isotopic mass traces (-> decides size of isotopes =(local_mz_range_ * charge))
-    local_rt_range_ = 15.0 ; // RT range where to look for coeluting mass traces
-    charge_lower_bound_ = 7;
-    charge_upper_bound_ = 30;
-    use_smoothed_intensities_ = true; // for intensity of a mass trace
-
-    //-------------------------------------------------------------
-    // loading input
-    //-------------------------------------------------------------
-    String in = getStringOption_("in");
-
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
-    PeakMap ms_peakmap;
-    std::vector<Int> ms_level(1, 1);
-    mz_data_file.getOptions().setMSLevels(ms_level);
-    /// for test purpose : reduce in_ex
-    mz_data_file.getOptions().setRTRange(DRange<1>(DPosition<1>(120.0), DPosition<1>(210)));
-    mz_data_file.load(in, ms_peakmap);
-
-    if (ms_peakmap.empty())
-    {
-      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
-                         " contain chromatograms. This tool currently cannot handle them, sorry.";
-      return INCOMPATIBLE_INPUT_DATA;
-    }
-
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
-    {
-      if (!getFlag_("force"))
-      {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
-                                           "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
-      }
-    }
-
-    // make sure the spectra are sorted by m/z
-    ms_peakmap.sortSpectra(true);
-
-    //-------------------------------------------------------------
-    // Mass traces detection
-    //-------------------------------------------------------------
-    vector<MassTrace> m_traces;
-    MassTraceDetection mtdet;
-    mtdet.run(ms_peakmap, m_traces);
-
-    //-------------------------------------------------------------
-    // Elution peak detection
-    //-------------------------------------------------------------
-    std::vector<MassTrace> m_traces_final;
-    std::vector<MassTrace> splitted_mtraces;
-    ElutionPeakDetection epdet;
-    // fill mass traces with smoothed data as well .. bad design..
-    epdet.detectPeaks(m_traces, splitted_mtraces);
-//    epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
-    m_traces_final = splitted_mtraces;
-
-    //-------------------------------------------------------------
-    // building feature hypotheses
-    //-------------------------------------------------------------
-    std::vector<FeatureHypothesis> feat_hypos;
-    build_feature_hypotheses_(m_traces_final, feat_hypos);
-
-    //-------------------------------------------------------------
-    // clustering feature hypotheses
-    //-------------------------------------------------------------
-
-    //-------------------------------------------------------------
-    // resolve conflicts in cluster
-    //-------------------------------------------------------------
-
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-  }
-
-  void build_feature_hypotheses_(vector<MassTrace>& input_mtraces, vector<FeatureHypothesis> output_hypotheses)
+  void FeatureFindingIntact::buildFeatureHypotheses_(vector<MassTrace>& input_mtraces, vector<FeatureHypothesis> output_hypotheses)
   {
     output_hypotheses.clear();
     if (input_mtraces.empty())
@@ -237,12 +113,15 @@ public:
     // Step 3 Iterate through all hypotheses, starting with the highest
     // scoring one. Remove hypotheses sharing the same mono-iso traces
     // *********************************************************** //
-
   }
 
-  void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const
+  void FeatureFindingIntact::findLocalFeatures_(const std::vector<const MassTrace*>& candidates,
+                                                const double total_intensity,
+                                                std::vector<FeatureHypothesis>& output_hypotheses) const
   {
     // not storing hypothesis with only one mass trace (with only mono), while FeatureFindingMetabo does
+
+    // compute maximum m/z window size
 
     for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
     {
@@ -250,24 +129,28 @@ public:
       fh_tmp.addMassTrace(*candidates[0]); // ref_mtrace (which is mono here)
       fh_tmp.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity);
 
-      Size last_iso_idx(0); // largest index of found iso index
-      Size iso_pos_max(static_cast<Size>(std::floor(charge * local_mz_range_))); // TODO: change this w/ mass_upper_bound ?
-      for (Size iso_pos = 1; iso_pos <= iso_pos_max; ++iso_pos)
-      {
-        // expected m/z window for iso_pos -> 13C isotope peak position
+      // expected m/z window for iso_pos -> 13C isotope peak position
+      double mz_window = Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge;
 
+      Size last_iso_idx(0); // largest index of found iso index
+      for (Size iso_pos = 1; iso_pos <= max_nr_traces_; ++iso_pos)
+      {
         // Find mass trace that best agrees with current hypothesis of charge & isotopic position
         double best_so_far(0.0);
         Size best_idx(0);
         for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
         {
+          // if out of mz_window, pass this mass trace
+          if(std::fabs(candidates[0]->getCentroidMZ() - candidates[mt_idx]->getCentroidMZ()) > mz_window)
+            continue;
+
           // Score current mass trace candidates against hypothesis
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
           double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
 
           // TODO : change this with stored model intensities
           double int_score(1.0);
-          std::vector<double> tmp_ints(fh_tmp.getAllIntensities());
+          std::vector<double> tmp_ints(fh_tmp.getAllIntensities()); // intensities up to the last isotope
           tmp_ints.push_back(candidates[mt_idx]->getIntensity(use_smoothed_intensities_));
           int_score = computeAveragineSimScore_(tmp_ints, candidates[mt_idx]->getCentroidMZ() * charge);
 
@@ -301,7 +184,7 @@ public:
 
   } // end of findLocalFeatures_(...)
 
-  double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
+  double FeatureFindingIntact::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
   {
     std::map<double, std::vector<double> > coinciding_rts;
 
@@ -349,7 +232,7 @@ public:
     return computeCosineSim_(x, y);
   }
 
-  double scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
+  double FeatureFindingIntact::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
   {
     double diff_mz(std::fabs(tr2.getCentroidMZ() - tr1.getCentroidMZ()));
 
@@ -375,7 +258,7 @@ public:
     return mz_score;
   }
 
-  double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
+  double FeatureFindingIntact::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
     {
@@ -397,12 +280,34 @@ public:
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  double computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
+  // modified based on FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex
+  double FeatureFindingIntact::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
   {
-    CoarseIsotopePatternGenerator solver(hypo_ints.size());
-    auto isodist = solver.estimateFromPeptideWeight(mol_weight);
-
+    auto isodist = iso_model_.get(mol_weight);
+    auto isoNorm = iso_model_.getNorm(mol_weight); // normalized distribution
     IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
+
+    // determine start and end indices of hypo_ints based on averagine model (averagine is always larger than hypo)
+    Size offset = 0;
+    double maxCosine = -1;
+    Size isotopeLength = 0;
+    Size maxIsotopeIndex = 0, minIsotopeIndex = -1;
+
+    for (int i = 0; i < iso_model_.getMaxIsotopeIndex(); i++)
+    {
+      if (hypo_ints[i] <= 0)
+      {
+        continue;
+      }
+      isotopeLength++;
+      maxIsotopeIndex = i;
+      if (minIsotopeIndex < 0)
+      {
+        minIsotopeIndex = i;
+      }
+    }
+
+    // get largest intensities from each vector
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
@@ -410,7 +315,6 @@ public:
       {
         max_int = hypo_ints[i];
       }
-
       if (averagine_dist[i].getIntensity() > theo_max_int)
       {
         theo_max_int = averagine_dist[i].getIntensity();
@@ -429,12 +333,16 @@ public:
     return iso_score;
   }
 
-};
+  void FeatureFindingIntact::setAveragineModel()
+  {
+    auto generator = new CoarseIsotopePatternGenerator();
+    auto maxIso = generator->estimateFromPeptideWeight(mass_upper_bound);
+    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
 
-int main(int argc, const char** argv)
-{
-  TOPPFeatureFinderIntact tool;
-  return tool.main(argc, argv);
+    generator->setMaxIsotope(maxIso.size());
+    iso_model_ = PrecalculatedAveragine(50, mass_upper_bound, 25, generator);
+    iso_model_.setMaxIsotopeIndex(maxIso.size() - 1);
+
+    max_nr_traces_ = iso_model_.getMaxIsotopeIndex();
+  }
 }
-
-/// @endcond
