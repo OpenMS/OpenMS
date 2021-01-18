@@ -47,8 +47,8 @@ namespace OpenMS
     std::string key;
     while (token != nullptr)
     {
-      auto tokenString = std::string(token);
-      auto num = atof(tokenString.c_str());
+      String tokenString = std::string(token);
+      double num = atof(tokenString.c_str());
 
       if (num == 0 && !isdigit(tokenString[tokenString.size() - 1]))
       {
@@ -154,8 +154,8 @@ namespace OpenMS
 
     for (auto& pg : deconvolutedSpectrum) // now update color and nall
     {
-      auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-      auto qScore = pg.getQScore();
+      int m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+      double qScore = pg.getQScore();
 
       if (nall.find(m) == nall.end()){ // new mass
         nall[m] = std::vector<double>(2);
@@ -200,12 +200,12 @@ namespace OpenMS
         {
           break;
         }
-        auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange())) / 2.0);
+        int mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange())) / 2.0);
         if (cselectedMz.find(mz) != cselectedMz.end()) {
           continue;
         }
 
-        auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+        int m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
         if (cselected.find(m) != cselected.end()) {
           continue;
         }
@@ -213,7 +213,7 @@ namespace OpenMS
           continue;
         }
 
-        auto pc = color[m];
+        char pc = color[m];
         if(pc == 'B' && pg.getQScore() > 0){
           color[m] = 'b';
         }else if (pc == 'R'&& pg.getQScore() > 0){
@@ -608,7 +608,7 @@ namespace OpenMS
   {
     std::sort(deconvolutedSpectrum.begin(), deconvolutedSpectrum.end(), QscoreComparator);
 
-    for (auto i = 0; i < deconvolutedSpectrum.size(); i++)
+    for (int i = 0; i < deconvolutedSpectrum.size(); i++)
     {
       auto qrange = deconvolutedSpectrum[i].getMzxQScoreMzRange();
       wstart[i] = std::get<0>(qrange) - 1.2;
@@ -616,16 +616,17 @@ namespace OpenMS
 
       qScores[i] = deconvolutedSpectrum[i].getQScore();
       charges[i] = deconvolutedSpectrum[i].getRepCharge();
-      auto massDelta = avg.getAverageMassDelta(deconvolutedSpectrum[i].getMonoMass());
+      double massDelta = avg.getAverageMassDelta(deconvolutedSpectrum[i].getMonoMass());
       avgMasses[i] = massDelta + deconvolutedSpectrum[i].getMonoMass();
     }
-    std::vector<PeakGroup>().swap(deconvolutedSpectrum);
+    std::vector<PeakGroup> empty;
+    deconvolutedSpectrum.swap(empty);
   }
 
   MSSpectrum FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, double rt, int msLevel, char* name)
   {
     auto spec = MSSpectrum();
-    for (auto i = 0; i < length; i++)
+    for (int i = 0; i < length; i++)
     {
       if (ints[i] <= 0) {
         continue;

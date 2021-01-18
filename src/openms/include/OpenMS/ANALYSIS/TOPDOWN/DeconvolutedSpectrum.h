@@ -47,11 +47,18 @@ namespace OpenMS
        @brief A class representing a deconvoluted spectrum. Also contains deconvoluted precursro information for MSn n>1.
   */
   class OPENMS_DLLAPI DeconvolutedSpectrum :
-      public std::vector<PeakGroup>
+      private std::vector<PeakGroup>
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-
+    using std::vector<PeakGroup>::push_back;
+    using std::vector<PeakGroup>::operator[];
+    using std::vector<PeakGroup>::size;
+    using std::vector<PeakGroup>::begin;
+    using std::vector<PeakGroup>::end;
+    using std::vector<PeakGroup>::swap;
+    using std::vector<PeakGroup>::empty;
+    using std::vector<PeakGroup>::reserve;
     /// default constructor
     DeconvolutedSpectrum() = default;
 
@@ -77,10 +84,10 @@ namespace OpenMS
     /**
         @brief write the header in the output file (spectrum level)
         @param fs file stream to the output file
-        @param n the index to the mass
+        @param n ms level
         @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
    */
-    static void writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail);
+    static void writeDeconvolutedMassesHeader(std::fstream &fs, int n, bool detail);
 
     /**
       @brief write the deconvoluted masses in the output file (spectrum level)
@@ -123,10 +130,12 @@ namespace OpenMS
     /// precursor charge getter : set in registerPrecursor
     int getPrecursorCharge();
 
-    /// get max mass - which is min mass between max mass specified by users or mass determined by precursor mass for MSn
+    /// get max mass - for MS1, max mass specified by user
+    /// for MSn, min value between max mass specified by the user and precursor mass
     double getCurrentMaxMass(double maxMass);
 
-    /// get max charge - which is min charge between max charge specified by users or charge determined by precursor charge for MSn
+    /// get max charge - for MS1, max charge specified by user
+    /// for MSn, min value between max charge specified by the user and precursor charge
     int getCurrentMaxCharge(int maxCharge);
 
   private:

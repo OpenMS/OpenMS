@@ -74,7 +74,7 @@ namespace OpenMS
 
     for (auto &item : peakGroupMap)
     {
-      auto rt = item.first;
+      double rt = item.first;
       MSSpectrum deconvSpec;
       deconvSpec.setRT(rt);
       for (auto &pg : item.second)
@@ -132,7 +132,7 @@ namespace OpenMS
       {
         auto &pgMap = peakGroupMap[p2.getRT()];
         auto &pg = pgMap[p2.getMZ()];
-        auto scanNumber = pg.getScanNumber();
+        int scanNumber = pg.getScanNumber();
         auto crange = pg.getChargeRange();
 
         minFCharge = minFCharge < std::get<0>(crange) ? minFCharge : std::get<0>(crange);
@@ -196,13 +196,13 @@ namespace OpenMS
         mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
       }
 
-      auto sumInt = .0;
+      double sumInt = .0;
 
       for (auto &p : mt)
       {
         sumInt += p.getIntensity();
       }
-      auto avgMass = averagines.getAverageMassDelta(mass) + mass;
+      double avgMass = averagines.getAverageMassDelta(mass) + mass;
       ++featureCntr;
       fsf << featureIndex++ << "\t" << fileName << "\t" << std::to_string(mass) << "\t"
           << std::to_string(avgMass) << "\t" // massdiff
@@ -308,7 +308,7 @@ namespace OpenMS
   {
     fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-          "\tSumIntensity\tMaxIntensity\tFeatureArea\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tPerChargeIntensity\tPerIsotopeIntensity"
+          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tPerChargeIntensity\tPerIsotopeIntensity"
           "\n";
   }
 

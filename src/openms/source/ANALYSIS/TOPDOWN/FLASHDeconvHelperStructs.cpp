@@ -58,7 +58,7 @@ namespace OpenMS
         break;
       }
       auto iso = useRNAavg ? generator->estimateFromRNAWeight(a) : generator->estimateFromPeptideWeight(a);
-      auto factor = .01;
+      double factor = .01;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;

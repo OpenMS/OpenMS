@@ -130,8 +130,8 @@ namespace OpenMS
 
         for (auto &p : pg)
         {
-          auto tm = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-          auto diff = (tm / abs(p.charge) + FLASHDeconvHelperStructs::getChargeMass(p.charge > 0) - p.mz) / p.mz;
+          double tm = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
+          double diff = (tm / abs(p.charge) + FLASHDeconvHelperStructs::getChargeMass(p.charge > 0) - p.mz) / p.mz;
           fs << 1e6 * diff << ";";
         }
         fs << "\t";
@@ -179,8 +179,7 @@ namespace OpenMS
       {
         isoEndIndex = isoEndIndex < p.isotopeIndex ? p.isotopeIndex : isoEndIndex;
       }
-      auto perIsotopeIntensity = new double[isoEndIndex + 1];
-      std::fill_n(perIsotopeIntensity, isoEndIndex + 1, .0);
+      auto perIsotopeIntensity = std::vector<double>(isoEndIndex + 1, .0);
       for (auto &p : pg)
       {
         perIsotopeIntensity[p.isotopeIndex] += p.intensity;
@@ -200,7 +199,7 @@ namespace OpenMS
   }
 
 
-  void DeconvolutedSpectrum::writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail)
+  void DeconvolutedSpectrum::writeDeconvolutedMassesHeader(std::fstream &fs, int n, bool detail)
   {
     if (detail)
     {
@@ -210,7 +209,7 @@ namespace OpenMS
             << "FileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
@@ -219,7 +218,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
     else
@@ -231,7 +230,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
 
       }
       else
@@ -241,7 +240,7 @@ namespace OpenMS
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
+               "IsotopeCosine\tChargeScore\tMassSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }
@@ -269,7 +268,7 @@ namespace OpenMS
 
   void DeconvolutedSpectrum::writeTopFD(std::fstream &fs, int id, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg)//, fstream &fsm, fstream &fsp)
   {
-    auto msLevel = spec.getMSLevel();
+    UInt msLevel = spec.getMSLevel();
 
     fs << std::fixed << std::setprecision(2);
     fs << "BEGIN IONS\n"
@@ -293,8 +292,8 @@ namespace OpenMS
       }
       else
       {
-        auto avgMass = (precursorPeak.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursorPeak.getCharge()>0)) * abs(precursorPeak.getCharge());
-        auto mMass = avgMass - avg.getAverageMassDelta(avgMass);
+        double avgMass = (precursorPeak.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursorPeak.getCharge()>0)) * abs(precursorPeak.getCharge());
+        double mMass = avgMass - avg.getAverageMassDelta(avgMass);
         fs << "MS_ONE_ID=" << 0 << "\n"
             << "MS_ONE_SCAN=" << precursorScanNumber << "\n"
             << "PRECURSOR_MZ="
@@ -357,10 +356,10 @@ namespace OpenMS
       }
       precursorPeak = p;
       precursorScanNumber = precursorSpectrum.scanNumber;
-      auto startMz = p.getIsolationWindowLowerOffset() > 100.0 ?
+      double startMz = p.getIsolationWindowLowerOffset() > 100.0 ?
                      p.getIsolationWindowLowerOffset() :
                      -p.getIsolationWindowLowerOffset() + p.getMZ();
-      auto endMz = p.getIsolationWindowUpperOffset() > 100.0 ?
+      double endMz = p.getIsolationWindowUpperOffset() > 100.0 ?
                    p.getIsolationWindowUpperOffset() :
                    p.getIsolationWindowUpperOffset() + p.getMZ();
 

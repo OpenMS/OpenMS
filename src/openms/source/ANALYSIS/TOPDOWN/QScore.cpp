@@ -92,7 +92,7 @@ namespace OpenMS
     auto fv = toFeatureVector(&pg, charge);
     if (pg.getChargeIsotopeCosine(charge) <= 0) return;
 
-    auto mass = avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass();
+    double mass = avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass();
     f << rt <<","<<mass <<",";
     for (auto& item : fv)
     {
