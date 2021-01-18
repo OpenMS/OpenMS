@@ -227,6 +227,11 @@ namespace OpenMS
     {
       precursor_charge = max_charge +1;
     }
+    
+    if (precursor_charge <= max_charge)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than 'max_charge'.");
+    }
 
     prec.setCharge(precursor_charge);
     prec.setMZ(peptide.getMZ(precursor_charge, Residue::Full));
