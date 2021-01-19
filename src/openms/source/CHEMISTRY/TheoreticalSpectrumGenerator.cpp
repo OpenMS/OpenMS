@@ -220,6 +220,9 @@ namespace OpenMS
     // set MS Level
     spectrum.setMSLevel(2);
 
+    // set spectrum type
+    spectrum.setType(MSSpectrum::SpectrumSettings::CENTROID);
+
     // set precursor
     Precursor prec;
 

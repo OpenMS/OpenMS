@@ -130,6 +130,7 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   }
 
   TEST_EQUAL(spec.getMSLevel(), 2);
+  TEST_EQUAL(spec.getType(), MSSpectrum::SpectrumSettings::CENTROID);
   TEST_REAL_SIMILAR(peptide.getMZ(2, Residue::Full), spec.getPrecursors()[0].getMZ());
 
   spec.clear(true);
