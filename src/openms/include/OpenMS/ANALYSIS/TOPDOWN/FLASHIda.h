@@ -61,13 +61,13 @@ namespace OpenMS
     ~FLASHIda() = default;
 
     /// copy constructor
-    FLASHIda(const FLASHIda &) = default;
+    FLASHIda(const FLASHIda& ) = default;
 
     /// move constructor
-    FLASHIda(FLASHIda &&other) = default;
+    FLASHIda(FLASHIda&& other) = default;
 
     /// assignment operator
-    FLASHIda &operator=(const FLASHIda &fd) = default;
+    FLASHIda& operator=(const FLASHIda& fd) = default;
 
     /**
            @brief get peak groups from input spectrum, specified by mzs and intensities (due to C# interface it is necessary)
@@ -78,12 +78,12 @@ namespace OpenMS
            @param msLevel ms level
            @param spectrum name
       */
-    int getPeakGroups(double *mzs,
-                      double *ints,
-                      int length,
-                      double rt,
-                      int msLevel,
-                      char *name);
+    int getPeakGroups(const double *mzs,
+                      const double *intensities,
+                      const int length,
+                      const double rt,
+                      const int ms_level,
+                      const char *name);
 
     /**
            @brief get isolation windows
@@ -93,7 +93,7 @@ namespace OpenMS
            @param charges charges of windows
            @avgMasses average masses of windows
       */
-    void getIsolationWindows(double *wstart, double *wend, double *qScores, int *charges, double *avgMasses);
+    void getIsolationWindows(double *wstart, double *wend, double *qscores, int *charges, double *avg_masses);
 
   private:
 
@@ -112,18 +112,18 @@ namespace OpenMS
     /// precalculated averagine for fast selection
     PrecalculatedAveragine avg;
     /// discard peak groups using mass exclusion
-    void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel);
+    void filterPeakGroupsUsingMassExclusion(const MSSpectrum& spec, const int ms_level);
     /// generate MSSpectrum class using mzs and intensities
-    static MSSpectrum makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);
+    static MSSpectrum makeMSSpectrum(const double *mzs, const double *ints, const int length, const double rt, const int ms_level, const char *name);
     /// deconvoluted spectrum that contains the peak groups
-    DeconvolutedSpectrum deconvolutedSpectrum;
+    DeconvolutedSpectrum deconvoluted_spectrum;
     /// FLASHDeconvAlgorithm class for deconvolution
     FLASHDeconvAlgorithm fd;
     /// q score threshold - determined from C# side
-    double qScoreThreshold;
+    double qscore_threshold;
     /// retention time window - determined from C# side
-    double RTwindow;
+    double rt_window;
     /// how many masses will be selected per ms level? - determined from C# side
-    IntList massCount;
+    IntList mass_count;
   };
 }

@@ -64,10 +64,10 @@ namespace OpenMS
 
     /**
        @brief Constructor for DeconvolutedSpectrum
-       @param s spectrum
-       @param n scan number
+       @param spectrum spectrum for which the deconvolution will be performed
+       @param scan_number scan number of the spectrum
   */
-    explicit DeconvolutedSpectrum(const MSSpectrum &s, int n);
+    explicit DeconvolutedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
     /// default deconstructor
     ~DeconvolutedSpectrum() = default;
@@ -76,41 +76,41 @@ namespace OpenMS
     DeconvolutedSpectrum(const DeconvolutedSpectrum &) = default;
 
     /// move constructor
-    DeconvolutedSpectrum(DeconvolutedSpectrum &&other) = default;
+    DeconvolutedSpectrum(DeconvolutedSpectrum&& other) = default;
 
     /// assignment operator
-    DeconvolutedSpectrum &operator=(const DeconvolutedSpectrum &fd) = default;
+    DeconvolutedSpectrum &operator=(const DeconvolutedSpectrum& deconvoluted_spectrum) = default;
 
     /**
         @brief write the header in the output file (spectrum level)
         @param fs file stream to the output file
-        @param n ms level
+        @param ms_level ms level of the spectrum
         @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
    */
-    static void writeDeconvolutedMassesHeader(std::fstream &fs, int n, bool detail);
+    static void writeDeconvolutedMassesHeader(std::fstream& fs, const int ms_level, const bool detail);
 
     /**
       @brief write the deconvoluted masses in the output file (spectrum level)
       @param fs file stream to the output file
-      @param param FLASHDeconv paramter
+      @param file_name FLASHDeconv paramter
     */
-    void writeDeconvolutedMasses(std::fstream &fs,
-                                 const String &fileName,
-                                 const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                                 bool writeDetail);
+    void writeDeconvolutedMasses(std::fstream& fs,
+                                 const String& file_name,
+                                 const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                                 const bool write_detail);
 
     /**
       @brief write the deconvoluted masses TopFD format
       @param fs file stream to the output file
-      @param id the index to the spectrum. updated outside.
+      @param index the index to the spectrum. updated outside.
  */
-    void writeTopFD(std::fstream &fs, int id, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
+    void writeTopFD(std::fstream& fs, const int index, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
     /// cast DeconvolutedSpectrum into MSSpectrum object to write mzml format
-    MSSpectrum toSpectrum(int charge);
+    MSSpectrum toSpectrum(const int charge);
 
     /// write the header for Thermo Inclusion List header format
-    static void writeThermoInclusionHeader(std::fstream &fs);
+    static void writeThermoInclusionHeader(std::fstream& fs);
 
     /// for memory save... clear unnecessary information in mass tracing
     void clearPeakGroupsChargeInfo();
@@ -119,7 +119,7 @@ namespace OpenMS
      @brief register the precusor info in this from the precursor DeconvolutedSpectrum
      @param precursorSpectrum the precursor DeconvolutedSpectrum
      */
-    bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
+    bool registerPrecursor(DeconvolutedSpectrum& precursor_spectrum);
 
     /// original spectrum setter
     MSSpectrum &getOriginalSpectrum();
@@ -132,22 +132,22 @@ namespace OpenMS
 
     /// get max mass - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
-    double getCurrentMaxMass(double maxMass);
+    double getCurrentMaxMass(const double max_mass);
 
     /// get max charge - for MS1, max charge specified by user
     /// for MSn, min value between max charge specified by the user and precursor charge
-    int getCurrentMaxCharge(int maxCharge);
+    int getCurrentMaxCharge(const int max_charge);
 
   private:
     /// the original spectrum from which this is generated
     MSSpectrum spec;
     /// precursor peakGroup (or mass)
-    PeakGroup *precursorPeakGroup = nullptr;
+    PeakGroup *precursor_peak_group = nullptr;
     /// precursor peak (not deconvoluted one)
-    Precursor precursorPeak;
+    Precursor precursor_peak;
     /// activation method for file output
-    std::string activationMethod;
+    std::string activation_method;
     /// scan number and precursor scan number
-    int scanNumber, precursorScanNumber;
+    int scan_number, precursor_scan_number;
   };
 }

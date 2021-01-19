@@ -165,10 +165,10 @@ protected:
     fd_defaults.addTag("min_mz", "advanced");
     fd_defaults.setValue("max_mz", -1.0);
     fd_defaults.addTag("max_mz", "advanced");
-    fd_defaults.setValue("min_RT", -1.0);
-    fd_defaults.addTag("min_RT", "advanced");
-    fd_defaults.setValue("max_RT", -1.0);
-    fd_defaults.addTag("max_RT", "advanced");
+    fd_defaults.setValue("min_rt", -1.0);
+    fd_defaults.addTag("min_rt", "advanced");
+    fd_defaults.setValue("max_rt", -1.0);
+    fd_defaults.addTag("max_rt", "advanced");
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
@@ -206,7 +206,7 @@ protected:
     mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     mf_defaults.setValue("quant_method", "area", "");
     mf_defaults.addTag("quant_method", "advanced"); // hide entry
-    mf_defaults.setValue("min_isotope_cosine", -1.0, "if not set, controlled by -min_isotope_cosine option");
+    mf_defaults.setValue("min_isotope_cosine", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine option");
     mf_defaults.addTag("min_isotope_cosine", "advanced");
 
     Param combined;
@@ -422,6 +422,7 @@ protected:
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
     }
     massTracer.setParameters(mf_param);
+    std::cout<<massTracer.getParameters()<<std::endl;
 
     OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
@@ -496,7 +497,7 @@ protected:
       }
       //if (msLevel < currentMaxMSLevel)
       //{
-      //  lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum; // to register precursor in the future..
+      //  lastDeconvolutedSpectra[msLevel] = deconvoluted_spectrum; // to register precursor in the future..
       //}
 
       if (!ensemble)
@@ -516,8 +517,8 @@ protected:
         deconvolutedSpectrum.writeTopFD(out_topFDstream[msLevel - 1], scanNumber, avg);
       }
 
-      //deconvolutedSpectrum.clearPeakGroupsChargeInfo();
-      //deconvolutedSpectrum.getPrecursorPeakGroup().clearChargeInfo();
+      //deconvoluted_spectrum.clearPeakGroupsChargeInfo();
+      //deconvoluted_spectrum.getPrecursorPeakGroup().clearChargeInfo();
       float progress = (float) (it - map.begin()) / map.size();
       if (progress > prevProgress + .01)
       {

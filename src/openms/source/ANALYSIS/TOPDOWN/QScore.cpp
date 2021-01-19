@@ -38,7 +38,7 @@
 namespace OpenMS
 {
 
-  double QScore::getQScore(PeakGroup *pg, int charge)
+  double QScore::getQScore(const PeakGroup *pg, const int charge)
   {
     if (pg == nullptr)
     { // all zero
@@ -61,7 +61,7 @@ namespace OpenMS
     return -score;
   }
 
-  std::vector<double> QScore::toFeatureVector(PeakGroup *pg, int charge)
+  std::vector<double> QScore::toFeatureVector(const PeakGroup *pg, const int charge)
   {
     std::vector<double> fvector;
 
@@ -82,12 +82,13 @@ namespace OpenMS
 
 
 
-  void QScore::writeAttHeader(std::fstream &f)
+  void QScore::writeAttHeader(std::fstream& f)
   {
     f<<"RT,PrecursorAvgMass,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
-  void QScore::writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream &f)
+  void QScore::writeAttTsv(const double rt, const PeakGroup pg, const int charge, const bool is_identified,
+                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f)
   {
     auto fv = toFeatureVector(&pg, charge);
     if (pg.getChargeIsotopeCosine(charge) <= 0) return;
@@ -99,6 +100,6 @@ namespace OpenMS
       f<<item<<",";
     }
     f<<pg.getQScore()<<",";
-    f<<(isIdentified?"T":"F")<<"\n";
+    f<<(is_identified?"T":"F")<<"\n";
   }
 }

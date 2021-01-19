@@ -57,59 +57,59 @@ namespace OpenMS
            @param minCharge min Charge
            @param maxCharge max Charge
       */
-    explicit PeakGroup(int minCharge, int maxCharge);
+    explicit PeakGroup(const int min_charge, const int max_charge);
 
     /// default destructor
     ~PeakGroup();
 
     /// copy constructor
-    PeakGroup(const PeakGroup &) = default;
+    PeakGroup(const PeakGroup& ) = default;
 
     /// move constructor
-    PeakGroup(PeakGroup &&other) = default;
+    PeakGroup(PeakGroup&& other) = default;
 
     /// clear per charge vectors to save memory
     void clearChargeInfo();
 
     /// comparison operators
-    bool operator<(const PeakGroup &a) const;
+    bool operator<(const PeakGroup& a) const;
 
-    bool operator>(const PeakGroup &a) const;
+    bool operator>(const PeakGroup& a) const;
 
-    bool operator==(const PeakGroup &a) const;
+    bool operator==(const PeakGroup& a) const;
 
     /// assignment operator
-    PeakGroup& operator = (const PeakGroup &t) = default;
+    PeakGroup& operator = (const PeakGroup& t) = default;
 
     /**
            @brief adjust monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
            @param offset isotope index offset
            @param maxIsoIndex max isotopic index
       */
-    void updateMassesAndIntensity(int offset = 0,
-                                  int maxIsoIndex = 0);
+    void updateMassesAndIntensity(const int offset = 0,
+                                  const int max_isotope_index = 0);
     /// set scan number
-    void setScanNumber(int sn);
+    void setScanNumber(const int scan_number);
     /// set per charge SNR
-    void setChargeSNR(int charge, float snr);
+    void setChargeSNR(const int charge, const float snr);
     /// set per charge isotope cosine
-    void setChargeIsotopeCosine(int charge, float cos);
+    void setChargeIsotopeCosine(const int charge, const float cos);
     /// set per charge intensity
-    void setChargeIntensity(int charge, float intensity);
+    void setChargeIntensity(const int charge, const float intensity);
     /// set mz range that results in max Qscore
-    void setMaxQScoreMzRange(double min, double max);
+    void setMaxQScoreMzRange(const double min, const double max);
     /// set min and max charge range
-    void setChargeRange(int min, int max);
+    void setChargeRange(const int min, const int max);
     /// set isotope cosine score
-    void setIsotopeCosine(float cos);
+    void setIsotopeCosine(const float cos);
     /// set representative charge
-    void setRepCharge(int c);
+    void setRepCharge(const int charge);
     /// set Q score
-    void setQScore(float q);
+    void setQScore(const float qscore);
     /// set total SNR
-    void setSNR(float snr);
+    void setSNR(const float snr);
     /// set charge score
-    void setChargeScore(float s);
+    void setChargeScore(const float charge_score);
 
     /// get scan number
     int getScanNumber() const;
@@ -118,11 +118,11 @@ namespace OpenMS
     /// get intensity
     double getIntensity() const;
     /// get per charge SNR
-    float getChargeSNR(int charge) const;
+    float getChargeSNR(const int charge) const;
     /// get per charge isotope cosine
-    float getChargeIsotopeCosine(int charge) const;
+    float getChargeIsotopeCosine(const int charge) const;
     /// get per charge intenstiy
-    float getChargeIntensity(int charge) const;
+    float getChargeIntensity(const int charge) const;
     /// get mz range that results in max Qscore
     std::tuple<double, double> getMzxQScoreMzRange() const;
     /// get charge range
@@ -140,26 +140,26 @@ namespace OpenMS
 
   private:
     /// per charge SNR, isotope cosine, and intensity vectors
-    std::vector<float> perChargeSNR;
-    std::vector<float> perChargeCos;
-    std::vector<float> perChargeInt;
+    std::vector<float> per_charge_snr;
+    std::vector<float> per_charge_cos;
+    std::vector<float> per_charge_int;
 
     /// mz range resulting in maximum Q score
-    double maxQScoreMzEnd, maxQScoreMzStart;
+    double max_qscore_mz_end, max_qscore_mz_start;
     /// charge range
-    int maxCharge, minCharge;
+    int max_charge, min_charge;
     /// scan number
-    int scanNumber;
+    int scan_number;
 
     /// information on the deconvouted mass
-    double monoisotopicMass;
+    double monoisotopic_mass;
     double intensity;// total intensity
 
     /// scoring variables
-    int maxQScoreCharge;
-    float isotopeCosineScore;
-    float chargeScore;
-    float qScore;
-    float totalSNR;
+    int max_qscore_charge;
+    float isotope_cosine_score;
+    float charge_score;
+    float qscore;
+    float total_snr;
   };
 }

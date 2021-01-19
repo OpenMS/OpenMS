@@ -63,16 +63,16 @@ namespace OpenMS
     ~MassFeatureTrace() override;
 
     /// copy constructor
-    MassFeatureTrace(const MassFeatureTrace &) = default;
+    MassFeatureTrace(const MassFeatureTrace& ) = default;
 
     /// move constructor
-    MassFeatureTrace(MassFeatureTrace &&other) = default;
+    MassFeatureTrace(MassFeatureTrace&& other) = default;
 
     /// assignment operator
-    MassFeatureTrace &operator=(const MassFeatureTrace &fd) = default;
+    MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
 
     /// add deconvolution spectrum after per spec deconvolution. Necessary info. such as peakGroups are stored so they can be used tracing afterwards
-    void addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum);
+    void addDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum);
 
     /**
        @brief Find features and write features in output files.
@@ -83,19 +83,19 @@ namespace OpenMS
        @param fsp file stream for promex output
        @param averagines precalculated averagines for cosine calculation
        */
-    void findFeatures(const String &fileName,
-                      bool promexOut,
-                      int &featureCntr,
-                      int &featureIndex,
-                      std::fstream &fsf,
-                      std::fstream &fsp,
-                      PrecalculatedAveragine averagines);
+    void findFeatures(const String& file_name,
+                      const bool promex_out,
+                      int& feature_cntr,
+                      int& feature_index,
+                      std::fstream& fsf,
+                      std::fstream& fsp,
+                      const PrecalculatedAveragine averagines);
 
     /// write header line for regular file output
-    static void writeHeader(std::fstream &fs);
+    static void writeHeader(std::fstream& fs);
 
     /// write header lien for promex file output
-    static void writePromexHeader(std::fstream &fs);
+    static void writePromexHeader(std::fstream& fs);
 
   protected:
     void updateMembers_() override;
@@ -104,8 +104,8 @@ namespace OpenMS
     /// MS1 tolerance
     double tol;
     /// cosine thresholds for scoring and filtering
-    double minIsotopeCosine;
+    double min_isotope_cosine;
     /// peak group information is stored in here for traicing
-    std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
+    std::unordered_map<double, std::unordered_map<double, PeakGroup>> peak_group_map; // rt , mono mass, peakgroup
   };
 }

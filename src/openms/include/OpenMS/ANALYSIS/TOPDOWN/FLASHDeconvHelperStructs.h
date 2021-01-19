@@ -59,56 +59,57 @@ namespace OpenMS
       /// L2 norms for masses
       std::vector<double> norms;
       /// mass differences between average mass and monoisotopic mass
-      std::vector<double> averageMassDelta;
+      std::vector<double> average_mono_mass_difference;
       /// Isotope start indices: isotopes of the indices less than them have very low intensities
-      std::vector<Size> isotopeStartIndices;
+      std::vector<Size> isotope_start_indices;
       /// Isotope end indices: isotopes of the indices larger than them have very low intensities
-      std::vector<Size> isotopeEndIndices;
+      std::vector<Size> isotope_end_indices;
       /// max isotope index
-      int maxIsotopeIndex;
+      int max_isotope_index;
 
       /// mass interval for calculation
-      double massInterval;
+      double mass_interval;
       /// min mass for calculation
-      double minMass;
+      double min_mass;
     public:
       /// default constructor
       PrecalculatedAveragine() = default;
 
       /**
        @brief constructor with parameters such as mass ranges and interval ( delta ).
-       @param m minMass
-       @param M maxMass
+       @param m min_mass
+       @param M max_mass
        @param delta mass interval between m and M
-       @param generator generator by which the calulation is done
+       @param generator gen
+       \]erator by which the calulation is done
        @param useRNAavg if set, nucleotide patters are calculated
     */
-      PrecalculatedAveragine(double m,
-                             double M,
-                             double delta,
+      PrecalculatedAveragine(const double min_mass,
+                             const double max_mass,
+                             const double delta,
                              CoarseIsotopePatternGenerator *generator,
-                             bool useRNAavg);
+                             const bool use_RNA_averagine);
 
       /// get distribution for input mass
-      IsotopeDistribution get(double mass) const;
+      IsotopeDistribution get(const double mass) const;
 
       /// get max isotope index
       int getMaxIsotopeIndex() const;
 
       /// get max isotope index
-      void setMaxIsotopeIndex(int index);
+      void setMaxIsotopeIndex(const int index);
 
       /// get norm
-      double getNorm(double mass) const;
+      double getNorm(const double mass) const;
 
       /// get isotope start index
-      Size getIsotopeStartIndex(double mass) const;
+      Size getIsotopeStartIndex(const double mass) const;
 
       /// get isotope end index
-      Size getIsotopeEndIndex(double mass) const;
+      Size getIsotopeEndIndex(const double mass) const;
 
       /// get mass difference between avg and mono masses
-      double getAverageMassDelta(double mass) const;
+      double getAverageMassDelta(const double mass) const;
 
     };
 
@@ -134,10 +135,10 @@ namespace OpenMS
       /**
         //       @brief constructor from Peak1D.
         //       @param positive determines the charge carrier mass*/
-      explicit LogMzPeak(const Peak1D &peak, bool positive);
+      explicit LogMzPeak(const Peak1D& peak, const bool positive);
 
       /// copy constructor
-      LogMzPeak(const LogMzPeak &) = default;
+      LogMzPeak(const LogMzPeak& ) = default;
 
       /// destructor
       ~LogMzPeak() = default;
@@ -145,11 +146,11 @@ namespace OpenMS
       /// get uncharged mass of this peak. It is NOT monoisotopic mass. Valid only when charge is set
       double getUnchargedMass();
 
-      bool operator<(const LogMzPeak &a) const;
+      bool operator<(const LogMzPeak& a) const;
 
-      bool operator>(const LogMzPeak &a) const;
+      bool operator>(const LogMzPeak& a) const;
 
-      bool operator==(const LogMzPeak &other) const;
+      bool operator==(const LogMzPeak& other) const;
 
     };
 
@@ -157,18 +158,18 @@ namespace OpenMS
         //       @brief calculate averagines
         //       @param maxMass max mass
         //       @param useRNAavg if set, nucleotides averagines are calculated */
-    static PrecalculatedAveragine calculateAveragines(double maxMass, bool useRNAavg);
+    static PrecalculatedAveragine calculateAveragines(const double max_mass, const bool use_RNA_averagine);
 
     /**
         //       @brief calculate log mzs from mzs
         //       @param mz mz
         //       @param positive determines the charge carrier mass
        */
-    static double getLogMz(double mz, bool positive);
+    static double getLogMz(const double mz, const bool positive);
 
     /**
             //       @brief get charge carrier mass
             //       @param positive determines the charge carrier mass*/
-    static double getChargeMass(bool positive);
+    static double getChargeMass(const bool positive);
   };
 }

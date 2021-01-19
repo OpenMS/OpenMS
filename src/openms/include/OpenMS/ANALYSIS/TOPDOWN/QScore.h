@@ -47,11 +47,12 @@ namespace OpenMS
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-    static double getQScore(PeakGroup *pg, int charge);
-    static void writeAttTsv(double rt, PeakGroup pg, int charge, bool isIdentified, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream &f);
-    static void writeAttHeader(std::fstream &f);
+    static double getQScore(const PeakGroup *pg, const int charge);
+    static void writeAttTsv(const double rt, const PeakGroup pg, const int charge, const bool is_identified,
+                            const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f);
+    static void writeAttHeader(std::fstream& f);
 
   private:
-    static std::vector<double> toFeatureVector(PeakGroup *pg, int charge);
+    static std::vector<double> toFeatureVector(const PeakGroup *pg, const int charge);
   };
 }

@@ -42,10 +42,10 @@ namespace OpenMS
       DefaultParamHandler("MassFeatureTrace")
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
-    //mtd_defaults.setValue("mass_error_da", 1.5);
+    mtd_defaults.setValue("mass_error_da", 1.5);
     mtd_defaults.setValue("min_trace_length", 10.0);
-    //mtd_defaults.remove("mass_error_da");
-    mtd_defaults.remove("chrom_peak_snr");
+    mtd_defaults.setValue("min_sample_rate", .0);
+
     defaults_.insert("", mtd_defaults);
     defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
     defaultsToParam_();
@@ -53,31 +53,32 @@ namespace OpenMS
 
   MassFeatureTrace::~MassFeatureTrace()
   {
-    for (auto &item : peakGroupMap)
+    for (auto& item : peak_group_map)
     {
       std::unordered_map<double, PeakGroup>().swap(item.second);
     }
-    std::unordered_map<double, std::unordered_map<double, PeakGroup>>().swap(peakGroupMap);
+    std::unordered_map<double, std::unordered_map<double, PeakGroup>>().swap(peak_group_map);
   }
 
 
-  void MassFeatureTrace::findFeatures(const String &fileName, bool promexOut, int &featureCntr,
-                                      int &featureIndex,
-                                      std::fstream &fsf,
-                                      std::fstream &fsp,
-                                      PrecalculatedAveragine averagines)
+  void MassFeatureTrace::findFeatures(const String& file_name, const bool promex_out,
+                                      int& feature_cntr,
+                                      int& feature_index,
+                                      std::fstream& fsf,
+                                      std::fstream& fsp,
+                                      const PrecalculatedAveragine averagines)
   {
     MSExperiment map;
     std::map<int, MSSpectrum> indexSpecMap;
     int minCharge = INT_MAX;
     int maxCharge = INT_MIN;
 
-    for (auto &item : peakGroupMap)
+    for (auto& item : peak_group_map)
     {
       double rt = item.first;
       MSSpectrum deconvSpec;
       deconvSpec.setRT(rt);
-      for (auto &pg : item.second)
+      for (auto& pg : item.second)
       {
         auto crange = pg.second.getChargeRange();
         maxCharge = maxCharge > std::get<1>(crange) ? maxCharge : std::get<1>(crange);
@@ -106,7 +107,7 @@ namespace OpenMS
 
     int chargeRange = maxCharge - minCharge + 1;
 
-    for (auto &mt : m_traces)
+    for (auto& mt : m_traces)
     {
       int minFCharge = INT_MAX; // min feature charge
       int maxFCharge = INT_MIN; // max feature charge
@@ -128,10 +129,10 @@ namespace OpenMS
       double maxIso = 0;
       boost::dynamic_bitset<> charges(chargeRange + 1);
 
-      for (auto &p2 : mt)
+      for (auto& p2 : mt)
       {
-        auto &pgMap = peakGroupMap[p2.getRT()];
-        auto &pg = pgMap[p2.getMZ()];
+        auto& pgMap = peak_group_map[p2.getRT()];
+        auto& pg = pgMap[p2.getMZ()];
         int scanNumber = pg.getScanNumber();
         auto crange = pg.getChargeRange();
 
@@ -154,7 +155,7 @@ namespace OpenMS
           maxMass = pg.getMonoMass();
         }
 
-        for (auto &p : pg)
+        for (auto& p : pg)
         {
           if (p.isotopeIndex < 0 || p.isotopeIndex >= averagines.getMaxIsotopeIndex() || p.charge < minCharge ||
               p.charge >= chargeRange + minCharge + 1)
@@ -174,9 +175,9 @@ namespace OpenMS
         }
       }
 
-      //double chargeScore = FLASHDeconvAlgorithm::getChargeFitScore(perChargeIntensity,
+      //double charge_score = FLASHDeconvAlgorithm::getChargeFitScore(perChargeIntensity,
       //                                                            chargeRange);
-      //if (chargeScore < minChargeCosine) //
+      //if (charge_score < minChargeCosine) //
       //{
       //  continue;
       //}
@@ -187,7 +188,7 @@ namespace OpenMS
       double isoScore = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
                                                                                        perIsotopeIntensity,
                                                                                        offset, averagines);
-      if (isoScore < minIsotopeCosine)
+      if (isoScore < min_isotope_cosine)
       {
         continue;
       }
@@ -198,13 +199,13 @@ namespace OpenMS
 
       double sumInt = .0;
 
-      for (auto &p : mt)
+      for (auto& p : mt)
       {
         sumInt += p.getIntensity();
       }
       double avgMass = averagines.getAverageMassDelta(mass) + mass;
-      ++featureCntr;
-      fsf << featureIndex++ << "\t" << fileName << "\t" << std::to_string(mass) << "\t"
+      ++feature_cntr;
+      fsf << feature_index++ << "\t" << file_name << "\t" << std::to_string(mass) << "\t"
           << std::to_string(avgMass) << "\t" // massdiff
           << mt.getSize() << "\t"
           << mt.begin()->getRT() << "\t"
@@ -249,7 +250,7 @@ namespace OpenMS
 
       fsf << "\n";
 
-      if (promexOut)
+      if (promex_out)
       {
         double maxChargeIntensity = 0;
         for (int c = 0; c < chargeRange; c++) // c is charge range!!
@@ -263,10 +264,10 @@ namespace OpenMS
         auto apex = mt[mt.findMaxByIntPeak()];
 
         //int si = rtSpecMap[(float) apex.getRT()];
-        auto &spgMap = peakGroupMap[apex.getRT()];
-        auto &spg = spgMap[apex.getMZ()];
+        auto& spgMap = peak_group_map[apex.getRT()];
+        auto& spg = spgMap[apex.getMZ()];
 
-        fsp << featureIndex << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minFCharge << "\t"
+        fsp << feature_index << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minFCharge << "\t"
             << maxFCharge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
             << repScan << "\t" << repCharge << "\t" << perChargeMz[repCharge] << "\t" << sumInt << "\t"
             << spg.getScanNumber() << "\t" << spg.getIntensity() << "\t"
@@ -289,22 +290,22 @@ namespace OpenMS
     }
   }
 
-  void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)
+  void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum)
   {
-    if (deconvolutedSpectrum.getOriginalSpectrum().getMSLevel() != 1)
+    if (deconvoluted_spectrum.getOriginalSpectrum().getMSLevel() != 1)
     {
       return;
     }
-    double rt = deconvolutedSpectrum.getOriginalSpectrum().getRT();
-    peakGroupMap[rt] = std::unordered_map<double, PeakGroup>();
-    auto &subMap = peakGroupMap[rt];
-    for (auto &pg : deconvolutedSpectrum)
+    double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
+    peak_group_map[rt] = std::unordered_map<double, PeakGroup>();
+    auto& subMap = peak_group_map[rt];
+    for (auto& pg : deconvoluted_spectrum)
     {
       subMap[pg.getMonoMass()] = pg;
     }
   }
 
-  void MassFeatureTrace::writeHeader(std::fstream &fs)
+  void MassFeatureTrace::writeHeader(std::fstream& fs)
   {
     fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
@@ -313,7 +314,7 @@ namespace OpenMS
   }
 
 
-  void MassFeatureTrace::writePromexHeader(std::fstream &fs)
+  void MassFeatureTrace::writePromexHeader(std::fstream& fs)
   {
     fs << "FeatureID\tMinScan\tMaxScan\tMinCharge\tMaxCharge\t"
           "MonoMass\tRepScan\tRepCharge\tRepMz\tAbundance\tApexScanNum\tApexIntensity\tMinElutionTime\tMaxElutionTime\t"
@@ -325,6 +326,6 @@ namespace OpenMS
   {
     tol = param_.getValue("mass_error_ppm");
     //minChargeCosine = param_.getValue("min_charge_cosine");
-    minIsotopeCosine = param_.getValue("min_isotope_cosine");
+    min_isotope_cosine = param_.getValue("min_isotope_cosine");
   }
 }
