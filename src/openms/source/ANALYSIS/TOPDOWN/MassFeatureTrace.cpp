@@ -44,7 +44,7 @@ namespace OpenMS
     Param mtd_defaults = MassTraceDetection().getDefaults();
     mtd_defaults.setValue("mass_error_da", 1.5);
     mtd_defaults.setValue("min_trace_length", 10.0);
-    mtd_defaults.setValue("min_sample_rate", .0);
+    mtd_defaults.setValue("min_sample_rate", .2);
 
     defaults_.insert("", mtd_defaults);
     defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");

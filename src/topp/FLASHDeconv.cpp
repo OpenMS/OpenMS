@@ -422,7 +422,7 @@ protected:
       mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
     }
     massTracer.setParameters(mf_param);
-    std::cout<<massTracer.getParameters()<<std::endl;
+    //std::cout<<massTracer.getParameters()<<std::endl;
 
     OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
