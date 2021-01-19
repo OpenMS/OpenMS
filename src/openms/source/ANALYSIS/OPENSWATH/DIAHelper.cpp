@@ -305,8 +305,8 @@ namespace OpenMS
     }
 
     /// given a peak of experimental mz and intensity, add isotope pattern to a "spectrum".
-    void addIsotopes2Spec(double mz, double ity,
-                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+    void addSinglePeakIsotopes2Spec(double mz, double ity,
+                                    std::vector<std::pair<double, double> >& isotopeMasses, //[out]
                           Size nrIsotopes, double charge)
     {
       std::vector<std::pair<double, double> > isotopes;

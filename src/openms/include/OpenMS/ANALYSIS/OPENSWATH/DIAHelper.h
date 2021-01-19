@@ -144,15 +144,17 @@ namespace OpenMS
                                             double mannmass = 1.000482, //
                                             double charge = 1.);
 
-    /// given an experimental spectrum add isotope pattern.
+    /// given an experimental spectrum, add averagine isotope pattern for every peak. Old + new peaks are pushed to
+    /// @p isotopeMasses
     OPENMS_DLLAPI void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
                           std::vector<std::pair<double, double> >& isotopeMasses, //[out]
                           Size nr_isotopes, double charge = 1.);
 
-    /// given a peak of experimental mz and intensity, add isotope pattern to a "spectrum".
-    OPENMS_DLLAPI void addIsotopes2Spec(double mz, double ity,
-                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                          Size nrIsotopes, double charge);
+    /// given a peak of experimental mz and intensity, add averagine isotope pattern to a "spectrum".
+    /// Old + new peaks are pushed to @p isotopeMasses
+    OPENMS_DLLAPI void addSinglePeakIsotopes2Spec(double mz, double ity,
+                                                  std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                                                  Size nrIsotopes, double charge);
 
     /// sorts vector of pairs by first
     OPENMS_DLLAPI void sortByFirst(std::vector<std::pair<double, double> >& tmp);

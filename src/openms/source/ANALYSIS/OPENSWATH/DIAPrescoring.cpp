@@ -138,7 +138,11 @@ namespace OpenMS
     for (const auto& transition : lt)
     {
       if (transition.fragment_charge != 0) chg = transition.fragment_charge;
-      DIAHelpers::addIsotopes2Spec(transition.getProductMZ(), transition.getLibraryIntensity(), spectrumWIso, nr_isotopes_, chg);
+      DIAHelpers::addSinglePeakIsotopes2Spec(transition.getProductMZ(),
+                                             transition.getLibraryIntensity(),
+                                             spectrumWIso,
+                                             nr_isotopes_,
+                                             chg);
     }
     spectrumWIsoNegPreIso.resize(spectrumWIso.size());
     std::copy(spectrumWIso.begin(), spectrumWIso.end(), spectrumWIsoNegPreIso.begin());

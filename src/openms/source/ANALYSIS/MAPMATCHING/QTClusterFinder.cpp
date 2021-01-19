@@ -111,7 +111,7 @@ namespace OpenMS
     // update parameters (dummy)
     setParameters_(1, 1);
 
-    if(use_IDs_)
+    if (use_IDs_)
     {
       // map string "modified sequence/charge" to all RTs the feature has been observed in the different maps
       std::unordered_map<String, std::vector<double>> ided_feat_rts;
@@ -132,7 +132,7 @@ namespace OpenMS
               if ((hits[0].getScore() > min_score_ && pepIDs[0].isHigherScoreBetter()) ||
                   (hits[0].getScore() < min_score_ && !pepIDs[0].isHigherScoreBetter()))
               {
-                //TODO we could loosen the score filtering by requiring only ONE ID of a peptide to pass the threshold.
+                //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
                 // Would require a second pass though
                 const String key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
                 const auto it_inserted = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
@@ -151,7 +151,7 @@ namespace OpenMS
         }
       }
 
-      //TODO this does not differentiate between the variety of differences between distinct map pairs. E.g.
+      //Note: this does not differentiate between the variety of differences between distinct map pairs. E.g.
       // differences between map 1 and map 2 might be usually very small (e.g. they are replicates), while
       // differences between map 1 and map 3 are large, since they are different conditions. But we might lose
       // robust estimates and use more memory if we split them.
@@ -207,8 +207,8 @@ namespace OpenMS
           std::sort(tmp_diffs.begin(), tmp_diffs.end());
           // calculate allowed tolerance
           //q1 = quantile_(tmp_diffs, 0.25);
-          q2 = Math::quantile_(tmp_diffs, 0.5);
-          q3 = Math::quantile_(tmp_diffs, 0.75);
+          q2 = Math::quantile(tmp_diffs, 0.5);
+          q3 = Math::quantile(tmp_diffs, 0.75);
           //q95 = quantile_(tmp_diffs, 0.95);
           //iqr = q3 - q1;
           //tol = max(min_tolerance, max(fabs(q3 + iqr_mult * iqr), fabs(q1 - iqr_mult * iqr)));
@@ -243,8 +243,8 @@ namespace OpenMS
       std::merge(tmp_diffs.begin(), tmp_diffs.end(), last_tmp_diffs.begin(), last_tmp_diffs.end(), last_and_before_diffs.begin());
       if (!last_and_before_diffs.empty())
       {
-        q2 = Math::quantile_(tmp_diffs, 0.5);
-        q3 = Math::quantile_(tmp_diffs, 0.75);
+        q2 = Math::quantile(tmp_diffs, 0.5);
+        q3 = Math::quantile(tmp_diffs, 0.75);
         tol = q2 + 2. * 1.4826 * (q3-q2);
         bin_tolerances_.insert(make_pair(start_rt, tol));
 
@@ -793,7 +793,8 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   bool QTClusterFinder::distIsOutlier_(double dist, double rt)
   {
     if (bin_tolerances_.empty()) return false;
-    auto it = bin_tolerances_.lower_bound(rt);
+    auto it = bin_tolerances_.upper_bound(rt);
+    if (it == bin_tolerances_.begin()) return dist >= it->second;
     return dist >= (--it)->second;
   }
   

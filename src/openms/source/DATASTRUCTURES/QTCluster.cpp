@@ -153,12 +153,11 @@ namespace OpenMS
     const OpenMS::GridFeature& center_point = *(data_->center_point_);
     
     // Ensure we only add compatible peptide annotations. If the cluster center
-    // has an annotation, then each added neighbor should have the same
-    // annotation. If the center element has no annotation we add all elements
-    // and select the optimal annotation later, using optimizeAnnotations_
+    // has an annotation, then each added neighbor should have at least one matching annotation.
+    // If the center element has no annotation we add all elements
+    // and select the optimal annotation later (as in the case of multiple annotations), using optimizeAnnotations_
     if (use_IDs_)
     {
-
       bool one_empty = (center_point.getAnnotations().empty() || element->getAnnotations().empty());
       if (!one_empty) // both are annotated
       {
@@ -182,7 +181,9 @@ namespace OpenMS
     // Store best (closest) element:
     // Only add the element if either no element is present for the map or if
     // the element is closer than the current element for that map
-    //TODO shouldn't IDed features be preferred to unIDed ones?
+    //TODO This might be wrong now with multiple seqs.
+    //  It might need consider the seqTable for every seq of the intersection!
+    //  On the other hand this just fills data_->neighbors_ which says it only stores the BEST feature per map.
     if (map_index != center_point.getMapIndex())
     {
       NeighborMap& neighbors_ = data_->neighbors_;
@@ -285,7 +286,7 @@ namespace OpenMS
 
     Size num_other = data_->num_maps_ - 1;
     double internal_distance = 0.0;
-    if (!use_IDs_ || !data_->center_point_->getAnnotations().empty() ||
+    if (!use_IDs_ || data_->center_point_->getAnnotations().size() == 1 ||
         neighbors_.empty())
     {
       // if the cluster center is annotated with peptide IDs, the neighbors can
@@ -326,7 +327,7 @@ namespace OpenMS
 
   const set<AASequence>& QTCluster::getAnnotations()
   {
-    if (changed_ && use_IDs_ && data_->center_point_->getAnnotations().empty() && !data_->neighbors_.empty())
+    if (changed_ && use_IDs_ && data_->center_point_->getAnnotations().size() != 1 && !data_->neighbors_.empty())
     {
       optimizeAnnotations_();
     }
@@ -356,8 +357,7 @@ namespace OpenMS
     auto unspecific = seq_table.find(AASequence());
     if (unspecific != seq_table.end())
     {
-      for (auto it =
-             seq_table.begin(); it != seq_table.end(); ++it)
+      for (auto it = seq_table.begin(); it != seq_table.end(); ++it) //OMS_CODING_TEST_EXCLUDE
       {
         if (it == unspecific)
           continue;
@@ -371,8 +371,7 @@ namespace OpenMS
     // compute distance totals -> best annotation set has smallest value:
     auto best_pos = seq_table.begin();
     double best_total = num_maps_ * max_distance_;
-    for (auto it =
-           seq_table.begin(); it != seq_table.end(); ++it)
+    for (auto it = seq_table.begin(); it != seq_table.end(); ++it) //OMS_CODING_TEST_EXCLUDE
     {
       double total = std::accumulate(it->second.begin(), it->second.end(), 0.0);
       if (total < best_total)
@@ -385,6 +384,14 @@ namespace OpenMS
     if (best_pos != seq_table.end())
     {
       //TODO can we accumulate the union of possible annotations and set the best as "representative"?
+      // Probably in another member and function though (e.g. after finalize),
+      // since annotations_ is used in recomputeNeighbors to filter the cluster for matching
+      // features of this "best" annotation.
+      // Actually I think during creation of the consensusFeature later, all IDs of the linked features
+      // (from the original full data) are copied anyway.
+      // Then it would make sense to save the "best" annotation "distance-wise" from this algorithm, to be used during
+      // IDConflictResolution (which is based on only ID scores).
+      // OR already consider the ID scores here and make a more elaborate scoring.
       data_->annotations_ = {best_pos->first};
     }
 
@@ -430,26 +437,34 @@ namespace OpenMS
     // get reference on member that is used in this function
     NeighborMapMulti& tmp_neighbors_ = data_->tmp_neighbors_;
 
+    // for all maps contributing to this cluster
     for (NeighborMapMulti::iterator n_it = tmp_neighbors_.begin();
          n_it != tmp_neighbors_.end(); ++n_it)
     {
+      //for all neighbors relevant for this cluster in this map
       Size map_index = n_it->first;
       for (NeighborList::iterator df_it = n_it->second.begin();
           df_it != n_it->second.end(); ++df_it)
       {
         double dist = df_it->first;
+        // for all IDs/annotations of the neighboring feature (skipped if empty)
         for (const auto& current : df_it->second->getAnnotations())
         {
           const auto& pos = seq_table.find(current);
+          // check if a minimum distance was already set for this ID
           if (pos == seq_table.end())
           {
-            // new set of annotations, fill vector with max distance for all maps
+            // if not:
+            // new annotation, fill vector with max distance for all maps
             seq_table[current].resize(num_maps_, max_distance_);
+            // except for current
             seq_table[current][map_index] = dist;
           }
           else
           {
+            // if so:
             // new dist. value for this input map
+            // compare with old and set minimum
             pos->second[map_index] = min(dist, pos->second[map_index]);
           }
         }
@@ -459,7 +474,7 @@ namespace OpenMS
           const auto& pos = seq_table.find(AASequence());
           if (pos == seq_table.end())
           {
-            // new set of annotations, fill vector with max distance for all maps
+            // empty AASequence not yet there: initialize
             seq_table[AASequence()].resize(num_maps_, max_distance_);
             seq_table[AASequence()][map_index] = dist;
           }
@@ -468,8 +483,11 @@ namespace OpenMS
             // new dist. value for this input map
             pos->second[map_index] = min(dist, pos->second[map_index]);
           }
-          // no need to check further (annotation-specific distances are worse
-          // than this unspecific one):
+          // As opposed to above IDed features (which could lead to new additional annotations),
+          // no need to check further here: all following (also annotation-specific) distances are worse
+          // than this unspecific one, since multimap is sorted; dists are already corrected
+          // with noID_penalty. If you dont want this to happen, set the penalty to one and unIDed ones
+          // will always be added at the end):
           break;
         }
       }

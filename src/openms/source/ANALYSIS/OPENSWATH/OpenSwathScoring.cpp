@@ -199,8 +199,7 @@ namespace OpenMS
     // most fragments we dont really know their composition
     diascoring.dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
 
-    // Peptide-specific scores
-    // useless for FFID
+    // Peptide-specific scores (only useful, when product transitions are REAL fragments, e.g. not in FFID)
     if (compound.isPeptide() && !compound.sequence.empty() && su_.use_ionseries_scores)
     {
       // Presence of b/y series score
@@ -267,17 +266,30 @@ namespace OpenMS
         else
         {
           diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                            precursor_charge, scores.ms1_isotope_correlation,
-                                            scores.ms1_isotope_overlap,
-                                            "");
+                                            scores.ms1_isotope_correlation,
+                                            scores.ms1_isotope_overlap, precursor_charge);
         }
-
       }
       else
       {
-        diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                          precursor_charge, scores.ms1_isotope_correlation,
-                                          scores.ms1_isotope_overlap, compound.sum_formula);
+        if (!compound.sequence.empty())
+        {
+          EmpiricalFormula empf{compound.sequence};
+          //Note: this only sets the charge to be extracted again in the following function.
+          // It is not really used in EmpiricalFormula. Also the m/z of the formula is not used since
+          // it is shadowed by the exact precursor_mz.
+          //TODO check if charges are the same (in case the charge was actually present in the sum_formula?)
+          empf.setCharge(precursor_charge);
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, scores.ms1_isotope_correlation,
+                                            scores.ms1_isotope_overlap,
+                                            empf);
+        }
+        else
+        {
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
+                                            scores.ms1_isotope_correlation,
+                                            scores.ms1_isotope_overlap, precursor_charge);
+        }
       }
     }
   }
@@ -316,7 +328,7 @@ namespace OpenMS
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;
-    if (transition.getProductChargeState() > 0)
+    if (transition.getProductChargeState() != 0)
     {
       putative_product_charge = transition.getProductChargeState();
     }
@@ -324,7 +336,7 @@ namespace OpenMS
     // Isotope correlation / overlap score: Is this peak part of an
     // isotopic pattern or is it the monoisotopic peak in an isotopic
     // pattern?
-    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), spectrum, putative_product_charge, scores.isotope_correlation, scores.isotope_overlap);
+    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), spectrum, scores.isotope_correlation, scores.isotope_overlap, putative_product_charge);
     // Mass deviation score
     diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), spectrum, scores.massdev_score);
   }

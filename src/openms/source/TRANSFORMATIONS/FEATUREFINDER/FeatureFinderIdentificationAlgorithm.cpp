@@ -204,8 +204,8 @@ namespace OpenMS
     params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
     // precursor transition = first product transition, additionally biased
     params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
-    //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra around the apex,
-    // to complete ion ladders (and make this score more robust).
+    //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
+    // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
 
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
@@ -228,6 +228,7 @@ namespace OpenMS
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
+    // to use MS1 Swath scores:
     feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
 
     double rt_uncertainty(0);
