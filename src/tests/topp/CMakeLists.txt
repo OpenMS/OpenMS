@@ -2198,6 +2198,9 @@ ${DATA_DIR_TOPP}/IDMapper_5_input.mzML -mz_measure ppm -mz_tolerance 10
 -rt_tolerance 20 -feature:use_centroid_mz false)
 add_test("TOPP_IDMapper_5_out1" ${DIFF} -in1 IDMapper_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_5_output.featureXML )
 set_tests_properties("TOPP_IDMapper_5_out1" PROPERTIES DEPENDS "TOPP_IDMapper_5")
+add_test("TOPP_IDMapper_6" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_1_input.featureXML -out IDMapper_6_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_6_input.idXML -mz_measure Da -mz_tolerance 1 -ignore_charge -mz_reference precursor -feature:use_centroid_mz false)
+add_test("TOPP_IDMapper_6_out1" ${DIFF} -in1 IDMapper_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_6_output.featureXML )
+set_tests_properties("TOPP_IDMapper_6_out1" PROPERTIES DEPENDS "TOPP_IDMapper_6")
 
 #------------------------------------------------------------------------------
 # IDRipper tests
