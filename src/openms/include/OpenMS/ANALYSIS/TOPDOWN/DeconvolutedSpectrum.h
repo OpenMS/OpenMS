@@ -140,14 +140,14 @@ namespace OpenMS
 
   private:
     /// the original spectrum from which this is generated
-    MSSpectrum spec;
+    MSSpectrum spec_;
     /// precursor peakGroup (or mass)
-    PeakGroup *precursor_peak_group = nullptr;
+    PeakGroup *precursor_peak_group_ = nullptr;
     /// precursor peak (not deconvoluted one)
-    Precursor precursor_peak;
+    Precursor precursor_peak_;
     /// activation method for file output
-    std::string activation_method;
+    std::string activation_method_;
     /// scan number and precursor scan number
-    int scan_number, precursor_scan_number;
+    int scan_number_, precursor_scan_number_;
   };
 }

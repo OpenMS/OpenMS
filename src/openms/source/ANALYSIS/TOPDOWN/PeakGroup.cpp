@@ -110,7 +110,7 @@ namespace OpenMS
     {
       double pi = p.intensity;
       intensity += pi;
-      nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
+      nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
     }
     monoisotopic_mass = nominator / intensity;
     // auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
@@ -189,7 +189,7 @@ namespace OpenMS
     qscore = q;
   }
 
-  std::tuple<double, double> PeakGroup::getMzxQScoreMzRange() const
+  std::tuple<double, double> PeakGroup::getMaxQScoreMzRange() const
   {
     return std::tuple<double, double>{max_qscore_mz_start, max_qscore_mz_end};
   }

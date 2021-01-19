@@ -169,29 +169,29 @@ protected:
     fd_defaults.addTag("min_rt", "advanced");
     fd_defaults.setValue("max_rt", -1.0);
     fd_defaults.addTag("max_rt", "advanced");
-    fd_defaults.setValue("min_mass", 50.0);
+    fd_defaults.setValue("min_mass_", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
     fd_defaults.setValue("min_peaks", IntList{3, 1});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", .0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
-    fd_defaults.setValue("min_isotope_cosine",
+    fd_defaults.setValue("min_isotope_cosine_",
                          DoubleList{.75, .75},
-                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
-    //fd_defaults.addTag("min_isotope_cosine", "advanced");
+                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+    //fd_defaults.addTag("min_isotope_cosine_", "advanced");
 
-    fd_defaults.setValue("max_mass_count",
+    fd_defaults.setValue("max_mass_count_",
                          IntList{-1, -1},
-                         "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
-    fd_defaults.addTag("max_mass_count", "advanced");
+                         "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
+    fd_defaults.addTag("max_mass_count_", "advanced");
 
 
     fd_defaults.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
     fd_defaults.addTag("RT_window", "advanced");
 
-    fd_defaults.remove("max_mass_count");
-    fd_defaults.remove("min_mass_count");
+    fd_defaults.remove("max_mass_count_");
+    fd_defaults.remove("min_mass_count_");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("mass_error_da",
@@ -206,8 +206,8 @@ protected:
     mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     mf_defaults.setValue("quant_method", "area", "");
     mf_defaults.addTag("quant_method", "advanced"); // hide entry
-    mf_defaults.setValue("min_isotope_cosine", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine option");
-    mf_defaults.addTag("min_isotope_cosine", "advanced");
+    mf_defaults.setValue("min_isotope_cosine_", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine_ option");
+    mf_defaults.addTag("min_isotope_cosine_", "advanced");
 
     Param combined;
     combined.insert("Algorithm:", fd_defaults);
@@ -410,16 +410,16 @@ protected:
     auto avg = fd.getAveragine();
     auto massTracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
-    DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine");
+    DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine_");
     //mf_param.setValue("mass_error_ppm", ms1tol);
     mf_param.setValue("noise_threshold_int", .0, "");
     mf_param.setValue("reestimate_mt_sd", "false", "");
     mf_param.setValue("trace_termination_criterion", "outlier");
     mf_param.setValue("trace_termination_outliers", 20);
     //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
-    if (((double)mf_param.getValue("min_isotope_cosine")) < 0)
+    if (((double)mf_param.getValue("min_isotope_cosine_")) < 0)
     {
-      mf_param.setValue("min_isotope_cosine", isotopeCosine[0]);
+      mf_param.setValue("min_isotope_cosine_", isotopeCosine[0]);
     }
     massTracer.setParameters(mf_param);
     //std::cout<<massTracer.getParameters()<<std::endl;
@@ -497,7 +497,7 @@ protected:
       }
       //if (msLevel < currentMaxMSLevel)
       //{
-      //  lastDeconvolutedSpectra[msLevel] = deconvoluted_spectrum; // to register precursor in the future..
+      //  lastDeconvolutedSpectra[msLevel] = deconvoluted_spectrum_; // to register precursor in the future..
       //}
 
       if (!ensemble)
@@ -517,8 +517,8 @@ protected:
         deconvolutedSpectrum.writeTopFD(out_topFDstream[msLevel - 1], scanNumber, avg);
       }
 
-      //deconvoluted_spectrum.clearPeakGroupsChargeInfo();
-      //deconvoluted_spectrum.getPrecursorPeakGroup().clearChargeInfo();
+      //deconvoluted_spectrum_.clearPeakGroupsChargeInfo();
+      //deconvoluted_spectrum_.getPrecursorPeakGroup().clearChargeInfo();
       float progress = (float) (it - map.begin()) / map.size();
       if (progress > prevProgress + .01)
       {

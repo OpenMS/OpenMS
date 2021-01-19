@@ -66,20 +66,20 @@ namespace OpenMS
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     fd_defaults.setValue("min_charge", (int)inputs["min_charge"][0]);
     fd_defaults.setValue("max_charge", (int)inputs["max_charge"][0]);
-    fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
+    fd_defaults.setValue("min_mass_", inputs["min_mass_"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("RT_window", 20.0, "");
 
-    auto massCountd = inputs["max_mass_count"];
+    auto massCountd = inputs["max_mass_count_"];
 
     for (double j : massCountd)
     {
       mass_count.push_back((int)j);
     }
 
-    fd_defaults.setValue("min_mass_count", mass_count);
+    fd_defaults.setValue("min_mass_count_", mass_count);
 
     fd.setParameters(fd_defaults);
     fd.calculateAveragine(false);
@@ -104,7 +104,7 @@ namespace OpenMS
     deconvoluted_spectrum = DeconvolutedSpectrum(spec, 1);
     if (ms_level == 1)
     {
-      //current_max_mass = max_mass;
+      //current_max_mass_ = max_mass;
       //currentChargeRange = chargeRange;
     }
     else
@@ -200,7 +200,7 @@ namespace OpenMS
         {
           break;
         }
-        int mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange())) / 2.0);
+        int mz = (int)round((std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
         if (cselectedMz.find(mz) != cselectedMz.end()) {
           continue;
         }
@@ -235,7 +235,7 @@ namespace OpenMS
   void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum& spec, int msLevel)
   {
     double rt = spec.getRT();
-    std::sort(deconvoluted_spectrum.begin(), deconvoluted_spectrum.end(), QscoreComparator);
+    std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator);
 
     std::map<int, std::vector<double>> nall;
     std::map<int, std::vector<double>> nallMz;
@@ -243,11 +243,11 @@ namespace OpenMS
     std::map<int, std::vector<double>> nselected;
     std::map<int, std::vector<double>> nselectedMz; // m/z * 20
     std::vector<PeakGroup> toConsider;
-    toConsider.reserve(deconvoluted_spectrum.size());
+    toConsider.reserve(deconvoluted_spectrum_.size());
     std::vector<PeakGroup> toConsider2;
-    toConsider2.reserve(deconvoluted_spectrum.size());
+    toConsider2.reserve(deconvoluted_spectrum_.size());
     std::vector<PeakGroup> toConsider3;
-    toConsider3.reserve(deconvoluted_spectrum.size());
+    toConsider3.reserve(deconvoluted_spectrum_.size());
 
     for (auto& item : all)
     {
@@ -275,7 +275,7 @@ namespace OpenMS
       nselectedMz[item.first] = selectedMz[item.first];
     }
 
-    for (auto& pg : deconvoluted_spectrum)
+    for (auto& pg : deconvoluted_spectrum_)
     {
       if (pg.getQScore() < qscore_threshold)
       {
@@ -302,7 +302,7 @@ namespace OpenMS
       toConsider3.push_back(pg);
     }
 
-    for (auto& pg : deconvoluted_spectrum)
+    for (auto& pg : deconvoluted_spectrum_)
     {
       auto massDelta = avg.getAverageMassDelta(pg.getMonoMass());
       auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
@@ -557,7 +557,7 @@ namespace OpenMS
           break;
         }
 
-        auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange())) / 2.0);
+        auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
         if (cselectedMz.find(mz) != cselectedMz.end()) {
           continue;
         }
@@ -600,7 +600,7 @@ namespace OpenMS
     nselectedMz.swap(selectedMz);
     std::map<int, std::vector<double>>().swap(nselectedMz);
 
-    deconvoluted_spectrum.swap(filtered);
+    deconvoluted_spectrum_.swap(filtered);
     std::vector<PeakGroup>().swap(filtered);
   }
 */
@@ -610,7 +610,7 @@ namespace OpenMS
 
     for (int i = 0; i < deconvoluted_spectrum.size(); i++)
     {
-      auto qrange = deconvoluted_spectrum[i].getMzxQScoreMzRange();
+      auto qrange = deconvoluted_spectrum[i].getMaxQScoreMzRange();
       wstart[i] = std::get<0>(qrange) - 1.2;
       wend[i] = std::get<1>(qrange) + 1.2;
 

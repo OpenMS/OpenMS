@@ -77,7 +77,7 @@ namespace OpenMS
 
       /**
        @brief constructor with parameters such as mass ranges and interval ( delta ).
-       @param m min_mass
+       @param m min_mass_
        @param M max_mass
        @param delta mass interval between m and M
        @param generator gen
