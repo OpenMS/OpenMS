@@ -42,6 +42,8 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/FeatureFindingIntact.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -155,8 +157,13 @@ public:
     //-------------------------------------------------------------
     // building feature hypotheses
     //-------------------------------------------------------------
-    std::vector<FeatureHypothesis> feat_hypos;
-    build_feature_hypotheses_(m_traces_final, feat_hypos);
+//    std::vector<FeatureHypothesis> feat_hypos;
+//    build_feature_hypotheses_(m_traces_final, feat_hypos);
+    FeatureFindingIntact ffi;
+    ffi.updateMembers_(); // TODO: change this with param handler
+
+    std::vector<FeatureFindingIntact::FeatureHypothesis> feat_hypos;
+    ffi.buildFeatureHypotheses_(m_traces_final, feat_hypos);
 
     //-------------------------------------------------------------
     // clustering feature hypotheses

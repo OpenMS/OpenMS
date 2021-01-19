@@ -62,20 +62,11 @@ namespace OpenMS
 
       @ingroup Quantitation
     */
-    class FeatureHypothesis
+    struct OPENMS_DLLAPI FeatureHypothesis
     {
     public:
       /// default constructor
-      FeatureHypothesis() :
-          charge_(),
-          iso_pattern_traces_(),
-          iso_mass_diff_(),
-          feat_score_()
-      {
-      }
-
-      /// default destructor
-      ~FeatureHypothesis();
+      FeatureHypothesis() = default;
 
       /// copy constructor
       FeatureHypothesis(const FeatureHypothesis& fh):
@@ -97,6 +88,12 @@ namespace OpenMS
         iso_mass_diff_ = fh.iso_mass_diff_;
         feat_score_ = fh.feat_score_;
         return *this;
+      }
+
+      // comparison operator
+      bool operator < (const FeatureHypothesis& a) const
+      {
+        return feat_score_ < a.getScore();
       }
 
       /// getter & setter
@@ -253,15 +250,6 @@ namespace OpenMS
       bool operator()(const MassTrace& x, const MassTrace& y) const
       {
         return x.getCentroidMZ() < y.getCentroidMZ();
-      }
-    };
-
-    class OPENMS_DLLAPI CmpHypothesesByScore
-    {
-    public:
-      bool operator()(const FeatureHypothesis& x, const FeatureHypothesis& y) const
-      {
-        return x.getScore() > y.getScore();
       }
     };
 
@@ -448,7 +436,7 @@ namespace OpenMS
 
     double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
 
-    double computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const;
+    double computeAveragineSimScore_(const std::vector<double>& hypo_ints, const IsotopeDistribution& iso_dist) const;
 
     void setAveragineModel();
 

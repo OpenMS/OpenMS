@@ -54,7 +54,8 @@ namespace OpenMS
     {
       return;
     }
-    this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
+    // TODO: progress logger
+//    this->startProgress(0, input_mtraces.size(), "assembling mass traces to candidate features");
 
     // *********************************************************** //
     // Step 1 Preparation
@@ -63,8 +64,10 @@ namespace OpenMS
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
 
-    // TODO: build isotope model for isotope ratio filtering
+    // building isotope model for isotope ratio filtering
+    setAveragineModel();
 
+    // total_intensity is needed for calculating feature hypothesis scores
     double total_intensity(0.0);
     for (Size i = 0; i < input_mtraces.size(); ++i)
     {
@@ -75,12 +78,12 @@ namespace OpenMS
     // Step 2 Iterate through all mass traces to find likely matches
     // and generate isotopic / charge hypotheses
     // *********************************************************** //
-    Size progress(0);
+//    Size progress(0);
     for (SignedSize i = 0; i < (SignedSize)input_mtraces.size(); ++i)
     {
-      this->setProgress(progress);
+//      this->setProgress(progress);
 
-      ++progress;
+//      ++progress;
 
       std::vector<const MassTrace*> local_traces;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
@@ -103,11 +106,11 @@ namespace OpenMS
       }
       findLocalFeatures_(local_traces, total_intensity, output_hypotheses);
     }
-    this->endProgress();
+//    this->endProgress();
     OPENMS_LOG_INFO << "feature _ hypos size:" << output_hypotheses.size() << std::endl;
 
     // sort feature candidates by their score
-    std::sort(output_hypotheses.begin(), output_hypotheses.end(), CmpHypothesesByScore());
+    std::sort(output_hypotheses.begin(), output_hypotheses.end());
 
     // *********************************************************** //
     // Step 3 Iterate through all hypotheses, starting with the highest
@@ -132,6 +135,11 @@ namespace OpenMS
       // expected m/z window for iso_pos -> 13C isotope peak position
       double mz_window = Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge;
 
+      // calculate averagine isotope distribution here (based on mono trace)
+      double mol_weight = (candidates[0]->getCentroidMZ()-Constants::PROTON_MASS_U) * charge;
+      auto isodist = iso_model_.get(mol_weight);
+      auto isoNorm = iso_model_.getNorm(mol_weight); // normalized distribution
+
       Size last_iso_idx(0); // largest index of found iso index
       for (Size iso_pos = 1; iso_pos <= max_nr_traces_; ++iso_pos)
       {
@@ -148,11 +156,10 @@ namespace OpenMS
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
           double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
 
-          // TODO : change this with stored model intensities
           double int_score(1.0);
           std::vector<double> tmp_ints(fh_tmp.getAllIntensities()); // intensities up to the last isotope
           tmp_ints.push_back(candidates[mt_idx]->getIntensity(use_smoothed_intensities_));
-          int_score = computeAveragineSimScore_(tmp_ints, candidates[mt_idx]->getCentroidMZ() * charge);
+          int_score = computeAveragineSimScore_(tmp_ints, isodist);
 
           double total_pair_score(0.0);
           if (rt_score > 0.0 && mz_score > 0.0 && int_score > 0.0)
@@ -281,25 +288,20 @@ namespace OpenMS
   }
 
   // modified based on FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex
-  double FeatureFindingIntact::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
+  double FeatureFindingIntact::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const IsotopeDistribution& iso_dist) const
   {
-    auto isodist = iso_model_.get(mol_weight);
-    auto isoNorm = iso_model_.getNorm(mol_weight); // normalized distribution
-    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
-
     // determine start and end indices of hypo_ints based on averagine model (averagine is always larger than hypo)
     Size offset = 0;
     double maxCosine = -1;
-    Size isotopeLength = 0;
     Size maxIsotopeIndex = 0, minIsotopeIndex = -1;
+    Size isoSize = iso_dist.size();
 
-    for (int i = 0; i < iso_model_.getMaxIsotopeIndex(); i++)
+    for (int i = 0; i < isoSize; i++)
     {
       if (hypo_ints[i] <= 0)
       {
         continue;
       }
-      isotopeLength++;
       maxIsotopeIndex = i;
       if (minIsotopeIndex < 0)
       {
@@ -307,30 +309,61 @@ namespace OpenMS
       }
     }
 
-    // get largest intensities from each vector
-    double max_int(0.0), theo_max_int(0.0);
-    for (Size i = 0; i < hypo_ints.size(); ++i)
-    {
-      if (hypo_ints[i] > max_int)
-      {
-        max_int = hypo_ints[i];
-      }
-      if (averagine_dist[i].getIntensity() > theo_max_int)
-      {
-        theo_max_int = averagine_dist[i].getIntensity();
-      }
-    }
-
-    // compute normalized intensities
-    std::vector<double> averagine_ratios, hypo_isos;
-    for (Size i = 0; i < hypo_ints.size(); ++i)
-    {
-      averagine_ratios.push_back(averagine_dist[i].getIntensity() / theo_max_int);
-      hypo_isos.push_back(hypo_ints[i] / max_int);
-    }
-
-    double iso_score = computeCosineSim_(averagine_ratios, hypo_isos);
-    return iso_score;
+//    auto maxCntr = 0;
+//    for (int f = -isoSize - minIsotopeIndex; f <= maxIsotopeIndex; f++)
+//    {
+//      auto cos = getCosine(hypo_ints,
+//                           minIsotopeIndex,
+//                           maxIsotopeIndex,
+//                           iso_dist,
+//                           isoSize,
+//                           isoNorm,
+//                           f);
+//
+//      if (maxCosine <= cos)
+//      {
+//        if (maxCosine == cos)
+//        {
+//          maxCntr++;
+//          offset += f;
+//        }
+//        else
+//        {
+//          maxCosine = cos;
+//          maxCntr = 1;
+//          offset = f;
+//        }
+//      }
+//    }
+//    offset /= maxCntr;
+//    return maxCosine;
+//
+//
+//
+//    // get largest intensities from each vector
+//    double max_int(0.0), theo_max_int(0.0);
+//    for (Size i = 0; i < hypo_ints.size(); ++i)
+//    {
+//      if (hypo_ints[i] > max_int)
+//      {
+//        max_int = hypo_ints[i];
+//      }
+//      if (averagine_dist[i].getIntensity() > theo_max_int)
+//      {
+//        theo_max_int = averagine_dist[i].getIntensity();
+//      }
+//    }
+//
+//    // compute normalized intensities
+//    std::vector<double> averagine_ratios, hypo_isos;
+//    for (Size i = 0; i < hypo_ints.size(); ++i)
+//    {
+//      averagine_ratios.push_back(averagine_dist[i].getIntensity() / theo_max_int);
+//      hypo_isos.push_back(hypo_ints[i] / max_int);
+//    }
+//
+//    double iso_score = computeCosineSim_(averagine_ratios, hypo_isos);
+//    return iso_score;
   }
 
   void FeatureFindingIntact::setAveragineModel()
