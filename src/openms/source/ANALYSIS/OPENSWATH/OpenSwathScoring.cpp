@@ -200,6 +200,7 @@ namespace OpenMS
     diascoring.dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
 
     // Peptide-specific scores (only useful, when product transitions are REAL fragments, e.g. not in FFID)
+    // and only if sequence is known (non-empty)
     if (compound.isPeptide() && !compound.sequence.empty() && su_.use_ionseries_scores)
     {
       // Presence of b/y series score

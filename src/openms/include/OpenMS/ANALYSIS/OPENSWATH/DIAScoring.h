@@ -217,6 +217,13 @@ private:
     double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                 const EmpiricalFormula& sum_formula) const;
 
+    /**
+    @brief Compare an experimental isotope pattern to a theoretical one
+
+    This function will take an array of isotope intensities and compare them
+    (by order only; no m/z matching) to the theoretically expected ones given by @p isotope_dist.
+    The returned value is a Pearson correlation between the experimental and theoretical pattern.
+    */
     double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                 const IsotopeDistribution& isotope_dist) const;
 

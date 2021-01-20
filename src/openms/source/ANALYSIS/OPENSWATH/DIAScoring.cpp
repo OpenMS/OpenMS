@@ -367,8 +367,9 @@ namespace OpenMS
 
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
-      double left = mono_mz - C13C12_MASSDIFF_U / (double) ch;
-      double right = left;
+      double center = mono_mz - C13C12_MASSDIFF_U / (double) ch;
+      double left = center;
+      double right = center;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
@@ -391,7 +392,7 @@ namespace OpenMS
       }
       if (ratio > max_ratio) {max_ratio = ratio;}
 
-      double ddiff_ppm = std::fabs(mz - (mono_mz - C13C12_MASSDIFF_U / (double) ch)) * 1e6 / mono_mz;
+      double ddiff_ppm = std::fabs(mz - center) * 1e6 / center;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
       if (ratio > 1 && ddiff_ppm < peak_before_mono_max_ppm_diff_)

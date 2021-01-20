@@ -111,15 +111,15 @@ namespace OpenMS
 
     /// get averagine distribution given mass
     OPENMS_DLLAPI void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec,
+                                         std::vector<std::pair<double, double> >& isotopes_spec,
                                          const double charge = 1.,
                                          const int nr_isotopes = 4,
                                          const double mannmass = 1.00048);
 
     /// simulate spectrum from AASequence
     OPENMS_DLLAPI void simulateSpectrumFromAASequence(const AASequence& aa,
-                                        std::vector<double>& firstIsotopeMasses, //[out]
-                                        std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                                        std::vector<double>& first_isotope_masses, //[out]
+                                        std::vector<std::pair<double, double> >& isotope_masses, //[out]
                                         TheoreticalSpectrumGenerator const * g,
                                         double charge = 1.);
 
@@ -129,32 +129,32 @@ namespace OpenMS
                               double charge = 1.);
 
     /// add (potentially negative) pre-isotope weights to spectrum
-    OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
-                              std::vector<std::pair<double, double> >& isotopeSpec, // output
-                              UInt nrpeaks = 2, //nr of pre-isotope peaks
-                              double preIsotopePeaksWeight = -0.5, // weight of pre-isotope peaks
+    OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& first_isotope_masses,
+                              std::vector<std::pair<double, double> >& isotope_spec, // output
+                              UInt nr_peaks = 2, //nr of pre-isotope peaks
+                              double pre_isotope_peaks_weight = -0.5, // weight of pre-isotope peaks
                               double mannmass = 1.000482, //
                               double charge = 1.);
 
     /// add negative pre-isotope weights to spectrum
     OPENMS_DLLAPI void addPreisotopeWeights(double mz,
-                                            std::vector<std::pair<double, double> >& isotopeSpec, // output
-                                            UInt nrpeaks = 2, //nr of pre-isotope peaks
-                                            double preIsotopePeaksWeight = -0.5, // weight of pre-isotope peaks
+                                            std::vector<std::pair<double, double> >& isotope_spec, // output
+                                            UInt nr_peaks = 2, //nr of pre-isotope peaks
+                                            double pre_isotope_peaks_weight = -0.5, // weight of pre-isotope peaks
                                             double mannmass = 1.000482, //
                                             double charge = 1.);
 
     /// given an experimental spectrum, add averagine isotope pattern for every peak. Old + new peaks are pushed to
     /// @p isotopeMasses
     OPENMS_DLLAPI void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
-                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                          std::vector<std::pair<double, double> >& isotope_masses, //[out]
                           Size nr_isotopes, double charge = 1.);
 
     /// given a peak of experimental mz and intensity, add averagine isotope pattern to a "spectrum".
     /// Old + new peaks are pushed to @p isotopeMasses
     OPENMS_DLLAPI void addSinglePeakIsotopes2Spec(double mz, double ity,
-                                                  std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                                                  Size nrIsotopes, double charge);
+                                                  std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                                  Size nr_isotopes, double charge);
 
     /// sorts vector of pairs by first
     OPENMS_DLLAPI void sortByFirst(std::vector<std::pair<double, double> >& tmp);

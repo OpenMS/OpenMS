@@ -140,6 +140,8 @@ namespace OpenMS
                 {
                   it_inserted.first->second.push_back(feat.getRT());
                 }
+                //TODO we could score the whole feature instead of just the RT to calculate tolerances based on
+                // a combined score (RT/mz; using the scoring function of this class) instead of just RT
                 /*const auto it_inserted_feat = ided_feats.emplace(key, std::vector<const typename MapType::FeatureType*>{&feat});
                 if (!it_inserted_feat.second)
                 {
@@ -183,7 +185,7 @@ namespace OpenMS
           // two RTs for an ID, you will always have a negative difference from the median (and therefore the distribution
           // would be biased anyway). We could use a stable median for evenly sized vectors but that would not reflect
           // real distances then. Or always add positive AND negative differences.
-          medians_diffs[c].second.push_back(std::fabs(rt-medians_diffs[c].first));
+          medians_diffs[c].second.push_back(std::fabs(rt - medians_diffs[c].first));
         }
         c++;
       }
@@ -198,8 +200,11 @@ namespace OpenMS
       double min_tolerance = 20;
       double tol, q2, q3 = 0.;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
-      OPENMS_LOG_INFO << "RT_Bin_Start, Tolerance" << std::endl;
+      OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << std::endl;
 
+      // For every pair of median RT and differences, collect
+      // differences until min_nr_diffs_per_bin_ is reached, then add the
+      // start of the current bin and a tolerance based on Double MAD https://aakinshin.net/posts/harrell-davis-double-mad-outlier-detector/
       for (const auto& med_diffs : medians_diffs)
       {
         if (tmp_diffs.size() > min_nr_diffs_per_bin_)

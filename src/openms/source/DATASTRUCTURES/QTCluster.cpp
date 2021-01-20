@@ -412,7 +412,6 @@ namespace OpenMS
     NeighborMapMulti& tmp_neighbors_ = data_->tmp_neighbors_;
     std::set<AASequence>& annotations_ = data_->annotations_;
 
-  
     neighbors_.clear();
     for (NeighborMapMulti::const_iterator n_it = tmp_neighbors_.begin();
          n_it != tmp_neighbors_.end(); ++n_it)
@@ -423,6 +422,7 @@ namespace OpenMS
         std::set<AASequence> intersect;
         const std::set<AASequence>& current = df_it->second->getAnnotations();
         std::set_intersection(current.begin(), current.end(), annotations_.begin(), annotations_.end(), std::inserter(intersect, intersect.begin()));
+        // if no overlap with the re-calculated IDs in the center, do not re-add neighbor to the updated neighbors anymore.
         if (!intersect.empty() || current.empty())
         {
           neighbors_[n_it->first] = Neighbor{df_it->first, df_it->second};
