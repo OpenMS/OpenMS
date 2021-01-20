@@ -747,7 +747,7 @@ protected:
         vector<PeptideHit::PeakAnnotation> annotated_precursor_ions;
         vector<PeptideHit::PeakAnnotation> annotated_immonium_ions;
 
-        // first annotate total loss peaks (these give no information where the actual shift occured)
+        // first annotate total loss peaks (these give no information where the actual shift occurred)
         #ifdef DEBUG_RNPXLSEARCH
           OPENMS_LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
         #endif
@@ -2674,7 +2674,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
     // we are finished with nucleotides in string if first loss/gain is encountered
     if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
 
-    // count occurence of nucleotide
+    // count occurrence of nucleotide
     if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
     {
       exp_pc_nucleotide_count[*exp_pc_it] = 1;

@@ -163,7 +163,7 @@ public:
       FILE_NOT_FOUND,       ///< file did not exist
       FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined                                                
       FILETYPE_UNSUPPORTED, ///< filetype is known, but the format not supported as layer data
-      LOAD_ERROR            ///< an error occured while loading the file
+      LOAD_ERROR            ///< an error occurred while loading the file
     };
 
     /**
