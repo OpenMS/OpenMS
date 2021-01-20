@@ -92,7 +92,7 @@ Tensor<T> naive_p_convolve(const Tensor<T> & lhs, const Tensor<T> & rhs, double 
 
   Tensor<T> result(max_result.data_shape());
 
-  // Apply p-norms_:
+  // Apply p-norms:
   enumerate_for_each_tensors([&counter_result, &result, &rhs, &max_result, &p_goal](const_tup_t counter_lhs, const unsigned char dim_lhs, T lhs_val) {
       enumerate_for_each_tensors([&counter_result, &result, &rhs, &counter_lhs, &lhs_val, &max_result, &p_goal](const_tup_t counter_rhs, const unsigned char dim_rhs, T rhs_val) {
 	  for (unsigned char i=0; i<dim_rhs; ++i)

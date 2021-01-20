@@ -95,12 +95,12 @@ public:
     // Note: instead of !=, could check fabs(table.p - _p) > epsilon
     for (const TableDependency<VARIABLE_KEY> & table : all_tables)
       if (table.p != _p) {
-      	std::cerr << "Cannot do brute force on non-homogeneous p norms_" << std::endl;
+      	std::cerr << "Cannot do brute force on non-homogeneous p norms" << std::endl;
 	      assert(false);
       }
     for (const AdditiveDependency<VARIABLE_KEY> & additive : all_additive)
       if (additive.p != _p) {
-	      std::cerr << "Cannot do brute force on non-homogeneous p norms_" << std::endl;
+	      std::cerr << "Cannot do brute force on non-homogeneous p norms" << std::endl;
 	      assert(false);
       }
 
