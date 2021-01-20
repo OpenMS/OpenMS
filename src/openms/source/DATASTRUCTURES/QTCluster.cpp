@@ -77,7 +77,7 @@ namespace OpenMS
     {
       data_->annotations_ = data_->center_point_->getAnnotations();
     }
-    if (use_IDs_ && data_->center_point_->getAnnotations().empty())
+    if (use_IDs_ && data_->center_point_->getAnnotations().size() != 1)
     { 
       collect_annotations_ = true;
     }
@@ -344,7 +344,7 @@ namespace OpenMS
         "QTCluster::optimizeAnnotations_ cannot work on finalized cluster")
 
     // mapping: peptides -> best distance per input map
-    map<AASequence, vector<double> > seq_table;
+    map<AASequence, map<Size,double> > seq_table;
 
     makeSeqTable_(seq_table);
 
@@ -373,7 +373,12 @@ namespace OpenMS
     double best_total = num_maps_ * max_distance_;
     for (auto it = seq_table.begin(); it != seq_table.end(); ++it) //OMS_CODING_TEST_EXCLUDE
     {
-      double total = std::accumulate(it->second.begin(), it->second.end(), 0.0);
+      // init value is #missing maps times max_distance
+      double total = std::accumulate(it->second.begin(), it->second.end(),
+                                     double(num_maps_ - 1 - it->second.size()) * max_distance_,
+                                    [] (double val, const std::map<Size, double>::value_type& p)
+                                              { return val + p.second; }
+                                    );
       if (total < best_total)
       {
         best_pos = it;
@@ -397,8 +402,7 @@ namespace OpenMS
 
     recomputeNeighbors_();
 
-    // one "max_dist." too many (from the input map of the cluster center):
-    return best_total - max_distance_;
+    return best_total;
   }
 
   void QTCluster::recomputeNeighbors_()
@@ -428,12 +432,8 @@ namespace OpenMS
     }
   }
 
-  void QTCluster::makeSeqTable_(map<AASequence, vector<double>>& seq_table) const
+  void QTCluster::makeSeqTable_(map<AASequence, map<Size,double>>& seq_table) const
   {
-    // get copies of members that are used in this function
-    Size num_maps_ = data_->num_maps_;
-    double max_distance_ = data_->max_distance_;
-
     // get reference on member that is used in this function
     NeighborMapMulti& tmp_neighbors_ = data_->tmp_neighbors_;
 
@@ -450,38 +450,39 @@ namespace OpenMS
         // for all IDs/annotations of the neighboring feature (skipped if empty)
         for (const auto& current : df_it->second->getAnnotations())
         {
-          const auto& pos = seq_table.find(current);
+          auto seqit_inserted = seq_table.emplace(current, map<Size,double>{{map_index, dist}});
           // check if a minimum distance was already set for this ID
-          if (pos == seq_table.end())
+          if (!seqit_inserted.second)
           {
-            // if not:
-            // new annotation, fill vector with max distance for all maps
-            seq_table[current].resize(num_maps_, max_distance_);
-            // except for current
-            seq_table[current][map_index] = dist;
-          }
-          else
-          {
+            // if so, check if a dist was annotated for that map_index already.
+            auto distit_inserted = seqit_inserted.first->second.emplace(map_index, dist);
+
             // if so:
             // new dist. value for this input map
             // compare with old and set minimum
-            pos->second[map_index] = min(dist, pos->second[map_index]);
+            if(!distit_inserted.second)
+            {
+              distit_inserted.first->second = min(dist, distit_inserted.first->second);
+            }
           }
         }
 
         if (df_it->second->getAnnotations().empty()) // unannotated feature
         {
-          const auto& pos = seq_table.find(AASequence());
-          if (pos == seq_table.end())
+          auto seqit_inserted = seq_table.emplace(AASequence(), map<Size,double>{{map_index, dist}});
+          // check if a minimum distance was already set for empty ID = unannotated
+          if (!seqit_inserted.second)
           {
-            // empty AASequence not yet there: initialize
-            seq_table[AASequence()].resize(num_maps_, max_distance_);
-            seq_table[AASequence()][map_index] = dist;
-          }
-          else
-          {
+            // if so, check if a dist was annotated for that map_index already.
+            auto distit_inserted = seqit_inserted.first->second.emplace(map_index, dist);
+
+            // if so:
             // new dist. value for this input map
-            pos->second[map_index] = min(dist, pos->second[map_index]);
+            // compare with old and set minimum
+            if(!distit_inserted.second)
+            {
+              distit_inserted.first->second = min(dist, distit_inserted.first->second);
+            }
           }
           // As opposed to above IDed features (which could lead to new additional annotations),
           // no need to check further here: all following (also annotation-specific) distances are worse
