@@ -70,6 +70,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   }
 
   const bool preserve_high_intensity_peaks = true;
+  const double preserve_low_mz_peaks_threshold = 120.0; // low m/z marker ion are often only 1 Da apart which would get them removed by Deisotoper
 
   Size charge_index(0);
   Size iso_peak_count_index(0);
@@ -368,6 +369,24 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
       if (std::find(select_idx.begin(), select_idx.end(), peak_index) == select_idx.end())
       {
         select_idx.push_back(peak_index);
+      }
+    }
+  }
+
+  if (preserve_low_mz_peaks_threshold > 0.0)
+  {
+    for (size_t i = 0; i != spec.size(); ++i)
+    {
+      if (spec[i].getMZ() < preserve_low_mz_peaks_threshold)
+      {
+        if (std::find(select_idx.begin(), select_idx.end(), i) == select_idx.end()) // not already selected
+        {
+          select_idx.push_back(i);
+        }
+      } 
+      else 
+      {
+        break;
       }
     }
   }

@@ -673,6 +673,166 @@ protected:
 
       can_cross_link = "CTGA";
     }
+    else if (p == "RNA-NM")
+    {
+      nucleotides = RNA_nucleotides;
+      mapping = RNA_mapping;
+
+      modifications = {
+        "U:+C5H9N1",
+        "U:+C5H9N1-HPO3",
+        "U:+C5H9N1-H3PO4",
+        "U:+C5H9N1-H2O-H2O",
+        "U:+C5H9N1-H3PO4-H2O",
+        "U:+C5H9N1-H2O",
+
+        "G:+C5H9N1",
+        "G:+C5H9N1-HPO3",
+        "G:+C5H9N1-H3PO4",
+        "G:+C5H9N1-H2O-H2O",
+        "G:+C5H9N1-H3PO4-H2O",
+        "G:+C5H9N1-H2O",
+        "G:+C5H9N1-NH3",
+
+        "C:+C5H9N1",
+        "C:+C5H9N1-HPO3",
+        "C:+C5H9N1-H2O",
+        "C:+C5H9N1-H3PO4",
+        "C:+C5H9N1-H2O-H2O",
+        "C:+C5H9N1-H3PO4-H2O",
+        "C:+C5H9N1-NH3",
+
+        "A:+C5H9N1",
+        "A:+C5H9N1-HPO3",
+        "A:+C5H9N1-H2O",
+        "A:+C5H9N1-H3PO4",
+        "A:+C5H9N1-H2O-H2O",
+        "A:+C5H9N1-H3PO4-H2O",
+        "A:+C5H9N1-NH3"
+      };
+
+      fragment_adducts = {
+        "U:C5H9N1;NM",
+        "U:C14H21N3O6;NM+U-HPO3",
+        "U:C9H13N3O2;NM+U'",
+        "U:C9H11N3O1;NM+U'-H2O",
+        "U:C8H9N1O1;NM+C3O",
+        "U:C14H22N3O9P1;NM+U",
+        "U:C14H20N3O8P1;NM+U-H2O",
+        "U:C14H19N3O5;NM+U-H3PO4",
+        "C:C5H9N1;NM",
+        "C:C14H20N4O4;NM+C-H3PO4",
+        "C:C9H14N4O1;NM+C'",
+        "C:C9H12N4;NM+C'-H2O",
+        "C:C14H23N4O8P1;NM+C",
+        "C:C14H21N4O7P1;NM+C-H2O"
+        "G:C5H9N1;NM",
+        "G:C15H22N6O5;NM+G-HPO3",
+        "G:C10H14N6O1;NM+G'",
+        "G:C10H12N6;NM+G'-H2O",
+        "G:C15H23N6O8P1;NM+G",
+        "G:C15H21N6O7P1;NM+G-H2O",
+        "G:C15H20N6O4;NM+G-H3PO4",
+        "A:C5H9N1;NM",
+        "A:C10H14N6;NM+A'",
+        "A:C10H11N5;NM+A'-NH3",
+        "A:C15H23N6O7P1;NM+A",
+        "A:C15H20N6O3;NM+A-H3PO4",
+        "A:C15H21N6O6P1;NM+A-H2O",
+        "C:C14H22N4O5;NM+C-HPO3",
+        "C:C14H20N3O8P1;NM+C-NH3",
+        "C:C9H11N3O1;NM+C'-NH3",
+        "G:C10H14N6O1;NM+G'-NH3",
+        "A:C15H22N6O4;NM+A-HPO3"
+      };
+      can_cross_link = "UCGA";
+    }
+    else if (p == "DNA-NM")
+    {
+      nucleotides = DNA_nucleotides;
+      mapping = DNA_mapping;
+
+      modifications = {
+        "T:+C5H9N1",
+        "T:+C5H9N1-HPO3",
+        "T:+C5H9N1-H3PO4",
+        "T:+C5H9N1-H2O-H2O",
+        "T:+C5H9N1-H3PO4-H2O",
+        "T:+C5H9N1-H2O",
+        "T:+C5H9N1-NH3-HPO3",
+
+        "G:+C5H9N1",
+        "G:+C5H9N1-HPO3",
+        "G:+C5H9N1-H3PO4",
+        "G:+C5H9N1-H2O-H2O",
+        "G:+C5H9N1-H3PO4-H2O",
+        "G:+C5H9N1-H2O",
+        "G:+C5H9N1-NH3",
+        "G:+C5H9N1-NH3-HPO3",
+
+        "C:+C5H9N1",
+        "C:+C5H9N1-H2O",
+        "C:+C5H9N1-HPO3",
+        "C:+C5H9N1-H3PO4",
+        "C:+C5H9N1-H2O-H2O",
+        "C:+C5H9N1-H3PO4-H2O",
+        "C:+C5H9N1-NH3",
+        "C:+C5H9N1-NH3-HPO3",
+
+        "A:+C5H9N1",
+        "A:+C5H9N1-H2O",
+        "A:+C5H9N1-H3PO4-H2O",
+        "A:+C5H9N1-H2O-H2O",
+        "A:+C5H9N1-H3PO4",
+        "A:+C5H9N1-HPO3",
+        "A:+C5H9N1-NH3",
+        "A:+C5H9N1-NH3-HPO3"
+      };
+
+      fragment_adducts = {
+        "T:C5H9N1;NM",
+        "T:C14H19N3O5;NM+T-H3PO4",
+        "T:C10H15N3O2;NM+T'",
+        "T:C10H13N3O1;NM+T'-H2O"
+        "T:C15H24N3O8P1;NM+T"
+        "T:C15H22N3O7P1;NM+T-H2O"
+        "T:C15H19N3O4;NM+T-H3PO4"
+        "T:C10H12N2O2;NM+T'",
+        "T:C15H20N2O8P1;NM+T-NH3",
+        "T:C15H19N2O5;NM+T-NH3-HPO3"
+
+        "C:C5H9N;NM"
+        "C:C9H14N4O1;NM+C'",
+        "C:C9H12N4;NM+C'-H2O",
+        "C:C14H23N4O7P1;NM+C",
+        "C:C14H21N4O6P1;NM+C-H2O",
+        "C:C14H20N4O3;NM+C-H3PO4"
+        "C:C14H22N4O4;NM+C-HPO3",
+
+        "G:C5H9N1;NM",
+        "G:C10H14N6O1;NM+G'",
+        "G:C10H12N6;NM+G'-H2O",
+        "G:C10H11N5O1;NM+G'-NH3",
+        "G:C15H23N6O7P1;NM+G",
+        "G:C15H21N6O6P1;NM+G-H2O",
+        "G:C15H22N6O4;NM+G-HPO3",
+        "G:C15H20N6O3;NM+G-H3PO4",
+        "G:C15H20N5O7P1;NM+G-NH3",
+        "G:C15H19N5O4;NM+G-NH3-HPO3",
+
+        "A:C5H9N1;NM",
+        "A:C10H14N6;NM+A'",
+        "A:C10H11N5;NM+A'-NH3",
+        "A:C15H23N6O6P1;NM+A",
+        "A:C15H20N6O2;NM+A-H3PO4",
+        "A:C15H21N6O5P1;NM+A-H2O",
+        "A:C15H22N6O3;NM+A-HPO3",
+        "A:C15H20N5O6P1;NM+A-NH3",
+        "A:C15H19N5O3;NM+A-NH3-HPO3",
+      };
+      can_cross_link = "TCGA";
+    }
+
   }
  
   void registerOptionsAndFlags_() override
@@ -756,7 +916,7 @@ protected:
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
 
     registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
-    setValidStrings_("RNPxl:presets", {"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV (4SU)", "DNA", "RNA-DEB", "DNA-DEB"});
+    setValidStrings_("RNPxl:presets", {"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV (4SU)", "DNA", "RNA-DEB", "DNA-DEB", "RNA-NM", "DNA-NM"});
 
     registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
 
