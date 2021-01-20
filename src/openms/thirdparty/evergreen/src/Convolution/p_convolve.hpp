@@ -138,7 +138,7 @@ inline double best_tau_fft_for_length(unsigned long flat_length) {
   // that the numeric stability may be limited by the largest axis,
   // etc.):
 
-  // Note: the FFT estimates of the norms should be monotonic whenever
+  // Note: the FFT estimates of the norms_ should be monotonic whenever
   // the FFT is stable (i.e., the p-norm should be >= the 2p-norm). If
   // not, the p-norm estimate may work, but the quadratic and linear
   // estimates may be unstable.
@@ -147,7 +147,7 @@ inline double best_tau_fft_for_length(unsigned long flat_length) {
 }
 
 inline static double linear_projection(const std::array<double,2> & norms, double p1, double p2, double p_goal) {
-  // assumes norms[0] is not too close to zero (single stable norm should never = 0)
+  // assumes norms_[0] is not too close to zero (single stable norm should never = 0)
   double delta = p2-p1;
   double root = norms[1] / norms[0];
   if ( fabs(root) < tau_denom )
@@ -171,7 +171,7 @@ inline double check_nan_call_linear_projection(double val, const std::array<doub
 inline double quadratic_projection(const std::array<double,4> & norms, double p1, double p2, double p_goal) {
   double delta = p2-p1;
   
-  // Quadrataic coefficients from the null space of the matrix of norms:
+  // Quadrataic coefficients from the null space of the matrix of norms_:
   double c = norms[1]*norms[3] - norms[2]*norms[2];
   double b = norms[1]*norms[2] - norms[0]*norms[3];
   double a = norms[0]*norms[2] - norms[1]*norms[1];
@@ -217,7 +217,7 @@ inline double quadratic_projection(const std::array<double,4> & norms, double p1
 }
 
 inline void compute_quadratic_projections(const std::vector<Tensor<double> > & p_index_to_norms, const Vector<double> & all_p, double p_goal, Tensor<double> & result, const Tensor<bool> & solved, const Tensor<int> & highest_stable_p_index) {
-  // Note: It may potentially be worth tranposing so that norms for a
+  // Note: It may potentially be worth tranposing so that norms_ for a
   // given index are in cache order.
 
   // Fill in remaining entries in result:

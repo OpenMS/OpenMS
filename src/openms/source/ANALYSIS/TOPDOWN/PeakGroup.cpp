@@ -37,12 +37,12 @@
 namespace OpenMS
 {
   PeakGroup::PeakGroup(const int min_charge, const int max_charge) :
-      min_charge(min_charge),
-      max_charge(max_charge)
+      min_charge_(min_charge),
+      max_charge_(max_charge)
   {
-    per_charge_snr = std::vector<float>(1 + max_charge, .0);
-    per_charge_int = std::vector<float>(1 + max_charge, .0);
-    per_charge_cos = std::vector<float>(1 + max_charge, .0);
+    per_charge_snr_ = std::vector<float>(1 + max_charge, .0);
+    per_charge_int_ = std::vector<float>(1 + max_charge, .0);
+    per_charge_cos_ = std::vector<float>(1 + max_charge, .0);
   }
 
   PeakGroup::~PeakGroup()
@@ -52,35 +52,35 @@ namespace OpenMS
 
   void PeakGroup::clearChargeInfo()
   {
-    std::vector<float>().swap(per_charge_snr);
-    std::vector<float>().swap(per_charge_cos);
-    std::vector<float>().swap(per_charge_int);
+    std::vector<float>().swap(per_charge_snr_);
+    std::vector<float>().swap(per_charge_cos_);
+    std::vector<float>().swap(per_charge_int_);
   }
 
   bool PeakGroup::operator<(const PeakGroup& a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
-    if(this->monoisotopic_mass == a.monoisotopic_mass){
-      return this->intensity < a.intensity;
+    if(this->monoisotopic_mass_ == a.monoisotopic_mass_){
+      return this->intensity_ < a.intensity_;
     }
-    return this->monoisotopic_mass < a.monoisotopic_mass;
+    return this->monoisotopic_mass_ < a.monoisotopic_mass_;
     //}
     //return this->spec->getRT() < a.spec->getRT();
   }
 
   bool PeakGroup::operator>(const PeakGroup& a) const
   {
-    if(this->monoisotopic_mass == a.monoisotopic_mass){
-      return this->intensity > a.intensity;
+    if(this->monoisotopic_mass_ == a.monoisotopic_mass_){
+      return this->intensity_ > a.intensity_;
     }
-    return this->monoisotopic_mass > a.monoisotopic_mass;
+    return this->monoisotopic_mass_ > a.monoisotopic_mass_;
   }
 
   bool PeakGroup::operator==(const PeakGroup& a) const
   {
     return
-        this->monoisotopic_mass == a.monoisotopic_mass
-       && this->intensity == a.intensity;
+        this->monoisotopic_mass_ == a.monoisotopic_mass_
+       && this->intensity_ == a.intensity_;
   }
 
   void PeakGroup::updateMassesAndIntensity(const int offset,
@@ -103,16 +103,16 @@ namespace OpenMS
       }
     }
 
-    intensity = .0;
+    intensity_ = .0;
     double nominator = .0;
 
     for (auto& p : *this)
     {
       double pi = p.intensity;
-      intensity += pi;
+      intensity_ += pi;
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
     }
-    monoisotopic_mass = nominator / intensity;
+    monoisotopic_mass_ = nominator / intensity_;
     // auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
     //avgMass = monoisotopicMass + massDelta;
 
@@ -120,152 +120,150 @@ namespace OpenMS
 
   void PeakGroup::setChargeSNR(const int charge, const float snr)
   {
-    if (max_charge < charge)
+    if (max_charge_ < charge)
     {
       return;
     }
-    per_charge_snr[charge] = snr;
+    per_charge_snr_[charge] = snr;
   }
 
   void PeakGroup::setChargeIsotopeCosine(const int charge, const float cos)
   {
-    if (max_charge < charge)
+    if (max_charge_ < charge)
     {
       return;
     }
-    per_charge_cos[charge] = cos;
+    per_charge_cos_[charge] = cos;
   }
 
   void PeakGroup::setChargeIntensity(const int charge, const float intensity)
   {
-    if (max_charge < charge)
+    if (max_charge_ < charge)
     {
       return;
     }
-    per_charge_int[charge] = intensity;
+    per_charge_int_[charge] = intensity;
   }
 
 
   void PeakGroup::setMaxQScoreMzRange(const double min, const double max)
   {
-    max_qscore_mz_start = min;
-    max_qscore_mz_end = max;
+    max_qscore_mz_start_ = min;
+    max_qscore_mz_end_ = max;
   }
 
   void PeakGroup::setChargeRange(const int min, const int max)
   {
-    min_charge = min;
-    max_charge = max;
+    min_charge_ = min;
+    max_charge_ = max;
   }
 
   void PeakGroup::setScanNumber(const int sn)
   {
-    scan_number = sn;
+    scan_number_ = sn;
   }
 
   void PeakGroup::setIsotopeCosine(const float cos)
   {
-    isotope_cosine_score = cos;
+    isotope_cosine_score_ = cos;
   }
 
   void PeakGroup::setRepCharge(const int c)
   {
-    max_qscore_charge = c;
+    max_qscore_charge_ = c;
   }
 
   void PeakGroup::setChargeScore(const float score)
   {
-    charge_score = score;
+    charge_score_ = score;
   }
 
 
   void PeakGroup::setSNR(const float snr)
   {
-    total_snr = snr;
+    total_snr_ = snr;
   }
 
   void PeakGroup::setQScore(const float q)
   {
-    qscore = q;
+    qscore_ = q;
   }
 
   std::tuple<double, double> PeakGroup::getMaxQScoreMzRange() const
   {
-    return std::tuple<double, double>{max_qscore_mz_start, max_qscore_mz_end};
+    return std::tuple<double, double>{max_qscore_mz_start_, max_qscore_mz_end_};
   }
 
   std::tuple<int, int> PeakGroup::getChargeRange() const
   {
-    return std::tuple<int, int>{min_charge, max_charge};
+    return std::tuple<int, int>{min_charge_, max_charge_};
   }
 
   int PeakGroup::getScanNumber() const
   {
-    return scan_number;
+    return scan_number_;
   }
 
   double PeakGroup::getMonoMass() const
   {
-    return monoisotopic_mass;
+    return monoisotopic_mass_;
   }
 
   double PeakGroup::getIntensity() const
   {
-    return intensity;
+    return intensity_;
   }
   float PeakGroup::getIsotopeCosine() const
   {
-    return isotope_cosine_score;
+    return isotope_cosine_score_;
   }
 
   int PeakGroup::getRepCharge() const
   {
-    return max_qscore_charge;
+    return max_qscore_charge_;
   }
 
   float PeakGroup::getQScore() const
   {
-    return qscore;
+    return qscore_;
   }
 
 
   float PeakGroup::getSNR() const
   {
-    return total_snr;
+    return total_snr_;
   }
 
   float PeakGroup::getChargeScore() const
   {
-    return charge_score;
+    return charge_score_;
   }
 
 
   float PeakGroup::getChargeSNR(const int charge) const
   {
-    if (max_charge < charge)
+    if (max_charge_ < charge)
     {
       return 0;
     }
-    return per_charge_snr[charge];
+    return per_charge_snr_[charge];
   }
 
   float PeakGroup::getChargeIsotopeCosine(const int charge) const
   {
-    if (max_charge < charge)
+    if (max_charge_ < charge)
     {
       return 0;
     }
-    return per_charge_cos[charge];
+    return per_charge_cos_[charge];
   }
 
   float PeakGroup::getChargeIntensity(const int charge) const
   {
-    if (max_charge < charge)
+    if (max_charge_ < charge)
     {
       return 0;
     }
-    return per_charge_int[charge];
+    return per_charge_int_[charge];
   }
-
-
 }

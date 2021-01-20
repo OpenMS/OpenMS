@@ -55,34 +55,33 @@ namespace OpenMS
     {
     private:
       /// isotope distributions for different (binned) masses
-      std::vector<IsotopeDistribution> isotopes;
-      /// L2 norms for masses
-      std::vector<double> norms;
+      std::vector<IsotopeDistribution> isotopes_;
+      /// L2 norms_ for masses
+      std::vector<double> norms_;
       /// mass differences between average mass and monoisotopic mass
-      std::vector<double> average_mono_mass_difference;
+      std::vector<double> average_mono_mass_difference_;
       /// Isotope start indices: isotopes of the indices less than them have very low intensities
-      std::vector<Size> isotope_start_indices;
+      std::vector<Size> isotope_start_indices_;
       /// Isotope end indices: isotopes of the indices larger than them have very low intensities
-      std::vector<Size> isotope_end_indices;
+      std::vector<Size> isotope_end_indices_;
       /// max isotope index
-      int max_isotope_index;
+      int max_isotope_index_;
 
       /// mass interval for calculation
-      double mass_interval;
+      double mass_interval_;
       /// min mass for calculation
-      double min_mass;
+      double min_mass_;
     public:
       /// default constructor
       PrecalculatedAveragine() = default;
 
       /**
-       @brief constructor with parameters such as mass ranges and interval ( delta ).
-       @param m min_mass_
-       @param M max_mass
-       @param delta mass interval between m and M
-       @param generator gen
-       \]erator by which the calulation is done
-       @param useRNAavg if set, nucleotide patters are calculated
+       @brief constructor with parameters such as mass ranges and bin size.
+       @param min_mass the averagine distributions will be calculated from this min_mass
+       @param max_mass to the max_mass
+       @param delta with the bin size delta
+       @param generator this generates (calculates) the distributions
+       @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
     */
       PrecalculatedAveragine(const double min_mass,
                              const double max_mass,
@@ -113,9 +112,10 @@ namespace OpenMS
 
     };
 
-    /// log transformed peak. After deconvolution, other information such as charge and isotope index are stored.
+    /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
     struct OPENMS_DLLAPI LogMzPeak
     {
+    public:
       /// original peak mz
       double mz = 0;
       /// original peak intensity
@@ -133,8 +133,9 @@ namespace OpenMS
       LogMzPeak() = default;
 
       /**
-        //       @brief constructor from Peak1D.
-        //       @param positive determines the charge carrier mass*/
+               @brief constructor from Peak1D.
+              @param positive determines the charge carrier mass
+        */
       explicit LogMzPeak(const Peak1D& peak, const bool positive);
 
       /// copy constructor
@@ -155,9 +156,9 @@ namespace OpenMS
     };
 
     /**
-        //       @brief calculate averagines
-        //       @param maxMass max mass
-        //       @param useRNAavg if set, nucleotides averagines are calculated */
+        //       @brief Static function to calculate averagines. PrecalculatedAveragine class is constructed inside for the calculation.
+        //       @param max_mass max mass
+        //       @param use_RNA_averagine if set, nucleotide-based averagines are calculated */
     static PrecalculatedAveragine calculateAveragines(const double max_mass, const bool use_RNA_averagine);
 
     /**

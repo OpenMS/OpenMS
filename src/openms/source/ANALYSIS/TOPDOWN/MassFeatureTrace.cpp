@@ -53,11 +53,11 @@ namespace OpenMS
 
   MassFeatureTrace::~MassFeatureTrace()
   {
-    for (auto& item : peak_group_map)
+    for (auto& item : peak_group_map_)
     {
       std::unordered_map<double, PeakGroup>().swap(item.second);
     }
-    std::unordered_map<double, std::unordered_map<double, PeakGroup>>().swap(peak_group_map);
+    std::unordered_map<double, std::unordered_map<double, PeakGroup>>().swap(peak_group_map_);
   }
 
 
@@ -66,28 +66,28 @@ namespace OpenMS
                                       int& feature_index,
                                       std::fstream& fsf,
                                       std::fstream& fsp,
-                                      const PrecalculatedAveragine averagines)
+                                      const PrecalculatedAveragine& averagine)
   {
     MSExperiment map;
-    std::map<int, MSSpectrum> indexSpecMap;
-    int minCharge = INT_MAX;
-    int maxCharge = INT_MIN;
+    std::map<int, MSSpectrum> index_spec_map;
+    int min_charge = INT_MAX;
+    int max_charge = INT_MIN;
 
-    for (auto& item : peak_group_map)
+    for (auto& item : peak_group_map_)
     {
       double rt = item.first;
-      MSSpectrum deconvSpec;
-      deconvSpec.setRT(rt);
+      MSSpectrum deconv_spec;
+      deconv_spec.setRT(rt);
       for (auto& pg : item.second)
       {
         auto crange = pg.second.getChargeRange();
-        maxCharge = maxCharge > std::get<1>(crange) ? maxCharge : std::get<1>(crange);
-        minCharge = minCharge < std::get<0>(crange) ? minCharge : std::get<0>(crange);
+        max_charge = max_charge > std::get<1>(crange) ? max_charge : std::get<1>(crange);
+        min_charge = min_charge < std::get<0>(crange) ? min_charge : std::get<0>(crange);
 
         Peak1D tp(pg.first, (float) pg.second.getIntensity());
-        deconvSpec.push_back(tp);
+        deconv_spec.push_back(tp);
       }
-      map.addSpectrum(deconvSpec);
+      map.addSpectrum(deconv_spec);
     }
 
     if (map.size() < 3)
@@ -105,79 +105,79 @@ namespace OpenMS
 
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
-    int chargeRange = maxCharge - minCharge + 1;
+    int charge_range = max_charge - min_charge + 1;
 
     for (auto& mt : m_traces)
     {
-      int minFCharge = INT_MAX; // min feature charge
-      int maxFCharge = INT_MIN; // max feature charge
+      int min_feature_charge = INT_MAX; // min feature charge
+      int max_feature_charge = INT_MIN; // max feature charge
 
       //int minFIso = INT_MAX; // min feature isotope index
       //int maxFIso = INT_MIN; // max feature isotope index
 
-      auto perChargeIntensity = std::vector<double>(chargeRange + 1, 0);
-      auto perChargeMaxIntensity = std::vector<double>(chargeRange + 1, 0);
-      auto perChargeMz = std::vector<double>(chargeRange + 1, 0);
-      auto perIsotopeIntensity = std::vector<double>(averagines.getMaxIsotopeIndex(), 0);
+      auto per_charge_intensity = std::vector<double>(charge_range + 1, 0);
+      auto per_charge_max_intensity = std::vector<double>(charge_range + 1, 0);
+      auto per_charge_mz = std::vector<double>(charge_range + 1, 0);
+      auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), 0);
 
-      int minScanNum = (int) map.size() + 1000;
-      int maxScanNum = 0;
+      int min_scan_num = (int) map.size() + 1000;
+      int max_scan_num = 0;
 
-      int repScan = 0, repCharge = 0;
-      double maxIntensity = 0;
-      double maxMass = .0;
-      double maxIso = 0;
-      boost::dynamic_bitset<> charges(chargeRange + 1);
+      int rep_scan = 0, rep_charge = 0;
+      double max_intensity = 0;
+      double max_mass = .0;
+      double max_iso = 0;
+      boost::dynamic_bitset<> charges(charge_range + 1);
 
       for (auto& p2 : mt)
       {
-        auto& pgMap = peak_group_map[p2.getRT()];
-        auto& pg = pgMap[p2.getMZ()];
-        int scanNumber = pg.getScanNumber();
+        auto& pg_map = peak_group_map_[p2.getRT()];
+        auto& pg = pg_map[p2.getMZ()];
+        int scan_number = pg.getScanNumber();
         auto crange = pg.getChargeRange();
 
-        minFCharge = minFCharge < std::get<0>(crange) ? minFCharge : std::get<0>(crange);
-        maxFCharge = maxFCharge > std::get<1>(crange) ? maxFCharge : std::get<1>(crange);
+        min_feature_charge = min_feature_charge < std::get<0>(crange) ? min_feature_charge : std::get<0>(crange);
+        max_feature_charge = max_feature_charge > std::get<1>(crange) ? max_feature_charge : std::get<1>(crange);
 
-        minScanNum = minScanNum < scanNumber ? minScanNum : scanNumber;
-        maxScanNum = maxScanNum > scanNumber ? maxScanNum : scanNumber;
+        min_scan_num = min_scan_num < scan_number ? min_scan_num : scan_number;
+        max_scan_num = max_scan_num > scan_number ? max_scan_num : scan_number;
 
-        if (pg.getIntensity() > maxIntensity)
+        if (pg.getIntensity() > max_intensity)
         {
-          maxIntensity = pg.getIntensity();
-          repScan = scanNumber;
+          max_intensity = pg.getIntensity();
+          rep_scan = scan_number;
 
         }
 
-        if (pg.getIsotopeCosine() > maxIso)
+        if (pg.getIsotopeCosine() > max_iso)
         {
-          maxIso = pg.getIsotopeCosine();
-          maxMass = pg.getMonoMass();
+          max_iso = pg.getIsotopeCosine();
+          max_mass = pg.getMonoMass();
         }
 
         for (auto& p : pg)
         {
-          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagines.getMaxIsotopeIndex() || p.charge < minCharge ||
-              p.charge >= chargeRange + minCharge + 1)
+          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagine.getMaxIsotopeIndex() || p.charge < min_charge ||
+              p.charge >= charge_range + min_charge + 1)
           {
             continue;
           }
 
-          charges[p.charge - minCharge] = true;
-          perChargeIntensity[p.charge - minCharge] += p.intensity;
-          perIsotopeIntensity[p.isotopeIndex] += p.intensity;
-          if (perChargeMaxIntensity[p.charge - minCharge] > p.intensity)
+          charges[p.charge - min_charge] = true;
+          per_charge_intensity[p.charge - min_charge] += p.intensity;
+          per_isotope_intensity[p.isotopeIndex] += p.intensity;
+          if (per_charge_max_intensity[p.charge - min_charge] > p.intensity)
           {
             continue;
           }
-          perChargeMaxIntensity[p.charge - minCharge] = p.intensity;
-          perChargeMz[p.charge - minCharge] = p.mz;
+          per_charge_max_intensity[p.charge - min_charge] = p.intensity;
+          per_charge_mz[p.charge - min_charge] = p.mz;
         }
       }
 
-      //double charge_score = FLASHDeconvAlgorithm::getChargeFitScore(perChargeIntensity,
-      //                                                            chargeRange);
-      //if (charge_score < minChargeCosine) //
+      //double charge_score_ = FLASHDeconvAlgorithm::getChargeFitScore(per_charge_intensity,
+      //                                                            charge_range);
+      //if (charge_score_ < minChargeCosine) //
       //{
       //  continue;
       //}
@@ -185,10 +185,10 @@ namespace OpenMS
       int offset = 0;
 
       double mass = mt.getCentroidMZ();
-      double isoScore = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
-                                                                                       perIsotopeIntensity,
-                                                                                       offset, averagines);
-      if (isoScore < min_isotope_cosine)
+      double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
+                                                                                            per_isotope_intensity,
+                                                                                            offset, averagine);
+      if (isotope_score < min_isotope_cosine_)
       {
         continue;
       }
@@ -197,52 +197,52 @@ namespace OpenMS
         mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
       }
 
-      double sumInt = .0;
+      double sum_intensity = .0;
 
       for (auto& p : mt)
       {
-        sumInt += p.getIntensity();
+        sum_intensity += p.getIntensity();
       }
-      double avgMass = averagines.getAverageMassDelta(mass) + mass;
+      double avg_mass = averagine.getAverageMassDelta(mass) + mass;
       ++feature_cntr;
       fsf << feature_index++ << "\t" << file_name << "\t" << std::to_string(mass) << "\t"
-          << std::to_string(avgMass) << "\t" // massdiff
+          << std::to_string(avg_mass) << "\t" // massdiff
           << mt.getSize() << "\t"
           << mt.begin()->getRT() << "\t"
           << mt.rbegin()->getRT() << "\t"
           << mt.getTraceLength() << "\t"
           << mt[mt.findMaxByIntPeak()].getRT() << "\t"
-          << sumInt << "\t"
+          << sum_intensity << "\t"
           << mt.getMaxIntensity(false) << "\t"
           << mt.computePeakArea() << "\t"
-          << minFCharge << "\t"
-          << maxFCharge << "\t"
+          << min_feature_charge << "\t"
+          << max_feature_charge << "\t"
           << charges.count() << "\t"
-          << isoScore << "\t";
+          << isotope_score << "\t";
 
-      for (int i = minFCharge; i <= maxFCharge; i++)
+      for (int i = min_feature_charge; i <= max_feature_charge; i++)
       {
-        fsf << perChargeIntensity[i - minCharge];
-        if (i < maxFCharge)
+        fsf << per_charge_intensity[i - min_charge];
+        if (i < max_feature_charge)
         {
           fsf << ";";
         }
       }
       fsf << "\t";
-      int isoEndIndex = 0;
+      int iso_end_index = 0;
 
-      for (int i = 0; i < averagines.getMaxIsotopeIndex(); i++)
+      for (int i = 0; i < averagine.getMaxIsotopeIndex(); i++)
       {
-        if (perIsotopeIntensity[i] == 0)
+        if (per_isotope_intensity[i] == 0)
         {
           continue;
         }
-        isoEndIndex = i;
+        iso_end_index = i;
       }
-      for (int i = 0; i <= isoEndIndex; i++)
+      for (int i = 0; i <= iso_end_index; i++)
       {
-        fsf << perIsotopeIntensity[i];
-        if (i < isoEndIndex)
+        fsf << per_isotope_intensity[i];
+        if (i < iso_end_index)
         {
           fsf << ";";
         }
@@ -252,56 +252,56 @@ namespace OpenMS
 
       if (promex_out)
       {
-        double maxChargeIntensity = 0;
-        for (int c = 0; c < chargeRange; c++) // c is charge range!!
+        double max_charge_intensity = 0;
+        for (int c = 0; c < charge_range; c++) // c is charge range!!
         {
-          if (perChargeIntensity[c] > maxChargeIntensity)
+          if (per_charge_intensity[c] > max_charge_intensity)
           {
-            maxChargeIntensity = perChargeIntensity[c];
-            repCharge = c + minCharge;
+            max_charge_intensity = per_charge_intensity[c];
+            rep_charge = c + min_charge;
           }
         }
         auto apex = mt[mt.findMaxByIntPeak()];
 
         //int si = rtSpecMap[(float) apex.getRT()];
-        auto& spgMap = peak_group_map[apex.getRT()];
-        auto& spg = spgMap[apex.getMZ()];
+        auto& sub_pg_map = peak_group_map_[apex.getRT()];
+        auto& spg = sub_pg_map[apex.getMZ()];
 
-        fsp << feature_index << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minFCharge << "\t"
-            << maxFCharge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
-            << repScan << "\t" << repCharge << "\t" << perChargeMz[repCharge] << "\t" << sumInt << "\t"
+        fsp << feature_index << "\t" << min_scan_num << "\t" << max_scan_num << "\t" << min_feature_charge << "\t"
+            << max_feature_charge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
+            << rep_scan << "\t" << rep_charge << "\t" << per_charge_mz[rep_charge] << "\t" << sum_intensity << "\t"
             << spg.getScanNumber() << "\t" << spg.getIntensity() << "\t"
             << mt.begin()->getRT() / 60.0 << "\t"
             << mt.rbegin()->getRT() / 60.0 << "\t"
             << mt.getTraceLength() / 60.0 << "\t";
 
 
-        for (int j = 0; j < averagines.getMaxIsotopeIndex(); ++j)
+        for (int j = 0; j < averagine.getMaxIsotopeIndex(); ++j)
         {
-          if (perIsotopeIntensity[j] <= 0)
+          if (per_isotope_intensity[j] <= 0)
           {
             continue;
           }
-          fsp << j << "," << perIsotopeIntensity[j] << ";";
+          fsp << j << "," << per_isotope_intensity[j] << ";";
         }
-        fsp << "\t" << isoScore << "\n";
+        fsp << "\t" << isotope_score << "\n";
         fsp << std::setprecision(0);
       }
     }
   }
 
-  void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum)
+  void MassFeatureTrace::storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum)
   {
     if (deconvoluted_spectrum.getOriginalSpectrum().getMSLevel() != 1)
     {
       return;
     }
     double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
-    peak_group_map[rt] = std::unordered_map<double, PeakGroup>();
-    auto& subMap = peak_group_map[rt];
+    peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
+    auto& sub_pg_map = peak_group_map_[rt];
     for (auto& pg : deconvoluted_spectrum)
     {
-      subMap[pg.getMonoMass()] = pg;
+      sub_pg_map[pg.getMonoMass()] = pg;
     }
   }
 
@@ -324,8 +324,8 @@ namespace OpenMS
 
   void MassFeatureTrace::updateMembers_()
   {
-    tol = param_.getValue("mass_error_ppm");
+    //tol_ = param_.getValue("mass_error_ppm");
     //minChargeCosine = param_.getValue("min_charge_cosine");
-    min_isotope_cosine = param_.getValue("min_isotope_cosine_");
+    min_isotope_cosine_ = param_.getValue("min_isotope_cosine_");
   }
 }

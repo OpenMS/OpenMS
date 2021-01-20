@@ -610,7 +610,7 @@ namespace OpenMS
 
     defaults_.setValue("model_parameters:regularize",
                        "false",
-                       "Regularize the number of proteins that produce a peptide together (experimental, should be activated when using higher p-norms).");
+                       "Regularize the number of proteins that produce a peptide together (experimental, should be activated when using higher p-norms_).");
     defaults_.setValidStrings("model_parameters:regularize",{"true","false"});
 
     defaults_.setValue("model_parameters:extended_model",

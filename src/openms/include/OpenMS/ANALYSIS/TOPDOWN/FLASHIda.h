@@ -72,11 +72,11 @@ namespace OpenMS
     /**
            @brief get peak groups from input spectrum, specified by mzs and intensities (due to C# interface it is necessary)
            @param mzs mz values of the input spectrum
-           @param ints intensities of the input spectrum
+           @param intensities intensities of the input spectrum
            @param length length of mzs and ints
-           @param rt Retention time
-           @param msLevel ms level
-           @param spectrum name
+           @param rt Retention time in seconds
+           @param ms_level ms level
+           @param name spectrum name
       */
     int getPeakGroups(const double *mzs,
                       const double *intensities,
@@ -87,13 +87,13 @@ namespace OpenMS
 
     /**
            @brief get isolation windows
-           @param wstart window start mzs
-           @param wend windo end mzs
-           @param qScores q scores of windows
+           @param window_start window start mzs
+           @param window_end windo end mzs
+           @param qscores QScores of windows
            @param charges charges of windows
-           @avgMasses average masses of windows
+           @param avg_masses average masses of windows
       */
-    void getIsolationWindows(double *wstart, double *wend, double *qscores, int *charges, double *avg_masses);
+    void getIsolationWindows(double *window_start, double *window_end, double *qscores, int *charges, double *avg_masses);
 
   private:
 
@@ -104,26 +104,26 @@ namespace OpenMS
       {
         return a.getQScore() > b.getQScore();
       }
-    } QscoreComparator;
+    } QscoreComparator_;
 
-    std::unordered_map<int, std::vector<double>> all; // int mass, rt, qscore
+    std::unordered_map<int, std::vector<double>> mass_rt_qscore_map_; // int mass vs. {rt, qscore_}
     /// Selected integer masses - necessary for mass exclusion
-    std::unordered_map<int, char> color;
+    std::unordered_map<int, char> mass_color_map_;
     /// precalculated averagine for fast selection
-    PrecalculatedAveragine avg;
+    PrecalculatedAveragine averagine_;
     /// discard peak groups using mass exclusion
-    void filterPeakGroupsUsingMassExclusion(const MSSpectrum& spec, const int ms_level);
+    void filterPeakGroupsUsingMassExclusion_(const MSSpectrum& spec, const int ms_level);
     /// generate MSSpectrum class using mzs and intensities
-    static MSSpectrum makeMSSpectrum(const double *mzs, const double *ints, const int length, const double rt, const int ms_level, const char *name);
+    static MSSpectrum makeMSSpectrum_(const double *mzs, const double *ints, const int length, const double rt, const int ms_level, const char *name);
     /// deconvoluted spectrum that contains the peak groups
-    DeconvolutedSpectrum deconvoluted_spectrum;
+    DeconvolutedSpectrum deconvoluted_spectrum_;
     /// FLASHDeconvAlgorithm class for deconvolution
-    FLASHDeconvAlgorithm fd;
+    FLASHDeconvAlgorithm fd_;
     /// q score threshold - determined from C# side
-    double qscore_threshold;
+    double qscore_threshold_;
     /// retention time window - determined from C# side
-    double rt_window;
+    double rt_window_;
     /// how many masses will be selected per ms level? - determined from C# side
-    IntList mass_count;
+    IntList mass_count_;
   };
 }

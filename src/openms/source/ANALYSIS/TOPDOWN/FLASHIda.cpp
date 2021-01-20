@@ -47,12 +47,12 @@ namespace OpenMS
     std::string key;
     while (token != nullptr)
     {
-      String tokenString = std::string(token);
-      double num = atof(tokenString.c_str());
+      String token_string = std::string(token);
+      double num = atof(token_string.c_str());
 
-      if (num == 0 && !isdigit(tokenString[tokenString.size() - 1]))
+      if (num == 0 && !isdigit(token_string[token_string.size() - 1]))
       {
-        key = tokenString;
+        key = token_string;
         inputs[key] = DoubleList();
       }
       else
@@ -72,23 +72,23 @@ namespace OpenMS
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("RT_window", 20.0, "");
 
-    auto massCountd = inputs["max_mass_count_"];
+    auto mass_count_double = inputs["max_mass_count_"];
 
-    for (double j : massCountd)
+    for (double j : mass_count_double)
     {
-      mass_count.push_back((int)j);
+      mass_count_.push_back((int)j);
     }
 
-    fd_defaults.setValue("min_mass_count_", mass_count);
+    fd_defaults.setValue("min_mass_count_", mass_count_);
 
-    fd.setParameters(fd_defaults);
-    fd.calculateAveragine(false);
+    fd_.setParameters(fd_defaults);
+    fd_.calculateAveragine(false);
 
-    rt_window = inputs["RT_window"][0];
-    qscore_threshold = inputs["score_threshold"][0];
+    rt_window_ = inputs["RT_window"][0];
+    qscore_threshold_ = inputs["score_threshold"][0];
 
-    avg = fd.getAveragine();
-    std::cout << "QScore threshold: " << qscore_threshold << std::endl;
+    averagine_ = fd_.getAveragine();
+    std::cout << "QScore threshold: " << qscore_threshold_ << std::endl;
     std::cout << fd_defaults << std::endl;
   }
 
@@ -100,8 +100,8 @@ namespace OpenMS
                               const char* name)
   {
 
-    auto spec = makeMSSpectrum(mzs, ints, length, rt, ms_level, name);
-    deconvoluted_spectrum = DeconvolutedSpectrum(spec, 1);
+    auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
+    //deconvoluted_spectrum_ = DeconvolutedSpectrum(spec, 1);
     if (ms_level == 1)
     {
       //current_max_mass_ = max_mass;
@@ -112,130 +112,132 @@ namespace OpenMS
       //TODO precursor infor here
     }
 
+    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, nullptr, 0);
+
     // per spec deconvolution
     //    int specIndex = 0, massIndex = 0; // ..
-    fd.fillPeakGroupsInDeconvolutedSpectrum(deconvoluted_spectrum, 0);
-    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, ms_level);
+    //fd_.getDeconvolutedSpectrum(deconvoluted_spectrum_, 0);
+    FLASHIda::filterPeakGroupsUsingMassExclusion_(spec, ms_level);
 
     // spec.clear(true);
 
-    return deconvoluted_spectrum.size();
+    return deconvoluted_spectrum_.size();
   }
 
 
-  void FLASHIda::filterPeakGroupsUsingMassExclusion(const MSSpectrum& spec, const int ms_level)
+  void FLASHIda::filterPeakGroupsUsingMassExclusion_(const MSSpectrum& spec, const int ms_level)
   {
     double rt = spec.getRT();
-    std::sort(deconvoluted_spectrum.begin(), deconvoluted_spectrum.end(), QscoreComparator);
-    int mc = mass_count[ms_level - 1];
+    std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
+    int mass_count = mass_count_[ms_level - 1];
 
-    const auto order = std::vector<char>({'B', 'R', 'G', 'b', 'r'});
+    const auto color_order = std::vector<char>({'B', 'R', 'G', 'b', 'r'});
 
-    std::unordered_map<int, std::vector<double>> nall;;
-    std::unordered_map<int, char> ncolor;
+    std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map;
+    std::unordered_map<int, char> new_color_map;
 
-    for (auto& item : all)
+    for (auto& item : mass_rt_qscore_map_)
     {
-      if (item.second[0] < rt - rt_window)
+      if (item.second[0] < rt - rt_window_)
       {
         continue;
       }
-      nall[item.first] = item.second;
+      new_mass_rt_qscore_map[item.first] = item.second;
     }
 
-    for (auto& item : color)
+    for (auto& item : mass_color_map_)
     {
-      if (nall.find(item.first) == nall.end())
+      if (new_mass_rt_qscore_map.find(item.first) == new_mass_rt_qscore_map.end())
       {
         continue;
       }
-      ncolor[item.first] = item.second;
+      new_color_map[item.first] = item.second;
     }
 
-    for (auto& pg : deconvoluted_spectrum) // now update color and nall
+    for (auto& pg : deconvoluted_spectrum_) // now update color and new_mass_rt_qscore_map
     {
       int m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-      double qScore = pg.getQScore();
+      double qscore = pg.getQScore();
 
-      if (nall.find(m) == nall.end()){ // new mass
-        nall[m] = std::vector<double>(2);
-        nall[m][1] = qScore;
-        ncolor[m] = 'G';
-      }else if (nall[m][1] < qScore) { // increasing mass
-        nall[m][1] = qScore;
-        if(ncolor.find(m) == ncolor.end() || ncolor[m] == 'G' || ncolor[m] == 'R'){
-          ncolor[m] = 'B';
-        }else if(ncolor[m] == 'r'){
-          ncolor[m] = 'b';
+      if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end()){ // new mass
+        new_mass_rt_qscore_map[m] = std::vector<double>(2);
+        new_mass_rt_qscore_map[m][1] = qscore;
+        new_color_map[m] = 'G';
+      }else if (new_mass_rt_qscore_map[m][1] < qscore) { // increasing mass
+        new_mass_rt_qscore_map[m][1] = qscore;
+        if(new_color_map.find(m) == new_color_map.end() || new_color_map[m] == 'G' || new_color_map[m] == 'R'){
+          new_color_map[m] = 'B';
+        }else if(new_color_map[m] == 'r'){
+          new_color_map[m] = 'b';
         }
       }else{ // decreasing mass
-        if(ncolor.find(m) == ncolor.end() || ncolor[m] == 'G' || ncolor[m] == 'B'){
-          ncolor[m] = 'R';
-        }else if(ncolor[m] == 'b'){
-          ncolor[m] = 'r';
+        if(new_color_map.find(m) == new_color_map.end() || new_color_map[m] == 'G' || new_color_map[m] == 'B'){
+          new_color_map[m] = 'R';
+        }else if(new_color_map[m] == 'b'){
+          new_color_map[m] = 'r';
         }
       }
-      nall[m][0] = rt;
+      new_mass_rt_qscore_map[m][0] = rt;
     }
 
-    nall.swap(all);
-    std::unordered_map<int, std::vector<double>>().swap(nall);
+    new_mass_rt_qscore_map.swap(mass_rt_qscore_map_);
+    std::unordered_map<int, std::vector<double>>().swap(new_mass_rt_qscore_map);
 
-    ncolor.swap(color);
-    std::unordered_map<int, char>().swap(ncolor);
+    new_color_map.swap(mass_color_map_);
+    std::unordered_map<int, char>().swap(new_color_map);
 
-    std::vector<PeakGroup> filtered;
-    filtered.reserve(mass_count.size());
-    std::set<int> cselected; // current selected masses
-    std::set<int> cselectedMz; // current selected mzs
+    std::vector<PeakGroup> filtered_peakgroups;
+    filtered_peakgroups.reserve(mass_count_.size());
+    std::set<int> current_selected_masses; // current selected masses
+    std::set<int> current_selected_mzs; // current selected mzs
 
-    for (auto& c: order)
+    for (auto& c: color_order)
     {
-      for (auto& pg : deconvoluted_spectrum)
+      for (auto& pg : deconvoluted_spectrum_)
       {
-        if (filtered.size() >= mc){
+        if (filtered_peakgroups.size() >= mass_count){
           break;
         }
-        if (pg.getQScore() < qscore_threshold)
+        if (pg.getQScore() < qscore_threshold_)
         {
           break;
         }
         int mz = (int)round((std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
-        if (cselectedMz.find(mz) != cselectedMz.end()) {
+        if (current_selected_mzs.find(mz) != current_selected_mzs.end()) {
           continue;
         }
 
-        int m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-        if (cselected.find(m) != cselected.end()) {
+        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+        if (current_selected_masses.find(nominal_mass) != current_selected_masses.end()) {
           continue;
         }
-        if(color.find(m) == color.end() || color[m] != c){
+        if(mass_color_map_.find(nominal_mass) == mass_color_map_.end() || mass_color_map_[nominal_mass] != c){
           continue;
         }
 
-        char pc = color[m];
-        if(pc == 'B' && pg.getQScore() > 0){
-          color[m] = 'b';
-        }else if (pc == 'R'&& pg.getQScore() > 0){
-          color[m] = 'r';
+        char prev_color = mass_color_map_[nominal_mass];
+        if(prev_color == 'B' && pg.getQScore() > 0){
+          mass_color_map_[nominal_mass] = 'b';
+        }else if (prev_color == 'R' && pg.getQScore() > 0){
+          mass_color_map_[nominal_mass] = 'r';
         }
 
-        filtered.push_back(pg);
-        cselected.insert(m);
-        cselectedMz.insert(mz);
+        filtered_peakgroups.push_back(pg);
+        current_selected_masses.insert(nominal_mass);
+        current_selected_mzs.insert(mz);
       }
     }
 
-    deconvoluted_spectrum.swap(filtered);
-    std::vector<PeakGroup>().swap(filtered);
+    deconvoluted_spectrum_.swap(filtered_peakgroups);
+    std::vector<PeakGroup>().swap(filtered_peakgroups);
   }
 
 
   /*
-  void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum& spec, int msLevel)
+  void FLASHIda::filterPeakGroupsUsingMassExclusion_(MSSpectrum& spec, int msLevel)
   {
     double rt = spec.getRT();
-    std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator);
+    std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
 
     std::map<int, std::vector<double>> nall;
     std::map<int, std::vector<double>> nallMz;
@@ -277,7 +279,7 @@ namespace OpenMS
 
     for (auto& pg : deconvoluted_spectrum_)
     {
-      if (pg.getQScore() < qscore_threshold)
+      if (pg.getQScore() < qscore_threshold_)
       {
         break;
       }
@@ -285,9 +287,9 @@ namespace OpenMS
       auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
       auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange())) / 2.0);
 
-      auto qscore = pg.getQScore();
-      if ((nall.find(m) != nall.end() && nall[m][1] < qscore)
-          || (nallMz.find(mz) != nallMz.end() && nallMz[mz][1] < qscore))
+      auto qscore_ = pg.getQScore();
+      if ((nall.find(m) != nall.end() && nall[m][1] < qscore_)
+          || (nallMz.find(mz) != nallMz.end() && nallMz[mz][1] < qscore_))
       {
         toConsider.push_back(pg);
         continue;
@@ -308,23 +310,23 @@ namespace OpenMS
       auto m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass() + massDelta);
       auto mz = (int)round((std::get<0>(pg.getMzxQScoreMzRange()) + std::get<1>(pg.getMzxQScoreMzRange())) / 2.0);
 
-      auto qscore = pg.getQScore();
+      auto qscore_ = pg.getQScore();
       if (nall.find(m) == nall.end()) {
         nall[m] = std::vector<double>(2);
-        nall[m][1] = qscore;
+        nall[m][1] = qscore_;
       }
-      else if (nall[m][1] < qscore) {
-        nall[m][1] = qscore;
+      else if (nall[m][1] < qscore_) {
+        nall[m][1] = qscore_;
       }
 
       nall[m][0] = rt;
 
       if (nallMz.find(mz) == nallMz.end()) {
         nallMz[mz] = std::vector<double>(2);
-        nallMz[mz][1] = qscore;
+        nallMz[mz][1] = qscore_;
       }
-      else if (nallMz[mz][1] < qscore) {
-        nallMz[mz][1] = qscore;
+      else if (nallMz[mz][1] < qscore_) {
+        nallMz[mz][1] = qscore_;
       }
 
       nallMz[mz][0] = rt;
@@ -337,11 +339,11 @@ namespace OpenMS
     std::map<int, std::vector<double>>().swap(nallMz);
 
     std::vector<PeakGroup> filtered;
-    filtered.reserve(mass_count.size());
+    filtered.reserve(mass_count_.size());
     std::set<int> cselected; // current selected masses
     std::set<int> cselectedMz; // current selected mzs
 
-    int mc = mass_count[msLevel - 1];
+    int mc = mass_count_[msLevel - 1];
 
     if (filtered.size() < mc)
     {
@@ -361,7 +363,7 @@ namespace OpenMS
         if (cselected.find(m) != cselected.end()) {
           continue;
         }
-        auto qscore = pg.getQScore();
+        auto qscore_ = pg.getQScore();
         if (nselectedMz.find(mz) != nselectedMz.end())
         {
           continue;
@@ -377,20 +379,20 @@ namespace OpenMS
 
         if (nselectedMz.find(mz) == nselectedMz.end()) {
           nselectedMz[mz] = std::vector<double>(2);
-          nselectedMz[mz][1] = qscore;
+          nselectedMz[mz][1] = qscore_;
         }
-        else if (nselectedMz[mz][1] < qscore) {
-          nselectedMz[mz][1] = qscore;
+        else if (nselectedMz[mz][1] < qscore_) {
+          nselectedMz[mz][1] = qscore_;
         }
 
         nselectedMz[mz][0] = rt;
 
         if (nselected.find(m) == nselected.end()) {
           nselected[m] = std::vector<double>(2);
-          nselected[m][1] = qscore;
+          nselected[m][1] = qscore_;
         }
-        else if (nselected[m][1] < qscore) {
-          nselected[m][1] = qscore;
+        else if (nselected[m][1] < qscore_) {
+          nselected[m][1] = qscore_;
         }
 
         nselected[m][0] = rt;
@@ -417,7 +419,7 @@ namespace OpenMS
         if (cselected.find(m) != cselected.end()) {
           continue;
         }
-        auto qscore = pg.getQScore();
+        auto qscore_ = pg.getQScore();
         if (nselectedMz.find(mz) != nselectedMz.end())
         {
           continue;
@@ -433,20 +435,20 @@ namespace OpenMS
 
         if (nselectedMz.find(mz) == nselectedMz.end()) {
           nselectedMz[mz] = std::vector<double>(2);
-          nselectedMz[mz][1] = qscore;
+          nselectedMz[mz][1] = qscore_;
         }
-        else if (nselectedMz[mz][1] < qscore) {
-          nselectedMz[mz][1] = qscore;
+        else if (nselectedMz[mz][1] < qscore_) {
+          nselectedMz[mz][1] = qscore_;
         }
 
         nselectedMz[mz][0] = rt;
 
         if (nselected.find(m) == nselected.end()) {
           nselected[m] = std::vector<double>(2);
-          nselected[m][1] = qscore;
+          nselected[m][1] = qscore_;
         }
-        else if (nselected[m][1] < qscore) {
-          nselected[m][1] = qscore;
+        else if (nselected[m][1] < qscore_) {
+          nselected[m][1] = qscore_;
         }
 
         nselected[m][0] = rt;
@@ -473,26 +475,26 @@ namespace OpenMS
         if (cselected.find(m) != cselected.end()) {
           continue;
         }
-        auto qscore = pg.getQScore();
+        auto qscore_ = pg.getQScore();
 
         cselected.insert(m);
         cselectedMz.insert(mz);
         if (nselectedMz.find(mz) == nselectedMz.end()) {
           nselectedMz[mz] = std::vector<double>(2);
-          nselectedMz[mz][1] = qscore;
+          nselectedMz[mz][1] = qscore_;
         }
-        else if (nselectedMz[mz][1] < qscore) {
-          nselectedMz[mz][1] = qscore;
+        else if (nselectedMz[mz][1] < qscore_) {
+          nselectedMz[mz][1] = qscore_;
         }
 
         nselectedMz[mz][0] = rt;
 
         if (nselected.find(m) == nselected.end()) {
           nselected[m] = std::vector<double>(2);
-          nselected[m][1] = qscore;
+          nselected[m][1] = qscore_;
         }
-        else if (nselected[m][1] < qscore) {
-          nselected[m][1] = qscore;
+        else if (nselected[m][1] < qscore_) {
+          nselected[m][1] = qscore_;
         }
 
         nselected[m][0] = rt;
@@ -519,27 +521,27 @@ namespace OpenMS
         if (cselected.find(m) != cselected.end()) {
           continue;
         }
-        auto qscore = pg.getQScore();
+        auto qscore_ = pg.getQScore();
 
         cselected.insert(m);
         cselectedMz.insert(mz);
 
         if (nselectedMz.find(mz) == nselectedMz.end()) {
           nselectedMz[mz] = std::vector<double>(2);
-          nselectedMz[mz][1] = qscore;
+          nselectedMz[mz][1] = qscore_;
         }
-        else if (nselectedMz[mz][1] < qscore) {
-          nselectedMz[mz][1] = qscore;
+        else if (nselectedMz[mz][1] < qscore_) {
+          nselectedMz[mz][1] = qscore_;
         }
 
         nselectedMz[mz][0] = rt;
 
         if (nselected.find(m) == nselected.end()) {
           nselected[m] = std::vector<double>(2);
-          nselected[m][1] = qscore;
+          nselected[m][1] = qscore_;
         }
-        else if (nselected[m][1] < qscore) {
-          nselected[m][1] = qscore;
+        else if (nselected[m][1] < qscore_) {
+          nselected[m][1] = qscore_;
         }
 
         nselected[m][0] = rt;
@@ -566,26 +568,26 @@ namespace OpenMS
         if (cselected.find(m) != cselected.end()) {
           continue;
         }
-        auto qscore = pg.getQScore();
+        auto qscore_ = pg.getQScore();
 
         cselected.insert(m);
         cselectedMz.insert(mz);
         if (nselectedMz.find(mz) == nselectedMz.end()) {
           nselectedMz[mz] = std::vector<double>(2);
-          nselectedMz[mz][1] = qscore;
+          nselectedMz[mz][1] = qscore_;
         }
-        else if (nselectedMz[mz][1] < qscore) {
-          nselectedMz[mz][1] = qscore;
+        else if (nselectedMz[mz][1] < qscore_) {
+          nselectedMz[mz][1] = qscore_;
         }
 
         nselectedMz[mz][0] = rt;
 
         if (nselected.find(m) == nselected.end()) {
           nselected[m] = std::vector<double>(2);
-          nselected[m][1] = qscore;
+          nselected[m][1] = qscore_;
         }
-        else if (nselected[m][1] < qscore) {
-          nselected[m][1] = qscore;
+        else if (nselected[m][1] < qscore_) {
+          nselected[m][1] = qscore_;
         }
 
         nselected[m][0] = rt;
@@ -604,26 +606,26 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(filtered);
   }
 */
-  void FLASHIda::getIsolationWindows(double* wstart, double* wend, double* qscores, int* charges, double* avg_masses)
+  void FLASHIda::getIsolationWindows(double* window_start, double* window_end, double* qscores, int* charges, double* avg_masses)
   {
-    std::sort(deconvoluted_spectrum.begin(), deconvoluted_spectrum.end(), QscoreComparator);
+    std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
 
-    for (int i = 0; i < deconvoluted_spectrum.size(); i++)
+    for (int i = 0; i < deconvoluted_spectrum_.size(); i++)
     {
-      auto qrange = deconvoluted_spectrum[i].getMaxQScoreMzRange();
-      wstart[i] = std::get<0>(qrange) - 1.2;
-      wend[i] = std::get<1>(qrange) + 1.2;
+      auto mz_range = deconvoluted_spectrum_[i].getMaxQScoreMzRange();
+      window_start[i] = std::get<0>(mz_range) - 1.2;
+      window_end[i] = std::get<1>(mz_range) + 1.2;
 
-      qscores[i] = deconvoluted_spectrum[i].getQScore();
-      charges[i] = deconvoluted_spectrum[i].getRepCharge();
-      double massDelta = avg.getAverageMassDelta(deconvoluted_spectrum[i].getMonoMass());
-      avg_masses[i] = massDelta + deconvoluted_spectrum[i].getMonoMass();
+      qscores[i] = deconvoluted_spectrum_[i].getQScore();
+      charges[i] = deconvoluted_spectrum_[i].getRepCharge();
+      double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
+      avg_masses[i] = mass_diff + deconvoluted_spectrum_[i].getMonoMass();
     }
     std::vector<PeakGroup> empty;
-    deconvoluted_spectrum.swap(empty);
+    deconvoluted_spectrum_.swap(empty);
   }
 
-  MSSpectrum FLASHIda::makeMSSpectrum(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name)
+  MSSpectrum FLASHIda::makeMSSpectrum_(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name)
   {
     auto spec = MSSpectrum();
     for (int i = 0; i < length; i++)

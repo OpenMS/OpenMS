@@ -71,17 +71,18 @@ namespace OpenMS
     /// assignment operator
     MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
 
-    /// add deconvolution spectrum after per spec deconvolution. Necessary info. such as peakGroups are stored so they can be used tracing afterwards
-    void addDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum);
+    /// Obtain information from deconvoluted_spectrum per (necessary information for mass tracing afterwards)
+    void storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum);
 
     /**
-       @brief Find features and write features in output files.
-       @param fileName file name prefix
-       @param featureCntr total number of features
-       @param featureIndex index to features
+       @brief Find features and write features in output files. Probably seprate the writing part soon.
+       @param file_name input spectrum file name
+       @param promex_out whether promex format output should be generated
+       @param feature_cntr total number of features, updated in this function
+       @param feature_index index to features, updated in this function
        @param fsf file stream for regular output
        @param fsp file stream for promex output
-       @param averagines precalculated averagines for cosine calculation
+       @param averagine precalculated averagine for cosine calculation
        */
     void findFeatures(const String& file_name,
                       const bool promex_out,
@@ -89,7 +90,7 @@ namespace OpenMS
                       int& feature_index,
                       std::fstream& fsf,
                       std::fstream& fsp,
-                      const PrecalculatedAveragine averagines);
+                      const PrecalculatedAveragine& averagine);
 
     /// write header line for regular file output
     static void writeHeader(std::fstream& fs);
@@ -102,10 +103,10 @@ namespace OpenMS
 
   private:
     /// MS1 tolerance
-    double tol;
+    //double tol_;
     /// cosine thresholds for scoring and filtering
-    double min_isotope_cosine;
+    double min_isotope_cosine_;
     /// peak group information is stored in here for traicing
-    std::unordered_map<double, std::unordered_map<double, PeakGroup>> peak_group_map; // rt , mono mass, peakgroup
+    std::unordered_map<double, std::unordered_map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
   };
 }

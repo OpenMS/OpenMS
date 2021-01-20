@@ -42,17 +42,26 @@ namespace OpenMS
 {
   class PeakGroup;
 
-  // QScore : quality score for precursors
+  /**
+@brief   QScore : quality score for precursors. This class is being updated. For now, simply it calculate the QScore using a fixed weight vector. But afterwards, the training
+   part for the QScore should be added in here.
+@ingroup Topdown
+*/
+
   class OPENMS_DLLAPI QScore
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    /// get QScore for a peak group of specific charge
     static double getQScore(const PeakGroup *pg, const int charge);
+    /// function to generate attribute tsv file for weka interface (for now)
     static void writeAttTsv(const double rt, const PeakGroup pg, const int charge, const bool is_identified,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f);
+    /// write header for attirbute tsv file
     static void writeAttHeader(std::fstream& f);
 
   private:
-    static std::vector<double> toFeatureVector(const PeakGroup *pg, const int charge);
+    /// convert a peak group to a feature vector for QScore calculation
+    static std::vector<double> toFeatureVector_(const PeakGroup *pg, const int charge);
   };
 }

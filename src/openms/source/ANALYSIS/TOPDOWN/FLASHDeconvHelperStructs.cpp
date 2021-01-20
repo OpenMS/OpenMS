@@ -42,116 +42,116 @@ namespace OpenMS
                                                                            CoarseIsotopePatternGenerator *generator,
                                                                            const bool use_RNA_averagine)
       :
-      mass_interval(delta), min_mass(min_mass)
+      mass_interval_(delta), min_mass_(min_mass)
   {
     int i = 0;
     while (true)
     {
-      double a = i * mass_interval;
+      double mass_delta = i * mass_interval_;
       i++;
-      if (a < min_mass)
+      if (mass_delta < min_mass)
       {
         continue;
       }
-      if (a > max_mass)
+      if (mass_delta > max_mass)
       {
         break;
       }
-      auto iso = use_RNA_averagine ? generator->estimateFromRNAWeight(a) : generator->estimateFromPeptideWeight(a);
+      auto iso = use_RNA_averagine ? generator->estimateFromRNAWeight(mass_delta) : generator->estimateFromPeptideWeight(mass_delta);
       double factor = .01;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;
-      Size mostAbundantIndex = 0;
-      double mostAbundantInt = 0;
+      Size most_abundant_index = 0;
+      double most_abundant_int = 0;
 
       for (Size k = 0; k < iso.size(); k++)
       {
         norm += iso[k].getIntensity() * iso[k].getIntensity();
-        if (mostAbundantInt >= iso[k].getIntensity())
+        if (most_abundant_int >= iso[k].getIntensity())
         {
           continue;
         }
-        mostAbundantInt = iso[k].getIntensity();
-        mostAbundantIndex = k;
+        most_abundant_int = iso[k].getIntensity();
+        most_abundant_index = k;
       }
 
-      Size leftIndex = mostAbundantIndex;
-      for (Size k = 0; k <= mostAbundantIndex; k++)
+      Size left_index = most_abundant_index;
+      for (Size k = 0; k <= most_abundant_index; k++)
       {
-        if (iso[k].getIntensity() > mostAbundantInt * factor)
+        if (iso[k].getIntensity() > most_abundant_int * factor)
         {
           break;
         }
         norm -= iso[k].getIntensity() * iso[k].getIntensity();
-        leftIndex--;
+        left_index--;
         iso[k].setIntensity(0);
       }
 
-      Size rightIndex = iso.size() - 1 - mostAbundantIndex;
-      for (Size k = iso.size() - 1; k >= mostAbundantIndex; k--)
+      Size right_index = iso.size() - 1 - most_abundant_index;
+      /*for (Size k = iso.size() - 1; k >= most_abundant_index; k--)
       {
-        if (iso[k].getIntensity() > mostAbundantInt * factor)
+        if (iso[k].getIntensity() > most_abundant_int * factor)
         {
           break;
         }
         norm -= iso[k].getIntensity() * iso[k].getIntensity();
-        rightIndex--;
+        right_index--;
         iso[k].setIntensity(0);
-      }
+      }*/
 
-      isotope_end_indices.push_back(rightIndex);
-      isotope_start_indices.push_back(leftIndex);
-      average_mono_mass_difference.push_back(iso.averageMass() - iso[0].getMZ());
-      norms.push_back(norm);
-      isotopes.push_back(iso);
+      isotope_end_indices_.push_back(right_index);
+      isotope_start_indices_.push_back(left_index);
+      average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
+      norms_.push_back(norm);
+      isotopes_.push_back(iso);
     }
   }
 
   IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass) / mass_interval);
-    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return isotopes[i];
+    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+    return isotopes_[i];
   }
 
   int FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
   {
-    return max_isotope_index;
+    return max_isotope_index_;
   }
 
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass) / mass_interval);
-    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return norms[i];
+    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+    return norms_[i];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeStartIndex(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass) / mass_interval);
-    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return isotope_start_indices[i];
+    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+    return isotope_start_indices_[i];
   }
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass) / mass_interval);
-    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return average_mono_mass_difference[i];
+    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+    return average_mono_mass_difference_[i];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeEndIndex(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass) / mass_interval);
-    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return isotope_end_indices[i];
+    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+    return isotope_end_indices_[i];
   }
 
   void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(const int index)
   {
-    max_isotope_index = index;
+    max_isotope_index_ = index;
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
@@ -206,14 +206,14 @@ namespace OpenMS
   {
     auto generator = new CoarseIsotopePatternGenerator();
 
-    auto maxIso = use_RNA_averagine ?
-                  generator->estimateFromRNAWeight(max_mass) :
-                  generator->estimateFromPeptideWeight(max_mass);
-    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
+    auto iso = use_RNA_averagine ?
+               generator->estimateFromRNAWeight(max_mass) :
+               generator->estimateFromPeptideWeight(max_mass);
+    iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
 
-    generator->setMaxIsotope(maxIso.size());
+    generator->setMaxIsotope(iso.size());
     auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, max_mass, 25, generator, use_RNA_averagine);
-    avg.setMaxIsotopeIndex(maxIso.size() - 1);
+    avg.setMaxIsotopeIndex(iso.size() - 1);
     return avg;
   }
 

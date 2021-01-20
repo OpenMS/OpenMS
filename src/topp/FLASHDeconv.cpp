@@ -36,7 +36,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
-#include <QDirIterator>
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -224,53 +223,53 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String infile = getStringOption_("in");
-    String outfile = getStringOption_("out");
-    String in_trainfile = getStringOption_("in_train");
-    String out_trainfile = getStringOption_("out_train");
-    auto out_specfile = getStringList_("out_spec");
-    String out_mzmlfile = getStringOption_("out_mzml");
-    String out_promexfile = getStringOption_("out_promex");
-    auto out_topFDfile = getStringList_("out_topFD");
+    String in_file = getStringOption_("in");
+    String out_file = getStringOption_("out");
+    String in_train_file = getStringOption_("in_train");
+    String out_train_file = getStringOption_("out_train");
+    auto out_spec_file = getStringList_("out_spec");
+    String out_mzml_file = getStringOption_("out_mzml");
+    String out_promex_file = getStringOption_("out_promex");
+    auto out_topfd_file = getStringList_("out_topFD");
 
-    bool useRNAavg = getIntOption_("use_RNA_averagine") > 0;
-    int maxMSLevel = getIntOption_("max_MS_level");
+    bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
+    int max_ms_level = getIntOption_("max_MS_level");
     bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
-    bool writeDetail = getIntOption_("write_detail") > 0;
-    int mzmlCharge = getIntOption_("mzml_mass_charge");
+    bool write_detail = getIntOption_("write_detail") > 0;
+    int mzml_charge = getIntOption_("mzml_mass_charge");
 
-    fstream outstream, out_trainstream, out_promexstream;
-    std::vector<fstream> out_specstreams, out_topFDstream;
+    fstream out_stream, out_train_stream, out_promex_stream;
+    std::vector<fstream> out_spec_streams, out_topfd_streams;
 
-    fstream fiOut;
-    //fiOut.open(infile+".txt", fstream::out); // TDDO
+    fstream fi_out;
+    //fi_out.open(in_file+".txt", fstream::out); // TDDO
 
-    outstream.open(outfile, fstream::out);
-    MassFeatureTrace::writeHeader(outstream);
+    out_stream.open(out_file, fstream::out);
+    MassFeatureTrace::writeHeader(out_stream);
 
-    if(!out_promexfile.empty()){
-      out_promexstream.open(out_promexfile, fstream::out);
+    if(!out_promex_file.empty()){
+      out_promex_stream.open(out_promex_file, fstream::out);
     }
-    if(!out_topFDfile.empty()){
-      out_topFDstream = std::vector<fstream>(out_topFDfile.size());
-      for(int i=0;i<out_topFDfile.size();i++){
-        out_topFDstream[i].open(out_topFDfile[i], fstream::out);
+    if(!out_topfd_file.empty()){
+      out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
+      for(int i=0; i < out_topfd_file.size(); i++){
+        out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
       }
     }
-    if(!out_specfile.empty()){
-      out_specstreams = std::vector<fstream>(out_specfile.size());
-      for(int i=0;i<out_specfile.size();i++){
-        out_specstreams[i].open(out_specfile[i], fstream::out);
-        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_specstreams[i], i+1, writeDetail);
+    if(!out_spec_file.empty()){
+      out_spec_streams = std::vector<fstream>(out_spec_file.size());
+      for(int i=0; i < out_spec_file.size(); i++){
+        out_spec_streams[i].open(out_spec_file[i], fstream::out);
+        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_spec_streams[i], i + 1, write_detail);
       }
     }
 
-    std::set<int> trainScanNumbers;
-    if (!in_trainfile.empty() && !out_trainfile.empty())
+    std::set<int> train_scan_numbers;
+    if (!in_train_file.empty() && !out_train_file.empty())
     {
-      out_trainstream.open(out_trainfile, fstream::out);
-      QScore::writeAttHeader(out_trainstream);
-      std::ifstream in_trainstream(in_trainfile);
+      out_train_stream.open(out_train_file, fstream::out);
+      QScore::writeAttHeader(out_train_stream);
+      std::ifstream in_trainstream(in_train_file);
       String line;
       bool start = false;
       while (std::getline(in_trainstream, line))
@@ -283,34 +282,34 @@ protected:
           continue;
         }
         vector<String> results;
-        stringstream  ss(line);
+        stringstream  tmp_stream(line);
         String str;
-        while (getline(ss, str, ',')) {
+        while (getline(tmp_stream, str, ',')) {
           results.push_back(str);
         }
-        trainScanNumbers.insert(std::stoi(results[4]));
+        train_scan_numbers.insert(std::stoi(results[4]));
       }
       in_trainstream.close();
     }
 
-    int currentMaxMSLevel = 0;
+    int current_max_ms_level = 0;
 
-    auto specCntr = std::vector<int>(maxMSLevel, 0);
+    auto spec_cntr = std::vector<int>(max_ms_level, 0);
     // spectrum number with at least one deconvoluted mass per ms level per input file
-    auto qspecCntr = std::vector<int>(maxMSLevel, 0);
+    auto qspec_cntr = std::vector<int>(max_ms_level, 0);
     // mass number per ms level per input file
-    auto massCntr = std::vector<int>(maxMSLevel, 0);
+    auto mass_cntr = std::vector<int>(max_ms_level, 0);
     // feature number per input file
-    int featureCntr = 0;
+    int feature_cntr = 0;
 
     // feature index written in the output file
-    int featureIndex = 1;
+    int feature_index = 1;
 
     MSExperiment ensemble_map;
     // generate ensemble spectrum if param.ensemble is set
     if (ensemble)
     {
-      for (int i = 0; i < maxMSLevel; i++)
+      for (int i = 0; i < max_ms_level; i++)
       {
         auto spec = MSSpectrum();
         spec.setMSLevel(i + 1);
@@ -330,21 +329,21 @@ protected:
 
     // all for measure elapsed cup wall time
     double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-    auto elapsed_deconv_cpu_secs = std::vector<double>(maxMSLevel, .0);
-    auto elapsed_deconv_wall_secs = std::vector<double>(maxMSLevel, .0);
+    auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
+    auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
 
     auto begin = clock();
     auto t_start = chrono::high_resolution_clock::now();
 
-    OPENMS_LOG_INFO << "Processing : " << infile << endl;
+    OPENMS_LOG_INFO << "Processing : " << in_file << endl;
 
     mzml.setLogType(log_type_);
-    mzml.load(infile, map);
+    mzml.load(in_file, map);
 
     //      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
-    int ms1Cntr = 0;
-    double ms2Cntr = .0; // for debug...
-    currentMaxMSLevel = 0;
+    int ms1_cntr = 0;
+    double ms2_cntr = .0; // for debug...
+    current_max_ms_level = 0;
 
     // read input dataset once to count spectra and generate ensemble spectrum if necessary
     for (auto &it : map)
@@ -353,13 +352,13 @@ protected:
       {
         continue;
       }
-      if (it.getMSLevel() > maxMSLevel)
+      if (it.getMSLevel() > max_ms_level)
       {
         continue;
       }
 
-      int msLevel = it.getMSLevel();
-      currentMaxMSLevel = currentMaxMSLevel < msLevel ? msLevel : currentMaxMSLevel;
+      int ms_level = it.getMSLevel();
+      current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
 
       if (ensemble)
       {
@@ -372,33 +371,31 @@ protected:
 
       if (it.getMSLevel() == 1)
       {
-        ms1Cntr++;
+        ms1_cntr++;
       }
       if (it.getMSLevel() == 2)
       {
-        ms2Cntr++;
+        ms2_cntr++;
       }
     }
 
     // Max MS Level is adjusted according to the input dataset
-    currentMaxMSLevel = currentMaxMSLevel > maxMSLevel ? maxMSLevel : currentMaxMSLevel;
+    current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
     // if an ensemble spectrum is analyzed, replace the input dataset with the ensemble one
     if (ensemble)
     {
-      for (int i = 0; i < currentMaxMSLevel; ++i)
+      for (int i = 0; i < current_max_ms_level; ++i)
       {
         ensemble_map[i].sortByPosition();
       }
       map = ensemble_map;
     }
-
-
     // Run FLASHDeconv here
 
-    int scanNumber = 0;
-    float prevProgress = .0;
-    auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
-    auto lastlastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
+    int scan_number = 0;
+    float prev_progress = .0;
+    auto last_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
+    //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
     MSExperiment exp;
 
@@ -406,11 +403,11 @@ protected:
     Param fd_param = getParam_().copy("Algorithm:", true);
     //fd_param.setValue("tol", getParam_().getValue("tol"));
     fd.setParameters(fd_param);
-    fd.calculateAveragine(useRNAavg);
+    fd.calculateAveragine(use_RNA_averagine);
     auto avg = fd.getAveragine();
-    auto massTracer = MassFeatureTrace();
+    auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
-    DoubleList isotopeCosine = fd_param.getValue("min_isotope_cosine_");
+    DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine_");
     //mf_param.setValue("mass_error_ppm", ms1tol);
     mf_param.setValue("noise_threshold_int", .0, "");
     mf_param.setValue("reestimate_mt_sd", "false", "");
@@ -419,156 +416,155 @@ protected:
     //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
     if (((double)mf_param.getValue("min_isotope_cosine_")) < 0)
     {
-      mf_param.setValue("min_isotope_cosine_", isotopeCosine[0]);
+      mf_param.setValue("min_isotope_cosine_", isotope_cosines[0]);
     }
-    massTracer.setParameters(mf_param);
-    //std::cout<<massTracer.getParameters()<<std::endl;
+    mass_tracer.setParameters(mf_param);
+    //std::cout<<mass_tracer.getParameters()<<std::endl;
 
     OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
-      scanNumber = SpectrumLookup::extractScanNumber(it->getNativeID(),
-                                                     map.getSourceFiles()[0].getNativeIDTypeAccession());
+      scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
+                                                      map.getSourceFiles()[0].getNativeIDTypeAccession());
       if (it->empty())
       {
         continue;
       }
 
-      int msLevel = it->getMSLevel();
-      if (msLevel > currentMaxMSLevel)
+      int ms_level = it->getMSLevel();
+      if (ms_level > current_max_ms_level)
       {
         continue;
       }
 
-      if(msLevel == 1){
-       // fiOut << "Spec\t"<<it->getRT()<<"\n";
+      if(ms_level == 1){
+       // fi_out << "Spec\t"<<it->getRT()<<"\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
             continue;
           }
-         // fiOut << p.getMZ() << "\t" << p.getIntensity()<<"\n";
+         // fi_out << p.getMZ() << "\t" << p.getIntensity()<<"\n";
         }
       }
 
-      specCntr[msLevel - 1]++;
+      spec_cntr[ms_level - 1]++;
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
 
-      auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
+      //auto deconvoluted_spectrum = DeconvolutedSpectrum(*it, scan_number);
       // for MS>1 spectrum, register precursor
-      if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
+      DeconvolutedSpectrum* precursor_spec = nullptr;
+
+      if (ms_level > 1 && last_deconvoluted_spectra.find(ms_level - 1) != last_deconvoluted_spectra.end())
       {
-        bool registered = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
-        if(!registered && lastlastDeconvolutedSpectra.find(msLevel - 1) != lastlastDeconvolutedSpectra.end()){
-          deconvolutedSpectrum.registerPrecursor(lastlastDeconvolutedSpectra[msLevel - 1]);
-        }
+        precursor_spec = &(last_deconvoluted_spectra[ms_level - 1]);
       }
                       // per spec deconvolution
-      fd.fillPeakGroupsInDeconvolutedSpectrum(deconvolutedSpectrum, scanNumber);
-      if (it->getMSLevel() == 2 && !in_trainfile.empty() &&  !out_trainfile.empty()
-          && !deconvolutedSpectrum.getPrecursorPeakGroup().empty()){
-        QScore::writeAttTsv(deconvolutedSpectrum.getOriginalSpectrum().getRT(), deconvolutedSpectrum.getPrecursorPeakGroup(),
-                            deconvolutedSpectrum.getPrecursorCharge(),
-                            trainScanNumbers.find(scanNumber) != trainScanNumbers.end(), avg, out_trainstream);
+      auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, precursor_spec, scan_number);
+
+      if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
+          && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()){
+        QScore::writeAttTsv(deconvoluted_spectrum.getOriginalSpectrum().getRT(), deconvoluted_spectrum.getPrecursorPeakGroup(),
+                            deconvoluted_spectrum.getPrecursorCharge(),
+                            train_scan_numbers.find(scan_number) != train_scan_numbers.end(), avg, out_train_stream);
 
       }
-      if (!out_mzmlfile.empty())
+      if (!out_mzml_file.empty())
       {
-        exp.addSpectrum(deconvolutedSpectrum.toSpectrum(mzmlCharge));
+        exp.addSpectrum(deconvoluted_spectrum.toSpectrum(mzml_charge));
       }
-      elapsed_deconv_cpu_secs[msLevel - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
-      elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
+      elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
+      elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(
           chrono::high_resolution_clock::now() - deconv_t_start).count();
 
-      if (msLevel < currentMaxMSLevel)
+      if (ms_level < current_max_ms_level)
       {
-        if(lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())
-        {
-          lastlastDeconvolutedSpectra[msLevel] = lastDeconvolutedSpectra[msLevel];
-        }
-        lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
+        //if(last_deconvoluted_spectra.find(ms_level) != last_deconvoluted_spectra.end())
+        //{
+        //  lastlast_deconvoluted_spectra[ms_level] = last_deconvoluted_spectra[ms_level];
+        //}
+        last_deconvoluted_spectra[ms_level] = deconvoluted_spectrum;
       }
 
-      if (deconvolutedSpectrum.empty())
+      if (deconvoluted_spectrum.empty())
       {
         continue;
       }
-      //if (msLevel < currentMaxMSLevel)
+      //if (ms_level < current_max_ms_level)
       //{
-      //  lastDeconvolutedSpectra[msLevel] = deconvoluted_spectrum_; // to register precursor in the future..
+      //  last_deconvoluted_spectra[ms_level] = deconvoluted_spectrum_; // to register precursor in the future..
       //}
 
       if (!ensemble)
       {
-        massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);// add deconvoluted mass in massTracer
+        mass_tracer.storeInformationFromDeconvolutedSpectrum(deconvoluted_spectrum);// add deconvoluted mass in mass_tracer
       }
 
-      qspecCntr[msLevel - 1]++;
-      massCntr[msLevel - 1] += deconvolutedSpectrum.size();
-      if(out_specstreams.size() > msLevel-1)
+      qspec_cntr[ms_level - 1]++;
+      mass_cntr[ms_level - 1] += deconvoluted_spectrum.size();
+      if(out_spec_streams.size() > ms_level - 1)
       {
-        deconvolutedSpectrum
-            .writeDeconvolutedMasses(out_specstreams[msLevel - 1], infile, avg, writeDetail);
+        deconvoluted_spectrum
+            .writeDeconvolutedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail);
       }
-      if (out_topFDstream.size() > msLevel-1)
+      if (out_topfd_streams.size() > ms_level - 1)
       {
-        deconvolutedSpectrum.writeTopFD(out_topFDstream[msLevel - 1], scanNumber, avg);
+        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number, avg);
       }
 
       //deconvoluted_spectrum_.clearPeakGroupsChargeInfo();
       //deconvoluted_spectrum_.getPrecursorPeakGroup().clearChargeInfo();
       float progress = (float) (it - map.begin()) / map.size();
-      if (progress > prevProgress + .01)
+      if (progress > prev_progress + .01)
       {
-        printProgress(progress);
-        prevProgress = progress;
+        printProgress_(progress);
+        prev_progress = progress;
       }
     }
 
-    printProgress(1); //
+    printProgress_(1); //
     std::cout << std::endl;
-    std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra); // empty memory
-    std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastlastDeconvolutedSpectra); // empty memory
+    std::unordered_map<UInt, DeconvolutedSpectrum>().swap(last_deconvoluted_spectra); // empty memory
+    //std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastlast_deconvoluted_spectra); // empty memory
 
-    // massTracer run
+    // mass_tracer run
     if (!ensemble)
     {
-      massTracer
-          .findFeatures(infile, !out_promexfile.empty(), featureCntr, featureIndex, outstream, out_promexstream, fd.getAveragine());
+      mass_tracer
+          .findFeatures(in_file, !out_promex_file.empty(), feature_cntr, feature_index, out_stream, out_promex_stream, fd.getAveragine());
     }
-    if (!out_mzmlfile.empty())
+    if (!out_mzml_file.empty())
     {
-      MzMLFile mzMlFile;
-      mzMlFile.store(out_mzmlfile, exp);
+      MzMLFile mzml_file;
+      mzml_file.store(out_mzml_file, exp);
     }
 
-    for (int j = 0; j < (int) currentMaxMSLevel; j++)
+    for (int j = 0; j < (int) current_max_ms_level; j++)
     {
-      if (specCntr[j] == 0)
+      if (spec_cntr[j] == 0)
       {
         continue;
       }
 
       if (ensemble)
       {
-        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in the ensemble MS"
+        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in the ensemble MS"
                         << (j + 1) << " spectrum" << endl;
 
       }
       else
       {
-        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
+        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in " << qspec_cntr[j]
                         << " MS" << (j + 1) << " spectra out of "
-                        << specCntr[j] << endl;
+                        << spec_cntr[j] << endl;
       }
     }
-    if (featureCntr > 0)
+    if (feature_cntr > 0)
     {
-      OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
+      OPENMS_LOG_INFO << "Mass tracer found " << feature_cntr << " features" << endl;
     }
-
 
     auto t_end = chrono::high_resolution_clock::now();
     auto end = clock();
@@ -580,49 +576,49 @@ protected:
                     << " s (Wall)] --"
                     << endl;
 
-    int sumCntr = 0;
-    for (int j = 0; j < (int) currentMaxMSLevel; j++)
+    int total_spec_cntr = 0;
+    for (int j = 0; j < (int) current_max_ms_level; j++)
     {
-      sumCntr += specCntr[j];
+      total_spec_cntr += spec_cntr[j];
 
       OPENMS_LOG_INFO << "-- deconv per MS" << (j + 1) << " spectrum (except spec loading, feature finding) [took "
-                      << 1000.0 * elapsed_deconv_cpu_secs[j] / sumCntr
-                      << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / sumCntr << " ms (Wall)] --" << endl;
+                      << 1000.0 * elapsed_deconv_cpu_secs[j] / total_spec_cntr
+                      << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / total_spec_cntr << " ms (Wall)] --" << endl;
     }
 
-    //fiOut.close(); //
+    //fi_out.close(); //
 
-    outstream.close();
+    out_stream.close();
 
-    if(!out_promexfile.empty()){
-      out_promexstream.close();
+    if(!out_promex_file.empty()){
+      out_promex_stream.close();
     }
-    if(!out_topFDfile.empty()){
-      for(int i=0;i<out_topFDstream.size();i++){
-        out_topFDstream[i].close();
+    if(!out_topfd_file.empty()){
+      for(auto & out_topfd_stream : out_topfd_streams){
+        out_topfd_stream.close();
       }
     }
-    if(!out_specfile.empty()){
-      for(int i=0;i<out_specstreams.size();i++){
-        out_specstreams[i].close();
+    if(!out_spec_file.empty()){
+      for(auto & out_spec_stream : out_spec_streams){
+        out_spec_stream.close();
       }
     }
 
-    if (!out_trainfile.empty())
+    if (!out_train_file.empty())
     {
-      out_trainstream.close();
+      out_train_stream.close();
     }
 
 
     return EXECUTION_OK;
   }
 
-  static void printProgress(float progress)
+  static void printProgress_(float progress)
   {
-    float barWidth = 70;
+    float bar_width = 70;
     std::cout << "[";
-    int pos = (int) (barWidth * progress);
-    for (int i = 0; i < barWidth; ++i)
+    int pos = (int) (bar_width * progress);
+    for (int i = 0; i < bar_width; ++i)
     {
       if (i < pos)
       {
@@ -641,7 +637,6 @@ protected:
     std::cout.flush();
   }
 };
-
 
 // the actual main function needed to create an executable
 int main(int argc, const char **argv)

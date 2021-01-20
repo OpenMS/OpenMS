@@ -54,14 +54,14 @@ namespace OpenMS
     //Intercept      11.8377
 
     double score = weights[weights.size() - 1];
-    auto fv = toFeatureVector(pg, charge);
+    auto fv = toFeatureVector_(pg, charge);
     for(int i=0;i<weights.size() - 1;i++){
       score += fv[i] * weights[i];
     }
     return -score;
   }
 
-  std::vector<double> QScore::toFeatureVector(const PeakGroup *pg, const int charge)
+  std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int charge)
   {
     std::vector<double> fvector;
 
@@ -90,7 +90,7 @@ namespace OpenMS
   void QScore::writeAttTsv(const double rt, const PeakGroup pg, const int charge, const bool is_identified,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f)
   {
-    auto fv = toFeatureVector(&pg, charge);
+    auto fv = toFeatureVector_(&pg, charge);
     if (pg.getChargeIsotopeCosine(charge) <= 0) return;
 
     double mass = avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass();

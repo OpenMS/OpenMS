@@ -44,18 +44,28 @@ namespace OpenMS
 */
 
   class OPENMS_DLLAPI PeakGroup :
-      public std::vector<FLASHDeconvHelperStructs::LogMzPeak>
+      private std::vector<FLASHDeconvHelperStructs::LogMzPeak>
   {
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::push_back;
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::operator[];
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::empty;
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::begin;
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::end;
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::size;
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::reserve;
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::swap;
+    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::shrink_to_fit;
+
     /// default constructor
     PeakGroup() = default;
 
     /**
            @brief Constructor specifying charge range
-           @param minCharge min Charge
-           @param maxCharge max Charge
+           @param min_charge min Charge
+           @param max_charge max Charge
       */
     explicit PeakGroup(const int min_charge, const int max_charge);
 
@@ -82,9 +92,9 @@ namespace OpenMS
     PeakGroup& operator = (const PeakGroup& t) = default;
 
     /**
-           @brief adjust monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
+           @brief add monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
            @param offset isotope index offset
-           @param maxIsoIndex max isotopic index
+           @param max_isotope_index max isotopic index
       */
     void updateMassesAndIntensity(const int offset = 0,
                                   const int max_isotope_index = 0);
@@ -140,26 +150,26 @@ namespace OpenMS
 
   private:
     /// per charge SNR, isotope cosine, and intensity vectors
-    std::vector<float> per_charge_snr;
-    std::vector<float> per_charge_cos;
-    std::vector<float> per_charge_int;
+    std::vector<float> per_charge_snr_;
+    std::vector<float> per_charge_cos_;
+    std::vector<float> per_charge_int_;
 
     /// mz range resulting in maximum Q score
-    double max_qscore_mz_end, max_qscore_mz_start;
+    double max_qscore_mz_end_, max_qscore_mz_start_;
     /// charge range
-    int max_charge, min_charge;
+    int max_charge_, min_charge_;
     /// scan number
-    int scan_number;
+    int scan_number_;
 
     /// information on the deconvouted mass
-    double monoisotopic_mass;
-    double intensity;// total intensity
+    double monoisotopic_mass_;
+    double intensity_;// total intensity
 
     /// scoring variables
-    int max_qscore_charge;
-    float isotope_cosine_score;
-    float charge_score;
-    float qscore;
-    float total_snr;
+    int max_qscore_charge_;
+    float isotope_cosine_score_;
+    float charge_score_;
+    float qscore_;
+    float total_snr_;
   };
 }

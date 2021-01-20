@@ -44,7 +44,7 @@ namespace OpenMS
   class PeakGroup;
 
   /**
-       @brief A class representing a deconvoluted spectrum. Also contains deconvoluted precursro information for MSn n>1.
+       @brief A class representing a deconvoluted spectrum. Also contains deconvoluted precursor information for MSn n>1.
   */
   class OPENMS_DLLAPI DeconvolutedSpectrum :
       private std::vector<PeakGroup>
@@ -65,7 +65,7 @@ namespace OpenMS
     /**
        @brief Constructor for DeconvolutedSpectrum
        @param spectrum spectrum for which the deconvolution will be performed
-       @param scan_number scan number of the spectrum
+       @param scan_number scan number of the spectrum: this argument is put here for real time case where scan number should be input separately.
   */
     explicit DeconvolutedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
@@ -93,6 +93,8 @@ namespace OpenMS
       @brief write the deconvoluted masses in the output file (spectrum level)
       @param fs file stream to the output file
       @param file_name FLASHDeconv paramter
+      @param avg averagine information to calculate monoisotope and average mass difference
+      @param write_detail if this is set, more detailed information on each mass will be written in the output file
     */
     void writeDeconvolutedMasses(std::fstream& fs,
                                  const String& file_name,
@@ -103,46 +105,52 @@ namespace OpenMS
       @brief write the deconvoluted masses TopFD format
       @param fs file stream to the output file
       @param index the index to the spectrum. updated outside.
+      @param avg averagine information to calculate monoisotope and average mass difference
  */
     void writeTopFD(std::fstream& fs, const int index, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
     /// cast DeconvolutedSpectrum into MSSpectrum object to write mzml format
-    MSSpectrum toSpectrum(const int charge);
+    ///  @param mass_charge the charge of each mass for mzml output
+    MSSpectrum toSpectrum(const int mass_charge);
 
     /// write the header for Thermo Inclusion List header format
     static void writeThermoInclusionHeader(std::fstream& fs);
 
-    /// for memory save... clear unnecessary information in mass tracing
+    /// to save memory ... clear unnecessary information in mass tracing
     void clearPeakGroupsChargeInfo();
 
     /**
-     @brief register the precusor info in this from the precursor DeconvolutedSpectrum
-     @param precursorSpectrum the precursor DeconvolutedSpectrum
+     @brief register the precusor peak as well as the precursor peak group (or mass) for MSn (n>1) spectrum using the precursor precursor_spectrum.
+     The mass containing the precursor peak is searched. If precursor_spectrum contains such a mass (or peak group), it is registered. Otherwise,
+     no peak group is registered but only precursor peak is registered.
+     @param precursor_spectrum the precursor DeconvolutedSpectrum
      */
-    bool registerPrecursor(DeconvolutedSpectrum& precursor_spectrum);
+    bool registerPrecursor(const DeconvolutedSpectrum& precursor_spectrum);
 
     /// original spectrum setter
-    MSSpectrum &getOriginalSpectrum();
+    const MSSpectrum &getOriginalSpectrum() const;
 
-    /// peakGroup getter
-    PeakGroup getPrecursorPeakGroup();
+    /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
+    PeakGroup getPrecursorPeakGroup() const;
 
-    /// precursor charge getter : set in registerPrecursor
-    int getPrecursorCharge();
+    /// precursor charge getter (set in registerPrecursor)
+    int getPrecursorCharge() const;
 
-    /// get max mass - for MS1, max mass specified by user
+    /// get possible max mass of the deconvoluted masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
-    double getCurrentMaxMass(const double max_mass);
+    /// @param max_mass the max mass specified by the user
+    double getCurrentMaxMass(const double max_mass) const;
 
-    /// get max charge - for MS1, max charge specified by user
+    /// get possible max charge of the deconvoluted masses - for MS1, max charge specified by user
     /// for MSn, min value between max charge specified by the user and precursor charge
-    int getCurrentMaxCharge(const int max_charge);
+    /// @param max_charge the max charge specified by the user
+    int getCurrentMaxCharge(const int max_charge) const;
 
   private:
-    /// the original spectrum from which this is generated
+    /// the original spectrum (not deconvoluted)
     MSSpectrum spec_;
     /// precursor peakGroup (or mass)
-    PeakGroup *precursor_peak_group_ = nullptr;
+    PeakGroup precursor_peak_group_;
     /// precursor peak (not deconvoluted one)
     Precursor precursor_peak_;
     /// activation method for file output
