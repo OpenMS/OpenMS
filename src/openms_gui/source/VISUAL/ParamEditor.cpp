@@ -358,13 +358,22 @@ namespace OpenMS
       {
         model->setData(index, new_value);
         model->setData(index, QBrush(Qt::yellow), Qt::BackgroundRole);
-        emit modified(true);
+        emit modified(true);  // let parent know that we changed something
       }
     }
 
     void ParamEditorDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex &) const
     {
       editor->setGeometry(option.rect);
+    }
+
+    bool ParamEditorDelegate::eventFilter(QObject* editor, QEvent* event)
+    {
+      // NEVER EVER commit data (which calls setModelData()), without explicit calls to commit() for non-embedded Dialogs ;
+      if (qobject_cast<ListEditor*>(editor) || qobject_cast<ListFilterDialog*>(editor)) return false;
+
+      // default: will call commit(), if the event was handled (e.g. a press of 'Enter')
+      return QItemDelegate::eventFilter(editor, event);
     }
 
     bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
@@ -394,7 +403,7 @@ namespace OpenMS
     void ParamEditorDelegate::commitAndCloseEditor_()
     {
       QWidget* editor = qobject_cast<QWidget*>(sender());
-      emit commitData(editor);
+      emit commitData(editor); // calls .setModelData(...)
       emit closeEditor(editor);
     }
 

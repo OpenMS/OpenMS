@@ -39,6 +39,8 @@
 
 #include <ui_ListFilterDialog.h>
 
+#include <QCloseEvent>
+
 using namespace std;
 
 namespace OpenMS
@@ -70,6 +72,12 @@ namespace OpenMS
   ListFilterDialog::~ListFilterDialog()
   {
     delete ui_;
+  }
+
+  void ListFilterDialog::closeEvent(QCloseEvent* event)
+  {
+    event->accept();
+    reject();
   }
 
   void ListFilterDialog::setItems(const QStringList& items)

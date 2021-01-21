@@ -117,6 +117,10 @@ signals:
       void modified(bool) const;
 
 protected:
+
+      /// a shortcut to calling commit(), which calls setModelData(); useful for embedded editors, but not for QDialogs etc
+      bool eventFilter(QObject* editor, QEvent* event) override;
+  
       /// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
       bool exists_(QString name, QModelIndex index) const;
 

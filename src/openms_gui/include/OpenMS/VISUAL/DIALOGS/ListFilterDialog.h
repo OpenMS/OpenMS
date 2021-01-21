@@ -75,6 +75,9 @@ public:
     /// destructor
     virtual ~ListFilterDialog();
 
+    /// when pressing 'X' button in corner of the Window
+    void closeEvent(QCloseEvent* event) override;
+
     /// A set of strings to show and select from. Can be filtered in the dialog
     /// @throws Exception::InvalidValue if any of @p items_prechosen is not contained in @p items
     void setItems(const QStringList& items);
@@ -95,8 +98,6 @@ protected slots:
     void BtnRLClicked_();
     /// button '< ALL <' clicked
     void BtnRLAllClicked_();
-
-protected:
 
 private:
     Ui::ListFilterDialog* ui_;
