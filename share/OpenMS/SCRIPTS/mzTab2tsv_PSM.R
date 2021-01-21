@@ -39,7 +39,7 @@ collapseRows <- function(x) {
   }
 }
 
-# count the occurences of character c in string s
+# count the occurrences of character c in string s
 countOccurrences <- function(c,s) {
   s2 <- gsub(c,"",s)
   return (nchar(s) - nchar(s2))
