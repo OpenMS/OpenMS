@@ -188,7 +188,7 @@ namespace OpenMS
     diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
 
     //TODO this score and the next, both rely on the CoarseIsotope of the PeptideAveragine. Maybe we could
-    // DIA dotproduct and manhattan score based on library intensity
+    // DIA dotproduct and manhattan score based on library intensity and sum formula if present
     diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
 
     // Isotope correlation / overlap score: Is this peak part of an

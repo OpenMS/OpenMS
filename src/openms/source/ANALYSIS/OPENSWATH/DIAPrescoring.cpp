@@ -135,7 +135,7 @@ namespace OpenMS
   {
     std::vector<std::pair<double, double> > res;
     std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
-    int chg = 1;
+    int chg;
     // add expected isotope intensities for every transition productMZ based on averagine
     //TODO allow usage of annotated formulas from transition.compound.sum_formula
     for (const auto& transition : lt)
@@ -149,8 +149,8 @@ namespace OpenMS
                                              chg);
     }
     // duplicate since we will add differently weighted preIsotope intensities
-    spectrumWIsoNegPreIso.resize(spectrumWIso.size());
-    std::copy(spectrumWIso.begin(), spectrumWIso.end(), spectrumWIsoNegPreIso.begin());
+    spectrumWIsoNegPreIso.reserve(spectrumWIso.size());
+    std::copy(spectrumWIso.begin(), spectrumWIso.end(), back_inserter(spectrumWIsoNegPreIso));
     double totalNegWeight = 1. / nr_isotopes_; // how much of ONE transition should be negatively weighted at the prePeaks (distributed equally on them)
     UInt nrNegPeaks = 2;
     // for every transition add either zero weighted (for manhattan) or negatively weighted (for dotprod) preIsotope intensities
@@ -159,13 +159,13 @@ namespace OpenMS
       chg = 1.;
       if (transition.fragment_charge != 0) chg = transition.fragment_charge;
       DIAHelpers::addPreisotopeWeights(transition.getProductMZ(), spectrumWIso, nrNegPeaks, 0.0,
-                                       Constants::C13C12_MASSDIFF_U,
+                                       1.000482,// should be Constants::C13C12_MASSDIFF_U,
                                        chg);
       DIAHelpers::addPreisotopeWeights(transition.getProductMZ(),
                                        spectrumWIsoNegPreIso,
                                        nrNegPeaks,
                                        -totalNegWeight / (double(lt.size() * nrNegPeaks)),
-                                       Constants::C13C12_MASSDIFF_U,
+                                       1.000482,// should be Constants::C13C12_MASSDIFF_U,
                                        chg);
     }
     //sort by mz
@@ -188,18 +188,26 @@ namespace OpenMS
     OpenSwath::normalize(intExp, intExpTotal, intExp);
     OpenSwath::normalize(intTheor, intTheorTotal, intTheor);
 
+    //TODO think about normalizing the distance by dividing by the max value 2.
+    // Generally I think a combined manhattan distance is not the best feature here, since because of normalization,
+    // different transitions affect each other (e.g. if one transition is missing, the other(s) get a much higher
+    // normalized value and the whole distance is "penalized twice")
+    // Maybe we could use two features, one for the average manhattan distance and one for matching of the total intensities to the
+    // library intensities. Also maybe normalisising by the max-value or the monoisotope (instead of the total sum) helps?
     manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), intTheor.begin());
 
     // compare against the spectrum with negative weight preIsotope peaks
     std::vector<double> intTheorNeg;
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights in earlier versions! Was this a bug?
     // Otherwise we dont need the second spectrum at all.
-    DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheorNeg);
-    intTheorTotal = OpenSwath::norm(intTheorNeg.begin(), intTheorNeg.end()); // use Euclidean norm since we have negative values
-    OpenSwath::normalize(intTheorNeg, intTheorTotal, intTheorNeg);
-    // Sqrt does not work if we actually have negative values now
-    //std::transform(intTheor2.begin(), intTheor2.end(), intTheor2.begin(), OpenSwath::mySqrt());
+    DIAHelpers::extractSecond(spectrumWIso, intTheorNeg);
+    // Sqrt does not work if we actually have negative values
+    std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());
     // intExp is normalized already
+    double intTheorNegEuclidNorm = OpenSwath::norm(intTheorNeg.begin(), intTheorNeg.end()); // use Euclidean norm since we have negative values
+    OpenSwath::normalize(intTheorNeg, intTheorNegEuclidNorm, intTheorNeg);
+    double intExpEuclidNorm = OpenSwath::norm(intExp.begin(), intExp.end()); // reapply Euclidean norm to Manhattan normed exp. Intensities to use the same normalization for dotprod
+    OpenSwath::normalize(intExp, intExpEuclidNorm, intExp);
 
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheorNeg.begin());
   }
