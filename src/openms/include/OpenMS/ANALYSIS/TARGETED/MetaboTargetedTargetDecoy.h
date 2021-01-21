@@ -55,15 +55,15 @@ namespace OpenMS
     */
     struct MetaboTargetDecoyMassMapping
     {
-      String identifier;
-      String target_compound_ref;
-      String decoy_compound_ref;
-      std::vector<double> target_product_masses;
-      std::vector<double> decoy_product_masses;
+      String identifier; ///> unique identifier (e.g. m_id)
+      String target_compound_ref; ///> identifier which allows to reference back to the target (e.g. target_transitions_id)
+      String decoy_compound_ref; ///> identifier which allows to reference back to the decoy (e.g. decoy_transitions_id)
+      std::vector<double> target_product_masses; ///> masses of target transitions
+      std::vector<double> decoy_product_masses; ///> masses of decoy transitions
     };
 
     /**
-    @brief Constructs a mass mapping of targets and decoys using a the unique m_ids identifier.
+    @brief Constructs a mass mapping of targets and decoys using a the unique m_id identifier.
 
     @param t_exp TransitionExperiment holds compound and transition information used for the mapping.
 
@@ -71,11 +71,11 @@ namespace OpenMS
     static std::vector<MetaboTargetDecoyMassMapping> constructTargetDecoyMassMapping(const TargetedExperiment& t_exp);
 
     /**
-    @brief Resolves overlapping target and decoy transitions masses by adding a specifiable mass to the overlapping decoy fragment.
+    @brief Resolves overlapping target and decoy transitions masses by adding a specifiable mass (e.g. CH2) to the overlapping decoy fragment.
 
     @param t_exp TransitionExperiment holds compound and transition information
     @param mappings map of identifier to target and decoy masses
-    @param mass_to_add
+    @param mass_to_add (e.g. CH2)
 
     */
     static void resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add);

@@ -77,7 +77,7 @@ namespace OpenMS
     return (a.getIntensity() < b.getIntensity());
   }
 
-  // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
+  // method to extract potential transitions based on the ms/ms of the highest intensity precursor or a consensus spectrum
   std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssay(const MSExperiment& spectra,
                                                                                     const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                                     const double& precursor_rt_tol,
@@ -411,7 +411,7 @@ namespace OpenMS
       }
 
       // iterate over both entries - targets and decoys (SiriusTargetDecoySpectra)
-      // count target and decoy as on entry - to ensure same numbering of targets and decoys
+      // count target and decoy as one entry - to ensure same numbering of targets and decoys
       for (auto& transition_spectrum : non_empty_spectra)
       {
         TargetedExperiment::Compound cmp;
@@ -645,7 +645,7 @@ namespace OpenMS
     {
       for (const auto& spectra : annotated_spectra)
       {
-        if (cmp.m_ids_id == spectra.target.getName())
+        if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level the name
         {
           MetaboTargetedAssay::CompoundTargetDecoyPair csp(cmp, spectra);
           v_cmp_spec.push_back(move(csp));

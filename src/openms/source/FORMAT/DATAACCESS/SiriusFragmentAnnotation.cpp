@@ -60,6 +60,7 @@ namespace OpenMS
       SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
                                                                     annotated_decoy);
 
+      // if no target was generated - no decoy will be available (due to SIRIUS)
       if (annotated_spectrum.empty())
       {
         continue;
@@ -100,25 +101,25 @@ namespace OpenMS
 
   void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   {
-    OpenMS::String native_id = SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String m_id = SiriusFragmentAnnotation::extractMIDFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
     SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
-    msspectrum_to_fill.setNativeID(native_id);
-    msspectrum_to_fill.setName(m_id);
+    msspectrum_to_fill.setNativeID(concat_native_ids);
+    msspectrum_to_fill.setName(concat_m_ids);
   }
 
   void SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill)
   {
-    OpenMS::String native_id = SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String m_id = SiriusFragmentAnnotation::extractMIDFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
     SiriusFragmentAnnotation::extractAnnotationFromDecoyFile_(path_to_sirius_workspace, msspectrum_to_fill);
-    msspectrum_to_fill.setNativeID(native_id);
-    msspectrum_to_fill.setName(m_id);
+    msspectrum_to_fill.setNativeID(concat_native_ids);
+    msspectrum_to_fill.setName(concat_m_ids);
   }
   
   // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
   // first native id in the spectrum.ms
-  OpenMS::String SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(const String& path_to_sirius_workspace)
+  OpenMS::String SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(const String& path_to_sirius_workspace)
   {
     vector< String > ext_n_ids;
     String ext_n_id;
@@ -148,8 +149,8 @@ namespace OpenMS
   }
 
   // extract m_id from SIRIUS spectrum.ms output file (workspace - compound specific)
-  // first m_id id in the spectrum.ms
-  OpenMS::String SiriusFragmentAnnotation::extractMIDFromSiriusMS_(const String& path_to_sirius_workspace)
+  // and concatenates them if multiple spectra have been used in case of the compound.
+  OpenMS::String SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(const String& path_to_sirius_workspace)
   {
     vector< String > ext_m_ids;
     String ext_m_id;
@@ -208,7 +209,7 @@ namespace OpenMS
     return rank_filename;
   }
 
-  // provides a mapping of rank and the TreeIsotope_Score which can used to resolved ambiguties in mapping
+  // provides a mapping of rank and the TreeIsotope_Score which can be used to resolved ambiguties in mapping
   // 43_Cyazofamid_[M+H]+_3 sample=1 period=1 cycle=683 experiment=3|sample=1 period=1 cycle=684 experiment=3|sample=1 period=1 cycle=685 experiment=5
   // 44_Ethofumesate_[M+K]+_3 sample=1 period=1 cycle=683 experiment=3|sample=1 period=1 cycle=684 experiment=3|sample=1 period=1 cycle=685 experiment=5
   // which have the same mass within 25 ppm due to their adduct in AccurateMassSearch

@@ -139,12 +139,6 @@ protected:
     registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
-    registerOutputFile_("out_decoys","<file>", "", "Experimental output in project space.", false, true);
-    setValidFormats_("out_decoys", ListUtils::create<String>("mzTab"));
-
-    registerOutputFile_("out_results","<file>", "", "MzTab-m output file for all results (depending on parameters used)", false);
-    setValidFormats_("out_results", ListUtils::create<String>("mzTab"));
-
     registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
     setValidFormats_("out_ms", ListUtils::create<String>("ms"));
 

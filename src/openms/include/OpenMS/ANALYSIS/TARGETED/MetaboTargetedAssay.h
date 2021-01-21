@@ -48,7 +48,6 @@ namespace OpenMS
 {
   /**
   @brief This class provides methods for the extraction of targeted assays for metabolomics.
-
   */
 
   class OPENMS_DLLAPI MetaboTargetedAssay
@@ -56,34 +55,32 @@ namespace OpenMS
     public:
 
     /**
-    @brief MetaboTargetedAssay is able to store a precursor and its metadata as well as a reference to a compound.
-
+    @brief MetaboTargetedAssay is able to store a precursor, metadata as well as compound information.
     */
-
-    double precursor_int;
-    double transition_quality_score;
-    double precursor_mz;
-    double compound_rt;
-    String molecular_formula;
-    int compound_file;
-    String compound_name;
-    String compound_adduct;
-    TargetedExperiment::Compound potential_cmp;
-    std::vector<ReactionMonitoringTransition> potential_rmts;
+    double precursor_int; ///< precursor intensity
+    double transition_quality_score; ///< transitions quality score (not yet used)
+    double precursor_mz; ///< precursor mass-to-charge
+    double compound_rt; ///< compound rentention time
+    String molecular_formula; ///<< (putative) molecular formula
+    int compound_file; ///< integer of file it belongs to in a list of files
+    String compound_name; ///< compound name
+    String compound_adduct; ///< compound adduct
+    TargetedExperiment::Compound potential_cmp; ///< compound information stored in a TargetedExperiment
+    std::vector<ReactionMonitoringTransition> potential_rmts; ///< vector of transitions belonging to the compound
 
     /**
     @brief CompoundTargetDecoyPair stores a pair of CompoundInfo and MSSpectrum (target, decoy)
-
     */
-    struct CompoundTargetDecoyPair
+    class CompoundTargetDecoyPair
     {
+    public:
+
       SiriusMSFile::CompoundInfo compound_info;
       SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy_spectra;
 
       CompoundTargetDecoyPair() = default;
       CompoundTargetDecoyPair(SiriusMSFile::CompoundInfo info, SiriusFragmentAnnotation::SiriusTargetDecoySpectra td_spectra) : compound_info(info), target_decoy_spectra(td_spectra) {}
     };
-
 
     /**
     @brief Extract a vector of MetaboTargetedAssays without using fragment annotation
@@ -101,9 +98,7 @@ namespace OpenMS
     @param method_consensus_spectrum Boolean to use consensus spectrum method
     @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
     @param file_counter Count if multiple files are used.
-
     */
-
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const MSExperiment& spectra,
                                                                        const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                        const double& precursor_rt_tol,
@@ -121,7 +116,6 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay
 
-
     @param v_cmp_spec Vector of CompoundInfo with associated fragment annotated MSspectrum
     @param transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
     @param min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
@@ -129,9 +123,7 @@ namespace OpenMS
     @param use_exact_mass Boolean if exact mass should be used as peak mass for annotated fragments
     @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
     @param file_counter Count if multiple files are used.
-
     */
-
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< CompoundTargetDecoyPair >& v_cmp_spec,
                                                                                          const double& transition_threshold,
                                                                                          const double& min_fragment_mz,
@@ -140,28 +132,22 @@ namespace OpenMS
                                                                                          const bool& exclude_ms2_precursor,
                                                                                          const unsigned int& file_counter);
 
-
-
-
     /**
-    @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto based on the m_id (unique identifier)
+    @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto based on the m_id (unique identifier composed of description_filepath_native_id_k introduced in the SiriusMSConverter)
 
     @return Vector of MetaboTargetedAssay::CompoundTargetDecoyPair
 
     @param v_cmpinfo Vector of SiriusMSFile::CompoundInfo
-
     @param annotated_spectra Vector of SiriusTargetDecoySpectra
     */
     static std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                                                                                         const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra);
-
 
     protected:
 
     /**
     @brief Compare two peaks based on their intensity
     */
-
     static bool intensityLess_(Peak1D a, Peak1D b);
 
     /**

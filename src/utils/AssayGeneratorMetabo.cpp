@@ -204,6 +204,7 @@ protected:
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
 
+
   static void filterBasedOnTotalOccurrence(vector<MetaboTargetedAssay>& mta, double total_occurrence_filter, size_t in_files_size)
   {
     if (in_files_size > 1 && mta.size() >= 1)
@@ -253,9 +254,9 @@ protected:
 
   // Use FeatureGroupingAlgorithmQT
   // based on mz and rt (minimum feature) - MetaValue index to vector<MetaboTargetedAssay>
-
-  struct Intermediate
+  class TargetDecoyGroup
   {
+  public:
     int target_index = -1;
     int decoy_index = -1;
     double target_mz = 0.0;
@@ -269,7 +270,7 @@ protected:
   std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size)
   {
     // group target and decoy position in vector based on CompoundID
-    std::map<String, Intermediate> target_decoy_groups;
+    std::map<String, TargetDecoyGroup> target_decoy_groups;
     for (Size i = 0; i < v_mta.size(); ++i)
     {
       MetaboTargetedAssay current_entry = v_mta[i];
@@ -283,7 +284,7 @@ protected:
           compoundId = std::regex_replace(compoundId, std::regex("decoy_"), "");
           if (target_decoy_groups.find(compoundId) != target_decoy_groups.end())
           {
-            Intermediate map_entry = target_decoy_groups[compoundId];
+            TargetDecoyGroup map_entry = target_decoy_groups[compoundId];
             map_entry.decoy_index = i;
             map_entry.decoy_mz = current_entry.precursor_mz;
             map_entry.decoy_rt = current_entry.compound_rt;
@@ -292,12 +293,12 @@ protected:
           }
           else
           {
-            Intermediate inter;
-            inter.decoy_index = i;
-            inter.decoy_mz = current_entry.precursor_mz;
-            inter.decoy_rt = current_entry.compound_rt;
-            inter.decoy_file_number = current_entry.compound_file;
-            target_decoy_groups[compoundId] = inter;
+            TargetDecoyGroup tdg;
+            tdg.decoy_index = i;
+            tdg.decoy_mz = current_entry.precursor_mz;
+            tdg.decoy_rt = current_entry.compound_rt;
+            tdg.decoy_file_number = current_entry.compound_file;
+            target_decoy_groups[compoundId] = tdg;
           }
         }
         if (current_entry.potential_rmts[0].getDecoyTransitionType() ==
@@ -306,7 +307,7 @@ protected:
           String compoundId = current_entry.potential_cmp.id;
           if (target_decoy_groups.find(compoundId) != target_decoy_groups.end()) // not in map
           {
-            Intermediate map_entry = target_decoy_groups[compoundId];
+            TargetDecoyGroup map_entry = target_decoy_groups[compoundId];
             map_entry.target_index = i;
             map_entry.target_mz = current_entry.precursor_mz;
             map_entry.target_rt = current_entry.compound_rt;
@@ -315,12 +316,12 @@ protected:
           }
           else // not in map
           {
-            Intermediate inter;
-            inter.target_index = i;
-            inter.target_mz = current_entry.precursor_mz;
-            inter.target_rt = current_entry.compound_rt;
-            inter.target_file_number = current_entry.compound_file;
-            target_decoy_groups[compoundId] = inter;
+            TargetDecoyGroup tdg;
+            tdg.target_index = i;
+            tdg.target_mz = current_entry.precursor_mz;
+            tdg.target_rt = current_entry.compound_rt;
+            tdg.target_file_number = current_entry.compound_file;
+            target_decoy_groups[compoundId] = tdg;
           }
         }
       }
@@ -912,8 +913,8 @@ protected:
     MRMAssay assay;
 
     // sort by highest intensity - filter:  min/max transitions (targets), filter: max transitions (decoys)
-    // e.g. if only one decoy is available it will not be filtered out!
-    assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
+    // e.g. if only one decoy fragment is available it will not be filtered out!
+    assay.filterMinMaxTransitionsCompound(t_exp, min_transitions, max_transitions);
 
     // remove decoys which do not have a respective target after min/max transition filtering
     // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")

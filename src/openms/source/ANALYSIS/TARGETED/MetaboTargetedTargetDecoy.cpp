@@ -60,7 +60,7 @@ namespace OpenMS
     std::vector<String> identifier;
     for (const auto &it : t_exp.getCompounds())
     {
-      // only need to extract identifier from the targets, since targets and decoys have the same one
+      // only need to extract identifier from the targets, since targets and decoys have the same
       if (it.getMetaValue("decoy") == DataValue(0))
       {
         identifier.emplace_back(it.getMetaValue("m_ids_id"));
@@ -170,7 +170,7 @@ namespace OpenMS
 
   void MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add)
   {
-    // Add a decoy based on the target masses (+ CH2) if fragmentation tree re-rooting was not possible
+    // Add a decoy based on the target masses + mass_to_add (e.g. CH2) if fragmentation tree re-rooting was not possible
     for (auto &it : mappings)
     {
       if (it.decoy_product_masses.size() != it.target_product_masses.size())

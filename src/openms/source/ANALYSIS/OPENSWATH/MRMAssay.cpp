@@ -1006,7 +1006,7 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-  void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
+  void MRMAssay::filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     CompoundVectorType compounds;
     std::vector<String> compound_ids;
@@ -1056,10 +1056,7 @@ namespace OpenMS
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
-
-          // if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
           if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && j < (Size)max_transitions)
-
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);

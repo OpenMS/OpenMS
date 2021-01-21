@@ -61,7 +61,7 @@ namespace OpenMS
           @return map native_id to annotated MSSpectrum (target or decoy)
 
           If there are multiple identifications for a feature with the same MS2 spectras (concatenated native ids)
-          the identification with the higher SIRIUS score is chosen.
+          the identification with the higher SIRIUS score is chosen (currently based on the explained peak intensities).
 
           @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
@@ -119,17 +119,17 @@ namespace OpenMS
           static void extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill);
       protected:
           /**
-          @brief extractNativeIDFromSiriusMS  
+          @brief extractConcatNativeIDsFromSiriusMS
           Extract concatenated native id from SIRIUS output (./spectrum.ms) and concatenates them.
 
           @return String native id of current SIRIUS compound
           
           @param path_to_sirius_workspace Path to SIRIUS workspace.
           */
-          static OpenMS::String extractNativeIDFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
+          static OpenMS::String extractConcatNativeIDsFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
 
           /**
-          @brief extractMIDFromSiriusMS
+          @brief extractConcatMIDsFromSiriusMS
           Extract m_ids from SIRIUS output (./spectrum.ms) and concatenates them.
           M_id is the native id + an index, which is incremented based
           on the number of possible identifications (accurate mass search).
@@ -138,7 +138,7 @@ namespace OpenMS
 
           @param path_to_sirius_workspace Path to SIRIUS workspace.
           */
-          static OpenMS::String extractMIDFromSiriusMS_(const String& path_to_sirius_workspace);
+          static OpenMS::String extractConcatMIDsFromSiriusMS_(const String& path_to_sirius_workspace);
 
           /**
           @brief extractAnnotationFromSiriusFile  

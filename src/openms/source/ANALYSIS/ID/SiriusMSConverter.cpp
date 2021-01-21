@@ -49,12 +49,11 @@ namespace OpenMS
 {
 
   // precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz,
+  Int SiriusMSFile::getHighestIntensityPeakInMZRange_(double test_mz,
                                        const MSSpectrum& spectrum,
                                        double tolerance,
                                        bool ppm)
   {
-
     // get tolerance window and left/right iterator
     pair<double, double> tolerance_window = Math::getTolWindow(test_mz, tolerance, ppm);
 
@@ -76,10 +75,10 @@ namespace OpenMS
   }
 
   // extract precursor isotope pattern if no feature information is available
-  vector<Peak1D> extractPrecursorIsotopePattern(const double& precursor_mz,
-                                                const MSSpectrum& precursor_spectrum,
-                                                int& iterations,
-                                                const int& charge)
+  std::vector<Peak1D> SiriusMSFile::extractPrecursorIsotopePattern_(const double& precursor_mz,
+                                                               const MSSpectrum& precursor_spectrum,
+                                                               int& iterations,
+                                                               const int& charge)
   {
     vector<Peak1D> isotopes;
     int peak_index;
@@ -90,7 +89,7 @@ namespace OpenMS
     const bool ppm = true;
     const int isotope_tolerance = 1;
 
-    peak_index = getHighestIntensityPeakInMZRange(precursor_mz, precursor_spectrum, tolerance, ppm);
+    peak_index = getHighestIntensityPeakInMZRange_(precursor_mz, precursor_spectrum, tolerance, ppm);
     if (peak_index != -1)
     {
       peak = precursor_spectrum[peak_index];
@@ -109,7 +108,7 @@ namespace OpenMS
     while (peak_index != -1 && iterations > 0)
     {
       // check for isotope trace with "isotope_tolerance" ppm error
-      peak_index = getHighestIntensityPeakInMZRange(peak.getMZ() + massdiff, precursor_spectrum, isotope_tolerance, ppm);
+      peak_index = SiriusMSFile::getHighestIntensityPeakInMZRange_(peak.getMZ() + massdiff, precursor_spectrum, isotope_tolerance, ppm);
       if (peak_index != -1)
       {
         peak = precursor_spectrum[peak_index];
@@ -122,12 +121,12 @@ namespace OpenMS
 
   void SiriusMSFile::writeMsFile_(ofstream& os,
                                   const MSExperiment& spectra,
-                                  const vector<size_t>& ms2_spectra_index,
+                                  const std::vector<size_t>& ms2_spectra_index,
                                   const SiriusMSFile::AccessionInfo& ainfo,
                                   const StringList& adducts,
-                                  const vector<String>& v_description,
-                                  const vector<String>& v_sumformula,
-                                  const vector<pair<double,double>>& f_isotopes,
+                                  const std::vector<String>& v_description,
+                                  const std::vector<String>& v_sumformula,
+                                  const std::vector<pair<double,double>>& f_isotopes,
                                   int& feature_charge,
                                   uint64_t& feature_id,
                                   const double& feature_rt,
@@ -156,7 +155,7 @@ namespace OpenMS
         const String& native_id = current_ms2.getNativeID();
         const int& scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
 
-        const vector<Precursor> &precursor = current_ms2.getPrecursors();
+        const std::vector<Precursor> &precursor = current_ms2.getPrecursors();
 
         // get m/z and intensity of precursor
         if (precursor.empty())
@@ -235,11 +234,11 @@ namespace OpenMS
             // extract precursor isotope pattern via C13 isotope distance
             if (feature_id != 0 && feature_charge != 0)
             {
-              isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, feature_charge);
+              isotopes = SiriusMSFile::extractPrecursorIsotopePattern_(test_mz, precursor_spectrum, interations, feature_charge);
             }
             else
             {
-              isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, precursor_charge);
+              isotopes = SiriusMSFile::extractPrecursorIsotopePattern_(test_mz, precursor_spectrum, interations, precursor_charge);
             }
             for (Size i = 0; i < precursor_spectrum.size(); ++i)
             {

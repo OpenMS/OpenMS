@@ -46,7 +46,7 @@ namespace OpenMS
   {
 public:
 
-  // struct to store information about accessions
+  ///< class to store information about accessions
   class AccessionInfo
   {
   public:
@@ -58,8 +58,8 @@ public:
     String native_id_type; ///< nativeID type for mztab-m
   };
 
-  // struct to store the compound information
-  // can be used to map compound and fragment annotated spectrum later on
+  ///< class to store the compound information
+  ///< needed for the mapping of compound and fragment annotated spectrum
   class CompoundInfo
   {
   public:
@@ -121,7 +121,7 @@ public:
 
     @param os: stream
     @param spectra: spectra
-    @param ms2_spectra_index: vector of index ms2 spectra (in feautre)
+    @param ms2_spectra_index: vector of index ms2 spectra (in feature)
     @param ainfo: accession information
     @param adducts: vector of adducts
     @param v_description: vector of descriptions
@@ -159,6 +159,35 @@ public:
                              int& count_assume_mono,
                              int& count_no_ms1,
                              std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
+
+
+
+    /**
+    @brief Find highest intensity peak in near a mz to test in within a margin of error
+
+    @param test_mz: Mass-to-charge to test
+    @param spectrum: Spectrum to test
+    @param tolerance: Tolerance window (e.g. 10)
+    @param ppm: Unit of tolerance window either ppm or Da
+    */
+    static Int getHighestIntensityPeakInMZRange_(double test_mz,
+                                                 const MSSpectrum& spectrum,
+                                                 double tolerance,
+                                                 bool ppm);
+
+    /**
+    @brief Extract precursor isotope pattern if no feature information is available
+    based on C12C13 distance.
+
+    @param precursor_mz: Precursor mass-to-charge
+    @param precursor_spectrum: Precursor spectrum
+    @param iterations: Number of isotopes, which are tried to be extracted
+    @param charge: Charge of the precursor
+    */
+    static std::vector<Peak1D> extractPrecursorIsotopePattern_(const double& precursor_mz,
+                                                               const MSSpectrum& precursor_spectrum,
+                                                               int& iterations,
+                                                               const int& charge);
 
 
 
