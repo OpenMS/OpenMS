@@ -13,11 +13,14 @@
     <height>522</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>Select items from a filterable list ...</string>
   </property>
   <property name="modal">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -29,6 +32,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>double-click an item to move it to the left</string>
        </property>
       </widget>
      </item>
@@ -67,6 +73,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>move all selected items from left to right</string>
+        </property>
         <property name="text">
          <string>&gt;&gt;</string>
         </property>
@@ -79,6 +88,9 @@
           <width>61</width>
           <height>23</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>move all selected items from right to left</string>
         </property>
         <property name="text">
          <string>&lt;&lt;</string>
@@ -93,6 +105,9 @@
           <height>23</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>move all items from left to right</string>
+        </property>
         <property name="text">
          <string>&gt; ALL &gt;</string>
         </property>
@@ -105,6 +120,9 @@
           <width>61</width>
           <height>23</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>move all items from right to left</string>
         </property>
         <property name="text">
          <string>&lt; ALL &lt;</string>
@@ -125,6 +143,12 @@
          <width>200</width>
          <height>400</height>
         </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>double-click an item to move it to the right</string>
        </property>
       </widget>
      </item>
