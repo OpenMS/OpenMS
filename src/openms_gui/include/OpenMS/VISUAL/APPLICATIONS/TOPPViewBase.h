@@ -45,8 +45,8 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
 
 //STL
@@ -81,9 +81,9 @@ namespace OpenMS
   class LogWindow;
   class LayerListView;
   class MultiGradientSelector;
-  class Spectrum1DWidget;
-  class Spectrum2DWidget;
-  class Spectrum3DWidget;
+  class Plot1DWidget;
+  class Plot2DWidget;
+  class Plot3DWidget;
   class ToolsDialog;
 
   /**
@@ -156,6 +156,16 @@ public:
     ///Destructor
     ~TOPPViewBase() override;
 
+
+    enum class LOAD_RESULT
+    {
+      OK,
+      FILE_NOT_FOUND,       ///< file did not exist
+      FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined                                                
+      FILETYPE_UNSUPPORTED, ///< filetype is known, but the format not supported as layer data
+      LOAD_ERROR            ///< an error occured while loading the file
+    };
+
     /**
       @brief Opens and displays data from a file
 
@@ -168,7 +178,7 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    LOAD_RESULT addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /**
       @brief Adds a peak or feature map to the viewer
@@ -213,36 +223,39 @@ public:
     /// Stores the preferences (used when this window is closed)
     void savePreferences();
 
-    /// Returns the parameters for a SpectrumCanvas of dimension @p dim
+    /// Returns the parameters for a PlotCanvas of dimension @p dim
     Param getSpectrumParameters(UInt dim);
 
     /// Returns the active Layer data (0 if no layer is active)
     const LayerData* getCurrentLayer() const;
 
+    /// Returns the active Layer data (0 if no layer is active)
+    LayerData* getCurrentLayer();
+
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
     //@{
-    /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
+    /// returns a pointer to the EnhancedWorkspace containing PlotWidgets
     EnhancedWorkspace* getWorkspace();
 
-    /// returns a pointer to the active SpectrumWidget (0 if none is active)
-    SpectrumWidget* getActiveSpectrumWidget() const;
+    /// returns a pointer to the active PlotWidget (0 if none is active)
+    PlotWidget* getActivePlotWidget() const;
 
-    /// returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
-    Spectrum1DWidget* getActive1DWidget() const;
+    /// returns a pointer to the active Plot1DWidget (0 the active window is no Plot1DWidget or there is no active window)
+    Plot1DWidget* getActive1DWidget() const;
 
-    /// returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum2DWidget* getActive2DWidget() const;
+    /// returns a pointer to the active Plot2DWidget (0 the active window is no Plot2DWidget or there is no active window)
+    Plot2DWidget* getActive2DWidget() const;
 
-    /// returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum3DWidget* getActive3DWidget() const;
+    /// returns a pointer to the active Plot3DWidget (0 the active window is no Plot2DWidget or there is no active window)
+    Plot3DWidget* getActive3DWidget() const;
     //@}
 
-    /// returns a pointer to the active SpectrumCanvas (0 if none is active)
-    SpectrumCanvas* getActiveCanvas() const;
+    /// returns a pointer to the active PlotCanvas (0 if none is active)
+    PlotCanvas* getActiveCanvas() const;
 
     /// Opens the provided spectrum widget in a new window
-    void showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption);
+    void showPlotWidgetInWindow(PlotWidget* sw, const String& caption);
 
 public slots:
     /// changes the current path according to the currently active window/layer
@@ -300,6 +313,8 @@ public slots:
     void annotateWithAMS();
     /// Annotates current layer with ID data
     void annotateWithID();
+    /// Annotates current chromatogram layer with ID data
+    void annotateWithOSW();
     /// Shows the theoretical spectrum generation dialog
     void showSpectrumGenerationDialog();
     /// Shows the spectrum alignment dialog

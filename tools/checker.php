@@ -1026,7 +1026,7 @@ foreach ($files_todo as $f)
   {
     // don't report e.g. abstract base classes
     $dont_report = array(
-      "src/openms/include/OpenMS/VISUAL/SpectrumCanvas.h",
+      "src/openms/include/OpenMS/VISUAL/PlotCanvas.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "src/openms/include/OpenMS/APPLICATIONS/TOPPASBase.h",
       "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",

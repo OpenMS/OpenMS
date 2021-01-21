@@ -83,7 +83,7 @@ namespace OpenMS
     /// D'tor
     ~ExternalProcess();
 
-    /// re-wire the callbacks used using run()
+    /// re-wire the callbacks used during run()
     void setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr);
 
     /**

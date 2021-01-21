@@ -729,14 +729,10 @@ namespace OpenMS
         }
         pep_id.setScoreType("Posterior Probability");
         pep_id.setHigherScoreBetter(true);
-        //TODO remove hits "on-the-go"?
-        IDFilter::removeMatchingItems(pep_id.getHits(),
-                                      [&probability_cutoff](PeptideHit &hit)
-                                      { return hit.getScore() < probability_cutoff; });
       }
       else
       {
-        if (score_l != "Posterior Probability")
+        if (score_l != "posterior probability")
         {
           throw OpenMS::Exception::InvalidParameter(
               __FILE__,
@@ -746,6 +742,10 @@ namespace OpenMS
               " or run IDPosteriorErrorProbability first.");
         }
       }
+      //TODO remove hits "on-the-go"?
+      IDFilter::removeMatchingItems(pep_id.getHits(),
+                                    [&probability_cutoff](PeptideHit &hit)
+                                    { return hit.getScore() < probability_cutoff; });
       //}
     };
   }

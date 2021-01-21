@@ -165,13 +165,24 @@ public:
     Size findModificationIndex(const String& mod_name) const;
 
     /**
-       @brief Collects all modifications with matching delta mass
+       @brief Collects all modifications with delta mass inside a tolerance window
+       @warning This function adds the results in the order of appearance in the DB, not considering proximity in mass. Use searchModificationsByDiffMonoMassSorted for this.
 
        If @p residue is set, only modifications with matching residue of origin are considered.
        If @p term_spec is set, only modifications with matching term specificity are considered.
     */
     void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
     void searchModificationsByDiffMonoMass(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+
+    /**
+     @brief Collects all modifications with delta mass inside a tolerance window and adds them sorted
+     by mass difference
+
+     If @p residue is set, only modifications with matching residue of origin are considered.
+     If @p term_spec is set, only modifications with matching term specificity are considered.
+    */
+    void searchModificationsByDiffMonoMassSorted(std::vector<String>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
+    void searchModificationsByDiffMonoMassSorted(std::vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
 
     /** @brief Returns the best matching modification for the given delta mass and residue

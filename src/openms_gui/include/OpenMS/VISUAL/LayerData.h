@@ -38,9 +38,10 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -55,8 +56,13 @@
 #include <vector>
 #include <bitset>
 
+class QWidget;
+
 namespace OpenMS
 {
+
+  class OnDiscMSExperiment;
+  class OSWData;
 
   /**
   @brief Class that stores the data for one layer
@@ -81,10 +87,10 @@ namespace OpenMS
   Persistent changes can be applied to getPeakDataMuteable() and will be
   available on the next cache update.
 
-  @note Layer is mainly used as a member variable of SpectrumCanvas which holds
+  @note Layer is mainly used as a member variable of PlotCanvas which holds
   a vector of LayerData objects.
 
-  @ingroup SpectrumWidgets
+  @ingroup PlotWidgets
   */
   class OPENMS_GUI_DLLAPI LayerData
   {
@@ -157,37 +163,13 @@ public:
     /// SharedPtr on On-Disc MSExperiment
     typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
+    /// SharedPtr on OSWData
+    typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+
     //@}
 
     /// Default constructor
-    LayerData() :
-      flags(),
-      visible(true),
-      flipped(false),
-      type(DT_UNKNOWN),
-      name_(),
-      filename(),
-      peptides(),
-      param(),
-      gradient(),
-      filters(),
-      annotations_1d(),
-      peak_colors_1d(),
-      modifiable(false),
-      modified(false),
-      label(L_NONE),
-      peptide_id_index(-1),
-      peptide_hit_index(-1),
-      features_(new FeatureMapType()),
-      consensus_map_(new ConsensusMapType()),
-      peak_map_(new ExperimentType()),
-      on_disc_peaks(new OnDiscMSExperiment()),
-      chromatogram_map_(new ExperimentType()),
-      current_spectrum_(0),
-      cached_spectrum_()
-    {
-      annotations_1d.resize(1);
-    }
+    LayerData();
 
     /// no Copy-ctor (should not be needed)
     LayerData(const LayerData& ld) = delete;
@@ -279,6 +261,17 @@ public:
       return chromatogram_map_;
     }
 
+    /// get annotation (e.g. to build a hierachical ID View)
+    /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+    OSWDataSharedPtrType& getChromatogramAnnotation();
+
+    /// get annotation (e.g. to build a hierachical ID View)
+    /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
+    const OSWDataSharedPtrType& getChromatogramAnnotation() const;
+
+    /// add annotation from an OSW sqlite file.
+    void setChromatogramAnnotation(OSWData&& data);
+
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
@@ -323,20 +316,7 @@ public:
     }
 
     /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
-    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
-    {
-      if (spectrum_idx == current_spectrum_) return cached_spectrum_;
-
-      if ((*peak_map_)[spectrum_idx].size() > 0)
-      {
-        return (*peak_map_)[spectrum_idx];
-      }
-      else if (!on_disc_peaks->empty())
-      {
-        return on_disc_peaks->getSpectrum(spectrum_idx);
-      }
-      return (*peak_map_)[spectrum_idx];
-    }
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const;
       
     /// Get the index of the current spectrum (1D view)
     Size getCurrentSpectrumIndex() const
@@ -349,6 +329,18 @@ public:
     {
       current_spectrum_ = index;
       updateCache_();
+    }
+
+
+    /// get the full chromExperiment
+    /// Could be backed up in layer.getChromatogramData() (if layer.getPeakDataMuteable() shows converted chroms already)
+    /// ... or layer.getChromatogramData() is empty and thus layer.getPeakDataMuteable() is the original chrom data
+    ExperimentSharedPtrType getFullChromData()
+    {
+      ExperimentSharedPtrType exp_sptr(getChromatogramData().get() == nullptr ||
+          getChromatogramData().get()->getNrChromatograms() == 0
+             ? getPeakDataMuteable() : getChromatogramData());
+      return exp_sptr;
     }
 
     /// Check whether the current layer should be represented as ion mobility
@@ -511,6 +503,9 @@ private:
     /// chromatogram data
     ExperimentSharedPtrType chromatogram_map_;
 
+    /// Chromatogram annotation data
+    OSWDataSharedPtrType chrom_annotation_;
+
     /// Index of the current spectrum
     Size current_spectrum_;
 
@@ -519,6 +514,7 @@ private:
   };
 
   /// A base class to annotate layers of specific types with (identification) data
+  /// @hint Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView 
   class LayerAnnotatorBase
   {
     public:
@@ -527,14 +523,28 @@ private:
         
         @param supported_types Which identification data types are allowed to be opened by the user in annotate()
         @param file_dialog_text The header text of the file dialog shown to the user
+        @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
-      LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text);
+      LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
       
       /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
       /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
       /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
       /// as implemented by the derived classes
-      bool annotate(LayerData& layer, LogWindow& log, const String& current_path) const;
+      bool annotateWithFileDialog(LayerData& layer, LogWindow& log, const String& current_path) const;
+
+      /// Annotates a @p layer, given a filename from which to load the data.
+      /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
+      /// as implemented by the derived classes
+      bool annotateWithFilename(LayerData& layer, LogWindow& log, const String& filename) const;
+
+      /// get a derived annotator class, which supports annotation of the given filetype.
+      /// If multiple class support this type (currently not the case) an Exception::IllegalSelfOperation will be thrown
+      /// If NO class supports this type, the unique_ptr points to nothing (.get() == nullptr).
+      static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const FileTypes::Type& type);
+
+      /// see getAnnotatorWhichSupports(const FileTypes::Type& type). Filetype is queried from filename
+      static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const String& filename);
 
     protected:
       /// abstract virtual worker function to annotate a layer using content from the @p filename
@@ -543,6 +553,7 @@ private:
       
       const FileTypes::FileTypeList supported_types_;
       const String file_dialog_text_;
+      QWidget* gui_lock_ = nullptr; ///< optional widget which will be locked when calling annotateWorker_() in child-classes
   };
 
   /// Annotate a layer with PeptideIdentifications using Layer::annotate(pepIDs, protIDs).
@@ -551,9 +562,9 @@ private:
     : public LayerAnnotatorBase
   {
     public:
-      LayerAnnotatorPeptideID()
+      LayerAnnotatorPeptideID(QWidget* gui_lock)
        : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::IDXML, FileTypes::MZIDENTML },
-                            "Select peptide identification data")
+                            "Select peptide identification data", gui_lock)
       {}
 
   protected:
@@ -568,14 +579,31 @@ private:
     : public LayerAnnotatorBase
   {
   public:
-    LayerAnnotatorAMS()
+    LayerAnnotatorAMS(QWidget* gui_lock)
       : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::FEATUREXML },
-                           "Select AccurateMassSearch's featureXML file")
+                           "Select AccurateMassSearch's featureXML file", gui_lock)
     {}
 
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
+    virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
+  };
+  
+  /// Annotate a chromatogram layer with ID data (from an OSW sqlite file as produced by OpenSwathWorkflow or pyProphet).
+  /// The OSWData is loaded from a file selected by the user via a file-dialog.
+  class LayerAnnotatorOSW
+    : public LayerAnnotatorBase
+  {
+  public:
+    LayerAnnotatorOSW(QWidget* gui_lock)
+      : LayerAnnotatorBase(std::vector<FileTypes::Type>{ FileTypes::OSW },
+                           "Select OpenSwath/pyProphet output file", gui_lock)
+    {}
+
+  protected:
+    /// loads the OSWData from @p filename and stores the data using Layer::setChromatogramAnnotation()
+    /// Always returns true (unless an exception is thrown from internal sub-functions)
     virtual bool annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const;
   };
 

@@ -469,8 +469,12 @@ namespace OpenMS
     return solver_;
   }
 
+#if COINOR_SOLVER == 1
+  void LPWrapper::readProblem(const String& filename, const String& /*format*/)
+#else
   void LPWrapper::readProblem(const String& filename, const String& format) // format=(LP,MPS,GLPK)
-  {
+#endif
+{
 #if COINOR_SOLVER == 1
     // delete old model and create a new model in its place (using same ptr)
     delete model_;
@@ -526,13 +530,11 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::solve(SolverParam& solver_param, const Size
 #if COINOR_SOLVER == 1
-                       verbose_level
+  Int LPWrapper::solve(SolverParam& /*solver_param*/, const Size verbose_level)
 #else
-                       /* verbose_level */
+  Int LPWrapper::solve(SolverParam& solver_param, const Size /*verbose_level*/)
 #endif
-                       )
   {
     OPENMS_LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
 #if COINOR_SOLVER == 1

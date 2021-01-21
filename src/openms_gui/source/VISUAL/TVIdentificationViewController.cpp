@@ -42,14 +42,15 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
 
 
 #include <boost/range/adaptor/reversed.hpp>
@@ -63,19 +64,19 @@ using namespace std;
 
 namespace OpenMS
 {
-  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view) :
+  TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view) :
     TVControllerBase(parent),
     spec_id_view_(spec_id_view)
   {
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int index)
   {
     // Show spectrum "index" without selecting an identification
-    showSpectrumAs1D(index, -1, -1);
+    showSpectrumAsNew1D(index, -1, -1);
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
@@ -85,7 +86,7 @@ namespace OpenMS
     if (layer.type == LayerData::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
-      Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
+      Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
 
       // add data and return if something went wrong
       if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
@@ -97,21 +98,21 @@ namespace OpenMS
       w->canvas()->activateSpectrum(spectrum_index);
 
       // set relative (%) view of visible area
-      w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+      w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
       // for MS1 spectra set visible area to visible area in 2D view.
       UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
       if (ms_level == 1)
       {
         // set visible area to visible area in 2D view
-        SpectrumCanvas::AreaType a = tv_->getActiveCanvas()->getVisibleArea();
+        PlotCanvas::AreaType a = tv_->getActiveCanvas()->getVisibleArea();
         w->canvas()->setVisibleArea(a);
       }
 
       String caption = layer.getName();
       w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
-      tv_->showSpectrumWidgetInWindow(w, caption);
+      tv_->showPlotWidgetInWindow(w, caption);
 
       ///////////////////////////////////////////////////////////////////////////////
       // Visualisation of ID data
@@ -176,14 +177,9 @@ namespace OpenMS
 
     // mass precision to match a peak's m/z to a feature m/z
     // m/z values of features are usually an average over multiple scans...
-    double ppm = 0.5;
+    constexpr double ppm = 0.5;
 
-    vector<QColor> cols;
-    cols.push_back(Qt::blue);
-    cols.push_back(Qt::green);
-    cols.push_back(Qt::red);
-    cols.push_back(Qt::gray);
-    cols.push_back(Qt::darkYellow);
+    vector<QColor> cols{ Qt::blue, Qt::green, Qt::red, Qt::gray, Qt::darkYellow };
 
     if (!current_layer.getCurrentSpectrum().isSorted())
     {
@@ -288,7 +284,7 @@ namespace OpenMS
     int peptide_id_index,
     int peptide_hit_index)
   {
-    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
+    Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
     if (widget_1D == nullptr) { return; }
@@ -893,7 +889,7 @@ namespace OpenMS
 
   void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
-    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
+    PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
@@ -972,7 +968,7 @@ namespace OpenMS
     if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !spectrum.getStringDataArrays().empty())
     {
       // Ensure theoretical spectrum is drawn as dashed sticks
-      tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+      tv_->setDrawMode1D(Plot1DCanvas::DM_PEAKS);
       tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
 
       // Add ion names as annotations to the theoretical spectrum
@@ -1082,7 +1078,7 @@ namespace OpenMS
 
   void TVIdentificationViewController::removeGraphicalPeakAnnotations_(int spectrum_index)
   {
-    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
+    Plot1DWidget* widget_1D = tv_->getActive1DWidget();
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -1106,7 +1102,7 @@ namespace OpenMS
   void TVIdentificationViewController::deactivate1DSpectrum(int spectrum_index)
   {
     // Retrieve active 1D widget
-    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
+    Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // Return if none present
     if (widget_1D == nullptr) return;
@@ -1147,7 +1143,7 @@ namespace OpenMS
       if (hit.metaValueExists("label")) seq = hit.getMetaValue("label");
     }
 
-    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
+    PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
     const MSSpectrum& current_spectrum = current_layer.getCurrentSpectrum();
 
@@ -1261,10 +1257,10 @@ namespace OpenMS
 
   void TVIdentificationViewController::removeTheoreticalSpectrumLayer_()
   {
-    Spectrum1DWidget* spectrum_widget_1D = tv_->getActive1DWidget();
+    Plot1DWidget* spectrum_widget_1D = tv_->getActive1DWidget();
     if (spectrum_widget_1D)
     {
-      Spectrum1DCanvas* canvas_1D = spectrum_widget_1D->canvas();
+      Plot1DCanvas* canvas_1D = spectrum_widget_1D->canvas();
 
       // Find the automatically generated layer with theoretical spectrum and remove it and the associated alignment.
       // before activating the next normal spectrum
@@ -1286,10 +1282,10 @@ namespace OpenMS
   // override
   void TVIdentificationViewController::activateBehavior() 
   {
-    Spectrum1DWidget* w = tv_->getActive1DWidget();
+    Plot1DWidget* w = tv_->getActive1DWidget();
     if (w == nullptr) return;
 
-    SpectrumCanvas* current_canvas = w->canvas();
+    PlotCanvas* current_canvas = w->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
@@ -1315,7 +1311,7 @@ namespace OpenMS
   // override
   void TVIdentificationViewController::deactivateBehavior()
   {
-    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
+    Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
     if (widget_1D == nullptr) return;
@@ -1334,7 +1330,7 @@ namespace OpenMS
 
   void TVIdentificationViewController::setVisibleArea1D(double l, double h)
   {
-    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
+    Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
     if (widget_1D == nullptr) return;
