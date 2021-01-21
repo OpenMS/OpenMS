@@ -121,13 +121,11 @@ protected:
       bool exists_(QString name, QModelIndex index) const;
 
 private slots:
-      ///For closing ListEditor and updating ParamEditor
-      void commitAndCloseListEditor_();
-      ///For closing QcomboBox and updating ParamEditor
-      void commitAndCloseComboBox_();
-      ///if cancel in ListEditor is clicked Dialog is closed and changes are rejected
-      void closeListEditor_();
-      /// ...
+      ///For closing any editor and updating ParamEditor
+      void commitAndCloseEditor_();
+      ///if cancel in any editor is clicked, the Dialog is closed and changes are rejected
+      void closeEditor_();
+      /// ... a bit special, because reset uncommited data
       void commitAndCloseLineEdit_();
 private:
       /// Not implemented

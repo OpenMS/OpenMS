@@ -5,6 +5,7 @@ set(directory include/OpenMS/VISUAL/MISC)
 set(sources_list_h
 CommonDefs.h
 ExternalProcessMBox.h
+GenericListFilter.h
 GUIHelpers.h
 )
 
