@@ -65,7 +65,7 @@ START_SECTION(~DiaPrescore())
 END_SECTION
 
 
-START_SECTION ( testscorefunction)
+START_SECTION ( test score function missing first transition )
 {
 
   OpenSwath::LightTransition mock_tr1;
@@ -132,12 +132,12 @@ START_SECTION ( testscorefunction)
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.649257055562646)
-  TEST_REAL_SIMILAR(manhattan, 0.99470376511618)
+  TEST_REAL_SIMILAR(dotprod, 0.641641982016099)
+  TEST_REAL_SIMILAR(manhattan, 0.984211129641047)
 }
 END_SECTION
 
-START_SECTION ( testscorefunction)
+START_SECTION ( test score function with shifted first transition )
 {
 
   OpenSwath::LightTransition mock_tr1;
@@ -204,8 +204,8 @@ START_SECTION ( testscorefunction)
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.649257055562646)
-  TEST_REAL_SIMILAR(manhattan, 0.99470376511618)
+  TEST_REAL_SIMILAR(dotprod, 0.71580358816274)
+  TEST_REAL_SIMILAR(manhattan, 0.557433222328531)
 }
 END_SECTION
 

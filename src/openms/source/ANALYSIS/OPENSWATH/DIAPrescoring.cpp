@@ -159,13 +159,13 @@ namespace OpenMS
       chg = 1.;
       if (transition.fragment_charge != 0) chg = transition.fragment_charge;
       DIAHelpers::addPreisotopeWeights(transition.getProductMZ(), spectrumWIso, nrNegPeaks, 0.0,
-                                       1.000482,// should be Constants::C13C12_MASSDIFF_U,
+                                       Constants::C13C12_MASSDIFF_U,
                                        chg);
       DIAHelpers::addPreisotopeWeights(transition.getProductMZ(),
                                        spectrumWIsoNegPreIso,
                                        nrNegPeaks,
                                        -totalNegWeight / (double(lt.size() * nrNegPeaks)),
-                                       1.000482,// should be Constants::C13C12_MASSDIFF_U,
+                                       Constants::C13C12_MASSDIFF_U,
                                        chg);
     }
     //sort by mz
@@ -200,13 +200,14 @@ namespace OpenMS
     std::vector<double> intTheorNeg;
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights in earlier versions! Was this a bug?
     // Otherwise we dont need the second spectrum at all.
-    DIAHelpers::extractSecond(spectrumWIso, intTheorNeg);
+    DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheorNeg);
     // Sqrt does not work if we actually have negative values
-    std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());
-    // intExp is normalized already
+    //std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());
     double intTheorNegEuclidNorm = OpenSwath::norm(intTheorNeg.begin(), intTheorNeg.end()); // use Euclidean norm since we have negative values
     OpenSwath::normalize(intTheorNeg, intTheorNegEuclidNorm, intTheorNeg);
-    double intExpEuclidNorm = OpenSwath::norm(intExp.begin(), intExp.end()); // reapply Euclidean norm to Manhattan normed exp. Intensities to use the same normalization for dotprod
+
+    // intExp is normalized already but we can normalize again with euclidean norm to have the same norm (not sure if it makes much of a difference)
+    double intExpEuclidNorm = OpenSwath::norm(intExp.begin(), intExp.end());
     OpenSwath::normalize(intExp, intExpEuclidNorm, intExp);
 
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheorNeg.begin());

@@ -254,22 +254,23 @@ namespace OpenMS
 
     void  getAveragineIsotopeDistribution(const double product_mz,
                                          std::vector<std::pair<double, double> >& isotopes_spec,
-                                         const int charge,
+                                         int charge,
                                          const int nr_isotopes,
                                          const double mannmass)
     {
+      charge = std::abs(charge);
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
       //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compat.
-      auto d = solver.estimateFromPeptideWeight(std::fabs(product_mz * charge));
+      auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
         isotopes_spec.emplace_back(mass, it->getIntensity());
-        mass += mannmass;
+        mass += mannmass / charge;
       }
     } //end of dia_isotope_corr_sub
 
