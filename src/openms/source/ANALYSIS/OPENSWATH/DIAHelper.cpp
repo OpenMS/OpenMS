@@ -290,13 +290,13 @@ namespace OpenMS
     /// given an experimental spectrum add isotope pattern.
     void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
                           std::vector<std::pair<double, double> >& isotope_masses, //[out]
-                          Size nrIsotopes, int charge)
+                          Size nr_isotopes, int charge)
     {
 
       for (std::size_t i = 0; i < spec.size(); ++i)
       {
         std::vector<std::pair<double, double> > isotopes;
-        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge, nrIsotopes);
+        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge, nr_isotopes);
         for (Size j = 0; j < isotopes.size(); ++j)
         {
           isotopes[j].second *= spec[i].second; //multiple isotope intensity by spec intensity
