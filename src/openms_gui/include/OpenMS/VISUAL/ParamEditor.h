@@ -117,7 +117,6 @@ signals:
       void modified(bool) const;
 
 protected:
-
       /// a shortcut to calling commit(), which calls setModelData(); useful for embedded editors, but not for QDialogs etc
       bool eventFilter(QObject* editor, QEvent* event) override;
   
@@ -131,6 +130,7 @@ private slots:
       void closeEditor_();
       /// ... a bit special, because reset uncommited data
       void commitAndCloseLineEdit_();
+
 private:
       /// Not implemented
       ParamEditorDelegate();

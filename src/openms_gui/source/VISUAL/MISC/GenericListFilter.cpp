@@ -82,7 +82,7 @@ namespace OpenMS
     void GenericListFilter::removeBlackListItems(const QStringList& outdated_blacklist_items)
     {
       // quadratic runtime, but maintains order of items (as opposed to converting to set)
-      for (auto bl : outdated_blacklist_items.toSet())
+      for (const auto& bl : outdated_blacklist_items.toSet())
       {
         if (blacklist_.remove(bl) == 0)
         {
@@ -95,7 +95,7 @@ namespace OpenMS
     QStringList GenericListFilter::getSelectedItems() const
     {
       QStringList items;
-      for (auto item : ui_->list_items->selectedItems()) items << item->text();
+      for (const auto& item : ui_->list_items->selectedItems()) items << item->text();
       return items;
     }
 
@@ -118,7 +118,7 @@ namespace OpenMS
     {
       items_wo_bl_ = items_;
       // quadratic runtime, but maintains order of items (as opposed to converting to set)
-      for (auto bl : blacklist_)
+      for (const auto& bl : blacklist_)
       {
         if (items_wo_bl_.removeAll(bl) == 0)
         {

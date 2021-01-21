@@ -146,7 +146,7 @@ public:
     {
       StringList out;
       out.reserve(s.size());
-      for (const auto elem : s) out.push_back(elem);
+      for (const auto& elem : s) out.push_back(elem);
       return out;
     }
 
