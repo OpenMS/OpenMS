@@ -72,7 +72,7 @@ namespace OpenMS
       FeatureHypothesis(const FeatureHypothesis& fh):
           charge_(fh.charge_),
           iso_pattern_traces_(fh.iso_pattern_traces_),
-          iso_mass_diff_(fh.iso_mass_diff_),
+//          iso_mass_diff_(fh.iso_mass_diff_),
           feat_score_(fh.feat_score_)
       {
       }
@@ -85,7 +85,7 @@ namespace OpenMS
 
         charge_ = fh.charge_;
         iso_pattern_traces_ = fh.iso_pattern_traces_;
-        iso_mass_diff_ = fh.iso_mass_diff_;
+//        iso_mass_diff_ = fh.iso_mass_diff_;
         feat_score_ = fh.feat_score_;
         return *this;
       }
@@ -218,15 +218,15 @@ namespace OpenMS
         return iso_pattern_traces_;
       }
 
-      double getIsoMassDiff() const
-      {
-        return iso_mass_diff_;
-      }
+//      double getIsoMassDiff() const
+//      {
+//        return iso_mass_diff_;
+//      }
 
-      void setIsoMassDiff(double& diff)
-      {
-        iso_mass_diff_ = diff;
-      }
+//      void setIsoMassDiff(double& diff)
+//      {
+//        iso_mass_diff_ = diff;
+//      }
 
 //      std::vector<ConvexHull2D> getConvexHulls() const;
 //      std::vector< OpenMS::MSChromatogram > getChromatograms(UInt64 feature_id) const;
@@ -240,7 +240,7 @@ namespace OpenMS
     private:
       SignedSize charge_;
       vector<const MassTrace*> iso_pattern_traces_;
-      double iso_mass_diff_;
+//      double iso_mass_diff_;
       double feat_score_;
     };
 
@@ -263,11 +263,11 @@ namespace OpenMS
       /// L2 norms for masses
       std::vector<double> norms;
       /// mass differences between average mass and monoisotopic mass
-      std::vector<double> averageMassDelta;
+//      std::vector<double> averageMassDelta;
       /// Isotope start indices: isotopes of the indices less than them have very low intensities
-      std::vector<Size> isotopeStartIndices;
+//      std::vector<Size> isotopeStartIndices;
       /// Isotope end indices: isotopes of the indices larger than them have very low intensities
-      std::vector<Size> isotopeEndIndices;
+//      std::vector<Size> isotopeEndIndices;
       /// max isotope index
       int maxIsotopeIndex;
 
@@ -326,7 +326,7 @@ namespace OpenMS
             mostAbundantIndex = k;
           }
 
-          Size leftIndex = mostAbundantIndex;
+//          Size leftIndex = mostAbundantIndex;
           for (Size k = 0; k <= mostAbundantIndex; k++)
           {
             if (iso[k].getIntensity() > mostAbundantInt * factor)
@@ -334,26 +334,23 @@ namespace OpenMS
               break;
             }
             norm -= iso[k].getIntensity() * iso[k].getIntensity();
-            leftIndex--;
+//            leftIndex--;
             iso[k].setIntensity(0);
           }
 
-          Size rightIndex = iso.size() - 1 - mostAbundantIndex;
-          for (Size k = iso.size() - 1; k >= mostAbundantIndex; k--)
-          {
-            if (iso[k].getIntensity() > mostAbundantInt * factor)
-            {
-              break;
-            }
-            norm -= iso[k].getIntensity() * iso[k].getIntensity();
-            rightIndex--;
-            iso[k].setIntensity(0);
-          }
+//          Size rightIndex = iso.size() - 1 - mostAbundantIndex;
+//          for (Size k = iso.size() - 1; k >= mostAbundantIndex; k--)
+//          {
+//            if (iso[k].getIntensity() > mostAbundantInt * factor)
+//            {
+//              break;
+//            }
+//            norm -= iso[k].getIntensity() * iso[k].getIntensity();
+//            rightIndex--;
+//            iso[k].setIntensity(0);
+//          }
 
-          iso.renormalize(); // to keep isotopes
-          isotopeEndIndices.push_back(rightIndex);
-          isotopeStartIndices.push_back(leftIndex);
-          averageMassDelta.push_back(iso.averageMass() - iso[0].getMZ());
+//          iso.renormalize(); // to keep isotopes?
           norms.push_back(norm);
           isotopes.push_back(iso);
         }
@@ -388,28 +385,28 @@ namespace OpenMS
       }
 
       /// get isotope start index
-      Size getIsotopeStartIndex(double mass) const
-      {
-        Size i = (Size) (.5 + (mass - minMass) / massInterval);
-        i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-        return isotopeStartIndices[i];
-      }
+//      Size getIsotopeStartIndex(double mass) const
+//      {
+//        Size i = (Size) (.5 + (mass - minMass) / massInterval);
+//        i = i >= isotopes.size() ? isotopes.size() - 1 : i;
+//        return isotopeStartIndices[i];
+//      }
 
       /// get isotope end index
-      Size getIsotopeEndIndex(double mass) const
-      {
-        Size i = (Size) (.5 + (mass - minMass) / massInterval);
-        i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-        return isotopeEndIndices[i];
-      }
+//      Size getIsotopeEndIndex(double mass) const
+//      {
+//        Size i = (Size) (.5 + (mass - minMass) / massInterval);
+//        i = i >= isotopes.size() ? isotopes.size() - 1 : i;
+//        return isotopeEndIndices[i];
+//      }
 
       /// get mass difference between avg and mono masses
-      double getAverageMassDelta(double mass) const
-      {
-        Size i = (Size) (.5 + (mass - minMass) / massInterval);
-        i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-        return averageMassDelta[i];
-      }
+//      double getAverageMassDelta(double mass) const
+//      {
+//        Size i = (Size) (.5 + (mass - minMass) / massInterval);
+//        i = i >= isotopes.size() ? isotopes.size() - 1 : i;
+//        return averageMassDelta[i];
+//      }
 
     };
 
@@ -434,9 +431,19 @@ namespace OpenMS
 
     double scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const;
 
-    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
+    // TODO: based on getCosine from FLASHDeconvAlgorithm
+    double computeCosineSimOfDiffSizedVector_(const std::vector<double>& a,
+                                      const IsotopeDistribution& b,
+                                      const int& b_size,
+                                      const double& b_norm,
+                                      const int offset) const;
 
-    double computeAveragineSimScore_(const std::vector<double>& hypo_ints, const IsotopeDistribution& iso_dist) const;
+    double computeAveragineCosineSimScore_(const std::vector<double>& hypo_ints,
+                                           const IsotopeDistribution& iso_dist,
+                                           const double& iso_norm,
+                                           int& offset) const;
+
+    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
 
     void setAveragineModel();
 
