@@ -303,7 +303,7 @@ namespace OpenMS
         current_row_.clear();
       }
       else
-        error(LOAD, "MzQuantMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
+        error(LOAD, "MzQuantMLHandler::startElement: Unknown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
 
     void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -346,7 +346,7 @@ namespace OpenMS
         String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
         if (transcoded_chars2 != "")
-          warning(LOAD, "MzQuantMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring: " + transcoded_chars2);
+          warning(LOAD, "MzQuantMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring: " + transcoded_chars2);
       }
     }
 
@@ -503,7 +503,7 @@ namespace OpenMS
         }
       }
       else
-        warning(LOAD, String("MzQuantMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring."));
+        warning(LOAD, String("MzQuantMLHandler::endElement: Unknown element found: '" + tag_ + "', ignoring."));
     }
 
     void MzQuantMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& /* attributes */, const String& /* cv_ref */, const String& /* unit_accession */)

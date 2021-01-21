@@ -74,6 +74,7 @@ namespace OpenMS
       fingerid.parameters();
       passatutto.parameters();
 
+
       defaultsToParam_();
     }
 

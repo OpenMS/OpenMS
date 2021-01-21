@@ -9,4 +9,6 @@ Please include a summary of the change and which issue is fixed.
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Updated or added python bindings for changed or new classes. (Tick if no updates were necessary.)
 
-Note: If your PR is failing you can check out http://cdash.openms.de/index.php?project=OpenMS and look for your PR with detailed error messages.
+# How can I get additional information on failed tests during CI:
+If your PR is failing you can check out 
+- http://cdash.openms.de/index.php?project=OpenMS and look for your PR. If you click in the column that lists the failed tests you will get detailed error messages.

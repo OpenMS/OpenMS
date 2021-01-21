@@ -1090,7 +1090,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transistions."<< std::endl;
+        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transitions."<< std::endl;
       }
     }
     exp.setTransitions(transitions);
