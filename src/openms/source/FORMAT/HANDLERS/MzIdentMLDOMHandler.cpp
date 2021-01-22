@@ -2630,7 +2630,7 @@ namespace OpenMS
                         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
                         new_mod->setFullName(modification_name); // display name
 
-                        // We will set origin to make sure the same modifcation will be used
+                        // We will set origin to make sure the same modification will be used
                         // for the same AA
                         new_mod->setOrigin(residue.getOneLetterCode()[0]);
 
