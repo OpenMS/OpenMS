@@ -219,6 +219,7 @@ protected:
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     p.setValue("enzyme", "Trypsin", "Enzym used to digest the fasta proteins");
     p.setValidStrings("enzyme", all_enzymes);
+    p.setValue("missed_cleavages", 0, "Number of allowed missed cleavages while digesting the fasta proteins");
     p.setValue("min_charge", 1, "Minimum charge");
     p.setValue("max_charge", 1, "Maximum charge");
     p.setValue("precursor_charge", 0, "Manually set precursor charge. (default: 0, meaning max_charge + 1 will be used as precursor charge)");
@@ -591,11 +592,13 @@ protected:
 
         // extract parameters and remove non tsg params
         Param p = getParam_().copy("fasta_to_mzml:", true);
-        String enzym = p.getValue("enzyme");
+        String enzyme = p.getValue("enzyme");
+        Int mc = p.getValue("missed_cleavages");
         Int min_charge = p.getValue("min_charge");
         Int max_charge = p.getValue("max_charge");
         Int pc_charge = p.getValue("precursor_charge");
         p.remove("enzyme");
+        p.remove("missed_cleavages");
         p.remove("min_charge");
         p.remove("max_charge");
         p.remove("precursor_charge");
@@ -617,7 +620,8 @@ protected:
         tsg.setParameters(p);
 
         ProteaseDigestion digestor;
-        digestor.setEnzyme(enzym);
+        digestor.setEnzyme(enzyme);
+        digestor.setMissedCleavages(mc);
 
         // loop through fasta input
         FASTAFile::FASTAEntry entry;
