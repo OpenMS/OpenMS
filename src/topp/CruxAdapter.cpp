@@ -412,7 +412,7 @@ protected:
     // fill search parameters
     ProteinIdentification::SearchParameters sp;
     sp.db = getStringOption_("database");
-    //sp.charges = getIntList_("charge"); //dont know. Seems like tide doesnt support ranges and usually searches all?
+    //sp.charges = getIntList_("charge"); //dont know. Seems like tide doesn't support ranges and usually searches all?
     //TODO input options do not follow our standard so we cant just copy here
     sp.fixed_modifications = {}; //getStringList_("fixed_modifications");
     sp.variable_modifications = {}; //getStringList_("variable_modifications");

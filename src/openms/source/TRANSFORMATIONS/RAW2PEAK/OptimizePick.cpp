@@ -225,7 +225,7 @@ namespace OpenMS
   // compute Jacobian matrix for the different parameters
   int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
   {
-    std::cout << "rows: " << J.rows() << " colums: " << J.cols() << std::endl;//DEBUG
+    std::cout << "rows: " << J.rows() << " columns: " << J.cols() << std::endl;//DEBUG
     const std::vector<double> & positions = m_data->positions;
     const std::vector<PeakShape> & peaks = m_data->peaks;
     const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;

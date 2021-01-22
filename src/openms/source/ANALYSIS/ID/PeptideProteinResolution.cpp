@@ -549,7 +549,7 @@ namespace OpenMS
       if (*grp_it >= origin_groups.size())
       {
        OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
-                           "Group with index " << *grp_it << "doesnt exist. "
+                           "Group with index " << *grp_it << "doesn't exist. "
                                                              " ProteinPeptideResolution: Groups changed"
                                                              " after building data structures." << std::endl;
       }
@@ -619,7 +619,7 @@ namespace OpenMS
           if (*grp_it >= origin_groups.size())
           {
            OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
-                               "Group with index " << *grp_it << "doesnt exist. "
+                               "Group with index " << *grp_it << "doesn't exist. "
                                                                  " ProteinPeptideResolution: Groups changed"
                                                                  " after building data structures." << std::endl;
           }
@@ -721,7 +721,7 @@ namespace OpenMS
       if (*grp_it >= origin_groups.size())
       {
        OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
-                           "Group with index " << *grp_it << "doesnt exist. "
+                           "Group with index " << *grp_it << "doesn't exist. "
                                                              " ProteinPeptideResolution: Groups changed"
                                                              " after building data structures." << std::endl;
       }
