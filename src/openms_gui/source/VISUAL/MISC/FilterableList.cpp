@@ -32,11 +32,11 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/MISC/GenericListFilter.h>
+#include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <ui_GenericListFilter.h>
+#include <ui_FilterableList.h>
 
 using namespace std;
 
@@ -44,42 +44,42 @@ namespace OpenMS
 {
   namespace Internal
   {
-    GenericListFilter::GenericListFilter(QWidget *parent) :
+    FilterableList::FilterableList(QWidget *parent) :
       QWidget(parent),
-      ui_(new Ui::GenericListFilter)
+      ui_(new Ui::FilterableList)
     {
       ui_->setupUi(this);
-      connect(ui_->filter_text, &QLineEdit::textChanged, this, &GenericListFilter::filterEdited_);
+      connect(ui_->filter_text, &QLineEdit::textChanged, this, &FilterableList::filterEdited_);
       // forward double-clicked signal to outside
       connect(ui_->list_items, &QListWidget::itemDoubleClicked, [&](QListWidgetItem* item) {
         emit itemDoubleClicked(item);
       });
     }
 
-    GenericListFilter::~GenericListFilter()
+    FilterableList::~FilterableList()
     {
       delete ui_;
     }
 
-    void GenericListFilter::setItems(const QStringList& items)
+    void FilterableList::setItems(const QStringList& items)
     {
       items_ = items;
       updateInternalList_();
     }
 
-    void GenericListFilter::setBlacklistItems(const QStringList& bl_items)
+    void FilterableList::setBlacklistItems(const QStringList& bl_items)
     {
       blacklist_ = bl_items.toSet();
       updateInternalList_();
     }
 
-    void GenericListFilter::addBlackListItems(const QStringList& items)
+    void FilterableList::addBlackListItems(const QStringList& items)
     {
       blacklist_.unite(items.toSet());
       updateInternalList_();
     }
 
-    void GenericListFilter::removeBlackListItems(const QStringList& outdated_blacklist_items)
+    void FilterableList::removeBlackListItems(const QStringList& outdated_blacklist_items)
     {
       // quadratic runtime, but maintains order of items (as opposed to converting to set)
       for (const auto& bl : outdated_blacklist_items.toSet())
@@ -92,21 +92,21 @@ namespace OpenMS
       updateInternalList_();
     }
 
-    QStringList GenericListFilter::getSelectedItems() const
+    QStringList FilterableList::getSelectedItems() const
     {
       QStringList items;
       for (const auto& item : ui_->list_items->selectedItems()) items << item->text();
       return items;
     }
 
-    QStringList GenericListFilter::getAllVisibleItems() const
+    QStringList FilterableList::getAllVisibleItems() const
     {
       QStringList items;
       for (int row = 0; row < ui_->list_items->count(); ++row) items << ui_->list_items->item(row)->text();
       return items;
     }
 
-    void GenericListFilter::filterEdited_(const QString& filter_text)
+    void FilterableList::filterEdited_(const QString& filter_text)
     {
       // update list of visible items
       updateVisibleList_();
@@ -114,7 +114,7 @@ namespace OpenMS
       emit filterChanged(filter_text);
     }
 
-    void GenericListFilter::updateInternalList_()
+    void FilterableList::updateInternalList_()
     {
       items_wo_bl_ = items_;
       // quadratic runtime, but maintains order of items (as opposed to converting to set)
@@ -128,7 +128,7 @@ namespace OpenMS
       updateVisibleList_();
     }
 
-    void GenericListFilter::updateVisibleList_()
+    void FilterableList::updateVisibleList_()
     {
       QRegExp regex(ui_->filter_text->text(), Qt::CaseInsensitive, QRegExp::Wildcard);
       ui_->list_items->clear();

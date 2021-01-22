@@ -131,7 +131,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="GenericListFilter" name="list_in" native="true">
+      <widget class="FilterableList" name="list_in" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
@@ -206,9 +206,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>GenericListFilter</class>
+   <class>FilterableList</class>
    <extends>QWidget</extends>
-   <header>OpenMS/VISUAL/MISC/GenericListFilter.h</header>
+   <header>OpenMS/VISUAL/MISC/FilterableList.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

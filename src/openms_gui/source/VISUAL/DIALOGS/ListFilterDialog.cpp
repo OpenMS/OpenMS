@@ -35,7 +35,7 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/ListFilterDialog.h>
 
-#include <OpenMS/VISUAL/MISC/GenericListFilter.h>
+#include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <ui_ListFilterDialog.h>
 
@@ -61,7 +61,7 @@ namespace OpenMS
     connect(ui_->btn_right_left, &QPushButton::clicked, this, &ListFilterDialog::BtnRLClicked_);
     connect(ui_->btn_right_left_all, &QPushButton::clicked, this, &ListFilterDialog::BtnRLAllClicked_);
     // if something was double clicked, it's also selected. So just forward to '>>' button
-    connect(ui_->list_in, &GenericListFilter::itemDoubleClicked, this, &ListFilterDialog::BtnLRClicked_);
+    connect(ui_->list_in, &FilterableList::itemDoubleClicked, this, &ListFilterDialog::BtnLRClicked_);
     connect(ui_->list_out, &QListWidget::itemDoubleClicked, this, &ListFilterDialog::BtnRLClicked_);
 
     setItems(items);

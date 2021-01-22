@@ -41,7 +41,7 @@
 
 namespace Ui
 {
-  class GenericListFilter;
+  class FilterableList;
 }
 
 class QListWidgetItem;
@@ -64,14 +64,14 @@ namespace OpenMS
       To query the currently selected items, use getSelectedItems() or connect to the 'itemDoubleClicked()' signal.
 
     */
-    class GenericListFilter : public QWidget
+    class FilterableList : public QWidget
     {
         Q_OBJECT
 
     public:
       /// C'tor
-      explicit GenericListFilter(QWidget* parent);
-      ~GenericListFilter();
+      explicit FilterableList(QWidget* parent);
+      ~FilterableList();
 
       /// get the currently selected items of all visible items, i.e. must pass the filter and be selected
       QStringList getSelectedItems() const;
@@ -118,7 +118,7 @@ namespace OpenMS
       void updateVisibleList_();
 
     private:
-      Ui::GenericListFilter* ui_;
+      Ui::FilterableList* ui_;
       QStringList items_; ///< full list of items to show; when filtered only a subset is shown
       // this needs to be a Set, otherwise items might be blacklisted twice, which will lead to an Exception (because it cannot find the item on the second round)
       QSet<QString> blacklist_; ///< blacklisted items, which are never shown, even if in @p items_;
@@ -127,5 +127,5 @@ namespace OpenMS
   } // ns Internal
 } // ns OpenMS
 
-// this is required to allow parent widgets (auto UIC'd from .ui) to have a GenericListFilter member
-using GenericListFilter = OpenMS::Internal::GenericListFilter;
+// this is required to allow parent widgets (auto UIC'd from .ui) to have a FilterableList member
+using FilterableList = OpenMS::Internal::FilterableList;

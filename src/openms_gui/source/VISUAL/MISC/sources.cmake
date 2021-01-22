@@ -5,8 +5,8 @@ set(directory source/VISUAL/MISC)
 set(sources_list
 CommonDefs.cpp
 ExternalProcessMBox.cpp
-GenericListFilter.cpp
-GenericListFilter.ui
+FilterableList.cpp
+FilterableList.ui
 GUIHelpers.cpp
 )
 
