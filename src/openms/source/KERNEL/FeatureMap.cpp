@@ -456,23 +456,23 @@ namespace OpenMS
   }
 
 
-  set<IdentificationDataInternal::InputMatchRef> FeatureMap::getUnassignedInputMatches() const
+  set<IdentificationDataInternal::InputItemRef> FeatureMap::getUnassignedInputItems() const
   {
-    set<IdentificationData::InputMatchRef> all_matches;
-    for (auto it = id_data_.getInputMatches().begin();
-         it != id_data_.getInputMatches().end(); ++it)
+    set<IdentificationData::InputItemRef> all_items;
+    for (auto it = id_data_.getInputItems().begin();
+         it != id_data_.getInputItems().end(); ++it)
     {
-      all_matches.insert(it);
+      all_items.insert(it);
     }
-    set<IdentificationData::InputMatchRef> assigned_matches;
+    set<IdentificationData::InputItemRef> assigned_items;
     for (const Feature& feat : *this)
     {
-      assigned_matches.insert(feat.getInputMatches().begin(),
-                              feat.getInputMatches().end());
+      assigned_items.insert(feat.getIDInputItems().begin(),
+                              feat.getIDInputItems().end());
     }
-    set<IdentificationData::InputMatchRef> result;
-    set_difference(all_matches.begin(), all_matches.end(),
-                   assigned_matches.begin(), assigned_matches.end(),
+    set<IdentificationData::InputItemRef> result;
+    set_difference(all_items.begin(), all_items.end(),
+                   assigned_items.begin(), assigned_items.end(),
                    inserter(result, result.end()));
     return result;
   }

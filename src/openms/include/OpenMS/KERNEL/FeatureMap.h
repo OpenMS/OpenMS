@@ -305,7 +305,7 @@ public:
 
     OPENMS_DLLAPI AnnotationStatistics getAnnotationStatistics() const;
 
-    OPENMS_DLLAPI std::set<IdentificationDataInternal::InputMatchRef> getUnassignedInputMatches() const;
+    OPENMS_DLLAPI std::set<IdentificationDataInternal::InputItemRef> getUnassignedInputItems() const;
 
     OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
 
