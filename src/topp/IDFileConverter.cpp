@@ -217,8 +217,8 @@ protected:
     Param p(TheoreticalSpectrumGenerator().getDefaults());
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
-    p.setValue("enzym", "Trypsin", "Enzym used to digest the fasta proteins");
-    p.setValidStrings("enzym", all_enzymes);
+    p.setValue("enzyme", "Trypsin", "Enzym used to digest the fasta proteins");
+    p.setValidStrings("enzyme", all_enzymes);
     p.setValue("min_charge", 1, "Minimum charge");
     p.setValue("max_charge", 1, "Maximum charge");
     p.setValue("precursor_charge", 0, "Manually set precursor charge. (default: 0, meaning max_charge + 1 will be used as precursor charge)");
@@ -591,11 +591,11 @@ protected:
 
         // extract parameters and remove non tsg params
         Param p = getParam_().copy("fasta_to_mzml:", true);
-        String enzym = p.getValue("enzym");
+        String enzym = p.getValue("enzyme");
         Int min_charge = p.getValue("min_charge");
         Int max_charge = p.getValue("max_charge");
         Int pc_charge = p.getValue("precursor_charge");
-        p.remove("enzym");
+        p.remove("enzyme");
         p.remove("min_charge");
         p.remove("max_charge");
         p.remove("precursor_charge");
