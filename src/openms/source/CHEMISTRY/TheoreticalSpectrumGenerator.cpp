@@ -233,7 +233,7 @@ namespace OpenMS
     
     if (precursor_charge < max_charge)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than 'max_charge'.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than or equal to 'max_charge'.");
     }
 
     prec.setCharge(precursor_charge);
