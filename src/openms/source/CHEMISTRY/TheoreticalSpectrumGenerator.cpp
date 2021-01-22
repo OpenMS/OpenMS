@@ -133,7 +133,11 @@ namespace OpenMS
   {
   }
 
+<<<<<<< HEAD
   void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge, UInt precursor_charge) const
+=======
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge) const
+>>>>>>> develop
   {
     if (peptide.empty())
     {
@@ -231,9 +235,9 @@ namespace OpenMS
       precursor_charge = max_charge +1;
     }
     
-    if (precursor_charge <= max_charge)
+    if (precursor_charge < max_charge)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than 'max_charge'.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than or equal to 'max_charge'.");
     }
 
     prec.setCharge(precursor_charge);
