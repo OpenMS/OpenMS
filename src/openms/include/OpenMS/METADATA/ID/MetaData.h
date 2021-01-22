@@ -64,16 +64,14 @@ namespace OpenMS
     {
       PROTEIN,
       COMPOUND,
-      RNA,
-      SIZE_OF_MOLECULETYPE
+      RNA
     };
 
 
     enum MassType
     {
       MONOISOTOPIC,
-      AVERAGE,
-      SIZE_OF_MASSTYPE
+      AVERAGE
     };
   }
 }

@@ -82,11 +82,8 @@ namespace OpenMS
         {
           return MoleculeType::COMPOUND;
         }
-        if (boost::get<IdentifiedOligoRef>(this))
-        {
-          return MoleculeType::RNA;
-        }
-        return MoleculeType::SIZE_OF_MOLECULETYPE; // this shouldn't happen
+        // if (boost::get<IdentifiedOligoRef>(this))
+        return MoleculeType::RNA;
       }
 
       IdentifiedPeptideRef getIdentifiedPeptideRef() const
@@ -135,8 +132,6 @@ namespace OpenMS
             return getIdentifiedCompoundRef()->identifier; // or use "name"?
           case MoleculeType::RNA:
             return getIdentifiedOligoRef()->sequence.toString();
-          default:
-            return "";
         }
       }
 
@@ -159,8 +154,6 @@ namespace OpenMS
           auto type = static_cast<NASequence::NASFragmentType>(fragment_type);
           return getIdentifiedOligoRef()->sequence.getFormula(type, charge);
         }
-        default:
-          return EmpiricalFormula();
         }
       }
 
