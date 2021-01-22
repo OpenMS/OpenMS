@@ -607,6 +607,13 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
 
+        if (pc_charge != 0 && pc_charge <= max_charge)
+        {
+          writeLog_("Error: 'fasta_to_mzml:precursor_charge' must be bigger than 'fasta_to_mzml:max_charge'.\nSet 'precursor_charge' to '0' to automaticly use 'max_charge' + 1.");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+
         tsg.setParameters(p);
 
         ProteaseDigestion digestor;
