@@ -117,16 +117,17 @@ namespace OpenMS
       std::unordered_map<String, std::vector<double>> ided_feat_rts;
       //std::unordered_map<String, std::vector<const typename MapType::FeatureType*>> ided_feats;
       double minRT = std::numeric_limits<double>::max();
-      for (const auto& map : input_maps)
+      for (auto& map : input_maps)
       {
-        for (const auto& feat : map)
+        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE
         {
           if (feat.getRT() < minRT) minRT = feat.getRT();
-          const auto& pepIDs = feat.getPeptideIdentifications();
+          auto& pepIDs = feat.getPeptideIdentifications();
           if (!pepIDs.empty())
           {
-            const auto& hits = pepIDs[0].getHits();
-            //TODO sort (lose const) or assume first is best? Especially since we sort later in run_internal_ anyway
+            //TODO I think we sort in run_internal again. Could be avoided.
+            feat.sortPeptideIdentifications();
+            auto& hits = pepIDs[0].getHits();
             if (!hits.empty())
             {
               if ((hits[0].getScore() > min_score_ && pepIDs[0].isHigherScoreBetter()) ||

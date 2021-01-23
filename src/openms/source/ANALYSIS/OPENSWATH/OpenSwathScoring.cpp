@@ -190,7 +190,10 @@ namespace OpenMS
     //TODO this score and the next, both rely on the CoarseIsotope of the PeptideAveragine. Maybe we could
     // DIA dotproduct and manhattan score based on library intensity and sum formula if present
     diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
-
+    if (scores.dotprod_score_dia > 1)
+    {
+      std::cout << "wtffff" << std::endl;
+    }
     // Isotope correlation / overlap score: Is this peak part of an
     // isotopic pattern or is it the monoisotopic peak in an isotopic
     // pattern?

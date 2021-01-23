@@ -528,41 +528,8 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
 
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
-  //Note: dotprod is so low since 25% of the whole extracted intensity (across all transitions and their isotopes),
-  // falls into a negatively weighted bin at 499 (due to the shift).
 
-  /*
-Weights:
--0.011521109102882022,
--0.011521109102882022,
-0.69682110921448537,
-0.18623212478969786,
-0.03398419387469899,
-0.0046512754583835783,
--0.011521109102882022,
--0.011521109102882022,
-0.65584601598257708,
-0.21417495605928213,
-0.044685227846086237,
-0.0069825326345639219
-
-   vs
-
-Exp. ints.:
-0,
-0.22640922351802223,
-0.12571999477275048,
-0.09126847582972164,
-0.056602305879505557,
-0,
-0,
-0,
-0.22640922351802223,
-0.12571999477275048,
-0.09126847582972164,
-0.056602305879505557
-   */
-  TEST_REAL_SIMILAR (dotprod, 0.283805803918963);
+  TEST_REAL_SIMILAR (dotprod, 0.464579635081893);
   TEST_REAL_SIMILAR (manhattan, 0.55743322213368);
 }
 END_SECTION

@@ -151,8 +151,10 @@ namespace OpenMS
     // duplicate since we will add differently weighted preIsotope intensities
     spectrumWIsoNegPreIso.reserve(spectrumWIso.size());
     std::copy(spectrumWIso.begin(), spectrumWIso.end(), back_inserter(spectrumWIsoNegPreIso));
-    double totalNegWeight = 1. / nr_isotopes_; // how much of ONE transition should be negatively weighted at the prePeaks (distributed equally on them)
     UInt nrNegPeaks = 2;
+    double avgTheorTransitionInt = std::accumulate(lt.begin(),lt.end(),0.,[](double val, const OpenSwath::LightTransition& lt){return val + lt.getLibraryIntensity();});
+    avgTheorTransitionInt /= lt.size();
+    double negWeight = 0.5 * avgTheorTransitionInt; // how much of ONE transition should be negatively weighted at the prePeaks (distributed equally on them)
     // for every transition add either zero weighted (for manhattan) or negatively weighted (for dotprod) preIsotope intensities
     for (const auto& transition : lt)
     {
@@ -164,7 +166,7 @@ namespace OpenMS
       DIAHelpers::addPreisotopeWeights(transition.getProductMZ(),
                                        spectrumWIsoNegPreIso,
                                        nrNegPeaks,
-                                       -totalNegWeight / (double(lt.size() * nrNegPeaks)),
+                                       -negWeight,
                                        Constants::C13C12_MASSDIFF_U,
                                        chg);
     }
@@ -208,9 +210,24 @@ namespace OpenMS
 
     // intExp is normalized already but we can normalize again with euclidean norm to have the same norm (not sure if it makes much of a difference)
     double intExpEuclidNorm = OpenSwath::norm(intExp.begin(), intExp.end());
+    double intTheorEuclidNorm = OpenSwath::norm(intTheor.begin(), intTheor.end());
     OpenSwath::normalize(intExp, intExpEuclidNorm, intExp);
+    OpenSwath::normalize(intTheor, intTheorEuclidNorm, intTheor);
+
+    //calculate maximum possible value and maximum negative value to rescale
+    // depends on the amount of relative weight is negative
+    // TODO check if it is the same amount for every spectrum, then we could leave it out.
+    double negVal = (-negWeight/intTheorNegEuclidNorm) * sqrt(nrNegPeaks*lt.size());
+    std::vector<double> intTheorNegBest;
+    intTheorNegBest.resize(intTheorNeg.size());
+    std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNegBest.begin(), [&](double val){return val * nrNegPeaks * lt.size() * negWeight/intTheorNegEuclidNorm;});
+    double intTheorNegBestEuclidNorm = OpenSwath::norm(intTheorNegBest.begin(), intTheorNegBest.end());
+    OpenSwath::normalize(intTheorNegBest, intTheorNegBestEuclidNorm, intTheorNegBest);
+    double posVal = OpenSwath::dotProd(intTheorNegBest.begin(), intTheorNegBest.end(), intTheorNeg.begin());
 
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), intTheorNeg.begin());
+    //simplified: dotprod = (((dotprod - negVal) * (1. - -1.)) / (posVal - negVal)) + -1.;
+    dotprod = (((dotprod - negVal) * 2.) / (posVal - negVal)) - 1.;
   }
 
   void DiaPrescore::updateMembers_()
