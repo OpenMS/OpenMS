@@ -425,75 +425,105 @@ namespace OpenMS
     for (vector<PeptideHit>::const_iterator hit_it = pid.getHits().begin();
          hit_it != pid.getHits().end(); ++hit_it)
     {
-      if (!what.empty())
+      // For each accession, generate a string with accession, start, and end
+      String accession;
+      vector<String> accessions;
+      vector<PeptideEvidence> evid = hit_it->getPeptideEvidences();
+      for (vector<PeptideEvidence>::const_iterator evid_it = evid.begin(); evid_it != evid.end(); ++evid_it)
       {
-        out << what;
+        accession += evid_it->getProteinAccession();
+        
+        if (evid_it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+        {
+          accession += " start: ";
+          accession += evid_it->getStart();
+        }
+
+        if (evid_it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+        {
+          accession += " end: ";
+          accession += evid_it->getEnd();
+        }
+
+        accessions.push_back(accession);
+        accession.clear();
       }
 
-      if (pid.hasRT())
+      // for every accession, print the whole peptide info (with the accession), but at least once
+      vector<String>::const_iterator acc_it = accessions.begin();
+      do
       {
-        out << String(pid.getRT());
-      }
-      else
-      {
-        out << "-1";
-      }
+        if (!what.empty())
+        {
+          out << what;
+        }
 
-      if (pid.hasMZ())
-      {
-        out << String(pid.getMZ());
-      }
-      else
-      {
-        out << "-1";
-      }
+        if (pid.hasRT())
+        {
+          out << String(pid.getRT());
+        }
+        else
+        {
+          out << "-1";
+        }
 
-      out << *hit_it << pid.getScoreType() << pid.getIdentifier();
+        if (pid.hasMZ())
+        {
+          out << String(pid.getMZ());
+        }
+        else
+        {
+          out << "-1";
+        }
+        out << *hit_it << pid.getScoreType() << pid.getIdentifier();
 
-      String accessions;
-      set<String> protein_accessions = hit_it->extractProteinAccessionsSet();
-      for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
-      {
-        if (acc_it != protein_accessions.begin())
+        if (acc_it == accessions.end())
         {
-          accessions += ";";
+          out << "";
         }
-        accessions += *acc_it;
-      }
-      out << accessions;
+        else
+        {
+          out << *acc_it;
+        }
 
-      if (incl_pred_rt)
-      {
-        if (hit_it->metaValueExists("predicted_RT"))
+        if (incl_pred_rt)
         {
-          out << String(hit_it->getMetaValue("predicted_RT"));
+          if (hit_it->metaValueExists("predicted_RT"))
+          {
+            out << String(hit_it->getMetaValue("predicted_RT"));
+          }
+          else out << "-1";
         }
-        else out << "-1";
-      }
-      if (incl_first_dim)
-      {
-        if (pid.metaValueExists("first_dim_rt"))
+        if (incl_first_dim)
         {
-          out << String(pid.getMetaValue("first_dim_rt"));
+          if (pid.metaValueExists("first_dim_rt"))
+          {
+            out << String(pid.getMetaValue("first_dim_rt"));
+          }
+          else out << "-1";
+          if (hit_it->metaValueExists("predicted_RT_first_dim"))
+          {
+            out << String(hit_it->getMetaValue("predicted_RT_first_dim"));
+          }
+          else out << "-1";
         }
-        else out << "-1";
-        if (hit_it->metaValueExists("predicted_RT_first_dim"))
+        if (incl_pred_pt)
         {
-          out << String(hit_it->getMetaValue("predicted_RT_first_dim"));
+          if (hit_it->metaValueExists("predicted_PT"))
+          {
+            out << String(hit_it->getMetaValue("predicted_PT"));
+          }
+          else out << "-1";
         }
-        else out << "-1";
-      }
-      if (incl_pred_pt)
-      {
-        if (hit_it->metaValueExists("predicted_PT"))
+        writeMetaValues(out, pid, peptide_id_meta_keys);
+        writeMetaValues(out, *hit_it, peptide_hit_meta_keys);
+        out << nl;
+
+        if (acc_it != accessions.end())
         {
-          out << String(hit_it->getMetaValue("predicted_PT"));
+          ++acc_it;
         }
-        else out << "-1";
-      }
-      writeMetaValues(out, pid, peptide_id_meta_keys);
-      writeMetaValues(out, *hit_it, peptide_hit_meta_keys);
-      out << nl;
+      } while (acc_it != accessions.end());
     }
   }
 
