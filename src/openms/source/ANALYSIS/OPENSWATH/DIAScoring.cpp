@@ -210,8 +210,8 @@ namespace OpenMS
     std::vector<double> isotopes_int;
     getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, isotopes_int, sum_formula.getCharge());
 
-    double max_ratio;
-    int nr_occurrences;
+    double max_ratio = 0;
+    int nr_occurrences = 0;
 
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
@@ -428,7 +428,7 @@ namespace OpenMS
                                           const EmpiricalFormula& empf) const
   {
     return scoreIsotopePattern_(isotopes_int,
-                                empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_)));
+                                empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_ + 1)));
   }
 
   double DIAScoring::scoreIsotopePattern_(const std::vector<double>& isotopes_int,
@@ -455,6 +455,7 @@ namespace OpenMS
       }
     }
     isotopes.max = max;
+    if (max == 0.) max = 1.;
     for (Size i = 0; i < isotopes.intensity.size(); ++i)
     {
       isotopes.intensity[i] /= max;
@@ -462,6 +463,7 @@ namespace OpenMS
     isotopes.trimmed_left = 0;
 
     // score the pattern against a theoretical one
+    OPENMS_POSTCONDITION(isotopes_int.size() == isotopes.intensity.size(), "Vectors for pearson correlation do not have the same size.");
     double int_score = OpenSwath::cor_pearson(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin());
     if (boost::math::isnan(int_score))
     {

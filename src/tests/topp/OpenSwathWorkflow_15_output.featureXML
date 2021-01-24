@@ -68,7 +68,7 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="3.000000014901161e-03"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.023933009041013"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="-0.280670699693906"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.892149006007804"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.0"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
@@ -140,7 +140,7 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="3.000000014901161e-03"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.019530859401002"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.964439009691185"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.963251643954605"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.500000050997485"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
