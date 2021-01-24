@@ -2008,15 +2008,6 @@ namespace OpenMS
         return;
       }
 
-      // set precursor information
-      vector<Precursor> precursors;
-      Precursor precursor;
-      precursor.setMZ(aa_sequence.getMZ(charge));
-      precursor.setCharge(charge);
-      precursors.push_back(precursor);
-      spectrum.setPrecursors(precursors);
-      spectrum.setMSLevel(2);
-
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
@@ -2314,7 +2305,7 @@ namespace OpenMS
     if (getActive1DWidget()) // switch from 1D to 3D
     {
       //TODO:
-      //- doesnt make sense for fragment scan
+      //- doesn't make sense for fragment scan
       //- build new Area with mz range equal to 1D visible range
       //- rt range either overall MS1 data range or some convenient window
 

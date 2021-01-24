@@ -80,13 +80,6 @@ namespace OpenMS
       SIZE_OF_DERIVATIZATIONAGENT
     };
     
-    enum class FeatureName
-    {
-      INTENSITY,
-      PEAK_APEX_INT,
-      SIZE_OF_FEATURENAME
-    };
-    
     enum class MassIntensityType
     {
       NORM_MAX,
@@ -94,7 +87,9 @@ namespace OpenMS
       SIZE_OF_MASSINTENSITYTYPE
     };
     
-    static const std::string NamesOfFeatureName[static_cast<int>(FeatureName::SIZE_OF_FEATURENAME)];
+    static const std::string NamesOfDerivatizationAgent[static_cast<int>(DerivatizationAgent::SIZE_OF_DERIVATIZATIONAGENT)];
+    
+    static const std::string NamesOfMassIntensityType[static_cast<int>(MassIntensityType::SIZE_OF_MASSINTENSITYTYPE)];
  
     /**
       @brief This function performs an isotopic correction to account for unlabeled abundances coming from
@@ -139,13 +134,12 @@ namespace OpenMS
       The formula is extracted from "High-resolution 13C metabolic flux analysis",
       Long et al, doi:10.1038/s41596-019-0204-0
 
-      @param[in]  normalized_feature Feature with normalized values for each component and the number of heavy labeled e.g., carbons.
-      @param[in]  experiment_data Experiment data in percent.
-      @param[in]  isotopic_purity_name Name of the isotopic purity tracer to be saved as a meta value.
-      @param[out] feature_with_isotopic_purity Feature with the calculated isotopic purity for the component group.
+      @param[in,out]  normalized_feature Feature with normalized values for each component and the number of heavy labeled e.g., carbons. Out is a Feature with the calculated isotopic purity for the component group.
+      @param[in]      experiment_data Vector of experiment data in percent.
+      @param[in]      isotopic_purity_name Name of the isotopic purity tracer to be saved as a meta value.
     */
     void calculateIsotopicPurity(
-      const Feature& normalized_feature, Feature& feature_with_isotopic_purity,
+      Feature& normalized_feature,
       const std::vector<double>& experiment_data, const std::string& isotopic_purity_name);
     
     /**
@@ -155,40 +149,38 @@ namespace OpenMS
       The formula is extracted from "High-resolution 13C metabolic flux analysis",
       Long et al, doi:10.1038/s41596-019-0204-0
 
-      @param[in]  normalized_featureMap FeatureMap with normalized values for each component and the number of heavy labeled e.g., carbons.
-      @param[in]  experiment_data Experiment data in percent.
-      @param[in]  isotopic_purity_name Name of the isotopic purity tracer to be saved as a meta value.
-      @param[out] featureMap_with_isotopic_purity FeatureMap with the calculated isotopic purity for the component group.
+      @param[in,out]  normalized_featureMap FeatureMap with normalized values for each component and the number of heavy labeled e.g., carbons. Out is a FeatureMap with the calculated isotopic purity for the component group.
+      @param[in]  experiment_data Vector of vectors of Experiment data in percent.
+      @param[in]  isotopic_purity_name Vector of names of the isotopic purity tracer to be saved as a meta value.
     */
     void calculateIsotopicPurities(
-      const FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_isotopic_purity,
-      const std::vector<double>& experiment_data, const std::string& isotopic_purity_name);
+      FeatureMap& normalized_featureMap,
+      const std::vector<std::vector<double>>& experiment_data, const std::vector<std::string>& isotopic_purity_name);
 
     /**
       @brief This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
       using average deviation to the mean. The result is mapped to the meta value "average_accuracy" in the updated Feature.
    
-      @param[in]  normalized_feature Feature with normalized values for each component and the chemical formula of the component group.
-      @param[in]  fragment_isotopomer_measured Measured scan values.
-      @param[in]  fragment_isotopomer_theoretical_formula Empirical formula from which the theoretical values will be generated.
-      @param[out] feature_with_accuracy_info Feature with the component group accuracy and accuracy for the error for each component.
+      @param[in,out]  normalized_feature Feature with normalized values for each component and the chemical formula of the component group. Out is a Feature with the component group accuracy and accuracy for the error for each component.
+      @param[in]      fragment_isotopomer_measured Measured scan values.
+      @param[in]      fragment_isotopomer_theoretical_formula Empirical formula from which the theoretical values will be generated.
     */
     void calculateMDVAccuracy(
-      const Feature& normalized_feature, Feature& feature_with_accuracy_info,
-      const std::vector<double>& fragment_isotopomer_measured, const std::string& fragment_isotopomer_theoretical_formula);
+      Feature& normalized_feature,
+      const std::string& feature_name, const std::string& fragment_isotopomer_theoretical_formula);
     
     /**
        @brief This function calculates the accuracy of the MDVs as compared to the theoretical MDVs (only for 12C quality control experiments)
        using average deviation to the mean.
     
-       @param[in]  normalized_featuremap FeatureMap with normalized values for each component and the chemical formula of the component group.
+       @param[in]  normalized_featuremap FeatureMap with normalized values for each component and the chemical formula of the component group. Out is a FeatureMap with the component group accuracy and accuracy for the error for each component.
        @param[in]  fragment_isotopomer_measured Measured scan values.
-       @param[in]  fragment_isotopomer_theoretical_formula Empirical formula from which the theoretical values will be generated.
-       @param[out] featuremap_with_accuracy_info FeatureMap with the component group accuracy and accuracy for the error for each component.
+       @param[in]  fragment_isotopomer_theoretical_formula A map of ProteinName/peptideRef to Empirical formula from which the theoretical values will be generated.
     */
     void calculateMDVAccuracies(
-      const FeatureMap& normalized_featureMap, FeatureMap& featureMap_with_accuracy_info,
-      const std::vector<double>& fragment_isotopomer_measured, const std::string& fragment_isotopomer_theoretical_formula);
+      FeatureMap& normalized_featureMap,
+      const std::string& feature_name,
+      const std::map<std::string, std::string>& fragment_isotopomer_theoretical_formulas);
  
     /**
       @brief This function calculates the mass distribution vector (MDV)
@@ -202,7 +194,7 @@ namespace OpenMS
     */
     void calculateMDV(
       const Feature& measured_feature, Feature& normalized_feature,
-      const MassIntensityType& mass_intensity_type, const FeatureName& feature_name);
+      const MassIntensityType& mass_intensity_type, const std::string& feature_name);
     
     /**
       @brief This function calculates the mass distribution vector (MDV)
@@ -216,7 +208,7 @@ namespace OpenMS
     */
     void calculateMDVs(
       const FeatureMap& measured_featureMap, FeatureMap& normalized_featureMap,
-      const MassIntensityType& mass_intensity_type, const FeatureName& feature_name);
+      const MassIntensityType& mass_intensity_type, const std::string& feature_name);
     
   protected:
     /// Synchronize members with param class

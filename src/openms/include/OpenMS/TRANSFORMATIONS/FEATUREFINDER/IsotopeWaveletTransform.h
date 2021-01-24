@@ -1735,7 +1735,7 @@ protected:
       restart = false;
 
       //Let's first determine the charge
-      //Therefor, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
+      //Therefore, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET

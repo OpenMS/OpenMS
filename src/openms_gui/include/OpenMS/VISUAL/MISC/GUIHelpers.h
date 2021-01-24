@@ -187,7 +187,7 @@ namespace OpenMS
       template<class COLOR_CLASS>
       static QColor getColor(uint32_t index)
       {
-        // cycle if neccessary
+        // cycle if necessary
         if (index >= COLOR_CLASS::NAMES::SIZE_OF_NAMES) index = index % COLOR_CLASS::NAMES::SIZE_OF_NAMES;
         return COLOR_CLASS().values[index];
       }

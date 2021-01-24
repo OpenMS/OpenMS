@@ -630,10 +630,10 @@ protected:
       map<Size, Size> num_aggregated_feat_of_size_with_id;
       for (auto & a : seq_charge2map_occurence)
       {
-        const vector<int>& occurences = a.second;
+        const vector<int>& occurrences = a.second;
         UInt n(0); // dimensions with at least one peptide id assigned
         UInt f(0); // number of subfeatures with a least one peptide id assigned
-        for (int i : occurences) 
+        for (int i : occurrences) 
         { 
           if (i != 0) ++n; 
           f += i;
