@@ -140,13 +140,13 @@
 			<UserParam type="float" name="sn_ratio" value="2.089455969563567"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.73690373044814"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="3.40262143362712"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.195614066940133"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.195614066940642"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score" value="131.676697386154046"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="115.723360081963548"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.035515005829265"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.171779246634794"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.145498870315071"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.1"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="55.946477236774541"/>
@@ -155,9 +155,9 @@
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="54.899748742132402"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_combined" value="51.945666723918933"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="4.848484848645801"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="-0.240560640385383"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.0"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-12.082493321389563"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-12.082493321389244"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="412.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="2403.60009765625"/>
@@ -304,7 +304,7 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="58.095507879976481"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.035554879953273"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.191178868930318"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.090882555648164"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.1"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="55.946477236774541"/>
@@ -313,7 +313,7 @@
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="54.899748742132402"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_combined" value="51.945666723918933"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="4.790419161835672"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="-0.246145426752693"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-6.335250624422957"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>

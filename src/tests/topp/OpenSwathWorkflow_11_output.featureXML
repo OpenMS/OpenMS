@@ -97,15 +97,15 @@
 			<UserParam type="float" name="norm_RT" value="0.499999987284343"/>
 			<UserParam type="float" name="rt_score" value="1.271565697180677e-08"/>
 			<UserParam type="float" name="var_norm_rt_score" value="1.271565697180677e-10"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.02608942869833"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.026089429788721"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score" value="27.194549481782229"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="20.310868598096192"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.03715534901951"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.144506091284391"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.587268541638458"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.173635444133043"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.144506087226363"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.587268540955436"/>
 			<UserParam type="float" name="var_sonar_lag" value="0.0"/>
 			<UserParam type="float" name="var_sonar_shape" value="0.999910678869981"/>
 			<UserParam type="float" name="var_sonar_log_sn" value="1.82185752598802"/>
@@ -204,15 +204,15 @@
 			<UserParam type="float" name="norm_RT" value="0.700000000000001"/>
 			<UserParam type="float" name="rt_score" value="6.661338147750939e-16"/>
 			<UserParam type="float" name="var_norm_rt_score" value="6.661338147750939e-18"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.135147810417303"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.135147810148903"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score" value="16.356652264739655"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="17.747199351074372"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.036609966738348"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.066872944932169"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.714893187897611"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.210681177324311"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.06687294443044"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.714893188065737"/>
 			<UserParam type="float" name="var_sonar_lag" value="0.0"/>
 			<UserParam type="float" name="var_sonar_shape" value="1.0"/>
 			<UserParam type="float" name="var_sonar_log_sn" value="1.791759494659371"/>

@@ -220,7 +220,17 @@ namespace OpenMS
     double negVal = (-negWeight/intTheorNegEuclidNorm) * sqrt(nrNegPeaks*lt.size());
     std::vector<double> intTheorNegBest;
     intTheorNegBest.resize(intTheorNeg.size());
-    std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNegBest.begin(), [&](double val){return val * nrNegPeaks * lt.size() * negWeight/intTheorNegEuclidNorm;});
+    std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNegBest.begin(),
+                   [&](double val){
+                   if (val >= 0)
+                   {
+                     return val * nrNegPeaks * lt.size() * negWeight/intTheorNegEuclidNorm;
+                   }
+                   else
+                   {
+                     return 0.;
+                   }
+    });
     double intTheorNegBestEuclidNorm = OpenSwath::norm(intTheorNegBest.begin(), intTheorNegBest.end());
     OpenSwath::normalize(intTheorNegBest, intTheorNegBestEuclidNorm, intTheorNegBest);
     double posVal = OpenSwath::dotProd(intTheorNegBest.begin(), intTheorNegBest.end(), intTheorNeg.begin());

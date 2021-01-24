@@ -529,7 +529,7 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
 
-  TEST_REAL_SIMILAR (dotprod, 0.464579635081893);
+  TEST_REAL_SIMILAR (dotprod, 0.43738312458795);
   TEST_REAL_SIMILAR (manhattan, 0.55743322213368);
 }
 END_SECTION

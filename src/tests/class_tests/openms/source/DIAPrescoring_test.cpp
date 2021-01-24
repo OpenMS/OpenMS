@@ -131,7 +131,7 @@ START_SECTION ( test score function with perfect first transition )
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.952386119484267)
+  TEST_REAL_SIMILAR(dotprod, 0.916131286812994)
   TEST_REAL_SIMILAR(manhattan, 0.23670593984202)
 }
 END_SECTION
@@ -203,7 +203,7 @@ START_SECTION ( test score function missing first transition )
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.658052460746873)
+  TEST_REAL_SIMILAR(dotprod, 0.627263258948172)
   TEST_REAL_SIMILAR(manhattan, 0.984211129641047)
 }
 END_SECTION
@@ -275,7 +275,7 @@ START_SECTION ( test score function with shifted first transition )
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.464579635143942)
+  TEST_REAL_SIMILAR(dotprod, 0.43738312515644)
   TEST_REAL_SIMILAR(manhattan, 0.557433222328531)
 }
 END_SECTION

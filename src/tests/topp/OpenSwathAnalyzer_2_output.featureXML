@@ -95,7 +95,7 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.666143770195331"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.513662962941623"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.792536141784362"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.336739286723229"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.75818917975033e04"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
@@ -202,7 +202,7 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.18664964107839"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.309670250938267"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.515861970901435"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.697321892951907"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.722759608255197e04"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
@@ -309,7 +309,7 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.088542782978214"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="-0.072744039958044"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.07324118121513"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.916435545660437"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.758566063271157e04"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
