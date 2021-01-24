@@ -8,6 +8,7 @@ AxisTickCalculator.cpp
 AxisWidget.cpp
 ColorSelector.cpp
 DataSelectionTabs.cpp
+DIATreeTab.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
@@ -58,7 +59,8 @@ TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
 TOPPViewMenu.cpp
-#TOPPViewPreferences.cpp
+TreeView.cpp
+TVDIATreeTabController.cpp
 TVIdentificationViewController.cpp
 TVSpectraViewController.cpp
 TVControllerBase.cpp

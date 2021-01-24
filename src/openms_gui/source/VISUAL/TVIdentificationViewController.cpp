@@ -70,13 +70,13 @@ namespace OpenMS
   {
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int index)
   {
     // Show spectrum "index" without selecting an identification
-    showSpectrumAs1D(index, -1, -1);
+    showSpectrumAsNew1D(index, -1, -1);
   }
 
-  void TVIdentificationViewController::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
@@ -177,14 +177,9 @@ namespace OpenMS
 
     // mass precision to match a peak's m/z to a feature m/z
     // m/z values of features are usually an average over multiple scans...
-    double ppm = 0.5;
+    constexpr double ppm = 0.5;
 
-    vector<QColor> cols;
-    cols.push_back(Qt::blue);
-    cols.push_back(Qt::green);
-    cols.push_back(Qt::red);
-    cols.push_back(Qt::gray);
-    cols.push_back(Qt::darkYellow);
+    vector<QColor> cols{ Qt::blue, Qt::green, Qt::red, Qt::gray, Qt::darkYellow };
 
     if (!current_layer.getCurrentSpectrum().isSorted())
     {

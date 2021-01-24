@@ -35,11 +35,11 @@
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/VISUAL/TreeView.h>
 
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
-#include <QtWidgets/QTreeWidget>
 
 namespace OpenMS
 {
@@ -116,7 +116,7 @@ namespace OpenMS
 
     setObjectName("Scans");
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
-    spectra_treewidget_ = new QTreeWidget(this);
+    spectra_treewidget_ = new TreeView(this);
     spectra_treewidget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to show it. "
                                       "Double-clicking might be implemented as well, depending on the data. "
                                       "Context-menus for both the column header and data rows are available by right-clicking.");
@@ -127,12 +127,10 @@ namespace OpenMS
 
     spectra_treewidget_->setDragEnabled(true);
     spectra_treewidget_->setContextMenuPolicy(Qt::CustomContextMenu);
-    spectra_treewidget_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraTreeTab::spectrumSelectionChange_);
-    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraTreeTab::spectrumDoubleClicked_);
+    connect(spectra_treewidget_, &QTreeWidget::currentItemChanged, this, &SpectraTreeTab::itemSelectionChange_);
+    connect(spectra_treewidget_, &QTreeWidget::itemDoubleClicked, this, &SpectraTreeTab::itemDoubleClicked_);
     connect(spectra_treewidget_, &QTreeWidget::customContextMenuRequested, this, &SpectraTreeTab::spectrumContextMenu_);
-    connect(spectra_treewidget_->header(), &QHeaderView::customContextMenuRequested, this, &SpectraTreeTab::spectrumBrowserHeaderContextMenu_);
 
     spectra_widget_layout->addWidget(spectra_treewidget_);
 
@@ -165,8 +163,11 @@ namespace OpenMS
     {
       Qt::MatchFlags matchflags = Qt::MatchFixedString;
       matchflags |=  Qt::MatchRecursive; // match subitems (below top-level)
-      if (spectra_combo_box_->currentText().compare("index", Qt::CaseInsensitive) != 0) // strings not equal
-      { // only the index has to be matched exactly
+      // 'index' must be named identically for both data types
+      assert(ClmnPeak::HEADER_NAMES[ClmnPeak::SPEC_INDEX] == ClmnChrom::HEADER_NAMES[ClmnChrom::CHROM_INDEX]);
+      // ... for the following to work:
+      if (spectra_combo_box_->currentText() != ClmnPeak::HEADER_NAMES[ClmnPeak::SPEC_INDEX])
+      { // only the 'index' has to be matched exactly
         matchflags |= Qt::MatchStartsWith;
       }
       QList<QTreeWidgetItem*> searched = spectra_treewidget_->findItems(text, matchflags, spectra_combo_box_->currentIndex());
@@ -181,7 +182,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraTreeTab::spectrumSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+  void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
   {
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
@@ -198,19 +199,19 @@ namespace OpenMS
     }
     else
     { // open several chromatograms at once
-      emit spectrumSelected(listToVec(ie.res));
+      emit chromsSelected(listToVec(ie.res));
     }
   }
 
   void SpectraTreeTab::searchAndShow_()
   {
-    //QTreeWidgetItem* current = spectra_treewidget_->currentItem();
     spectrumSearchText_(); // update selection first (we might be in a new layer)
     QList<QTreeWidgetItem*> selected = spectra_treewidget_->selectedItems();
-    if (selected.size() > 0) spectrumSelectionChange_(selected.first(), selected.first());
+    // show the first selected item
+    if (selected.size() > 0) itemSelectionChange_(selected.first(), selected.first());
   }
 
-  void SpectraTreeTab::spectrumDoubleClicked_(QTreeWidgetItem* current)
+  void SpectraTreeTab::itemDoubleClicked_(QTreeWidgetItem* current)
   {
     if (current == nullptr)
     {
@@ -223,7 +224,7 @@ namespace OpenMS
     }
     else
     { // open several chromatograms at once
-      emit spectrumDoubleClicked(listToVec(ie.res));
+      emit chromsDoubleClicked(listToVec(ie.res));
     }
   }
 
@@ -239,11 +240,11 @@ namespace OpenMS
       {
         if (!ie.hasChromIndices())
         {
-          emit showSpectrumAs1D(ie.spectrum_index);
+          emit showSpectrumAsNew1D(ie.spectrum_index);
         }
         else
         { // open several chromatograms at once
-          emit showSpectrumAs1D(listToVec(ie.res));
+          emit showChromatogramsAsNew1D(listToVec(ie.res));
         }
       });
       context_menu.addAction("Meta data", [&]() 
@@ -251,28 +252,10 @@ namespace OpenMS
         emit showSpectrumMetaData(ie.spectrum_index);
       });
 
-      context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
+      context_menu.exec(spectra_treewidget_->viewport()->mapToGlobal(pos));
     }
   }
 
-  void SpectraTreeTab::spectrumBrowserHeaderContextMenu_(const QPoint& pos)
-  {
-    // allows to hide/show columns
-    QMenu context_menu(spectra_treewidget_->header());
-    const auto& header = spectra_treewidget_->headerItem();
-
-    for (int i = 0; i < header->columnCount(); ++i)
-    {
-      auto action = context_menu.addAction(header->text(i), [i, this](){
-        spectra_treewidget_->setColumnHidden(i, !spectra_treewidget_->isColumnHidden(i));
-      });
-      action->setCheckable(true);
-      action->setChecked(!spectra_treewidget_->isColumnHidden(i));
-    }
-    
-    // show and execute menu
-    context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
-  }
 
   void populatePeakDataRow_(QTreeWidgetItem* item, const int index, const MSSpectrum& spec)
   {
@@ -302,12 +285,28 @@ namespace OpenMS
     item->setText(ClmnPeak::ZOOM, (spec.getInstrumentSettings().getZoomScan() ? "yes" : "no"));
   }
 
-  void SpectraTreeTab::updateEntries(const LayerData& cl)
+  bool SpectraTreeTab::hasData(const LayerData* layer)
   {
+    if (layer == nullptr) return false;
+
+    bool is_peak = layer->type == LayerData::DT_PEAK && !(layer->chromatogram_flag_set());
+    bool is_chrom = layer->type == LayerData::DT_CHROMATOGRAM || layer->chromatogram_flag_set();
+    return is_peak || is_chrom;
+  }
+
+  void SpectraTreeTab::updateEntries(LayerData* layer)
+  {
+    if (layer == nullptr)
+    {
+      clear();
+      return;
+    }
+
     if (!spectra_treewidget_->isVisible() || spectra_treewidget_->signalsBlocked())
     {
       return;
     }
+    LayerData& cl = *layer;
 
     spectra_treewidget_->blockSignals(true);
     RAIICleanup clean([&](){ spectra_treewidget_->blockSignals(false); });
@@ -326,8 +325,7 @@ namespace OpenMS
       parent_stack.push_back(nullptr);
       bool fail = false;
       last_peakmap_ = &*cl.getPeakData();
-      spectra_treewidget_->setHeaderLabels(ClmnPeak::HEADER_NAMES);
-      spectra_treewidget_->setColumnCount(ClmnPeak::HEADER_NAMES.size());
+      spectra_treewidget_->setHeaders(ClmnPeak::HEADER_NAMES);
 
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
       {
@@ -464,8 +462,7 @@ namespace OpenMS
       }
 
       // create a header list
-      spectra_treewidget_->setHeaderLabels(ClmnChrom::HEADER_NAMES);
-      spectra_treewidget_->setColumnCount(ClmnChrom::HEADER_NAMES.size());
+      spectra_treewidget_->setHeaders(ClmnChrom::HEADER_NAMES);
            
       if (exp->getChromatograms().size() > 1)
       {
@@ -509,7 +506,7 @@ namespace OpenMS
         toplevel_item->setData(ClmnChrom::MZ, Qt::DisplayRole, pc.getMZ());
         toplevel_item->setText(ClmnChrom::DESCRIPTION, description);
         //toplevel_item->setText(ClmnChrom::RT_START, QString::number(prod_it->second[0].front().getRT()));
-        //toplevel_item->setText(ClmnChrom::RT_START, QString::number(prod_it->second[0].back().getRT()));
+        //toplevel_item->setText(ClmnChrom::RT_END, QString::number(prod_it->second[0].back().getRT()));
         toplevel_item->setData(ClmnChrom::CHARGE, Qt::DisplayRole, pc.getCharge());
 
         toplevel_items.push_back(toplevel_item);
@@ -569,8 +566,7 @@ namespace OpenMS
     // Branch if its neither (just draw an empty item)
     else
     {
-      spectra_treewidget_->setHeaderLabels(QStringList() << "No peak map");
-      spectra_treewidget_->setColumnCount(1); // needed, otherwise old column names for column 2, 3, etc are displayed
+      spectra_treewidget_->setHeaders(QStringList() << "No peak map");
     }
 
     populateSearchBox_();
@@ -587,15 +583,10 @@ namespace OpenMS
 
   void SpectraTreeTab::populateSearchBox_()
   {
-    const auto& header = spectra_treewidget_->headerItem();
-    QStringList header_texts;
-    for (int i = 0; i < header->columnCount(); ++i)
-    {
-      header_texts.push_back(header->text(i));
-    }
+    QStringList headers = spectra_treewidget_->getHeaderNames(WidgetHeader::WITH_INVISIBLE);
     int current_index = spectra_combo_box_->currentIndex(); // when repainting we want the index to stay the same
     spectra_combo_box_->clear();
-    spectra_combo_box_->addItems(header_texts);
+    spectra_combo_box_->addItems(headers);
     spectra_combo_box_->setCurrentIndex(current_index);
   }
 

@@ -134,7 +134,6 @@ namespace OpenMS
   void MRMTransitionGroupPicker::findLargestPeak(const std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
   {
     double largest = 0.0;
-    ChromatogramPeak largest_pos;
     for (Size k = 0; k < picked_chroms.size(); k++)
     {
       for (Size i = 0; i < picked_chroms[k].size(); i++)

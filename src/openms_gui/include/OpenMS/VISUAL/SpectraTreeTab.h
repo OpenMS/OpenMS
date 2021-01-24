@@ -37,6 +37,7 @@
 #include <QtWidgets>
 
 
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
 class QLineEdit;
@@ -46,13 +47,15 @@ class QTreeWidgetItem;
 
 namespace OpenMS
 {
+  class TreeView;
   /**
     @brief Hierarchical visualization and selection of spectra.
 
     @ingroup PlotWidgets
   */
-  class SpectraTreeTab :
-    public QWidget
+  class OPENMS_GUI_DLLAPI SpectraTreeTab :
+    public QWidget,
+    public DataTabBase
   {
     Q_OBJECT
 public:
@@ -61,10 +64,13 @@ public:
     /// Destructor
     ~SpectraTreeTab() = default;
 
+    // docu in base class
+    bool hasData(const LayerData* layer);
+
     /// refresh the table using data from @p cl
-    void updateEntries(const LayerData & cl);
+    void updateEntries(LayerData* cl) override;
     /// remove all visible data
-    void clear();
+    void clear() override;
 
     /// Return a copy of the currently selected spectrum/chrom (for drag'n'drop to new window)
     /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)
@@ -73,16 +79,16 @@ public:
 
 signals:
     void spectrumSelected(int);
-    void spectrumSelected(std::vector<int> indices);
+    void chromsSelected(std::vector<int> indices);
     void spectrumDoubleClicked(int);
-    void spectrumDoubleClicked(std::vector<int> indices);
-    void showSpectrumAs1D(int);
-    void showSpectrumAs1D(std::vector<int> indices);
+    void chromsDoubleClicked(std::vector<int> indices);
+    void showSpectrumAsNew1D(int);
+    void showChromatogramsAsNew1D(std::vector<int> indices);
     void showSpectrumMetaData(int);
 private:
     QLineEdit* spectra_search_box_ = nullptr;
     QComboBox* spectra_combo_box_ = nullptr;
-    QTreeWidget* spectra_treewidget_ = nullptr;
+    TreeView* spectra_treewidget_ = nullptr;
     /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
     /// remember the last PeakMap that we used to fill the spectra list (and avoid rebuilding it)
@@ -93,11 +99,13 @@ private slots:
     void populateSearchBox_();
     /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
     void spectrumSearchText_();
-    /// allows to show/hide columns
-    void spectrumBrowserHeaderContextMenu_(const QPoint &);
-    void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
-    void searchAndShow_(); ///< searches using text box and plots the spectrum
-    void spectrumDoubleClicked_(QTreeWidgetItem *); ///< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
+    /// emits spectrumSelected() for PEAK or chromsSelected() for CHROM data
+    void itemSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
+    /// searches using text box and plots the spectrum
+    void searchAndShow_(); 
+    /// called upon double click on an item; emits spectrumDoubleClicked() or chromsDoubleClicked() after some checking
+    void itemDoubleClicked_(QTreeWidgetItem *); 
+    /// Display context menu; allows to open metadata window
     void spectrumContextMenu_(const QPoint &);
   };
 }

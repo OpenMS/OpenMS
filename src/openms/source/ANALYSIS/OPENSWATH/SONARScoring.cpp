@@ -71,7 +71,7 @@ namespace OpenMS
   }
 
   void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
-                                   double& xcorr_coelution_score, double& xcorr_shape_score)
+                                   double& xcorr_coelution_score, double& xcorr_shape_score) const
   {
     /// Cross Correlation array
     typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
@@ -130,7 +130,7 @@ namespace OpenMS
   void SONARScoring::computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
                                         const std::vector<OpenSwath::LightTransition> & transitions,
                                         const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                        OpenSwath_Scores & scores)
+                                        OpenSwath_Scores & scores) const
   {
     if (transitions.empty()) {return;}
 

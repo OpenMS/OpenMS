@@ -474,7 +474,7 @@ END_SECTION
 START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
 {
   // missing: detect semantically invalid XML structures
-  // for example: multiple occurences of an array
+  // for example: multiple occurrences of an array
   // (fix in MzMLHandlerHelper::computeDataProperties_)
   ptr = new MzMLSpectrumDecoder();
   std::string testString = MULTI_LINE_STRING(

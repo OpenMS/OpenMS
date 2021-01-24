@@ -168,7 +168,7 @@ namespace OpenMS
 
             catch (OpenMS::Exception::BaseException& e)
             {
-#pragma omp critical
+#pragma omp critical(MZMLErrorHandling)
               {
                 ++errCount;
                 error_message = e.what();
@@ -754,7 +754,14 @@ namespace OpenMS
         String source_file_ref;
         if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
         {
-          spec_.setSourceFile(source_files_[source_file_ref]);
+          if (source_files_.has(source_file_ref))
+          {
+            spec_.setSourceFile(source_files_[source_file_ref]);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Error: unregistered source file reference " << source_file_ref << "." << std::endl;
+          }
         }
         //native id
         spec_.setNativeID(attributeAsString_(attributes, s_id));
@@ -3762,7 +3769,7 @@ namespace OpenMS
         //data processing attribute
         if (dps[i]->getCompletionTime().isValid())
         {
-          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i]->getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
+          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i]->getCompletionTime().toString("yyyy-MM-dd+hh:mm") << "\" />\n";
         }
 
         writeUserParam_(os, *(dps[i].get()), 4, "/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession", validator);
@@ -3966,6 +3973,8 @@ namespace OpenMS
       const MapType& exp = *(cexp_);
       logger_.startProgress(0, exp.size() + exp.getChromatograms().size(), "storing mzML file");
       int progress = 0;
+      UInt stored_spectra = 0;
+      UInt stored_chromatograms = 0;
       Internal::MzMLValidator validator(mapping_, cv_);
 
       std::vector<std::vector< ConstDataProcessingPtr > > dps;
@@ -4008,6 +4017,7 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const SpectrumType& spec = exp[s_idx];
           writeSpectrum_(os, spec, s_idx, validator, renew_native_ids, dps);
+          ++stored_spectra;
         }
         os << "\t\t</spectrumList>\n";
       }
@@ -4027,11 +4037,15 @@ namespace OpenMS
           logger_.setProgress(progress++);
           const ChromatogramType& chromatogram = exp.getChromatograms()[c_idx];
           writeChromatogram_(os, chromatogram, c_idx, validator);
+          ++stored_chromatograms;
         }
         os << "\t\t</chromatogramList>" << "\n";
       }
 
       MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
+
+      OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
+
       logger_.endProgress();
     }
 

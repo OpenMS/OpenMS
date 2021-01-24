@@ -269,6 +269,17 @@ set(BUILD_SHARED_LIBS true)
 set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 
+# The additional / is important to remove the last character from the path.
+# Note that it does not matter if the OS uses / or \, because we are only
+# saving the path size.
+string(LENGTH "${PROJECT_SOURCE_DIR}/" CF_SOURCE_PATH_SIZE)
+string(LENGTH "${PROJECT_BINARY_DIR}/" BINARY_PATH_SIZE)
+# Since the path's length is used to cut away a path, and OPENMS_FILENAME might be used in configured files in the build tree
+# , taking the convervative approach here, to make sure we do not cut away too much, no matter if origin is source or build tree
+if (BINARY_PATH_SIZE LESS CF_SOURCE_PATH_SIZE)
+  set(CF_SOURCE_PATH_SIZE ${BINARY_PATH_SIZE})
+endif()
+
 #------------------------------------------------------------------------------
 # CMake Utitlities
 #------------------------------------------------------------------------------

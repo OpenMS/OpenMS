@@ -16,7 +16,10 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 
 Adapters/Third-party support:
 - Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
+- Added basic Triqler export
 
+Further fixes:
+- support for GLPK 5.x (#5127)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
