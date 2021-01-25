@@ -111,7 +111,8 @@ public:
     std::vector<Int> ms_level(1, 1);
     mz_data_file.getOptions().setMSLevels(ms_level);
     /// for test purpose : reduce in_ex
-    mz_data_file.getOptions().setRTRange(DRange<1>(DPosition<1>(120.0), DPosition<1>(210)));
+    mz_data_file.getOptions().setMZRange(DRange<1>(DPosition<1>(1330.0), DPosition<1>(1455)));
+    mz_data_file.getOptions().setRTRange(DRange<1>(DPosition<1>(130.0), DPosition<1>(410)));
     mz_data_file.load(in, ms_peakmap);
 
     if (ms_peakmap.empty())
@@ -153,6 +154,7 @@ public:
     epdet.detectPeaks(m_traces, splitted_mtraces);
 //    epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
     m_traces_final = splitted_mtraces;
+    OPENMS_LOG_INFO << "# input mass traces : " << m_traces_final.size() << endl;
 
     //-------------------------------------------------------------
     // building feature hypotheses
@@ -161,9 +163,8 @@ public:
 //    build_feature_hypotheses_(m_traces_final, feat_hypos);
     FeatureFindingIntact ffi;
     ffi.updateMembers_(); // TODO: change this with param handler
-
-    std::vector<FeatureFindingIntact::FeatureHypothesis> feat_hypos;
-    ffi.buildFeatureHypotheses_(m_traces_final, feat_hypos);
+    FeatureMap out_map;
+    ffi.run(m_traces_final, out_map);
 
     //-------------------------------------------------------------
     // clustering feature hypotheses
@@ -176,6 +177,8 @@ public:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+
+    return EXECUTION_OK;
   }
 
   void build_feature_hypotheses_(vector<MassTrace>& input_mtraces, vector<FeatureHypothesis> output_hypotheses)

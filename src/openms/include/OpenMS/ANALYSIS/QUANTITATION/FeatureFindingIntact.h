@@ -62,18 +62,34 @@ namespace OpenMS
 
       @ingroup Quantitation
     */
-    struct OPENMS_DLLAPI FeatureHypothesis
+    class OPENMS_DLLAPI FeatureHypothesis
     {
     public:
       /// default constructor
-      FeatureHypothesis() = default;
+      FeatureHypothesis():
+        charge_(),
+        feat_score_(),
+        feature_mass_(),
+        iso_pattern_traces_(),
+        iso_mt_index_pairs_(),
+        charge_score_()
+      {
+      }
+
+      /// default destructor
+      virtual ~FeatureHypothesis()
+      {
+
+      }
 
       /// copy constructor
       FeatureHypothesis(const FeatureHypothesis& fh):
           charge_(fh.charge_),
+          feat_score_(fh.feat_score_),
+          feature_mass_(fh.feature_mass_),
           iso_pattern_traces_(fh.iso_pattern_traces_),
-//          iso_mass_diff_(fh.iso_mass_diff_),
-          feat_score_(fh.feat_score_)
+          iso_mt_index_pairs_(fh.iso_mt_index_pairs_),
+          charge_score_(fh.charge_score_)
       {
       }
 
@@ -85,15 +101,11 @@ namespace OpenMS
 
         charge_ = fh.charge_;
         iso_pattern_traces_ = fh.iso_pattern_traces_;
-//        iso_mass_diff_ = fh.iso_mass_diff_;
         feat_score_ = fh.feat_score_;
+        feature_mass_ = fh.feature_mass_;
+        iso_mt_index_pairs_ = fh.iso_mt_index_pairs_;
+        charge_score_ = fh.charge_score_;
         return *this;
-      }
-
-      // comparison operator
-      bool operator < (const FeatureHypothesis& a) const
-      {
-        return feat_score_ < a.getScore();
       }
 
       /// getter & setter
@@ -107,24 +119,24 @@ namespace OpenMS
         return iso_pattern_traces_.size();
       }
 
-      String getLabel() const
-      {
-        return ListUtils::concatenate(getLabels(), "_");
-      }
-
-      vector<String> getLabels() const
-      {
-        vector<String> tmp_labels;
-        for (Size i = 0; i < iso_pattern_traces_.size(); ++i)
-        {
-          tmp_labels.push_back(iso_pattern_traces_[i]->getLabel());
-        }
-        return tmp_labels;
-      }
-
       double getScore() const
       {
         return feat_score_;
+      }
+
+      double getFeatureMass() const
+      {
+        return feature_mass_;
+      }
+
+      std::vector<std::pair<Size, Size>> getIndicesOfMassTraces() const
+      {
+        return iso_mt_index_pairs_;
+      }
+
+      double getChargeScore() const
+      {
+        return charge_score_;
       }
 
       void setCharge(const SignedSize& ch)
@@ -135,6 +147,21 @@ namespace OpenMS
       void setScore(const double& score)
       {
         feat_score_ = score;
+      }
+
+      void setFeatureMass(const double & mass)
+      {
+        feature_mass_ = mass;
+      }
+
+      void setIndicesOfMassTraces(const std::vector<std::pair<Size, Size>>& index_pairs)
+      {
+        iso_mt_index_pairs_ = index_pairs;
+      }
+
+      void setChargeScore(const double cscore)
+      {
+        charge_score_ = cscore;
       }
 
       vector<double> getAllIntensities(bool smoothed = false) const
@@ -158,78 +185,10 @@ namespace OpenMS
         return iso_pattern_traces_[0]->getCentroidMZ();
       }
 
-      double getCentroidRTofMonoisotopicFeature() const
-      {
-        if (iso_pattern_traces_.empty())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "FeatureHypothesis is empty, no centroid RT!",
-                                        String(iso_pattern_traces_.size()));
-        }
-        return iso_pattern_traces_[0]->getCentroidRT();
-      }
-
-      double getFWHMofMonoisotopicFeature() const
-      {
-        if (iso_pattern_traces_.empty())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "FeatureHypothesis is empty, no FWHM!",
-                                        String(iso_pattern_traces_.size()));
-        }
-        return iso_pattern_traces_[0]->getFWHM();
-      }
-
-      double getIntensityofMonoisotopicFeature(bool smoothed = false) const
-      {
-        if (iso_pattern_traces_.empty())
-        {
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__,
-                                        OPENMS_PRETTY_FUNCTION,
-                                        "FeatureHypothesis is empty, no traces contained!",
-                                        String(iso_pattern_traces_.size()));
-        }
-        return iso_pattern_traces_[0]->getIntensity(smoothed);
-      }
-
-      double getSummedFeatureIntensity(bool smoothed = false) const
-      {
-        double int_sum(0.0);
-        for (Size i = 0; i < iso_pattern_traces_.size(); ++i)
-        {
-          int_sum += iso_pattern_traces_[i]->getIntensity(smoothed);
-        }
-        return int_sum;
-      }
-
-      Size getNumFeatPoints() const
-      {
-        Size num_points(0);
-        for (Size mt_idx = 0; mt_idx < iso_pattern_traces_.size(); ++mt_idx)
-        {
-          num_points += iso_pattern_traces_[mt_idx]->getSize();
-        }
-        return num_points;
-      }
-
       vector<const MassTrace*> getMassTraces() const
       {
         return iso_pattern_traces_;
       }
-
-//      double getIsoMassDiff() const
-//      {
-//        return iso_mass_diff_;
-//      }
-
-//      void setIsoMassDiff(double& diff)
-//      {
-//        iso_mass_diff_ = diff;
-//      }
-
-//      std::vector<ConvexHull2D> getConvexHulls() const;
-//      std::vector< OpenMS::MSChromatogram > getChromatograms(UInt64 feature_id) const;
 
       /// adding mass trace
       void addMassTrace(const MassTrace& mt_ptr)
@@ -237,11 +196,21 @@ namespace OpenMS
         iso_pattern_traces_.push_back(&mt_ptr);
       }
 
+      void updateFeatureMass()
+      {
+        double mono_mz = iso_pattern_traces_[0]->getCentroidMZ()
+            - (iso_mt_index_pairs_[0].first * Constants::C13C12_MASSDIFF_U / charge_);
+        feature_mass_ = (mono_mz - Constants::PROTON_MASS_U) * charge_;
+      }
+
     private:
       SignedSize charge_;
-      vector<const MassTrace*> iso_pattern_traces_;
-//      double iso_mass_diff_;
       double feat_score_;
+      double feature_mass_;
+      std::vector<const MassTrace*> iso_pattern_traces_;
+      // first: iso index of current feature, second : masstrace index of final masstraces
+      std::vector<std::pair<Size, Size>> iso_mt_index_pairs_;
+      double charge_score_;
     };
 
     class OPENMS_DLLAPI CmpMassTraceByMZ
@@ -285,7 +254,6 @@ namespace OpenMS
        @param M maxMass
        @param delta mass interval between m and M
        @param generator generator by which the calulation is done
-       @param useRNAavg if set, nucleotide patters are calculated
     */
       PrecalculatedAveragine(double m,
                              double M,
@@ -410,10 +378,10 @@ namespace OpenMS
 
     };
 
-    /// method for builiding Feature Hypotheses
-    void buildFeatureHypotheses_(vector<MassTrace>& input_mtraces, vector<FeatureHypothesis> output_hypotheses);
+    // main method of FeatureFindingIntact
+    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap);
 
-    // TODO : change this accoriding to the defaultHandler;
+    // TODO : change this according to the defaultHandler;
     void updateMembers_()
     {
       local_mz_range_ = 6.5 ; // MZ range where to look for isotopic mass traces (-> decides size of isotopes =(local_mz_range_ * lowest_charge))
@@ -425,7 +393,15 @@ namespace OpenMS
     }
 
   private:
-    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
+    /// method for builiding Feature Hypotheses
+    void buildFeatureHypotheses_(std::vector<MassTrace>& input_mtraces,
+                                 std::vector<FeatureHypothesis>& output_hypotheses,
+                                 std::vector<std::vector<Size>>& shared_m_traces_indices) const;
+
+    void findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
+                            const double total_intensity,
+                            std::vector<FeatureHypothesis>& output_hypotheses,
+                            std::vector<std::vector<Size>>& shared_m_traces_indices) const;
 
     double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const;
 
@@ -440,12 +416,22 @@ namespace OpenMS
 
     double computeAveragineCosineSimScore_(const std::vector<double>& hypo_ints,
                                            const IsotopeDistribution& iso_dist,
+                                           const Size& iso_size,
                                            const double& iso_norm,
                                            int& offset) const;
 
     double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
 
     void setAveragineModel();
+
+    void clusterFeatureHypotheses_(std::vector<FeatureHypothesis>& output_hypotheses,
+                                  const std::vector<std::vector<Size>>& shared_m_traces_indices) const;
+
+    void resolveConflictInCluster_(const std::vector<FeatureHypothesis>& feat_hypo,
+                                   const std::vector<std::vector<Size> >& shared_m_traces_indices,
+                                   const std::set<Size>& hypo_indices,
+                                   std::vector<FeatureHypothesis>& out_features
+                                   ) const;
 
     /// parameters
     double local_rt_range_;
