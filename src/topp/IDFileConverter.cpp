@@ -587,6 +587,16 @@ protected:
 
       else if (in_type == FileTypes::FASTA)
       {
+        // handle out type
+        const String out = getStringOption_("out");
+        FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+        if (out_type != FileTypes::MZML)
+        {
+          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+
         MSExperiment exp;
         TheoreticalSpectrumGenerator tsg;
 
@@ -610,15 +620,9 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
 
-        if (pc_charge != 0 && pc_charge <= max_charge)
-        {
-          writeLog_("Error: 'fasta_to_mzml:precursor_charge' must be bigger than 'fasta_to_mzml:max_charge'.\nSet 'precursor_charge' to '0' to automaticly use 'max_charge' + 1.");
-          printUsage_();
-          return ILLEGAL_PARAMETERS;
-        }
+        OPENMS_PRECONDITION(pc_charge != 0 && pc_charge < max_charge, "Error: 'fasta_to_mzml:precursor_charge' must be bigger than or equal to 'fasta_to_mzml:max_charge'.\nSet 'precursor_charge' to '0' to automaticly use 'max_charge' + 1.");
 
         tsg.setParameters(p);
-
         ProteaseDigestion digestor;
         digestor.setEnzyme(enzyme);
         digestor.setMissedCleavages(mc);
@@ -639,20 +643,10 @@ protected:
           {
             PeakSpectrum spec;
             tsg.getSpectrum(spec, peptide, min_charge, max_charge, pc_charge);
-            exp.addSpectrum(spec);
+            exp.addSpectrum(move(spec));
           }
         }
         logger.endProgress();
-
-        // handle out type
-        const String out = getStringOption_("out");
-        FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
-        if (out_type != FileTypes::MZML)
-        {
-          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
-          printUsage_();
-          return ILLEGAL_PARAMETERS;
-        }
 
         logger.startProgress(0, 1, "Storing...");
         
