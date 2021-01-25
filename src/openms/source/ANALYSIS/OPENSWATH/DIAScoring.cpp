@@ -236,9 +236,9 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
-                                          double& isotope_corr, double& isotope_overlap,
-                                          int charge_state) const
+  void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, SpectrumPtrType spectrum,
+                                                    double& isotope_corr, double& isotope_overlap,
+                                                    int charge_state) const
   {
     std::vector<double> exp_isotopes_int;
     getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, exp_isotopes_int, charge_state);

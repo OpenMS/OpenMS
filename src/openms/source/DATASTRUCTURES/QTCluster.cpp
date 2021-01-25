@@ -460,7 +460,7 @@ namespace OpenMS
             // if so:
             // new dist. value for this input map
             // compare with old and set minimum
-            if(!distit_inserted.second)
+            if (!distit_inserted.second)
             {
               distit_inserted.first->second = min(dist, distit_inserted.first->second);
             }
@@ -479,7 +479,7 @@ namespace OpenMS
             // if so:
             // new dist. value for this input map
             // compare with old and set minimum
-            if(!distit_inserted.second)
+            if (!distit_inserted.second)
             {
               distit_inserted.first->second = min(dist, distit_inserted.first->second);
             }

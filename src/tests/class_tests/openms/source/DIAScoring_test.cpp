@@ -370,7 +370,8 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     double precursor_mz = 500;
 
     double isotope_corr = 0, isotope_overlap = 0;
-    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
+    diascoring
+        .dia_ms1_isotope_scores_averagine(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
 
     // see above for the two individual numbers (forward and backward)
     TEST_REAL_SIMILAR(isotope_corr, 0.959692139694113)
@@ -383,7 +384,8 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     double precursor_mz = 500;
 
     double isotope_corr = 0, isotope_overlap = 0;
-    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
+    diascoring
+        .dia_ms1_isotope_scores_averagine(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
 
     // >>> theo = [0.57277789564886, 0.305415548811564, 0.0952064968352544, 0.0218253361702587, 0.00404081869309618]
     // >>> exp = [74, 0, 39, 0, 15]
@@ -399,7 +401,8 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     double precursor_mz = 499;
 
     double isotope_corr = 0, isotope_overlap = 0;
-    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
+    diascoring
+        .dia_ms1_isotope_scores_averagine(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
 
     // >> exp = [240, 74, 39, 15, 0]
     // >> theo = [0.755900817146293, 0.201673974754608, 0.0367726851778834, 0.00502869795238462, 0.000564836713740715]

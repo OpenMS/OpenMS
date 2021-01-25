@@ -134,8 +134,8 @@ public:
                                 double& ppm_score) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
-                                double& isotope_corr, double& isotope_overlap, int charge_state) const;
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, SpectrumPtrType spectrum,
+                                          double& isotope_corr, double& isotope_overlap, int charge_state) const;
     void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
 

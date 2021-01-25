@@ -269,9 +269,9 @@ namespace OpenMS
         }
         else
         {
-          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                            scores.ms1_isotope_correlation,
-                                            scores.ms1_isotope_overlap, precursor_charge);
+          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum,
+                                                      scores.ms1_isotope_correlation,
+                                                      scores.ms1_isotope_overlap, precursor_charge);
         }
       }
       else
@@ -290,9 +290,9 @@ namespace OpenMS
         }
         else
         {
-          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                            scores.ms1_isotope_correlation,
-                                            scores.ms1_isotope_overlap, precursor_charge);
+          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum,
+                                                      scores.ms1_isotope_correlation,
+                                                      scores.ms1_isotope_overlap, precursor_charge);
         }
       }
     }
@@ -340,7 +340,11 @@ namespace OpenMS
     // Isotope correlation / overlap score: Is this peak part of an
     // isotopic pattern or is it the monoisotopic peak in an isotopic
     // pattern?
-    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), spectrum, scores.isotope_correlation, scores.isotope_overlap, putative_product_charge);
+    diascoring.dia_ms1_isotope_scores_averagine(transition.getProductMZ(),
+                                                spectrum,
+                                                scores.isotope_correlation,
+                                                scores.isotope_overlap,
+                                                putative_product_charge);
     // Mass deviation score
     diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), spectrum, scores.massdev_score);
   }
