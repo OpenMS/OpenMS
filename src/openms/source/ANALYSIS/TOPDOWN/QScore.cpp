@@ -84,22 +84,32 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream& f)
   {
-    f<<"RT,PrecursorAvgMass,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+    f<<"RT,PrecursorAvgMass,PrecursorMz,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
-  void QScore::writeAttTsv(const double rt, const PeakGroup pg, const int charge, const bool is_identified,
+  void QScore::writeAttTsv(const double rt, const double pmass, const double pmz, const PeakGroup pg, const int charge, const bool is_identified,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f)
   {
-    auto fv = toFeatureVector_(&pg, charge);
-    if (pg.getChargeIsotopeCosine(charge) <= 0) return;
-
-    double mass = avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass();
-    f << rt <<","<<mass <<",";
-    for (auto& item : fv)
+    auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
+    if(pg.empty()){
+     // return;
+      f << rt << "," << (pmass <=.0? 0 : avgpmass) << "," << pmz<< ",";
+      f<<"0,0,0,0,0,-5,";
+      f << (is_identified ? "T" : "F") << "\n";
+    }else
     {
-      f<<item<<",";
+      auto fv = toFeatureVector_(&pg, charge);
+      //if (pg.getChargeIsotopeCosine(charge) <= 0)
+      //  return;
+
+      double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
+      f << rt << "," << mass << "," << pmz<< ",";
+      for (auto &item : fv)
+      {
+        f << item << ",";
+      }
+      f << pg.getQScore() << ",";
+      f << (is_identified ? "T" : "F") << "\n";
     }
-    f<<pg.getQScore()<<",";
-    f<<(is_identified?"T":"F")<<"\n";
   }
 }

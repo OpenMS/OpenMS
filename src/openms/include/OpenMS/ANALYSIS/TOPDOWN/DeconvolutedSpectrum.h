@@ -123,9 +123,9 @@ namespace OpenMS
      @brief register the precusor peak as well as the precursor peak group (or mass) for MSn (n>1) spectrum using the precursor precursor_spectrum.
      The mass containing the precursor peak is searched. If precursor_spectrum contains such a mass (or peak group), it is registered. Otherwise,
      no peak group is registered but only precursor peak is registered.
-     @param precursor_spectrum the precursor DeconvolutedSpectrum
+     @param survey_scans the precursor DeconvolutedSpectrum's
      */
-    bool registerPrecursor(const DeconvolutedSpectrum& precursor_spectrum);
+    bool registerPrecursor(const std::vector<DeconvolutedSpectrum>& survey_scans);
 
     /// original spectrum setter
     const MSSpectrum &getOriginalSpectrum() const;
@@ -135,6 +135,8 @@ namespace OpenMS
 
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
+
+    const Peak1D getPrecursor() const;
 
     /// get possible max mass of the deconvoluted masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass

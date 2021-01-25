@@ -268,7 +268,13 @@ namespace OpenMS
 
   void DeconvolutedSpectrum::writeTopFD(std::fstream& fs, const int id, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)//, fstream& fsm, fstream& fsp)
   {
+
     UInt ms_level = spec_.getMSLevel();
+
+    if (ms_level > 1) //
+    {
+      if (precursor_peak_group_.empty()) return;
+    }
 
     fs << std::fixed << std::setprecision(2);
     fs << "BEGIN IONS\n"
@@ -292,7 +298,8 @@ namespace OpenMS
       }
       else
       {
-        double average_mass = (precursor_peak_.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursor_peak_.getCharge() > 0)) * abs(precursor_peak_.getCharge());
+        double average_mass = (precursor_peak_.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursor_peak_.getCharge() > 0)) *
+            abs(precursor_peak_.getCharge());
         double mono_mass = average_mass - avg.getAverageMassDelta(average_mass);
         fs << "MS_ONE_ID=" << 0 << "\n"
            << "MS_ONE_SCAN=" << precursor_scan_number_ << "\n"
@@ -344,74 +351,80 @@ namespace OpenMS
     fs << "END IONS\n\n";
   }
 
-  bool DeconvolutedSpectrum::registerPrecursor(const DeconvolutedSpectrum& precursor_spectrum)
+  bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum>& survey_scans)
   {
     //precursor_spectrum.updatePeakGroupMap();
-    for (auto& precursor: spec_.getPrecursors())
+    for (int i = survey_scans.size()-1; i >=0 ; i--)
     {
-      for (auto& activation_method :  precursor.getActivationMethods())
+      auto precursor_spectrum = survey_scans[i];
+      for (auto& precursor: spec_.getPrecursors())
       {
-        activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
-        break;
-      }
-      precursor_peak_ = precursor;
-      precursor_scan_number_ = precursor_spectrum.scan_number_;
-      double start_mz = precursor.getIsolationWindowLowerOffset() > 100.0 ?
-                        precursor.getIsolationWindowLowerOffset() :
-                       -precursor.getIsolationWindowLowerOffset() + precursor.getMZ();
-      double end_mz = precursor.getIsolationWindowUpperOffset() > 100.0 ?
-                      precursor.getIsolationWindowUpperOffset() :
-                     precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
-
-      double max_sum_intensity = 0.0;
-      for (auto& pg: precursor_spectrum)
-      {
-        //std::sort(pg.begin(), pg.end());
-        if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
+        for (auto& activation_method :  precursor.getActivationMethods())
         {
-          continue;
+          activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
+          break;
         }
+        precursor_peak_ = precursor;
+        precursor_scan_number_ = precursor_spectrum.scan_number_;
+        double start_mz = precursor.getIsolationWindowLowerOffset() > 100.0 ?
+                          precursor.getIsolationWindowLowerOffset() :
+                          -precursor.getIsolationWindowLowerOffset() + precursor.getMZ();
+        double end_mz = precursor.getIsolationWindowUpperOffset() > 100.0 ?
+                        precursor.getIsolationWindowUpperOffset() :
+                        precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
 
-        double sum_intensity = .0;
-        double max_intensity = .0;
-        const LogMzPeak *tmp_precursor = nullptr;
-        for (auto& tmp_peak:pg)
+        double max_sum_intensity = 0.0;
+        for (auto& pg: precursor_spectrum)
         {
-          if (tmp_peak.mz < start_mz)
+          //std::sort(pg.begin(), pg.end());
+          if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
           {
             continue;
           }
-          if (tmp_peak.mz > end_mz)
-          {
-            break;
-          }
-          sum_intensity += tmp_peak.intensity;
 
-          if (tmp_peak.intensity < max_intensity)
+          double sum_intensity = .0;
+          double max_intensity = .0;
+          const LogMzPeak *tmp_precursor = nullptr;
+          for (auto& tmp_peak:pg)
+          {
+            if (tmp_peak.mz < start_mz)
+            {
+              continue;
+            }
+            if (tmp_peak.mz > end_mz)
+            {
+              break;
+            }
+            sum_intensity += tmp_peak.intensity;
+
+            if (tmp_peak.intensity < max_intensity)
+            {
+              continue;
+            }
+            max_intensity = tmp_peak.intensity;
+
+            tmp_precursor = &tmp_peak;
+          }
+
+          if (sum_intensity <= max_sum_intensity || tmp_precursor == nullptr)
           {
             continue;
           }
-          max_intensity = tmp_peak.intensity;
 
-          tmp_precursor = &tmp_peak;
+          precursor_peak_.setMZ(tmp_precursor->mz);
+          precursor_peak_.setIntensity(tmp_precursor->intensity);
+          precursor_peak_.setCharge(tmp_precursor->charge);
+          max_sum_intensity = sum_intensity;
+          precursor_peak_group_ = pg;
         }
-
-        if (sum_intensity <= max_sum_intensity || tmp_precursor == nullptr)
-        {
-          continue;
+        if(!precursor_peak_group_.empty()){
+          break;
         }
-
-        precursor_peak_.setMZ(tmp_precursor->mz);
-        precursor_peak_.setIntensity(tmp_precursor->intensity);
-        precursor_peak_.setCharge(tmp_precursor->charge);
-        max_sum_intensity = sum_intensity;
-        precursor_peak_group_ = pg;
       }
       if(!precursor_peak_group_.empty()){
         break;
       }
     }
-
     return precursor_peak_group_.empty();
   }
 
@@ -452,4 +465,8 @@ namespace OpenMS
     return precursor_peak_.getCharge();
   }
 
+  const Peak1D DeconvolutedSpectrum::getPrecursor() const
+  {
+    return precursor_peak_;
+  }
 }

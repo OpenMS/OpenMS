@@ -47,7 +47,7 @@ namespace OpenMS
     mtd_defaults.setValue("min_sample_rate", .01);
 
     defaults_.insert("", mtd_defaults);
-    defaults_.setValue("min_isotope_cosine_", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
+    defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");
     defaultsToParam_();
   }
 
@@ -98,7 +98,7 @@ namespace OpenMS
     map.sortSpectra();
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
-    mtd_param.remove("min_isotope_cosine_");
+    mtd_param.remove("min_isotope_cosine");
 
     mtdet.setParameters(mtd_param);
     std::vector<MassTrace> m_traces;
@@ -326,6 +326,6 @@ namespace OpenMS
   {
     //tol_ = param_.getValue("mass_error_ppm");
     //minChargeCosine = param_.getValue("min_charge_cosine");
-    min_isotope_cosine_ = param_.getValue("min_isotope_cosine_");
+    min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
   }
 }

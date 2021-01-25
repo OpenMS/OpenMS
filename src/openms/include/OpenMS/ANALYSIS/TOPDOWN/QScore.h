@@ -55,7 +55,7 @@ namespace OpenMS
     /// get QScore for a peak group of specific charge
     static double getQScore(const PeakGroup *pg, const int charge);
     /// function to generate attribute tsv file for weka interface (for now)
-    static void writeAttTsv(const double rt, const PeakGroup pg, const int charge, const bool is_identified,
+    static void writeAttTsv(const double rt, const double pmass, const double pmz, const PeakGroup pg, const int charge, const bool is_identified,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f);
     /// write header for attirbute tsv file
     static void writeAttHeader(std::fstream& f);

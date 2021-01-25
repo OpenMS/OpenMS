@@ -76,12 +76,12 @@ namespace OpenMS
     /**
       @brief main deconvolution function that generates the deconvoluted spectrum from the original spectrum.
       @param spec the original spectrum
-      @param survey_scan the survey scan to assign precursor mass to the deconvoluted spectrum
+      @param survey_scans the survey scans to assign precursor mass to the deconvoluted spectrum
       @param scan_number scan number can be retrieved from the spectrum in most cases.
       But this parameter is put for real time deconvolution where scan number may be put separately.
       @return the deconvoluted spectrum (as DeconvolutedSpectrum class)
  */
-    DeconvolutedSpectrum& getDeconvolutedSpectrum(const MSSpectrum& spec, const DeconvolutedSpectrum* survey_scan, const int scan_number);
+    DeconvolutedSpectrum& getDeconvolutedSpectrum(const MSSpectrum& spec, const std::vector<DeconvolutedSpectrum>& survey_scans, const int scan_number);
 
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();

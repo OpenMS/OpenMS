@@ -125,5 +125,7 @@ namespace OpenMS
     double rt_window_;
     /// how many masses will be selected per ms level? - determined from C# side
     IntList mass_count_;
+    /// minimum isolation window width divided by two
+    const double min_isolation_window_half_ = 1.2;
   };
 }

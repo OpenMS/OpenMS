@@ -48,7 +48,7 @@ namespace OpenMS
                        DoubleList{10.0, 5.0},
                        "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
 
-    defaults_.setValue("min_mass_", 50.0, "minimum mass (Da)");
+    defaults_.setValue("min_mass", 50.0, "minimum mass (Da)");
     defaults_.setValue("max_mass", 100000.0, "maximum mass (Da)");
 
     defaults_.setValue("min_charge", 1, "minimum charge state (can be negative for negative mode)");
@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setValue("min_rt", -1.0, "if set to positive value, minimum RT to deconvolute.");
     defaults_.setValue("max_rt", -1.0, "if set to positive value, maximum RT to deconvolute.");
 
-    defaults_.setValue("min_isotope_cosine_",
+    defaults_.setValue("min_isotope_cosine",
                        DoubleList{.75, .75},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
@@ -74,16 +74,16 @@ namespace OpenMS
     //defaults_.setValue("min_charge_cosine",
     //                   .5,
     //                   "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)");
-    defaults_.setValue("max_mass_count_",
+    defaults_.setValue("max_mass_count",
                        IntList{-1, -1},
                        "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
 
-    defaults_.setValue("min_mass_count_",
+    defaults_.setValue("min_mass_count",
                        IntList{-1, -1},
                        "minimum mass count per spec for MS1, 2, ... "
                        "this parameter is only for real time acquisition. "
                        "the parameter may not be satisfied in case spectrum quality is too poor. (e.g., -max_mass_count_ -1 2 to specify no min limit and 2 for MS1 and MS2, respectively. -1 specifies unlimited)");
-    defaults_.addTag("min_mass_count_", "advanced");
+    defaults_.addTag("min_mass_count", "advanced");
 
     defaults_.setValue("min_intensity", .0, "intensity threshold");
     defaults_.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
@@ -120,13 +120,13 @@ namespace OpenMS
   //This function is the main function for the deconvolution. Takes empty DeconvolutedSpectrum and fill it up with peakGroups.
   // DeconvolutedSpectrum contains the recursor peak group for MSn.
   //A peakGroup is the collection of peaks from a single mass (monoisotopic mass). Thus it contains peaks from different charges and iostope indices.
-  DeconvolutedSpectrum& FLASHDeconvAlgorithm::getDeconvolutedSpectrum(const MSSpectrum& spec, const DeconvolutedSpectrum* survey_scan, const int scan_number)
+  DeconvolutedSpectrum& FLASHDeconvAlgorithm::getDeconvolutedSpectrum(const MSSpectrum& spec, const std::vector<DeconvolutedSpectrum>& survey_scans, const int scan_number)
   {
     deconvoluted_spectrum_ = DeconvolutedSpectrum(spec, scan_number);
 
-    if(survey_scan != nullptr)
+    if(!survey_scans.empty())
     {
-      deconvoluted_spectrum_.registerPrecursor(*survey_scan);
+      deconvoluted_spectrum_.registerPrecursor(survey_scans);
     }
     if (min_rt_ > 0 && spec.getRT() < min_rt_)
     {
@@ -174,7 +174,7 @@ namespace OpenMS
     }
 
     max_mass_ = param_.getValue("max_mass");
-    min_mass_ = param_.getValue("min_mass_");
+    min_mass_ = param_.getValue("min_mass");
 
     intensity_threshold_ = param_.getValue("min_intensity");
     min_support_peak_count_ = param_.getValue("min_peaks");
@@ -188,11 +188,11 @@ namespace OpenMS
       bin_width_.push_back(.5 / tolerance_[j]);
     }
 
-    min_isotope_cosine_ = param_.getValue("min_isotope_cosine_");
+    min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
     //minChargeScore = param_.getValue("min_charge_score");
     //minChargeCosine = param_.getValue("min_charge_cosine");
-    max_mass_count_ = param_.getValue("max_mass_count_");
-    min_mass_count_ = param_.getValue("min_mass_count_");
+    max_mass_count_ = param_.getValue("max_mass_count");
+    min_mass_count_ = param_.getValue("min_mass_count");
     rt_window_ = param_.getValue("RT_window");
     setFilters_();
   }

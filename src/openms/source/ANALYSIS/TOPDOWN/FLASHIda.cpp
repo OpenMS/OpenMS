@@ -66,20 +66,20 @@ namespace OpenMS
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     fd_defaults.setValue("min_charge", (int)inputs["min_charge"][0]);
     fd_defaults.setValue("max_charge", (int)inputs["max_charge"][0]);
-    fd_defaults.setValue("min_mass_", inputs["min_mass_"][0]);
+    fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("RT_window", 20.0, "");
 
-    auto mass_count_double = inputs["max_mass_count_"];
+    auto mass_count_double = inputs["max_mass_count"];
 
     for (double j : mass_count_double)
     {
       mass_count_.push_back((int)j);
     }
 
-    fd_defaults.setValue("min_mass_count_", mass_count_);
+    fd_defaults.setValue("min_mass_count", mass_count_);
 
     fd_.setParameters(fd_defaults);
     fd_.calculateAveragine(false);
@@ -112,7 +112,8 @@ namespace OpenMS
       //TODO precursor infor here
     }
 
-    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, nullptr, 0);
+    std::vector<DeconvolutedSpectrum> tmp;
+    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, tmp, 0);
 
     // per spec deconvolution
     //    int specIndex = 0, massIndex = 0; // ..
@@ -613,8 +614,8 @@ namespace OpenMS
     for (int i = 0; i < deconvoluted_spectrum_.size(); i++)
     {
       auto mz_range = deconvoluted_spectrum_[i].getMaxQScoreMzRange();
-      window_start[i] = std::get<0>(mz_range) - 1.2;
-      window_end[i] = std::get<1>(mz_range) + 1.2;
+      window_start[i] = std::get<0>(mz_range) - min_isolation_window_half_;
+      window_end[i] = std::get<1>(mz_range) + min_isolation_window_half_;
 
       qscores[i] = deconvoluted_spectrum_[i].getQScore();
       charges[i] = deconvoluted_spectrum_[i].getRepCharge();

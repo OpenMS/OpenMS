@@ -168,29 +168,29 @@ protected:
     fd_defaults.addTag("min_rt", "advanced");
     fd_defaults.setValue("max_rt", -1.0);
     fd_defaults.addTag("max_rt", "advanced");
-    fd_defaults.setValue("min_mass_", 50.0);
+    fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
     fd_defaults.setValue("min_peaks", IntList{3, 1});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", .0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
-    fd_defaults.setValue("min_isotope_cosine_",
+    fd_defaults.setValue("min_isotope_cosine",
                          DoubleList{.75, .75},
-                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     //fd_defaults.addTag("min_isotope_cosine_", "advanced");
 
-    fd_defaults.setValue("max_mass_count_",
+    fd_defaults.setValue("max_mass_count",
                          IntList{-1, -1},
                          "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
-    fd_defaults.addTag("max_mass_count_", "advanced");
+    fd_defaults.addTag("max_mass_count", "advanced");
 
 
     fd_defaults.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
     fd_defaults.addTag("RT_window", "advanced");
 
-    fd_defaults.remove("max_mass_count_");
-    fd_defaults.remove("min_mass_count_");
+    fd_defaults.remove("max_mass_count");
+    //fd_defaults.remove("min_mass_count");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("mass_error_da",
@@ -205,8 +205,8 @@ protected:
     mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
     mf_defaults.setValue("quant_method", "area", "");
     mf_defaults.addTag("quant_method", "advanced"); // hide entry
-    mf_defaults.setValue("min_isotope_cosine_", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine_ option");
-    mf_defaults.addTag("min_isotope_cosine_", "advanced");
+    mf_defaults.setValue("min_isotope_cosine", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine_ option");
+    mf_defaults.addTag("min_isotope_cosine", "advanced");
 
     Param combined;
     combined.insert("Algorithm:", fd_defaults);
@@ -264,7 +264,7 @@ protected:
       }
     }
 
-    std::set<int> train_scan_numbers;
+    std::unordered_map<int, double> train_scan_numbers;
     if (!in_train_file.empty() && !out_train_file.empty())
     {
       out_train_stream.open(out_train_file, fstream::out);
@@ -287,10 +287,51 @@ protected:
         while (getline(tmp_stream, str, ',')) {
           results.push_back(str);
         }
-        train_scan_numbers.insert(std::stoi(results[4]));
+        train_scan_numbers[std::stoi(results[4])] = std::stod(results[9]);
       }
       in_trainstream.close();
     }
+
+
+    //std::map<int, std::unordered_map<double, int>> tmp_map; // ms 1 scan, m/z, charge
+   // std::map<int, std::unordered_map<double, double>> tmp_map2;// ms 1 scan, m/z, mono m/z
+    /*if(false)
+    {
+      std::ifstream instream("/Users/kyowonjeong/Documents/A4B/Flash-2020-12-13-03-58-53.log");//Flash-2020-12-13-15-25-28  Flash-2020-12-13-03-58-53
+      String line;
+      int cms1 = 0;
+      while (std::getline(instream, line))
+      {
+        if(line.hasPrefix("RECD FTMS MS1 Scan #")){
+          auto st = line.find_first_of('#');
+          auto ed = line.find_first_of(';');
+          auto n = line.substr(st + 1, ed);
+          cms1 = atoi(n.c_str());
+          tmp_map[cms1] = std::unordered_map<double, int>();
+       //   tmp_map2[cms1] = std::unordered_map<double, double>();
+        }
+
+        if(line.hasPrefix("ADD m/z")){
+          //ADD m/z 1026.9316/3.59 (6+)
+          auto st = 7;
+          auto ed= line.find_first_of('/', st);
+          auto n = line.substr(st + 1, ed);
+          auto mz = atof(n.c_str());
+          st = ed;
+          ed = line.find_first_of('(', st);
+          n = line.substr(st + 1, ed);
+          auto width = atof(n.c_str());
+          st = ed;
+          ed = line.find_first_of('+', st);
+          n = line.substr(st + 1, ed);
+          auto c = atoi(n.c_str());
+          tmp_map[cms1][mz] = c;
+         // auto ma = (mz - (width/2.0) + 1.2);
+       //   tmp_map2[cms1][mz] = ma;
+        }
+      }
+      instream.close();
+    }*/
 
     int current_max_ms_level = 0;
 
@@ -394,7 +435,8 @@ protected:
 
     int scan_number = 0;
     float prev_progress = .0;
-    auto last_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
+    int const num_last_deconvoluted_spectra = 10;
+    auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
     //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
     MSExperiment exp;
@@ -407,16 +449,16 @@ protected:
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
-    DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine_");
+    DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine");
     //mf_param.setValue("mass_error_ppm", ms1tol);
     mf_param.setValue("noise_threshold_int", .0, "");
     mf_param.setValue("reestimate_mt_sd", "false", "");
     mf_param.setValue("trace_termination_criterion", "outlier");
     mf_param.setValue("trace_termination_outliers", 20);
     //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
-    if (((double)mf_param.getValue("min_isotope_cosine_")) < 0)
+    if (((double)mf_param.getValue("min_isotope_cosine")) < 0)
     {
-      mf_param.setValue("min_isotope_cosine_", isotope_cosines[0]);
+      mf_param.setValue("min_isotope_cosine", isotope_cosines[0]);
     }
     mass_tracer.setParameters(mf_param);
     //std::cout<<mass_tracer.getParameters()<<std::endl;
@@ -455,18 +497,45 @@ protected:
 
       //auto deconvoluted_spectrum = DeconvolutedSpectrum(*it, scan_number);
       // for MS>1 spectrum, register precursor
-      DeconvolutedSpectrum* precursor_spec = nullptr;
+      std::vector<DeconvolutedSpectrum> precursor_specs;
 
       if (ms_level > 1 && last_deconvoluted_spectra.find(ms_level - 1) != last_deconvoluted_spectra.end())
       {
-        precursor_spec = &(last_deconvoluted_spectra[ms_level - 1]);
+        precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
+      /*if(!tmp_map.empty() && ms_level > 1 ){
+        auto pmz = it->getPrecursors()[0].getMZ();
+        for(int sn = scan_number; sn > scan_number - 100;sn--){
+          if(tmp_map.find(sn) == tmp_map.end()){
+            continue;
+          }
+          auto stmp = tmp_map[sn];// m/z, charge
+          bool set = false;
+          for(auto st : stmp){
+            if(abs(st.first - pmz) > 0.1){
+              continue;
+            }
+            it->getPrecursors()[0].setCharge(st.second);
+            //std::cout<<it->getPrecursors()[0].getCharge()<<std::endl;
+            set = true;
+            break;
+          }
+          if(set){
+            break;
+          }
+        }
+      }*/
                       // per spec deconvolution
-      auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, precursor_spec, scan_number);
+      auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, precursor_specs, scan_number);
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
-          && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()){
-        QScore::writeAttTsv(deconvoluted_spectrum.getOriginalSpectrum().getRT(), deconvoluted_spectrum.getPrecursorPeakGroup(),
+          && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
+          ){
+
+        double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
+        double pmass = train_scan_numbers.find(scan_number) == train_scan_numbers.end()? .0 : train_scan_numbers[scan_number];
+        QScore::writeAttTsv(deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
+                            deconvoluted_spectrum.getPrecursorPeakGroup(),
                             deconvoluted_spectrum.getPrecursorCharge(),
                             train_scan_numbers.find(scan_number) != train_scan_numbers.end(), avg, out_train_stream);
 
@@ -485,7 +554,11 @@ protected:
         //{
         //  lastlast_deconvoluted_spectra[ms_level] = last_deconvoluted_spectra[ms_level];
         //}
-        last_deconvoluted_spectra[ms_level] = deconvoluted_spectrum;
+
+        if(last_deconvoluted_spectra[ms_level].size() >= num_last_deconvoluted_spectra){
+          last_deconvoluted_spectra.erase(last_deconvoluted_spectra.begin());
+        }
+        last_deconvoluted_spectra[ms_level].push_back(deconvoluted_spectrum);
       }
 
       if (deconvoluted_spectrum.empty())
@@ -526,8 +599,6 @@ protected:
 
     printProgress_(1); //
     std::cout << std::endl;
-    std::unordered_map<UInt, DeconvolutedSpectrum>().swap(last_deconvoluted_spectra); // empty memory
-    //std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastlast_deconvoluted_spectra); // empty memory
 
     // mass_tracer run
     if (!ensemble)

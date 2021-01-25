@@ -110,7 +110,7 @@ namespace OpenMS
 
   IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return isotopes_[i];
   }
@@ -123,28 +123,28 @@ namespace OpenMS
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return norms_[i];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeStartIndex(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return isotope_start_indices_[i];
   }
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return average_mono_mass_difference_[i];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeEndIndex(const double mass) const
   {
-    Size i = (Size) (.5 + (mass - min_mass_) / mass_interval_);
+    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return isotope_end_indices_[i];
   }
