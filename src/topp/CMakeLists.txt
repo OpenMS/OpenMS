@@ -42,7 +42,7 @@ cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 add_definitions(/DBOOST_ALL_NO_LIB)
 
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Concurrent REQUIRED)
 
 # add all the tools
 include(executables.cmake)

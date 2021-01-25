@@ -47,6 +47,8 @@ class QRadioButton;
 class QString;
 
 #include <QtWidgets/QDialog>
+#include <QFuture>
+#include <QFutureWatcher>
 
 namespace OpenMS
 {
@@ -92,7 +94,7 @@ public:
     /// to get the currently selected tool-name
     String getTool();
 
-private:
+  private:
     /// ParamEditor for reading ini-files
     ParamEditor * editor_;
     /// tools description label
@@ -120,12 +122,16 @@ private:
     /// Mapping of file extension to layer type to determine the type of a tool
     std::map<String, LayerData::DataType> tool_map_;
 
+    QFuture<Param> param_future_;
+    QFutureWatcher<Param> watcher;
+    LayerData::DataType layer_type;
+
     ///Disables the ok button and input/output comboboxes
     void disable_();
     ///Enables the ok button and input/output comboboxes
     void enable_();
     /// Generates an .ini file for a given tool name and loads it into a Param object.
-    Param getParamFromIni_(const String& tool_name);
+    Param getParamFromIni_(const String& toppExeName);
     /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
     std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
     // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
@@ -143,6 +149,8 @@ protected slots:
     void loadINI_();
     /// stores an ini-file from the editor_
     void storeINI_();
+
+    void addEntries();
   };
 
 }
