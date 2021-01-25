@@ -1000,11 +1000,15 @@ set_tests_properties("TOPP_IDFileConverter_31_out1" PROPERTIES DEPENDS "TOPP_IDF
 # Test FASTA to MzML
 # default parameters
 add_test("TOPP_IDFileConverter_32" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_32_input.FASTA -out IDFileConverter_32_output.tmp -out_type mzML)
-add_test("TOPP_IDFileConverter_32_out1" ${DIFF} -in1 IDFileConverter_32_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_32_output.mzML -whitelist "<binary>")
-set_tests_properties("TOPP_IDFileConverter_32_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_32")
+add_test("TOPP_IDFileConverter_32_File_Conversion" ${TOPP_BIN_PATH}/FileConverter -test -in IDFileConverter_32_output.tmp -out IDFileConverter_32_output_mgf.tmp -out_type mgf)
+set_tests_properties("TOPP_IDFileConverter_32_File_Conversion" PROPERTIES DEPENDS "TOPP_IDFileConverter_32")
+add_test("TOPP_IDFileConverter_32_out1" ${DIFF} -in1 IDFileConverter_32_output_mgf.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_32_output.mgf -whitelist "TITLE")
+set_tests_properties("TOPP_IDFileConverter_32_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_32_File_Conversion")
 add_test("TOPP_IDFileConverter_33" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_32_input.FASTA -out IDFileConverter_33_output.tmp -out_type mzML -fasta_to_mzml:missed_cleavages 1 -fasta_to_mzml:precursor_charge 3)
-add_test("TOPP_IDFileConverter_33_out1" ${DIFF} -in1 IDFileConverter_33_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_33_output.mzML -whitelist "<binary>")
-set_tests_properties("TOPP_IDFileConverter_33_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_33")
+add_test("TOPP_IDFileConverter_33_File_Conversion" ${TOPP_BIN_PATH}/FileConverter -test -in IDFileConverter_33_output.tmp -out IDFileConverter_33_output_mgf.tmp -out_type mgf)
+set_tests_properties("TOPP_IDFileConverter_33_File_Conversion" PROPERTIES DEPENDS "TOPP_IDFileConverter_33")
+add_test("TOPP_IDFileConverter_33_out1" ${DIFF} -in1 IDFileConverter_33_output_mgf.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_33_output.mgf  -whitelist "TITLE")
+set_tests_properties("TOPP_IDFileConverter_33_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_33_File_Conversion")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
