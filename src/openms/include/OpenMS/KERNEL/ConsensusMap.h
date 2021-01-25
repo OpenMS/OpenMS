@@ -163,6 +163,7 @@ public:
 
     ///@name Type definitions
     //@{
+    typedef ConsensusFeature FeatureType;
     typedef std::vector<ConsensusFeature> Base;
     typedef RangeManager<2> RangeManagerType;
     typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
@@ -375,7 +376,7 @@ public:
 
      If the ConsensusMap originated from some number of FeatureMaps, those are reconstructed with the information
      provided by the map index.
-     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are seperated. All PeptideIdentifications
+     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are separated. All PeptideIdentifications
      (assigned and unassigned) are added to the first FeatureMap.
 
      MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
