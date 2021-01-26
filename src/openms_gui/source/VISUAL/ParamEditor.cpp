@@ -109,7 +109,7 @@ namespace OpenMS
       QString value = index.sibling(index.row(), 1).data(Qt::DisplayRole).toString();
       if (dtype == "string" && restrictions != "")     //Drop-down list for enums
       {
-        QComboBox * editor = new QComboBox(parent);
+        QComboBox* editor = new QComboBox(parent);
         QStringList list;
         list.append("");
         list += restrictions.split(",");
@@ -119,7 +119,7 @@ namespace OpenMS
       }
       else if (dtype == "output file")
       {
-        QLineEdit * editor = new QLineEdit(parent);
+        QLineEdit* editor = new QLineEdit(parent);
         QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
         if (File::isDirectory(value) || File::writable(value))
         {
@@ -130,7 +130,7 @@ namespace OpenMS
       }
       else if (dtype == "input file")
       {
-        QLineEdit * editor = new QLineEdit(parent);
+        QLineEdit* editor = new QLineEdit(parent);
         QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
         if (File::isDirectory(value) || File::exists(value))
         {
@@ -156,12 +156,11 @@ namespace OpenMS
         connect(editor, SIGNAL(rejected()), this, SLOT(closeEditor_()));
         return editor;
       }
-      else         //LineEditor for rest
-      {
+      else 
+      { // LineEditor for rest
         OpenMSLineEdit* editor = new OpenMSLineEdit(parent);
         editor->setFocusPolicy(Qt::StrongFocus);
-        connect(editor, SIGNAL(lostFocus()), this, SLOT(commitAndCloseEditor_()));
-        //std::cerr << "created ... \n";
+        connect(editor, &Internal::OpenMSLineEdit::lostFocus, this, &Internal::ParamEditorDelegate::commitAndCloseLineEdit_);
         has_uncommited_data_ = true;
         return editor;
       }
