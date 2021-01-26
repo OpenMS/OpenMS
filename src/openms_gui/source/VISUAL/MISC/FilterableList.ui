@@ -27,7 +27,14 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="1">
-    <widget class="QLineEdit" name="filter_text"/>
+    <widget class="QLineEdit" name="filter_text">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The filter supports the following special characters (which can be escaped by backslash):&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt; ? - any one character&lt;/p&gt;&lt;p&gt; * - zero or more characters&lt;/p&gt;&lt;p&gt; [...] - a set of characters&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="statusTip">
+      <string/>
+     </property>
+    </widget>
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label">

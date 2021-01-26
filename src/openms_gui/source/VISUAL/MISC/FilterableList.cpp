@@ -130,7 +130,7 @@ namespace OpenMS
 
     void FilterableList::updateVisibleList_()
     {
-      QRegExp regex(ui_->filter_text->text(), Qt::CaseInsensitive, QRegExp::Wildcard);
+      QRegExp regex(ui_->filter_text->text(), Qt::CaseInsensitive, QRegExp::WildcardUnix);
       ui_->list_items->clear();
       ui_->list_items->addItems(items_wo_bl_.filter(regex));
     }

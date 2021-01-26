@@ -53,7 +53,8 @@ namespace OpenMS
     /**
       @brief A widget which shows a list of text items, which can be filtered.
 
-      A text field serves as filter expression (full regEx support), which hides any items in the list which do not
+      A text field serves as filter expression (unix wildcard regEx support - 
+      see https://doc.qt.io/archives/qt-5.10/qregexp.html#wildcard-matching), which hides any items in the list which do not
       match the currently typed text.
 
       You can also specify a blacklist of items which should never be shown, even though they are in the list.
