@@ -40,6 +40,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 #include <cstdio>
 #include <sstream>
+#include <random>
 
 using namespace std;
 
@@ -794,8 +795,9 @@ namespace OpenMS
           training_data_by_class[*it].push_back(it - training_output[type_nr].begin());
         }
         Size min_size = std::min(training_data_by_class[0].size(), training_data_by_class[1].size());
-        std::random_shuffle(training_data_by_class[0].begin(), training_data_by_class[0].end());
-        std::random_shuffle(training_data_by_class[1].begin(), training_data_by_class[1].end());
+        auto rand = std::mt19937(std::random_device()());
+        std::shuffle(training_data_by_class[0].begin(), training_data_by_class[0].end(), rand);
+        std::shuffle(training_data_by_class[1].begin(), training_data_by_class[1].end(), rand);
 
         for (Size num = 0; num < min_size; ++num)
         {

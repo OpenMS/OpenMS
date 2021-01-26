@@ -73,6 +73,7 @@
 
 #include <map>
 #include <algorithm>
+#include <random>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -492,7 +493,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
-      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      std::shuffle(fasta_db.begin(), fasta_db.end(), std::mt19937(std::random_device()()));
       endProgress();
       digestor.setMissedCleavages(peptide_missed_cleavages_);
     }

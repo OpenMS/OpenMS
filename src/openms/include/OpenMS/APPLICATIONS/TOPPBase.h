@@ -131,7 +131,7 @@ public:
 
     If you want to create a new TOPP tool, please take care of the following:
       - derive a new class from this class
-      - implement the registerOptionsAndFlags_ and main_ methods
+      - implement the registerOptionsAndFlagsMapAligners_ and main_ methods
       - add a Doxygen page for the tool and add the page to TOPP.doxygen
       - hide the derived class in the OpenMS documentation by using Doxygen condition macros.
 
@@ -416,7 +416,7 @@ protected:
       @name Parameter handling
 
       Use the methods registerStringOption_, registerInputFile_, registerOutputFile_, registerDoubleOption_,
-      registerIntOption_ and registerFlag_ in order to register parameters in registerOptionsAndFlags_.
+      registerIntOption_ and registerFlag_ in order to register parameters in registerOptionsAndFlagsMapAligners_.
 
       To access the values of registered parameters in the main_ method use methods
       getStringOption_ (also for input and output files), getDoubleOption_, getIntOption_,getStringList_(also for input and output file lists),getIntList_,getDoubleList_, and getFlag_.

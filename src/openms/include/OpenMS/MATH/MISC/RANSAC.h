@@ -42,8 +42,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 
-#include <algorithm>    // std::random_shuffle
 #include <limits>       // std::numeric_limits
+#include <random>       // std::shuffle
 #include <vector>       // std::vector
 #include <sstream>      // stringstream
 
@@ -59,12 +59,12 @@ namespace OpenMS
     {
       /// Default constructor
       RANSACParam()
-        : n(0), k(0), t(0), d(0), relative_d(false), rng(nullptr)
+        : n(0), k(0), t(0), d(0), relative_d(false)
         {
         }
       /// Full constructor
       RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d = false, int (*p_rng)(int) = nullptr)
-        : n(p_n), k(p_k), t(p_t), d(p_d), relative_d(p_relative_d), rng(p_rng)
+        : n(p_n), k(p_k), t(p_t), d(p_d), relative_d(p_relative_d)
       {
         if (relative_d)
         {
@@ -72,7 +72,7 @@ namespace OpenMS
         }
       }
 
-      std::string toString() const
+      [[nodiscard]] std::string toString() const
       {
         std::stringstream r;
         r << "RANSAC param:\n  n: " << n << "\n  k: " << k << " iterations\n  t: " << t << " threshold\n  d: " << d << " inliers\n\n";
@@ -84,7 +84,6 @@ namespace OpenMS
       double t; ///< Threshold value: for determining when a data point fits a model. Corresponds to the maximal squared deviation in units of the _second_ dimension (dim2).
       size_t d; ///< The number of close data values (according to 't') required to assert that a model fits well to data
       bool relative_d; ///< Should 'd' be interpreted as percentages (0-100) of data input size.
-      int (*rng)(int); ///< Optional RNG function (useful for testing with fixed seeds)
     };
 
     /**
@@ -98,11 +97,11 @@ namespace OpenMS
 public:
 
       /// alias for ransac() with full params
-      static std::vector<std::pair<double, double> > ransac(
+      std::vector<std::pair<double, double> > ransac(
         const std::vector<std::pair<double, double> >& pairs, 
         const RANSACParam& p)
       {
-        return ransac(pairs, p.n, p.k, p.t, p.d, p.relative_d, p.rng);
+        return ransac(pairs, p.n, p.k, p.t, p.d, p.relative_d);
       }
 
       /**
@@ -136,14 +135,13 @@ public:
         @return A vector of pairs fitting the model well; data will be unsorted
       */
   
-      static std::vector<std::pair<double, double> > ransac(
+      std::vector<std::pair<double, double> > ransac(
           const std::vector<std::pair<double, double> >& pairs, 
           size_t n, 
           size_t k, 
           double t, 
           size_t d, 
-          bool relative_d = false,
-          int (*rng)(int) = nullptr)
+          bool relative_d = false)
       {
         // translate relative percentages into actual numbers
         if (relative_d)
@@ -177,12 +175,10 @@ public:
           // check if the model already includes all points
           if (bestdata.size() == pairs.size()) break;
 
-          if (rng != nullptr)
-          { // use portable RNG in test mode
-            std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end(), rng);
-          } else {
-            std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
-          }
+          // TODO this is potentially very inefficient, why don't we just have a normal random generator always in this class?
+          // use portable RNG in test mode
+          std::shuffle(pairs_shuffled.begin(), pairs_shuffled.end(), rng);
+
 
           // test 'maybeinliers'
           try
@@ -237,6 +233,8 @@ public:
         return(bestdata);
       } // ransac()
 
+    private:
+      std::mt19937 rng{std::random_device()()};
     }; // class
   
   } // namespace Math

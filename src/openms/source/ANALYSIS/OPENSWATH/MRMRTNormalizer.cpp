@@ -66,7 +66,8 @@ namespace OpenMS
           String(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>::ransac(pairs, n, k, t, d);
+    Math::RANSAC<Math::RansacModelLinear> r;
+    std::vector<std::pair<double, double> > new_pairs = r.ransac(pairs, n, k, t, d);
     double bestrsq = Math::RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
 
     if (bestrsq < rsq_limit)

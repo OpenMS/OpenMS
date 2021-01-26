@@ -62,7 +62,7 @@ namespace OpenMS
     GlobalExceptionHandler::GlobalExceptionHandler() throw()
     {
       std::set_terminate(terminate);
-      std::set_unexpected(terminate);
+      //std::set_unexpected(terminate); // removed in c++17
       std::set_new_handler(newHandler);
     }
 

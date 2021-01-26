@@ -37,6 +37,7 @@
 #include <cmath> // for "exp"
 #include <ctime> // for "time" (random number seed)
 #include <limits> // for "infinity"
+#include <random>
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -62,9 +63,9 @@ namespace OpenMS
 
       /// Constructor
       explicit ConfidenceScoring(bool test_mode_ = false) :
-        generator_(), rand_gen_(generator_, boost::uniform_int<>())
+        generator_(), rand_gen_(std::random_device()())
       {
-        if (!test_mode_) rand_gen_.engine().seed(time(nullptr)); // seed with current time
+        if (!test_mode_) rand_gen_.seed(time(nullptr)); // seed with current time
       }
 
       virtual ~ConfidenceScoring() {}
@@ -118,7 +119,7 @@ namespace OpenMS
       boost::mt19937 generator_; ///< random number generation engine
 
       /// Random number generator (must be initialized in init. list of c'tor!)
-      boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rand_gen_;
+      std::mt19937 rand_gen_;
 
       /// Randomize the list of decoy indexes
       void chooseDecoys_();

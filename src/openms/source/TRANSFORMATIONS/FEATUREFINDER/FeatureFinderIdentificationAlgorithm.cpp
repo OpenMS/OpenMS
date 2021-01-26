@@ -52,6 +52,7 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
+#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -1373,7 +1374,8 @@ namespace OpenMS
     {
       selection.push_back(it->first);
     }
-    random_shuffle(selection.begin(), selection.end());
+    //TODO check how often this is potentially called and move out the rng.
+    shuffle(selection.begin(), selection.end(), std::mt19937(std::random_device()()));
     // However, ensure that at least "svm_n_parts_" pos./neg. observations are
     // included (for cross-validation) - there must be enough, otherwise
     // "checkNumObservations_" would have thrown an error. To this end, move

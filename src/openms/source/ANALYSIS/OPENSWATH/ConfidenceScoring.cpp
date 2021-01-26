@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <numeric> // for "accumulate"
+#include <boost/range/algorithm/random_shuffle.hpp>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
 
@@ -47,7 +48,7 @@ namespace OpenMS
       if (n_decoys_ == 0) return; // list is already initialized
       // somewhat inefficient to shuffle the whole list when we only need a random
       // sample, but easy to do...
-      random_shuffle(decoy_index_.begin(), decoy_index_.end(), rand_gen_);
+      std::shuffle(decoy_index_.begin(), decoy_index_.end(), rand_gen_);
     }
 
     // double rmsd_(DoubleList x, DoubleList y)
