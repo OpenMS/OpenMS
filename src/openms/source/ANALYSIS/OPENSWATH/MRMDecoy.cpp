@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <random>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -131,6 +131,7 @@ namespace OpenMS
     }
     OpenMS::TargetedExperiment::Peptide shuffled = peptide;
 
+    //TODO use Math::RandomShuffler (=same approach) and put this rather general method somewhere more prominent.
     boost::mt19937 generator(seed);
     boost::uniform_int<> uni_dist;
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
@@ -399,7 +400,8 @@ namespace OpenMS
     }
     else if ( aim_decoy_fraction < 1.0)
     {
-      std::shuffle(item_list.begin(), item_list.end(), std::mt19937(std::random_device()()));
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
       selection_list.reserve(aim_decoy_fraction * exp.getPeptides().size());
       Size k = 0;
       while (selection_list.size() < aim_decoy_fraction * exp.getPeptides().size())

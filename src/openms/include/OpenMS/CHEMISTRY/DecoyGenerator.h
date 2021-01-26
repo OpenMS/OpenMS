@@ -88,7 +88,7 @@ namespace OpenMS
 
       // portable shuffle
       template <class RandomAccessIterator>
-        void shuffle_ (RandomAccessIterator first, RandomAccessIterator last)
+      void shuffle_ (RandomAccessIterator first, RandomAccessIterator last)
       {
         for (auto i = (last-first)-1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE 
         {

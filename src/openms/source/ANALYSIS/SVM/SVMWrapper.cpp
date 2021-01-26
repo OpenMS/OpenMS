@@ -608,7 +608,7 @@ namespace OpenMS
         indices.push_back(i);
       }
       // Shuffling the indices => random indices
-      shuffle(indices.begin(), indices.end(), std::mt19937(std::random_device()()));
+      shuffler_.portable_random_shuffle(indices.begin(), indices.end());
 
       indices_iterator = indices.begin();
 
@@ -676,7 +676,7 @@ namespace OpenMS
         indices.push_back(i);
       }
       // Shuffling the indices => random indices
-      shuffle(indices.begin(), indices.end(), std::mt19937(std::random_device()()));
+      shuffler_.portable_random_shuffle(indices.begin(), indices.end());
 
       indices_iterator = indices.begin();
 

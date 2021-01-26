@@ -40,14 +40,12 @@
 #include <random>
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
@@ -62,10 +60,10 @@ namespace OpenMS
   public:
 
       /// Constructor
-      explicit ConfidenceScoring(bool test_mode_ = false) :
-        generator_(), rand_gen_(std::random_device()())
+      explicit ConfidenceScoring(bool test_mode_ = false)
       {
-        if (!test_mode_) rand_gen_.seed(time(nullptr)); // seed with current time
+        if (!test_mode_) shuffler_ = Math::RandomShuffler(0);
+        else shuffler_ = Math::RandomShuffler(time(nullptr));// seed with current time
       }
 
       virtual ~ConfidenceScoring() {}
@@ -116,10 +114,7 @@ namespace OpenMS
       /// RT transformation to map measured RTs to assay RTs
       TransformationDescription rt_trafo_;
 
-      boost::mt19937 generator_; ///< random number generation engine
-
-      /// Random number generator (must be initialized in init. list of c'tor!)
-      std::mt19937 rand_gen_;
+      Math::RandomShuffler shuffler_; ///< random shuffler for container
 
       /// Randomize the list of decoy indexes
       void chooseDecoys_();

@@ -47,6 +47,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <vector>
 #include <numeric>
@@ -1374,8 +1375,9 @@ namespace OpenMS
     {
       selection.push_back(it->first);
     }
-    //TODO check how often this is potentially called and move out the rng.
-    shuffle(selection.begin(), selection.end(), std::mt19937(std::random_device()()));
+    //TODO check how often this is potentially called and move out the initialization
+    Math::RandomShuffler shuffler;
+    shuffler.portable_random_shuffle(selection.begin(), selection.end());
     // However, ensure that at least "svm_n_parts_" pos./neg. observations are
     // included (for cross-validation) - there must be enough, otherwise
     // "checkNumObservations_" would have thrown an error. To this end, move

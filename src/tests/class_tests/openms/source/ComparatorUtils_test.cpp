@@ -42,6 +42,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 
 ///////////////////////////
@@ -50,6 +51,8 @@ using namespace std;
 using namespace OpenMS;
 
 ///////////////////////////
+
+Math::RandomShuffler shuffler(0);
 
 struct IntStringPair
 {
@@ -210,8 +213,8 @@ START_SECTION(LexicographicComparator<>)
   sort ( seq.begin(), seq.end(), ReverseComparator<IntStringPairLessSecond>() );
   sort ( seq.begin(), seq.end(), ReverseComparator<IntStringPairLessFirst>() );
 
-  random_shuffle(seq.begin(),seq.end());
-  STATUS("after random_shuffle:");
+  shuffler.portable_random_shuffle(seq.begin(),seq.end());
+  STATUS("after shuffler.portable_random_shuffle:");
   for ( vector < IntStringPair >::iterator p = seq.begin(); p != seq.end(); ++p ) STATUS( p-> id << ":  " << p->first << ' ' << p->second );
   STATUS("Okay!");
 
@@ -219,7 +222,7 @@ START_SECTION(LexicographicComparator<>)
   {
   	STATUS("\n\nremaining loops: " << loops<<"\n");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<IntStringPairLessFirst,IntStringPairLessSecond>() );
   	{
   		int order [] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -228,7 +231,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<IntStringPairLessFirst,ReverseComparator<IntStringPairLessSecond> >() );
   	{
   		int order [] = { 3, 2, 1, 6, 5, 4, 9, 8, 7 };
@@ -237,7 +240,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<ReverseComparator<IntStringPairLessFirst>,IntStringPairLessSecond>() );
   	{
   		int order [] = { 7, 8, 9, 4, 5, 6, 1, 2, 3 };
@@ -246,7 +249,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<ReverseComparator<IntStringPairLessFirst>,ReverseComparator<IntStringPairLessSecond> >() );
   	{
   		int order [] = { 9, 8, 7, 6, 5, 4, 3, 2, 1 };
@@ -255,7 +258,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), ReverseComparator<LexicographicComparator<ReverseComparator<IntStringPairLessFirst>,ReverseComparator<IntStringPairLessSecond> > >() );
   	{
   		int order [] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -264,7 +267,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seqp.begin(),seqp.end());
+  	shuffler.portable_random_shuffle(seqp.begin(),seqp.end());
   	sort ( seqp.begin(), seqp.end(), PointerComparator<ReverseComparator<LexicographicComparator<ReverseComparator<IntStringPairLessFirst>,ReverseComparator<IntStringPairLessSecond> > > >() );
   	{
   		int order [] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -273,7 +276,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seqp.begin(),seqp.end());
+  	shuffler.portable_random_shuffle(seqp.begin(),seqp.end());
   	sort ( seqp.begin(), seqp.end(), ReverseComparator<LexicographicComparator<PointerComparator<ReverseComparator<IntStringPairLessFirst> >,ReverseComparator<PointerComparator<IntStringPairLessSecond> > > >() );
   	{
   		int order [] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -282,7 +285,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<IntStringPairLessSecond,IntStringPairLessFirst>() );
   	{
   		int order [] = { 1, 4, 7, 2, 5, 8, 3, 6, 9 };
@@ -291,7 +294,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<IntStringPairLessSecond,ReverseComparator<IntStringPairLessFirst> >() );
   	{
   		int order [] = { 7, 4, 1, 8, 5, 2, 9, 6, 3 };
@@ -300,7 +303,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<ReverseComparator<IntStringPairLessSecond>,IntStringPairLessFirst>() );
   	{
   		int order [] = { 3, 6, 9, 2, 5, 8, 1, 4, 7 };
@@ -309,7 +312,7 @@ START_SECTION(LexicographicComparator<>)
   	}
   	STATUS("Okay!");
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
   	sort ( seq.begin(), seq.end(), LexicographicComparator<ReverseComparator<IntStringPairLessSecond>,ReverseComparator<IntStringPairLessFirst> >() );
   	{
   		int order [] = { 9, 6, 3, 8, 5, 2, 7, 4, 1 };
@@ -350,8 +353,8 @@ START_SECTION(lexicographicComparator())
   sort ( seq.begin(), seq.end(), ReverseComparator<IntStringPairLessSecond>() );
   sort ( seq.begin(), seq.end(), ReverseComparator<IntStringPairLessFirst>() );
 
-  random_shuffle(seq.begin(),seq.end());
-  STATUS("after random_shuffle:");
+  shuffler.portable_random_shuffle(seq.begin(),seq.end());
+  STATUS("after shuffler.portable_random_shuffle:");
   for ( vector < IntStringPair >::iterator p = seq.begin(); p != seq.end(); ++p ) STATUS( p-> id << ":  " << p->first << ' ' << p->second );
   STATUS("Okay!");
 
@@ -359,7 +362,7 @@ START_SECTION(lexicographicComparator())
   {
   	STATUS("remaining loops: " << loops);
 
-  	random_shuffle(seq.begin(),seq.end());
+  	shuffler.portable_random_shuffle(seq.begin(),seq.end());
 		// Note how the next line differs from the preceding test...
   	sort ( seq.begin(), seq.end(), lexicographicComparator(IntStringPairLessFirst(),IntStringPairLessSecond()) );
   	{

@@ -41,9 +41,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/MISC/RANSACModelLinear.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <limits>       // std::numeric_limits
-#include <random>       // std::shuffle
 #include <vector>       // std::vector
 #include <sstream>      // stringstream
 
@@ -63,7 +63,7 @@ namespace OpenMS
         {
         }
       /// Full constructor
-      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d = false, int (*p_rng)(int) = nullptr)
+      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d = false)
         : n(p_n), k(p_k), t(p_t), d(p_d), relative_d(p_relative_d)
       {
         if (relative_d)
@@ -95,6 +95,12 @@ namespace OpenMS
     class RANSAC
     {
 public:
+
+      explicit RANSAC(int seed = time(nullptr)):
+      shuffler_(seed)
+      {}
+
+      ~RANSAC() = default;
 
       /// alias for ransac() with full params
       std::vector<std::pair<double, double> > ransac(
@@ -175,10 +181,8 @@ public:
           // check if the model already includes all points
           if (bestdata.size() == pairs.size()) break;
 
-          // TODO this is potentially very inefficient, why don't we just have a normal random generator always in this class?
           // use portable RNG in test mode
-          std::shuffle(pairs_shuffled.begin(), pairs_shuffled.end(), rng);
-
+          shuffler_.portable_random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
 
           // test 'maybeinliers'
           try
@@ -234,7 +238,7 @@ public:
       } // ransac()
 
     private:
-      std::mt19937 rng{std::random_device()()};
+      Math::RandomShuffler shuffler_{};
     }; // class
   
   } // namespace Math
