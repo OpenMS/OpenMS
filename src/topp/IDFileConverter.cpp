@@ -631,6 +631,7 @@ protected:
         FASTAFile::FASTAEntry entry;
         FASTAFile f;
         f.readStart(in);
+        UInt count_catches{};
         while (f.readNext(entry))
         {
           // digest sequence of fasta entry
@@ -642,9 +643,22 @@ protected:
           for (const auto& peptide : digested_peptides)
           {
             PeakSpectrum spec;
-            tsg.getSpectrum(spec, peptide, min_charge, max_charge, pc_charge);
+
+            try
+            {
+              tsg.getSpectrum(spec, peptide, min_charge, max_charge, pc_charge);
+            }
+            catch (Exception::InvalidSize())
+            {
+              ++count_catches;
+            }
+
             exp.addSpectrum(move(spec));
           }
+        }
+        if (count_catches > 0)
+        {
+          writeLog_("No spectra were calculated for " + String(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
         }
         logger.endProgress();
 
