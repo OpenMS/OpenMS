@@ -64,7 +64,7 @@ struct IntStringPair
 };
 
 struct
-StrangeMixedLessOfIntAndString : std::binary_function < int, string, bool >
+StrangeMixedLessOfIntAndString
 {
 	bool
 	operator () ( int const & i, string const & s ) const
@@ -73,13 +73,13 @@ StrangeMixedLessOfIntAndString : std::binary_function < int, string, bool >
 	}
 };
 
-struct IntStringPairLessFirst : binary_function < IntStringPair, IntStringPair, bool >
+struct IntStringPairLessFirst
 {
 	bool operator () ( IntStringPair const & left, IntStringPair const & right ) const
 	{ return left.first < right.first; }
 };
 
-struct IntStringPairLessSecond : binary_function < IntStringPair, IntStringPair, bool >
+struct IntStringPairLessSecond
 {
 	bool operator () ( IntStringPair const & left, IntStringPair const & right ) const
 	{ return left.second < right.second; }
@@ -158,16 +158,6 @@ START_SECTION(typedefs in ReverseComparator<> and PointerComparator<>)
   TEST_EQUAL(StrangeMixedLessOfIntAndString().operator()(2,"10"),true)
   TEST_EQUAL(StrangeMixedLessOfIntAndString().operator()(20,"10"),false)
   TEST_EQUAL(StrangeMixedLessOfIntAndString().operator()(20,"20"),false)
-  TEST_EQUAL(typeid(StrangeMixedLessOfIntAndString::first_argument_type)==typeid(int),true)
-  TEST_EQUAL(typeid(StrangeMixedLessOfIntAndString::second_argument_type)==typeid(string),true)
-  TEST_EQUAL(typeid(ReverseComparator<StrangeMixedLessOfIntAndString>::first_argument_type)==typeid(string),true)
-  TEST_EQUAL(typeid(ReverseComparator<StrangeMixedLessOfIntAndString>::second_argument_type)==typeid(int),true)
-  TEST_EQUAL(typeid(PointerComparator<StrangeMixedLessOfIntAndString>::first_argument_type)==typeid(int*),true)
-  TEST_EQUAL(typeid(PointerComparator<StrangeMixedLessOfIntAndString>::second_argument_type)==typeid(string*),true)
-  TEST_EQUAL(typeid(ReverseComparator<PointerComparator<StrangeMixedLessOfIntAndString> >::first_argument_type)==typeid(string*),true)
-  TEST_EQUAL(typeid(ReverseComparator<PointerComparator<StrangeMixedLessOfIntAndString> >::second_argument_type)==typeid(int*),true)
-  TEST_EQUAL(typeid(PointerComparator<ReverseComparator<StrangeMixedLessOfIntAndString> >::first_argument_type)==typeid(string*),true)
-  TEST_EQUAL(typeid(PointerComparator<ReverseComparator<StrangeMixedLessOfIntAndString> >::second_argument_type)==typeid(int*),true)
 END_SECTION
 
 START_SECTION(reverseComparator(std::less<int>()))

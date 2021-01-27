@@ -188,8 +188,7 @@ namespace OpenMS
 
 
     /// Comparator by position. As this class has dimension 1, this is basically an alias for MZLess.
-    struct RTLess :
-      public std::binary_function<MZTrafoModel, MZTrafoModel, bool>
+    struct RTLess
     {
       inline bool operator()(const double& left, const MZTrafoModel& right) const
       {

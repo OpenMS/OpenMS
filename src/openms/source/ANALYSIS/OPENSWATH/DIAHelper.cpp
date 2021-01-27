@@ -354,8 +354,7 @@ namespace OpenMS
       }
     }
 
-    struct MassSorter :
-      std::binary_function<double, double, bool>
+    struct MassSorter
     {
       bool operator()(const std::pair<double, double>& left,
                       const std::pair<double, double>& right)
