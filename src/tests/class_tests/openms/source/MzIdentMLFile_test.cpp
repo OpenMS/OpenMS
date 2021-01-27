@@ -72,8 +72,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 {
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
-  std::vector<String> fm;
-  fm.push_back("Carbamidomethyl (C)");
+  std::vector<String> fm{"Carbamidomethyl (C)", "Xlink:DTSSP[88] (Protein N-term)"};
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),2)
