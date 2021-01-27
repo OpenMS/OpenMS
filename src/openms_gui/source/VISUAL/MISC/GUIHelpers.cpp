@@ -183,6 +183,20 @@ namespace OpenMS
     return QRectF(0, 0, width, height);
   }
 
+  StringList GUIHelpers::convert(const QStringList& in)
+  {
+    StringList out;
+    for (const auto& s : in) out.push_back(s);
+    return out;
+  }
+
+  QStringList GUIHelpers::convert(const StringList& in)
+  {
+    QStringList out;
+    for (const auto& s : in) out.push_back(s.toQString());
+    return out;
+  }
+
   GUIHelpers::GUILock::GUILock(QWidget* gui)
     : locked_widget_(gui)
   {
