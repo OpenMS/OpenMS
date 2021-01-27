@@ -140,7 +140,6 @@ public:
 
         @return A vector of pairs fitting the model well; data will be unsorted
       */
-  
       std::vector<std::pair<double, double> > ransac(
           const std::vector<std::pair<double, double> >& pairs, 
           size_t n, 
