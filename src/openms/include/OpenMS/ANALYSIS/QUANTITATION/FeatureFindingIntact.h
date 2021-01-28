@@ -72,7 +72,11 @@ namespace OpenMS
         feature_mass_(),
         iso_pattern_traces_(),
         iso_mt_index_pairs_(),
-        charge_score_()
+        charge_score_(),
+        rt_start_(),
+        rt_end_(),
+        mz_start_(),
+        mz_end_()
       {
       }
 
@@ -89,7 +93,11 @@ namespace OpenMS
           feature_mass_(fh.feature_mass_),
           iso_pattern_traces_(fh.iso_pattern_traces_),
           iso_mt_index_pairs_(fh.iso_mt_index_pairs_),
-          charge_score_(fh.charge_score_)
+          charge_score_(fh.charge_score_),
+          rt_start_(fh.rt_start_),
+          rt_end_(fh.rt_end_),
+          mz_start_(fh.mz_start_),
+          mz_end_(fh.mz_end_)
       {
       }
 
@@ -105,6 +113,10 @@ namespace OpenMS
         feature_mass_ = fh.feature_mass_;
         iso_mt_index_pairs_ = fh.iso_mt_index_pairs_;
         charge_score_ = fh.charge_score_;
+        rt_start_ = fh.rt_start_;
+        rt_end_ = fh.rt_end_;
+        mz_start_ = fh.mz_start_;
+        mz_end_ = fh.mz_end_;
         return *this;
       }
 
@@ -137,6 +149,16 @@ namespace OpenMS
       double getChargeScore() const
       {
         return charge_score_;
+      }
+
+      std::pair<double, double> getRTRange() const
+      {
+        return std::make_pair(rt_start_, rt_end_);
+      }
+
+      std::pair<double, double> getMZRange() const
+      {
+        return std::make_pair(mz_start_, mz_end_);
       }
 
       void setCharge(const SignedSize& ch)
@@ -203,6 +225,34 @@ namespace OpenMS
         feature_mass_ = (mono_mz - Constants::PROTON_MASS_U) * charge_;
       }
 
+      void setRTRange()
+      {
+        double rt_lower_limit = std::numeric_limits<double>::max();
+        double rt_upper_limit = 0.0;
+
+        for (const auto& mt : iso_pattern_traces_)
+        {
+          const auto& bounding_box = mt->getConvexhull().getBoundingBox();
+
+          if(bounding_box.minX() < rt_lower_limit)
+          {
+            rt_lower_limit = bounding_box.minX();
+          }
+          if(bounding_box.maxX() > rt_upper_limit)
+          {
+            rt_upper_limit = bounding_box.maxX();
+          }
+        }
+        rt_start_ = rt_lower_limit;
+        rt_end_ = rt_upper_limit;
+      }
+
+      void setMZRange(double mz_range)
+      {
+        mz_start_ = feature_mass_/charge_ + Constants::PROTON_MASS_U;
+        mz_end_ = mz_start_ + mz_range;
+      }
+
     private:
       SignedSize charge_;
       double feat_score_;
@@ -211,6 +261,11 @@ namespace OpenMS
       // first: iso index of current feature, second : masstrace index of final masstraces
       std::vector<std::pair<Size, Size>> iso_mt_index_pairs_;
       double charge_score_;
+      // calculated based on iso_pattern_traces
+      double rt_start_;
+      double rt_end_;
+      double mz_start_;
+      double mz_end_;
     };
 
     class OPENMS_DLLAPI CmpMassTraceByMZ
@@ -388,7 +443,8 @@ namespace OpenMS
       local_rt_range_ = 15.0 ; // RT range where to look for coeluting mass traces
       charge_lower_bound_ = 7;
       charge_upper_bound_ = 30;
-      mass_upper_bound = 20000;
+      mass_lower_bound_ = 1000;
+      mass_upper_bound_ = 20000;
       use_smoothed_intensities_ = true; // for intensity of a mass trace
     }
 
@@ -400,8 +456,7 @@ namespace OpenMS
 
     void findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
                             const double total_intensity,
-                            std::vector<FeatureHypothesis>& output_hypotheses,
-                            std::vector<std::vector<Size>>& shared_m_traces_indices) const;
+                            std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const;
 
@@ -422,7 +477,12 @@ namespace OpenMS
 
     double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
 
-    void setAveragineModel();
+    void setAveragineModel_();
+
+    void removeMassArtifacts_(std::vector<FeatureHypothesis>& feat_hypotheses) const;
+
+    void setChargeScoreForFeatureHypothesis(std::vector<FeatureHypothesis> candidate_hypotheses,
+                                              std::vector<std::pair<double, Size>> feat_and_charges) const;
 
     void clusterFeatureHypotheses_(std::vector<FeatureHypothesis>& output_hypotheses,
                                   const std::vector<std::vector<Size>>& shared_m_traces_indices) const;
@@ -430,17 +490,22 @@ namespace OpenMS
     void resolveConflictInCluster_(const std::vector<FeatureHypothesis>& feat_hypo,
                                    const std::vector<std::vector<Size> >& shared_m_traces_indices,
                                    const std::set<Size>& hypo_indices,
-                                   std::vector<FeatureHypothesis>& out_features
+                                   std::vector<FeatureHypothesis>& out_features,
+                                   ofstream& outs,
+                                   String& cluster_name
                                    ) const;
 
     /// parameters
     double local_rt_range_;
     double local_mz_range_;
-    double charge_lower_bound_;
-    double charge_upper_bound_;
-    double mass_upper_bound;
+    Size charge_lower_bound_;
+    Size charge_upper_bound_;
+    double mass_lower_bound_;
+    double mass_upper_bound_;
     Size max_nr_traces_; // calculated from iso_model_ (FeatureFindingIntact::setAveragineModel())
     bool use_smoothed_intensities_;
+
+    const std::vector<Size> harmonic_charges_{2, 3, 5};
 
     PrecalculatedAveragine iso_model_;
   };

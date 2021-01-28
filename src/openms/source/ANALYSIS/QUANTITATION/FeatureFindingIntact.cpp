@@ -122,7 +122,7 @@ namespace OpenMS
     std::vector<std::vector<Size>> shared_m_traces_indices(input_mtraces.size(), std::vector<Size>());
 
     // prepare isotope model for scoring method
-    setAveragineModel();
+    setAveragineModel_();
 
     buildFeatureHypotheses_(input_mtraces, feat_hypos, shared_m_traces_indices);
 
@@ -195,131 +195,46 @@ namespace OpenMS
           local_traces.push_back(std::make_pair(&input_mtraces[ext_idx], ext_idx));
         }
       }
-      findLocalFeatures_(local_traces, total_intensity, candidate_hypotheses, shared_m_traces_indices);
+      findLocalFeatures_(local_traces, total_intensity, candidate_hypotheses);
     }
     this->endProgress();
+
+    // *********************************************************** //
+    // Step 3 filter out mass artifacts
+    // *********************************************************** //
+    removeMassArtifacts_(candidate_hypotheses);
     OPENMS_LOG_INFO << "feature hypotheses size:" << candidate_hypotheses.size() << std::endl;
 
     // *********************************************************** //
-    // Step 3 add charge score
+    // Step 4 add charge score
     // *********************************************************** //
-    // TODO: pregress logger?
 
-    Size candi_size = candidate_hypotheses.size();
-//    std::vector<double> feature_masses; // keeping track of deconvoluted feature masses
-//    feature_masses.reserve(candi_size);
-    std::vector<std::pair<double, Size>> feat_and_charges; // first : feature mass, second : charge state
+    // 1. set shared_m_traces_indices based on filtered hypothesis (for later, in clustering)
+    // 2. collect candidate masses for charge scoring
+    const Size candi_size = candidate_hypotheses.size();
+    std::vector<std::pair<double, Size>> feat_and_charges; // first : feature mass, second : charge states
     feat_and_charges.reserve(candi_size);
 
-    // collect candidate masses
-    for (const auto& hypo : candidate_hypotheses)
+    for (Size h_index=0; h_index< candi_size; ++h_index)
     {
-//      feature_masses.push_back(hypo.getFeatureMass());
-      feat_and_charges.push_back(std::make_pair(hypo.getFeatureMass(), hypo.getCharge()));
+      const auto& current_hypo = candidate_hypotheses[h_index];
+      for (const auto& mt_index : current_hypo.getIndicesOfMassTraces() )
+      {
+        shared_m_traces_indices[mt_index.second].push_back(h_index);
+      }
+      feat_and_charges.push_back(std::make_pair(current_hypo.getFeatureMass(), current_hypo.getCharge()));
     }
-//    std::sort(feature_masses.begin(), feature_masses.end());
     std::sort(feat_and_charges.begin(), feat_and_charges.end());
 
-    // cluster mean_masses within tolerance
-    std::vector<std::pair<double, std::set<Size>>> collected_masses; // first : average mass of current cluster, second : vector of charges
-    collected_masses.reserve(candi_size);
-    double tolerance = 1.5; // Da
-    Size max_nr_charges = 0; // get the maximum size of charge set
-
-    for(auto f_iter=feat_and_charges.begin(); f_iter != feat_and_charges.end(); f_iter++ )
-    {
-      auto f_iter_end = f_iter;
-
-      double average = 0.0;
-      int counter = 1;
-      for(; f_iter_end!=feat_and_charges.end(); f_iter_end++)
-      {
-        average = 0.0;
-        for (auto i=f_iter; i!=(f_iter_end+1); i++) average += i->first;
-        average /= counter;
-        if ((f_iter_end+1)->first-average > tolerance)
-        {
-          break;
-        }
-        counter++;
-      }
-
-      // save found charge states
-      std::set<Size> tmp_charges;
-      for(auto it=f_iter; it!=(f_iter_end+1); it++)
-      {
-        tmp_charges.insert(it->second);
-      }
-      collected_masses.push_back(std::make_pair(average, tmp_charges));
-      if (tmp_charges.size() > max_nr_charges)
-      {
-        max_nr_charges = tmp_charges.size();
-      }
-      f_iter = f_iter_end;
-//      OPENMS_LOG_INFO << std::distance(feat_and_charges.end(), f_iter) << endl;
-    }
-    collected_masses.shrink_to_fit();
-
-    // give charge score for each feature
-    for (auto& feature : candidate_hypotheses)
-    {
-      double cs_score=0;
-      for (auto f_it = collected_masses.begin(); f_it != collected_masses.end(); f_it++)
-      {
-        if (std::fabs(f_it->first-feature.getFeatureMass()) > tolerance)
-          continue;
-        cs_score = f_it->second.size() / max_nr_charges;
-        break;
-      }
-      feature.setChargeScore(cs_score);
-    }
-
-//    {
-////      bool is_artifact = false;
-//
-//      bool found = false;
-//      double matched_mass;
-//      for (const auto& feat: feat_and_charges)
-//      {
-//        if ((feat.first-curr_feat.getFeatureMass()) > tolerance) break; // to large
-//        if ((curr_feat.getFeatureMass()-feat.first) > tolerance) continue;  // to small
-//
-//        found = true;
-//        if (matched_mass)
-//      }
-//
-//      if (!found){
-//        std::vector<Size> tmp_vec;
-//        tmp_vec.push_back(curr_feat.getCharge());
-//        feat_and_charges.push_back(std::make_pair(curr_feat.getFeatureMass(), tmp_vec));
-//        std::sort(feat_and_charges.begin(), feat_and_charges.end());
-//      }
-
-
-//      for (Size j = i+1; j < candi_size; j++)
-//      {
-//        // check if low harmonic artifact
-//        // check if high harmonic artifact
-//        // check if charge-off-by-one
-//      }
-//      if (!is_artifact)
-//      {
-//        // add to collect charge states of features
-//        feature_masses.push_back(curr_feat.getFeatureMass());
-//        feature_masses.push_back(curr_feat.getFeatureMass());
-//
-//        // add to output
-//        output_hypotheses.push_back(curr_feat);
-//      }
-//    }
+    // add charge score to each candidate hypothesis
+    setChargeScoreForFeatureHypothesis(candidate_hypotheses, feat_and_charges);
 
     output_hypotheses = candidate_hypotheses;
   }
 
   void FeatureFindingIntact::findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
                                                 const double total_intensity,
-                                                std::vector<FeatureHypothesis>& output_hypotheses,
-                                                std::vector<std::vector<Size>>& shared_m_traces_indices) const
+                                                std::vector<FeatureHypothesis>& output_hypotheses) const
   {
     // not storing hypothesis with only one mass trace (with only mono), while FeatureFindingMetabo does
 
@@ -332,9 +247,12 @@ namespace OpenMS
       fh_tmp.setScore((candidates[0].first->getIntensity(use_smoothed_intensities_)) / total_intensity);
       fh_tmp.setCharge(charge);
       double mol_weight = (candidates[0].first->getCentroidMZ()-Constants::PROTON_MASS_U) * charge;
-      if (mol_weight > mass_upper_bound)
+      if (mol_weight > mass_upper_bound_)
         break;
       fh_tmp.setFeatureMass(mol_weight);
+
+      // pre-save all features out of current charge state
+      std::vector<FeatureHypothesis> hypo_for_curr_charge;
 
       // for shared mass traces tracker
       std::vector<std::pair<Size, Size>> used_mass_trace_indices; // first: iso index of current feature, second: mt index
@@ -411,20 +329,18 @@ namespace OpenMS
           }
           fh_tmp.setIndicesOfMassTraces(tmp_indices);
 
+          // set rt and mz range of current hypothesis
+          fh_tmp.setRTRange();
+          fh_tmp.setMZRange(mz_window);
+
           // update feature mass with modified isotope index
           if (iso_index_in_avg_model != 0)
           {
             fh_tmp.updateFeatureMass();
           }
 
-          // update shared mass trace tracker
-          Size h_index = output_hypotheses.size();// current hypothesis's index
-          for (const auto& mt : used_mass_trace_indices )
-          {
-            shared_m_traces_indices[mt.second].push_back(h_index);
-          }
-
-          output_hypotheses.push_back(fh_tmp);
+//          output_hypotheses.push_back(fh_tmp);
+          hypo_for_curr_charge.push_back(fh_tmp);
           last_iso_idx = best_idx;
         }
         else
@@ -438,6 +354,23 @@ namespace OpenMS
           }
         }
       } // end for iso_pos
+      // using only one hypothesis per charge
+      if (hypo_for_curr_charge.size() == 0)
+      {
+        continue;
+      }
+      double max_score = 0;
+      Size max_score_index = 0;
+      for (Size i = 0; i<hypo_for_curr_charge.size(); ++i)
+      {
+        if (hypo_for_curr_charge[i].getScore() > max_score)
+        {
+          max_score = hypo_for_curr_charge[i].getScore();
+          max_score_index = i;
+        }
+      }
+      output_hypotheses.push_back(hypo_for_curr_charge[max_score_index]);
+      hypo_for_curr_charge.empty();
     } // end of charge
   } // end of findLocalFeatures_(...)
 
@@ -626,22 +559,203 @@ namespace OpenMS
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  void FeatureFindingIntact::setAveragineModel()
+  void FeatureFindingIntact::setAveragineModel_()
   {
     auto generator = new CoarseIsotopePatternGenerator();
-    auto maxIso = generator->estimateFromPeptideWeight(mass_upper_bound);
+    auto maxIso = generator->estimateFromPeptideWeight(mass_upper_bound_);
     maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
 
     generator->setMaxIsotope(maxIso.size());
-    iso_model_ = PrecalculatedAveragine(50, mass_upper_bound, 25, generator);
+    iso_model_ = PrecalculatedAveragine(50, mass_upper_bound_, 25, generator);
     iso_model_.setMaxIsotopeIndex(maxIso.size() - 1);
 
     max_nr_traces_ = iso_model_.getMaxIsotopeIndex();
   }
 
+  void FeatureFindingIntact::removeMassArtifacts_(std::vector<FeatureHypothesis>& feat_hypotheses) const
+  {
+    std::vector<FeatureHypothesis>::iterator fh_iterator = feat_hypotheses.begin();
+    auto end_of_iter = feat_hypotheses.end();
+
+    this->startProgress(0, feat_hypotheses.size(), "filtering candidate features");
+    Size progress(0);
+    while( fh_iterator != end_of_iter )
+    {
+      this->setProgress(progress);
+      progress++;
+      /// recruit overlapping features with higher scores
+      std::vector<FeatureHypothesis> overlapped_features;
+      for (auto tmp_iter = feat_hypotheses.begin(); tmp_iter != end_of_iter; ++tmp_iter)
+      {
+        if (fh_iterator==tmp_iter) continue;
+
+        // 1. check if score is higher than current feature
+        if (fh_iterator->getScore() > tmp_iter->getScore()) continue;
+
+        // 2. check if RT range overlaps (more than 80%)
+        std::pair<double, double> curr_feat_rt_range = fh_iterator->getRTRange();
+        std::pair<double, double> comp_feat_rt_range = tmp_iter->getRTRange();
+        if (curr_feat_rt_range.first >= comp_feat_rt_range.second) continue;
+        if (curr_feat_rt_range.second <= comp_feat_rt_range.first) continue;
+        double overlap_start = std::max(curr_feat_rt_range.first, comp_feat_rt_range.first);
+        double overlap_end = std::min(curr_feat_rt_range.second, comp_feat_rt_range.second);
+        double overlap_length = (overlap_end-overlap_start);
+        if ( (overlap_length/(curr_feat_rt_range.second-curr_feat_rt_range.first) < 0.8) &&
+         (overlap_length/(comp_feat_rt_range.second-comp_feat_rt_range.first) < 0.8) ) continue;
+
+        // TODO : 3. check if mz overlap?
+        std::pair<double, double> curr_feat_mz_range = fh_iterator->getMZRange();
+        std::pair<double, double> comp_feat_mz_range = tmp_iter->getMZRange();
+        if (curr_feat_mz_range.first >= comp_feat_mz_range.second) continue;
+        if (curr_feat_mz_range.second <= comp_feat_mz_range.first) continue;
+
+        overlapped_features.push_back(*tmp_iter);
+      }
+
+      bool is_artifact = false;
+      for (auto overlap_iter = overlapped_features.begin(); overlap_iter!=overlapped_features.end(); ++overlap_iter)
+      {
+        double m_tol = 1e-5 * fh_iterator->getFeatureMass(); // 10ppm
+
+        // 1. check if harmonic artifacts
+        for (const Size& cs : harmonic_charges_)
+        {
+          for (int i = -10; i <= 10; ++i) // up to 10 isotope error
+          {
+            double l_mass = (i*Constants::C13C12_MASSDIFF_U + fh_iterator->getFeatureMass()) * cs; // low harmonic
+            double h_mass = (i*Constants::C13C12_MASSDIFF_U + fh_iterator->getFeatureMass()) / cs; // high harmonic
+            if (std::fabs(l_mass-overlap_iter->getFeatureMass()) < m_tol ||
+                std::fabs(h_mass-overlap_iter->getFeatureMass()) < m_tol )
+            {
+              is_artifact = true;
+              break;
+            }
+          }
+          if (is_artifact) break;
+        }
+        if (is_artifact) break;
+
+        // 2. check if charge-off-by-one artifacts
+        Size curr_charge = fh_iterator->getCharge();
+        if (std::abs(int(curr_charge)-int(overlap_iter->getCharge())) != 1) continue;
+        // if this artifact is possible (distance between peaks of two consecutive charges are smaller than 4 Th)
+        if ((fh_iterator->getFeatureMass()/curr_charge)-(fh_iterator->getFeatureMass()/(curr_charge+1)) > 4 ) continue;
+        for (int i = -10; i <= 10; ++i) // up to 10 isotope error
+        {
+          double mass_cs_up = (i*Constants::C13C12_MASSDIFF_U + fh_iterator->getFeatureMass())/curr_charge * (curr_charge+1);
+          double mass_cs_down = (i*Constants::C13C12_MASSDIFF_U + fh_iterator->getFeatureMass())/curr_charge * (curr_charge-1);
+          if (std::fabs(mass_cs_up-overlap_iter->getFeatureMass()) < m_tol ||
+              std::fabs(mass_cs_down-overlap_iter->getFeatureMass()) < m_tol )
+          {
+            is_artifact = true;
+            break;
+          }
+        }
+        if (is_artifact) break;
+      }
+
+      // if artifact, remove it from feature candidates
+      if (is_artifact)
+      {
+        fh_iterator = feat_hypotheses.erase(fh_iterator);
+        end_of_iter = feat_hypotheses.end();
+      }
+      else{
+        ++fh_iterator;
+      }
+    }
+    this->endProgress();
+
+  }
+
+  void FeatureFindingIntact::setChargeScoreForFeatureHypothesis(std::vector<FeatureHypothesis> candidate_hypotheses,
+                                            std::vector<std::pair<double, Size>> feat_and_charges) const
+  {
+    Size candi_size = candidate_hypotheses.size();
+
+    // calculate mean_masses within tolerance
+    std::vector<std::pair<double, std::set<Size>>> collected_masses; // first : average of feature masses, second : vector of charges
+    collected_masses.reserve(candi_size);
+    const double tolerance = 1.5; // Da
+    Size max_nr_charges = 0; // save the maximum size of charge set
+    auto&& end_of_feature = feat_and_charges.end();
+
+    this->startProgress(0, feat_and_charges.size(), "charge scoring");
+    Size progress = 0;
+    std::vector<std::pair<double, Size>>::iterator f_iter=feat_and_charges.begin();
+    while( f_iter != end_of_feature )
+    {
+      setProgress(progress);
+      progress++;
+
+      // TODO : just to prevent the error - couldn't figure out why tho...
+      if(std::distance(f_iter, end_of_feature) < 0) break;
+
+      auto f_iter_end = f_iter;
+
+      double average = 0.0;
+      int counter = 1;
+      for(; f_iter_end!=end_of_feature; ++f_iter_end)
+      {
+        average = 0.0;
+        auto next_end = std::next(f_iter_end);
+        for (auto i=f_iter; i!=next_end; ++i) average += i->first;
+        average /= counter;
+        if (next_end->first-average > tolerance)
+        {
+          break;
+        }
+        ++counter;
+      }
+
+      // save found charge states
+      std::set<Size> tmp_charges;
+      f_iter_end++; // starting position of next f_iter
+      for(auto it=f_iter; it!=f_iter_end; ++it)
+      {
+        tmp_charges.insert(it->second);
+      }
+      collected_masses.push_back(std::make_pair(average, tmp_charges));
+      if (tmp_charges.size() > max_nr_charges)
+      {
+        max_nr_charges = tmp_charges.size();
+      }
+
+      f_iter = std::next(f_iter, std::distance(f_iter, f_iter_end));
+      //      OPENMS_LOG_INFO << std::distance(feat_and_charges.end(), f_iter) << endl;
+    }
+    collected_masses.shrink_to_fit();
+    this->endProgress();
+
+    // give charge score for each feature
+    for (auto& feature : candidate_hypotheses)
+    {
+      double cs_score=0;
+      for (auto f_it = collected_masses.begin(); f_it != collected_masses.end(); ++f_it)
+      {
+        if (std::fabs(f_it->first-feature.getFeatureMass()) > tolerance)
+          continue;
+        cs_score = f_it->second.size() / max_nr_charges;
+        break;
+      }
+      feature.setChargeScore(cs_score);
+    }
+  }
+
+
   void FeatureFindingIntact::clusterFeatureHypotheses_(vector<FeatureHypothesis>& hypotheses,
                                                        const std::vector<std::vector<Size>>& shared_m_traces_indices) const
   {
+
+    // test writing
+    String out_path = "/Users/jeek/Documents/A4B_UKE/filg/rp/centroid/190904_Proswift50mm_7min_Filg_500ng.pphr.featHypoClusterName.tsv";
+    ofstream out;
+    out.open(out_path, ios::out);
+
+    // header
+    out << "feature_label\tscore\tbounding_box_pos\tbounding_box_width\tbounding_box_height\t"
+           "iso_position\tmasstrace_centroid_rts\tmasstrace_centroid_mzs\tclustername\n";
+
     // *********************************************************** //
     // Step 1 constructing hypergraph from featurehypotheses
     //        node = mass traces
@@ -657,12 +771,13 @@ namespace OpenMS
 
     // BFS
     // TODO : progress logger
-//    this->startProgress(0, shared_m_traces_indices.size(), "clustering features based on the shared mass traces");
-//    Size progress = 0;
+    this->startProgress(0, shared_m_traces_indices.size(), "clustering features based on the shared mass traces");
+    Size progress = 0;
+    Size cluster_counter = 0;
     while (true)
     {
-//      this->setProgress(progress);
-//      ++progress;
+      this->setProgress(progress);
+      ++progress;
       // finding a seed 'shared_mass_trace' to start with (for constructing a cluster)
       bool finished = true;
       for (Size i = search_pos; i < num_nodes; ++i)
@@ -705,30 +820,91 @@ namespace OpenMS
           }
         }
       }
-
       // current cluster
       if (hypo_indices_in_current_cluster.empty()) continue; // no cluster out of current mt
+      cluster_counter++;
       if (hypo_indices_in_current_cluster.size() == 1){
-        // no conflict, but cannot happen.
+//         no conflict, but cannot happen.
         out_features.push_back(hypotheses[*(hypo_indices_in_current_cluster.begin())]);
-        break;
+        continue;
       }
-      resolveConflictInCluster_(hypotheses, shared_m_traces_indices, hypo_indices_in_current_cluster, out_features);
+      String cluster_name = "cluster " + to_string(progress);
+      resolveConflictInCluster_(hypotheses, shared_m_traces_indices, hypo_indices_in_current_cluster, out_features, out, cluster_name);
     }
-//    this->endProgress();
+    this->endProgress();
+
+    out.close();
+    OPENMS_LOG_INFO << "#cluster :" << cluster_counter << endl;
+  }
+
+  void getCoordinatesOfClusterForPython(std::vector<FeatureFindingIntact::FeatureHypothesis> hypo, ofstream& out, String& cluster_name)
+  {
+    for (const auto& feat : hypo)
+    {
+      double mz_upper_limit = 0.0;
+      double rt_upper_limit  = 0.0;
+      double mz_lower_limit = std::numeric_limits<double>::max();
+      double rt_lower_limit = std::numeric_limits<double>::max();
+      stringstream rts;
+      stringstream mzs;
+      for (const auto& mt : feat.getMassTraces())
+      {
+        const auto& boundingbox = mt->getConvexhull().getBoundingBox();
+
+        if (boundingbox.minX() < rt_lower_limit)
+          rt_lower_limit = boundingbox.minX();
+        if (boundingbox.maxX() > rt_upper_limit)
+          rt_upper_limit = boundingbox.maxX();
+        if (boundingbox.minY() < mz_lower_limit)
+          mz_lower_limit = boundingbox.minY();
+        if (boundingbox.maxY() > mz_upper_limit)
+          mz_upper_limit = boundingbox.maxY();
+
+        mzs << mt->getCentroidMZ() << ",";
+        rts << mt->getCentroidRT() << ",";
+      }
+      std::string centroids = rts.str();
+      centroids.pop_back();
+      centroids = centroids + "\t" + mzs.str();
+      centroids.pop_back();
+
+      stringstream isos;
+      for (const auto& pair : feat.getIndicesOfMassTraces())
+      {
+        isos << pair.first << ",";
+      }
+      std::string iso_str = isos.str();
+      iso_str.pop_back();
+
+      String label = std::to_string(feat.getFeatureMass()) + "(cs" + std::to_string(feat.getCharge()) + ")";
+      out << label << "\t" << to_string(feat.getScore()) << "\t"
+          << to_string(rt_lower_limit) << "," << to_string(mz_lower_limit) << "\t"
+          << to_string((rt_upper_limit-rt_lower_limit)) << "\t" << to_string((mz_upper_limit-mz_lower_limit)) << "\t"
+          << iso_str << "\t" << centroids
+          << "\t" << cluster_name << "\n";
+    }
   }
 
   void FeatureFindingIntact::resolveConflictInCluster_(const std::vector<FeatureHypothesis>& feat_hypo,
                                  const std::vector<std::vector<Size> >& shared_m_traces_indices,
                                  const std::set<Size>& hypo_indices,
-                                 std::vector<FeatureHypothesis>& out_features) const
+                                 std::vector<FeatureHypothesis>& out_features,
+                                 ofstream& out,
+                                 String& cluster_name) const
   {
+    // remove
+
+
     // compute scores for each features
     vector<double> feat_scores(hypo_indices.size());
+    std::vector<FeatureHypothesis> tmp_cluster;
     for (const auto& h_index : hypo_indices)
     {
-      feat_scores.push_back( feat_hypo[h_index].getScore() );
+//      feat_scores.push_back( feat_hypo[h_index].getScore() );
+      tmp_cluster.push_back(feat_hypo[h_index]);
     }
+
+    getCoordinatesOfClusterForPython(tmp_cluster, out, cluster_name);
   }
 
 }

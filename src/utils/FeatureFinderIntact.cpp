@@ -111,7 +111,7 @@ public:
     std::vector<Int> ms_level(1, 1);
     mz_data_file.getOptions().setMSLevels(ms_level);
     /// for test purpose : reduce in_ex
-    mz_data_file.getOptions().setMZRange(DRange<1>(DPosition<1>(1330.0), DPosition<1>(1455)));
+    mz_data_file.getOptions().setMZRange(DRange<1>(DPosition<1>(1230.0), DPosition<1>(1455)));
     mz_data_file.getOptions().setRTRange(DRange<1>(DPosition<1>(130.0), DPosition<1>(410)));
     mz_data_file.load(in, ms_peakmap);
 
