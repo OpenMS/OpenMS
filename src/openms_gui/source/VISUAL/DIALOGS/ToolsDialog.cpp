@@ -61,6 +61,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <sstream>
 
@@ -76,10 +77,10 @@ namespace OpenMS
           LayerData::DataType layer_type,
           String layer_name
     ) :
-    QDialog(parent),
-    ini_file_(ini_file),
-    default_dir_(default_dir),
-    layer_type(layer_type)
+          QDialog(parent),
+          ini_file_(ini_file),
+          default_dir_(default_dir),
+          layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
 
@@ -91,9 +92,8 @@ namespace OpenMS
 
     auto label = new QLabel("TOPP tool:");
     main_grid->addWidget(label, 1, 0);
-    //QStringList list;
 
-    // Determine all available tools compatible with the layer_type
+    // Determine all available tools compatible with the layer_type_
     tool_map_ = {
             {FileTypes::Type::MZML, LayerData::DataType::DT_PEAK},
             {FileTypes::Type::MZXML, LayerData::DataType::DT_PEAK},
@@ -104,6 +104,7 @@ namespace OpenMS
     // Get a map of all tools and utils
     const auto& tools = ToolHandler::getTOPPToolList();
     const auto& utils = ToolHandler::getUtilList();
+    // Extract names of all tools and utils
     QList<String> keys;
     for (const auto& pair : tools)
     {
@@ -113,14 +114,13 @@ namespace OpenMS
     {
       keys.push_back(pair.first);
     }
-    // Check whether tools/utils are compatible with current layer
-    connect(&watcher, &QFutureWatcher<Param>::finished, this, &ToolsDialog::addEntries);
-    param_future_ = QtConcurrent::mapped(keys, std::bind(&ToolsDialog::getParamFromIni_, this, std::placeholders::_1));
-    watcher.setFuture(param_future_);
+    // Check whether tools/utils are compatible with current layer in background and add all compatible tools/utils
+    // to the tools_combo_ when ready
+    connect(&param_watcher_, &QFutureWatcher<Param>::finished, this, &ToolsDialog::addEntries);
+    param_future_ = QtConcurrent::mapped(keys, &ToolsDialog::getParamFromIni_);
+    param_watcher_.setFuture(param_future_);
 
-    //sort list alphabetically
-    //list.sort();
-    //list.push_front("<select tool>");
+
     tools_combo_ = new QComboBox;
     tools_combo_->setMinimumWidth(150);
     tools_combo_->addItem("<select tool>");
@@ -177,32 +177,24 @@ namespace OpenMS
 
   }
 
-  Param ToolsDialog::getParamFromIni_(const String& toppExeName)
+  Param ToolsDialog::getParamFromIni_(const String& name)
   {
-    //std::cout << toppExeName << std::endl;
-    String path = toppExeName + ".ini";
-
+    String path = File::getUniqueName();
     QStringList args{ "-write_ini", path.toQString(), "-log", (path+".log").toQString() };
     QProcess qp;
-    String executable = File::findSiblingTOPPExecutable(toppExeName);
+    Param tool_param;
+    String executable = File::findSiblingTOPPExecutable(name);
     qp.start(executable.toQString(), args);
     const bool success = qp.waitForFinished(-1); // wait till job is finished
-    if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
     {
-        QMessageBox::critical(this, "Error", (String("Could not execute '") + executable +
-        "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() +
-        "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
-        // TODO handle error
+      //TODO send error to LogWindow of ToppView!
+      return tool_param;
     }
-    else if (!File::exists(path))
-    {
-        QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + path + "'!").c_str());
-        // TODO handle error
-    }
-    Param tool_param;
+
     ParamXMLFile paramFile;
     paramFile.load((path).c_str(), tool_param);
-
+    File::remove(path);
     return tool_param;
   }
 
@@ -442,7 +434,7 @@ namespace OpenMS
       String name = p.begin().getName().substr(0, p.begin().getName().rfind(":"));
       std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
       // Check if tool is compatible with the layer type
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
         names << name.toQString();
       }

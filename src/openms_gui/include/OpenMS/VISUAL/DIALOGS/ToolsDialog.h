@@ -123,15 +123,15 @@ public:
     std::map<String, LayerData::DataType> tool_map_;
 
     QFuture<Param> param_future_;
-    QFutureWatcher<Param> watcher;
-    LayerData::DataType layer_type;
+    QFutureWatcher<Param> param_watcher_;
+    LayerData::DataType layer_type_;
 
     ///Disables the ok button and input/output comboboxes
     void disable_();
     ///Enables the ok button and input/output comboboxes
     void enable_();
     /// Generates an .ini file for a given tool name and loads it into a Param object.
-    Param getParamFromIni_(const String& toppExeName);
+    static Param getParamFromIni_(const String& name);
     /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
     std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
     // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
@@ -149,7 +149,7 @@ protected slots:
     void loadINI_();
     /// stores an ini-file from the editor_
     void storeINI_();
-
+    // Adds all tools/utils compatible with the given layer type to the tools_combo_
     void addEntries();
   };
 
