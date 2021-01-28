@@ -83,8 +83,8 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file (mzML)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFile_("in_train", "<file>", "", "topPIC result *prsm.csv file for QScore training", false, true);
-    setValidFormats_("in_train", ListUtils::create<String>("csv"));
+    registerInputFile_("in_train", "<file>", "", "topPIC result *prsm.tsv file for QScore training", false, true);
+    setValidFormats_("in_train", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out", "<file>", "",
                         "output file (tsv) - feature level deconvoluted masses (or ensemble spectrum level deconvluted mass if use_ensemble_spectrum is set to 1) ");
@@ -284,7 +284,7 @@ protected:
         vector<String> results;
         stringstream  tmp_stream(line);
         String str;
-        while (getline(tmp_stream, str, ',')) {
+        while (getline(tmp_stream, str, '\t')) {
           results.push_back(str);
         }
         train_scan_numbers[std::stoi(results[4])] = std::stod(results[9]);
@@ -292,10 +292,10 @@ protected:
       in_trainstream.close();
     }
 
-
-    //std::map<int, std::unordered_map<double, int>> tmp_map; // ms 1 scan, m/z, charge
-   // std::map<int, std::unordered_map<double, double>> tmp_map2;// ms 1 scan, m/z, mono m/z
-    /*if(false)
+/*
+    std::map<int, std::unordered_map<double, int>> tmp_map; // ms 1 scan, m/z, charge
+    std::map<int, std::unordered_map<double, double>> tmp_map2;// ms 1 scan, m/z, mono m/z
+    if(false)
     {
       std::ifstream instream("/Users/kyowonjeong/Documents/A4B/Flash-2020-12-13-03-58-53.log");//Flash-2020-12-13-15-25-28  Flash-2020-12-13-03-58-53
       String line;
@@ -331,8 +331,8 @@ protected:
         }
       }
       instream.close();
-    }*/
-
+    }
+*/
     int current_max_ms_level = 0;
 
     auto spec_cntr = std::vector<int>(max_ms_level, 0);
@@ -503,7 +503,8 @@ protected:
       {
         precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
-      /*if(!tmp_map.empty() && ms_level > 1 ){
+/*
+      if(!tmp_map.empty() && ms_level > 1 ){
         auto pmz = it->getPrecursors()[0].getMZ();
         for(int sn = scan_number; sn > scan_number - 100;sn--){
           if(tmp_map.find(sn) == tmp_map.end()){
@@ -529,7 +530,7 @@ protected:
       auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, precursor_specs, scan_number);
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
-          && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
+          //&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           ){
 
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();

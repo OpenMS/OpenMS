@@ -131,6 +131,8 @@ namespace OpenMS
     /// max charge controlled by precursor charge for MSn n>1; otherwise just max_charge_
     int current_max_charge_;
     /// max mass is controlled by precursor mass for MSn n>1; otherwise just max_mass
+    /// TODO current min charge = 1 for MS2
+
     double current_max_mass_;
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;

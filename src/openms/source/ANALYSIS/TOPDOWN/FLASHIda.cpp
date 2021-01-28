@@ -71,6 +71,7 @@ namespace OpenMS
 
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("RT_window", 20.0, "");
+    fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
 
     auto mass_count_double = inputs["max_mass_count"];
 

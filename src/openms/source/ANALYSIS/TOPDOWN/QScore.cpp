@@ -84,7 +84,7 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream& f)
   {
-    f<<"RT,PrecursorAvgMass,PrecursorMz,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+    f<<"RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(const double rt, const double pmass, const double pmz, const PeakGroup pg, const int charge, const bool is_identified,
@@ -93,7 +93,7 @@ namespace OpenMS
     auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
     if(pg.empty()){
      // return;
-      f << rt << "," << (pmass <=.0? 0 : avgpmass) << "," << pmz<< ",";
+      f << rt << "," << (pmass <=.0? 0 : pmass) << ","<< (pmass <=.0? 0 : avgpmass) << "," << pmz<< ",";
       f<<"0,0,0,0,0,-5,";
       f << (is_identified ? "T" : "F") << "\n";
     }else
@@ -102,8 +102,9 @@ namespace OpenMS
       //if (pg.getChargeIsotopeCosine(charge) <= 0)
       //  return;
 
+      double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << rt << "," << mass << "," << pmz<< ",";
+      f << rt << "," <<monomass << ","<< mass << "," << pmz<< ",";
       for (auto &item : fv)
       {
         f << item << ",";

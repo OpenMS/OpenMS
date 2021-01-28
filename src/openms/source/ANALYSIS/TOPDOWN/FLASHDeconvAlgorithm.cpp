@@ -393,7 +393,7 @@ namespace OpenMS
       }
 
       // scan through charges
-      for (int j = 0; j < charge_range; j++)
+      for (int j = 0; j < charge_range; j++) // TDDO: charge should be from 0 to 100 or 0 to -100 // abs increasing.
       {
         // mass is given by shifting by bin_offsets_[j]
         long mass_bin_index = mz_bin_index + bin_offsets_[j];
@@ -410,6 +410,7 @@ namespace OpenMS
         }
 
         auto& spc = support_peak_count[mass_bin_index];
+        int a_charge = abs(j + min_charge_); // abs charge
 
         if (ms_level_ == 1)
         {
@@ -464,7 +465,12 @@ namespace OpenMS
               }
 
               mass_intensitites[mass_bin_index] += intensity;
-              mass_bins_[mass_bin_index] = (++spc >= min_peak_cntr);
+              if(++spc >= min_peak_cntr)
+              {
+                mass_bins_[mass_bin_index] = true;
+              }else if (a_charge >= 3){
+                mass_bins_[mass_bin_index] = (spc >= a_charge / 2);
+              }
             }else
             {
               mass_intensitites[mass_bin_index] -= intensity;
@@ -475,7 +481,6 @@ namespace OpenMS
         }
         else // for MS2,3,... iostopic peaks or water nh3 loss peaks are considered
         {
-          int a_charge = abs(j + min_charge_); // abs charge
           bool support_peak_present = false;
           double iso_intensity = .0;
           double diff = Constants::ISOTOPE_MASSDIFF_55K_U / a_charge / mz;
