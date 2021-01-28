@@ -453,7 +453,9 @@ namespace OpenMS
       // For each accession/evidence, print the protein, the start and end position in one col each
       String accessions;
       String start;
+      bool printStart = false;
       String end;
+      bool printEnd = false;
       vector<PeptideEvidence> evid = hit_it->getPeptideEvidences();
       for (vector<PeptideEvidence>::const_iterator evid_it = evid.begin(); evid_it != evid.end(); ++evid_it)
       {
@@ -468,16 +470,21 @@ namespace OpenMS
         if (evid_it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
         {
           start += evid_it->getStart();
+          printStart = true;
         }
 
         if (evid_it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
         {
           end += evid_it->getEnd();
+          printEnd = true;
         }
       }
       out << accessions;
-      out << start;
-      out << end;
+      // do not just print a bunch of semicolons
+      if (printStart) out << start;
+      else out << "";
+      if (printEnd) out << end;
+      else out << "";
 
       if (incl_pred_rt)
       {
