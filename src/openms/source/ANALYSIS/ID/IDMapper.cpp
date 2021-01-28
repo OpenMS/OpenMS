@@ -101,6 +101,8 @@ namespace OpenMS
 
   void IDMapper::annotate(PeakMap& map, const vector<PeptideIdentification>& peptide_ids, const vector<ProteinIdentification>& protein_ids, const bool clear_ids, const bool map_ms1)
   {
+    return;
+
     checkHits_(peptide_ids);
     SpectrumLookup lookup;
 
