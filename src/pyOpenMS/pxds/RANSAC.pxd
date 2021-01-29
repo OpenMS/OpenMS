@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
         #   RANSACQuadratic := RANSAC[RansacModelQuadratic]
 
         RANSAC() nogil except +
-        RANSAC(uint64_t seed) nogil except +
+        RANSAC(unsigned long long seed) nogil except +
         RANSAC(RANSAC[TModelType] &) nogil except + # wrap-ignore
 
     cdef cppclass RANSACParam:
