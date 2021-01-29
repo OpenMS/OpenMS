@@ -48,6 +48,8 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QHostInfo>
 
+#include <mutex>
+
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
@@ -89,14 +91,22 @@ namespace OpenMS
     return temp_dir_;
   }
 
+  std::mutex mtx; // mutex for critical section
+
   String File::getExecutablePath()
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
     static String spath = "";
     static bool path_checked = false;
 
+    mtx.lock();
+
     // short route. Only inquire the path once. The result will be the same every time.
-    if (path_checked) return spath;
+    if (path_checked) 
+    {
+      mtx.unlock();
+      return spath;
+    }
 
     char path[1024];
 
@@ -130,6 +140,7 @@ namespace OpenMS
     }
 
     path_checked = true; // enable short route for next run
+    mtx.unlock();
     return spath;
   }
 

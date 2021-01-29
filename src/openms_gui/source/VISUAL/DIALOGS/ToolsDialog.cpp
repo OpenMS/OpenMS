@@ -179,8 +179,8 @@ namespace OpenMS
 
   Param ToolsDialog::getParamFromIni_(const String& name)
   {
-    String path = File::getUniqueName();
-    QStringList args{ "-write_ini", path.toQString(), "-log", (path+".log").toQString() };
+    String path = File::getUniqueName() + ".ini";
+    QStringList args{ "-write_ini", path.toQString() };
     QProcess qp;
     Param tool_param;
     String executable = File::findSiblingTOPPExecutable(name);
