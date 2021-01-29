@@ -234,7 +234,7 @@ namespace OpenMS
           #endif
           std::swap(tmp_diffs, last_tmp_diffs);
           tmp_diffs.clear();
-          start_rt = (med_diffs.first + medians_diffs[cnt-1].first)/2;
+          if (cnt > 0) start_rt = (med_diffs.first + medians_diffs[cnt-1].first)/2;
         }
         else
         {
@@ -246,7 +246,7 @@ namespace OpenMS
       std::sort(tmp_diffs.begin(), tmp_diffs.end());
       std::vector<double> last_and_before_diffs;
       last_and_before_diffs.reserve(tmp_diffs.size() + last_tmp_diffs.size());
-      std::merge(tmp_diffs.begin(), tmp_diffs.end(), last_tmp_diffs.begin(), last_tmp_diffs.end(), last_and_before_diffs.begin());
+      std::merge(tmp_diffs.begin(), tmp_diffs.end(), last_tmp_diffs.begin(), last_tmp_diffs.end(), std::back_insert_iterator(last_and_before_diffs));
       if (!last_and_before_diffs.empty())
       {
         q2 = Math::quantile(tmp_diffs, 0.5);
