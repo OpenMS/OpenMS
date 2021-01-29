@@ -4441,8 +4441,9 @@ static void scoreXLIons_(
   {
 
     size_t most_XLs{0};
-    double best_p{-1};
+    double best_p{-1}, best_q{-1};
     
+    for (double q = 0.0; q < 1.01; q = q + 0.1)
     for (double p = 0.0; p < 1.01; p = p + 0.1)
     {
       vector<PeptideIdentification> pids{peptide_ids};
@@ -4453,7 +4454,10 @@ static void scoreXLIons_(
         {
           const double pl_modds = h.getMetaValue("NuXL:pl_modds");
           const double modds = h.getMetaValue("NuXL:modds");
-          h.setScore((1.0 - p) * modds + p * pl_modds);
+          const double pc_err = h.getMetaValue("NuXL:mass_error_p");
+          const double w1 = (1.0 - p) * modds + p * pl_modds;
+          const double w2 = (1.0 - q) * w1 + q * pc_err;
+          h.setScore(w2);
         }
         pid.setHits(hits);
         pid.assignRanks();
@@ -4464,12 +4468,13 @@ static void scoreXLIons_(
       IDFilter::keepNBestHits(xl_pi, 1);
       IDFilter::filterHitsByScore(xl_pi, 0.1); // 10% FDR, TODO: pROC
       IDFilter::removeEmptyIdentifications(xl_pi);
-      cout << "p: " << p << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
+      //cout << "p/q: " << p << "/" << q << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
       if (xl_pi.size() > most_XLs)
       {
         most_XLs = xl_pi.size();
         best_p = p;
-        cout << "found better p: " << p << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
+        best_q = q;
+        cout << "found better p/q: " << p << "/" << "q" << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
       }
     }
 
@@ -4481,7 +4486,10 @@ static void scoreXLIons_(
       {
         const double pl_modds = h.getMetaValue("NuXL:pl_modds");
         const double modds = h.getMetaValue("NuXL:modds");
-        h.setScore((1.0 - best_p) * modds + best_p * pl_modds);
+        const double pc_err = h.getMetaValue("NuXL:mass_error_p");
+        const double w1 = (1.0 - best_p) * modds + best_p * pl_modds;
+        const double w2 = (1.0 - best_q) * w1 + best_q * pc_err;
+        h.setScore(w2);
       }
       pid.setHits(hits);
       pid.assignRanks();
