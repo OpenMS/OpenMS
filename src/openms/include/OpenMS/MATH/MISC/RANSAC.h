@@ -96,15 +96,22 @@ namespace OpenMS
     {
 public:
 
-      explicit RANSAC(int seed = time(nullptr)):
+      explicit RANSAC(uint64_t seed = time(nullptr)):
       shuffler_(seed)
       {}
 
       ~RANSAC() = default;
 
+
+      /// set seed for random shuffle
+      void setSeed(uint64_t seed)
+      {
+        shuffler_.seed(seed);
+      }
+
       /// alias for ransac() with full params
       std::vector<std::pair<double, double> > ransac(
-        const std::vector<std::pair<double, double> >& pairs, 
+        const std::vector<std::pair<double, double> >& pairs,
         const RANSACParam& p)
       {
         return ransac(pairs, p.n, p.k, p.t, p.d, p.relative_d);

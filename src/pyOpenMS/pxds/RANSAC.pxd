@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
         #   RANSACQuadratic := RANSAC[RansacModelQuadratic]
 
         RANSAC() nogil except +
+        RANSAC(uint64_t seed) nogil except +
         RANSAC(RANSAC[TModelType] &) nogil except + # wrap-ignore
 
     cdef cppclass RANSACParam:
@@ -32,13 +33,13 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math::RANSAC<O
 
     libcpp_vector[libcpp_pair[double,double]] ransac(
             libcpp_vector[libcpp_pair[double,double]] pairs,
-            size_t n, size_t k, double t, size_t d, bool test
-            ) nogil except + # wrap-attach:RANSAC
+            size_t n, size_t k, double t, size_t d, bool relative_d
+            ) nogil except +
 
 cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math::RANSAC<OpenMS:Math::RansacModelQuadratic>":
 
     libcpp_vector[libcpp_pair[double,double]] ransac(
             libcpp_vector[libcpp_pair[double,double]] pairs,
-            size_t n, size_t k, double t, size_t d, bool test
-            ) nogil except + # wrap-attach:RANSACQuadratic
+            size_t n, size_t k, double t, size_t d, bool relative_d
+            ) nogil except +
 
