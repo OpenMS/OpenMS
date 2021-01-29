@@ -262,29 +262,8 @@ public:
   static constexpr double MIN_HYPERSCORE = 0.1; // hit's with lower score than this will be neglected (usually 1 or 0 matches)
   static constexpr double MIN_TOTAL_LOSS_IONS = 1; // minimum number of matches to unshifted ions
   static constexpr double MIN_SHIFTED_IONS = 1; // minimum number of matches to shifted ions (applies to XLs only)
-protected:
-  /// percolator feature set
-  StringList feature_set_;
- 
-  void applyPresets_(StringList& nucleotides, 
-    StringList& mapping, 
-    StringList& modifications, 
-    StringList& fragment_adducts, 
-    String& can_cross_link)
-  {
-    const StringList DNA_nucleotides = {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"}; // the mono-phosphates
-    const StringList RNA_nucleotides = {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}; 
-    const StringList DNA_mapping = {"A->A", "C->C", "G->G", "T->T"};
-    const StringList RNA_mapping = {"A->A", "C->C", "G->G", "U->U"};
 
-    const String p = getStringOption_("RNPxl:presets");
-    if (p == "RNA-UV (U)" || p == "RNA-UV (UCGA)")
-    {
-      nucleotides = RNA_nucleotides;
-
-      mapping = RNA_mapping;
-
-      modifications = 
+  static constexpr std::array<const char*, 20> modifications_RNA_UV
          {"U:", 
           "U:-H2O", 
           "U:-H2O-HPO3", 
@@ -306,7 +285,7 @@ protected:
           "A:-NH3-HPO3", 
           "A:-HPO3"};
 
-      fragment_adducts = 
+  static constexpr std::array<const char*, 45> fragments_RNA_UV
          {"U:C9H10N2O5;U-H3PO4",
           "U:C4H4N2O2;U'",
           "U:C4H2N2O1;U'-H2O",
@@ -352,119 +331,18 @@ protected:
           "G:C5H6O3;ribose-H2O-HPO3",
           "C:C5H6O3;ribose-H2O-HPO3",
           "A:C5H6O3;ribose-H2O-HPO3"};
-      
-      can_cross_link = (p == "RNA-UV (U)") ? "U" : "UCGA" ;
-    }
-    else if (p == "DNA")
-    {
-      nucleotides = DNA_nucleotides;
-      mapping = DNA_mapping;
 
-      modifications = {
-        "T:",
-        "T:-H2O",
-        "T:-H2O-HPO3",
-        "T:-HPO3",
-        "A:",
-        "A:-H2O",
-        "A:-H2O-HPO3",
-        "A:-HPO3",
-        "G:",
-        "G:-H2O",
-        "G:-NH3",
-        "A:-NH3",
-        "G:-HPO3",
-        "G:-H2O-HPO3",
-        "G:-NH3-HPO3",
-        "C:",
-        "C:-H2O",
-        "C:-NH3",
-        "C:-H2O-HPO3",
-        "C:-NH3",
-        "C:-NH3-HPO3",
-
-        "T:+C5H7O5P", // + dribose-H2O
-        "A:+C5H7O5P",
-        "G:+C5H7O5P",
-        "C:+C5H7O5P",
-
-        "C:-C4H5N3O", // loss of base -> only dribose remains
-        "T:-C5H6N2O2",
-        "G:-C5H5N5O",
-        "A:-C5H5N5",
-
-        "T:+HPO3",
-        "C:+HPO3",
-        "A:+HPO3",
-        "G:+HPO3",
-        "T:+HPO3-H2O",
-        "C:+HPO3-H2O",
-        "A:+HPO3-H2O",
-        "G:+HPO3-H2O"};
-
-      fragment_adducts = {
-        "T:C10H15N2O8P;T",
-        "T:C10H13N2O7P;T-H2O",
-        "T:C10H14N2O5;T-HPO3",
-        "T:C10H12N2O4;T-H3PO4",
-        "T:C5H6N2O2;T'",
-        "T:C5H4N2O;T'-H2O",
-
-        "C:C9H14N3O7P;C",
-        "C:C9H11N2O7P;C-NH3",
-        "C:C9H12N3O6P;C-H2O",
-        "C:C9H13N3O4;C-HPO3",
-        "C:C9H11N3O3;C-H3PO4",
-        "C:C9H10N2O4;C-NH3-HPO3",
-        "C:C4H5N3O;C'",
-        "C:C4H3N3;C'-H2O",
-        "C:C4H2N2O;C'-NH3",
-
-        "G:C10H14N5O7P;G",
-        "G:C10H12N5O6P;G-H2O",
-        "G:C10H11N4O7P;G-NH3",
-        "G:C10H13N5O4;G-HPO3",
-        "G:C10H10N4O4;G-NH3-HPO3",
-        "G:C10H11N5O3;G-H3PO4",
-        "G:C5H5N5O;G'",
-        "G:C5H3N5;G'-H2O",
-        "G:C5H2N4O;G'-NH3",
-
-        "A:C10H14N5O6P;A",
-        "A:C10H12N5O5P;A-H2O",
-        "A:C10H11N4O6P;A-NH3",
-        "A:C10H13N5O3;A-HPO3",
-        "A:C10H11N5O2;A-H3PO4",
-        "A:C10H10N5O3;A-NH3-HPO3",
-        "A:C5H5N5;A'",
-        "A:C5H2N4;A'-NH3",
-
-        "A:C5H9O6P;dribose", // base was lost -> only dribose remains
-        "G:C5H9O6P;dribose",
-        "C:C5H9O6P;dribose",
-        "T:C5H9O6P;dribose",
-        "A:C5H7O5P;dribose-H2O",
-        "G:C5H7O5P;dribose-H2O",
-        "C:C5H7O5P;dribose-H2O",
-        "T:C5H7O5P;dribose-H2O",
-        "A:C5H8O3;dribose-HPO3",
-        "G:C5H8O3;dribose-HPO3",
-        "C:C5H8O3;dribose-HPO3",
-        "T:C5H8O3;dribose-HPO3"
+  static constexpr std::array<const char*, 6> modifications_RNA_UV_4SU
+      {   "S:",
+          "S:-H2O",
+          "S:-H2O-HPO3",
+          "S:-HPO3",
+          "S:-H2S+HPO3",
+          "S:-H2S"
       };
 
-      can_cross_link = "CTGA";
-    }
-    else if (p == "RNA-UV (4SU)")
-    {
-      nucleotides = RNA_nucleotides;
-      nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
-
-      mapping = RNA_mapping;
-      mapping.push_back("S->S");
-
-      fragment_adducts = {
-          "S:C4H2N2O1;tU-H2S",
+  static constexpr std::array<const char*, 46> fragments_RNA_UV_4SU
+      {   "S:C4H2N2O1;tU-H2S",
           "U:C9H10N2O5;U-H3PO4",
           "U:C4H4N2O2;U'",
           "U:C4H2N2O1;U'-H2O",
@@ -512,30 +390,99 @@ protected:
           "A:C5H6O3;ribose-H2O-HPO3"
       };    
 
-      modifications = {
-          "S:",
-          "S:-H2O",
-          "S:-H2O-HPO3",
-          "S:-HPO3",
-          "S:-H2S+HPO3",
-          "S:-H2S"
+  static constexpr std::array<const char*, 37> modifications_DNA_UV
+       {"T:",
+        "T:-H2O",
+        "T:-H2O-HPO3",
+        "T:-HPO3",
+        "A:",
+        "A:-H2O",
+        "A:-H2O-HPO3",
+        "A:-HPO3",
+        "G:",
+        "G:-H2O",
+        "G:-NH3",
+        "A:-NH3",
+        "G:-HPO3",
+        "G:-H2O-HPO3",
+        "G:-NH3-HPO3",
+        "C:",
+        "C:-H2O",
+        "C:-NH3",
+        "C:-H2O-HPO3",
+        "C:-NH3",
+        "C:-NH3-HPO3",
+        "T:+C5H7O5P", // + dribose-H2O
+        "A:+C5H7O5P",
+        "G:+C5H7O5P",
+        "C:+C5H7O5P",
+        "C:-C4H5N3O", // loss of base -> only dribose remains
+        "T:-C5H6N2O2",
+        "G:-C5H5N5O",
+        "A:-C5H5N5",
+        "T:+HPO3",
+        "C:+HPO3",
+        "A:+HPO3",
+        "G:+HPO3",
+        "T:+HPO3-H2O",
+        "C:+HPO3-H2O",
+        "A:+HPO3-H2O",
+        "G:+HPO3-H2O"};
+
+    static constexpr std::array<const char*, 44> fragments_DNA_UV
+       {"T:C10H15N2O8P;T",
+        "T:C10H13N2O7P;T-H2O",
+        "T:C10H14N2O5;T-HPO3",
+        "T:C10H12N2O4;T-H3PO4",
+        "T:C5H6N2O2;T'",
+        "T:C5H4N2O;T'-H2O",
+        "C:C9H14N3O7P;C",
+        "C:C9H11N2O7P;C-NH3",
+        "C:C9H12N3O6P;C-H2O",
+        "C:C9H13N3O4;C-HPO3",
+        "C:C9H11N3O3;C-H3PO4",
+        "C:C9H10N2O4;C-NH3-HPO3",
+        "C:C4H5N3O;C'",
+        "C:C4H3N3;C'-H2O",
+        "C:C4H2N2O;C'-NH3",
+        "G:C10H14N5O7P;G",
+        "G:C10H12N5O6P;G-H2O",
+        "G:C10H11N4O7P;G-NH3",
+        "G:C10H13N5O4;G-HPO3",
+        "G:C10H10N4O4;G-NH3-HPO3",
+        "G:C10H11N5O3;G-H3PO4",
+        "G:C5H5N5O;G'",
+        "G:C5H3N5;G'-H2O",
+        "G:C5H2N4O;G'-NH3",
+        "A:C10H14N5O6P;A",
+        "A:C10H12N5O5P;A-H2O",
+        "A:C10H11N4O6P;A-NH3",
+        "A:C10H13N5O3;A-HPO3",
+        "A:C10H11N5O2;A-H3PO4",
+        "A:C10H10N5O3;A-NH3-HPO3",
+        "A:C5H5N5;A'",
+        "A:C5H2N4;A'-NH3",
+        "A:C5H9O6P;dribose", // base was lost -> only dribose remains
+        "G:C5H9O6P;dribose",
+        "C:C5H9O6P;dribose",
+        "T:C5H9O6P;dribose",
+        "A:C5H7O5P;dribose-H2O",
+        "G:C5H7O5P;dribose-H2O",
+        "C:C5H7O5P;dribose-H2O",
+        "T:C5H7O5P;dribose-H2O",
+        "A:C5H8O3;dribose-HPO3",
+        "G:C5H8O3;dribose-HPO3",
+        "C:C5H8O3;dribose-HPO3",
+        "T:C5H8O3;dribose-HPO3"
       };
 
-      can_cross_link = "S";
-    }
-    else if (p == "RNA-DEB")
-    {
-      nucleotides = RNA_nucleotides;
-      mapping = RNA_mapping;
-
-      modifications = {
-        "U:+C4H6O2",
+  static constexpr std::array<const char*, 29> modifications_RNA_DEB
+      { "U:+C4H6O2",
         "U:+C4H6O2-H2O",
         "U:+C4H6O2-HPO3",
         "U:+C4H6O2-H3PO4",
         "U:+C4H6O2-H2O-H2O",
         "U:+C4H6O2-H3PO4-H2O",
-
         "G:+C4H6O2",
         "G:+C4H6O2-H2O",
         "G:+C4H6O2-HPO3",
@@ -543,7 +490,6 @@ protected:
         "G:+C4H6O2-H2O-H2O",
         "G:+C4H6O2-H3PO4-H2O",
         "G:+C4H6O2-NH3",
-
         "C:+C4H6O2",
         "C:+C4H6O2-H2O",
         "C:+C4H6O2-HPO3",
@@ -552,7 +498,6 @@ protected:
         "C:+C4H6O2-H3PO4-H2O",
         "C:+C4H6O2-H2O",
         "C:+C4H6O2-NH3",
-
         "A:+C4H6O2",
         "A:+C4H6O2-H2O",
         "A:+C4H6O2-HPO3",
@@ -563,7 +508,8 @@ protected:
         "A:+C4H6O2-NH3"
       };
 
-      fragment_adducts = {
+  static constexpr std::array<const char*, 36> fragments_RNA_DEB
+      {
         "U:C4H6O2;DEB",
         "U:C4H4O;DEB-H2O",
         "U:C13H16N2O7;DEB+U-H3PO4",
@@ -601,15 +547,9 @@ protected:
         "A:C9H17N4O;DEB+A'-NH3",
         "A:C14H17N4O9;DEB+A-NH3"
       };
-      can_cross_link = "UCGA";
 
-    }
-    else if (p == "DNA-DEB")
-    {
-      nucleotides = DNA_nucleotides;
-      mapping = DNA_mapping;
-
-      modifications = { // adapted from Fanni + water losses
+  static constexpr std::array<const char*, 10> modifications_DNA_DEB
+       { // adapted from Fanni + water losses
         "T:+C4H6O2",
         "T:+C4H6O2-H2O",
         "G:+C4H6O2",
@@ -622,9 +562,8 @@ protected:
         "A:+C4H6O2-H2O"
        };
 
-      fragment_adducts = {
-        // DEB
-        "T:C4H6O2;DEB",
+  static constexpr std::array<const char*, 36> fragments_DNA_DEB
+      { "T:C4H6O2;DEB",
         "T:C4H4O;DEB-H2O",
         "T:C5H6N2O2;T'",  // needed for marker ion
         "T:C9H12N2O4;DEB+T'",
@@ -633,7 +572,6 @@ protected:
         "T:C14H19N2O9P1;DEB+T-H2O", 
         "T:C14H20N2O7;DEB+T-HPO3",  // C4H6O2 + C10H15N2O8P - HPO3
         "T:C14H18N2O6;DEB+T-H3PO4", // C4H6O2 + C10H15N2O8P - H3PO4
-
         "C:C4H6O2;DEB",
         "C:C4H4O;DEB-H2O",
         "C:C4H5N3O;C'",  // needed for marker ion
@@ -645,7 +583,6 @@ protected:
         "C:C13H18N3O8P1;DEB+C-H2O",
 //      "C:C13H19N3O6;DEB+C-HPO3", 
 //      "C:C13H17N3O5;DEB+C-H3PO4",
-         
         "G:C4H6O2;DEB",
         "G:C4H4O;DEB-H2O",
         "G:C9H11N5O3;DEB+G'", 
@@ -656,30 +593,22 @@ protected:
         "G:C14H18N5O8P1;DEB+G-H2O", // not in Fanni's list
 //      "G:C14H19N5O6;DEB+G-HPO3",
 //      "G:C14H17N5O5;DEB+G-H3PO4",
-
         "A:C4H6O2;DEB",
         "A:C4H4O;DEB-H2O",          
-        "A:C5H5N5;A'" // needed for marker ion
+        "A:C5H5N5;A'", // needed for marker ion
         "A:C9H11N5O2;DEB+A'",       // C4H6O2 + C5H5N5
         "A:C9H9N5O1;DEB+A'-H2O",    // not in Fanni's list
         "A:C9H8N4O2;DEB+A'-NH3",    // C4H6O2 + C5H5N5 - NH3
         "A:C14H20N5O8P1;DEB+A",     // C4H6O2 + C10H14N5O6P
         "A:C14H17N4O8P1;DEB+A-NH3",     // C4H6O2 + C10H14N5O6P - NH3
         "A:C14H18N5O7P1;DEB+A-H2O", // not in Fanni's list
-        "A:C10H9N5O;A-H3PO4-H2O", // Fanni
+        "A:C10H9N5O;A-H3PO4-H2O" // Fanni
 //      "A:C14H19N5O5;DEB+A-HPO3",  // C4H6O2 + C10H14N5O6P - HPO3
 //      "A:C14H17N5O4;DEB+A-H3PO4"  // C4H6O2 + C10H14N5O6P - H3PO4
       };
 
-      can_cross_link = "CTGA";
-    }
-    else if (p == "RNA-NM")
-    {
-      nucleotides = RNA_nucleotides;
-      mapping = RNA_mapping;
-
-      modifications = {
-        "U:+C5H9N1",
+  static constexpr std::array<const char*, 27> modifications_RNA_NM
+       {"U:+C5H9N1",
         "U:+C5H9N1-HPO3",
         "U:+C5H9N1-H3PO4",
         "U:+C5H9N1-H2O-H2O",
@@ -711,8 +640,8 @@ protected:
         "A:+C5H9N1-NH3"
       };
 
-      fragment_adducts = {
-        "U:C5H9N1;NM",
+  static constexpr std::array<const char*, 32> fragments_RNA_NM
+       {"U:C5H9N1;NM",
         "U:C14H21N3O6;NM+U-HPO3",
         "U:C9H13N3O2;NM+U'",
         "U:C9H11N3O1;NM+U'-H2O",
@@ -725,7 +654,7 @@ protected:
         "C:C9H14N4O1;NM+C'",
         "C:C9H12N4;NM+C'-H2O",
         "C:C14H23N4O8P1;NM+C",
-        "C:C14H21N4O7P1;NM+C-H2O"
+        "C:C14H21N4O7P1;NM+C-H2O",
         "G:C5H9N1;NM",
         "G:C15H22N6O5;NM+G-HPO3",
         "G:C10H14N6O1;NM+G'",
@@ -745,22 +674,15 @@ protected:
         "G:C10H14N6O1;NM+G'-NH3",
         "A:C15H22N6O4;NM+A-HPO3"
       };
-      can_cross_link = "UCGA";
-    }
-    else if (p == "DNA-NM")
-    {
-      nucleotides = DNA_nucleotides;
-      mapping = DNA_mapping;
 
-      modifications = {
-        "T:+C5H9N1",
+  static constexpr std::array<const char*, 31> modifications_DNA_NM
+       {"T:+C5H9N1",
         "T:+C5H9N1-HPO3",
         "T:+C5H9N1-H3PO4",
         "T:+C5H9N1-H2O-H2O",
         "T:+C5H9N1-H3PO4-H2O",
         "T:+C5H9N1-H2O",
         "T:+C5H9N1-NH3-HPO3",
-
         "G:+C5H9N1",
         "G:+C5H9N1-HPO3",
         "G:+C5H9N1-H3PO4",
@@ -769,7 +691,6 @@ protected:
         "G:+C5H9N1-H2O",
         "G:+C5H9N1-NH3",
         "G:+C5H9N1-NH3-HPO3",
-
         "C:+C5H9N1",
         "C:+C5H9N1-H2O",
         "C:+C5H9N1-HPO3",
@@ -778,7 +699,6 @@ protected:
         "C:+C5H9N1-H3PO4-H2O",
         "C:+C5H9N1-NH3",
         "C:+C5H9N1-NH3-HPO3",
-
         "A:+C5H9N1",
         "A:+C5H9N1-H2O",
         "A:+C5H9N1-H3PO4-H2O",
@@ -789,26 +709,24 @@ protected:
         "A:+C5H9N1-NH3-HPO3"
       };
 
-      fragment_adducts = {
-        "T:C5H9N1;NM",
+  static constexpr std::array<const char*, 36> fragments_DNA_NM
+      { "T:C5H9N1;NM",
         "T:C14H19N3O5;NM+T-H3PO4",
         "T:C10H15N3O2;NM+T'",
-        "T:C10H13N3O1;NM+T'-H2O"
-        "T:C15H24N3O8P1;NM+T"
-        "T:C15H22N3O7P1;NM+T-H2O"
-        "T:C15H19N3O4;NM+T-H3PO4"
+        "T:C10H13N3O1;NM+T'-H2O",
+        "T:C15H24N3O8P1;NM+T",
+        "T:C15H22N3O7P1;NM+T-H2O",
+        "T:C15H19N3O4;NM+T-H3PO4",
         "T:C10H12N2O2;NM+T'",
         "T:C15H20N2O8P1;NM+T-NH3",
-        "T:C15H19N2O5;NM+T-NH3-HPO3"
-
-        "C:C5H9N;NM"
+        "T:C15H19N2O5;NM+T-NH3-HPO3",
+        "C:C5H9N;NM",
         "C:C9H14N4O1;NM+C'",
         "C:C9H12N4;NM+C'-H2O",
         "C:C14H23N4O7P1;NM+C",
         "C:C14H21N4O6P1;NM+C-H2O",
-        "C:C14H20N4O3;NM+C-H3PO4"
+        "C:C14H20N4O3;NM+C-H3PO4",
         "C:C14H22N4O4;NM+C-HPO3",
-
         "G:C5H9N1;NM",
         "G:C10H14N6O1;NM+G'",
         "G:C10H12N6;NM+G'-H2O",
@@ -819,7 +737,6 @@ protected:
         "G:C15H20N6O3;NM+G-H3PO4",
         "G:C15H20N5O7P1;NM+G-NH3",
         "G:C15H19N5O4;NM+G-NH3-HPO3",
-
         "A:C5H9N1;NM",
         "A:C10H14N6;NM+A'",
         "A:C10H11N5;NM+A'-NH3",
@@ -828,11 +745,79 @@ protected:
         "A:C15H21N6O5P1;NM+A-H2O",
         "A:C15H22N6O3;NM+A-HPO3",
         "A:C15H20N5O6P1;NM+A-NH3",
-        "A:C15H19N5O3;NM+A-NH3-HPO3",
-      };
+        "A:C15H19N5O3;NM+A-NH3-HPO3"};
+
+    static constexpr std::array<const char*, 4> DNA_nucleotides {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"}; // the mono-phosphates
+    static constexpr std::array<const char*, 4> RNA_nucleotides {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}; 
+    static constexpr std::array<const char*, 4> DNA_mapping {"A->A", "C->C", "G->G", "T->T"};
+    static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
+
+protected:
+  /// percolator feature set
+  StringList feature_set_;
+ 
+  void getPresets_(const String& p, StringList& nucleotides, 
+    StringList& mapping, 
+    StringList& modifications, 
+    StringList& fragment_adducts, 
+    String& can_cross_link)
+  {
+    // set NTs for RNA / DNA
+    if (p.hasPrefix("RNA"))
+    {
+      nucleotides = StringList(RNA_nucleotides.begin(), RNA_nucleotides.end());
+      mapping = StringList(RNA_mapping.begin(), RNA_mapping.end());
+    }
+    else if (p.hasPrefix("DNA"))
+    {
+      nucleotides = StringList(DNA_nucleotides.begin(), DNA_nucleotides.end());
+      mapping = StringList(DNA_mapping.begin(), DNA_mapping.end());
+    }
+ 
+    if (p == "RNA-UV (U)" || p == "RNA-UV (UCGA)")
+    {
+      modifications = StringList(modifications_RNA_UV.begin(), modifications_RNA_UV.end()); 
+      fragment_adducts = StringList(fragments_RNA_UV.begin(), fragments_RNA_UV.end()); 
+      can_cross_link = (p == "RNA-UV (U)") ? "U" : "UCGA" ;
+    }
+    else if (p == "DNA-UV")
+    {
+      modifications = StringList(modifications_DNA_UV.begin(), modifications_DNA_UV.end());
+      fragment_adducts = StringList(fragments_DNA_UV.begin(), fragments_DNA_UV.end()); 
+      can_cross_link = "CTGA";
+    }
+    else if (p == "RNA-UV (4SU)")
+    {
+      nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
+      mapping.push_back("S->S");
+      fragment_adducts = StringList(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
+      modifications =  StringList(modifications_RNA_UV_4SU.begin(), modifications_RNA_UV_4SU.end());
+      can_cross_link = "S";
+    }
+    else if (p == "RNA-DEB")
+    {
+      modifications = StringList(modifications_RNA_DEB.begin(), modifications_RNA_DEB.end());
+      fragment_adducts = StringList(fragments_RNA_DEB.begin(), fragments_RNA_DEB.end());
+      can_cross_link = "UCGA";
+    }
+    else if (p == "DNA-DEB")
+    {
+      modifications = StringList(modifications_DNA_DEB.begin(), modifications_DNA_DEB.end());
+      fragment_adducts = StringList(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
+      can_cross_link = "CTGA";
+    }
+    else if (p == "RNA-NM")
+    {
+      modifications = StringList(modifications_RNA_NM.begin(), modifications_RNA_NM.end());
+      fragment_adducts = StringList(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
+      can_cross_link = "UCGA";
+    }
+    else if (p == "DNA-NM")
+    {
+      modifications = StringList(modifications_DNA_NM.begin(), modifications_DNA_NM.end());
+      fragment_adducts = StringList(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
       can_cross_link = "TCGA";
     }
-
   }
  
   void registerOptionsAndFlags_() override
@@ -916,7 +901,25 @@ protected:
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
 
     registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
-    setValidStrings_("RNPxl:presets", {"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV (4SU)", "DNA", "RNA-DEB", "DNA-DEB", "RNA-NM", "DNA-NM"});
+
+    StringList presets{"none", "RNA-UV (U)", "RNA-UV (UCGA)", "RNA-UV (4SU)", "DNA-UV", "RNA-DEB", "DNA-DEB", "RNA-NM", "DNA-NM"};
+    setValidStrings_("RNPxl:presets", presets);
+
+    // store presets (for visual inspection only) in ini
+    for (const auto& p : presets)
+    {
+      if (p == "none") continue;
+      String subsection_name = "presets:" + p;
+      registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
+      StringList target_nucleotides, mappings, modifications, fragment_adducts;
+      String can_cross_link;
+      getPresets_(p, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
+      registerStringList_(subsection_name + ":mapping", "", mappings, "", false, true);
+      registerStringOption_(subsection_name + ":can_cross_link", "", can_cross_link, "", false, true);
+      registerStringList_(subsection_name + ":modifications", "", modifications, "", false, true);
+      registerStringList_(subsection_name + ":fragment_adducts", "", fragment_adducts, "", false, true);
+    }
 
     registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
 
@@ -4902,7 +4905,8 @@ static void scoreXLIons_(
     }
     else
     { // set from presets
-      applyPresets_(target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      String p = getStringOption_("RNPxl:presets");
+      getPresets_(p, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
     }
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
 
@@ -6327,6 +6331,25 @@ map<double, double> OpenNuXL::mass2high_frequency_ = {};
 #endif
 
 map<String, vector<vector<double>>> OpenNuXL::fragment_adduct2block_if_masses_present = {};
+
+constexpr std::array<const char*, 20> OpenNuXL::modifications_RNA_UV; // TODO: remove with C17 see https://stackoverflow.com/questions/8016780/undefined-reference-to-static-constexpr-char
+constexpr std::array<const char*, 45> OpenNuXL::fragments_RNA_UV;
+constexpr std::array<const char*, 6> OpenNuXL::modifications_RNA_UV_4SU;
+constexpr std::array<const char*, 46> OpenNuXL::fragments_RNA_UV_4SU;
+constexpr std::array<const char*, 37> OpenNuXL::modifications_DNA_UV;
+constexpr std::array<const char*, 44> OpenNuXL::fragments_DNA_UV;
+constexpr std::array<const char*, 29> OpenNuXL::modifications_RNA_DEB;
+constexpr std::array<const char*, 36> OpenNuXL::fragments_RNA_DEB;
+constexpr std::array<const char*, 10> OpenNuXL::modifications_DNA_DEB;
+constexpr std::array<const char*, 36> OpenNuXL::fragments_DNA_DEB;
+constexpr std::array<const char*, 27> OpenNuXL::modifications_RNA_NM;
+constexpr std::array<const char*, 32> OpenNuXL::fragments_RNA_NM;
+constexpr std::array<const char*, 31> OpenNuXL::modifications_DNA_NM;
+constexpr std::array<const char*, 36> OpenNuXL::fragments_DNA_NM;
+constexpr std::array<const char*, 4> OpenNuXL::DNA_nucleotides;
+constexpr std::array<const char*, 4> OpenNuXL::RNA_nucleotides;
+constexpr std::array<const char*, 4> OpenNuXL::DNA_mapping;
+constexpr std::array<const char*, 4> OpenNuXL::RNA_mapping;
 
 int main(int argc, const char** argv)
 {
