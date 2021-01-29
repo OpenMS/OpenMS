@@ -514,7 +514,8 @@ protected:
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
       registerOutputFile_("out", "<file>", "", "Output file.");
       setValidFormats_("out", ListUtils::create<String>("tsv,csv,txt"));
-      registerStringOption_("out_type", "<out_type>", "tsv", "The format of the output file; if not set out_type is derived from file extension; for ambiguous file extensions 'tsv' is used", false);
+      registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
+      setValidFormats_("out_type", ListUtils::create<String>("tsv,csv,txt"));
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
       setValidStrings_("quoting", ListUtils::create<String>("none,double,escape"));
@@ -572,23 +573,25 @@ protected:
       int add_protein_hit_metavalues = getIntOption_("id:add_protein_hit_metavalues");
 
       // separator etc.
-      String out_type = getStringOption_("out_type");
+      FileHandler fh;
       String sep;
       Size idx;
 
-      idx = out.rfind('.');
+      // output file names and types
+      FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
-      if (idx != String::npos)
+      if (out_type == FileTypes::UNKNOWN)
       {
-        String extension = out.substr(idx+1);
-        if (extension == "csv" || extension == "tsv")
-        {
-          out_type = extension.substr(1UL);
-          // --- set parameter here --- 
-        }
+        out_type = fh.getTypeByFileName(out);
       }
 
-      if (out_type == "csv") 
+      if (out_type == FileTypes::UNKNOWN)
+      {
+        writeLog_("Error: Could not determine output file type!");
+        return PARSE_ERROR;
+      }
+
+      if (out_type == FileTypes::CSV) 
       {
         sep = ",";
       } 
