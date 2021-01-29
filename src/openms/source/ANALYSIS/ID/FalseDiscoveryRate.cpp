@@ -282,6 +282,33 @@ namespace OpenMS
         map<double, double> score_to_fdr;
         calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
+        // make strictly monotonic by interpolating q-values (except for last bin)
+        auto left = score_to_fdr.begin();
+        while (left != score_to_fdr.end())
+        {
+          auto right = left;
+          std::advance(right, 1);
+
+          // advance right to next q-value
+          while (right != score_to_fdr.end() && right->second == left->second)
+          {
+            ++right;
+          }
+          if (right == score_to_fdr.end()) break; // done
+
+          auto start_of_equal_q_values = left;
+          ++left; // keep first equal q-value the same
+          size_t steps = std::distance(left, right) + 1;
+          size_t step = 1;
+          while (left != right) // start: first q-value with worse score
+          {
+            const double q_value_diff = right->second - start_of_equal_q_values->second;
+            left->second = start_of_equal_q_values->second + (double)step/steps * q_value_diff;
+            ++left;
+          }
+          // now: left == right
+        }
+
         // annotate fdr
         for (auto it = ids.begin(); it != ids.end(); ++it)
         {
