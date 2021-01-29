@@ -51,7 +51,7 @@ namespace OpenMS
       DefaultParamHandler("SiriusAdapterAlgorithm")
     {      
       // adapter parameters (preprocessing)
-      defaults_.setValue("preprocessing:filter_by_num_masstraces", 1, "Features have to have at least x MassTraces. To use this parameter feature_only is neccessary");
+      defaults_.setValue("preprocessing:filter_by_num_masstraces", 1, "Features have to have at least x MassTraces. To use this parameter feature_only is necessary");
       defaults_.setMinInt("preprocessing:filter_by_num_masstraces", 1);
       defaults_.setValue("preprocessing:precursor_mz_tolerance", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)");
       defaults_.setValue("preprocessing:precursor_mz_tolerance_unit", "Da", "Unit of the precursor_mz_tolerance");

@@ -48,6 +48,7 @@ class QAction;
 
 namespace OpenMS
 {
+  class Param;
   class String;
 
   /**
@@ -70,6 +71,22 @@ namespace OpenMS
 
     /// sets a list of recent files (up to max_entries many -- see C'tor)
     void set(const QStringList& initial);
+
+    /** 
+        @brief Extracts all values from all elements in the param object and tries to interpret them as filenames
+        If they exist, they will be used in the list of recent files. The name of the param items is ignored.
+
+        @param filenames A Param object of which all values will be tested for being a filename
+        @return The number of items which were successfully interpreted as filenames
+
+    */
+    unsigned setFromParam(const Param& filenames);
+
+    /**
+       @brief Convert current file list to Param. Their names are just numbers, starting at "0". The values are the filenames.
+       @return Param object with name:value pairs
+    */
+    Param getAsParam() const;
 
     /// get a menu-pointer to an internal member which always contains the up-to-date recent items
     QMenu* getMenu();

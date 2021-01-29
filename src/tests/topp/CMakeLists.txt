@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP_tests")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 #
 # README:
@@ -2883,8 +2883,6 @@ set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_2_out_4" ${DIFF}  -in1 BSA_plusTransfer.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_2_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
 
-
-
 add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -2903,6 +2901,7 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
          -Alignment:align_algorithm:max_rt_shift 0
+         -Linking:min_nr_diffs_per_bin 10
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false

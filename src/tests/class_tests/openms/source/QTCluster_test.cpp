@@ -152,7 +152,7 @@ START_SECTION((bool operator<(QTCluster& cluster)))
 }
 END_SECTION
 
-START_SECTION((QTCuster::Elements getElements() const))
+START_SECTION((QTCluster::Elements getElements() const))
 {
   QTCluster::Elements elements = cluster.getElements();
   TEST_EQUAL(elements.size(), 2);
@@ -254,9 +254,8 @@ END_SECTION
 
 START_SECTION((const set<AASequence>& getAnnotations()))
 {
-  TEST_EQUAL(cluster.getAnnotations().size(), 2);
+  TEST_EQUAL(cluster.getAnnotations().size(), 1);
   TEST_EQUAL(*(cluster.getAnnotations().begin()), AASequence::fromString("AAA"));
-  TEST_EQUAL(*(cluster.getAnnotations().rbegin()), AASequence::fromString("CCC"));
   QTCluster::BulkData data(&gf, 2, 11.1, 0, 0, 2);
   QTCluster cluster2(&data, false);
   TEST_EQUAL(cluster2.getAnnotations().empty(), true);

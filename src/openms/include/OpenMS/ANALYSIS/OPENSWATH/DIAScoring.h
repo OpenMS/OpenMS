@@ -134,8 +134,11 @@ public:
                                 double& ppm_score) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
-                                double& isotope_corr, double& isotope_overlap, const std::string& sum_formula = "") const;
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, SpectrumPtrType spectrum,
+                                          double& isotope_corr, double& isotope_overlap, int charge_state) const;
+    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
+                                double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
+
 
     /// b/y ion scores
     void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
@@ -195,15 +198,40 @@ private:
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
 
-      This function will take an array of isotope intensities and compare them
-      to the theoretically expected ones for the given m/z using an averagine
+      This function will take an array of isotope intensities @p isotopes_int and compare them
+      (by order only; no m/z matching) to the theoretically expected ones for the given @p product_mz using an averagine
       model. The returned value is a Pearson correlation between the
       experimental and theoretical pattern.
     */
-    double scoreIsotopePattern_(double product_mz,
-                                const std::vector<double>& isotopes_int, 
-                                int putative_fragment_charge,
-                                const std::string& sum_formula = "") const;
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
+                                double product_mz,
+                                int putative_fragment_charge) const;
+
+    /**
+    @brief Compare an experimental isotope pattern to a theoretical one
+
+    This function will take an array of isotope intensities and compare them
+    (by order only; no m/z matching) to the theoretically expected ones for the given @p sum_formula.
+    The returned value is a Pearson correlation between the experimental and theoretical pattern.
+    */
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
+                                const EmpiricalFormula& sum_formula) const;
+
+    /**
+    @brief Compare an experimental isotope pattern to a theoretical one
+
+    This function will take an array of isotope intensities and compare them
+    (by order only; no m/z matching) to the theoretically expected ones given by @p isotope_dist.
+    The returned value is a Pearson correlation between the experimental and theoretical pattern.
+    */
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
+                                const IsotopeDistribution& isotope_dist) const;
+
+    /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
+    /// and fill @p isotopes_int.
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, SpectrumPtrType spectrum,
+                                     std::vector<double>& isotopes_int,
+                                     int charge_state) const;
 
     // Parameters
     double dia_extract_window_;

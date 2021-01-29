@@ -894,7 +894,7 @@ protected:
       }
     }
 
-    // if an external program error occured, the logfile must not be deleted
+    // if an external program error occurred, the logfile must not be deleted
     if (exit_code == EXTERNAL_PROGRAM_ERROR)
     {
       writeLog_("PepNovo problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
