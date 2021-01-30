@@ -267,14 +267,16 @@ namespace OpenMS
     void filterPeakGroupsByQScore_(const int current_max_mass_count);
 
     ///For MS1, check intensity ratio between charges.
-    bool checkChargeDistribution_(const std::vector<double>& per_charge_intensity);
+    bool checkChargeDistribution_(const std::vector<double> &per_charge_intensity);
+
+    double getChargeFitScore_(std::vector<double> &per_charge_intensity, int charge_range);
 
     /** calculate cosine between two vectors a and b with index offset off
      * @param a vector a
      * @param b vector b
      * @param off index offset
      */
-    static double getCosine_(const std::vector<double>& a, const std::vector<double>& b, const int off = 0);
+    static double getCosine_(const std::vector<double> &a, const std::vector<double> &b, const int off = 0);
 
 
     /** calculate cosine between two vectors a and b with additional parameters for fast calculation

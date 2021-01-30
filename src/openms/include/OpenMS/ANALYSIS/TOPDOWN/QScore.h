@@ -54,11 +54,20 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     /// get QScore for a peak group of specific charge
     static double getQScore(const PeakGroup *pg, const int charge);
+
     /// function to generate attribute tsv file for weka interface (for now)
-    static void writeAttTsv(const double rt, const double pmass, const double pmz, const PeakGroup pg, const int charge, const bool is_identified,
-                            const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f);
+    static void writeAttTsv(const String &acc,
+                            const double rt,
+                            const double pmass,
+                            const double pmz,
+                            const PeakGroup pg,
+                            const int charge,
+                            const bool is_identified,
+                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+                            std::fstream &f);
+
     /// write header for attirbute tsv file
-    static void writeAttHeader(std::fstream& f);
+    static void writeAttHeader(std::fstream &f);
 
   private:
     /// convert a peak group to a feature vector for QScore calculation

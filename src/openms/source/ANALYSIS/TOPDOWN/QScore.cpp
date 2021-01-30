@@ -84,19 +84,29 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream& f)
   {
-    f<<"RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+    f << "ACC,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
-  void QScore::writeAttTsv(const double rt, const double pmass, const double pmz, const PeakGroup pg, const int charge, const bool is_identified,
-                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& f)
+  void QScore::writeAttTsv(const String &acc,
+                           const double rt,
+                           const double pmass,
+                           const double pmz,
+                           const PeakGroup pg,
+                           const int charge,
+                           const bool is_identified,
+                           const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+                           std::fstream &f)
   {
     auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
-    if(pg.empty()){
-     // return;
-      f << rt << "," << (pmass <=.0? 0 : pmass) << ","<< (pmass <=.0? 0 : avgpmass) << "," << pmz<< ",";
-      f<<"0,0,0,0,0,-5,";
+    if (pg.empty())
+    {
+      // return;
+      f << acc << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass) << "," << pmz
+        << ",";
+      f << "0,0,0,0,0,-5,";
       f << (is_identified ? "T" : "F") << "\n";
-    }else
+    }
+    else
     {
       auto fv = toFeatureVector_(&pg, charge);
       //if (pg.getChargeIsotopeCosine(charge) <= 0)
@@ -104,7 +114,7 @@ namespace OpenMS
 
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << rt << "," <<monomass << ","<< mass << "," << pmz<< ",";
+      f << acc << "," << rt << "," << monomass << "," << mass << "," << pmz << ",";
       for (auto &item : fv)
       {
         f << item << ",";

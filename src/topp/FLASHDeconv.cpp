@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -237,6 +239,8 @@ protected:
     bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
+    double min_rt = getDoubleOption_("Algorithm:min_rt");
+    double max_rt = getDoubleOption_("Algorithm:max_rt");
 
     fstream out_stream, out_train_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
@@ -265,6 +269,7 @@ protected:
     }
 
     std::unordered_map<int, double> train_scan_numbers;
+    std::unordered_map<int, String> train_scan_accessions;
     if (!in_train_file.empty() && !out_train_file.empty())
     {
       out_train_stream.open(out_train_file, fstream::out);
@@ -278,15 +283,22 @@ protected:
           start = true;
           continue;
         }
-        if(!start){
+        if (!start)
+        {
           continue;
         }
         vector<String> results;
-        stringstream  tmp_stream(line);
+        stringstream tmp_stream(line);
         String str;
-        while (getline(tmp_stream, str, '\t')) {
+        while (getline(tmp_stream, str, '\t'))
+        {
           results.push_back(str);
         }
+        String acc = results[13];
+        int first = acc.find("|");
+        int second = acc.find("|", first + 1);
+        train_scan_accessions[std::stoi(results[4])] = acc.substr(first + 1, second - first - 1);
+        //std::cout<<acc.substr(first+1, second - first)<<std::endl;
         train_scan_numbers[std::stoi(results[4])] = std::stod(results[9]);
       }
       in_trainstream.close();
@@ -400,7 +412,15 @@ protected:
 
       int ms_level = it.getMSLevel();
       current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
-
+      //std::cout<<min_rt<<" " << it.getRT() <<" " << max_rt<<std::endl;
+      if (min_rt > 0 && it.getRT() < min_rt)
+      {
+        continue;
+      }
+      if (max_rt > 0 && it.getRT() > max_rt)
+      {
+        break;
+      }
       if (ensemble)
       {
         auto &espec = ensemble_map[it.getMSLevel() - 1];
@@ -428,7 +448,25 @@ protected:
       for (int i = 0; i < current_max_ms_level; ++i)
       {
         ensemble_map[i].sortByPosition();
+        //spacing_difference_gap
+        PeakPickerHiRes pickerHiRes;
+        auto pickParam = pickerHiRes.getParameters();
+        pickParam.setValue("spacing_difference_gap", 1e-2);
+        //pickParam.setValue("spacing_difference", .0001);
+        //pickParam.setValue("missing", 0);
+
+        pickerHiRes.setParameters(pickParam);
+        auto tmp_spec = ensemble_map[i];
+        pickerHiRes.pick(tmp_spec, ensemble_map[i]);
+
+        //std::cout<<ensemble_map[i].size()<<std::endl;
+        // PeakPickerCWT picker;
+        // tmp_spec = ensemble_map[i];
+        //picker.pick(tmp_spec, ensemble_map[i]);
       }
+      //MzMLFile mzml_file;
+      //mzml_file.store("/Users/kyowonjeong/Documents/A4B/Results/ensemble.mzML", ensemble_map);//
+
       map = ensemble_map;
     }
     // Run FLASHDeconv here
@@ -443,7 +481,12 @@ protected:
 
     auto fd = FLASHDeconvAlgorithm();
     Param fd_param = getParam_().copy("Algorithm:", true);
-    //fd_param.setValue("tol", getParam_().getValue("tol"));
+    //fd_param.setVa˘lue("tol", getParam_().getValue("tol"));
+    if (ensemble)
+    {
+      fd_param.setValue("min_rt", .0);
+      fd_param.setValue("max_rt", .0);
+    }
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
     auto avg = fd.getAveragine();
@@ -465,7 +508,6 @@ protected:
 
     OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
-
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
@@ -482,7 +524,6 @@ protected:
       }
 
       if(ms_level == 1){
-       // fi_out << "Spec\t"<<it->getRT()<<"\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
             continue;
@@ -531,11 +572,14 @@ protected:
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
           //&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
-          ){
+          )
+      {
 
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
-        double pmass = train_scan_numbers.find(scan_number) == train_scan_numbers.end()? .0 : train_scan_numbers[scan_number];
-        QScore::writeAttTsv(deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
+        double pmass =
+            train_scan_numbers.find(scan_number) == train_scan_numbers.end() ? .0 : train_scan_numbers[scan_number];
+        QScore::writeAttTsv(train_scan_accessions[scan_number],
+                            deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
                             deconvoluted_spectrum.getPrecursorPeakGroup(),
                             deconvoluted_spectrum.getPrecursorCharge(),
                             train_scan_numbers.find(scan_number) != train_scan_numbers.end(), avg, out_train_stream);
