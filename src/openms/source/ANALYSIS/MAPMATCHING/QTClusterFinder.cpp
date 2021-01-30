@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#define DEBUG_QTCLUSTERFINDER_IDS
+//#define DEBUG_QTCLUSTERFINDER_IDS
 
 using std::list;
 using std::vector;
@@ -208,7 +208,7 @@ namespace OpenMS
       // start of the current bin and a tolerance based on Double MAD https://aakinshin.net/posts/harrell-davis-double-mad-outlier-detector/
       for (const auto& med_diffs : medians_diffs)
       {
-        if (tmp_diffs.size() > min_nr_diffs_per_bin_)
+        if (tmp_diffs.size() > min_nr_diffs_per_bin_ && !med_diffs.second.empty())
         {
           std::sort(tmp_diffs.begin(), tmp_diffs.end());
           // calculate allowed tolerance
@@ -249,9 +249,10 @@ namespace OpenMS
       std::merge(tmp_diffs.begin(), tmp_diffs.end(), last_tmp_diffs.begin(), last_tmp_diffs.end(), std::back_inserter(last_and_before_diffs));
       if (!last_and_before_diffs.empty())
       {
-        q2 = Math::quantile(tmp_diffs, 0.5);
-        q3 = Math::quantile(tmp_diffs, 0.75);
-        tol = q2 + 2. * 1.4826 * (q3-q2);
+        q2 = Math::quantile(last_and_before_diffs, 0.5);
+        q3 = Math::quantile(last_and_before_diffs, 0.75);
+        std::cout << "q2: " << q2 << " q3: " << q3 << std::endl;
+        tol = max(min_tolerance, q2 + 2. * 1.4826 * (q3-q2));
         bin_tolerances_.insert(make_pair(start_rt, tol));
 
         OPENMS_LOG_INFO << start_rt << ", " << tol << std::endl;

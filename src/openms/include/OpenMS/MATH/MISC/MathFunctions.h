@@ -333,7 +333,7 @@ namespace OpenMS
       if (q > 1.0) q = 1.;
 
       const auto n  = x.size();
-      const auto id = (n - 1) * q;
+      const auto id = n * q - 1; // -1 for c++ index starting at 0
       const auto lo = floor(id);
       const auto hi = ceil(id);
       const auto qs = x[lo];
