@@ -514,8 +514,8 @@ protected:
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
       registerOutputFile_("out", "<file>", "", "Output file.");
       setValidFormats_("out", ListUtils::create<String>("tsv,csv,txt"));
-      registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
-      setValidFormats_("out_type", ListUtils::create<String>("tsv,csv,txt"));
+      registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension, ambiguous file extensions are interpreted as tsv", false);
+      setValidStrings_("out_type", ListUtils::create<String>("tsv,csv,txt"));
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
       setValidStrings_("quoting", ListUtils::create<String>("none,double,escape"));
@@ -573,7 +573,6 @@ protected:
       int add_protein_hit_metavalues = getIntOption_("id:add_protein_hit_metavalues");
 
       // separator etc.
-      FileHandler fh;
       String sep;
       Size idx;
 
@@ -582,19 +581,13 @@ protected:
 
       if (out_type == FileTypes::UNKNOWN)
       {
-        out_type = fh.getTypeByFileName(out);
-      }
-
-      if (out_type == FileTypes::UNKNOWN)
-      {
-        writeLog_("Error: Could not determine output file type!");
-        return PARSE_ERROR;
+        out_type = FileHandler::getTypeByFileName(out);
       }
 
       if (out_type == FileTypes::CSV) 
       {
         sep = ",";
-      } 
+      }
       else 
       {
         sep = "\t";
