@@ -4474,7 +4474,7 @@ static void scoreXLIons_(
         most_XLs = xl_pi.size();
         best_p = p;
         best_q = q;
-        cout << "found better p/q: " << p << "/" << "q" << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
+        cout << "found better p/q: " << p << "/" << q << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
       }
     }
 
