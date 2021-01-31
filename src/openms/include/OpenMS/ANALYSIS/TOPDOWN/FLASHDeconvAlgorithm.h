@@ -153,7 +153,6 @@ namespace OpenMS
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
     /// The data structures for spectra overlapping.
     std::vector<std::vector<Size>> prev_mass_bin_vector_;
-    std::vector<double> prev_minbin_logmass_vector_;
     std::vector<double> prev_rt_vector_;
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction

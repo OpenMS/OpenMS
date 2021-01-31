@@ -44,7 +44,7 @@ namespace OpenMS
       DefaultParamHandler("FLASHDeconvAlgorithm")
   {
     prev_mass_bin_vector_ = std::vector<std::vector<Size>>();
-    prev_minbin_logmass_vector_ = std::vector<double>();
+    //prev_minbin_logmass_vector_ = std::vector<double>();
     defaults_.setValue("tol",
                        DoubleList{10.0, 5.0},
                        "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
@@ -337,11 +337,12 @@ namespace OpenMS
     for (Size i = 0; i < prev_mass_bin_vector_.size(); i++)
     {
       auto &pmb = prev_mass_bin_vector_[i];
+      //getBinNumber_(pg.getMonoMass() + mass_delta, 0, bin_width_[ms_level_ - 1]);
       if (pmb.empty())
       {
         continue;
       }
-      long shift = (long) (round((mass_bin_min_value_ - prev_minbin_logmass_vector_[i]) * bin_width_[ms_level_ - 1]));
+      long shift = (long) (round((mass_bin_min_value_) * bin_width_[ms_level_ - 1]));
 
       for (Size &index : pmb)
       {
@@ -384,6 +385,7 @@ namespace OpenMS
 
     // intensity change ratio should not exceed the factor.
     float factor = 5.0;
+    float hfactor = 1.1;
 
     while (mz_bin_index != mz_bins_.npos)
     {
@@ -441,8 +443,8 @@ namespace OpenMS
               max_intensity = tmpi;
             }
 
-            float high_threshold = max_intensity * factor;
-            float low_threshold = min_intensity / factor;// / factor;
+            float high_threshold = max_intensity * hfactor;
+            float low_threshold = min_intensity / hfactor;// / factor;
             bool is_harmonic = false;
             for (int k = 0; k < h_charge_size; k++)//
             {
@@ -601,21 +603,49 @@ namespace OpenMS
         {
           double logMass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_]);
           bool harmonic = false;
-          for (int h = 2; h <= 5 && !harmonic; h++)
+          for (int h = 2; h <= 6 && !harmonic; h++)
           {
-            for (int f = -1; f <= 1 && !harmonic; f += 2)
+            for (int f = -1; f <= 1 && !harmonic; f += 2) // only minus
             {
               double hmass = logMass - log(h) * f;
               Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
-              if (hmass_index > 0 && hmass_index < mass_bins_.size())
+              if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
               {
                 for (int off = -1; off <= 1 && !harmonic; off++)
                 {
                   if (mass_intensities[hmass_index + off] >= t)
                   {
-                    //mass_bins_[hmass_index + off] = false;
                     harmonic = true;
                     break;
+                  }
+                }
+              }
+            }
+          }
+          ///   charge off by one here
+          if (!harmonic)
+          {
+            int acharge = abs(j + min_charge_);
+            for (int coff = 1; coff <= 3 && !harmonic; coff++)
+            {
+              for (int f = -1; f <= 1 && !harmonic; f += 2)
+              {
+                if (acharge + f * coff <= 0)
+                {
+                  continue;
+                }
+                double hmass = logMass - log(acharge) + log(acharge + f * coff);
+                Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
+                if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
+                {
+                  for (int off = -1; off <= 1 && !harmonic; off++)
+                  {
+                    if (mass_intensities[hmass_index + off] >= t)
+                    {
+                      //mass_bins_[hmass_index + off] = false;
+                      harmonic = true;
+                      break;
+                    }
                   }
                 }
               }
@@ -627,6 +657,11 @@ namespace OpenMS
             max_count = t;
             max_index = mass_bin_index;
             charge = j;
+          }
+          else
+          {
+            to_skip[mass_bin_index] = true;
+            mass_bins_[mass_bin_index] = false;
           }
         }
       }
@@ -933,7 +968,7 @@ namespace OpenMS
       {
         prev_rt_vector_.erase(prev_rt_vector_.begin());
         prev_mass_bin_vector_.erase(prev_mass_bin_vector_.begin());
-        prev_minbin_logmass_vector_.erase(prev_minbin_logmass_vector_.begin());
+        //prev_minbin_logmass_vector_.erase(prev_minbin_logmass_vector_.begin());
       }
       std::vector<Size> curr_mass_bin;
       curr_mass_bin.reserve(deconvoluted_spectrum_.size());
@@ -943,17 +978,17 @@ namespace OpenMS
         //if (massBinsForThisSpectrum[pg.massBinIndex])
         //{
         double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
-        Size pg_bin = getBinNumber_(pg.getMonoMass() + mass_delta, mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+        Size pg_bin = getBinNumber_(pg.getMonoMass() + mass_delta, 0, bin_width_[ms_level_ - 1]);
         curr_mass_bin.push_back(pg_bin);
         //  }
       }
 
       prev_rt_vector_.push_back(deconvoluted_spectrum_.getOriginalSpectrum().getRT());
       prev_mass_bin_vector_.push_back(curr_mass_bin); //
-      prev_minbin_logmass_vector_.push_back(mass_bin_min_value_);
+      //prev_minbin_logmass_vector_.push_back(mass_bin_min_value_);
       prev_rt_vector_.shrink_to_fit();
       prev_mass_bin_vector_.shrink_to_fit();
-      prev_minbin_logmass_vector_.shrink_to_fit();
+      // prev_minbin_logmass_vector_.shrink_to_fit();
     }
   }
 
@@ -1100,11 +1135,11 @@ namespace OpenMS
 
     int prev_charge = non_zero_start;
     int n_r = 0;
-    float factor = 2.0;
-    double int_threshold = (sum_charge_intensity / cntr) / factor;
+    float factor = .9;
+    double int_threshold = (sum_charge_intensity / cntr) * factor;
     for (int k = prev_charge + 1; k <= non_zero_end; k++)
     {
-      if (per_charge_intensity[k] <= int_threshold)
+      if (per_charge_intensity[k] < int_threshold)
       {
         continue;
       }
