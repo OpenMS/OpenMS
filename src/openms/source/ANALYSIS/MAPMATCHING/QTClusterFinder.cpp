@@ -251,7 +251,6 @@ namespace OpenMS
       {
         q2 = Math::quantile(last_and_before_diffs, 0.5);
         q3 = Math::quantile(last_and_before_diffs, 0.75);
-        std::cout << "q2: " << q2 << " q3: " << q3 << std::endl;
         tol = max(min_tolerance, q2 + 2. * 1.4826 * (q3-q2));
         bin_tolerances_.insert(make_pair(start_rt, tol));
 
