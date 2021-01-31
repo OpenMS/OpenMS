@@ -99,12 +99,11 @@ namespace OpenMS
     static String spath = "";
     static bool path_checked = false;
 
-    mtx.lock();
+    const std::lock_guard<std::mutex> lock(mtx);
 
     // short route. Only inquire the path once. The result will be the same every time.
     if (path_checked) 
     {
-      mtx.unlock();
       return spath;
     }
 
@@ -140,7 +139,6 @@ namespace OpenMS
     }
 
     path_checked = true; // enable short route for next run
-    mtx.unlock();
     return spath;
   }
 

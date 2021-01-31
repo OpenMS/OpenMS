@@ -73,21 +73,22 @@ namespace OpenMS
   {
     Q_OBJECT
 
-public:
+  public:
     /**
         @brief Constructor
 
         @param parent Qt parent widget
+        @param log Pointer to a LogWindow instance (typically TOPPView's)
         @param ini_file The file name of the temporary INI file created by this dialog
         @param default_dir The default directory for loading and storing INI files
         @param layer_type The type of data (determines the applicable tools)
         @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
+    ToolsDialog(QWidget * parent, LogWindow * log,  String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
     ///Destructor
     ~ToolsDialog() override;
 
-    /// to get the parameter name for output. Empty if no output was selected.
+      /// to get the parameter name for output. Empty if no output was selected.
     String getOutput();
     /// to get the parameter name for input
     String getInput();
@@ -121,24 +122,32 @@ public:
     QString filename_;
     /// Mapping of file extension to layer type to determine the type of a tool
     std::map<String, LayerData::DataType> tool_map_;
-
-    QFuture<Param> param_future_;
-    QFutureWatcher<Param> param_watcher_;
+    // Pointer to the LogWindow of TOPPView
+    LogWindow * log_;
+    // The current layer type. Used for determining compatible tools/utils.
     LayerData::DataType layer_type_;
+    // A future containing params for all tools/utils. Used for checking whether they are compatible with the current
+    // layer type
+    QFuture<Param> param_future_;
+    // Watcher for the param_future_ and calling addEntries_ once the results are ready.
+    QFutureWatcher<Param> param_watcher_;
 
     ///Disables the ok button and input/output comboboxes
     void disable_();
     ///Enables the ok button and input/output comboboxes
     void enable_();
     /// Generates an .ini file for a given tool name and loads it into a Param object.
-    static Param getParamFromIni_(const String& name);
+    Param getParamFromIni_(const String& name);
     /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
     std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
     // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
     void setInputOutputCombo_(const Param& p);
 
-protected slots:
+  signals:
+    // Send when there's an error during the creation of an ini file in getParamFromIni_
+    void warning(const QString& header, const QString& body);
 
+  protected slots:
     /// if ok button pressed show the tool output in a new layer, a new window or standard output as messagebox
     void ok_();
     /// Slot that handles changing of the tool
@@ -150,7 +159,9 @@ protected slots:
     /// stores an ini-file from the editor_
     void storeINI_();
     // Adds all tools/utils compatible with the given layer type to the tools_combo_
-    void addEntries();
+    void addEntries_();
+    // Append a new warning header to the log with custom header and body
+    void logWarning_(const QString& header, const QString& body);
   };
 
 }

@@ -62,6 +62,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <QMetaType>
 
 #include <sstream>
 
@@ -72,6 +73,7 @@ namespace OpenMS
 
   ToolsDialog::ToolsDialog(
           QWidget* parent,
+          LogWindow* log,
           String ini_file,
           String default_dir,
           LayerData::DataType layer_type,
@@ -80,6 +82,7 @@ namespace OpenMS
           QDialog(parent),
           ini_file_(ini_file),
           default_dir_(default_dir),
+          log_(log),
           layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
@@ -115,9 +118,11 @@ namespace OpenMS
       keys.push_back(pair.first);
     }
     // Check whether tools/utils are compatible with current layer in background and add all compatible tools/utils
-    // to the tools_combo_ when ready
-    connect(&param_watcher_, &QFutureWatcher<Param>::finished, this, &ToolsDialog::addEntries);
-    param_future_ = QtConcurrent::mapped(keys, &ToolsDialog::getParamFromIni_);
+    // to the tools_combo_ when ready (addEntries_)
+    connect(&param_watcher_, &QFutureWatcher<Param>::finished, this, &ToolsDialog::addEntries_);
+    // Warnings shall be send to TOPPView's LogWindow i.e. the given LogWindow (log_)
+    connect(this, &ToolsDialog::warning, this, &ToolsDialog::logWarning_);
+    param_future_ = QtConcurrent::mapped(keys, std::bind(&ToolsDialog::getParamFromIni_, this, std::placeholders::_1));
     param_watcher_.setFuture(param_future_);
 
 
@@ -179,7 +184,7 @@ namespace OpenMS
 
   Param ToolsDialog::getParamFromIni_(const String& name)
   {
-    String path = File::getUniqueName() + ".ini";
+    String path = File::getTemporaryFile() + ".ini";
     QStringList args{ "-write_ini", path.toQString() };
     QProcess qp;
     Param tool_param;
@@ -188,13 +193,12 @@ namespace OpenMS
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
     {
-      //TODO send error to LogWindow of ToppView!
+      emit warning("Failed to load tool/util:", name.toQString());
       return tool_param;
     }
 
     ParamXMLFile paramFile;
     paramFile.load((path).c_str(), tool_param);
-    File::remove(path);
     return tool_param;
   }
 
@@ -268,6 +272,11 @@ namespace OpenMS
     {
       output_combo_->setCurrentIndex(pos);
     }
+  }
+
+  void ToolsDialog::logWarning_(const QString& header, const QString& body)
+  {
+    log_->appendNewHeader(LogWindow::WARNING, header, body);
   }
 
   void ToolsDialog::createINI_()
@@ -425,7 +434,7 @@ namespace OpenMS
     }
   }
 
-  void ToolsDialog::addEntries()
+  void ToolsDialog::addEntries_()
   {
     QStringList names;
     for (const auto& p : param_future_.results())

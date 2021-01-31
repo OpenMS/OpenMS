@@ -1636,7 +1636,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
+    ToolsDialog tools_dialog(this, log_, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
