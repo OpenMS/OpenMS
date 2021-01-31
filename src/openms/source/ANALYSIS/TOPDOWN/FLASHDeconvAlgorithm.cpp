@@ -611,14 +611,14 @@ namespace OpenMS
               Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
               if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
               {
-                for (int off = -1; off <= 1 && !harmonic; off++)
+                //for (int off = 0; off <= 0 && !harmonic; off++)
+                //{
+                if (mass_intensities[hmass_index] >= t)
                 {
-                  if (mass_intensities[hmass_index + off] >= t)
-                  {
-                    harmonic = true;
-                    break;
-                  }
+                  harmonic = true;
+                  break;
                 }
+                //}
               }
             }
           }
@@ -638,15 +638,15 @@ namespace OpenMS
                 Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
                 if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                 {
-                  for (int off = -1; off <= 1 && !harmonic; off++)
+                  //for (int off = 0; off <= 0 && !harmonic; off++)
+                  //{
+                  if (mass_intensities[hmass_index] >= t)
                   {
-                    if (mass_intensities[hmass_index + off] >= t)
-                    {
-                      //mass_bins_[hmass_index + off] = false;
-                      harmonic = true;
-                      break;
-                    }
+                    //mass_bins_[hmass_index + off] = false;
+                    harmonic = true;
+                    break;
                   }
+                  //}
                 }
               }
             }
@@ -1135,7 +1135,7 @@ namespace OpenMS
 
     int prev_charge = non_zero_start;
     int n_r = 0;
-    float factor = .9;
+    float factor = 1;
     double int_threshold = (sum_charge_intensity / cntr) * factor;
     for (int k = prev_charge + 1; k <= non_zero_end; k++)
     {

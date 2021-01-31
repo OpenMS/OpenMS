@@ -304,8 +304,8 @@ protected:
       in_trainstream.close();
     }
 
-/*
-    std::map<int, std::unordered_map<double, int>> tmp_map; // ms 1 scan, m/z, charge
+
+    /*std::map<int, std::unordered_map<double, int>> tmp_map; // ms 1 scan, m/z, charge
     std::map<int, std::unordered_map<double, double>> tmp_map2;// ms 1 scan, m/z, mono m/z
     if(false)
     {
@@ -544,34 +544,34 @@ protected:
       {
         precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
-/*
-      if(!tmp_map.empty() && ms_level > 1 ){
-        auto pmz = it->getPrecursors()[0].getMZ();
-        for(int sn = scan_number; sn > scan_number - 100;sn--){
-          if(tmp_map.find(sn) == tmp_map.end()){
-            continue;
-          }
-          auto stmp = tmp_map[sn];// m/z, charge
-          bool set = false;
-          for(auto st : stmp){
-            if(abs(st.first - pmz) > 0.1){
-              continue;
+      /*
+            if(!tmp_map.empty() && ms_level > 1 ){
+              auto pmz = it->getPrecursors()[0].getMZ();
+              for(int sn = scan_number; sn > scan_number - 100;sn--){
+                if(tmp_map.find(sn) == tmp_map.end()){
+                  continue;
+                }
+                auto stmp = tmp_map[sn];// m/z, charge
+                bool set = false;
+                for(auto st : stmp){
+                  if(abs(st.first - pmz) > 0.1){
+                    continue;
+                  }
+                  it->getPrecursors()[0].setCharge(st.second);
+                  //std::cout<<it->getPrecursors()[0].getCharge()<<std::endl;
+                  set = true;
+                  break;
+                }
+                if(set){
+                  break;
+                }
+              }
             }
-            it->getPrecursors()[0].setCharge(st.second);
-            //std::cout<<it->getPrecursors()[0].getCharge()<<std::endl;
-            set = true;
-            break;
-          }
-          if(set){
-            break;
-          }
-        }
-      }*/
-                      // per spec deconvolution
+                    */        // per spec deconvolution
       auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, precursor_specs, scan_number);
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
-          //&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
+        //&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           )
       {
 
