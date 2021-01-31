@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <boost/math/special_functions/gamma.hpp>
 #include <cmath>
