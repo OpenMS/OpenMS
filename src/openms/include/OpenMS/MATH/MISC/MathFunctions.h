@@ -327,8 +327,10 @@ namespace OpenMS
     /**
        @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @x
     */
-    template <typename T1, typename T2> typename T1::value_type quantile(const T1 &x, T2 q)
+    template <typename T1> typename T1::value_type quantile(const T1 &x, double q)
     {
+      if (x.empty()) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                       "Quantile requested from empty container.");
       if (q < 0.0) q = 0.;
       if (q > 1.0) q = 1.;
 
