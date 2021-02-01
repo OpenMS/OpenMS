@@ -622,7 +622,7 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
 
-        OPENMS_PRECONDITION(pc_charge != 0 && pc_charge < max_charge, "Error: 'fasta_to_mzml:precursor_charge' must be bigger than or equal to 'fasta_to_mzml:max_charge'.\nSet 'precursor_charge' to '0' to automaticly use 'max_charge' + 1.");
+        OPENMS_PRECONDITION(pc_charge == 0 || pc_charge >= max_charge, "Error: 'fasta_to_mzml:precursor_charge' must be bigger than or equal to 'fasta_to_mzml:max_charge'.\nSet 'precursor_charge' to '0' to automaticly use 'max_charge' + 1.");
 
         tsg.setParameters(p);
         ProteaseDigestion digestor;
