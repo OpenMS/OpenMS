@@ -92,8 +92,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_NOT_EQUAL(protein_ids[0].getDateTime().getTime(),"00:00:00")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"database.fasta")
   TEST_EQUAL(protein_ids[0].getSearchParameters().missed_cleavages, 1000)
-  TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.size(), fm.size())
-  TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.back(), fm.back())
+  ABORT_IF(protein_ids[0].getSearchParameters().fixed_modifications.size() != fm.size())
+  for (size_t i = 0; i < fm.size(); ++i)
+  {
+    TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications[i], fm[i]);
+  }
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,20)
 
