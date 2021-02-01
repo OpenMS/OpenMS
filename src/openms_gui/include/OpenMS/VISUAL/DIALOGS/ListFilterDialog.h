@@ -28,76 +28,79 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Witold Wolski $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
+
 
 #pragma once
 
-#include <algorithm>
-#include <iterator>
-#include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <QDialog>
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+namespace Ui
+{
+  class ListFilterDialog;
+}
 
 namespace OpenMS
 {
   /**
-    @brief Scoring of an spectrum given library intensities of a transition group.
+      @brief Dialog for creating and changing a DataFilter
 
-    In DIA (data independent acquisition) / SWATH analysis, at each
-    chromatographic point a full MS2 spectrum is recorded. This class allows to
-    compute a number of scores based on the full MS2 spectrum available. The scores are the following:
-
-    See also class DIAScoring.
-
-    Simulate theoretical spectrum from library intensities of transition group
-    and compute manhattan distance and dotprod score between spectrum intensities
-    and simulated spectrum.
   */
-
-  class OPENMS_DLLAPI DiaPrescore :
-    public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI ListFilterDialog :
+    public QDialog
   {
-    double dia_extract_window_; //done
-    int nr_isotopes_;
-    int nr_charges_;
+    Q_OBJECT
+
 public:
-
-    DiaPrescore();
-
-    DiaPrescore(double dia_extract_window, int nr_isotopes = 4, int nr_charges = 4);
-
-    void defineDefaults();
-
-    void updateMembers_() override;
+    /// constructor
+    ListFilterDialog() = delete;
 
     /**
-      @brief Score a spectrum given a transition group.
+      @brief C'tor with items to show and select from
 
-      Simulate theoretical spectrum from library intensities of transition group
-      and compute manhattan distance and dotprod score between spectrum intensities
-      and simulated spectrum.
-    */
-    void score(OpenSwath::SpectrumPtr spec,
-               const std::vector<OpenSwath::LightTransition>& lt,
-               double& dotprod,
-               double& manhattan) const;
+      @param parent Parent widget
+      @param items A set of strings to show and select from. Can be filtered in the dialog
+      @param items_prechosen A set of strings which are already chosen (on the right side) when first showing this dialog. This must be a subset of @p items
 
-    /**
-      @brief Compute manhattan and dotprod score for all spectra which can be accessed by
-      the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
-    */
-    void operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
-                    OpenSwath::LightTargetedExperiment& transition_exp_used,
-                    OpenSwath::IDataFrameWriter* ivw);
+      @throws Exception::InvalidValue if any of @p items_prechosen is not contained in @p items
+
+    **/     
+    ListFilterDialog(QWidget* parent, const QStringList& items = QStringList(), const QStringList& items_prechosen = QStringList());
+
+    /// destructor
+    virtual ~ListFilterDialog();
+
+    /// when pressing 'X' button in corner of the Window
+    void closeEvent(QCloseEvent* event) override;
+
+    /// A set of strings to show and select from. Can be filtered in the dialog
+    /// @throws Exception::InvalidValue if any of @p items_prechosen is not contained in @p items
+    void setItems(const QStringList& items);
+
+    /// A set of strings which are already chosen (on the right side). Overwrites the currently chosen set.
+    /// @throws Exception::InvalidValue if any of @p items_prechosen is not contained in @p items
+    void setPrechosenItems(const QStringList& items_prechosen);
+
+    /// get all items which where selected by the user
+    QStringList getChosenItems() const;
+
+protected slots:
+    /// button '>>' clicked
+    void BtnLRClicked_();
+    /// button '> ALL >' clicked
+    void BtnLRAllClicked_();
+    /// button '<<' clicked
+    void BtnRLClicked_();
+    /// button '< ALL <' clicked
+    void BtnRLAllClicked_();
+
+private:
+    Ui::ListFilterDialog* ui_;
   };
 
-
 }
-

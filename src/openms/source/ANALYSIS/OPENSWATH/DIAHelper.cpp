@@ -52,7 +52,7 @@ namespace OpenMS
 
     void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)
     {
-      OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needst to be larger than zero.");
+      OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needs to be larger than zero.");
 
       if (mz_extraction_ppm)
       {
@@ -208,13 +208,13 @@ namespace OpenMS
                      std::vector<double>& bseries, //
                      std::vector<double>& yseries, //
                      TheoreticalSpectrumGenerator const * generator,
-                     UInt charge)
+                     int charge)
     {
       // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
-      OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
+      OPENMS_PRECONDITION(charge > 0, "For constructing b/y series we require charge being a positive integer");
 
       if (a.empty()) return;
-      
+
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
 
@@ -238,9 +238,9 @@ namespace OpenMS
     void getTheorMasses(const AASequence& a,
                         std::vector<double>& masses,
                         TheoreticalSpectrumGenerator const * generator,
-                        UInt charge)
+                        int charge)
     {
-      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.      
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
 
       PeakSpectrum spec;
@@ -252,75 +252,106 @@ namespace OpenMS
       }
     } // end getBYSeries
 
-    void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec,
-                                         const double charge,
+    void  getAveragineIsotopeDistribution(const double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopes_spec,
+                                         int charge,
                                          const int nr_isotopes,
                                          const double mannmass)
     {
+      charge = std::abs(charge);
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
+      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compat.
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotopesSpec.push_back(std::make_pair(mass, it->getIntensity()));
-        mass += mannmass;
+        isotopes_spec.emplace_back(mass, it->getIntensity());
+        mass += mannmass / charge;
       }
     } //end of dia_isotope_corr_sub
 
     //simulate spectrum from AASequence
     void simulateSpectrumFromAASequence(const AASequence& aa,
-                                        std::vector<double>& firstIsotopeMasses, //[out]
-                                        std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                                        TheoreticalSpectrumGenerator const * generator, double charge)
+                                        std::vector<double>& first_isotope_masses, //[out]
+                                        std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                        TheoreticalSpectrumGenerator const * generator, int charge)
     {
-      getTheorMasses(aa, firstIsotopeMasses, generator, charge);
-      for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
+      getTheorMasses(aa, first_isotope_masses, generator, charge);
+      for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
       {
-        getAveragineIsotopeDistribution(firstIsotopeMasses[i], isotopeMasses,
+        getAveragineIsotopeDistribution(first_isotope_masses[i], isotope_masses,
                                         charge);
       }
     }
 
-    //given an experimental spectrum add isotope pattern.
+    /// given an experimental spectrum add isotope pattern.
     void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
-                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                          double charge)
+                          std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                          Size nr_isotopes, int charge)
     {
 
       for (std::size_t i = 0; i < spec.size(); ++i)
       {
         std::vector<std::pair<double, double> > isotopes;
-        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge);
+        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge, nr_isotopes);
         for (Size j = 0; j < isotopes.size(); ++j)
         {
           isotopes[j].second *= spec[i].second; //multiple isotope intensity by spec intensity
-          isotopeMasses.push_back(isotopes[j]);
+          isotope_masses.push_back(isotopes[j]);
         }
       }
     }
 
-    //Add masses before first isotope
-    void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
-                              std::vector<std::pair<double, double> >& isotopeSpec, // output
-                              UInt nrpeaks, double preIsotopePeaksWeight, // weight of pre isotope peaks
-                              double mannmass, double charge)
+    /// given a peak of experimental mz and intensity, add isotope pattern to a "spectrum".
+    void addSinglePeakIsotopes2Spec(double mz, double ity,
+                                    std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                    Size nr_isotopes, int charge)
     {
-      for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
+      std::vector<std::pair<double, double> > isotopes;
+      getAveragineIsotopeDistribution(mz, isotopes, charge, nr_isotopes);
+      for (Size j = 0; j < isotopes.size(); ++j)
       {
-        double mul = 1.;
-        for (UInt j = 0; j < nrpeaks; ++j, ++mul)
+        isotopes[j].second *= ity; //multiple isotope intensity by spec intensity
+        isotope_masses.push_back(isotopes[j]);
+      }
+    }
+
+    //Add masses before first isotope
+    void addPreisotopeWeights(const std::vector<double>& first_isotope_masses,
+                              std::vector<std::pair<double, double> >& isotope_spec, // output
+                              UInt nr_peaks, double pre_isotope_peaks_weight, // weight of pre isotope peaks
+                              double mannmass, int charge)
+    {
+      charge = std::fabs(charge);
+      for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
+      {
+        Size mul = 1.;
+        for (UInt j = 0; j < nr_peaks; ++j, ++mul)
         {
-          isotopeSpec.push_back(
-            std::make_pair(firstIsotopeMasses[i] - (mul * mannmass) / charge,
-                           preIsotopePeaksWeight));
+          isotope_spec.emplace_back(first_isotope_masses[i] - (mul * mannmass) / charge,
+                                    pre_isotope_peaks_weight);
         }
       }
-      sortByFirst(isotopeSpec);
+      sortByFirst(isotope_spec);
+    }
+
+    //Add masses before first isotope
+    void addPreisotopeWeights(double mz,
+                              std::vector<std::pair<double, double> >& isotope_spec, // output
+                              UInt nr_peaks, double pre_isotope_peaks_weight, // weight of pre isotope peaks
+                              double mannmass, int charge)
+    {
+      charge = std::fabs(charge);
+      Size mul = 1.;
+      for (UInt j = 0; j < nr_peaks; ++j, ++mul)
+      {
+        isotope_spec.emplace_back(mz - (mul * mannmass) / charge,
+                                  pre_isotope_peaks_weight);
+      }
     }
 
     struct MassSorter :
@@ -359,8 +390,9 @@ namespace OpenMS
     //modify masses by charge
     void modifyMassesByCharge(
       const std::vector<std::pair<double, double> >& isotopeSpec,
-      std::vector<std::pair<double, double> >& resisotopeSpec, double charge)
+      std::vector<std::pair<double, double> >& resisotopeSpec, int charge)
     {
+      charge = std::abs(charge);
       resisotopeSpec.clear();
       std::pair<double, double> tmp_;
       for (std::size_t i = 0; i < isotopeSpec.size(); ++i)
