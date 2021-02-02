@@ -449,6 +449,7 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   TEST_EQUAL(spec.getPrecursors()[1].getCharge(), 4);
 
   spec.clear(true);
+
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ptr->getSpectrum(spec, peptide, 1, 2, 1), "'precursor_charge' has to be higher than or equal to 'max_charge'.");
 
 //  // for quick benchmarking of implementation chances
