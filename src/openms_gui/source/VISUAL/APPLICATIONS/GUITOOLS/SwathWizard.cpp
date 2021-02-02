@@ -125,9 +125,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
-using namespace OpenMS;
-using namespace std;
-
 //STL
 #include <iostream>
 #include <map>
@@ -139,6 +136,9 @@ using namespace std;
 #   endif
 #   include <Windows.h>
 #endif
+
+using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 // command line name of this tool
