@@ -61,6 +61,8 @@ namespace OpenMS
       }
       token = std::strtok(nullptr, " ");
     }
+    rt_window_ = inputs["RT_window"][0];
+    qscore_threshold_ = inputs["score_threshold"][0];
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
@@ -70,7 +72,7 @@ namespace OpenMS
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
     fd_defaults.setValue("tol", inputs["tol"]);
-    fd_defaults.setValue("RT_window", 20.0, "");
+    fd_defaults.setValue("RT_window", rt_window_, "");
     fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
 
     auto mass_count_double = inputs["max_mass_count"];
@@ -85,8 +87,7 @@ namespace OpenMS
     fd_.setParameters(fd_defaults);
     fd_.calculateAveragine(false);
 
-    rt_window_ = inputs["RT_window"][0];
-    qscore_threshold_ = inputs["score_threshold"][0];
+   
 
     averagine_ = fd_.getAveragine();
     std::cout << "QScore threshold: " << qscore_threshold_ << std::endl;
@@ -133,7 +134,7 @@ namespace OpenMS
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
     int mass_count = mass_count_[ms_level - 1];
 
-    const auto color_order = std::vector<char>({'B', 'R', 'G', 'b', 'r'});
+    const auto color_order = std::vector<char>({'B', 'R', 'G', 'b', 'r' });
 
     std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map;
     std::unordered_map<int, char> new_color_map;
@@ -608,7 +609,7 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(filtered);
   }
 */
-  void FLASHIda::getIsolationWindows(double* window_start, double* window_end, double* qscores, int* charges, double* avg_masses)
+  void FLASHIda::getIsolationWindows(double* window_start, double* window_end, double* qscores, int* charges, double* mono_masses)
   {
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
 
@@ -620,8 +621,8 @@ namespace OpenMS
 
       qscores[i] = deconvoluted_spectrum_[i].getQScore();
       charges[i] = deconvoluted_spectrum_[i].getRepCharge();
-      double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
-      avg_masses[i] = mass_diff + deconvoluted_spectrum_[i].getMonoMass();
+     // double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
+      mono_masses[i] = deconvoluted_spectrum_[i].getMonoMass();
     }
     std::vector<PeakGroup> empty;
     deconvoluted_spectrum_.swap(empty);
