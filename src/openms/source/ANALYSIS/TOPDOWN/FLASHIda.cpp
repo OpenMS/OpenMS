@@ -134,12 +134,12 @@ namespace OpenMS
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
     int mass_count = mass_count_[ms_level - 1];
 
-    const auto color_order = std::vector<char>({'B', 'R', 'G', 'b', 'r' });
+    const auto color_order = std::vector<char>({'B', 'R', 'G', 'b', 'r'});
 
-    std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map;
-    std::unordered_map<int, char> new_color_map;
+    std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map; // integer mass, rt, qscore
+    std::unordered_map<int, char> new_color_map; // integer mass, color
 
-    for (auto& item : mass_rt_qscore_map_)
+    for (auto &item : mass_rt_qscore_map_)
     {
       if (item.second[0] < rt - rt_window_)
       {
@@ -168,15 +168,21 @@ namespace OpenMS
         new_color_map[m] = 'G';
       }else if (new_mass_rt_qscore_map[m][1] < qscore) { // increasing mass
         new_mass_rt_qscore_map[m][1] = qscore;
-        if(new_color_map.find(m) == new_color_map.end() || new_color_map[m] == 'G' || new_color_map[m] == 'R'){
+        if (new_color_map[m] == 'G' || new_color_map[m] == 'R')
+        {//new_color_map.find(m) == new_color_map.end() ||
           new_color_map[m] = 'B';
-        }else if(new_color_map[m] == 'r'){
+        }
+        else if (new_color_map[m] == 'r' || new_color_map[m] == 'g')
+        {
           new_color_map[m] = 'b';
         }
       }else{ // decreasing mass
-        if(new_color_map.find(m) == new_color_map.end() || new_color_map[m] == 'G' || new_color_map[m] == 'B'){
+        if (new_color_map[m] == 'G' || new_color_map[m] == 'B')
+        {//new_color_map.find(m) == new_color_map.end() ||
           new_color_map[m] = 'R';
-        }else if(new_color_map[m] == 'b'){
+        }
+        else if (new_color_map[m] == 'b' || new_color_map[m] == 'g')
+        {
           new_color_map[m] = 'r';
         }
       }
@@ -219,10 +225,17 @@ namespace OpenMS
         }
 
         char prev_color = mass_color_map_[nominal_mass];
-        if(prev_color == 'B' && pg.getQScore() > 0){
+        if (prev_color == 'B')
+        {
           mass_color_map_[nominal_mass] = 'b';
-        }else if (prev_color == 'R' && pg.getQScore() > 0){
+        }
+        else if (prev_color == 'R')
+        {
           mass_color_map_[nominal_mass] = 'r';
+        }
+        else if (prev_color == 'G')
+        {
+          mass_color_map_[nominal_mass] = 'g';
         }
 
         filtered_peakgroups.push_back(pg);

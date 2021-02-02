@@ -571,7 +571,7 @@ namespace OpenMS
     while (mz_bin_index != mz_bins_.npos)
     {
       long max_index = -1;
-      float max_count = -1e11;
+      float max_intensity = -1e11;
       int charge = 0;
 
       for (int j = 0; j < charge_range; j++)
@@ -599,36 +599,36 @@ namespace OpenMS
           continue;
         }
 
-        if (max_count < t)
+        if (max_intensity < t)
         {
           double logMass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_]);
-          bool harmonic = false;
-          for (int h = 2; h <= 6 && !harmonic; h++)
+          bool artifact = false;
+          for (int h = 2; h <= 6 && !artifact; h++)
           {
-            for (int f = -1; f <= 1 && !harmonic; f += 2) // only minus
+            for (int f = -1; f <= 1 && !artifact; f += 2) // only minus
             {
               double hmass = logMass - log(h) * f;
               Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
               if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
               {
-                //for (int off = 0; off <= 0 && !harmonic; off++)
+                //for (int off = 0; off <= 0 && !artifact; off++)
                 //{
                 if (mass_intensities[hmass_index] >= t)
                 {
-                  harmonic = true;
+                  artifact = true;
                   break;
                 }
                 //}
               }
             }
           }
-          ///   charge off by one here
-          if (!harmonic)
+          //   charge off by one here
+          if (!artifact)
           {
             int acharge = abs(j + min_charge_);
-            for (int coff = 1; coff <= 3 && !harmonic; coff++)
+            for (int coff = 1; coff <= 3 && !artifact; coff++)
             {
-              for (int f = -1; f <= 1 && !harmonic; f += 2)
+              for (int f = -1; f <= 1 && !artifact; f += 2)
               {
                 if (acharge + f * coff <= 0)
                 {
@@ -638,12 +638,12 @@ namespace OpenMS
                 Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
                 if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                 {
-                  //for (int off = 0; off <= 0 && !harmonic; off++)
+                  //for (int off = 0; off <= 0 && !artifact; off++)
                   //{
                   if (mass_intensities[hmass_index] >= t)
                   {
                     //mass_bins_[hmass_index + off] = false;
-                    harmonic = true;
+                    artifact = true;
                     break;
                   }
                   //}
@@ -652,9 +652,9 @@ namespace OpenMS
             }
           }
 
-          if (!harmonic)
+          if (!artifact)
           {
-            max_count = t;
+            max_intensity = t;
             max_index = mass_bin_index;
             charge = j;
           }

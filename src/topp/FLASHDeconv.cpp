@@ -245,18 +245,21 @@ protected:
     fstream out_stream, out_train_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
 
-    fstream fi_out;
-    //fi_out.open(in_file+".txt", fstream::out); // TDDO
+    // fstream fi_out;
+    // fi_out.open(in_file+".txt", fstream::out); //
 
     out_stream.open(out_file, fstream::out);
     MassFeatureTrace::writeHeader(out_stream);
 
-    if(!out_promex_file.empty()){
+    if (!out_promex_file.empty())
+    {
       out_promex_stream.open(out_promex_file, fstream::out);
     }
-    if(!out_topfd_file.empty()){
+    if (!out_topfd_file.empty())
+    {
       out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
-      for(int i=0; i < out_topfd_file.size(); i++){
+      for (int i = 0; i < out_topfd_file.size(); i++)
+      {
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
       }
     }
@@ -524,11 +527,12 @@ protected:
       }
 
       if(ms_level == 1){
+        // fi_out<<"Spec\t" <<it->getRT()<<"\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
             continue;
           }
-         // fi_out << p.getMZ() << "\t" << p.getIntensity()<<"\n";
+          //  fi_out << p.getMZ() << "\t" << p.getIntensity()<<"\n";
         }
       }
 
@@ -702,7 +706,7 @@ protected:
                       << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / total_spec_cntr << " ms (Wall)] --" << endl;
     }
 
-    //fi_out.close(); //
+    // fi_out.close(); //
 
     out_stream.close();
 
