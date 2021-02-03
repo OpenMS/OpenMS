@@ -747,7 +747,7 @@ protected:
         vector<PeptideHit::PeakAnnotation> annotated_precursor_ions;
         vector<PeptideHit::PeakAnnotation> annotated_immonium_ions;
 
-        // first annotate total loss peaks (these give no information where the actual shift occured)
+        // first annotate total loss peaks (these give no information where the actual shift occurred)
         #ifdef DEBUG_RNPXLSEARCH
           OPENMS_LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
         #endif
@@ -2275,8 +2275,6 @@ protected:
 
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
-    progresslogger.startProgress(0, 1, "Post-processing PSMs...");
-
     // Localization
     //
 
@@ -2288,7 +2286,7 @@ protected:
     // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
     preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); // no single charge (false), annotate charge (true)
 
-    progresslogger.startProgress(0, 1, "localization...");
+    progresslogger.startProgress(0, 1, "Post-processing PSMs...localization...");
 
     // create spectrum generator. For convenience we add more peak types here.
     Param param(total_loss_spectrum_generator.getParameters());
@@ -2311,6 +2309,7 @@ protected:
                    partial_loss_spectrum_generator,
                    fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                    all_feasible_fragment_adducts);
+    progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Post-processing and annotation...");
     postProcessHits_(spectra,
@@ -2675,7 +2674,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
     // we are finished with nucleotides in string if first loss/gain is encountered
     if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
 
-    // count occurence of nucleotide
+    // count occurrence of nucleotide
     if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
     {
       exp_pc_nucleotide_count[*exp_pc_it] = 1;

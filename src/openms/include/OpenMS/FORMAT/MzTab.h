@@ -594,6 +594,7 @@ public:
     std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
+
     /// Comparison operator for sorting rows
     struct RowCompare
     {
@@ -631,6 +632,13 @@ public:
     MzTabString end;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
+    /**
+      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
+
+      @param peptide_evidences Vector of PeptideEvidence holding internal data.
+    */
+
+    void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences);
     /// Comparison operator for sorting rows
     struct RowCompare
     {
@@ -862,14 +870,6 @@ public:
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
 
-    /**
-      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
-
-      @param peptide_evidences Vector of PeptideEvidence holding internal data.
-      @param row Pre- or unfilled MzTabPSMSectionRow to be filled with the data.
-    */
-    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row);
-
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getNucleicAcidOptionalColumnNames() const;
 
@@ -978,17 +978,18 @@ public:
          bool first_run_inference_;
          String filename_;
          StringList fixed_mods_;
+         /* currently unused
          bool export_unidentified_features_; 
-         bool export_subfeatures_;
+         bool export_subfeatures_; */
          bool export_empty_pep_ids_; 
          size_t quant_study_variables_ = 0;
-         size_t n_study_variables_ = 0;
+         // size_t n_study_variables_ = 0; //currently unused
          size_t PRT_STATE_ = 0;
          size_t prt_run_id_ = 0; // current (protein) identification run
          size_t prt_hit_id_ = 0; // current protein in (protein) identification run
          size_t prt_group_id_ = 0;
          size_t prt_indistgroup_id_ = 0;
-         size_t pep_id_ = 0;
+         // size_t pep_id_ = 0; // currently unused
          size_t psm_id_ = 0;
          MzTabString db_, db_version_;
 
@@ -1140,7 +1141,7 @@ public:
 
     static void getIdentificationMetaValues_(
       const std::vector<const ProteinIdentification*>& prot_ids, 
-      std::vector<const PeptideIdentification*> peptide_ids_,
+      std::vector<const PeptideIdentification*>& peptide_ids_,
       std::set<String>& protein_hit_user_value_keys,
       std::set<String>& peptide_id_user_value_keys,
       std::set<String>& peptide_hit_user_value_keys);
@@ -1222,7 +1223,7 @@ public:
     }
 
     static void getSearchModifications_(
-      const std::vector<const ProteinIdentification*> prot_ids, 
+      const std::vector<const ProteinIdentification*>& prot_ids,
       StringList& var_mods, 
       StringList& fixed_mods);
 

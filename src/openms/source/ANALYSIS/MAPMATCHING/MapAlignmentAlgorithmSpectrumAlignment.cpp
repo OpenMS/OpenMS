@@ -48,7 +48,7 @@ namespace OpenMS
   {
     defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opening a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
-    defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.).  Therefor the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
+    defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.). Therefore the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
     defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered spectra, these spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of spectra are selected, which has a score higher or same of the threshold.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("cutoff_score", 0.0);
@@ -203,9 +203,6 @@ namespace OpenMS
     Size m = std::min((xend - xbegin), (yend - ybegin)) + 1; //row
     // std::cout<< n << " n " << m << " m " <<  xbegin << " " <<xend<< " " << ybegin << " " << yend <<std::endl;
     //log the Progress of the subaligmnet
-    String temp = "sub-alignment of interval: template sequence " + String(xbegin) + " " + String(xend) + " interval: alignsequence " + String(ybegin) + " " + String(yend);
-    startProgress(0, n, temp);
-
     bool column_row_orientation = false;
     if (n != (xend - xbegin) + 1)
     {
@@ -224,7 +221,6 @@ namespace OpenMS
       traceback.clear();
       for (Size i = 0; i <= n; ++i)
       {
-        setProgress(i);
         for (Size j = 0; j <= m; ++j) //if( j >=1 && (Size)j<=m)
         {
           if (insideBand_(i, j, n, m, k_))
@@ -412,7 +408,6 @@ namespace OpenMS
       }
     }
     //std::cout<< xcoordinate.size()<< std::endl;
-    endProgress();
   }
 
   void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(PeakMap& peakmap, std::vector<MSSpectrum*>& spectrum_pointer_container)
@@ -634,12 +629,12 @@ namespace OpenMS
     //gnuplot of the traceback
     std::ofstream myfile;
     myfile.open("debugtraceback.txt", std::ios::trunc);
-    myfile << "set xrange[0:" << pattern.size() - 1 <<  "]" << "\n set yrange[0:" << aligned.size() - 1 << "] \n plot \'-\' with lines " << std::endl;
+    myfile << "set xrange[0:" << pattern.size() - 1 <<  "]" << "\n set yrange[0:" << aligned.size() - 1 << "] \n plot \'-\' with lines \n";
     std::sort(debugtraceback_.begin(), debugtraceback_.end(), Compare(false));
 
     for (Size i = 0; i < debugtraceback_.size(); ++i)
     {
-      myfile << debugtraceback_[i].first << " " << debugtraceback_[i].second << std::endl;
+      myfile << debugtraceback_[i].first << " " << debugtraceback_[i].second << "\n";
       for (Size p = 0; p < debugscorematrix_.size(); ++p)
       {
         if (debugscorematrix_[p][0] == debugtraceback_[i].first && debugscorematrix_[p][1] == debugtraceback_[i].second)
@@ -649,7 +644,7 @@ namespace OpenMS
         }
       }
     }
-    myfile << "e" << std::endl;
+    myfile << "e\n";
     myfile.close();
     //R heatplot score of both sequence
     // std::map<Size, std::map<Size, float> > debugbuffermatrix;
@@ -690,15 +685,15 @@ namespace OpenMS
     */
     for (Size i = 0; i < debugscorematrix_.size(); ++i)
     {
-      scorefile << debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << " " << debugscorematrix_[i][3] << std::endl;
+      scorefile << debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << " " << debugscorematrix_[i][3] << "\n";
     }
     scorefile.close();
 
     std::ofstream rscript;
     rscript.open("debugRscript.r", std::ios::trunc);
 
-    rscript << "#Name: LoadFile \n #transfer data from file into a matrix \n #Input: Filename \n #Output Matrix \n LoadFile<-function(fname){\n temp<-read.table(fname); \n temp<-as.matrix(temp); \n return(temp); \n } " << std::endl;
-    rscript << "#Name: ScoreHeatmapPlot \n #plot the score in a way of a heatmap \n #Input: Scorematrix \n #Output Heatmap \n ScoreHeatmapPlot<-function(matrix) { \n xcord<-as.vector(matrix[,1]); \n ycord<-as.vector(matrix[,2]); \n color<-rgb(as.vector(matrix[,4]),as.vector(matrix[,3]),0);\n  plot(xcord,ycord,col=color, main =\"Heatplot of scores included the traceback\" , xlab= \" Template-sequence \", ylab=\" Aligned-sequence \", type=\"p\" ,phc=22)\n } \n main<-function(filenamea) { \n a<-Loadfile(filenamea) \n X11() \n ScoreHeatmapPlot(a) \n  " << std::endl;
+    rscript << "#Name: LoadFile \n #transfer data from file into a matrix \n #Input: Filename \n #Output Matrix \n LoadFile<-function(fname){\n temp<-read.table(fname); \n temp<-as.matrix(temp); \n return(temp); \n } \n";
+    rscript << "#Name: ScoreHeatmapPlot \n #plot the score in a way of a heatmap \n #Input: Scorematrix \n #Output Heatmap \n ScoreHeatmapPlot<-function(matrix) { \n xcord<-as.vector(matrix[,1]); \n ycord<-as.vector(matrix[,2]); \n color<-rgb(as.vector(matrix[,4]),as.vector(matrix[,3]),0);\n  plot(xcord,ycord,col=color, main =\"Heatplot of scores included the traceback\" , xlab= \" Template-sequence \", ylab=\" Aligned-sequence \", type=\"p\" ,phc=22)\n } \n main<-function(filenamea) { \n a<-Loadfile(filenamea) \n X11() \n ScoreHeatmapPlot(a) \n  \n";
     rscript.close();
     /*
     float matchmaximum=-999.0;

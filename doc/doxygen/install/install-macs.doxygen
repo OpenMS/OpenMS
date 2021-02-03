@@ -47,6 +47,7 @@
     Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See
     \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
    </li>
+   <li>If you need to compile CoinMP yourself, you will also need gfortran as a Fortran compiler.</li>
   </ul>
 
   If your %OpenMS version is a development version obtained via Git, the
@@ -130,7 +131,7 @@
       brew install libsvm xerces-c boost glpk eigen sqlite hdf5
     \endcode
 
-  @note Until the CoinMP complete package is migrated to the coin-or-tools tap, we suggest to use our contrib version.
+  @note Until the CoinMP complete package is migrated to the coin-or-tools tap, we suggest to use our contrib version. You will then additionally need gfortran as a Fortran compiler to build.
   @note The compression libraries bzip and zlib should come with your macOS/XCode/commandline tools.
 
   For MacPorts the following sequence of commands installs some of the

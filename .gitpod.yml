@@ -1,5 +1,5 @@
 tasks:
-  - init:     mv .vscode-gitpod .vscode && echo "Welcome!" 
+  - init:     cp -r .vscode-gitpod .vscode && echo "Welcome!" 
     prebuild: git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
               git submodule update --init THIRDPARTY &&
               export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
@@ -14,20 +14,27 @@ github:
   prebuilds:
     # enable for the master/default branch (defaults to true)
     master: true
-    # enable for all branches in this repo (defaults to false)
+# enable for all branches in this repo (defaults to false)
     branches: false
-    # enable for pull requests coming from this repo (defaults to true)
+# enable for pull requests coming from this repo (defaults to true)
     pullRequests: true
-    # enable for pull requests coming from forks (defaults to false)
+# enable for pull requests coming from forks (defaults to false)
     pullRequestsFromForks: false
-    # add a check to pull requests (defaults to true)
+# add a check to pull requests (defaults to true)
     addCheck: false
-    # add a "Review in Gitpod" button as a comment to pull requests (defaults to false)
+# add a "Review in Gitpod" button as a comment to pull requests (defaults to false)
     addComment: false
-    # add a "Review in Gitpod" button to the pull request's description (defaults to false)
+# add a "Review in Gitpod" button to the pull request's description (defaults to false)
     addBadge: false
-    # add a label once the prebuild is ready to pull requests (defaults to false)
+# add a label once the prebuild is ready to pull requests (defaults to false)
     addLabel: false
 vscode:
   extensions:
-    - ms-vscode.cpptools@0.26.2:Pq/tmf2WN3SanVzB4xZc1g==
+    - ms-vscode.cpptools@1.0.1:JVeklbO2P0U3A8Dqh4ivIA==
+    - ms-vscode.cmake-tools@1.4.2:85XiRZZTNCh6JgvEqefqww==
+    - mhutchie.git-graph@1.26.0:m8EvA1owa1dL2R6+Swieyg==
+    - twxs.cmake@0.0.17:aQNzlYa74rJFJ5/BnUF1yA==
+    - cschlosser.doxdocgen@0.7.2:g0DIKlW09t+j2Xi04fzrAA==
+    - hbenl.vscode-test-explorer@2.19.2:8rKHUShFJJd0UivektEkng==
+    - fredericbonnet.cmake-test-adapter@0.10.0:Fb9mp0fAtp8s6LKtpzJAyw==
+    - notskm.clang-tidy@0.5.1:+QMYmPGGWj0QCN6sba42Vw==

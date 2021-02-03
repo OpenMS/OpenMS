@@ -4,10 +4,10 @@ MTD	mzTab-type	Quantification
 MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
-MTD	peptide_search_engine_score[1]	[, , Comet q-value, # comet_version 2019.01 rev. 4]
-MTD	psm_search_engine_score[1]	[, , Comet q-value, # comet_version 2019.01 rev. 4]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-MzTabSearchEngines-2020-08-20]
-MTD	software[2]	[, , Comet q-value, # comet_version 2019.01 rev. 4]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
+MTD	psm_search_engine_score[1]	[MS, MS:1003115, OpenMS:Target-decoy PSM q-value, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-keepSamePeps-2020-08-27]
+MTD	software[2]	[MS, MS:1002251, Comet, # comet_version 2019.01 rev. 4]
 MTD	software[2]-setting[1]	db:C:\uniprot-FWBW.fasta
 MTD	software[2]-setting[2]	db_version:null
 MTD	software[2]-setting[3]	fragment_mass_tolerance:0.02

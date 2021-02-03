@@ -4,10 +4,10 @@ MTD	mzTab-type	Identification
 MTD	title	ID export from OpenMS
 MTD	description	OpenMS export from ID data
 MTD	protein_search_engine_score[1]	[, , one-peptide-rule XTandem, ]
-MTD	peptide_search_engine_score[1]	[, , XTandem Luciphor_delta_score, ]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
 MTD	psm_search_engine_score[1]	[, , XTandem Luciphor_delta_score, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-MzTabSearchEngines-2020-08-20]
-MTD	software[2]	[, , XTandem Luciphor_delta_score, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-keepSamePeps-2020-08-27]
+MTD	software[2]	[MS, MS:1001476, X!Tandem, ]
 MTD	software[2]-setting[1]	db:D:\data\AD_Agostina\coli-reference_2019-03-28_plus-iRTs_plus-CONs_Plus-AMM_with-dev-rev.fasta
 MTD	software[2]-setting[2]	db_version:null
 MTD	software[2]-setting[3]	fragment_mass_tolerance:20.0

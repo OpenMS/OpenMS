@@ -60,7 +60,7 @@ using namespace std;
 
     This tool works scan based. Each scan is examined using the IsotopeWavelet (see docs of that
     class) to fit an isotope distribution based on the averagine model. Known pairs are given
-    by the pair_in input parameter, which allow to search for specific pairs. Light and heavy
+    by the pair_in input parameter, which allows to search for specific pairs. Light and heavy
     variant are search for, and the pairs are finally reported with their ratios.
 
     If a pair is available in several scans, the intensities are summed up and the ratio is

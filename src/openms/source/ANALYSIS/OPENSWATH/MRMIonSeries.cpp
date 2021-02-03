@@ -237,7 +237,7 @@ namespace OpenMS
       fragment_charge = tr.getProductChargeState();
     }
 
-    double prec_pos = sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+    double prec_pos = sequence.getMZ(precursor_charge);
     bool unannotated = false;
     std::pair<String, double> target_ion = std::make_pair(String("unannotated"), -1);
     double pos = -1;
@@ -256,37 +256,37 @@ namespace OpenMS
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "x";
-          pos = ion.getMonoWeight(Residue::XIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::XIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::YIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "y";
-          pos = ion.getMonoWeight(Residue::YIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::YIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::ZIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "z";
-          pos = ion.getMonoWeight(Residue::ZIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::ZIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::AIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "a";
-          pos = ion.getMonoWeight(Residue::AIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::AIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::BIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "b";
-          pos = ion.getMonoWeight(Residue::BIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::BIon);
         }
         else if (interpretation.iontype == TargetedExperiment::IonType::CIon)
         {
           ion = sequence.getSuffix(ordinal);
           ionstring += "c";
-          pos = ion.getMonoWeight(Residue::CIon, fragment_charge) / (double) fragment_charge;
+          pos = ion.getMZ(fragment_charge, Residue::CIon);
         }
         else
         {
@@ -494,32 +494,32 @@ namespace OpenMS
           if (*ft_it == "a")
           {
             ion = sequence.getPrefix(i);
-            pos = ion.getMonoWeight(Residue::AIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::AIon);
           }
           else if (*ft_it == "b")
           {
             ion = sequence.getPrefix(i);
-            pos = ion.getMonoWeight(Residue::BIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::BIon);
           }
           else if (*ft_it == "c")
           {
             ion = sequence.getPrefix(i);
-            pos = ion.getMonoWeight(Residue::CIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::CIon);
           }
           else if (*ft_it == "x")
           {
             ion = sequence.getSuffix(i);
-            pos = ion.getMonoWeight(Residue::XIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::XIon);
           }
           else if (*ft_it == "y")
           {
             ion = sequence.getSuffix(i);
-            pos = ion.getMonoWeight(Residue::YIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::YIon);
           }
           else if (*ft_it == "z")
           {
             ion = sequence.getSuffix(i);
-            pos = ion.getMonoWeight(Residue::ZIon, charge) / (double) charge;
+            pos = ion.getMZ(charge, Residue::ZIon);
           }
           else
           {

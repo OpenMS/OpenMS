@@ -51,7 +51,7 @@ namespace OpenMS
     return (a.getIntensity() < b.getIntensity());
   }
 
-  // method to extract a potential transistions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
+  // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
   std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssay(const MSExperiment& spectra,
                                                                                     const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                                     const double& precursor_rt_tol,

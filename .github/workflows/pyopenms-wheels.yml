@@ -6,6 +6,8 @@ name: pyopenms-wheels
 # events but only for the master branch
 on:
   push:
+    tags:
+      - 'Release*'
     branches: [ nightly ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -177,6 +179,11 @@ jobs:
               lnknm=$(basename "${f%/*}" ".framework")
               ln -s $f $lnknm
             done
+            for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
+            do
+              install_name_tool -id $f $f
+            done
+            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
           mkdir bld
           pushd bld
@@ -252,8 +259,8 @@ jobs:
 
     - name: Build on manylinux2014 
       run: |
-            # fixes some issues with empty pxd files
-            rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
+            ## Do not load shared objects from root folder oft he package at import. Auditwheel handles dependencies.
+            patch -p0 $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/pyopenms/__init__.py < $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/dist-scripts/manylinux.patch
 
             # install Python deps
             for PYBIN in /opt/python/cp3*; do
@@ -397,14 +404,17 @@ jobs:
           pip install $CURRENT_WHL
 
           python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"
-
+          ## at least test the import
+          ## TODO run test suite?
+          python -c "import pyopenms"
           conda deactivate
 
           # clean up
           conda remove --name pyoms-bld-$py --all
 
         done        
-# Upload the wheels (the action only runs on ubuntu slaves)
+  
+  # Upload the wheels (the action only runs on ubuntu slaves)
   publish:
     needs: [test] # doesn't really NEED it but we want the tests to pass first
     runs-on: ubuntu-latest
@@ -430,9 +440,18 @@ jobs:
             pwd
             ls -la wheels/
 
-    - name: Publish package to PyPI
+    - name: Publish package to nightly PyPI
+      if: "!contains(github.ref, 'Release')"
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token }}
+        packages_dir: ${{ github.workspace }}/wheels
+        
+    - name: Publish package to PyPI
+      if: "contains(github.ref, 'Release')"
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_api_token_release }}
         packages_dir: ${{ github.workspace }}/wheels

@@ -37,7 +37,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <boost/shared_ptr.hpp>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 

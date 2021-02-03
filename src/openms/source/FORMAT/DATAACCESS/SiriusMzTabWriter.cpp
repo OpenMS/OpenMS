@@ -43,9 +43,33 @@
 using namespace OpenMS;
 using namespace std;
 
-int SiriusMzTabWriter::extract_scan_index(const String &path)
+int SiriusMzTabWriter::extractScanIndex(const String& path)
 {
-  return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
+  boost::regex regexp_ind("--(?<SCAN>\\d+)--");
+  return SpectrumLookup::extractScanNumber(path, regexp_ind, false);
+}
+
+int SiriusMzTabWriter::extractScanNumber(const String& path)
+{
+  boost::regex regexp("-(?<SCAN>\\d+)--");
+  return SpectrumLookup::extractScanNumber(path, regexp, false);
+}
+
+String SiriusMzTabWriter::extractFeatureId(const String& path)
+{
+  boost::smatch match;
+  String feature_id;
+  boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+  bool found = boost::regex_search(path, match, regexp_feature);
+  if (found && match["SCAN"].matched) 
+  {
+    feature_id = "id_" + match["SCAN"].str();
+  }
+  if (feature_id.empty() || feature_id == "id_0")
+  {
+    feature_id = "null";
+  }
+  return feature_id;
 }
 
 void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
@@ -114,20 +138,13 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
-        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
+        int scan_index = SiriusMzTabWriter::extractScanIndex(str);
 
         // extract scan_number from string
-        boost::regex regexp("-(?<SCAN>\\d+)-");
-        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
+        int scan_number = SiriusMzTabWriter::extractScanNumber(str);
 
         // extract feature_id from string
-        boost::smatch match;
-        String feature_id;
-        boost::regex regexp_feature("_(?<SCAN>\\d+)-");
-
-        bool found = boost::regex_search(str, match, regexp_feature);
-        if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
-        String unassigned = "null";
+        String feature_id = SiriusMzTabWriter::extractFeatureId(str);
 
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)
@@ -154,15 +171,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         sirius_id.native_id = ext_nid;
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
-        // check if results were assigned to a feature
-        if (feature_id != "id_0")
-        {
-          sirius_id.feature_id = feature_id;
-        }
-        else
-        {
-          sirius_id.feature_id = unassigned;
-        }
+        sirius_id.feature_id = feature_id;
         sirius_result.identifications.push_back(sirius_id);
 
         // write metadata to mzTab file

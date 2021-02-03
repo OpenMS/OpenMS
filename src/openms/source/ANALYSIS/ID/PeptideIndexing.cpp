@@ -94,7 +94,7 @@ using namespace std;
     defaults_.setMinInt("mismatches_max", 0);
     defaults_.setMaxInt("mismatches_max", 10);
 
-    defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable). Also occurences of 'J' will be treated as 'I' thus avoiding ambiguous matching.");
+    defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable). Also occurrences of 'J' will be treated as 'I' thus avoiding ambiguous matching.");
     defaults_.setValidStrings("IL_equivalent", { "true", "false" });
 
     defaultsToParam_();

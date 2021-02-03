@@ -114,7 +114,7 @@ using namespace std;
      The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
   
   2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
-    Each line represents one lock mass in the format: <m/z>, <ms-level>, <charge>
+    Each line represents one lock mass in the format: \<m/z\>, \<ms-level\>, \<charge\>
     Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
 
     Example:

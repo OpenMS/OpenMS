@@ -1558,9 +1558,9 @@ PyOpenMSChecker:
     - OpenMS::Internal::ParamTree
     - OpenMS::Internal::ParamXMLHandler
     - OpenMS::Internal::RtIterator
-    - OpenMS::Internal::Spectrum1DPrefDialog
-    - OpenMS::Internal::Spectrum2DPrefDialog
-    - OpenMS::Internal::Spectrum3DPrefDialog
+    - OpenMS::Internal::Plot1DPrefDialog
+    - OpenMS::Internal::Plot2DPrefDialog
+    - OpenMS::Internal::Plot3DPrefDialog
     - OpenMS::Internal::StringManager
     - OpenMS::Internal::TOPPViewPrefDialog
     - OpenMS::Internal::ToolDescription
@@ -1666,23 +1666,23 @@ PyOpenMSChecker:
     - OpenMS::EnhancedWorkspace
     - OpenMS::TOPPASOutputFileListVertex
     - OpenMS::TOPPASResources
-    - OpenMS::SpectraIdentificationViewWidget
-    - OpenMS::Spectrum1DWidget
-    - OpenMS::Spectrum2DWidget
+    - OpenMS::SpectraIDViewTab
+    - OpenMS::Plot1DWidget
+    - OpenMS::Plot2DWidget
     - OpenMS::AxisPainter
     - OpenMS::ColorSelector
     - OpenMS::TOPPViewSpectraViewBehavior
-    - OpenMS::SpectrumCanvas
+    - OpenMS::PlotCanvas
     - OpenMS::TOPPASResource
     - OpenMS::MetaDataBrowser
-    - OpenMS::Spectrum3DWidget
+    - OpenMS::Plot3DWidget
     - OpenMS::TOPPViewBehaviorInterface
     - OpenMS::TOPPViewIdentificationViewBehavior
     - OpenMS::HistogramWidget
     - OpenMS::LayerData
     - OpenMS::EnhancedTabBar
-    - OpenMS::Spectrum2DCanvas
-    - OpenMS::Spectrum1DCanvas
+    - OpenMS::Plot2DCanvas
+    - OpenMS::Plot1DCanvas
     - OpenMS::TOPPASEdge
     - OpenMS::TOPPASWidget
     - OpenMS::ListEditor
@@ -1690,9 +1690,9 @@ PyOpenMSChecker:
     - OpenMS::MultiGradient
     - OpenMS::TOPPASTreeView
     - OpenMS::TOPPASTabBar
-    - OpenMS::SpectrumWidget
-    - OpenMS::Spectrum3DOpenGLCanvas
-    - OpenMS::Spectrum3DCanvas
+    - OpenMS::PlotWidget
+    - OpenMS::Plot3DOpenGLCanvas
+    - OpenMS::Plot3DCanvas
     - OpenMS::TOPPASLogWindow
     - OpenMS::AxisWidget
     - OpenMS::TOPPASVertex
@@ -1703,7 +1703,7 @@ PyOpenMSChecker:
     - OpenMS::TOPPASScene
     - OpenMS::TOPPASToolVertex
     - OpenMS::TOPPASInputFileListVertex
-    - OpenMS::SpectraViewWidget
+    - OpenMS::SpectraTreeTab
     - OpenMS::DocumentIdentifierVisualizer
     - OpenMS::MassAnalyzerVisualizer
     - OpenMS::MetaInfoDescriptionVisualizer
@@ -1753,29 +1753,29 @@ PyOpenMSChecker:
     - OpenMS::ToolsDialog
     - OpenMS::TOPPViewPrefDialog
     - OpenMS::LayerStatisticsDialog
-    - OpenMS::Spectrum3DPrefDialog
+    - OpenMS::Plot3DPrefDialog
     - OpenMS::TheoreticalSpectrumGenerationDialog
     - OpenMS::FeatureEditDialog
     - OpenMS::HistogramDialog
-    - OpenMS::Spectrum2DGoToDialog
-    - OpenMS::Spectrum2DPrefDialog
+    - OpenMS::Plot2DGoToDialog
+    - OpenMS::Plot2DPrefDialog
     - OpenMS::DataFilterDialog
     - OpenMS::SaveImageDialog
     - OpenMS::TOPPASInputFilesDialog
     - OpenMS::TOPPASVertexNameDialog
     - OpenMS::TOPPASOutputFilesDialog
-    - OpenMS::Spectrum1DGoToDialog
-    - OpenMS::Spectrum1DPrefDialog
+    - OpenMS::Plot1DGoToDialog
+    - OpenMS::Plot1DPrefDialog
     - OpenMS::TOPPViewOpenDialog
     - OpenMS::ui_LayerStatisticsDialog
     - OpenMS::ui_TOPPViewPrefDialog
-    - OpenMS::ui_Spectrum3DPrefDialog
+    - OpenMS::ui_Plot3DPrefDialog
     - OpenMS::ui_SpectrumAlignmentDialog
-    - OpenMS::ui_Spectrum1DPrefDialog
-    - OpenMS::ui_Spectrum1DGoToDialog
+    - OpenMS::ui_Plot1DPrefDialog
+    - OpenMS::ui_Plot1DGoToDialog
     - OpenMS::ui_FeatureEditDialog
     - OpenMS::ui_TOPPASInputFilesDialog
-    - OpenMS::ui_Spectrum2DGoToDialog
+    - OpenMS::ui_Plot2DGoToDialog
     - OpenMS::ui_TOPPASInputFileDialog
     - OpenMS::ui_TOPPASIOMappingDialog
     - OpenMS::ui_TOPPViewOpenDialog
@@ -1783,7 +1783,7 @@ PyOpenMSChecker:
     - OpenMS::ui_DataFilterDialog
     - OpenMS::ui_TheoreticalSpectrumGenerationDialog
     - OpenMS::ui_TOPPASVertexNameDialog
-    - OpenMS::ui_Spectrum2DPrefDialog
+    - OpenMS::ui_Plot2DPrefDialog
     - OpenMS::FakeProcess
     - OpenMS::TOPPASToolVertex::IOInfo
     - OpenMS::TOPPASScene::TOPPProcess

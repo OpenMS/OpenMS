@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Jang Jang Jin$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -58,30 +58,39 @@ namespace OpenMS
   }
 
   Residue::Residue(const String& name,
-                   const String& three_letter_code,
-                   const String& one_letter_code,
-                   const EmpiricalFormula& formula) :
+            const String& three_letter_code,
+            const String& one_letter_code,
+            const EmpiricalFormula& formula,
+            double pka,
+            double pkb,
+            double pkc,
+            double gb_sc,
+            double gb_bb_l,
+            double gb_bb_r,
+            const set<String>& synonyms):
+                
     name_(name),
+    synonyms_(synonyms),
     three_letter_code_(three_letter_code),
     one_letter_code_(one_letter_code),
     formula_(formula),
-    average_weight_(0),
-    mono_weight_(0),
+    average_weight_(formula.getAverageWeight()),
+    mono_weight_(formula.getMonoWeight()),
     modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
-    pka_(0.0),
-    pkb_(0.0),
-    pkc_(-1.0),
-    gb_sc_(0.0),
-    gb_bb_l_(0.0),
-    gb_bb_r_(0.0)
+    pka_(pka),
+    pkb_(pkb),
+    pkc_(pkc),
+    gb_sc_(gb_sc),
+    gb_bb_l_(gb_bb_l),
+    gb_bb_r_(gb_bb_r)
   {
     if (!formula_.isEmpty())
     {
       internal_formula_ = formula_ - getInternalToFull();
     }
-  }
+  } 
 
   Residue::~Residue()
   {
@@ -136,16 +145,6 @@ namespace OpenMS
       cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
     }
     return "";
-  }
-
-  void Residue::setShortName(const String& short_name)
-  {
-    short_name_ = short_name;
-  }
-
-  const String& Residue::getShortName() const
-  {
-    return short_name_;
   }
 
   void Residue::setSynonyms(const set<String>& synonyms)
@@ -580,7 +579,6 @@ namespace OpenMS
   bool Residue::operator==(const Residue& residue) const
   {
     return name_ == residue.name_ &&
-           short_name_ == residue.short_name_ &&
            synonyms_ == residue.synonyms_ &&
            three_letter_code_ == residue.three_letter_code_ &&
            one_letter_code_ == residue.one_letter_code_ &&

@@ -628,8 +628,9 @@ public:
 
        @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
        @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+       @param best_hit Contains the best hit if successful
 
-       @except Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
+       @throws Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
 
        @return true if a hit was present, false otherwise
     */
@@ -1018,7 +1019,7 @@ public:
 
        Only peptide hits with a low mass deviation (between theoretical peptide mass and precursor mass) are kept.
 
-       @param identification Input/output
+       @param peptides Input/output
        @param mass_error Threshold for the mass deviation
        @param unit_ppm Is @p mass_error given in PPM?
 
@@ -1155,6 +1156,10 @@ public:
       removeUnreferencedProteins(experiment.getProteinIdentifications(),
                                  all_peptides);
     }
+
+    /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
+    /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
+    static void keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n);
 
     /// Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
     template <class MapType>
@@ -1366,4 +1371,3 @@ public:
   };
 
 } // namespace OpenMS
-

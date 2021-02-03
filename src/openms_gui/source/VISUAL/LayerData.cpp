@@ -34,9 +34,21 @@
 
 #include <OpenMS/VISUAL/LayerData.h>
 
+#include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h> // for AMS annotation
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/OSWFile.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
-#include <iostream>
+//#include <iostream>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -47,33 +59,118 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
   {
     os << "--LayerData BEGIN--" << std::endl;
-    os << "name: " << rhs.name << std::endl;
+    os << "name: " << rhs.getName() << std::endl;
     os << "visible: " << rhs.visible << std::endl;
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
     os << "--LayerData END--" << std::endl;
     return os;
   }
 
+
+  /// Default constructor
+
+  LayerData::LayerData() :
+    flags(),
+    visible(true),
+    flipped(false),
+    type(DT_UNKNOWN),
+    name_(),
+    filename(),
+    peptides(),
+    param(),
+    gradient(),
+    filters(),
+    annotations_1d(),
+    peak_colors_1d(),
+    modifiable(false),
+    modified(false),
+    label(L_NONE),
+    peptide_id_index(-1),
+    peptide_hit_index(-1),
+    features_(new FeatureMapType()),
+    consensus_map_(new ConsensusMapType()),
+    peak_map_(new ExperimentType()),
+    on_disc_peaks(new OnDiscMSExperiment()),
+    chromatogram_map_(new ExperimentType()),
+    current_spectrum_(0),
+    cached_spectrum_()
+  {
+    annotations_1d.resize(1);
+  }
+
   const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
   {
-    return boost::static_pointer_cast<const ExperimentType>(peaks);
+    return boost::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
   void LayerData::updateRanges()
   {
-    peaks->updateRanges();
-    features->updateRanges();
-    consensus->updateRanges();
+    peak_map_->updateRanges();
+    features_->updateRanges();
+    consensus_map_->updateRanges();
     // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
-    chromatograms->updateRanges();
+    chromatogram_map_->updateRanges();
     cached_spectrum_.updateRanges();
+  }
+
+  /// Returns the minimum intensity of the internal data, depending on type
+
+  float LayerData::getMinIntensity() const
+  {
+    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    {
+      return getPeakData()->getMinInt();
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      return getFeatureMap()->getMinInt();
+    }
+    else
+    {
+      return getConsensusMap()->getMinInt();
+    }
+  }
+
+  /// Returns the maximum intensity of the internal data, depending on type
+
+  float LayerData::getMaxIntensity() const
+  {
+    if (type == LayerData::DT_PEAK || type == LayerData::DT_CHROMATOGRAM)
+    {
+      return getPeakData()->getMaxInt();
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      return getFeatureMap()->getMaxInt();
+    }
+    else
+    {
+      return getConsensusMap()->getMaxInt();
+    }
+  }
+
+
+  /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+
+   String LayerData::getDecoratedName() const
+   {
+    String n = name_;
+    if (flipped)
+    {
+      n += " [flipped]";
+    }
+    if (modified)
+    {
+      n += '*';
+    }
+    return n;
   }
 
   void LayerData::updateCache_()
   {
-    if (peaks->getNrSpectra() > current_spectrum_ && (*peaks)[current_spectrum_].size() > 0)
+    if (peak_map_->getNrSpectra() > current_spectrum_ && (*peak_map_)[current_spectrum_].size() > 0)
     {
-      cached_spectrum_ = (*peaks)[current_spectrum_];
+      cached_spectrum_ = (*peak_map_)[current_spectrum_];
     }
     else if (on_disc_peaks->getNrSpectra() > current_spectrum_)
     {
@@ -81,9 +178,77 @@ namespace OpenMS
     }
   }
 
-  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
+
+  /// add annotation from an OSW sqlite file.
+
+
+  /// get annotation (e.g. to build a hierachical ID View)
+  /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+
+  LayerData::OSWDataSharedPtrType& LayerData::getChromatogramAnnotation()
+  {
+    return chrom_annotation_;
+  }
+
+  const LayerData::OSWDataSharedPtrType& LayerData::getChromatogramAnnotation() const
+  {
+    return chrom_annotation_;
+  }
+
+  void LayerData::setChromatogramAnnotation(OSWData&& data)
+  {
+    chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
+  }
+
+  bool LayerData::annotate(const vector<PeptideIdentification>& identifications,
+    const vector<ProteinIdentification>& protein_identifications)
+  {
+    IDMapper mapper;
+    if (this->type == LayerData::DT_PEAK)
+    {
+      Param p = mapper.getDefaults();
+      p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+      p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+      p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+      mapper.setParameters(p);
+      mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
+    }
+    else if (type == LayerData::DT_FEATURE)
+    {
+      mapper.annotate(*getFeatureMap(), identifications, protein_identifications);
+    }
+    else if (type == LayerData::DT_CONSENSUS)
+    {
+      mapper.annotate(*getConsensusMap(), identifications, protein_identifications);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  const LayerData::ExperimentType::SpectrumType& LayerData::getCurrentSpectrum() const
   {
     return cached_spectrum_;
+  }
+
+  /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
+
+  const LayerData::ExperimentType::SpectrumType LayerData::getSpectrum(Size spectrum_idx) const
+  {
+    if (spectrum_idx == current_spectrum_) return cached_spectrum_;
+
+    if ((*peak_map_)[spectrum_idx].size() > 0)
+    {
+      return (*peak_map_)[spectrum_idx];
+    }
+    else if (!on_disc_peaks->empty())
+    {
+      return on_disc_peaks->getSpectrum(spectrum_idx);
+    }
+    return (*peak_map_)[spectrum_idx];
   }
 
   void LayerData::synchronizePeakAnnotations()
@@ -126,7 +291,7 @@ namespace OpenMS
       else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
       {
         // copy user annotations to fragment annotation vector
-        Annotations1DContainer & las = getAnnotations(current_spectrum_);
+        const Annotations1DContainer & las = getAnnotations(current_spectrum_);
 
         // no annotations so we don't need to synchronize
         bool has_peak_annotation(false);
@@ -170,7 +335,7 @@ namespace OpenMS
   void LayerData::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
-    Annotations1DContainer & las = getCurrentAnnotations();
+    const Annotations1DContainer & las = getCurrentAnnotations();
 
     // initialize with an empty vector
     vector<PeptideHit::PeakAnnotation> fas;
@@ -321,4 +486,147 @@ namespace OpenMS
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
 
-} //Namespace
+  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock)
+    : supported_types_(supported_types),
+      file_dialog_text_(file_dialog_text),
+      gui_lock_(gui_lock)
+  {
+  }
+
+  bool LayerAnnotatorBase::annotateWithFileDialog(LayerData& layer, LogWindow& log, const String& current_path) const
+  {
+    // warn if hidden layer => wrong layer selected...
+    if (!layer.visible)
+    {
+      log.appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
+      return false;
+    }
+
+    // load id data
+    QString fname = QFileDialog::getOpenFileName(nullptr,
+                                                 file_dialog_text_.toQString(),
+                                                 current_path.toQString(),
+                                                 supported_types_.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
+    
+    bool success = annotateWithFilename(layer, log, fname);
+
+    return success;
+  }
+
+  bool LayerAnnotatorBase::annotateWithFilename(LayerData& layer, LogWindow& log, const String& fname) const
+  {
+    if (fname.empty()) return false;
+
+    FileTypes::Type type = FileHandler::getType(fname);
+
+    if (!supported_types_.contains(type))
+    {
+      log.appendNewHeader(LogWindow::LogState::NOTICE, "Error", String("Filename '" + fname + "' has unsupported file type. No annotation performed.").toQString());
+      return false;
+    }
+
+    GUIHelpers::GUILock glock(gui_lock_);
+    bool success = annotateWorker_(layer, fname, log);
+
+    if (success) log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+    return success;
+  }
+
+  std::unique_ptr<LayerAnnotatorBase> LayerAnnotatorBase::getAnnotatorWhichSupports(const FileTypes::Type& type)
+  {
+    std::unique_ptr<LayerAnnotatorBase> ptr(nullptr);
+    auto assign = [&type, &ptr](std::unique_ptr<LayerAnnotatorBase> other)
+    {
+      if (other->supported_types_.contains(type))
+      {
+        if (ptr.get() != nullptr) throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        ptr = std::move(other);
+      }
+    };
+    // hint: add new derived classes here, so they are checked as well
+    assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorAMS(nullptr)));
+    assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorPeptideID(nullptr)));
+    assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorOSW(nullptr)));
+
+    return std::move(ptr);
+  }
+
+  std::unique_ptr<LayerAnnotatorBase> LayerAnnotatorBase::getAnnotatorWhichSupports(const String& filename)
+  {
+    return getAnnotatorWhichSupports(FileHandler::getType(filename));
+  }
+
+  bool LayerAnnotatorPeptideID::annotateWorker_(LayerData& layer, const String& filename, LogWindow& /*log*/) const
+  {
+    FileTypes::Type type = FileHandler::getType(filename);
+    vector<PeptideIdentification> identifications;
+    vector<ProteinIdentification> protein_identifications;
+    if (type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(filename, protein_identifications, identifications);
+    }
+    else
+    {
+      String document_id;
+      IdXMLFile().load(filename, protein_identifications, identifications, document_id);
+    }
+
+    layer.annotate(identifications, protein_identifications);
+    return true;
+  }
+
+  bool LayerAnnotatorAMS::annotateWorker_(LayerData& layer, const String& filename, LogWindow& log) const
+  {
+    FeatureMap fm;
+    FeatureXMLFile().load(filename, fm);
+
+    // last protein ID must be from AccurateMassSearch (it gets appended there)
+    String engine = "no protein identification section found";
+    if (fm.getProteinIdentifications().size() > 0)
+    {
+      engine = fm.getProteinIdentifications().back().getSearchEngine();
+      if (engine == AccurateMassSearchEngine::search_engine_identifier)
+      {
+        if (layer.type != LayerData::DT_PEAK)
+        {
+          QMessageBox::warning(nullptr, "Error", "Layer type is not DT_PEAK!");
+          return false;
+        }
+        IDMapper im;
+        Param p = im.getParameters();
+        p.setValue("rt_tolerance", 30.0);
+        im.setParameters(p);
+        log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
+        im.annotate((*layer.getPeakDataMuteable()), fm, true, true);
+
+        return true;
+      }
+    }
+
+    QMessageBox::warning(nullptr, "Error", (String("FeatureXML is currently only supported for files generated by the AccurateMassSearch tool (got '") + engine + "', expected 'AccurateMassSearch'.").toQString());
+    return false;
+  }
+
+  bool LayerAnnotatorOSW::annotateWorker_(LayerData& layer,
+                                          const String& filename,
+                                          LogWindow& log) const
+  {
+    log.appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Reading OSW data ...");
+    try
+    {
+      OSWFile oswf(filename); // this can throw if file does not exist
+      OSWData data;
+      oswf.readMinimal(data);
+      // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
+      data.buildNativeIDResolver(*layer.getFullChromData().get());
+      layer.setChromatogramAnnotation(std::move(data));
+      return true;
+    }
+    catch (Exception::BaseException& e)
+    {
+      log.appendText(e.what());
+      return false;
+    }
+  }
+
+} // namespace OpenMS

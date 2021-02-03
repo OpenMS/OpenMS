@@ -171,8 +171,8 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
-    registerInputFile_("in", "<file>", "", "input file ");
+    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", in_types);
@@ -630,10 +630,10 @@ protected:
       map<Size, Size> num_aggregated_feat_of_size_with_id;
       for (auto & a : seq_charge2map_occurence)
       {
-        const vector<int>& occurences = a.second;
+        const vector<int>& occurrences = a.second;
         UInt n(0); // dimensions with at least one peptide id assigned
         UInt f(0); // number of subfeatures with a least one peptide id assigned
-        for (int i : occurences) 
+        for (int i : occurrences) 
         { 
           if (i != 0) ++n; 
           f += i;

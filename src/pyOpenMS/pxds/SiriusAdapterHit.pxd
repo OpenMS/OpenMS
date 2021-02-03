@@ -15,4 +15,3 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
         double isoscore
         int explainedpeaks
         double explainedintensity
-

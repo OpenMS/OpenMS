@@ -37,6 +37,8 @@
 #include <sqlite3.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
+#include <sstream>
+
 namespace OpenMS
 {
 
@@ -210,6 +212,7 @@ namespace OpenMS
     // Execute SQL select statement
     SqliteConnector::prepareStatement(db, &stmt, select_sql);
     sqlite3_step(stmt);
+    endProgress();
 
     Size progress = 0;
     startProgress(0, num_transitions, "reading PQP file");
@@ -513,7 +516,7 @@ namespace OpenMS
         gene_name = peptide.getMetaValue("GeneName");
       }
       
-      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = gene_map.size();
+      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
       peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
 
       insert_precursor_sql <<
@@ -660,19 +663,19 @@ namespace OpenMS
     // Execute SQL insert statement
     String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
     conn.executeStatement(insert_version);
-    conn.executeStatement(insert_protein_sql);
-    conn.executeStatement(insert_peptide_protein_mapping);
-    conn.executeStatement(insert_gene_sql);
-    conn.executeStatement(insert_peptide_gene_mapping);
-    conn.executeStatement(insert_peptide_sql);
-    conn.executeStatement(insert_compound_sql);
-    conn.executeStatement(insert_precursor_peptide_mapping);
-    conn.executeStatement(insert_precursor_compound_mapping);
-    conn.executeStatement(insert_precursor_sql);
-    conn.executeStatement(insert_transition_sql);
-    conn.executeStatement(insert_transition_peptide_mapping_sql);
-    conn.executeStatement(insert_transition_precursor_mapping_sql);
-    conn.executeStatement(update_decoys_sql);
+    conn.executeStatement(insert_protein_sql.str());
+    conn.executeStatement(insert_peptide_protein_mapping.str());
+    conn.executeStatement(insert_gene_sql.str());
+    conn.executeStatement(insert_peptide_gene_mapping.str());
+    conn.executeStatement(insert_peptide_sql.str());
+    conn.executeStatement(insert_compound_sql.str());
+    conn.executeStatement(insert_precursor_peptide_mapping.str());
+    conn.executeStatement(insert_precursor_compound_mapping.str());
+    conn.executeStatement(insert_precursor_sql.str());
+    conn.executeStatement(insert_transition_sql.str());
+    conn.executeStatement(insert_transition_peptide_mapping_sql.str());
+    conn.executeStatement(insert_transition_precursor_mapping_sql.str());
+    conn.executeStatement(update_decoys_sql.str());
     conn.executeStatement("END TRANSACTION");
   }
 

@@ -89,7 +89,7 @@ using namespace std;
     To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
     PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
 
-    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CometAdapter.cli
@@ -262,9 +262,9 @@ protected:
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
   }
 
-  vector<ResidueModification> getModifications_(const StringList& modNames)
+  const vector<const ResidueModification*> getModifications_(const StringList& modNames)
   {
-    vector<ResidueModification> modifications;
+    vector<const ResidueModification*> modifications;
 
     // iterate over modification names and add to vector
     for (const auto& modification : modNames)
@@ -273,7 +273,7 @@ protected:
       {
         continue;
       }
-      modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
+      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
     }
 
     return modifications;
@@ -331,7 +331,7 @@ protected:
     // # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
     //     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
     vector<String> variable_modifications_names = getStringList_("variable_modifications");
-    vector<ResidueModification> variable_modifications = getModifications_(variable_modifications_names);
+    const vector<const ResidueModification*> variable_modifications = getModifications_(variable_modifications_names);
     if (variable_modifications.size() > 9)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet supports at most 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
@@ -349,9 +349,9 @@ protected:
     // write out user specified modifications
     for (; var_mod_index < variable_modifications.size(); ++var_mod_index)
     {
-      const ResidueModification mod = variable_modifications[var_mod_index];
-      double mass = mod.getDiffMonoMass();
-      String residues = mod.getOrigin();
+      const ResidueModification* mod = variable_modifications[var_mod_index];
+      double mass = mod->getDiffMonoMass();
+      String residues = mod->getOrigin();
 
       // support for binary groups, e.g. for SILAC
       int binary_group{0};
@@ -367,9 +367,9 @@ protected:
       int nc_term = 0;
 
       //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
-      if (mod.getTermSpecificity() == ResidueModification::C_TERM)
+      if (mod->getTermSpecificity() == ResidueModification::C_TERM)
       {
-        if (mod.getOrigin() == 'X')
+        if (mod->getOrigin() == 'X')
         {
           residues = "c";
         } // else stays mod.getOrigin()
@@ -378,9 +378,9 @@ protected:
         // 3 and -1 should be equal for now.
         nc_term = 3;
       }
-      else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
+      else if (mod->getTermSpecificity() == ResidueModification::N_TERM)
       {
-        if (mod.getOrigin() == 'X')
+        if (mod->getOrigin() == 'X')
         {
           residues = "n";
         } // else stays mod.getOrigin()
@@ -389,18 +389,18 @@ protected:
         // 2 and -1 should be equal for now.
         nc_term = 2;
       }
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
       {
-        if (mod.getOrigin() == 'X')
+        if (mod->getOrigin() == 'X')
         {
           residues = "n";
         } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 0;
       }
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
-        if (mod.getOrigin() == 'X')
+        if (mod->getOrigin() == 'X')
         {
           residues = "c";
         } // else stays mod.getOrigin()
@@ -544,33 +544,33 @@ protected:
     // Terminus:
     //      add_N/Cterm_peptide = xxx       protein not available yet
     vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
-    vector<ResidueModification> fixed_modifications = getModifications_(fixed_modifications_names);
+    const vector<const ResidueModification*> fixed_modifications = getModifications_(fixed_modifications_names);
 
     // merge duplicates, targeting the same AA
     Map<String, double> mods;
     // Comet sets Carbamidometyl (C) as modification as default even if not specified.
-    // Therefor there is the need to set it to 0, unless its set as flag (see loop below)
+    // Therefore there is the need to set it to 0, unless its set as flag (see loop below)
     mods["add_C_cysteine"] = 0;
 
     for (const auto& fm : fixed_modifications)
     {
       // check modification (amino acid or terminal)
-      String AA = fm.getOrigin(); // X (constructor) or amino acid (e.g. K)
-      String term_specificity = fm.getTermSpecificityName(); // N-term, C-term, none
+      String AA = fm->getOrigin(); // X (constructor) or amino acid (e.g. K)
+      String term_specificity = fm->getTermSpecificityName(); // N-term, C-term, none
       if ((AA != "X") && (term_specificity == "none"))
       {
         const Residue* r = ResidueDB::getInstance()->getResidue(AA);
         String name = r->getName();
-        mods["add_" + r->getOneLetterCode() + "_" + name.toLower()] += fm.getDiffMonoMass();
+        mods["add_" + r->getOneLetterCode() + "_" + name.toLower()] += fm->getDiffMonoMass();
       }
       else if (term_specificity == "N-term" || term_specificity == "C-term")
       {
-        mods["add_" + term_specificity.erase(1,1) + "_peptide"] += fm.getDiffMonoMass();
+        mods["add_" + term_specificity.erase(1,1) + "_peptide"] += fm->getDiffMonoMass();
       }
       else if (term_specificity == "Protein N-term" || term_specificity == "Protein C-term")
       {
         term_specificity.erase(0,8); // remove "Protein "
-        mods["add_" + term_specificity.erase(1,1) + "_protein"] += fm.getDiffMonoMass();
+        mods["add_" + term_specificity.erase(1,1) + "_protein"] += fm->getDiffMonoMass();
       }
     }
     for (const auto& mod : mods)
@@ -722,11 +722,17 @@ protected:
 
     // read the pep.xml put of Comet and write it to idXML
 
+    vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
+    vector<String> variable_modifications_names = getStringList_("variable_modifications");
+
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
     writeDebug_("load PepXMLFile", 1);
-    PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications);
+    PepXMLFile pepfile{};
+    pepfile.setPreferredFixedModifications(getModifications_(fixed_modifications_names));
+    pepfile.setPreferredVariableModifications(getModifications_(variable_modifications_names));
+    pepfile.load(tmp_pepxml, protein_identifications, peptide_identifications);
     writeDebug_("write idXMLFile", 1);
     writeDebug_(out, 1);
 
