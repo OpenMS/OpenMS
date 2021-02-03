@@ -1,8 +1,6 @@
 dist: trusty
 sudo: false
 language: cpp
-python:
- - "3.9"
 os:
  - linux
 cache:
