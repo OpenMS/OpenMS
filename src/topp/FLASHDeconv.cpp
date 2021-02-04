@@ -173,7 +173,7 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{3, 1});
+    fd_defaults.setValue("min_peaks", IntList{3, 2});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", .0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
@@ -591,7 +591,10 @@ protected:
       }
       if (!out_mzml_file.empty())
       {
-        exp.addSpectrum(deconvoluted_spectrum.toSpectrum(mzml_charge));
+        if (it->getMSLevel() == 1 || !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
+        {
+          exp.addSpectrum(deconvoluted_spectrum.toSpectrum(mzml_charge));
+        }
       }
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(
