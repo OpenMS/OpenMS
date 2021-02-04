@@ -265,6 +265,7 @@ protected:
     registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
     registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
     setValidStrings_("mass_type", ListUtils::create<String>("Monoisotopic,Average"));
+    registerIntOption_("mascot_spectral_batch_size", "<num>", 50000, "number of spectra processed in one batch by mascot (default 50000)", false);
     registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
     registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
   }
@@ -419,6 +420,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+    n_chunks = getIntOption_("mascot_spectral_batch_size");
 
     if (mascot_in)
     {
@@ -488,7 +490,7 @@ protected:
     if (!mascot_out)
     {
     // determine number of chunks of size n
-    int size = (experiment.size() - 1) / n + 1;
+    int size = (experiment.size() - 1) / n_chunks + 1;
  
     // create array of vectors to store the chunks
     std::vector<PeakMap> split_experiment[size];
@@ -496,15 +498,15 @@ protected:
     for (int k = 0; k < size; ++k)
     {
         // get range for next set of n elements
-        auto start_itr = std::next(experiment.cbegin(), k*n);
-        auto end_itr = std::next(experiment.cbegin(), k*n + n);
+        auto start_itr = std::next(experiment.cbegin(), k*n_chunks);
+        auto end_itr = std::next(experiment.cbegin(), k*n_chunks + n_chunks);
 
         // allocate memory for the chunk
-        split_experiment[k].resize(n);
+        split_experiment[k].resize(n_chunks);
 
         // code to handle the last chunk as it might
         // contain less elements
-        if (k*n + n > experiment.size()) {
+        if (k*n_chunks + n_chunks > experiment.size()) {
             end_itr = experiment.cend();
             split_experiment[k].resize(experiment.size() - k*n);
         }
@@ -617,10 +619,11 @@ protected:
           mascot_infile.setBoundary(boundary);
         }
         mascot_infile.store(mascot_infile_name,
-                            experiment,
+                            split_experiment[k],
                             "OpenMS search");
       }
 	 
+    }
     }         // from if(!mascot_out)
     if (!mascot_in)
     {
