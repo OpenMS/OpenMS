@@ -487,10 +487,35 @@ protected:
 
     if (!mascot_out)
     {
-      mzdata_infile.setLogType(log_type_);
-      mzdata_infile.load(inputfile_name, experiment);
+    // determine number of chunks of size n
+    int size = (experiment.size() - 1) / n + 1;
+ 
+    // create array of vectors to store the chunks
+    std::vector<PeakMap> split_experiment[size];
 
-      writeDebug_("read " + String(experiment.size()) + " spectra from mzData file", 1);
+    for (int k = 0; k < size; ++k)
+    {
+        // get range for next set of n elements
+        auto start_itr = std::next(experiment.cbegin(), k*n);
+        auto end_itr = std::next(experiment.cbegin(), k*n + n);
+
+        // allocate memory for the chunk
+        split_experiment[k].resize(n);
+
+        // code to handle the last chunk as it might
+        // contain less elements
+        if (k*n + n > experiment.size()) {
+            end_itr = experiment.cend();
+            split_experiment[k].resize(experiment.size() - k*n);
+        }
+
+      // copy elements from the input range to the chunk
+      std::copy(start_itr, end_itr, split_experiment[k].begin());
+      
+      mzdata_infile.setLogType(log_type_);
+      mzdata_infile.load(inputfile_name, split_experiment[k]);
+
+      writeDebug_("read " + String(split_experiment[k].size()) + " spectra from mzData file", 1);
 
       //-------------------------------------------------------------
       // calculations
@@ -595,6 +620,7 @@ protected:
                             experiment,
                             "OpenMS search");
       }
+	 
     }         // from if(!mascot_out)
     if (!mascot_in)
     {
