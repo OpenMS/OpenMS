@@ -990,18 +990,14 @@ namespace OpenMS
                         const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
                         mod = m->getFullId();
                       }
-                      else if (spci->second.front().getAccession() == "MS:1002057")  // pro nterm
+                      else if (spci->second.front().getAccession() == "MS:1002057")  // protein nterm
                       {
-                        // TODO: add support for protein N-terminal modifications in unimod
-                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
-                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
                         mod = m->getFullId();
                       }
-                      else if (spci->second.front().getAccession() == "MS:1002058")  // pro cterm
+                      else if (spci->second.front().getAccession() == "MS:1002058")  // protein cterm
                       {
-                        // TODO: add support for protein C-terminal modifications in unimod
-                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
-                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
                         mod = m->getFullId();
                       }
                     }
