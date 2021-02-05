@@ -307,7 +307,6 @@ protected:
       in_trainstream.close();
     }
 
-
     /*std::map<int, std::unordered_map<double, int>> tmp_map; // ms 1 scan, m/z, charge
     std::map<int, std::unordered_map<double, double>> tmp_map2;// ms 1 scan, m/z, mono m/z
     if(false)
@@ -415,7 +414,7 @@ protected:
 
       int ms_level = it.getMSLevel();
       current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
-      //std::cout<<min_rt<<" " << it.getRT() <<" " << max_rt<<std::endl;
+
       if (min_rt > 0 && it.getRT() < min_rt)
       {
         continue;
@@ -462,7 +461,6 @@ protected:
         auto tmp_spec = ensemble_map[i];
         pickerHiRes.pick(tmp_spec, ensemble_map[i]);
 
-        //std::cout<<ensemble_map[i].size()<<std::endl;
         // PeakPickerCWT picker;
         // tmp_spec = ensemble_map[i];
         //picker.pick(tmp_spec, ensemble_map[i]);
@@ -476,7 +474,7 @@ protected:
 
     int scan_number = 0;
     float prev_progress = .0;
-    int const num_last_deconvoluted_spectra = 10;
+    int const num_last_deconvoluted_spectra = 1;
     auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
     //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
@@ -572,7 +570,26 @@ protected:
               }
             }
                     */        // per spec deconvolution
-      auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, precursor_specs, scan_number);
+
+      std::vector<Precursor> triggeredPeaks;
+      if (ms_level < current_max_ms_level)
+      {
+        auto tit = it + 1;
+        for (; tit != map.end(); ++tit)
+        {
+          if (tit->getMSLevel() == ms_level)
+          {
+            break;
+          }
+
+          for (auto &peak: tit->getPrecursors())
+          {
+            triggeredPeaks.push_back(peak);
+          }
+        }
+      }
+
+      auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, triggeredPeaks, precursor_specs, scan_number);
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
         //&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()

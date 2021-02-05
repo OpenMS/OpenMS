@@ -79,7 +79,7 @@ namespace OpenMS
 
     for (double j : mass_count_double)
     {
-      mass_count_.push_back((int)j);
+      mass_count_.push_back((int) j * 5);
     }
 
     fd_defaults.setValue("min_mass_count", mass_count_);
@@ -115,7 +115,8 @@ namespace OpenMS
     }
 
     std::vector<DeconvolutedSpectrum> tmp;
-    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, tmp, 0);
+    std::vector<Precursor> triggeredPeaks;
+    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, triggeredPeaks, tmp, 0);
 
     // per spec deconvolution
     //    int specIndex = 0, massIndex = 0; // ..

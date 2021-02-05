@@ -76,12 +76,16 @@ namespace OpenMS
     /**
       @brief main deconvolution function that generates the deconvoluted spectrum from the original spectrum.
       @param spec the original spectrum
+      @param triggeredPeaks peaks that are triggered in this spectrum.
       @param survey_scans the survey scans to assign precursor mass to the deconvoluted spectrum
       @param scan_number scan number can be retrieved from the spectrum in most cases.
       But this parameter is put for real time deconvolution where scan number may be put separately.
       @return the deconvoluted spectrum (as DeconvolutedSpectrum class)
  */
-    DeconvolutedSpectrum& getDeconvolutedSpectrum(const MSSpectrum& spec, const std::vector<DeconvolutedSpectrum>& survey_scans, const int scan_number);
+    DeconvolutedSpectrum &getDeconvolutedSpectrum(const MSSpectrum &spec,
+                                                  const std::vector<Precursor> &triggeredPeaks,
+                                                  const std::vector<DeconvolutedSpectrum> &survey_scans,
+                                                  const int scan_number);
 
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();
@@ -185,6 +189,12 @@ namespace OpenMS
 
     /// current ms Level
     int ms_level_;
+
+
+    std::set<double> triggeredMzs;
+
+
+    void setTriggeredMzs_(const std::vector<Precursor> &triggeredPeaks);
 
     ///static fucntion that converts bin to value
     static double getBinValue_(const Size bin, const double min_value, const double bin_width);
