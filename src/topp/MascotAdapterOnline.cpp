@@ -42,7 +42,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <sstream>
 
@@ -123,11 +123,11 @@ using namespace std;
 
 
 class TOPPMascotAdapterOnline :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPMascotAdapterOnline() :
-    TOPPBase("MascotAdapterOnline", "Annotates MS/MS spectra using Mascot.")
+    SearchEngineBase("MascotAdapterOnline", "Annotates MS/MS spectra using Mascot.")
   {
   }
 
@@ -246,9 +246,8 @@ protected:
     //-------------------------------------------------------------
 
     // input/output files
-    String in(getStringOption_("in")), out(getStringOption_("out"));
-    FileHandler fh;
-    FileTypes::Type in_type = fh.getType(in);
+    String in = getRawfileName();
+    String out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // loading input
@@ -256,25 +255,11 @@ protected:
 
     PeakMap exp;
     // keep only MS2 spectra
-    fh.getOptions().addMSLevel(2);
-    fh.loadExperiment(in, exp, in_type, log_type_, false, false);
+    FileHandler fh;
+    fh.getOptions().setMSLevels({2});
+    fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
     writeLog_("Number of spectra loaded: " + String(exp.size()));
 
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-    }
-
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
-    {
-      if (!getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-      }
-    }
 
     //-------------------------------------------------------------
     // calculations
