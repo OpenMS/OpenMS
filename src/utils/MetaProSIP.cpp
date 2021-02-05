@@ -2034,18 +2034,15 @@ public:
     return xic_intensities;
   }
 
-  // For unlabeled peptides, distances between isotopic peaks are dominated by the 13C-12C m/z difference
-  // If non-carbon labeling elements are used we need to make sure that peaks are collected at the correct position by changing the mass difference to the labeling element.
-  // In addition we need to change the m/z tolerance window so we collect all isotopic peaks if these are resolved by the mass spectrometer.
-  // To do so we need to consider the fractional mass of 13C (=0.0033548) and the fractional mass of the labeling element (frac(mass_diff) e.g. for 15N-14N = 0.9970349 = 1-0.0029651)
-  //   Consider that 1 to 5 mass shifts might stem from 13C incorporation (higher than the 5th natural isotopic 13C peaks is of very low intensity and doesn't contribute to the signal)
-  //   but also from 1 to 5 heavy labeling isotopes.
-  //   Then, the extraction windows for the n-th isotopic trace (with n>=5) must range from: seed_mz + n*mass_diff/charge to seed_mz + (n-5)*mass_diff/charge + 5 * (13C-12C)/charge
-  //   For n < 5: seed_mz + n * mass_diff/charge to seed_mz + n * (13C-12C)/charge
-  //   (+/- the additional error tolerances)
-  static vector<double> extractXICsOfIsotopeTracesVariableWindows(Size element_count, double mass_diff, double mz_tolerance_ppm, double rt_tolerance_s, double seed_rt, double seed_mz, double charge, const MSExperiment& peak_map, const double min_corr_mono = -1.0)
+  // generate extraction windows given the seed m/z, element count and tolerances
+  static vector<pair<double, double>> extractXICMZWindows_(
+    Size element_count,    
+    double seed_mz,
+    double mass_diff, 
+    double charge,
+    double mz_tolerance_ppm)
   {
-    vector<pair<double, double> > xic_mz_windows;
+    vector<pair<double, double>> xic_mz_windows;
 
     // calculate centers of XICs to be extracted and the mass tolerance window to collect potential resolved isotopic peaks
     for (Size k = 0; k != element_count; ++k)
@@ -2073,8 +2070,41 @@ public:
       xic_mz_windows.push_back(make_pair(left, right));
     }
 
+    return xic_mz_windows;
+  }
+
+  // For unlabeled peptides, distances between isotopic peaks are dominated by the 13C-12C m/z difference
+  // If non-carbon labeling elements are used we need to make sure that peaks are collected at the correct position by changing the mass difference to the labeling element.
+  // In addition we need to change the m/z tolerance window so we collect all isotopic peaks if these are resolved by the mass spectrometer.
+  // To do so we need to consider the fractional mass of 13C (=0.0033548) and the fractional mass of the labeling element (frac(mass_diff) e.g. for 15N-14N = 0.9970349 = 1-0.0029651)
+  //   Consider that 1 to 5 mass shifts might stem from 13C incorporation (higher than the 5th natural isotopic 13C peaks is of very low intensity and doesn't contribute to the signal)
+  //   but also from 1 to 5 heavy labeling isotopes.
+  //   Then, the extraction windows for the n-th isotopic trace (with n>=5) must range from: seed_mz + n*mass_diff/charge to seed_mz + (n-5)*mass_diff/charge + 5 * (13C-12C)/charge
+  //   For n < 5: seed_mz + n * mass_diff/charge to seed_mz + n * (13C-12C)/charge
+  //   (+/- the additional error tolerances)
+  static vector<double> extractXICsOfIsotopeTracesVariableWindows(
+    Size element_count, 
+    double mass_diff, 
+    double mz_tolerance_ppm, 
+    double rt_tolerance_s, 
+    double seed_rt, 
+    double seed_mz, 
+    double charge, 
+    const MSExperiment& peak_map, 
+    const double min_corr_mono = -1.0)
+  {
+    vector<pair<double, double>> xic_mz_windows = extractXICMZWindows_(
+      element_count,    
+      seed_mz,
+      mass_diff, 
+      charge,
+      mz_tolerance_ppm);
+
     // extract xics
-    vector<vector<double> > xics = extractXICVariableMZWindows(seed_rt, xic_mz_windows, rt_tolerance_s, peak_map);
+    vector<vector<double> > xics = extractXICVariableMZWindows(
+      seed_rt, xic_mz_windows, 
+      rt_tolerance_s, 
+      peak_map);
    
     // incorporation of deuterium imposes retention time shifts of mass traces which must be treated accordingly
     // the current approach:
@@ -2086,7 +2116,7 @@ public:
     // as the filtering only affects strongly deviating elution profiles.
 
     // create smoothed xics
-    vector<vector<double> > xics_smoothed = xics;
+    vector<vector<double>> xics_smoothed = xics;
     for (Size k = 0; k != xics.size(); ++k)
     {
       const vector<double>& current_xic = xics[k];
@@ -2114,7 +2144,7 @@ public:
     Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
     Size scans_minus_20s = (seed_rt_it - seed_rt_minus_20) + 1;
 
-    std::vector<std::pair<double, double> > xy;
+    std::vector<std::pair<double, double>> xy;
 
     // extract potential apices as high points in the smoothed XICs
     Size n_current = xics_smoothed[0].size();
@@ -2123,8 +2153,7 @@ public:
     for (Size k = 0; k < xics_smoothed.size(); ++k)
     {
       const vector<double>& current_xic = xics_smoothed[k];
-      if (n_current != current_xic.size())
-        throw -1;
+      if (n_current != current_xic.size()) throw -1;
 
       for (Size i = 1; i < n_current - 1; ++i)
       {
@@ -2135,7 +2164,6 @@ public:
           // here we also allow the maximum to come earlier depending on the number of incorporated deuterium
           if (i < apex_idx + scans_plus_20s && (double)i > static_cast<double>(apex_idx) - scans_minus_20s - k)  // only maxima that are not too much earlier (but may depend on number of deuterium incorporated)
           { 
-//            double scan_to_apex = i - apex_idx;  // number of scans between current peak and apex scan
             //cout << k << ";" << scan_to_apex << ";" << current_xic[i] << endl;
             //slopes.push_back(scan_to_apex / k); // slope (Note: should be around zero or negative as deuterium rich elute earlier)
             xy.push_back(make_pair(k, i)); // add isotope number and index in mass trace
@@ -2144,25 +2172,27 @@ public:
       }
     }
 
-   // Theil–Sen estimator (with slope and intercept determination by median)
-   vector<double> slopes, intercepts;
-   for (Size i = 0; i != xy.size(); ++i)
-   {
-     for (Size j = i + 1; j < xy.size(); ++j)
-     {
-       double dx = xy[i].first - xy[j].first;
-       double dy = xy[i].second - xy[j].second;
-       double slope = dy/dx;
-       double intercept = xy[i].second - slope * xy[i].first;
+    // Theil–Sen estimator (with slope and intercept determination by median)
+    vector<double> slopes, intercepts;
+    for (Size i = 0; i != xy.size(); ++i)
+    {
+      for (Size j = i + 1; j < xy.size(); ++j)
+      {
+        double dx = xy[i].first - xy[j].first;
+        double dy = xy[i].second - xy[j].second;
+        double slope = dy/dx;
+        double intercept = xy[i].second - slope * xy[i].first;
 
-       // discard improbable models (if intercept lies outside of monoisotopic peak apex (+- 20s) or if RT shift larger than 5s per isotopic position
-       const double avg_scans_per_second = (scans_minus_20s + scans_plus_20s) / 40.0;
-       if (intercept < apex_idx - scans_minus_20s || intercept > apex_idx + scans_plus_20s || fabs(slope) > 5.0 * avg_scans_per_second ) continue;
-        
-       slopes.push_back(slope);
-       intercepts.push_back(intercept);
-     }
-   }
+        // discard improbable models (if intercept lies outside of monoisotopic peak apex (+- 20s) or if RT shift larger than 5s per isotopic position
+        const double avg_scans_per_second = (scans_minus_20s + scans_plus_20s) / 40.0;
+        if (intercept < apex_idx - scans_minus_20s 
+        || intercept > apex_idx + scans_plus_20s 
+        || fabs(slope) > 5.0 * avg_scans_per_second ) continue;
+          
+        slopes.push_back(slope);
+        intercepts.push_back(intercept);
+      }
+    }
 
     if (!slopes.empty())
     {
@@ -2231,7 +2261,6 @@ public:
 
     return xic_intensities;
   }
-
 };
 
 class RIntegration
