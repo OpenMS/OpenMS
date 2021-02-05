@@ -72,7 +72,7 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  std::map<String, String> options, flags, option_lists;
+  std::map<std::string, std::string> options, flags, option_lists;
   options["-print"] = "print";
   flags["--help"] = "help";
   Param param;
@@ -105,7 +105,7 @@ int main(int argc, const char** argv)
     ParamXMLFile paramFile;
     try
     {
-      paramFile.load(param.getValue("print"), data);
+      paramFile.load(param.getValue("print").toString(), data);
       for (Param::ParamIterator it = data.begin(); it != data.end(); ++it)
       {
         cout << it.getName() << " = " << it->value << endl;

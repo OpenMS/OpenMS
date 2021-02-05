@@ -182,7 +182,7 @@ protected:
 
     if (p.value.valueType() == DataValue::STRING_LIST) // quote each element
     {
-      StringList val = p.value;
+      StringList val = ListUtils::toStringList<std::string>(p.value);
       if (p.tags.count("input file") || p.tags.count("output file"))
       {
         for (Size i = 0; i < val.size(); ++i)
@@ -195,11 +195,11 @@ protected:
     if (p.tags.count("input file") || p.tags.count("output file"))
     {
       // ensure that file names are formated according to system spec
-      return QDir::toNativeSeparators(p.value.toQString());
+      return QDir::toNativeSeparators(String(p.value.toString()).toQString());
     }
     else
     {
-      return p.value;
+      return p.value.toString();
     }
   }
 
@@ -372,7 +372,7 @@ protected:
     {
       if ((it->tags).count("required") > 0)
       {
-        String in = it->value.toString().trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
+        String in = String(it->value.toString()).trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
         if (in.empty() || in == "[]") // any required parameter should have a value
         {
           OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is required, but was not given! Aborting ..." << std::endl;
@@ -384,10 +384,10 @@ protected:
           switch (it->value.valueType())
           {
             case DataValue::STRING_VALUE:
-              ifs.push_back(it->value); 
+              ifs.push_back(it->value.toChar());
               break;
             case DataValue::STRING_LIST:
-              ifs = it->value;
+              ifs = ListUtils::toStringList<std::string>(it->value);
               break;
             default:
               OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
@@ -448,7 +448,7 @@ protected:
       createFragment_(tmp_location, p);
 
       // check if target already exists:
-      String target_file = (String)p.getValue(target);
+      String target_file = p.getValue(target).toString();
       if (File::exists(tmp_location))
       {
         if (!File::remove(tmp_location))
@@ -518,7 +518,7 @@ protected:
       // check if target already exists:
       String target = fm.target;
       if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
-      String target_file = (String)p.getValue(target);
+      String target_file = p.getValue(target).toString();
 
       if (target_file.trim().empty())   // if target was not given, we skip the copying step (usually for optional parameters)
       {

@@ -36,11 +36,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-
-#include <QtCore/QString>
 #include <fstream>
+#include <iomanip>
 
 namespace OpenMS
 {
@@ -158,8 +155,8 @@ namespace OpenMS
     }
     else if (value.valueType() == ParamValue::INT_LIST)
     {
-      Int int_value;
-      IntList ls_value = value;
+      int int_value;
+      std::vector<int> ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         int_value = ls_value[i];
@@ -181,7 +178,7 @@ namespace OpenMS
     }
     else if (value.valueType() == ParamValue::DOUBLE_LIST)
     {
-      DoubleList ls_value = value;
+      std::vector<double> ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         double dou_value = ls_value[i];
@@ -330,7 +327,7 @@ namespace OpenMS
     while (prefix2.find(':') != std::string::npos)
     {
       size_t pos = prefix2.find(':');
-      std::string local_name = prefix2.substr(pos);
+      std::string local_name = prefix2.substr(0, pos);
       //check if the node already exists
       NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
@@ -382,7 +379,7 @@ namespace OpenMS
     while (prefix2.find(':') != std::string::npos)
     {
       size_t pos = prefix2.find(':');
-      std::string local_name = prefix2.substr(pos);
+      std::string local_name = prefix2.substr(0, pos);
       //std::cerr << " - looking for node: " << name << std::endl;
       //look up if the node already exists
       NodeIterator it = insert_node->findNode(local_name);
@@ -535,17 +532,20 @@ namespace OpenMS
 
   const std::string& Param::getSectionDescription(const std::string& key) const
   {
+    //This variable is used instead of String::EMPTY as the method is used in
+    //static initialization and thus cannot rely on String::EMPTY been initialized.
+    static std::string empty;
 
     ParamNode* node = root_.findParentOf(key);
     if (node == nullptr)
     {
-      return "";
+      return empty;
     }
 
     Param::ParamNode::NodeIterator it = node->findNode(node->suffix(key));
     if (it == node->nodes.end())
     {
-      return "";
+      return empty;
     }
 
     return it->description;
@@ -651,7 +651,7 @@ namespace OpenMS
           if (node_parent->nodes.empty()  && node_parent->entries.empty())
           {
             // delete last section name (could be partial)
-            remove(keyname.substr(0, name.size())); // keep last ':' to indicate deletion of a section
+            remove(keyname.substr(0, keyname.size() - name.size())); // keep last ':' to indicate deletion of a section
           }
         }
       }
@@ -1013,12 +1013,12 @@ namespace OpenMS
   {
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
-      String prefix = it.getName().substr(0, it.getName().length() - it->name.length() - 1);
-      if (prefix != "")
+      os << '"';
+      if(it.getName().length() > it->name.length())
       {
-        prefix += "|";
+          os << it.getName().substr(0, it.getName().length() - it->name.length() - 1) << "|";
       }
-      os << '"' << prefix << it->name << "\" -> \"" << it->value << '"';
+      os  << it->name << "\" -> \"" << it->value << '"';
       if (it->description != "")
       {
         os << " (" << it->description << ")";
@@ -1120,7 +1120,8 @@ namespace OpenMS
     for (Param::ParamIterator it = this->begin(); it != this->end(); ++it)
     {
       std::string suffix = ":" + leaf;
-      if (it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0)
+      if (!(suffix.length() > it.getName().length()) &&
+          it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0)
       {
         return it;
       }
@@ -1137,7 +1138,8 @@ namespace OpenMS
     for (; it != this->end(); ++it)
     {
       std::string suffix = ":" + leaf;
-      if (it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0)
+      if (!(suffix.length() > it.getName().length()) &&
+          it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0)
       {
         return it;
       }
@@ -1171,7 +1173,8 @@ namespace OpenMS
       {
         // param 'version': do not override!
         std::string suffix = ":version";
-        if (it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0)
+        if (!(suffix.length() > it.getName().length()) &&
+            it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0)
         {
           if (this->getValue(it.getName()) != it->value)
           {
@@ -1181,7 +1184,9 @@ OPENMS_THREAD_CRITICAL(oms_log)
           continue;
         }
         // param 'type': do not override!
-        else if (suffix = ":type", it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
+        else if (suffix = ":type",
+                !(suffix.length() > it.getName().length()) &&
+                it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
           SignedSize first = it.getName().find(':');
           if(it.getName().find(':', first+1) != std::string::npos) {

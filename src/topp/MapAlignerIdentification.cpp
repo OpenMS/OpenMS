@@ -160,7 +160,7 @@ private:
   {
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
 
     try
     {

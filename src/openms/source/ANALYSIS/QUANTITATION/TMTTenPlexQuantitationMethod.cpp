@@ -35,11 +35,12 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
 const String TMTTenPlexQuantitationMethod::name_ = "tmt10plex";
-const std::vector<String> TMTTenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131"};
+const std::vector<std::string> TMTTenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131"};
 
 TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
@@ -91,7 +92,7 @@ void TMTTenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131).");
     defaults_.setValidStrings("reference_channel", TMTTenPlexQuantitationMethod::channel_names_);
 
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/5.09/0.0,"
+    defaults_.setValue("correction_matrix", ListUtils::create<std::string>("0.0/0.0/5.09/0.0,"
                                                                       "0.0/0.25/5.27/0.0,"
                                                                       "0.0/0.37/5.36/0.15,"
                                                                       "0.0/0.65/4.17/0.1,"
@@ -108,21 +109,21 @@ void TMTTenPlexQuantitationMethod::setDefaultParams_()
 
 void TMTTenPlexQuantitationMethod::updateMembers_()
 {
-    channels_[0].description = param_.getValue("channel_126_description");
-    channels_[1].description = param_.getValue("channel_127N_description");
-    channels_[2].description = param_.getValue("channel_127C_description");
-    channels_[3].description = param_.getValue("channel_128N_description");
-    channels_[4].description = param_.getValue("channel_128C_description");
-    channels_[5].description = param_.getValue("channel_129N_description");
-    channels_[6].description = param_.getValue("channel_129C_description");
-    channels_[7].description = param_.getValue("channel_130N_description");
-    channels_[8].description = param_.getValue("channel_130C_description");
-    channels_[9].description = param_.getValue("channel_131_description");
+    channels_[0].description = param_.getValue("channel_126_description").toString();
+    channels_[1].description = param_.getValue("channel_127N_description").toString();
+    channels_[2].description = param_.getValue("channel_127C_description").toString();
+    channels_[3].description = param_.getValue("channel_128N_description").toString();
+    channels_[4].description = param_.getValue("channel_128C_description").toString();
+    channels_[5].description = param_.getValue("channel_129N_description").toString();
+    channels_[6].description = param_.getValue("channel_129C_description").toString();
+    channels_[7].description = param_.getValue("channel_130N_description").toString();
+    channels_[8].description = param_.getValue("channel_130C_description").toString();
+    channels_[9].description = param_.getValue("channel_131_description").toString();
 
     // compute the index of the reference channel
-    std::vector<String>::const_iterator t_it = std::find(TMTTenPlexQuantitationMethod::channel_names_.begin(),
+    std::vector<std::string>::const_iterator t_it = std::find(TMTTenPlexQuantitationMethod::channel_names_.begin(),
                                                          TMTTenPlexQuantitationMethod::channel_names_.end(),
-                                                         (String) param_.getValue("reference_channel"));
+                                                         param_.getValue("reference_channel"));
 
     reference_channel_ = t_it - TMTTenPlexQuantitationMethod::channel_names_.begin();
 }
@@ -166,7 +167,7 @@ Size TMTTenPlexQuantitationMethod::getNumberOfChannels() const
 
 Matrix<double> TMTTenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
-    StringList iso_correction = getParameters().getValue("correction_matrix");
+    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
     return stringListToIsotopCorrectionMatrix_(iso_correction);
 }
 

@@ -35,10 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <vector>
 #include <map>

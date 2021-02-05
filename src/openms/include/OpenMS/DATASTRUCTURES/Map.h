@@ -140,6 +140,7 @@ public:
     ConstIterator it = this->find(key);
     if (it == Base::end())
     {
+        printf("Key: %u\n", key);
       throw IllegalKey(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     else

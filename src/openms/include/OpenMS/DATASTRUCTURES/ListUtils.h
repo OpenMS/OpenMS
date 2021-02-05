@@ -135,6 +135,19 @@ public:
     static std::vector<T> create(const std::vector<String>& s);
 
     /**
+      @brief Converts a vector of T's to a vector of Strings.
+      @param s The vector of T's that should be converted.
+      @return A vector containing the elements of input vector converted into Strings.
+    */
+    template <typename T>
+    static std::vector<String> toStringList(const std::vector<T>& s)
+    {
+        StringList out;
+        out.reserve(s.size());
+        for (const auto elem : s) out.push_back(elem);
+        return out;
+    }
+    /**
       @brief Checks whether the element @p elem is contained in the given container.
 
       @param container The container to check.
@@ -254,6 +267,11 @@ public:
     inline float convert(const String& s)
     {
       return s.toFloat();
+    }
+    template<>
+    inline std::string convert(const String& s)
+    {
+        return static_cast<std::string>(s);
     }
   }
 

@@ -35,7 +35,9 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
 #include <QtCore/QString>
 
@@ -171,6 +173,40 @@ namespace OpenMS
     value_type_(DOUBLE_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_list_ = new DoubleList(p);
+  }
+
+  DataValue::DataValue(const ParamValue& p) :
+    unit_type_(OTHER), unit_(-1)
+  {
+      switch(p.valueType()) {
+      case ParamValue::EMPTY_VALUE:
+          value_type_ = EMPTY_VALUE;
+      break;
+      case ParamValue::INT_VALUE:
+          value_type_ = INT_VALUE;
+          data_.ssize_ = p;
+      break;
+      case ParamValue::DOUBLE_VALUE:
+          value_type_ = DOUBLE_VALUE;
+          data_.dou_ = p;
+      break;
+      case ParamValue::STRING_VALUE:
+          value_type_ = STRING_VALUE;
+          data_.str_ = new String(p.toChar());
+      break;
+      case ParamValue::INT_LIST:
+          value_type_ = INT_LIST;
+          data_.int_list_ = new IntList(p.toIntVector());
+      break;
+      case ParamValue::DOUBLE_LIST:
+          value_type_ = DOUBLE_LIST;
+          data_.dou_list_ = new DoubleList(p.toDoubleVector());
+      break;
+      case ParamValue::STRING_LIST:
+          value_type_ = STRING_LIST;
+          data_.str_list_ = new StringList(ListUtils::toStringList<std::string>(p));
+      break;
+      }
   }
 
   //--------------------------------------------------------------------
@@ -454,6 +490,44 @@ namespace OpenMS
     value_type_ = INT_VALUE;
     return *this;
   }
+
+  /*
+  DataValue& DataValue::operator=(const ParamValue& arg)
+  {
+      clear_();
+      switch(arg.valueType())
+      {
+      case ParamValue::EMPTY_VALUE:
+          value_type_ = EMPTY_VALUE;
+      break;
+      case ParamValue::INT_VALUE:
+          value_type_ = INT_VALUE;
+          data_.ssize_ = arg;
+      break;
+      case ParamValue::DOUBLE_VALUE:
+          value_type_ = DOUBLE_VALUE;
+          data_.dou_ = arg;
+      break;
+      case ParamValue::STRING_VALUE:
+          value_type_ = STRING_VALUE;
+          data_.str_ = new String(arg.toChar());
+      break;
+      case ParamValue::INT_LIST:
+          value_type_ = INT_LIST;
+          data_.int_list_ = new IntList(arg.toIntVector());
+      break;
+      case ParamValue::DOUBLE_LIST:
+          value_type_ = DOUBLE_LIST;
+          data_.dou_list_ = new DoubleList(arg.toDoubleVector());
+      break;
+      case ParamValue::STRING_LIST:
+          value_type_ = STRING_LIST;
+          data_.str_list_ = new StringList(ListUtils::toStringList<std::string>(arg));
+      break;
+      }
+      return *this;
+  }
+   */
 
   //---------------------------------------------------------------------------
   //                      Conversion operators

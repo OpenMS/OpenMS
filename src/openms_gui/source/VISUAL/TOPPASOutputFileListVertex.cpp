@@ -188,7 +188,7 @@ namespace OpenMS
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
                 if (p.exists(out_type))
                 {
-                  ft = FileTypes::nameToType(p.getValue(out_type));
+                  ft = FileTypes::nameToType(p.getValue(out_type).toString());
                 }
               }
 

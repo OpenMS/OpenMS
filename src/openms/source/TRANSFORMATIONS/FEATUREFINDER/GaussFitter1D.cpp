@@ -43,8 +43,8 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", ListUtils::create<std::string>("advanced"));
     defaultsToParam_();
   }
 

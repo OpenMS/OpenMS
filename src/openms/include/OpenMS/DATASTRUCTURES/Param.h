@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
+//#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -108,8 +108,8 @@ public:
       //@{
       double min_float; ///< Default: - std::numeric_limits<double>::max()
       double max_float; ///< Default: std::numeric_limits<double>::max()
-      Int min_int; ///< Default: - std::numeric_limits<Int>::max()
-      Int max_int; ///< Default: std::numeric_limits<Int>::max()
+      int min_int; ///< Default: - std::numeric_limits<Int>::max()
+      int max_int; ///< Default: std::numeric_limits<Int>::max()
       std::vector<std::string> valid_strings; ///< Default: empty
       //@}
     };
@@ -175,7 +175,7 @@ public:
       ///Inserts an @p entry with the given @p prefix
       void insert(const ParamEntry& entry, const std::string& prefix = "");
       ///Returns the number of entries in the whole subtree
-      Size size() const;
+      size_t size() const;
       ///Returns the name suffix of a @p key (the part behind the last ':' character)
       std::string suffix(const std::string& key) const;
 
@@ -241,7 +241,7 @@ protected:
       /// Pointer to the root node
       const Param::ParamNode* root_;
       /// Index of the current ParamEntry (-1 means invalid)
-      Int current_;
+      int current_;
       /// Pointers to the ParamNodes we are in
       std::vector<const Param::ParamNode*> stack_;
       /// Node traversal data during last ++ operation.
@@ -415,7 +415,7 @@ protected:
     //@{
 
     ///Returns the number of entries (leafs).
-    Size size() const;
+    size_t size() const;
 
     ///Returns if there are no entries.
     bool empty() const;
@@ -569,7 +569,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMinInt(const std::string& key, Int min);
+    void setMinInt(const std::string& key, int min);
 
     /**
       @brief Sets the maximum value for the integer or integer list parameter @p key.
@@ -578,7 +578,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMaxInt(const std::string& key, Int max);
+    void setMaxInt(const std::string& key, int max);
 
     /**
       @brief Sets the minimum value for the floating point or floating point list parameter @p key.

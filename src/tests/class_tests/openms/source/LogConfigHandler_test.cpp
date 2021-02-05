@@ -66,7 +66,7 @@ START_SECTION((Param parse(const StringList &setting)))
   Param p = LogConfigHandler::getInstance().parse(settings);
 
   // p should contain a list of the above set commands
-  StringList parsedConfigs = p.getValue(LogConfigHandler::PARAM_NAME);
+  std::vector<std::string> parsedConfigs = p.getValue(LogConfigHandler::PARAM_NAME);
 
   TEST_EQUAL(parsedConfigs[0] , "DEBUG add cout FILE")
   TEST_EQUAL(parsedConfigs[1] , "DEBUG add a.out FILE")
@@ -82,7 +82,7 @@ END_SECTION
 
 START_SECTION((void configure(const Param &param)))
 {
-  StringList settings;
+  std::vector<std::string> settings;
   settings.push_back("INFO add testing_info_warn_stream STRING");
   settings.push_back("WARNING add testing_info_warn_stream STRING");
   settings.push_back("ERROR add only_error_string_stream STRING");
@@ -143,7 +143,7 @@ END_SECTION
 
 START_SECTION((ostream& getStream(const String &stream_name)))
 {
-  StringList settings;
+  std::vector<std::string> settings;
   settings.push_back("INFO add testing_getStream STRING");
 
   Param p;

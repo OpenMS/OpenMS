@@ -33,8 +33,7 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/OpenMSConfig.h>
+#include "OpenMS/OpenMSConfig.h"
 
 #include <string>
 #include <vector>
@@ -270,7 +269,7 @@ public:
      * @exception Exception::ConversionError is thrown for ParamValue::EMPTY and
      */
 
-    std::string toString() const;
+    std::string toString(bool full_precision = true) const;
 
     /**
       @brief Explicitly convert ParamValue to StringList
@@ -374,7 +373,7 @@ protected:
     /// Space to store the data
     union
     {
-      SignedSize ssize_;
+      ptrdiff_t ssize_;
       double dou_;
       std::string* str_;
       std::vector<std::string>* str_list_;

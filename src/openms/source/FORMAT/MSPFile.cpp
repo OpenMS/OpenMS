@@ -48,14 +48,14 @@ namespace OpenMS
     DefaultParamHandler("MSPFile")
   {
     defaults_.setValue("parse_headers", "false", "Flag whether header information should be parsed an stored for each spectrum");
-    vector<String> parse_strings;
+    vector<std::string> parse_strings;
     parse_strings.push_back("true");
     parse_strings.push_back("false");
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
-    defaults_.setValidStrings("instrument", ListUtils::create<String>(",it,qtof,toftof"));
+    defaults_.setValidStrings("instrument", ListUtils::create<std::string>(",it,qtof,toftof"));
 
     defaultsToParam_();
   }
@@ -123,7 +123,7 @@ namespace OpenMS
 
     bool parse_headers(param_.getValue("parse_headers").toBool());
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
-    String instrument((String)param_.getValue("instrument"));
+    String instrument(param_.getValue("instrument").toString());
     bool inst_type_correct(true);
     bool spectrast_format(false);
     Size spectrum_number = 0;

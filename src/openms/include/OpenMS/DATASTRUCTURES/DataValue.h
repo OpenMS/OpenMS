@@ -44,6 +44,8 @@ class QString;
 
 namespace OpenMS
 {
+    class ParamValue;
+
   /**
     @brief Class to hold strings, numeric values, lists of strings and lists of numeric values.
 
@@ -125,6 +127,8 @@ public:
     DataValue(long long);
     /// specific constructor for unsigned long long int values (note: the implementation uses SignedSize)
     DataValue(unsigned long long);
+    /// specific constructor for ParamValue
+    DataValue(const ParamValue&);
     /// Destructor
     ~DataValue();
     //@}
@@ -344,6 +348,8 @@ public:
     DataValue& operator=(const long long);
     /// specific assignment for unsigned long long int values (note: the implementation uses SignedSize)
     DataValue& operator=(const unsigned long long);
+    /// specific assignment for ParamValue
+    //DataValue& operator=(const ParamValue&);
     //@}
 
     ///@name Conversion operators

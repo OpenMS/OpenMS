@@ -58,10 +58,6 @@
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
 
-
-
-#include <glpk.h>
-
 namespace OpenMS
 {
 

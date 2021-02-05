@@ -54,7 +54,7 @@ namespace OpenMS
     setName(getProductName());
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
-    defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_identifications", ListUtils::create<std::string>("true,false"));
     defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
     defaults_.setMinInt("nr_partitions", 1);
 
@@ -76,7 +76,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
-    use_IDs_ = String(param_.getValue("use_identifications")) == "true";
+    use_IDs_ = param_.getValue("use_identifications") == "true";
     nr_partitions_ = param_.getValue("nr_partitions");
     max_diff_rt_ = param_.getValue("distance_RT:max_difference");
     max_diff_mz_ = param_.getValue("distance_MZ:max_difference");

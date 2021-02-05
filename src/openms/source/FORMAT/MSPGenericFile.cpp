@@ -63,7 +63,7 @@ namespace OpenMS
 
   void MSPGenericFile::updateMembers_()
   {
-    synonyms_separator_ = (String)param_.getValue("synonyms_separator");
+    synonyms_separator_ = param_.getValue("synonyms_separator").toString();
   }
 
   void MSPGenericFile::load(const String& filename, MSExperiment& library)

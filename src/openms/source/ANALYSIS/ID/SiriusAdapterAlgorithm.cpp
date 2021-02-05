@@ -55,28 +55,28 @@ namespace OpenMS
       defaults_.setMinInt("preprocessing:filter_by_num_masstraces", 1);
       defaults_.setValue("preprocessing:precursor_mz_tolerance", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)");
       defaults_.setValue("preprocessing:precursor_mz_tolerance_unit", "Da", "Unit of the precursor_mz_tolerance");
-      defaults_.setValidStrings("preprocessing:precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+      defaults_.setValidStrings("preprocessing:precursor_mz_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
       defaults_.setValue("preprocessing:precursor_rt_tolerance", 5, "Tolerance window (left and right) for precursor selection [seconds]");
-      defaults_.setValue("preprocessing:isotope_pattern_iterations", 3, "Number of iterations that should be performed to extract the C13 isotope pattern. If no peak is found (C13 distance) the function will abort. Be careful with noisy data - since this can lead to wrong isotope patterns.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("preprocessing:isotope_pattern_iterations", 3, "Number of iterations that should be performed to extract the C13 isotope pattern. If no peak is found (C13 distance) the function will abort. Be careful with noisy data - since this can lead to wrong isotope patterns.", ListUtils::create<std::string>("advanced"));
       // adapter flags
       defaults_.setValue("preprocessing:feature_only", "false", "Uses the feature information from in_featureinfo to reduce the search space to MS2 associated with a feature.");
-      defaults_.setValidStrings("preprocessing:feature_only", ListUtils::create<String>("true,false"));
-      defaults_.setValue("preprocessing:no_masstrace_info_isotope_pattern", "false", "Use this flag if the masstrace information from a feature should be discarded and the isotope_pattern_iterations should be used instead.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("preprocessing:no_masstrace_info_isotope_pattern", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("preprocessing:feature_only", ListUtils::create<std::string>("true,false"));
+      defaults_.setValue("preprocessing:no_masstrace_info_isotope_pattern", "false", "Use this flag if the masstrace information from a feature should be discarded and the isotope_pattern_iterations should be used instead.", ListUtils::create<std::string>("advanced"));
+      defaults_.setValidStrings("preprocessing:no_masstrace_info_isotope_pattern", ListUtils::create<std::string>("true,false"));
       defaults_.setSectionDescription("preprocessing", "Preprocessing");
 
       // parameters for SIRIUS (sirius)
       defaults_.setValue("sirius:profile", "qtof", "Specify the used analysis profile");
-      defaults_.setValidStrings("sirius:profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
+      defaults_.setValidStrings("sirius:profile", ListUtils::create<std::string>("qtof,orbitrap,fticr"));
       defaults_.setValue("sirius:candidates", 5, "The number of candidates in the SIRIUS output.");
       defaults_.setMinInt("sirius:candidates", 1);
       defaults_.setValue("sirius:database", "all", "search formulas in given database");
-      defaults_.setValidStrings("sirius:database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
+      defaults_.setValidStrings("sirius:database", ListUtils::create<std::string>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
       defaults_.setValue("sirius:noise", 0, "median intensity of noise peaks");
       defaults_.setMinInt("sirius:noise", 0);
       defaults_.setValue("sirius:ppm_max", 10, "allowed ppm for decomposing masses");
       defaults_.setValue("sirius:isotope", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.");
-      defaults_.setValidStrings("sirius:isotope", ListUtils::create<String>("score,filter,both,omit"));
+      defaults_.setValidStrings("sirius:isotope", ListUtils::create<std::string>("score,filter,both,omit"));
       defaults_.setValue("sirius:elements", "CHNOP[5]S[8]Cl[1]", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1].");
       defaults_.setValue("sirius:compound_timeout", 10, "Time out in seconds per compound. To disable the timeout set the value to 0");
       defaults_.setMinInt("sirius:compound_timeout", 0);
@@ -88,13 +88,13 @@ namespace OpenMS
       defaults_.setMinInt("sirius:cores", 1);
       // sirius flags
       defaults_.setValue("sirius:auto_charge", "false", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.");
-      defaults_.setValidStrings("sirius:auto_charge", ListUtils::create<String>("true,false"));
-      defaults_.setValue("sirius:ion_tree", "false", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("sirius:ion_tree", ListUtils::create<String>("true,false"));
-      defaults_.setValue("sirius:no_recalibration", "false", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("sirius:no_recalibration", ListUtils::create<String>("true,false"));
-      defaults_.setValue("sirius:most_intense_ms2", "false", "SIRIUS uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("sirius:most_intense_ms2", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("sirius:auto_charge", ListUtils::create<std::string>("true,false"));
+      defaults_.setValue("sirius:ion_tree", "false", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", ListUtils::create<std::string>("advanced"));
+      defaults_.setValidStrings("sirius:ion_tree", ListUtils::create<std::string>("true,false"));
+      defaults_.setValue("sirius:no_recalibration", "false", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", ListUtils::create<std::string>("advanced"));
+      defaults_.setValidStrings("sirius:no_recalibration", ListUtils::create<std::string>("true,false"));
+      defaults_.setValue("sirius:most_intense_ms2", "false", "SIRIUS uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", ListUtils::create<std::string>("advanced"));
+      defaults_.setValidStrings("sirius:most_intense_ms2", ListUtils::create<std::string>("true,false"));
       defaults_.setSectionDescription("sirius", "Parameters for SIRIUS and CSI:FingerID");
 
       defaultsToParam_();
@@ -111,30 +111,30 @@ namespace OpenMS
       // adapter parameters (preprocessing)
       filter_by_num_masstraces_ = param_.getValue("preprocessing:filter_by_num_masstraces");
       precursor_mz_tolerance_ = param_.getValue("preprocessing:precursor_mz_tolerance");
-      precursor_mz_tolerance_unit_ = param_.getValue("preprocessing:precursor_mz_tolerance_unit");
+      precursor_mz_tolerance_unit_ = param_.getValue("preprocessing:precursor_mz_tolerance_unit").toString();
       precursor_rt_tolerance_ = param_.getValue("preprocessing:precursor_rt_tolerance");
       isotope_pattern_iterations_ = param_.getValue("preprocessing:isotope_pattern_iterations");
       // flags
-      feature_only_ = param_.getValue("preprocessing:feature_only");
-      no_masstrace_info_isotope_pattern_ = param_.getValue("preprocessing:no_masstrace_info_isotope_pattern");
+      feature_only_ = param_.getValue("preprocessing:feature_only").toString();
+      no_masstrace_info_isotope_pattern_ = param_.getValue("preprocessing:no_masstrace_info_isotope_pattern").toString();
       
       // parameters for SIRIUS (sirius)
-      profile_ = param_.getValue("sirius:profile");
+      profile_ = param_.getValue("sirius:profile").toString();
       candidates_ = param_.getValue("sirius:candidates");
-      database_ = param_.getValue("sirius:database");
+      database_ = param_.getValue("sirius:database").toString();
       noise_ = param_.getValue("sirius:noise");
       ppm_max_ = param_.getValue("sirius:ppm_max");
-      isotope_ = param_.getValue("sirius:isotope");
-      elements_ = param_.getValue("sirius:elements");
+      isotope_ = param_.getValue("sirius:isotope").toString();
+      elements_ = param_.getValue("sirius:elements").toString();
       compound_timeout_ = param_.getValue("sirius:compound_timeout");
       tree_timeout_ = param_.getValue("sirius:tree_timeout");
       top_n_hits_ = param_.getValue("sirius:top_n_hits");
       cores_ = param_.getValue("sirius:cores");
       // flags
-      auto_charge_ = param_.getValue("sirius:auto_charge");
-      ion_tree_ = param_.getValue("sirius:ion_tree");
-      no_recalibration_ = param_.getValue("sirius:no_recalibration");
-      most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
+      auto_charge_ = param_.getValue("sirius:auto_charge").toString();
+      ion_tree_ = param_.getValue("sirius:ion_tree").toString();
+      no_recalibration_ = param_.getValue("sirius:no_recalibration").toString();
+      most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2").toString();
     }   
 
     SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::SiriusTemporaryFileSystemObjects(int debug_level)

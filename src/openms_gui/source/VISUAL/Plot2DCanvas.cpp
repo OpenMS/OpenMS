@@ -97,12 +97,12 @@ namespace OpenMS
     defaults_.setMaxInt("interpolation_steps", 1000);
     defaults_.setValue("dot:gradient", "Linear|0,#eeeeee;1,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Multi-color gradient for peaks.");
     defaults_.setValue("dot:feature_icon", "circle", "Icon used for features and consensus features.");
-    defaults_.setValidStrings("dot:feature_icon", ListUtils::create<String>("diamond,square,circle,triangle"));
+    defaults_.setValidStrings("dot:feature_icon", ListUtils::create<std::string>("diamond,square,circle,triangle"));
     defaults_.setValue("dot:feature_icon_size", 4, "Icon size used for features and consensus features.");
     defaults_.setMinInt("dot:feature_icon_size", 1);
     defaults_.setMaxInt("dot:feature_icon_size", 999);
     defaults_.setValue("mapping_of_mz_to", "y_axis", "Determines which axis is the m/z axis.");
-    defaults_.setValidStrings("mapping_of_mz_to", ListUtils::create<String>("x_axis,y_axis"));
+    defaults_.setValidStrings("mapping_of_mz_to", ListUtils::create<std::string>("x_axis,y_axis"));
     defaultsToParam_();
     setName("Plot2DCanvas");
     setParameters(preferences);
@@ -113,7 +113,7 @@ namespace OpenMS
     projection_rt_.resize(1);
 
     //set preferences and update widgets accordingly
-    if (String(param_.getValue("mapping_of_mz_to")) != "x_axis")
+    if (param_.getValue("mapping_of_mz_to") != "x_axis")
     {
       mzToXAxis(false);
     }
@@ -435,7 +435,7 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_CONSENSUS)  // consensus features
     {
-      String icon = layer.param.getValue("dot:feature_icon");
+      String icon = layer.param.getValue("dot:feature_icon").toString();
       Size icon_size = layer.param.getValue("dot:feature_icon_size");
 
       for (ConsensusMapType::ConstIterator i = layer.getConsensusMap()->begin();
@@ -717,7 +717,7 @@ namespace OpenMS
     Int image_height = buffer_.height();
 
     int line_spacing = QFontMetrics(painter.font()).lineSpacing();
-    String icon = layer.param.getValue("dot:feature_icon");
+    String icon = layer.param.getValue("dot:feature_icon").toString();
     Size icon_size = layer.param.getValue("dot:feature_icon_size");
     bool show_label = (layer.label != LayerData::L_NONE);
     UInt num = 0;
@@ -1489,7 +1489,7 @@ namespace OpenMS
     {
       QPainter painter;
       painter.begin(this);
-      painter.fillRect(0, 0, this->width(), this->height(), QColor(param_.getValue("background_color").toQString()));
+      painter.fillRect(0, 0, this->width(), this->height(), QColor(String(param_.getValue("background_color").toString()).toQString()));
       painter.end();
       e->accept();
       return;
@@ -1524,7 +1524,7 @@ namespace OpenMS
       // recalculate snap factor
       recalculateSnapFactor_();
 
-      buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
+      buffer_.fill(QColor(String(param_.getValue("background_color").toString()).toQString()).rgb());
       painter.begin(&buffer_);
       QTime layer_timer;
 
@@ -2628,7 +2628,7 @@ namespace OpenMS
     QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
     QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
 
-    bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
+    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
     if (isMzToXAxis())
     {
       mapping->setCurrentIndex(0);
@@ -2638,13 +2638,13 @@ namespace OpenMS
       mapping->setCurrentIndex(1);
     }
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
-    feature_icon->setCurrentIndex(feature_icon->findText(layer.param.getValue("dot:feature_icon").toQString()));
+    feature_icon->setCurrentIndex(feature_icon->findText(String(layer.param.getValue("dot:feature_icon").toString()).toQString()));
     feature_icon_size->setValue((int)layer.param.getValue("dot:feature_icon_size"));
 
     if (dlg.exec())
     {
-      param_.setValue("background_color", bg_color->getColor().name());
-      layer.param.setValue("dot:feature_icon", feature_icon->currentText());
+      param_.setValue("background_color", bg_color->getColor().name().toStdString());
+      layer.param.setValue("dot:feature_icon", feature_icon->currentText().toStdString());
       layer.param.setValue("dot:feature_icon_size", feature_icon_size->value());
       if ((mapping->currentIndex() == 0 && !isMzToXAxis()) || (mapping->currentIndex() == 1 && isMzToXAxis()))
       {
@@ -2669,7 +2669,7 @@ namespace OpenMS
     const LayerData & layer = getCurrentLayer();
 
     //determine proposed filename
-    String proposed_name = param_.getValue("default_path");
+    String proposed_name = param_.getValue("default_path").toString();
     if (visible == false && layer.filename != "")
     {
       proposed_name = layer.filename;

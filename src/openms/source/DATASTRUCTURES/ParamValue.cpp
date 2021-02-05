@@ -35,6 +35,7 @@
 
 #include <ostream>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -171,11 +172,15 @@ namespace OpenMS
       case DOUBLE_LIST:
           data_.dou_list_ = new std::vector<double>(*p.data_.dou_list_);
       break;
+      default:
+          data_ = p.data_;
+      break;
       }
   }
 
   ParamValue::ParamValue(ParamValue&& rhs) noexcept :
-    value_type_(std::move(rhs.value_type_))
+    value_type_(std::move(rhs.value_type_)),
+    data_(std::move(rhs.data_))
   {
     // clean up rhs, take ownership of data_
     // NOTE: value_type_ == EMPTY_VALUE implies data_ is empty and can be reset
@@ -560,12 +565,14 @@ namespace OpenMS
         return nullptr;
     break;
     default:
+        printf("Value: %u\n", value_type_);
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string ParamValue to char*");
     break;
     }
   }
 
-  std::string ParamValue::toString() const {
+  std::string ParamValue::toString(bool full_precision) const {
+      std::ostringstream os;
       switch (value_type_) {
       case EMPTY_VALUE:
           return "";
@@ -574,37 +581,53 @@ namespace OpenMS
           return *data_.str_;
       break;
       case INT_VALUE:
-          return std::to_string(data_.ssize_);
+          os << data_.ssize_;
+          return os.str();
       break;
       case DOUBLE_VALUE:
-          return std::to_string(data_.dou_);
+          if (full_precision) os.precision(15);
+          else os.precision(3);
+          os << data_.dou_;
+          return os.str();
+          //return std::to_string(data_.dou_);
       break;
       case STRING_LIST:
-      {
-          std::string return_str;
-          for(const std::string& s : *data_.str_list_) {
-              return_str += s;
+          os << "[";
+          if(!data_.str_list_->empty()) {
+              for (std::vector<std::string>::const_iterator it = data_.str_list_->begin();
+                   it != data_.str_list_->end() - 1; ++it) {
+                  os << *it << ", ";
+              }
+              os << data_.str_list_->back();
           }
-          return return_str;
-      }
+          os << "]";
+          return os.str();
       break;
       case INT_LIST:
-      {
-          std::string return_str;
-          for(const int& i : *data_.int_list_) {
-              return_str += std::to_string(i);
+          os << "[";
+          if(!data_.int_list_->empty()) {
+              for (std::vector<int>::const_iterator it = data_.int_list_->begin();
+                   it != data_.int_list_->end() - 1; ++it) {
+                  os << *it << ", ";
+              }
+              os << data_.int_list_->back();
           }
-          return return_str;
-      }
+          os << "]";
+          return os.str();
       break;
       case DOUBLE_LIST:
-      {
-          std::string return_str;
-          for(const double& d : *data_.dou_list_) {
-              return_str += std::to_string(d);
+          if(full_precision) os.precision(15);
+          else os.precision(3);
+          os << "[";
+          if(!data_.dou_list_->empty()) {
+              for (std::vector<double>::const_iterator it = data_.dou_list_->begin();
+                   it != data_.dou_list_->end(); ++it) {
+                  os << *it << ", ";
+              }
+              os << data_.dou_list_->back();
           }
-          return return_str;
-      }
+          os << "]";
+          return os.str();
       break;
       default:
           throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue to String");
@@ -767,7 +790,8 @@ namespace OpenMS
     break;
     case ParamValue::STRING_LIST:
         os << "[";
-        if(!p.data_.str_list_->empty()) {
+        if(!p.data_.str_list_->empty())
+        {
             for (auto it = p.data_.str_list_->begin(), end = p.data_.str_list_->end() - 1; it != end; ++it) {
                 os << *it << ", ";
             }
@@ -777,21 +801,22 @@ namespace OpenMS
     break;
     case ParamValue::INT_LIST:
         os << "[";
-        if(!p.data_.str_list_->empty()) {
-            for (auto it = p.data_.str_list_->begin(), end = p.data_.str_list_->end() - 1; it != end; ++it) {
+        if(!p.data_.int_list_->empty())
+        {
+            for (auto it = p.data_.int_list_->begin(), end = p.data_.int_list_->end() - 1; it != end; ++it) {
                 os << *it << ", ";
             }
-            os << p.data_.str_list_->back();
+            os << p.data_.int_list_->back();
         }
         os << "]";
     break;
     case ParamValue::DOUBLE_LIST:
         os << "[";
-        if(!p.data_.str_list_->empty()) {
-            for (auto it = p.data_.str_list_->begin(), end = p.data_.str_list_->end() - 1; it != end; ++it) {
+        if(!p.data_.dou_list_->empty()) {
+            for (auto it = p.data_.dou_list_->begin(), end = p.data_.dou_list_->end() - 1; it != end; ++it) {
                 os << *it << ", ";
             }
-            os << p.data_.str_list_->back();
+            os << p.data_.dou_list_->back();
         }
         os << "]";
     break;
