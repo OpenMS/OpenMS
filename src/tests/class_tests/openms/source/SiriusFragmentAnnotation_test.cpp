@@ -136,6 +136,9 @@ START_SECTION(static void extractSiriusDecoyAnnotationMapping(const String& path
 }
 END_SECTION
 
+// TODO: extractAndResolveSiriusAnnotations
+// vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

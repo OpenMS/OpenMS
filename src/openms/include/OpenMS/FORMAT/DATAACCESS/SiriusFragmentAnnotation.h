@@ -45,8 +45,10 @@ namespace OpenMS
           /**
           @brief SiriusTargetDecoySpectra holds the target and/or decoy information for one entry (subdirectory from SIRIUS)
           */
-          struct SiriusTargetDecoySpectra
+          class SiriusTargetDecoySpectra
           {
+          public:
+
             MSSpectrum target;
             MSSpectrum decoy;
 

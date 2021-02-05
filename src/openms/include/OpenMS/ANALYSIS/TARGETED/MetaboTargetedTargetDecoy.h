@@ -53,8 +53,10 @@ namespace OpenMS
      @brief MetaboTargetDecoyMassMapping introduces a mapping of target and decoy masses and their respective compound reference
      using an identifier
     */
-    struct MetaboTargetDecoyMassMapping
+    class MetaboTargetDecoyMassMapping
     {
+    public:
+
       String identifier; ///> unique identifier (e.g. m_id)
       String target_compound_ref; ///> identifier which allows to reference back to the target (e.g. target_transitions_id)
       String decoy_compound_ref; ///> identifier which allows to reference back to the decoy (e.g. decoy_transitions_id)

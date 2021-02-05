@@ -160,7 +160,6 @@ protected:
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
-    String out_decoys = getStringOption_("out_decoys");
     String featureinfo = getStringOption_("in_featureinfo");
     String out_ms = getStringOption_("out_ms");
     String sirius_workspace_directory = getStringOption_("out_project_space");

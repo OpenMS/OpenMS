@@ -83,6 +83,23 @@ namespace OpenMS
     };
 
     /**
+    @brief TargetDecoyGroup stores the mz, rt and file number in correspondence to the index of a MetaboTargetedAssay vector
+    */
+
+    class TargetDecoyGroup
+    {
+    public:
+      int target_index = -1;
+      int decoy_index = -1;
+      double target_mz = 0.0;
+      double target_rt = 0.0;
+      double decoy_mz = 0.0;
+      double decoy_rt = 0.0;
+      int target_file_number;
+      int decoy_file_number;
+    };
+
+    /**
     @brief Extract a vector of MetaboTargetedAssays without using fragment annotation
 
     @return Vector of MetaboTargetedAssay
@@ -142,8 +159,31 @@ namespace OpenMS
     */
     static std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                                                                                         const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra);
+    /**
+    @brief Perform feature linking to build ambiguity groups based on the target and decoy position in the vector of MetaboTargetedAssays
 
-    protected:
+    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetAssay)
+
+    @param v_mta Vector of MetaboTargetedAssay
+    @param ar_mz_tol FeatureGroupingAlgorithmQT parameter distance_MZ:max_difference
+    @param ar_rt_tol FeatureGroupingAlgorithmQT parameter distance_RT:max_difference
+    @param ar_mz_tol_unit_res FeatureGroupingAlgorithmQT parameter distance_MZ_unit (ppm, Da)
+    @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
+    */
+
+    static std::map< std::pair <double,double>, std::vector<MetaboTargetedAssay> > buildAmbiguityGroup(const std::vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size);
+
+    /**
+    @brief Resolve ambiguity groups based on occurrence in samples (e.g. at least in 20% of the samples) and if multiple possible identifications are reported within one ambiguity group use the one with the highest occurrence
+
+    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetAssay)
+
+    @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
+    @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
+    */
+    static std::map< std::pair <double,double>, std::vector<MetaboTargetedAssay> > resolveAmbiguityGroup(std::map< std::pair <double,double>, std::vector<MetaboTargetedAssay> > map_mta_filter, double total_occurrence_filter, size_t in_files_size);
+
+  protected:
 
     /**
     @brief Compare two peaks based on their intensity
@@ -155,6 +195,22 @@ namespace OpenMS
     */
     static int getChargeFromAdduct_(const String& adduct);
 
-};
+    /**
+    @brief Filter one ambiguity group based on occurrence in samples (e.g. at least in 20% of the samples)
+
+    @return Vector of MetaboTargetedAssay
+
+    @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
+    @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
+    */
+    static void filterBasedOnTotalOccurrence_(std::vector<MetaboTargetedAssay>& mta, double total_occurrence_filter, size_t in_files_size);
+
+    /**
+    @brief Filter one ambiguity group with multiple possible identifications to use the one with the highest occurrence
+
+    @return Vector of MetaboTargetedAssay
+    */
+    static void filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta);
+  };
 
 } // namespace OpenMS

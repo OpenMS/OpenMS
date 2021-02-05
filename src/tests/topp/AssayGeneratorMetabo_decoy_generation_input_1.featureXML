@@ -164,33 +164,8 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<featureList count="17">
-		<feature id="f_10810367786410780691">
-			<position dim="0">606.481000000020003</position>
-			<position dim="1">373.050229958369982</position>
-			<intensity>2.014024e06</intensity>
-			<quality dim="0">0.0</quality>
-			<quality dim="1">0.0</quality>
-			<overallquality>0.016658</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="605.517000000000053" y="373.050282947750645" />
-				<pt x="606.481000000020003" y="373.052000512177756" />
-				<pt x="607.441999999979998" y="373.047965299900454" />
-				<pt x="606.481000000020003" y="373.052000512177756" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T4"/>
-			<UserParam type="float" name="FWHM" value="1.924999952316284"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[2.014023766605273e06]"/>
-			<UserParam type="floatList" name="masstrace_centroid_rt" value="[606.481000000020003]"/>
-			<UserParam type="floatList" name="masstrace_centroid_mz" value="[373.050229958369982]"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="string" name="Group" value="4463342998816106806"/>
-			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
-		</feature>
 		<feature id="f_13564286333504458830">
-			<position dim="0">608.394000000000005</position>
+			<position dim="0">614.394000000000005</position>
 			<position dim="1">373.041532365867965</position>
 			<intensity>1.157238e06</intensity>
 			<quality dim="0">0.0</quality>
@@ -265,7 +240,7 @@
 			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
 		</feature>
 		<feature id="f_2653120127184275567">
-			<position dim="0">618.022000000019943</position>
+			<position dim="0">619.022000000019943</position>
 			<position dim="1">411.113111072310517</position>
 			<intensity>6.539909e04</intensity>
 			<quality dim="0">0.0</quality>

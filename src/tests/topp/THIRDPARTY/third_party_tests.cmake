@@ -79,7 +79,7 @@ OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChoosePara
 
 #------------------------------------------------------------------------------
 # Sirius
-OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.sh;sirius.bat;sirius.exe;sirius-console-64.exe" "Sirius")
+OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.sh;sirius.bat;sirius-console-64.exe" "Sirius")
 
 #------------------------------------------------------------------------------
 # Novor
@@ -406,6 +406,18 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   add_test("UTILS_AssayGeneratorMetabo_16_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_both_multids.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_both_multids.tsv -whitelist "0_2_Second,Calonectrin,Millefin,3,17beta-dihydroxy-5,9-dioxo-4,5-9,10-diseco-androsta-1(10),2-dien-4-oicacid,(1E,4Z)-14,15-dihydroxy-8alpha-(2-methylpropanoyloxy)germacra-1(10),4,11(13)-trieno-12,6alpha-lactone,?_decoy_[M+H]+_608_0")
   set_tests_properties("UTILS_AssayGeneratorMetabo_16" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_15")
   set_tests_properties("UTILS_AssayGeneratorMetabo_16_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_16")
+  
+  # use AccurateMassSearch data + internal linking + decoy generation (both) - test filter based on total occurrence
+  add_test("UTILS_AssayGeneratorMetabo_17" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_1.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_2.featureXML -out AssayGeneratorMetabo_decoy_generation_linking_output_both.tmp.tsv  -fragment_annotation sirius -ambiguity_resolution_mz_tolerance 10.0 -ambiguity_resolution_mz_tolerance_unit Da -ambiguity_resolution_rt_tolerance 10.0 -total_occurrence_filter 0.8 -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 6 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_17_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_linking_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_linking_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_614_1")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_17" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_16")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_17_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_17")
+  
+  # use AccurateMassSearch data + internal linking + decoy generation (both) - test filter based on molecular formula and adduct
+  add_test("UTILS_AssayGeneratorMetabo_18" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_1.featureXML ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input_2.featureXML -out AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tmp.tsv  -fragment_annotation sirius -ambiguity_resolution_mz_tolerance 10.0 -ambiguity_resolution_mz_tolerance_unit Da -ambiguity_resolution_rt_tolerance 10.0 -decoy_generation -decoy_generation_method both -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 6 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_18_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_linking_moladd_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_614_1")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_18" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_17")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_18_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_18")
   endif()
 
   # Note that with FingerID, output for compound 79 without feature only
