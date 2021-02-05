@@ -53,7 +53,6 @@ namespace OpenMS
   class OPENMS_DLLAPI SearchEngineBase : public TOPPBase
   {
   public:
-
     /// No default constructor
     SearchEngineBase() = delete;
 
@@ -100,7 +99,6 @@ namespace OpenMS
       @throws OpenMS::Exception::FileNotFound if database name could not be resolved
     */
     String getDBFilename(String db = "") const;
-
   }; // end SearchEngineBase
 
 }   // end NS OpenMS
