@@ -66,14 +66,14 @@ namespace OpenMS
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
-    fd_defaults.setValue("min_charge", (int)inputs["min_charge"][0]);
-    fd_defaults.setValue("max_charge", (int)inputs["max_charge"][0]);
+    fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
+    fd_defaults.setValue("max_charge", (int) inputs["max_charge"][0]);
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("RT_window", rt_window_, "");
-    fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
+    fd_defaults.setValue("min_peaks", IntList{1, 1}); // more sensitive
 
     auto mass_count_double = inputs["max_mass_count"];
 

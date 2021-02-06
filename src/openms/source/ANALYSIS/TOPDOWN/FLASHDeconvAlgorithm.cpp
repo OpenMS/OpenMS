@@ -392,8 +392,8 @@ namespace OpenMS
     double b_width = bin_width_[ms_level_ - 1];
 
     // intensity change ratio should not exceed the factor.
-    float factor = 5.0;
-    float hfactor = 1.1;
+    const float factor = 5.0;
+    const float hfactor = 1.1;
 
     while (mz_bin_index != mz_bins_.npos)
     {
@@ -422,17 +422,17 @@ namespace OpenMS
 
         auto &spc = support_peak_count[mass_bin_index];
         int a_charge = abs(j + min_charge_); // abs charge
+        float &prev_intensity = prev_intensities[mass_bin_index];
+        int &prev_charge = prev_charges[mass_bin_index];
 
         if (ms_level_ == 1)
         {
           // intensity of previous charge
-          float &prev_intensity = prev_intensities[mass_bin_index];
           // intensity ratio between current and previous charges
           float intensity_ratio = intensity / prev_intensity;
           intensity_ratio = intensity_ratio < 1 ? 1.0f / intensity_ratio : intensity_ratio;
 
           // check if peaks of continuous charges are present
-          int &prev_charge = prev_charges[mass_bin_index];
           bool charge_not_continous = prev_charge - j != 1;
           // if charge not continous or intensity ratio is too high reset continuousChargePeakPairCount
           if (charge_not_continous || intensity_ratio > factor)
@@ -485,15 +485,10 @@ namespace OpenMS
               {
                 mass_intensitites[mass_bin_index] += prev_intensity;
               }
-
               mass_intensitites[mass_bin_index] += intensity;
-              if (++spc >= min_peak_cntr)
+              if (++spc >= min_peak_cntr) //
               {
                 mass_bins_[mass_bin_index] = true;
-              }
-              else if (a_charge >= 3)
-              {
-                mass_bins_[mass_bin_index] = (spc >= a_charge / 2);
               }
             }
             else
@@ -501,10 +496,8 @@ namespace OpenMS
               mass_intensitites[mass_bin_index] -= intensity;
             }
           }
-          prev_intensity = intensity;
-          prev_charge = j;
         }
-        else // for MS2,3,... iostopic peaks or water nh3 loss peaks are considered
+        else // for low charges or MS2,3,... iostopic peaks or water nh3 loss peaks are considered
         {
           bool support_peak_present = false;
           double iso_intensity = .0;
@@ -517,33 +510,39 @@ namespace OpenMS
             support_peak_present = true;
             //spc++;
           }
-
           if (support_peak_present)
           {
-            double water_loss_mz = log(mz - 18.010565 / a_charge); // 17.026549
-            Size water_loss_bin = getBinNumber_(water_loss_mz, mz_bin_min_value_, b_width);
-
-            if (water_loss_bin >= 0 && mz_bins_for_edge_effect_[water_loss_bin])
+            double tmz = mz - 18.010565 / a_charge;
+            if (tmz > 0)
             {
-              float water_loss_intensity = mz_intensities[water_loss_bin];
-              if (water_loss_intensity < intensity)
+              double water_loss_mz = log(tmz); // 17.026549
+              Size water_loss_bin = getBinNumber_(water_loss_mz, mz_bin_min_value_, b_width);
+
+              if (water_loss_bin >= 0 && mz_bins_for_edge_effect_[water_loss_bin])
               {
-                iso_intensity += water_loss_intensity;
+                float water_loss_intensity = mz_intensities[water_loss_bin];
+                if (water_loss_intensity < intensity)
+                {
+                  iso_intensity += water_loss_intensity;
+                }
               }
             }
 
-            double amonia_loss_mz = log(mz - 17.026549 / a_charge); // 17.026549
-            Size amonia_loss_bin = getBinNumber_(amonia_loss_mz, mz_bin_min_value_, b_width);
-
-            if (amonia_loss_bin >= 0 && mz_bins_for_edge_effect_[amonia_loss_bin])
+            tmz = mz - 17.026549 / a_charge;
+            double amonia_loss_mz = log(tmz); // 17.026549
+            if (tmz > 0)
             {
-              float amonia_loss_intensity = mz_intensities[amonia_loss_bin];
-              if (amonia_loss_intensity < intensity)
+              Size amonia_loss_bin = getBinNumber_(amonia_loss_mz, mz_bin_min_value_, b_width);
+
+              if (amonia_loss_bin >= 0 && mz_bins_for_edge_effect_[amonia_loss_bin])
               {
-                iso_intensity += amonia_loss_intensity;
+                float amonia_loss_intensity = mz_intensities[amonia_loss_bin];
+                if (amonia_loss_intensity < intensity)
+                {
+                  iso_intensity += amonia_loss_intensity;
+                }
               }
             }
-
             mass_intensitites[mass_bin_index] += intensity + iso_intensity;
             mass_bins_[mass_bin_index] = (++spc >= min_peak_cntr);
           }
@@ -553,6 +552,8 @@ namespace OpenMS
             //spc = 0;
           }
         }
+        prev_intensity = intensity;
+        prev_charge = j;
       }
       mz_bin_index = mz_bins_.find_next(mz_bin_index);
     }
@@ -1269,7 +1270,8 @@ namespace OpenMS
       {
         n_r++;
       }
-      if (n_r >= min_support_peak_count_[ms_level_ - 1])//
+      //spc >= a_charge/2
+      if (n_r >= min_support_peak_count_[ms_level_ - 1] || n_r >= cntr / 2)//TODO
       {
         return true;
       }
