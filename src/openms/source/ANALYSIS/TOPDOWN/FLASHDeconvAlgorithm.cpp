@@ -394,16 +394,17 @@ namespace OpenMS
     // intensity change ratio should not exceed the factor.
     const float factor = 5.0;
     const float hfactor = 1.1;
-
+    const int low_charge = 5;
     while (mz_bin_index != mz_bins_.npos)
     {
       float intensity = mz_intensities[mz_bin_index];
       double mz = -1.0, log_mz = 0;
-      if (ms_level_ > 1)
-      {
-        log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, b_width);
-        mz = exp(log_mz);
-      }
+      //if (ms_level_ > 1)
+      // {
+      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, b_width);
+      mz = exp(log_mz);
+      //} double diff = Constants::C13C12_MASSDIFF_U / a_charge / mz;
+      //          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
 
       // scan through charges
       for (int j = 0; j < charge_range; j++) // TDDO: charge should be from 0 to 100 or 0 to -100 // abs increasing.
@@ -427,24 +428,50 @@ namespace OpenMS
 
         if (ms_level_ == 1)
         {
-          // intensity of previous charge
-          // intensity ratio between current and previous charges
-          float intensity_ratio = intensity / prev_intensity;
-          intensity_ratio = intensity_ratio < 1 ? 1.0f / intensity_ratio : intensity_ratio;
+          bool pass_first_check = false;
+          if (a_charge <= low_charge)
+          { // for low charges
+            double diff = Constants::C13C12_MASSDIFF_U / a_charge / mz;
+            Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
 
-          // check if peaks of continuous charges are present
-          bool charge_not_continous = prev_charge - j != 1;
-          // if charge not continous or intensity ratio is too high reset continuousChargePeakPairCount
-          if (charge_not_continous || intensity_ratio > factor)
-          {
-            spc = 0;
-            //mass_intensitites[mass_bin_index] -= intensity; //
+            if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
+            {
+              if (mz_intensities[next_iso_bin] < intensity)
+              {
+                pass_first_check = true;
+              }
+            }
           }
           else
+          {
+            // intensity of previous charge
+            // intensity ratio between current and previous charges
+            float intensity_ratio = intensity / prev_intensity;
+            intensity_ratio = intensity_ratio < 1 ? 1.0f / intensity_ratio : intensity_ratio;
+
+            // check if peaks of continuous charges are present
+            bool charge_not_continous = prev_charge - j != 1;
+            // if charge not continous or intensity ratio is too high reset continuousChargePeakPairCount
+            if (charge_not_continous || intensity_ratio > factor)
+            {
+              spc = 0;
+              //mass_intensitites[mass_bin_index] -= intensity; //
+            }
+            else
+            {
+              pass_first_check = true;
+            }
+          }
+          if (pass_first_check)
           { // check harmonic artifacts
             float max_intensity = intensity;
             float min_intensity = prev_intensity;
-            if (min_intensity > max_intensity)
+            if (a_charge <= low_charge)
+            {
+              max_intensity = intensity * factor;
+              min_intensity = intensity / factor;
+            }
+            else if (min_intensity > max_intensity)
             {
               float tmpi = min_intensity;
               min_intensity = max_intensity;
@@ -481,12 +508,12 @@ namespace OpenMS
             }
             if (!is_harmonic)
             {
-              if (spc == 0)
+              if (spc == 0 && a_charge > low_charge)
               {
                 mass_intensitites[mass_bin_index] += prev_intensity;
               }
               mass_intensitites[mass_bin_index] += intensity;
-              if (++spc >= min_peak_cntr) //
+              if (++spc >= min_peak_cntr || a_charge <= low_charge) //
               {
                 mass_bins_[mass_bin_index] = true;
               }
@@ -501,7 +528,7 @@ namespace OpenMS
         {
           bool support_peak_present = false;
           double iso_intensity = .0;
-          double diff = Constants::ISOTOPE_MASSDIFF_55K_U / a_charge / mz;
+          double diff = Constants::C13C12_MASSDIFF_U / a_charge / mz;
           Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
 
           if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
@@ -613,40 +640,21 @@ namespace OpenMS
           bool artifact = false;
           if (ms_level_ == 1)
           {
-            double logMass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_]);
-
-            for (int h = 2; h <= 6 && !artifact; h++)
+            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_]);
+            double mass = exp(original_log_mass);
+            double diff = Constants::C13C12_MASSDIFF_U / mass;
+            for (int iso_off = -1; iso_off <= 1 && !artifact; ++iso_off)
             {
-              for (int f = -1; f <= 1 && !artifact; f += 2) // only minus
+              double log_mass = original_log_mass + diff * iso_off;
+              if (log_mass < 1)
               {
-                double hmass = logMass - log(h) * f;
-                Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
-                if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
-                {
-                  //for (int off = 0; off <= 0 && !artifact; off++)
-                  //{
-                  if (mass_intensities[hmass_index] >= t)
-                  {
-                    artifact = true;
-                    break;
-                  }
-                  //}
-                }
+                continue;
               }
-            }
-            //   charge off by one here
-            if (!artifact)
-            {
-              int acharge = abs(j + min_charge_);
-              for (int coff = 1; coff <= 3 && !artifact; coff++)
+              for (int h = 2; h <= 6 && !artifact; h++)
               {
-                for (int f = -1; f <= 1 && !artifact; f += 2)
+                for (int f = -1; f <= 1 && !artifact; f += 2) //
                 {
-                  if (acharge + f * coff <= 0)
-                  {
-                    continue;
-                  }
-                  double hmass = logMass - log(acharge) + log(acharge + f * coff);
+                  double hmass = log_mass - log(h) * f;
                   Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
                   if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                   {
@@ -654,11 +662,39 @@ namespace OpenMS
                     //{
                     if (mass_intensities[hmass_index] >= t)
                     {
-                      //mass_bins_[hmass_index + off] = false;
                       artifact = true;
                       break;
                     }
                     //}
+                  }
+                }
+              }
+              //   charge off by one here
+              if (!artifact)
+              {
+                int acharge = abs(j + min_charge_);
+                for (int coff = 1; coff <= 3 && !artifact; coff++)
+                {
+                  for (int f = -1; f <= 1 && !artifact; f += 2)
+                  {
+                    if (acharge + f * coff <= 0)
+                    {
+                      continue;
+                    }
+                    double hmass = log_mass - log(acharge) + log(acharge + f * coff);
+                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
+                    if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
+                    {
+                      //for (int off = 0; off <= 0 && !artifact; off++)
+                      //{
+                      if (mass_intensities[hmass_index] >= t)
+                      {
+                        //mass_bins_[hmass_index + off] = false;
+                        artifact = true;
+                        break;
+                      }
+                      //}
+                    }
                   }
                 }
               }

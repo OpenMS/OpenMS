@@ -73,7 +73,7 @@ namespace OpenMS
 
     fd_defaults.setValue("tol", inputs["tol"]);
     fd_defaults.setValue("RT_window", rt_window_, "");
-    fd_defaults.setValue("min_peaks", IntList{1, 1}); // more sensitive
+    fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
 
     auto mass_count_double = inputs["max_mass_count"];
 
@@ -86,8 +86,6 @@ namespace OpenMS
 
     fd_.setParameters(fd_defaults);
     fd_.calculateAveragine(false);
-
-   
 
     averagine_ = fd_.getAveragine();
     std::cout << "QScore threshold: " << qscore_threshold_ << std::endl;
