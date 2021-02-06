@@ -625,9 +625,11 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    String db_name = getDBFilename();
-    String inputfile_name = getRawfileName();
+
+    int ms_level = getIntOption_("ms_level");
+    String inputfile_name = getRawfileName(ms_level);
     String out = getStringOption_("out");
+    String db_name = getDBFilename();
 
     // tmp_dir
     String tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
@@ -651,9 +653,6 @@ protected:
     {
         tmp_file = default_params;
     }
-
-    int ms_level = getIntOption_("ms_level");
-
 
     // check for mzML index (comet requires one)
     MSExperiment exp;
