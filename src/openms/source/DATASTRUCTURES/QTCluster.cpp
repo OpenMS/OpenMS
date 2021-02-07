@@ -289,7 +289,7 @@ namespace OpenMS
     if (!use_IDs_ || data_->center_point_->getAnnotations().size() == 1 ||
         neighbors_.empty())
     {
-      // if the cluster center is annotated with peptide IDs, the neighbors can
+      // if the cluster center is annotated with one peptide ID, the neighbors can
       // consist only of features with compatible IDs, so we don't need to
       // check again here
       for (const auto& neighbor : neighbors_)
@@ -361,9 +361,14 @@ namespace OpenMS
       {
         if (it == unspecific)
           continue;
-        for (Size i = 0; i < num_maps_; ++i)
+        // for all the maps for the "real" sequences, overwrite the distance, if an unspecific one is better
+        for (auto mapidx_unspecdist : unspecific->second)
         {
-          it->second[i] = min(it->second[i], unspecific->second[i]);
+          auto mapidx_inserted = it->second.emplace(mapidx_unspecdist.first, mapidx_unspecdist.second);
+          if(!mapidx_inserted.second) //an entry for that map idx already existed for the sequence, check minimum of both
+          {
+            mapidx_inserted.first->second = min(mapidx_inserted.first->second, mapidx_unspecdist.second);
+          }
         }
       }
     }
@@ -373,7 +378,9 @@ namespace OpenMS
     double best_total = num_maps_ * max_distance_;
     for (auto it = seq_table.begin(); it != seq_table.end(); ++it) //OMS_CODING_TEST_EXCLUDE
     {
+      OPENMS_PRECONDITION(num_maps_ - 1 >= it->second.size(), "num_maps bigger than map size");
       // init value is #missing maps times max_distance
+      //TODO this is wrong, we have to look in the unspecific ones!
       double total = std::accumulate(it->second.begin(), it->second.end(),
                                      double(num_maps_ - 1 - it->second.size()) * max_distance_,
                                     [] (double val, const std::map<Size, double>::value_type& p)
@@ -400,6 +407,7 @@ namespace OpenMS
       data_->annotations_ = {best_pos->first};
     }
 
+    // only keep neighbors that fit with the best annotation!
     recomputeNeighbors_();
 
     return best_total;
@@ -498,7 +506,7 @@ namespace OpenMS
   void QTCluster::finalizeCluster()
   {
     OPENMS_PRECONDITION(!finalized_,
-        "Try to finalize QTCluster that was not initialized")
+        "Try to finalize QTCluster that was not initialized or already finalized")
 
     // calls computeQuality_ if something changed since initialization. In
     // turn, computeQuality_ calls optimizeAnnotations_ if necessary which

@@ -587,9 +587,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
             Before that we must delete this clusters id from the element mapping. (important!)
             It is possible that addClusterElements_() removes features from the cluster 
-            we are updating. These are not to be confused with the features we removed 
+            we are updating. (Through finalizeCluster_ -> computeQuality_ -> optimizeAnnotations).
+            These are not to be confused with the features we removed
             because they are part of the current best cluster. Those are removed in 
-            QTCluster::update (above).  
+            QTCluster::update (above).
 
             If this happens, the element mapping for the additionally removed features 
             (which are valid and unused!) still contains the id of the cluster which 
@@ -597,17 +598,26 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
             When the cluster is deleted, the element mapping for the removed feature doesn't 
             get updated. The element mapping for the feature then contains an id of a 
             deleted cluster, which will surely lead to a segfault when the feature is actually 
-            used in another cluster later. 
+            used in another cluster later.
+
+            What if addClusterElements adds a feature that was removed earlier in the loop??
+             Is this possible? Probably not since it will be marked in already_used
+
             */
 
             removeFromElementMapping_(cluster, element_mapping);
+
+            //TODO calls tmp_neighbors.clear() hmmm
+            // And What if this adds a feature that was removed from the element mapping in an earlier iteration?
             addClusterElements_(grid, cluster);
 
             // update the heap, because the quality has changed
+            // compares with top_element to see if a different node needs to be popped now!!
+            // for comparison quality() is called!!
             cluster_heads.update_lazy(handles[curr_id]);
 
             ////////////////////////////////////////
-            // Step 2: reinsert the updated clusters features into the element mapping
+            // Step 2: reinsert the updated cluster's features into the element mapping
 
             for (const auto& neighbor : cluster.getElements())
             {
@@ -620,16 +630,16 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       // we merge the tmp_element_mapping into the element_mapping after all clusters
       // that contained one feature of the current best cluster have been updated,
       // i.e. after every iteration of the outer loop
-      for (const auto& cluster_ids: tmp_element_mapping)
+      for (const auto& feat_clusterids : tmp_element_mapping)
       {
-        for (const Size id : cluster_ids.second)
+        for (const Size id : feat_clusterids.second)
         {
-          element_mapping[cluster_ids.first].insert(id);
+          element_mapping[feat_clusterids.first].insert(id);
         }
       }
     }
 
-    // remove the current best from the heap and remember its id
+    // remove the current best from the heap and consolidate the heap from lazy updates
     cluster_heads.pop();
   }
 
