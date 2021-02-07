@@ -184,7 +184,7 @@ namespace OpenMS
 
   Param ToolsDialog::getParamFromIni_(const String& name)
   {
-    String path = File::getTemporaryFile() + ".ini";
+    String path = File::getUniqueName() + ".ini";
     QStringList args{ "-write_ini", path.toQString() };
     QProcess qp;
     Param tool_param;
@@ -194,11 +194,13 @@ namespace OpenMS
     if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
     {
       emit warning("Failed to load tool/util:", name.toQString());
+      File::remove(path);
       return tool_param;
     }
 
     ParamXMLFile paramFile;
     paramFile.load((path).c_str(), tool_param);
+    File::remove(path);
     return tool_param;
   }
 
@@ -436,20 +438,23 @@ namespace OpenMS
 
   void ToolsDialog::addEntries_()
   {
-    QStringList names;
+    QStringList entries;
     for (const auto& p : param_future_.results())
     {
-      // Extract the tool's name
-      String name = p.begin().getName().substr(0, p.begin().getName().rfind(":"));
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
-      // Check if tool is compatible with the layer type
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      if (!p.empty())
       {
-        names << name.toQString();
+        std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
+        // Check if tool is compatible with the layer type
+        if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+        {
+          // Extract the tool's name
+          String name = p.begin().getName().substr(0, p.begin().getName().rfind(":"));
+          entries << name.toQString();
+        }
       }
     }
-    names.sort();
-    tools_combo_->addItems(names);
+    entries.sort();
+    tools_combo_->addItems(entries);
   }
 
   String ToolsDialog::getOutput()
