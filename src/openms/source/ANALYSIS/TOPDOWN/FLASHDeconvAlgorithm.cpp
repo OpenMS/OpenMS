@@ -394,7 +394,7 @@ namespace OpenMS
     // intensity change ratio should not exceed the factor.
     const float factor = 5.0;
     const float hfactor = 1.1;
-    const int low_charge = 5;
+    const int low_charge = 6;
     while (mz_bin_index != mz_bins_.npos)
     {
       float intensity = mz_intensities[mz_bin_index];
@@ -466,9 +466,9 @@ namespace OpenMS
           { // check harmonic artifacts
             float max_intensity = intensity;
             float min_intensity = prev_intensity;
-            if (a_charge <= low_charge)
+            if (a_charge <= low_charge && prev_intensity <= 1.0)
             {
-              max_intensity = intensity * factor;
+              max_intensity = intensity * factor; // no consecutive intensity. Thus, allow factor
               min_intensity = intensity / factor;
             }
             else if (min_intensity > max_intensity)
@@ -524,7 +524,7 @@ namespace OpenMS
             }
           }
         }
-        else // for low charges or MS2,3,... iostopic peaks or water nh3 loss peaks are considered
+        else // for MS2,3,... iostopic peaks or water nh3 loss peaks are considered
         {
           bool support_peak_present = false;
           double iso_intensity = .0;
@@ -643,7 +643,7 @@ namespace OpenMS
             double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_]);
             double mass = exp(original_log_mass);
             double diff = Constants::C13C12_MASSDIFF_U / mass;
-            for (int iso_off = -1; iso_off <= 1 && !artifact; ++iso_off)
+            for (int iso_off = -2; iso_off <= 2 && !artifact; ++iso_off)
             {
               double log_mass = original_log_mass + diff * iso_off;
               if (log_mass < 1)
@@ -673,7 +673,7 @@ namespace OpenMS
               if (!artifact)
               {
                 int acharge = abs(j + min_charge_);
-                for (int coff = 1; coff <= 3 && !artifact; coff++)
+                for (int coff = 1; coff <= 2 && !artifact; coff++)
                 {
                   for (int f = -1; f <= 1 && !artifact; f += 2)
                   {

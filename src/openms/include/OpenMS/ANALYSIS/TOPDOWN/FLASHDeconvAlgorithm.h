@@ -132,7 +132,9 @@ namespace OpenMS
     double rt_window_;
     /// mass ranges of deconvolution, set by users
     double min_mass_, max_mass_;
-    /// max charge controlled by precursor charge for MSn n>1; otherwise just max_charge_
+    /// min charge: 1 for MSn n>1; otherwise just min_charge_
+    int current_min_charge_;
+    /// max charge: controlled by precursor charge for MSn n>1; otherwise just max_charge_
     int current_max_charge_;
     /// max mass is controlled by precursor mass for MSn n>1; otherwise just max_mass
     /// TODO current min charge = 1 for MS2
