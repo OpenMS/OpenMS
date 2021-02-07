@@ -361,9 +361,11 @@ namespace OpenMS
       {
         if (it == unspecific)
           continue;
-        // for all the maps for the "real" sequences, overwrite the distance, if an unspecific one is better
+        // for all the maps for the "real" sequences, overwrite the distance, if an unspecific one is better or
+        // add a new entry, so we can just "sum up" the distances for each seq later.
         for (auto mapidx_unspecdist : unspecific->second)
         {
+          // try to add new entry
           auto mapidx_inserted = it->second.emplace(mapidx_unspecdist.first, mapidx_unspecdist.second);
           if(!mapidx_inserted.second) //an entry for that map idx already existed for the sequence, check minimum of both
           {
@@ -378,9 +380,9 @@ namespace OpenMS
     double best_total = num_maps_ * max_distance_;
     for (auto it = seq_table.begin(); it != seq_table.end(); ++it) //OMS_CODING_TEST_EXCLUDE
     {
-      OPENMS_PRECONDITION(num_maps_ - 1 >= it->second.size(), "num_maps bigger than map size");
+      OPENMS_PRECONDITION(num_maps_ - 1 >= it->second.size(), "num_maps bigger than map size -1 (center)");
       // init value is #missing maps times max_distance
-      //TODO this is wrong, we have to look in the unspecific ones!
+      // above, unspecific distances were incorporated into the rest already.
       double total = std::accumulate(it->second.begin(), it->second.end(),
                                      double(num_maps_ - 1 - it->second.size()) * max_distance_,
                                     [] (double val, const std::map<Size, double>::value_type& p)
@@ -494,7 +496,7 @@ namespace OpenMS
           }
           // As opposed to above IDed features (which could lead to new additional annotations),
           // no need to check further here: all following (also annotation-specific) distances are worse
-          // than this unspecific one, since multimap is sorted; dists are already corrected
+          // than this unspecific one, since multimap is sorted & dists are already corrected
           // with noID_penalty. If you dont want this to happen, set the penalty to one and unIDed ones
           // will always be added at the end):
           break;

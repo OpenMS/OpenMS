@@ -444,6 +444,8 @@ namespace OpenMS
       // std::cout << "Clusters: " << clustering.size() << std::endl;
 
       ConsensusFeature consensus_feature;
+      // pops heap until a valid best cluster or empty, makes a consensusFeature and updates
+      // other clusters affected by the inclusion of this cluster
       bool made_feature = makeConsensusFeature_(cluster_heads, consensus_feature, 
                                                 element_mapping, grid, handles);
 
@@ -548,6 +550,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
                                           const vector<Heap::handle_type>& handles,
                                           Size best_id)
   {
+    // remove the current best from the heap and consolidate the heap from previous lazy updates
+    // we cannot pop at the end since update_lazy may theoretically change top_element immediately.
+    cluster_heads.pop();
+
     for (const auto& element : elements)
     {
       const GridFeature* const curr_feature = element.feature;
@@ -600,25 +606,24 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
             deleted cluster, which will surely lead to a segfault when the feature is actually 
             used in another cluster later.
 
-            What if addClusterElements adds a feature that was removed earlier in the loop??
-             Is this possible? Probably not since it will be marked in already_used
-
+            TODO Check guarantee that addClusterElements does not add a feature that was removed
+             earlier in the loop. Should not happen because they are in the already_used set by now.
             */
-
             removeFromElementMapping_(cluster, element_mapping);
 
-            //TODO calls tmp_neighbors.clear() hmmm
-            // And What if this adds a feature that was removed from the element mapping in an earlier iteration?
+            // re-add closest cluster elements that were not used yet.
             addClusterElements_(grid, cluster);
 
             // update the heap, because the quality has changed
-            // compares with top_element to see if a different node needs to be popped now!!
-            // for comparison quality() is called!!
+            // compares with top_element to see if a different node needs to be popped now.
+            // for comparison getQuality() is called for the clusters here
+            // TODO check if we can guarantee cluster_heads.increase/decrease since they may have
+            //  better theoretical runtimes although a lazy update until the next pop is probably not bad
             cluster_heads.update_lazy(handles[curr_id]);
 
             ////////////////////////////////////////
-            // Step 2: reinsert the updated cluster's features into the element mapping
-
+            // Step 2: reinsert the updated cluster's features into a temporary element mapping.
+            // This can be merged later since the methods called in the loop here seem not to access the mapping.
             for (const auto& neighbor : cluster.getElements())
             {
               tmp_element_mapping[neighbor.feature].insert(curr_id);
@@ -638,9 +643,6 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
         }
       }
     }
-
-    // remove the current best from the heap and consolidate the heap from lazy updates
-    cluster_heads.pop();
   }
 
   void QTClusterFinder::addClusterElements_(const Grid& grid, QTCluster& cluster)
