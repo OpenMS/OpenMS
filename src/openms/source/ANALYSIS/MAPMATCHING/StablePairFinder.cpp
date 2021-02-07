@@ -71,7 +71,7 @@ namespace OpenMS
     V_("@@@ StablePairFinder::updateMembers_()");
 
     second_nearest_gap_ = param_.getValue("second_nearest_gap");
-    use_IDs_ = String(param_.getValue("use_identifications").toString()) == "true";
+    use_IDs_ = param_.getValue("use_identifications").toBool();
   }
 
   void StablePairFinder::run(const std::vector<ConsensusMap>& input_maps,

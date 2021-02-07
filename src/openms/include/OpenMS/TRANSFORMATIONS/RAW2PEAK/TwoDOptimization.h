@@ -750,13 +750,13 @@ protected:
     else
       penalties.pos = (float)pv;
 
-      pv = param_.getValue("penalties:left_width");
+    pv = param_.getValue("penalties:left_width");
     if (pv.isEmpty() || pv.toString() == "")
       penalties.lWidth = 1.;
     else
       penalties.lWidth = (float)pv;
 
-      pv = param_.getValue("penalties:right_width");
+    pv = param_.getValue("penalties:right_width");
     if (pv.isEmpty() || pv.toString() == "")
       penalties.rWidth = 1.;
     else
@@ -776,7 +776,7 @@ protected:
     // std::cout << "---------------------------------------------------------------\n\n\n\n";
 
     UInt max_iteration;
-      pv = param_.getValue("iterations");
+    pv = param_.getValue("iterations");
     if (pv.isEmpty() || pv.toString() == "")
       max_iteration = 15;
     else

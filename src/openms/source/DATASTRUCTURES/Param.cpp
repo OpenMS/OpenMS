@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
-#include <iomanip>
 
 namespace OpenMS
 {

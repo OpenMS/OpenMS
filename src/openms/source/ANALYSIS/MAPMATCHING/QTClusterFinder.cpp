@@ -76,7 +76,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
-    use_IDs_ = param_.getValue("use_identifications") == "true";
+    use_IDs_ = param_.getValue("use_identifications").toBool();
     nr_partitions_ = param_.getValue("nr_partitions");
     max_diff_rt_ = param_.getValue("distance_RT:max_difference");
     max_diff_mz_ = param_.getValue("distance_MZ:max_difference");

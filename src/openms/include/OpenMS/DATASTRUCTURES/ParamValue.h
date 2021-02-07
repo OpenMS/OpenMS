@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "OpenMS/OpenMSConfig.h"
+#include <OpenMS/OpenMSConfig.h>
 
 #include <string>
 #include <vector>

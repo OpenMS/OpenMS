@@ -33,7 +33,7 @@
 
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
-#include <ostream>
+//#include <ostream>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
 
@@ -565,7 +565,6 @@ namespace OpenMS
         return nullptr;
     break;
     default:
-        printf("Value: %u\n", value_type_);
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string ParamValue to char*");
     break;
     }
@@ -589,7 +588,6 @@ namespace OpenMS
           else os.precision(3);
           os << data_.dou_;
           return os.str();
-          //return std::to_string(data_.dou_);
       break;
       case STRING_LIST:
           os << "[";

@@ -34,11 +34,9 @@
 
 #pragma once
 
-//#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/OpenMSConfig.h>
 
-//#include <iosfwd> Necesarry?
 #include <set>
 #include <string>
 #include <map>
