@@ -144,7 +144,7 @@ namespace OpenMS
     }
     ms_level_ = spec.getMSLevel();
     current_min_charge_ = ms_level_ == 1 ? min_abs_charge_ : 1;
-    current_max_charge_ = deconvoluted_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); // TODO negative mode!!
+    current_max_charge_ = deconvoluted_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); //
     current_max_mass_ = deconvoluted_spectrum_.getCurrentMaxMass(max_mass_);
 
     setFilters_();
@@ -640,7 +640,7 @@ namespace OpenMS
           bool artifact = false;
           if (ms_level_ == 1)
           {
-            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_]);
+            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_ - 1]);
             double mass = exp(original_log_mass);
             double diff = Constants::C13C12_MASSDIFF_U / mass;
             for (int iso_off = -2; iso_off <= 2 && !artifact; ++iso_off)
@@ -655,7 +655,7 @@ namespace OpenMS
                 for (int f = -1; f <= 1 && !artifact; f += 2) //
                 {
                   double hmass = log_mass - log(h) * f;
-                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
+                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_ - 1]);
                   if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                   {
                     //for (int off = 0; off <= 0 && !artifact; off++)
@@ -682,7 +682,7 @@ namespace OpenMS
                       continue;
                     }
                     double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
-                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
+                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_ - 1]);
                     if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                     {
                       //for (int off = 0; off <= 0 && !artifact; off++)

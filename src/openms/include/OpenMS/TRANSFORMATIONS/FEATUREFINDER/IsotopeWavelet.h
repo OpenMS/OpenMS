@@ -198,7 +198,7 @@ protected:
         * The function is automatically called by the public constructor.
         *
         * The function pre-computes the expensive gamma function. Parameters related to this function are:
-        * @see max_charge_ and @see peak_cutoff_. If both of these are set correctly @see getValue will never compute
+        * @see max_abs_charge_ and @see peak_cutoff_. If both of these are set correctly @see getValue will never compute
         * the gamma function online.
         *
         * @param max_m The maximal de-convoluted mass that occurs in the current data set. */
