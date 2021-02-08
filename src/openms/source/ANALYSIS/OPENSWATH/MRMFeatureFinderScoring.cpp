@@ -154,6 +154,8 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_uis_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ionseries_scores", "true", "Use MS2-level b/y ion-series scores for peptidoform identification", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ionseries_scores", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ms2_isotope_scores", "true", "Use MS2-level isotope scores (pearson & manhattan) across product transitions (based on ID if annotated or averagine)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ms2_isotope_scores", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
@@ -836,8 +838,14 @@ namespace OpenMS
         // Add the DIA / SWATH scores, ion mobility scores and SONAR scores
         if (swath_present && su_.use_dia_scores_)
         {
-          mrmfeature.addScore("var_isotope_correlation_score", scores.isotope_correlation);
-          mrmfeature.addScore("var_isotope_overlap_score", scores.isotope_overlap);
+          if (su_.use_ms2_isotope_scores)
+          {
+            mrmfeature.addScore("var_isotope_correlation_score", scores.isotope_correlation);
+            mrmfeature.addScore("var_isotope_overlap_score", scores.isotope_overlap);
+            mrmfeature.addScore("var_dotprod_score", scores.dotprod_score_dia);
+            mrmfeature.addScore("var_manhatt_score", scores.manhatt_score_dia);
+          }
+
           mrmfeature.addScore("var_massdev_score", scores.massdev_score);
           mrmfeature.addScore("var_massdev_score_weighted", scores.weighted_massdev_score);
 
@@ -847,8 +855,6 @@ namespace OpenMS
             mrmfeature.addScore("var_yseries_score", scores.yseries_score);
           }
 
-          mrmfeature.addScore("var_dotprod_score", scores.dotprod_score_dia);
-          mrmfeature.addScore("var_manhatt_score", scores.manhatt_score_dia);
           if (su_.use_ms1_correlation)
           {
             if (scores.ms1_xcorr_shape_score > -1)
@@ -1062,6 +1068,7 @@ namespace OpenMS
     su_.use_ms1_mi               = param_.getValue("Scores:use_ms1_mi").toBool();
     su_.use_uis_scores           = param_.getValue("Scores:use_uis_scores").toBool();
     su_.use_ionseries_scores     = param_.getValue("Scores:use_ionseries_scores").toBool();
+    su_.use_ms2_isotope_scores     = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
