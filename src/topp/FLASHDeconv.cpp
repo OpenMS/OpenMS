@@ -592,7 +592,7 @@ protected:
       auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it, triggeredPeaks, precursor_specs, scan_number);
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
-        //&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
+          && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           )
       {
 

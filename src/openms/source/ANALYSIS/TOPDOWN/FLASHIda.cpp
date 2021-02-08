@@ -79,7 +79,7 @@ namespace OpenMS
 
     for (double j : mass_count_double)
     {
-      mass_count_.push_back((int) j * 5);
+      mass_count_.push_back((int) j);
     }
 
     fd_defaults.setValue("min_mass_count", mass_count_);
@@ -240,6 +240,10 @@ namespace OpenMS
         filtered_peakgroups.push_back(pg);
         current_selected_masses.insert(nominal_mass);
         current_selected_mzs.insert(mz);
+      }
+      if (filtered_peakgroups.size() >= mass_count)
+      {
+        break;
       }
     }
 
