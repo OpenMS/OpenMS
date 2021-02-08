@@ -497,15 +497,15 @@ protected:
 
     for (int k = 0; k < size; ++k)
     {
-        // get range for next set of n elements
-        auto start_itr = std::next(experiment.cbegin(), k*n_chunks);
-        auto end_itr = std::next(experiment.cbegin(), k*n_chunks + n_chunks);
+      // get range for next set of n elements
+      auto start_itr = std::next(experiment.cbegin(), k*n_chunks);
+      auto end_itr = std::next(experiment.cbegin(), k*n_chunks + n_chunks);
 
-        // code to handle the last chunk as it might
-        // contain less elements
-        if (k*n_chunks + n_chunks > experiment.size()) {
-            end_itr = experiment.cend();
-        }
+      // code to handle the last chunk as it might
+      // contain less elements
+      if (k*n_chunks + n_chunks > experiment.size()) {
+        end_itr = experiment.cend();
+      }
 
       // copy elements from the input range to the chunk
       std::copy(start_itr, end_itr, tmp_peakmap);
