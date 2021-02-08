@@ -178,8 +178,8 @@ public:
 
     struct SpecInfo
     {
-      int count_centroided = 0;
-      int count_profile_or_unknown = 0;
+      Size count_centroided = 0;
+      Size count_profile_or_unknown = 0;
     };
       
     /**
