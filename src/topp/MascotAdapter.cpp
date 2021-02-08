@@ -265,7 +265,7 @@ protected:
     registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
     registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
     setValidStrings_("mass_type", ListUtils::create<String>("Monoisotopic,Average"));
-    registerIntOption_("mascot_spectral_batch_size", "<num>", 50000, "number of spectra processed in one batch by mascot (default 50000)", false);
+    registerIntOption_("batch_size", "<num>", 50000, "number of spectra processed in one batch by mascot (default 50000)", false);
     registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
     registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
   }
@@ -420,7 +420,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    n_chunks = getIntOption_("mascot_spectral_batch_size");
+    int n_chunks = getIntOption_("batch_size");
 
     if (mascot_in)
     {
@@ -489,137 +489,138 @@ protected:
 
     if (!mascot_out)
     {
-    // determine number of chunks of size n
-    int size = (experiment.size() - 1) / n_chunks + 1;
- 
-    // create a temporary PeakMap that stores the experiment chunk in each iteration 
-    PeakMap tmp_peakmap;
+      // determine number of chunks of size n
+      int size = (experiment.size() - 1) / n_chunks + 1;
+  
+      // create a temporary PeakMap that stores the experiment chunk in each iteration 
+      PeakMap tmp_peakmap;
 
-    for (int k = 0; k < size; ++k)
-    {
-      // get range for next set of n elements
-      auto start_itr = std::next(experiment.cbegin(), k*n_chunks);
-      auto end_itr = std::next(experiment.cbegin(), k*n_chunks + n_chunks);
-
-      // code to handle the last chunk as it might
-      // contain less elements
-      if (k*n_chunks + n_chunks > experiment.size()) {
-        end_itr = experiment.cend();
-      }
-
-      // copy elements from the input range to the chunk
-      std::copy(start_itr, end_itr, tmp_peakmap);
-      
-      mzdata_infile.setLogType(log_type_);
-      mzdata_infile.load(inputfile_name, tmp_peakmap);
-
-      writeDebug_("read " + String(tmp_peakmap.size()) + " spectra from mzData file", 1);
-
-      //-------------------------------------------------------------
-      // calculations
-      //-------------------------------------------------------------
-
-      mascot_infile.setInstrument(instrument);
-      mascot_infile.setPrecursorMassTolerance(precursor_mass_tolerance);
-      mascot_infile.setPeakMassTolerance(peak_mass_tolerance);
-      if (mods.size() > 0)
+      for (int k = 0; k < size; ++k)
       {
-        mascot_infile.setModifications(mods);
-      }
-      if (variable_mods.size() > 0)
-      {
-        mascot_infile.setVariableModifications(variable_mods);
-      }
-      mascot_infile.setTaxonomy(taxonomy);
-      mascot_infile.setDB(db);
-      mascot_infile.setHits(hits);
-      mascot_infile.setCleavage(cleavage);
-      mascot_infile.setMissedCleavages(missed_cleavages);
-      mascot_infile.setMassType(mass_type);
-      mascot_infile.setCharges(charges);
-      if (!mascot_in)
-      {
-#ifdef OPENMS_WINDOWSPLATFORM
-        /// @todo test this with a real mascot version for windows
-        writeLog_(QString("The windows platform version of this tool has not been tested yet! If you encounter problems,") +
-                  QString(" please write to the OpenMS mailing list (open-ms-general@lists.sourceforge.net)"));
-#endif
+        // get range for next set of n elements
+        auto start_itr = std::next(experiment.cbegin(), k*n_chunks);
+        auto end_itr = std::next(experiment.cbegin(), k*n_chunks + n_chunks);
 
-        mascot_infile.store(mascot_data_dir + "/" + mascot_infile_name,
-                            experiment,
-                            "OpenMS search");
-        String tmp = logfile;
-        tmp = File::absolutePath(tmp);
-
-        writeDebug_("Searching...", 1);
-        // calling the Mascot process
-        writeDebug_("The Mascot process created the following output:", 1);
-
-        QProcess qp;
-        qp.setWorkingDirectory(mascot_cgi_dir.toQString());
-        call = " 1 -commandline -f " +
-               mascot_data_dir + "/" + mascot_outfile_name + " < " +
-               mascot_data_dir + "/" + mascot_infile_name +
-#ifdef OPENMS_WINDOWSPLATFORM
-               " > " + tmp;
-#else
-               " >> " + tmp + ";";
-#endif
-        writeDebug_("CALLING: nph-mascot.exe" + call + "\nCALL Done!    ", 10);
-        Int status = qp.execute("nph-mascot.exe", QStringList() << call.toQString());
-        if (status != 0)
+        // code to handle the last chunk as it might
+        // contain less elements
+        if (k*n_chunks + n_chunks > experiment.size()) 
         {
-          writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
-          QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
-          return EXTERNAL_PROGRAM_ERROR;
+          end_itr = experiment.cend();
         }
 
-#ifdef OPENMS_WINDOWSPLATFORM
-        call = String("perl export_dat.pl ") +
-#else
-        call =  String("./export_dat_2.pl ") +
-#endif
-               " do_export=1 export_format=XML file=" + mascot_data_dir +
-               "/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) +
-               " prot_score=" + String(prot_score) + " query_master=1 search_master=1 protein_master=1 peptide_master=1 pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) +
-               " pep_homol=" + String(pep_homol) + " query_title=1 pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " +
-               "show_params=1 _showallfromerrortolerant=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name +
+        // copy elements from the input range to the chunk
+        std::copy(start_itr, end_itr, tmp_peakmap);
+        
+        mzdata_infile.setLogType(log_type_);
+        mzdata_infile.load(inputfile_name, tmp_peakmap);
 
-#ifdef OPENMS_WINDOWSPLATFORM
-               " && " + " perl export_dat.pl " +
-#else
-               ";"    + "./export_dat.pl " +
-#endif
-               " do_export=1 export_format=pepXML file="  + mascot_data_dir +
-               "/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) +
-               " prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) +
-               " pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " +
-               "show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name;
-        writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
-        status = qp.execute(call.toQString());
+        writeDebug_("read " + String(tmp_peakmap.size()) + " spectra from mzData file", 1);
 
-        if (status != 0)
+        //-------------------------------------------------------------
+        // calculations
+        //-------------------------------------------------------------
+
+        mascot_infile.setInstrument(instrument);
+        mascot_infile.setPrecursorMassTolerance(precursor_mass_tolerance);
+        mascot_infile.setPeakMassTolerance(peak_mass_tolerance);
+        if (mods.size() > 0)
         {
-          writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
-          QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
-          QFile(mascotXML_file_name.toQString()).remove();
-          QFile(pepXML_file_name.toQString()).remove();
-          return EXTERNAL_PROGRAM_ERROR;
+          mascot_infile.setModifications(mods);
         }
-
-      }           // from if(!mascot_in)
-      else
-      {
-        if (boundary != "")
+        if (variable_mods.size() > 0)
         {
-          mascot_infile.setBoundary(boundary);
+          mascot_infile.setVariableModifications(variable_mods);
         }
-        mascot_infile.store(mascot_infile_name,
-                            tmp_peakmap,
-                            "OpenMS search");
+        mascot_infile.setTaxonomy(taxonomy);
+        mascot_infile.setDB(db);
+        mascot_infile.setHits(hits);
+        mascot_infile.setCleavage(cleavage);
+        mascot_infile.setMissedCleavages(missed_cleavages);
+        mascot_infile.setMassType(mass_type);
+        mascot_infile.setCharges(charges);
+        if (!mascot_in)
+        {
+  #ifdef OPENMS_WINDOWSPLATFORM
+          /// @todo test this with a real mascot version for windows
+          writeLog_(QString("The windows platform version of this tool has not been tested yet! If you encounter problems,") +
+                    QString(" please write to the OpenMS mailing list (open-ms-general@lists.sourceforge.net)"));
+  #endif
+
+          mascot_infile.store(mascot_data_dir + "/" + mascot_infile_name,
+                              experiment,
+                              "OpenMS search");
+          String tmp = logfile;
+          tmp = File::absolutePath(tmp);
+
+          writeDebug_("Searching...", 1);
+          // calling the Mascot process
+          writeDebug_("The Mascot process created the following output:", 1);
+
+          QProcess qp;
+          qp.setWorkingDirectory(mascot_cgi_dir.toQString());
+          call = " 1 -commandline -f " +
+                mascot_data_dir + "/" + mascot_outfile_name + " < " +
+                mascot_data_dir + "/" + mascot_infile_name +
+  #ifdef OPENMS_WINDOWSPLATFORM
+                " > " + tmp;
+  #else
+                " >> " + tmp + ";";
+  #endif
+          writeDebug_("CALLING: nph-mascot.exe" + call + "\nCALL Done!    ", 10);
+          Int status = qp.execute("nph-mascot.exe", QStringList() << call.toQString());
+          if (status != 0)
+          {
+            writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
+            QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
+            return EXTERNAL_PROGRAM_ERROR;
+          }
+
+  #ifdef OPENMS_WINDOWSPLATFORM
+          call = String("perl export_dat.pl ") +
+  #else
+          call =  String("./export_dat_2.pl ") +
+  #endif
+                " do_export=1 export_format=XML file=" + mascot_data_dir +
+                "/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) +
+                " prot_score=" + String(prot_score) + " query_master=1 search_master=1 protein_master=1 peptide_master=1 pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) +
+                " pep_homol=" + String(pep_homol) + " query_title=1 pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " +
+                "show_params=1 _showallfromerrortolerant=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name +
+
+  #ifdef OPENMS_WINDOWSPLATFORM
+                " && " + " perl export_dat.pl " +
+  #else
+                ";"    + "./export_dat.pl " +
+  #endif
+                " do_export=1 export_format=pepXML file="  + mascot_data_dir +
+                "/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) +
+                " prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) +
+                " pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " +
+                "show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name;
+          writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
+          status = qp.execute(call.toQString());
+
+          if (status != 0)
+          {
+            writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
+            QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
+            QFile(mascotXML_file_name.toQString()).remove();
+            QFile(pepXML_file_name.toQString()).remove();
+            return EXTERNAL_PROGRAM_ERROR;
+          }
+
+        }           // from if(!mascot_in)
+        else
+        {
+          if (boundary != "")
+          {
+            mascot_infile.setBoundary(boundary);
+          }
+          mascot_infile.store(mascot_infile_name,
+                              tmp_peakmap,
+                              "OpenMS search");
+        }
+    
       }
-	 
-    }
     }         // from if(!mascot_out)
     if (!mascot_in)
     {
