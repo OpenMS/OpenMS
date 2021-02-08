@@ -47,7 +47,6 @@
 #include <map>
 #include <fstream>
 #include <string>
-#include <vector>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -493,8 +492,8 @@ protected:
     // determine number of chunks of size n
     int size = (experiment.size() - 1) / n_chunks + 1;
  
-    // create array of vectors to store the chunks
-    std::vector<PeakMap> split_experiment[size];
+    // create a temporary PeakMap that stores the experiment chunk in each iteration 
+    PeakMap tmp_peakmap;
 
     for (int k = 0; k < size; ++k)
     {
@@ -502,23 +501,19 @@ protected:
         auto start_itr = std::next(experiment.cbegin(), k*n_chunks);
         auto end_itr = std::next(experiment.cbegin(), k*n_chunks + n_chunks);
 
-        // allocate memory for the chunk
-        split_experiment[k].resize(n_chunks);
-
         // code to handle the last chunk as it might
         // contain less elements
         if (k*n_chunks + n_chunks > experiment.size()) {
             end_itr = experiment.cend();
-            split_experiment[k].resize(experiment.size() - k*n);
         }
 
       // copy elements from the input range to the chunk
-      std::copy(start_itr, end_itr, split_experiment[k].begin());
+      std::copy(start_itr, end_itr, tmp_peakmap);
       
       mzdata_infile.setLogType(log_type_);
-      mzdata_infile.load(inputfile_name, split_experiment[k]);
+      mzdata_infile.load(inputfile_name, tmp_peakmap);
 
-      writeDebug_("read " + String(split_experiment[k].size()) + " spectra from mzData file", 1);
+      writeDebug_("read " + String(tmp_peakmap.size()) + " spectra from mzData file", 1);
 
       //-------------------------------------------------------------
       // calculations
@@ -620,7 +615,7 @@ protected:
           mascot_infile.setBoundary(boundary);
         }
         mascot_infile.store(mascot_infile_name,
-                            split_experiment[k],
+                            tmp_peakmap,
                             "OpenMS search");
       }
 	 
