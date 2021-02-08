@@ -47,6 +47,7 @@
 #include <map>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
