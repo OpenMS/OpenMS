@@ -842,12 +842,16 @@ namespace OpenMS
           {
             mrmfeature.addScore("var_isotope_correlation_score", scores.isotope_correlation);
             mrmfeature.addScore("var_isotope_overlap_score", scores.isotope_overlap);
-            mrmfeature.addScore("var_dotprod_score", scores.dotprod_score_dia);
-            mrmfeature.addScore("var_manhatt_score", scores.manhatt_score_dia);
           }
 
           mrmfeature.addScore("var_massdev_score", scores.massdev_score);
           mrmfeature.addScore("var_massdev_score_weighted", scores.weighted_massdev_score);
+
+          if (su_.use_ms2_isotope_scores)
+          {
+            mrmfeature.addScore("var_dotprod_score", scores.dotprod_score_dia);
+            mrmfeature.addScore("var_manhatt_score", scores.manhatt_score_dia);
+          }
 
           if (su_.use_ionseries_scores)
           {
@@ -1068,7 +1072,7 @@ namespace OpenMS
     su_.use_ms1_mi               = param_.getValue("Scores:use_ms1_mi").toBool();
     su_.use_uis_scores           = param_.getValue("Scores:use_uis_scores").toBool();
     su_.use_ionseries_scores     = param_.getValue("Scores:use_ionseries_scores").toBool();
-    su_.use_ms2_isotope_scores     = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
+    su_.use_ms2_isotope_scores   = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
