@@ -46,7 +46,7 @@ namespace OpenMS
     prev_mass_bin_vector_ = std::vector<std::vector<Size>>();
     //prev_minbin_logmass_vector_ = std::vector<double>();
     defaults_.setValue("tol",
-                       DoubleList{10.0, 5.0},
+                       DoubleList{10.0, 10.0},
                        "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
 
     defaults_.setValue("min_mass", 50.0, "minimum mass (Da)");
@@ -142,18 +142,14 @@ namespace OpenMS
     {
       return deconvoluted_spectrum_;
     }
-
-    updateLogMzPeaks_(&spec);
-
-
     ms_level_ = spec.getMSLevel();
-    setTriggeredMzs_(triggeredPeaks);
-
-    //For MS2,3,.. max mass and charge ranges should be determined by precursors
-    current_max_charge_ = deconvoluted_spectrum_.getCurrentMaxCharge(max_charge_); // TODO negative mode!!
+    current_min_charge_ = ms_level_ == 1 ? min_abs_charge_ : 1;
+    current_max_charge_ = deconvoluted_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); // TODO negative mode!!
     current_max_mass_ = deconvoluted_spectrum_.getCurrentMaxMass(max_mass_);
 
-
+    setFilters_();
+    updateLogMzPeaks_(&spec);
+    setTriggeredMzs_(triggeredPeaks);
     //Perform deconvolution and fill in deconvoluted_spectrum_
     generatePeakGroupsFromSpectrum_();
     //deconvoluted_spectrum = deconvoluted_spectrum_;
@@ -174,14 +170,18 @@ namespace OpenMS
     min_rt_ = param_.getValue("min_rt");
     max_rt_ = param_.getValue("max_rt");
 
-    min_charge_ = param_.getValue("min_charge");
-    max_charge_ = param_.getValue("max_charge");
+    min_abs_charge_ = param_.getValue("min_charge");
+    max_abs_charge_ = param_.getValue("max_charge");
+    is_positive_ = min_abs_charge_ > 0;
 
-    if (min_charge_ > max_charge_)
+    min_abs_charge_ = abs(min_abs_charge_);
+    max_abs_charge_ = abs(max_abs_charge_);
+
+    if (min_abs_charge_ > max_abs_charge_)
     {
-      int tmp = min_charge_;
-      min_charge_ = max_charge_;
-      max_charge_ = tmp;
+      int tmp = min_abs_charge_;
+      min_abs_charge_ = max_abs_charge_;
+      max_abs_charge_ = tmp;
     }
 
     max_mass_ = param_.getValue("max_mass");
@@ -205,7 +205,7 @@ namespace OpenMS
     max_mass_count_ = param_.getValue("max_mass_count");
     min_mass_count_ = param_.getValue("min_mass_count");
     rt_window_ = param_.getValue("RT_window");
-    setFilters_();
+    //setFilters_();
   }
 
   FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvAlgorithm::getAveragine()
@@ -224,10 +224,10 @@ namespace OpenMS
   {
     filter_.clear();
     harmonic_filter_matrix_.clear();
-    int charge_range = max_charge_ - min_charge_ + 1;
+    int charge_range = current_max_charge_ - current_min_charge_ + 1;
     for (int i = 0; i < charge_range; i++)
     {
-      filter_.push_back(log(1.0 / abs(i + min_charge_)));
+      filter_.push_back(log(1.0 / (i + current_min_charge_)));
     }
 
     harmonic_filter_matrix_.resize(harmonic_charges_.size(), charge_range);
@@ -242,7 +242,7 @@ namespace OpenMS
         //auto harmonic_filter_matrix_ = log(1.0 / (i + n / hc + param.minCharge));
         //        harmonic_bin_offset_matrix_[i][k] = (long) round((filter[i] - harmonic_filter_matrix_) * param.bin_width_);
 
-        harmonic_filter_matrix_.setValue(k, i, log(1.0 / (1.0 * n / hc + abs(i + min_charge_))));
+        harmonic_filter_matrix_.setValue(k, i, log(1.0 / (1.0 * n / hc + (i + current_min_charge_))));
       }
     }
   }
@@ -267,7 +267,7 @@ namespace OpenMS
       {
         continue;
       }
-      LogMzPeak log_mz_peak(peak, min_charge_ > 0);
+      LogMzPeak log_mz_peak(peak, is_positive_);
       log_mz_peaks_.push_back(log_mz_peak);
     }
   }
@@ -372,7 +372,7 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::updateCandidateMassBins_(std::vector<float> &mass_intensitites,
                                                       const std::vector<float> &mz_intensities)
   {
-    int charge_range = current_max_charge_ - min_charge_ + 1;
+    int charge_range = current_max_charge_ - current_min_charge_ + 1;
     int h_charge_size = (int) harmonic_charges_.size();
     int min_peak_cntr = min_support_peak_count_[ms_level_ - 1];
     long bin_end = (long) mass_bins_.size();
@@ -407,7 +407,7 @@ namespace OpenMS
       //          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
 
       // scan through charges
-      for (int j = 0; j < charge_range; j++) // TDDO: charge should be from 0 to 100 or 0 to -100 // abs increasing.
+      for (int j = 0; j < charge_range; j++) //  increasing.
       {
         // mass is given by shifting by bin_offsets_[j]
         long mass_bin_index = mz_bin_index + bin_offsets_[j];
@@ -422,16 +422,16 @@ namespace OpenMS
         }
 
         auto &spc = support_peak_count[mass_bin_index];
-        int a_charge = abs(j + min_charge_); // abs charge
+        int abs_charge = (j + current_min_charge_);
         float &prev_intensity = prev_intensities[mass_bin_index];
         int &prev_charge = prev_charges[mass_bin_index];
 
         if (ms_level_ == 1)
         {
           bool pass_first_check = false;
-          if (a_charge <= low_charge)
+          if (abs_charge <= low_charge)
           { // for low charges
-            double diff = Constants::C13C12_MASSDIFF_U / a_charge / mz;
+            double diff = Constants::C13C12_MASSDIFF_U / abs_charge / mz;
             Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
 
             if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
@@ -466,7 +466,7 @@ namespace OpenMS
           { // check harmonic artifacts
             float max_intensity = intensity;
             float min_intensity = prev_intensity;
-            if (a_charge <= low_charge && prev_intensity <= 1.0)
+            if (abs_charge <= low_charge && prev_intensity <= 1.0)
             {
               max_intensity = intensity * factor; // no consecutive intensity. Thus, allow factor
               min_intensity = intensity / factor;
@@ -508,12 +508,12 @@ namespace OpenMS
             }
             if (!is_harmonic)
             {
-              if (spc == 0 && a_charge > low_charge)
+              if (spc == 0 && abs_charge > low_charge)
               {
                 mass_intensitites[mass_bin_index] += prev_intensity;
               }
               mass_intensitites[mass_bin_index] += intensity;
-              if (++spc >= min_peak_cntr || a_charge <= low_charge) //
+              if (++spc >= min_peak_cntr || abs_charge <= low_charge) //
               {
                 mass_bins_[mass_bin_index] = true;
               }
@@ -528,7 +528,7 @@ namespace OpenMS
         {
           bool support_peak_present = false;
           double iso_intensity = .0;
-          double diff = Constants::C13C12_MASSDIFF_U / a_charge / mz;
+          double diff = Constants::C13C12_MASSDIFF_U / abs_charge / mz;
           Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
 
           if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
@@ -539,7 +539,7 @@ namespace OpenMS
           }
           if (support_peak_present)
           {
-            double tmz = mz - 18.010565 / a_charge;
+            double tmz = mz - 18.010565 / abs_charge;
             if (tmz > 0)
             {
               double water_loss_mz = log(tmz); // 17.026549
@@ -555,7 +555,7 @@ namespace OpenMS
               }
             }
 
-            tmz = mz - 17.026549 / a_charge;
+            tmz = mz - 17.026549 / abs_charge;
             double amonia_loss_mz = log(tmz); // 17.026549
             if (tmz > 0)
             {
@@ -590,11 +590,11 @@ namespace OpenMS
   Matrix<int> FLASHDeconvAlgorithm::filterMassBins_(const std::vector<float> &mass_intensities)
   {
     //int chargeRange = param.currentChargeRange;
-    int charge_range = current_max_charge_ - min_charge_ + 1;
-    Matrix<int> charge_ranges(2, mass_bins_.size(), INT_MAX);
+    int charge_range = current_max_charge_ - current_min_charge_ + 1;
+    Matrix<int> abs_charge_ranges(2, mass_bins_.size(), INT_MAX);
     for (int i = 0; i < mass_bins_.size(); i++)
     {
-      charge_ranges.setValue(1, i, INT_MIN);
+      abs_charge_ranges.setValue(1, i, INT_MIN);
     }
     Size mz_bin_index = mz_bins_.find_first();
     long bin_size = (long) mass_bins_.size();
@@ -608,7 +608,7 @@ namespace OpenMS
     {
       long max_index = -1;
       float max_intensity = -1e11;
-      int charge = 0;
+      int max_intensity_abs_charge = 0;
 
       for (int j = 0; j < charge_range; j++)
       {
@@ -669,19 +669,19 @@ namespace OpenMS
                   }
                 }
               }
-              //   charge off by one here
+              //   max_intensity_abs_charge off by one here
               if (!artifact)
               {
-                int acharge = abs(j + min_charge_);
+                int abs_charge = (j + current_min_charge_);
                 for (int coff = 1; coff <= 2 && !artifact; coff++)
                 {
                   for (int f = -1; f <= 1 && !artifact; f += 2)
                   {
-                    if (acharge + f * coff <= 0)
+                    if (abs_charge + f * coff <= 0)
                     {
                       continue;
                     }
-                    double hmass = log_mass - log(acharge) + log(acharge + f * coff);
+                    double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
                     Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_]);
                     if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                     {
@@ -704,7 +704,7 @@ namespace OpenMS
           {
             max_intensity = t;
             max_index = mass_bin_index;
-            charge = j;
+            max_intensity_abs_charge = j;
           }
           else
           {
@@ -716,8 +716,10 @@ namespace OpenMS
 
       if (max_index >= 0 && max_index < bin_size)
       {
-        charge_ranges.setValue(0, max_index, std::min(charge_ranges.getValue(0, max_index), charge));
-        charge_ranges.setValue(1, max_index, std::max(charge_ranges.getValue(1, max_index), charge));
+        abs_charge_ranges
+            .setValue(0, max_index, std::min(abs_charge_ranges.getValue(0, max_index), max_intensity_abs_charge));
+        abs_charge_ranges
+            .setValue(1, max_index, std::max(abs_charge_ranges.getValue(1, max_index), max_intensity_abs_charge));
         mass_bins_[max_index] = true;
       }
       mz_bin_index = mz_bins_.find_next(mz_bin_index);
@@ -734,8 +736,8 @@ namespace OpenMS
 
         std::cout << " " << b << " " << exp(getBinValue_(b, mass_bin_min_value_, bin_width_[ms_level_ - 1])) << " "
                   <<
-                  charge_ranges.getValue(0, b) << " "
-                  << charge_ranges.getValue(1, b)
+                  abs_charge_ranges.getValue(0, b) << " "
+                  << abs_charge_ranges.getValue(1, b)
                   <<
                   std::endl;
 
@@ -743,7 +745,7 @@ namespace OpenMS
         a = mass_bins_.find_next(a);
       }
     }*/
-    return charge_ranges;
+    return abs_charge_ranges;
   }
 
   //update mass bins which will be used to select peaks in the input spectrum...
@@ -752,18 +754,18 @@ namespace OpenMS
   {
     auto mass_intensities = std::vector<float>(mass_bins_.size(), 0);
     updateCandidateMassBins_(mass_intensities, mz_intensities);
-    auto per_mass_charge_ranges = filterMassBins_(mass_intensities);
+    auto per_mass_abs_charge_ranges = filterMassBins_(mass_intensities);
 
-    return per_mass_charge_ranges;
+    return per_mass_abs_charge_ranges;
   }
 
   //With mass_bins_, select peaks from the same mass in the original input spectrum
-  void FLASHDeconvAlgorithm::getCandidatePeakGroups_(const Matrix<int> &charge_ranges)
+  void FLASHDeconvAlgorithm::getCandidatePeakGroups_(const Matrix<int> &per_mass_abs_charge_ranges)
   {
     const int max_missing_isotope = 3;
     double b_width = bin_width_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
-    int charge_range = current_max_charge_ - min_charge_ + 1;
+    int charge_range = current_max_charge_ - current_min_charge_ + 1;
     Size mass_bin_size = mass_bins_.size();
     int log_mz_peak_size = (int) log_mz_peaks_.size();
     auto current_peak_index = std::vector<int>(charge_range, 0);
@@ -780,19 +782,23 @@ namespace OpenMS
     {
       double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, b_width);
       double mass = exp(log_m);
-      PeakGroup pg(min_charge_, charge_ranges.getValue(1, mass_bin_index) + min_charge_);
+      PeakGroup pg(current_min_charge_,
+                   per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + current_min_charge_,
+                   is_positive_);
 
       pg.reserve(charge_range * 30);
       Size right_index = avg_.getIsotopeEndIndex(mass);
       Size left_index = avg_.getIsotopeStartIndex(mass);
 
-      for (int j = charge_ranges.getValue(0, mass_bin_index); j <= charge_ranges.getValue(1, mass_bin_index); j++)
+      for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index);
+           j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
+           j++)
       {
         int &bin_offset = bin_offsets_[j];
         int b_index = mass_bin_index - bin_offset;
 
         double max_intensity = -1.0;
-        int charge = j + min_charge_;
+        int abs_charge = j + current_min_charge_;
         int &cpi = current_peak_index[j];
         int max_peak_index = -1;
 
@@ -820,7 +826,7 @@ namespace OpenMS
         }
 
         const double mz = log_mz_peaks_[max_peak_index].mz;
-        const double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / abs(charge);
+        const double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / (abs_charge);
         double mz_delta = tol * mz * 2; //
 
         double charge_snr = .0;
@@ -857,7 +863,7 @@ namespace OpenMS
             if (bin < mass_bin_size)
             {
               LogMzPeak p(log_mz_peaks_[peak_index]);
-              p.charge = charge;
+              p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
             }
@@ -896,7 +902,7 @@ namespace OpenMS
             if (bin < mass_bin_size)
             {
               LogMzPeak p(log_mz_peaks_[peak_index]);
-              p.charge = charge;
+              p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
             }
@@ -905,7 +911,7 @@ namespace OpenMS
         }
         if (charge_snr > 0)
         {
-          pg.setChargeSNR(charge, charge_snr);
+          pg.setChargeSNR(abs_charge, charge_snr);
         }
       }
 
@@ -1009,20 +1015,20 @@ namespace OpenMS
           if (abs(t_mass - p.getUnchargedMass() + Constants::ISOTOPE_MASSDIFF_55K_U * p.isotopeIndex) >
               iso_tolerance)
           {
-            noise_power[p.charge] += p.intensity * p.intensity;
+            noise_power[p.abs_charge] += p.intensity * p.intensity;
             continue;
           }
           new_peaks.push_back(p);
           min_off = min_off > p.isotopeIndex ? p.isotopeIndex : min_off;
         }
-        for (int c = 0; c < noise_power.size(); c++)
+        for (int abs_charge = 0; abs_charge < noise_power.size(); abs_charge++)
         {
-          double np = noise_power[c];
+          double np = noise_power[abs_charge];
           if (np <= 0)
           {
             continue;
           }
-          pg.setChargeSNR(c, pg.getChargeSNR(c) + np);
+          pg.setChargeSNR(abs_charge, pg.getChargeSNR(abs_charge) + np);
         }
 
         pg.swap(new_peaks);
@@ -1046,7 +1052,7 @@ namespace OpenMS
     std::vector<PeakGroup> empty;
     deconvoluted_spectrum_.swap(empty);
     int min_peak_cntr = min_support_peak_count_[ms_level_ - 1];
-    int current_charge_range = current_max_charge_ - min_charge_ + 1;
+    int current_charge_range = current_max_charge_ - current_min_charge_ + 1;
     int tmp_peak_cntr = current_charge_range - min_peak_cntr;
 
     tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
@@ -1100,11 +1106,11 @@ namespace OpenMS
     {
       unionPrevMassBins_();
     }
-    auto per_mass_charge_ranges = updateMassBins_(//massIntensities,
+    auto per_mass_abs_charge_ranges = updateMassBins_(//massIntensities,
         mz_bin_intensities);
 
     getCandidatePeakGroups_(//massIntensities,
-        per_mass_charge_ranges);
+        per_mass_abs_charge_ranges);
 
     scoreAndFilterPeakGroups_();
 
@@ -1271,7 +1277,7 @@ namespace OpenMS
     double sum_charge_intensity = .0;
     int cntr = 0;
     int non_zero_start = -1, non_zero_end = 0;
-    int charge_range = current_max_charge_ - min_charge_ + 1;
+    int charge_range = current_max_charge_ - current_min_charge_ + 1;
     for (int i = 0; i < charge_range; i++)
     {
       if (per_charge_intensity[i] > 0)
@@ -1347,7 +1353,7 @@ namespace OpenMS
     std::vector<PeakGroup> filtered_peak_groups;
     filtered_peak_groups.reserve(deconvoluted_spectrum_.size());
     double min_threshold = std::numeric_limits<double>::max();
-    int charge_range = current_max_charge_ - min_charge_ + 1;
+    int charge_range = current_max_charge_ - current_min_charge_ + 1;
 
     Size max_c = max_mass_count_.size() > ms_level_ - 1 ? max_mass_count_[ms_level_ - 1] : -1;
     Size min_c = min_mass_count_.size() > ms_level_ - 1 ? min_mass_count_[ms_level_ - 1] : -1;
@@ -1394,20 +1400,20 @@ namespace OpenMS
       }
 
       auto per_isotope_intensities = std::vector<double>(avg_.getMaxIsotopeIndex(), 0);
-      auto per_charge_intensities = std::vector<double>(charge_range, 0);
+      auto per_abs_charge_intensities = std::vector<double>(charge_range, 0);
 
       auto indices = calculatePerChargeIsotopeIntensity_(
-          per_isotope_intensities, per_charge_intensities,
+          per_isotope_intensities, per_abs_charge_intensities,
           avg_.getMaxIsotopeIndex(), peak_group);
 
-      double cs = getChargeFitScore(per_charge_intensities, charge_range);
+      double cs = getChargeFitScore(per_abs_charge_intensities, charge_range);
 
       peak_group.setChargeScore(cs);
 
       if (ms_level_ == 1)
       {
-        bool is_charge_well_distributed = checkChargeDistribution_(per_charge_intensities);
-        //double tmp = getChargeFitScore_(per_charge_intensities, charge_range);
+        bool is_charge_well_distributed = checkChargeDistribution_(per_abs_charge_intensities);
+        //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);
 
         if (!is_charge_well_distributed)
         {
@@ -1447,11 +1453,13 @@ namespace OpenMS
       float total_signal = .0;
       //auto perChargeMaxIntensity = std::vector<double>(chargeRange);
 
-      auto current_charge_range = peak_group.getChargeRange();
-      for (int charge = std::get<0>(current_charge_range); charge <= std::get<1>(current_charge_range); charge++)
+      auto current_charge_range = peak_group.getAbsChargeRange();
+      for (int abs_charge = std::get<0>(current_charge_range);
+           abs_charge <= std::get<1>(current_charge_range);
+           abs_charge++)
       {
-        int j = charge - min_charge_;
-        if (per_charge_intensities[j] <= 0)
+        int j = abs_charge - current_min_charge_;
+        if (per_abs_charge_intensities[j] <= 0)
         {
           continue;
         }
@@ -1466,7 +1474,7 @@ namespace OpenMS
 
         for (auto &peak: peak_group)
         {
-          if (peak.charge != charge)
+          if (peak.abs_charge != abs_charge)
           {
             continue;
           }
@@ -1514,13 +1522,13 @@ namespace OpenMS
 
         double cos_score_squared = cos_score * cos_score;
 
-        peak_group.setChargeIsotopeCosine(charge, cos_score);
-        peak_group.setChargeIntensity(charge, per_charge_intensities[j]);
+        peak_group.setChargeIsotopeCosine(abs_charge, cos_score);
+        peak_group.setChargeIntensity(abs_charge, per_abs_charge_intensities[j]);
 
-        double signal = (1 - cos_score_squared) * summed_intensity_squares + peak_group.getChargeSNR(charge) + 1;
+        double signal = (1 - cos_score_squared) * summed_intensity_squares + peak_group.getChargeSNR(abs_charge) + 1;
         double noise = cos_score_squared * summed_intensity_squares + 1;
 
-        peak_group.setChargeSNR(charge, noise / signal);
+        peak_group.setChargeSNR(abs_charge, noise / signal);
 
         total_noise += signal;
         total_signal += noise;
@@ -1529,21 +1537,23 @@ namespace OpenMS
       peak_group.setSNR(total_signal / total_noise);
       peak_group.setQScore(-10000);
 
-      for (int charge = std::get<0>(current_charge_range); charge <= std::get<1>(current_charge_range); charge++)
+      for (int abs_charge = std::get<0>(current_charge_range);
+           abs_charge <= std::get<1>(current_charge_range);
+           abs_charge++)
       {
-        if (peak_group.getChargeIntensity(charge) <= 0)
+        if (peak_group.getChargeIntensity(abs_charge) <= 0)
         {
           continue;
         }
-        int j = charge - min_charge_;
+        int j = abs_charge - current_min_charge_;
 
-        double q_score = QScore::getQScore(&peak_group, charge);
+        double q_score = QScore::getQScore(&peak_group, abs_charge);
 
         if (q_score <= peak_group.getQScore())
         {
           continue;
         }
-        peak_group.setRepCharge(charge);
+        peak_group.setRepAbsCharge(abs_charge);
         peak_group.setQScore(q_score);
       }
 
@@ -1551,7 +1561,7 @@ namespace OpenMS
       double max_q_score_mz_end = .0;
       for (auto &tmp_p:peak_group)
       {
-        if (tmp_p.charge != peak_group.getRepCharge())
+        if (tmp_p.abs_charge != peak_group.getRepAbsCharge())
         {
           continue;
         }
@@ -1970,14 +1980,14 @@ namespace OpenMS
       {
         continue;
       }
-      min_pg_charge = std::min(min_pg_charge, p.charge);
-      max_pg_charge = std::max(max_pg_charge, p.charge);
+      min_pg_charge = std::min(min_pg_charge, p.abs_charge);
+      max_pg_charge = std::max(max_pg_charge, p.abs_charge);
 
-      int index = p.charge - min_charge_;
+      int index = p.abs_charge - current_min_charge_;
       per_isotope_intensity[p.isotopeIndex] += p.intensity;
       per_charge_intensity[index] += p.intensity;
     }
-    pg.setChargeRange(min_pg_charge, max_pg_charge);
+    pg.setAbsChargeRange(min_pg_charge, max_pg_charge);
 
     return std::vector<int>{max_intensity_charge_index, max_intensity_iso_index};
   }

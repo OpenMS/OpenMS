@@ -158,20 +158,21 @@ namespace OpenMS
       mz(peak.getMZ()),
       intensity(peak.getIntensity()),
       logMz(getLogMz(peak.getMZ(), positive)),
-      charge(0),
+      abs_charge(0),
+      is_positive(positive),
       isotopeIndex(0)
   {
   }
 
   double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
-    if (charge == 0)
+    if (abs_charge == 0)
     {
       return .0;
     }
     if (mass <= 0)
     {
-      mass = (mz - getChargeMass(charge > 0)) * abs(charge);
+      mass = (mz - getChargeMass(is_positive)) * abs_charge;
     }
     return mass;
   }

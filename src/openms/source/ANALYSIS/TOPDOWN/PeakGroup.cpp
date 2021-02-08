@@ -36,13 +36,14 @@
 
 namespace OpenMS
 {
-  PeakGroup::PeakGroup(const int min_charge, const int max_charge) :
-      min_charge_(min_charge),
-      max_charge_(max_charge)
+  PeakGroup::PeakGroup(const int min_abs_charge, const int max_abs_charge, const bool is_positive) :
+      min_abs_charge_(min_abs_charge),
+      max_abs_charge_(max_abs_charge),
+      is_positive_(is_positive)
   {
-    per_charge_snr_ = std::vector<float>(1 + max_charge, .0);
-    per_charge_int_ = std::vector<float>(1 + max_charge, .0);
-    per_charge_cos_ = std::vector<float>(1 + max_charge, .0);
+    per_charge_snr_ = std::vector<float>(1 + max_abs_charge, .0);
+    per_charge_int_ = std::vector<float>(1 + max_abs_charge, .0);
+    per_charge_cos_ = std::vector<float>(1 + max_abs_charge, .0);
   }
 
   PeakGroup::~PeakGroup()
@@ -118,31 +119,31 @@ namespace OpenMS
 
   }
 
-  void PeakGroup::setChargeSNR(const int charge, const float snr)
+  void PeakGroup::setChargeSNR(const int abs_charge, const float snr)
   {
-    if (max_charge_ < charge)
+    if (max_abs_charge_ < abs_charge)
     {
       return;
     }
-    per_charge_snr_[charge] = snr;
+    per_charge_snr_[abs_charge] = snr;
   }
 
-  void PeakGroup::setChargeIsotopeCosine(const int charge, const float cos)
+  void PeakGroup::setChargeIsotopeCosine(const int abs_charge, const float cos)
   {
-    if (max_charge_ < charge)
+    if (max_abs_charge_ < abs_charge)
     {
       return;
     }
-    per_charge_cos_[charge] = cos;
+    per_charge_cos_[abs_charge] = cos;
   }
 
-  void PeakGroup::setChargeIntensity(const int charge, const float intensity)
+  void PeakGroup::setChargeIntensity(const int abs_charge, const float intensity)
   {
-    if (max_charge_ < charge)
+    if (max_abs_charge_ < abs_charge)
     {
       return;
     }
-    per_charge_int_[charge] = intensity;
+    per_charge_int_[abs_charge] = intensity;
   }
 
 
@@ -152,10 +153,10 @@ namespace OpenMS
     max_qscore_mz_end_ = max;
   }
 
-  void PeakGroup::setChargeRange(const int min, const int max)
+  void PeakGroup::setAbsChargeRange(const int min_abs_charge, const int max_abs_charge)
   {
-    min_charge_ = min;
-    max_charge_ = max;
+    min_abs_charge_ = min_abs_charge;
+    max_abs_charge_ = max_abs_charge;
   }
 
   void PeakGroup::setScanNumber(const int sn)
@@ -168,9 +169,9 @@ namespace OpenMS
     isotope_cosine_score_ = cos;
   }
 
-  void PeakGroup::setRepCharge(const int c)
+  void PeakGroup::setRepAbsCharge(const int max_qscore_charge)
   {
-    max_qscore_charge_ = c;
+    max_qscore_abs_charge_ = max_qscore_charge;
   }
 
   void PeakGroup::setChargeScore(const float score)
@@ -194,9 +195,9 @@ namespace OpenMS
     return std::tuple<double, double>{max_qscore_mz_start_, max_qscore_mz_end_};
   }
 
-  std::tuple<int, int> PeakGroup::getChargeRange() const
+  std::tuple<int, int> PeakGroup::getAbsChargeRange() const
   {
-    return std::tuple<int, int>{min_charge_, max_charge_};
+    return std::tuple<int, int>{min_abs_charge_, max_abs_charge_};
   }
 
   int PeakGroup::getScanNumber() const
@@ -218,9 +219,9 @@ namespace OpenMS
     return isotope_cosine_score_;
   }
 
-  int PeakGroup::getRepCharge() const
+  int PeakGroup::getRepAbsCharge() const
   {
-    return max_qscore_charge_;
+    return max_qscore_abs_charge_;
   }
 
   float PeakGroup::getQScore() const
@@ -240,30 +241,35 @@ namespace OpenMS
   }
 
 
-  float PeakGroup::getChargeSNR(const int charge) const
+  float PeakGroup::getChargeSNR(const int abs_charge) const
   {
-    if (max_charge_ < charge)
+    if (max_abs_charge_ < abs_charge)
     {
       return 0;
     }
-    return per_charge_snr_[charge];
+    return per_charge_snr_[abs_charge];
   }
 
-  float PeakGroup::getChargeIsotopeCosine(const int charge) const
+  float PeakGroup::getChargeIsotopeCosine(const int abs_charge) const
   {
-    if (max_charge_ < charge)
+    if (max_abs_charge_ < abs_charge)
     {
       return 0;
     }
-    return per_charge_cos_[charge];
+    return per_charge_cos_[abs_charge];
   }
 
-  float PeakGroup::getChargeIntensity(const int charge) const
+  float PeakGroup::getChargeIntensity(const int abs_charge) const
   {
-    if (max_charge_ < charge)
+    if (max_abs_charge_ < abs_charge)
     {
       return 0;
     }
-    return per_charge_int_[charge];
+    return per_charge_int_[abs_charge];
+  }
+
+  bool PeakGroup::isPositive() const
+  {
+    return is_positive_;
   }
 }

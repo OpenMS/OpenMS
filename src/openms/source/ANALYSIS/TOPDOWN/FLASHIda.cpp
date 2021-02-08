@@ -636,7 +636,7 @@ namespace OpenMS
       window_end[i] = std::get<1>(mz_range) + min_isolation_window_half_;
 
       qscores[i] = deconvoluted_spectrum_[i].getQScore();
-      charges[i] = deconvoluted_spectrum_[i].getRepCharge();
+      charges[i] = deconvoluted_spectrum_[i].getRepAbsCharge();
      // double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
       mono_masses[i] = deconvoluted_spectrum_[i].getMonoMass();
     }

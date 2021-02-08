@@ -38,23 +38,42 @@
 namespace OpenMS
 {
 
-  double QScore::getQScore(const PeakGroup *pg, const int charge)
+  double QScore::getQScore(const PeakGroup *pg, const int abs_charge)
   {
     if (pg == nullptr)
     { // all zero
       return -100;
     }
-    std::vector<double> weights({-5.6712, 0.8026, 6.6789, -3.0862, 0.3892, 0.2935});
-    //
-    //ChargeCos       -5.6712
-    //ChargeSNR        0.8026
-    //Cos              6.6789
-    //SNR             -3.0862
-    //ChargeScore      0.3892
-    //Intercept        0.2935
+    const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
+    const std::vector<double> weights_h({-0.1738, -1.4679, -6.8065, -1.2966, -0.9714, 9.2687});
+    const std::vector<double> weights_l({-3.203, -2.6899, 11.1909, -3.1146, -1.9595, -2.3368});
 
+    //
+    //ChargeCos      -0.1738 <<30kda
+    //ChargeSNR      -1.4679
+    //Cos            -6.8065
+    //SNR            -1.2966
+    //ChargeScore    -0.9714
+    //Intercept       9.2687
+
+    //ChargeCos        1.3522 ///>30kda
+    //ChargeSNR       -1.0877
+    //Cos            -16.4956
+    //SNR              -2.036
+    //ChargeScore     -0.9439
+    //Intercept        18.251
+
+    //ChargeCos          -3.203 // < abs_charge 6
+    //ChargeSNR         -2.6899
+    //Cos               11.1909
+    //SNR               -3.1146
+    //ChargeScore       -1.9595
+    //Intercept         -2.3368
+    const std::vector<double> &weights = (abs_charge > 6 ?
+                                          (pg->getMonoMass() > 30000.0 ? weights_vh : weights_h) :
+                                          weights_l);
     double score = weights[weights.size() - 1];
-    auto fv = toFeatureVector_(pg, charge);
+    auto fv = toFeatureVector_(pg, abs_charge);
     for (int i = 0; i < weights.size() - 1; i++)
     {
       score += fv[i] * weights[i];
@@ -62,15 +81,15 @@ namespace OpenMS
     return -score;
   }
 
-  std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int charge)
+  std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
   {
     std::vector<double> fvector;
 
-    double a = pg->getChargeIsotopeCosine(charge);
+    double a = pg->getChargeIsotopeCosine(abs_charge);
     double d = 1;
     fvector.push_back(log2(a + d));
-    a = pg->getChargeSNR(charge);
-    fvector.push_back(log2(d + a/(1+a)));
+    a = pg->getChargeSNR(abs_charge);
+    fvector.push_back(log2(d + a / (1 + a)));
     a = pg->getIsotopeCosine();
     fvector.push_back(log2(a + d));
     a = pg->getSNR();
@@ -85,7 +104,8 @@ namespace OpenMS
 
   void QScore::writeAttHeader(std::fstream& f)
   {
-    f << "ACC,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+    f
+        << "ACC,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorCharge,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(const String &acc,
@@ -103,7 +123,7 @@ namespace OpenMS
     {
       // return;
       f << acc << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass) << "," << pmz
-        << ",";
+        << ",0,";
       f << "0,0,0,0,0,-5,";
       f << (is_identified ? "T" : "F") << "\n";
     }
@@ -115,7 +135,7 @@ namespace OpenMS
 
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << acc << "," << rt << "," << monomass << "," << mass << "," << pmz << ",";
+      f << acc << "," << rt << "," << monomass << "," << mass << "," << pmz << "," << pg.getRepAbsCharge() << ",";
       for (auto &item : fv)
       {
         f << item << ",";

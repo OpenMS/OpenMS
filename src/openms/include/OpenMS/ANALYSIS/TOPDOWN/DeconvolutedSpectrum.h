@@ -145,8 +145,8 @@ namespace OpenMS
 
     /// get possible max charge of the deconvoluted masses - for MS1, max charge specified by user
     /// for MSn, min value between max charge specified by the user and precursor charge
-    /// @param max_charge the max charge specified by the user
-    int getCurrentMaxCharge(const int max_charge) const;
+    /// @param max_abs_charge the max charge specified by the user
+    int getCurrentMaxAbsCharge(const int max_abs_charge) const;
 
   private:
     /// the original spectrum (not deconvoluted)

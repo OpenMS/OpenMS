@@ -127,18 +127,18 @@ namespace OpenMS
     /// range of mz subject to analysis
     double min_mz_, max_mz_;
     /// min charge and max charge subject to analysis, set by users
-    int min_charge_, max_charge_;
+    int min_abs_charge_, max_abs_charge_;
+    /// is positive mode
+    bool is_positive_;
     /// when a spectrum is deconvoluted, the deconvoluted masses within the this rt window are favorably considered.
     double rt_window_;
     /// mass ranges of deconvolution, set by users
     double min_mass_, max_mass_;
-    /// min charge: 1 for MSn n>1; otherwise just min_charge_
+    /// min charge: 1 for MSn n>1; otherwise just min_abs_charge_
     int current_min_charge_;
-    /// max charge: controlled by precursor charge for MSn n>1; otherwise just max_charge_
+    /// max charge: controlled by precursor charge for MSn n>1; otherwise just max_abs_charge_
     int current_max_charge_;
     /// max mass is controlled by precursor mass for MSn n>1; otherwise just max_mass
-    /// TODO current min charge = 1 for MS2
-
     double current_max_mass_;
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
@@ -238,9 +238,9 @@ namespace OpenMS
     void updateCandidateMassBins_(std::vector<float>& mass_intensitites, const std::vector<float>& mz_intensities);
 
     /** @brief For selected masses in mass_bins_, select the peaks from the original spectrum. Also isotopic peaks are clustered in this function.
-        @param charge_ranges charge range per mass
+        @param per_mass_abs_charge_ranges charge range per mass
      */
-    void getCandidatePeakGroups_(const Matrix<int>& charge_ranges);
+    void getCandidatePeakGroups_(const Matrix<int> &per_mass_abs_charge_ranges);
 
     /// Make the universal pattern..
     void setFilters_();

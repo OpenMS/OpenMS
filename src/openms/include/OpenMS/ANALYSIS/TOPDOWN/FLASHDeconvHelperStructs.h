@@ -124,8 +124,10 @@ namespace OpenMS
       double logMz = -1000;
       /// deteremined mass after deconvolution. NOT monoisotopic but only decharged
       double mass = .0;
-      /// charge
-      int charge = 0;
+      /// absolute charge (in case negative, is_positive is set to false
+      int abs_charge = 0;
+      /// is positive mode
+      bool is_positive = true;
       /// isotope index
       int isotopeIndex = -1;
 

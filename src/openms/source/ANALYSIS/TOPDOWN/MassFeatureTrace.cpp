@@ -70,19 +70,20 @@ namespace OpenMS
   {
     MSExperiment map;
     std::map<int, MSSpectrum> index_spec_map;
-    int min_charge = INT_MAX;
-    int max_charge = INT_MIN;
-
-    for (auto& item : peak_group_map_)
+    int min_abs_charge = INT_MAX;
+    int max_abs_charge = INT_MIN;
+    bool is_positive = true;
+    for (auto &item : peak_group_map_)
     {
       double rt = item.first;
       MSSpectrum deconv_spec;
       deconv_spec.setRT(rt);
-      for (auto& pg : item.second)
+      for (auto &pg : item.second)
       {
-        auto crange = pg.second.getChargeRange();
-        max_charge = max_charge > std::get<1>(crange) ? max_charge : std::get<1>(crange);
-        min_charge = min_charge < std::get<0>(crange) ? min_charge : std::get<0>(crange);
+        is_positive = pg.second.isPositive();
+        auto crange = pg.second.getAbsChargeRange();
+        max_abs_charge = max_abs_charge > std::get<1>(crange) ? max_abs_charge : std::get<1>(crange);
+        min_abs_charge = min_abs_charge < std::get<0>(crange) ? min_abs_charge : std::get<0>(crange);
 
         Peak1D tp(pg.first, (float) pg.second.getIntensity());
         deconv_spec.push_back(tp);
@@ -105,12 +106,12 @@ namespace OpenMS
 
     mtdet.run(map, m_traces);  // m_traces : output of this function
 
-    int charge_range = max_charge - min_charge + 1;
+    int charge_range = max_abs_charge - min_abs_charge + 1;
 
     for (auto& mt : m_traces)
     {
-      int min_feature_charge = INT_MAX; // min feature charge
-      int max_feature_charge = INT_MIN; // max feature charge
+      int min_feature_abs_charge = INT_MAX; // min feature charge
+      int max_feature_abs_charge = INT_MIN; // max feature charge
 
       //int minFIso = INT_MAX; // min feature isotope index
       //int maxFIso = INT_MIN; // max feature isotope index
@@ -131,13 +132,15 @@ namespace OpenMS
 
       for (auto& p2 : mt)
       {
-        auto& pg_map = peak_group_map_[p2.getRT()];
-        auto& pg = pg_map[p2.getMZ()];
+        auto &pg_map = peak_group_map_[p2.getRT()];
+        auto &pg = pg_map[p2.getMZ()];
         int scan_number = pg.getScanNumber();
-        auto crange = pg.getChargeRange();
+        auto crange = pg.getAbsChargeRange();
 
-        min_feature_charge = min_feature_charge < std::get<0>(crange) ? min_feature_charge : std::get<0>(crange);
-        max_feature_charge = max_feature_charge > std::get<1>(crange) ? max_feature_charge : std::get<1>(crange);
+        min_feature_abs_charge =
+            min_feature_abs_charge < std::get<0>(crange) ? min_feature_abs_charge : std::get<0>(crange);
+        max_feature_abs_charge =
+            max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(crange);
 
         min_scan_num = min_scan_num < scan_number ? min_scan_num : scan_number;
         max_scan_num = max_scan_num > scan_number ? max_scan_num : scan_number;
@@ -157,21 +160,21 @@ namespace OpenMS
 
         for (auto& p : pg)
         {
-          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagine.getMaxIsotopeIndex() || p.charge < min_charge ||
-              p.charge >= charge_range + min_charge + 1)
+          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagine.getMaxIsotopeIndex() || p.abs_charge < min_abs_charge ||
+              p.abs_charge >= charge_range + min_abs_charge + 1)
           {
             continue;
           }
 
-          charges[p.charge - min_charge] = true;
-          per_charge_intensity[p.charge - min_charge] += p.intensity;
+          charges[p.abs_charge - min_abs_charge] = true;
+          per_charge_intensity[p.abs_charge - min_abs_charge] += p.intensity;
           per_isotope_intensity[p.isotopeIndex] += p.intensity;
-          if (per_charge_max_intensity[p.charge - min_charge] > p.intensity)
+          if (per_charge_max_intensity[p.abs_charge - min_abs_charge] > p.intensity)
           {
             continue;
           }
-          per_charge_max_intensity[p.charge - min_charge] = p.intensity;
-          per_charge_mz[p.charge - min_charge] = p.mz;
+          per_charge_max_intensity[p.abs_charge - min_abs_charge] = p.intensity;
+          per_charge_mz[p.abs_charge - min_abs_charge] = p.mz;
         }
       }
 
@@ -215,17 +218,31 @@ namespace OpenMS
           << sum_intensity << "\t"
           << mt.getMaxIntensity(false) << "\t"
           << mt.computePeakArea() << "\t"
-          << min_feature_charge << "\t"
-          << max_feature_charge << "\t"
+          << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
+          << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t"
           << charges.count() << "\t"
           << isotope_score << "\t";
 
-      for (int i = min_feature_charge; i <= max_feature_charge; i++)
+      if (is_positive)
       {
-        fsf << per_charge_intensity[i - min_charge];
-        if (i < max_feature_charge)
+        for (int i = min_feature_abs_charge; i <= max_feature_abs_charge; i++)
         {
-          fsf << ";";
+          fsf << per_charge_intensity[i - min_abs_charge];
+          if (i < max_feature_abs_charge)
+          {
+            fsf << ";";
+          }
+        }
+      }
+      else
+      {
+        for (int i = max_feature_abs_charge; i >= min_feature_abs_charge; i--)
+        {
+          fsf << per_charge_intensity[i - min_abs_charge];
+          if (i > min_feature_abs_charge)
+          {
+            fsf << ";";
+          }
         }
       }
       fsf << "\t";
@@ -258,18 +275,21 @@ namespace OpenMS
           if (per_charge_intensity[c] > max_charge_intensity)
           {
             max_charge_intensity = per_charge_intensity[c];
-            rep_charge = c + min_charge;
+            rep_charge = c + min_abs_charge;
           }
         }
         auto apex = mt[mt.findMaxByIntPeak()];
 
         //int si = rtSpecMap[(float) apex.getRT()];
-        auto& sub_pg_map = peak_group_map_[apex.getRT()];
-        auto& spg = sub_pg_map[apex.getMZ()];
+        auto &sub_pg_map = peak_group_map_[apex.getRT()];
+        auto &spg = sub_pg_map[apex.getMZ()];
 
-        fsp << feature_index << "\t" << min_scan_num << "\t" << max_scan_num << "\t" << min_feature_charge << "\t"
-            << max_feature_charge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
-            << rep_scan << "\t" << rep_charge << "\t" << per_charge_mz[rep_charge] << "\t" << sum_intensity << "\t"
+        fsp << feature_index << "\t" << min_scan_num << "\t" << max_scan_num << "\t"
+            << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
+            << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t" << std::to_string(mass) << "\t"
+            << std::fixed << std::setprecision(2)
+            << rep_scan << "\t" << (is_positive ? rep_charge : -rep_charge) << "\t" << per_charge_mz[rep_charge] << "\t"
+            << sum_intensity << "\t"
             << spg.getScanNumber() << "\t" << spg.getIntensity() << "\t"
             << mt.begin()->getRT() / 60.0 << "\t"
             << mt.rbegin()->getRT() / 60.0 << "\t"
