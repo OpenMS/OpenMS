@@ -363,7 +363,7 @@ namespace OpenMS
           continue;
         // for all the maps for the "real" sequences, overwrite the distance, if an unspecific one is better or
         // add a new entry, so we can just "sum up" the distances for each seq later.
-        for (auto mapidx_unspecdist : unspecific->second)
+        for (const auto mapidx_unspecdist : unspecific->second)
         {
           // try to add new entry
           auto mapidx_inserted = it->second.emplace(mapidx_unspecdist.first, mapidx_unspecdist.second);
