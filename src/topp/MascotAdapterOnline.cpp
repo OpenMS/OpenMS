@@ -200,8 +200,10 @@ protected:
     }
   }
 
+  // merge b into a
   void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, vector<PeptideIdentification>& pep_a, const vector<PeptideIdentification>& pep_b)
   {
+    // add proteins of b to a
     for (const ProteinHit& p : p_b.getHits())
     {
       p_a.insertHit(p);
@@ -289,124 +291,185 @@ protected:
     }
 
     mascot_param.setValue("internal:HTTP_format", "true");
-    MascotGenericFile mgf_file;
-    mgf_file.setParameters(mascot_param);
 
-    // get the spectra into string stream
-    writeDebug_("Writing MGF file to stream", 1);
-    stringstream ss;
-    mgf_file.store(ss, in, exp, true); // write in compact format
+    SpectrumLookup lookup;        
+    lookup.readSpectra(exp.getSpectra());
 
-    // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
-    // QEventLoop to process the signals and slots and grab the results afterwards from
-    // the MascotRemotQuery instance
-    char** argv2 = const_cast<char**>(argv);
-    QCoreApplication event_loop(argc, argv2);
-    MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
-    Param mascot_query_param = getParam_().copy("Mascot_server:", true);
-    writeDebug_("Setting parameters for Mascot query", 1);
-    mascot_query->setParameters(mascot_query_param);
-    
-    bool internal_decoys = mascot_param.getValue("decoy") == "true";
-    // We used internal decoy search. Set that we want to retrieve decoy search results during export.
-    if (internal_decoys)
+    int batch_size = getIntOption_("batch_size");
+    int chunks = (exp.size() - 1) / batch_size + 1; // Note: safe as we have at least one spectrum
+
+    vector<ProteinIdentification> all_prot_ids;
+    ProteinIdentification all_prot_id;
+
+    MSExperiment current_batch;
+    for (int k = 0; k < chunks; ++k)
     {
-      mascot_query->setExportDecoys(true);
-    }
+      // get range for next set of n elements
+      auto start_itr = std::next(exp.begin(), k*n);
+      auto end_itr = std::next(exp.begin(), k*n + n);
 
-    writeDebug_("Setting spectra for Mascot query", 1);
-    mascot_query->setQuerySpectra(ss.str());
+      // allocate memory for the current chunk
+      current_batch.resize(n);
 
-    // remove unnecessary spectra
-    ss.clear();
+      // code to handle the last sub-vector as it might
+      // contain less elements
+      if (k*n + n > exp.size()) 
+      {
+          end_itr = exp.end();
+          current_batch.resize(exp.size() - k*n);
+      }
 
-    QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
-    QTimer::singleShot(1000, mascot_query, SLOT(run()));
-    writeLog_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
-    event_loop.exec();
-    writeLog_("Mascot query finished");
+      // copy elements from the input range to the sub-vector        
+      std::copy(start_itr, end_itr, current_batch.begin());
 
-    if (mascot_query->hasError())
-    {
-      writeLog_("An error occurred during the query: " + mascot_query->getErrorMessage());
-      delete mascot_query;
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+      // write mgf and run search
+      MascotGenericFile mgf_file;
+      mgf_file.setParameters(mascot_param);
+      // get the spectra into string stream
+      writeDebug_("Writing MGF file to stream", 1);
+      stringstream ss;
+      mgf_file.store(ss, in, current_batch, true); // write in compact format
 
-    vector<PeptideIdentification> pep_ids;
-    ProteinIdentification prot_id;
-
-    if (!mascot_query_param.exists("skip_export") ||
-        !mascot_query_param.getValue("skip_export").toBool())
-    {
-      // write Mascot response to file
-      parseMascotResponse_(exp, false, mascot_query, prot_id, pep_ids); // targets
-
-      // reannotate proper spectrum native id
-      SpectrumMetaDataLookup::addMissingSpectrumReferences(
-        pep_ids, 
-        in,
-        true);
-
+      // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
+      // QEventLoop to process the signals and slots and grab the results afterwards from
+      // the MascotRemotQuery instance
+      char** argv2 = const_cast<char**>(argv);
+      QCoreApplication event_loop(argc, argv2);
+      MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
+      Param mascot_query_param = getParam_().copy("Mascot_server:", true);
+      writeDebug_("Setting parameters for Mascot query", 1);
+      mascot_query->setParameters(mascot_query_param);
+      
+      bool internal_decoys = mascot_param.getValue("decoy") == "true";
+      // We used internal decoy search. Set that we want to retrieve decoy search results during export.
       if (internal_decoys)
       {
-        vector<PeptideIdentification> decoy_pep_ids;
-        ProteinIdentification decoy_prot_id;
-        parseMascotResponse_(exp, true, mascot_query, decoy_prot_id, decoy_pep_ids);  // decoys
-
-        // reannotate proper spectrum native id
-        SpectrumMetaDataLookup::addMissingSpectrumReferences(
-          decoy_pep_ids, 
-          in,
-          true);
-        mergeIDs_(prot_id, decoy_prot_id, pep_ids, decoy_pep_ids);
+        mascot_query->setExportDecoys(true);
       }
 
-      // keep or delete protein identifications?!
-      if (!getFlag_("keep_protein_links"))
+      writeDebug_("Setting spectra for Mascot query", 1);
+      mascot_query->setQuerySpectra(ss.str());
+
+      // remove unnecessary spectra
+      ss.clear();
+
+      QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
+      QTimer::singleShot(1000, mascot_query, SLOT(run()));
+      writeLog_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
+      event_loop.exec();
+      writeLog_("Mascot query finished");
+
+      if (mascot_query->hasError())
       {
-        // remove protein links from peptides
-        for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
-             pep_it != pep_ids.end(); ++pep_it)
+        writeLog_("An error occurred during the query: " + mascot_query->getErrorMessage());
+        delete mascot_query;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+
+      vector<PeptideIdentification> pep_ids;
+      ProteinIdentification prot_id;
+
+      if (!mascot_query_param.exists("skip_export") ||
+          !mascot_query_param.getValue("skip_export").toBool())
+      {
+        // write Mascot response to file
+        parseMascotResponse_(current_batch, false, mascot_query, prot_id, pep_ids); // targets
+
+        // reannotate proper spectrum native id if missing
+        for (auto& pep : pep_ids)
         {
-          for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-               hit_it != pep_it->getHits().end(); ++hit_it)
+          // no need to reannotate
+          if (pep.metaValueExists("spectrum_reference") && !pep.getMetaValue("spectrum_reference").empty()) continue;
+
+          try
+          { 
+            Size index = lookup.findByRT(pep.getRT());
+            pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+          }
+          catch (Exception::ElementNotFound&)
           {
-            hit_it->setPeptideEvidences({});
+            OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
+            success = false;
+            if (stop_on_error) break;
           }
         }
-        // remove proteins
-        prot_id.getHits().clear();
-      }
-    }
 
-    String search_number = mascot_query->getSearchIdentifier();
-    if (search_number.empty())
-    {
-      writeLog_("Error: Failed to extract the Mascot search identifier (search number).");
-      if (mascot_query_param.exists("skip_export") &&
-          mascot_query_param.getValue("skip_export").toBool())
+        if (internal_decoys)
+        {
+          vector<PeptideIdentification> decoy_pep_ids;
+          ProteinIdentification decoy_prot_id;
+          parseMascotResponse_(current_batch, true, mascot_query, decoy_prot_id, decoy_pep_ids);  // decoys
+
+          // reannotate proper spectrum native id if missing
+          for (auto& pep : decoy_pep_ids
+          {
+            // no need to reannotate
+            if (pep.metaValueExists("spectrum_reference") && !pep.getMetaValue("spectrum_reference").empty()) continue;
+
+            try
+            { 
+              Size index = lookup.findByRT(pep.getRT());
+              pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+            }
+            catch (Exception::ElementNotFound&)
+            {
+              OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
+              success = false;
+              if (stop_on_error) break;
+            }
+          }
+          mergeIDs_(prot_id, decoy_prot_id, pep_ids, decoy_pep_ids);
+        }
+
+        // keep or delete protein identifications?!
+        if (!getFlag_("keep_protein_links"))
+        {
+          // remove protein links from peptides
+          for (auto& pep : pep_ids)
+          {
+            for (auto& hit : pep.getHits())
+            {
+              hit.setPeptideEvidences({});
+            }
+          }
+          // remove proteins
+          prot_id.getHits().clear();
+        }
+      }
+
+      String search_number = mascot_query->getSearchIdentifier();
+      if (search_number.empty())
       {
-        return PARSE_ERROR;
+        writeLog_("Error: Failed to extract the Mascot search identifier (search number).");
+        if (mascot_query_param.exists("skip_export") &&
+            mascot_query_param.getValue("skip_export").toBool())
+        {
+          return PARSE_ERROR;
+        }
       }
-    }
-    else prot_id.setMetaValue("SearchNumber", search_number);
+      else 
+      {
+        prot_id.setMetaValue("SearchNumber", search_number);
+      }
 
-    // clean up
-    delete mascot_query;
+      // clean up
+      delete mascot_query;
+      
+      current_batch.clear();
+
+      mergeIDs_(all_prot_id, all_pep_ids, prot_id, pep_ids);
+    }
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-
-    vector<ProteinIdentification> prot_ids;
-    prot_id.setPrimaryMSRunPath({ in }, exp);
-    prot_ids.push_back(prot_id);
+    all_prot_id.setPrimaryMSRunPath({ in }, exp);
+    all_prot_ids.push_back(all_prot_id);
 
     // write all (!) parameters as metavalues to the search parameters
-    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), prot_ids[0].getSearchParameters(), this->getToolPrefix());
+    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    IdXMLFile().store(out, all_prot_ids, all_pep_ids);
     
     return EXECUTION_OK;
   }
