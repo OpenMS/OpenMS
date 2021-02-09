@@ -847,16 +847,16 @@ namespace OpenMS
           mrmfeature.addScore("var_massdev_score", scores.massdev_score);
           mrmfeature.addScore("var_massdev_score_weighted", scores.weighted_massdev_score);
 
-          if (su_.use_ms2_isotope_scores)
-          {
-            mrmfeature.addScore("var_dotprod_score", scores.dotprod_score_dia);
-            mrmfeature.addScore("var_manhatt_score", scores.manhatt_score_dia);
-          }
-
           if (su_.use_ionseries_scores)
           {
             mrmfeature.addScore("var_bseries_score", scores.bseries_score);
             mrmfeature.addScore("var_yseries_score", scores.yseries_score);
+          }
+
+          if (su_.use_ms2_isotope_scores)
+          {
+            mrmfeature.addScore("var_dotprod_score", scores.dotprod_score_dia);
+            mrmfeature.addScore("var_manhatt_score", scores.manhatt_score_dia);
           }
 
           if (su_.use_ms1_correlation)
