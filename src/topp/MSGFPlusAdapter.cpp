@@ -156,7 +156,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
     registerOutputFile_("out", "<file>", "", "Output file", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);

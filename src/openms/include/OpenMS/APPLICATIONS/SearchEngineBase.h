@@ -77,14 +77,17 @@ namespace OpenMS
     virtual ~SearchEngineBase();
 
     /**
-      @brief Reads the '-in' argument from internal parameters (i.e. the mzML file) and checks if MS2 spectra are present and are centroided. If no MS2 or profile MS2 data is found, an exception is thrown.
+      @brief Reads the '-in' argument from internal parameters (usually an mzML file) and checks if MS2 spectra are present and are centroided.
+
+      If the file is an mzML file, the spectra annotation can be checked. If no MS2 or profile MS2 data is found, an exception is thrown.
+      If the file is any other format, the overhead of reading in the file is too large and we just issue a general warning that centroided data should be used.
 
       @param ms_level The MS level to check for their type (centroided/profile)
 
-      @return mzML filename (might be a relative or absolute path)
+      @return A filename (might be a relative or absolute path)
 
-      @throws OpenMS::Exception::FileEmpty if no spectra are found
-      @throws OpenMS::Exception::IllegalArgument if spectra are not centroided
+      @throws OpenMS::Exception::FileEmpty if no spectra are found (mzML only)
+      @throws OpenMS::Exception::IllegalArgument if spectra are not centroided (mzML only)
 
     */
     String getRawfileName(int ms_level = 2) const;

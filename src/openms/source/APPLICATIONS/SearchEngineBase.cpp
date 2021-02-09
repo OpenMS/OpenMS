@@ -34,6 +34,8 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -52,19 +54,33 @@ namespace OpenMS
   String SearchEngineBase::getRawfileName(int ms_level) const
   {
     String inputfile_name = getStringOption_("in");
-    MzMLFile mzml;
-    mzml.getOptions().setMSLevels({ms_level}); // only query MS2 (or whatever ms_level is)
-    const auto& centroid_info = mzml.getCentroidInfo(inputfile_name);
-    const auto& lvl_info = centroid_info.find(ms_level);
-    if (lvl_info == centroid_info.end())
+    FileHandler fh;
+    auto type = fh.getType(inputfile_name);
+    switch (type)
     {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
+      case FileTypes::MZML:
+      {
+        MzMLFile mzml;
+        mzml.getOptions().setMSLevels({ ms_level }); // only query MS2 (or whatever ms_level is)
+        const auto& centroid_info = mzml.getCentroidInfo(inputfile_name);
+        const auto& lvl_info = centroid_info.find(ms_level);
+        if (lvl_info == centroid_info.end())
+        {
+          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
+        }
+
+        if (lvl_info->second.count_profile_or_unknown > 0 && !getFlag_("force"))
+        {
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
+        }
+      }
+      case FileTypes::MGF:
+        // no warning required. MGF files should be centroided by definition
+        break;
+      default:
+        OPENMS_LOG_WARN << "Warning: make sure that MS" << ms_level << " spectra in '" << inputfile_name << "' are centroided. Otherwise the results may be undefined!";
     }
-      
-    if (lvl_info->second.count_profile_or_unknown > 0 && !getFlag_("force"))
-    {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
-    }
+
       
     return inputfile_name;
   }
