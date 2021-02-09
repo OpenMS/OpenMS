@@ -305,18 +305,18 @@ protected:
     for (int k = 0; k < chunks; ++k)
     {
       // get range for next set of n elements
-      auto start_itr = std::next(exp.begin(), k*n);
-      auto end_itr = std::next(exp.begin(), k*n + n);
+      auto start_itr = std::next(exp.begin(), k*batch_size);
+      auto end_itr = std::next(exp.begin(), k*batch_size + batch_size);
 
       // allocate memory for the current chunk
-      current_batch.resize(n);
+      current_batch.resize(batch_size);
 
       // code to handle the last sub-vector as it might
       // contain less elements
-      if (k*n + n > exp.size()) 
+      if (k*batch_size + batch_size > exp.size()) 
       {
           end_itr = exp.end();
-          current_batch.resize(exp.size() - k*n);
+          current_batch.resize(exp.size() - k*batch_size);
       }
 
       // copy elements from the input range to the sub-vector        
@@ -379,8 +379,9 @@ protected:
         for (auto& pep : pep_ids)
         {
           // no need to reannotate
-          if (pep.metaValueExists("spectrum_reference") && !pep.getMetaValue("spectrum_reference").empty()) continue;
-
+          if (pep.metaValueExists("spectrum_reference") 
+            && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()) continue;
+            
           try
           { 
             Size index = lookup.findByRT(pep.getRT());
@@ -389,8 +390,6 @@ protected:
           catch (Exception::ElementNotFound&)
           {
             OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
-            success = false;
-            if (stop_on_error) break;
           }
         }
 
@@ -404,7 +403,8 @@ protected:
           for (auto& pep : decoy_pep_ids
           {
             // no need to reannotate
-            if (pep.metaValueExists("spectrum_reference") && !pep.getMetaValue("spectrum_reference").empty()) continue;
+          if (pep.metaValueExists("spectrum_reference") 
+            && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()) continue;
 
             try
             { 
@@ -414,8 +414,6 @@ protected:
             catch (Exception::ElementNotFound&)
             {
               OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
-              success = false;
-              if (stop_on_error) break;
             }
           }
           mergeIDs_(prot_id, decoy_prot_id, pep_ids, decoy_pep_ids);
