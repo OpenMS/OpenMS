@@ -74,8 +74,8 @@ public:
     /**
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
-      @p filename The filename with the data
-      @p map Is an MSExperiment
+      @param filename The filename with the data
+      @param map Is an MSExperiment
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -85,8 +85,8 @@ public:
     /**
       @brief Loads a map from a MzML file stored in a buffer (in memory).
 
-      @p filename The buffer with the data
-      @p map Is an MSExperiment
+      @param[in] buffer The buffer with the data (i.e. string with content of an mzML file)
+      @param[out] map Is an MSExperiment
 
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
@@ -175,16 +175,25 @@ public:
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
+
+    struct SpecInfo
+    {
+      Size count_centroided = 0;
+      Size count_profile_or_unknown = 0;
+    };
+      
     /**
      * @brief Gets info on centroidedness of spectra based on their metadata
      * 
+     * The current PeakFileOptions, e.g. which MS-level to read/skip, are honored.
+     * 
      * @param filename File name of the mzML file to be checked
      * 
-     * @return Map from MS level to pair of counts (centroided, non-centroided)
+     * @return Map from MS level to counts (centroided, non-centroided)
      * 
      * @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    std::map<UInt,std::pair<Size,Size>> getCentroidInfo(const String& filename);
+    std::map<UInt, SpecInfo> getCentroidInfo(const String& filename);
 
 protected:
 
