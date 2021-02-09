@@ -380,7 +380,10 @@ protected:
         {
           // no need to reannotate
           if (pep.metaValueExists("spectrum_reference") 
-            && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()) continue;
+            && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()))
+          {
+            continue;
+          }
             
           try
           { 
@@ -403,8 +406,11 @@ protected:
           for (auto& pep : decoy_pep_ids
           {
             // no need to reannotate
-          if (pep.metaValueExists("spectrum_reference") 
-            && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()) continue;
+            if (pep.metaValueExists("spectrum_reference") 
+              && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()))
+            {
+              continue;
+            } 
 
             try
             { 
