@@ -403,7 +403,7 @@ protected:
           parseMascotResponse_(current_batch, true, mascot_query, decoy_prot_id, decoy_pep_ids);  // decoys
 
           // reannotate proper spectrum native id if missing
-          for (auto& pep : decoy_pep_ids
+          for (auto& pep : decoy_pep_ids)
           {
             // no need to reannotate
             if (pep.metaValueExists("spectrum_reference") 
