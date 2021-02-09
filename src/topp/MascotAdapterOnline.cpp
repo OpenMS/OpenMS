@@ -295,14 +295,14 @@ protected:
     SpectrumLookup lookup;        
     lookup.readSpectra(exp.getSpectra());
 
-    int batch_size = getIntOption_("batch_size");
-    int chunks = (exp.size() - 1) / batch_size + 1; // Note: safe as we have at least one spectrum
+    size_t batch_size = (size_t)getIntOption_("batch_size");
+    size_t chunks = (exp.size() - 1) / batch_size + 1; // Note: safe as we have at least one spectrum
 
     vector<ProteinIdentification> all_prot_ids;
     ProteinIdentification all_prot_id;
 
     MSExperiment current_batch;
-    for (int k = 0; k < chunks; ++k)
+    for (size_t k = 0; k < chunks; ++k)
     {
       // get range for next set of n elements
       auto start_itr = std::next(exp.begin(), k*batch_size);
