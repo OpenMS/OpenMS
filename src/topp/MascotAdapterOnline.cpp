@@ -459,7 +459,7 @@ protected:
       // clean up
       delete mascot_query;
       
-      current_batch.clear();
+      current_batch.clear(true); // clear meta data
 
       mergeIDs_(all_prot_id, all_pep_ids, prot_id, pep_ids);
     }
