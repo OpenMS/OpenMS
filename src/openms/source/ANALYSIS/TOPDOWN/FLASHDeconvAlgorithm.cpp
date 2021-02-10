@@ -52,8 +52,8 @@ namespace OpenMS
     defaults_.setValue("min_mass", 50.0, "minimum mass (Da)");
     defaults_.setValue("max_mass", 100000.0, "maximum mass (Da)");
 
-    defaults_.setValue("min_charge", 1, "minimum charge state (can be negative for negative mode)");
-    defaults_.setValue("max_charge", 100, "maximum charge state (can be negative for negative mode)");
+    defaults_.setValue("min_charge", 2, "minimum charge state for MS1 spectra (can be negative for negative mode)");
+    defaults_.setValue("max_charge", 100, "maximum charge state for MS1 spectra (can be negative for negative mode)");
 
     defaults_.setValue("min_mz", -1.0, "if set to positive value, minimum m/z to deconvolute.");
     defaults_.setValue("max_mz", -1.0, "if set to positive value, maximum m/z to deconvolute.");
@@ -295,10 +295,10 @@ namespace OpenMS
     mz_bins_for_edge_effect_ = boost::dynamic_bitset<>(bin_number);
     mz_bins_ = boost::dynamic_bitset<>(bin_number);
     //std::fill(mz_bin_intensities.begin(), mz_bin_intensities.end(), .0);
-
+    double bin_width = bin_width_[ms_level_ - 1];
     for (auto &p : log_mz_peaks_)
     {
-      Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width_[ms_level_ - 1]);
+      Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width);
       if (bi >= bin_number)
       {
         continue;
@@ -309,8 +309,8 @@ namespace OpenMS
     }
     for (auto &p : log_mz_peaks_)
     {
-      Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width_[ms_level_ - 1]);
-      double delta = (p.logMz - getBinValue_(bi, mz_bin_min_value_, bin_width_[ms_level_ - 1]));
+      Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width);
+      double delta = (p.logMz - getBinValue_(bi, mz_bin_min_value_, bin_width));
 
       if (delta > 0)
       {
@@ -389,7 +389,7 @@ namespace OpenMS
     // not just charges but intensities are stored to see the intensity fold change
     auto prev_intensities = std::vector<float>(mass_bins_.size(), 1.0f);
 
-    double b_width = bin_width_[ms_level_ - 1];
+    double bin_width = bin_width_[ms_level_ - 1];
 
     // intensity change ratio should not exceed the factor.
     const float factor = 5.0;
@@ -401,10 +401,10 @@ namespace OpenMS
       double mz = -1.0, log_mz = 0;
       //if (ms_level_ > 1)
       // {
-      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, b_width);
+      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, bin_width);
       mz = exp(log_mz);
       //} double diff = Constants::C13C12_MASSDIFF_U / a_charge / mz;
-      //          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
+      //          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
 
       // scan through charges
       for (int j = 0; j < charge_range; j++) //  increasing.
@@ -432,7 +432,7 @@ namespace OpenMS
           if (abs_charge <= low_charge)
           { // for low charges
             double diff = Constants::C13C12_MASSDIFF_U / abs_charge / mz;
-            Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
+            Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
 
             if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
             {
@@ -529,7 +529,7 @@ namespace OpenMS
           bool support_peak_present = false;
           double iso_intensity = .0;
           double diff = Constants::C13C12_MASSDIFF_U / abs_charge / mz;
-          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, b_width);
+          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
 
           if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
           {
@@ -543,7 +543,7 @@ namespace OpenMS
             if (tmz > 0)
             {
               double water_loss_mz = log(tmz); // 17.026549
-              Size water_loss_bin = getBinNumber_(water_loss_mz, mz_bin_min_value_, b_width);
+              Size water_loss_bin = getBinNumber_(water_loss_mz, mz_bin_min_value_, bin_width);
 
               if (water_loss_bin >= 0 && mz_bins_for_edge_effect_[water_loss_bin])
               {
@@ -559,7 +559,7 @@ namespace OpenMS
             double amonia_loss_mz = log(tmz); // 17.026549
             if (tmz > 0)
             {
-              Size amonia_loss_bin = getBinNumber_(amonia_loss_mz, mz_bin_min_value_, b_width);
+              Size amonia_loss_bin = getBinNumber_(amonia_loss_mz, mz_bin_min_value_, bin_width);
 
               if (amonia_loss_bin >= 0 && mz_bins_for_edge_effect_[amonia_loss_bin])
               {
@@ -591,6 +591,7 @@ namespace OpenMS
   {
     //int chargeRange = param.currentChargeRange;
     int charge_range = current_max_charge_ - current_min_charge_ + 1;
+    double bin_width = bin_width_[ms_level_ - 1];
     Matrix<int> abs_charge_ranges(2, mass_bins_.size(), INT_MAX);
     for (int i = 0; i < mass_bins_.size(); i++)
     {
@@ -640,7 +641,7 @@ namespace OpenMS
           bool artifact = false;
           if (ms_level_ == 1)
           {
-            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
             double mass = exp(original_log_mass);
             double diff = Constants::C13C12_MASSDIFF_U / mass;
             for (int iso_off = -2; iso_off <= 2 && !artifact; ++iso_off)
@@ -655,7 +656,7 @@ namespace OpenMS
                 for (int f = -1; f <= 1 && !artifact; f += 2) //
                 {
                   double hmass = log_mass - log(h) * f;
-                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
                   if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                   {
                     //for (int off = 0; off <= 0 && !artifact; off++)
@@ -682,7 +683,7 @@ namespace OpenMS
                       continue;
                     }
                     double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
-                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
                     if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                     {
                       //for (int off = 0; off <= 0 && !artifact; off++)
@@ -763,7 +764,7 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::getCandidatePeakGroups_(const Matrix<int> &per_mass_abs_charge_ranges)
   {
     const int max_missing_isotope = 3;
-    double b_width = bin_width_[ms_level_ - 1];
+    double bin_width = bin_width_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
     int charge_range = current_max_charge_ - current_min_charge_ + 1;
     Size mass_bin_size = mass_bins_.size();
@@ -775,12 +776,12 @@ namespace OpenMS
 
     for (int i = 0; i < log_mz_peak_size; i++)
     {
-      peak_bin_numbers[i] = getBinNumber_(log_mz_peaks_[i].logMz, mz_bin_min_value_, b_width);
+      peak_bin_numbers[i] = getBinNumber_(log_mz_peaks_[i].logMz, mz_bin_min_value_, bin_width);
     }
 
     while (mass_bin_index != mass_bins_.npos)
     {
-      double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, b_width);
+      double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
       double mass = exp(log_m);
       PeakGroup pg(current_min_charge_,
                    per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + current_min_charge_,
@@ -1061,7 +1062,7 @@ namespace OpenMS
         filter_[tmp_peak_cntr],
         log(current_max_mass_ + avg_.getIsotopeEndIndex(current_max_mass_) + 1));
 
-    double b_width = bin_width_[ms_level_ - 1];
+    double bin_width = bin_width_[ms_level_ - 1];
     tmp_peak_cntr = min_peak_cntr - 1;
     tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
     //filter.push_back(log(1.0 / abs(i + minCharge)));
@@ -1070,13 +1071,13 @@ namespace OpenMS
     mz_bin_min_value_ = log_mz_peaks_[0].logMz;
 
     double mz_bin_max_value = log_mz_peaks_[log_mz_peaks_.size() - 1].logMz;
-    Size mass_bin_number = getBinNumber_(mass_bin_max_value, mass_bin_min_value_, b_width) + 1;
-    //std::cout<<current_max_mass_ << " " << exp(getBinValue_(mass_bin_number, mass_bin_min_value_, b_width))<<std::endl;
+    Size mass_bin_number = getBinNumber_(mass_bin_max_value, mass_bin_min_value_, bin_width) + 1;
+    //std::cout<<current_max_mass_ << " " << exp(getBinValue_(mass_bin_number, mass_bin_min_value_, bin_width))<<std::endl;
     bin_offsets_.clear();
     harmonic_bin_offset_matrix_.clear();
     for (int i = 0; i < current_charge_range; i++)
     {
-      bin_offsets_.push_back((int) round((mz_bin_min_value_ - filter_[i] - mass_bin_min_value_) * b_width));
+      bin_offsets_.push_back((int) round((mz_bin_min_value_ - filter_[i] - mass_bin_min_value_) * bin_width));
     }
 
     //long massBinIndex = mzBinIndex + bin_offsets_[j];
@@ -1091,11 +1092,11 @@ namespace OpenMS
             .setValue(k,
                       i,
                       (int) round((mz_bin_min_value_ - harmonic_filter_matrix_.getValue(k, i) - mass_bin_min_value_) *
-                                  b_width));
+                                  bin_width));
       }
     }
 
-    Size mz_bin_number = getBinNumber_(mz_bin_max_value, mz_bin_min_value_, b_width) + 1;
+    Size mz_bin_number = getBinNumber_(mz_bin_max_value, mz_bin_min_value_, bin_width) + 1;
     auto mz_bin_intensities = std::vector<float>(mz_bin_number, .0f);
 
     updateMzBins_(mz_bin_number, mz_bin_intensities);
@@ -1114,7 +1115,7 @@ namespace OpenMS
 
     scoreAndFilterPeakGroups_();
 
-    removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]); //
+    //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]); //
 
     if (ms_level_ == 1)
     {
@@ -1142,7 +1143,7 @@ namespace OpenMS
         //if (massBinsForThisSpectrum[pg.massBinIndex])
         //{
         double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
-        Size pg_bin = getBinNumber_(pg.getMonoMass() + mass_delta, 0, bin_width_[ms_level_ - 1]);
+        Size pg_bin = getBinNumber_(pg.getMonoMass() + mass_delta, 0, bin_width);
         curr_mass_bin.push_back(pg_bin);
         //  }
       }
@@ -1313,7 +1314,7 @@ namespace OpenMS
         n_r++;
       }
       //spc >= a_charge/2
-      if (n_r >= min_support_peak_count_[ms_level_ - 1] || n_r >= cntr / 2)//TODO
+      if (n_r >= min_support_peak_count_[ms_level_ - 1] || n_r >= cntr / 2)//
       {
         return true;
       }
@@ -1580,6 +1581,47 @@ namespace OpenMS
       peak_group.setMaxQScoreMzRange(max_q_score_mz_start, max_q_score_mz_end);
       filtered_peak_groups.push_back(peak_group);
     }
+    /*
+    if(!triggeredMzs.empty())
+    {
+      auto tmp_filtered_peak_groups = filtered_peak_groups;
+      filtered_peak_groups.clear();
+      bool start = true;
+      for (double t_mz : triggeredMzs)
+      {
+        double max_iso_cos = -100;
+        PeakGroup max_iso_cos_peak_group;
+        for (auto &peak_group: tmp_filtered_peak_groups)
+        {
+          bool select = true;
+          for (auto &peak : peak_group)
+          {
+            if(select && triggeredMzs.find(peak.mz) != triggeredMzs.end()){
+              select = false;
+            }
+            if (t_mz == peak.mz)
+            {
+              //select = false;
+              if (max_iso_cos < peak_group.getIsotopeCosine())
+              {
+                max_iso_cos = peak_group.getIsotopeCosine();
+                max_iso_cos_peak_group = peak_group;
+              }
+              break;
+            }
+          }
+
+          if(select && start){
+            filtered_peak_groups.push_back(peak_group);
+          }
+        }
+        start = false;
+        if(max_iso_cos > -100){
+          filtered_peak_groups.push_back(max_iso_cos_peak_group);
+        }
+      }
+    }
+    */
     deconvoluted_spectrum_.swap(filtered_peak_groups);
 
     if (ms_level_ > 1)

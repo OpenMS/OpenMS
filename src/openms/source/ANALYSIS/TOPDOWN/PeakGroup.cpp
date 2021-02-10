@@ -41,14 +41,14 @@ namespace OpenMS
       max_abs_charge_(max_abs_charge),
       is_positive_(is_positive)
   {
-    per_charge_snr_ = std::vector<float>(1 + max_abs_charge, .0);
-    per_charge_int_ = std::vector<float>(1 + max_abs_charge, .0);
-    per_charge_cos_ = std::vector<float>(1 + max_abs_charge, .0);
+    //per_charge_snr_ = std::vector<float>(1 + max_abs_charge, .0);
+    //per_charge_int_ = std::vector<float>(1 + max_abs_charge, .0);
+    //per_charge_cos_ = std::vector<float>(1 + max_abs_charge, .0);
   }
 
   PeakGroup::~PeakGroup()
   {
-    clearChargeInfo();
+    //clearChargeInfo();
   }
 
   void PeakGroup::clearChargeInfo()
@@ -125,6 +125,10 @@ namespace OpenMS
     {
       return;
     }
+    if (per_charge_snr_.empty())
+    {
+      per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
+    }
     per_charge_snr_[abs_charge] = snr;
   }
 
@@ -134,6 +138,10 @@ namespace OpenMS
     {
       return;
     }
+    if (per_charge_cos_.empty())
+    {
+      per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
+    }
     per_charge_cos_[abs_charge] = cos;
   }
 
@@ -142,6 +150,10 @@ namespace OpenMS
     if (max_abs_charge_ < abs_charge)
     {
       return;
+    }
+    if (per_charge_int_.empty())
+    {
+      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
     }
     per_charge_int_[abs_charge] = intensity;
   }
@@ -243,16 +255,18 @@ namespace OpenMS
 
   float PeakGroup::getChargeSNR(const int abs_charge) const
   {
-    if (max_abs_charge_ < abs_charge)
+    if (per_charge_snr_.size() <= abs_charge)
     {
       return 0;
     }
+    //std::cout<<per_charge_snr_.size()<<" " << abs_charge << " " << per_charge_snr_[abs_charge] <<  std::endl;
+
     return per_charge_snr_[abs_charge];
   }
 
   float PeakGroup::getChargeIsotopeCosine(const int abs_charge) const
   {
-    if (max_abs_charge_ < abs_charge)
+    if (per_charge_cos_.size() <= abs_charge)
     {
       return 0;
     }
@@ -261,7 +275,7 @@ namespace OpenMS
 
   float PeakGroup::getChargeIntensity(const int abs_charge) const
   {
-    if (max_abs_charge_ < abs_charge)
+    if (per_charge_int_.size() <= abs_charge)
     {
       return 0;
     }

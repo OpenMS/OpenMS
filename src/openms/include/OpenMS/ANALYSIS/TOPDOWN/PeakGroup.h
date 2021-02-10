@@ -183,7 +183,7 @@ namespace OpenMS
     /// mz range resulting in maximum Q score
     double max_qscore_mz_end_, max_qscore_mz_start_;
     /// charge range
-    int max_abs_charge_, min_abs_charge_;
+    int min_abs_charge_, max_abs_charge_;
     /// scan number
     int scan_number_;
     /// is positive or not

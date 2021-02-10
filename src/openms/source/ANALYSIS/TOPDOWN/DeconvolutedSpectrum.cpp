@@ -381,7 +381,7 @@ namespace OpenMS
                         precursor.getIsolationWindowUpperOffset() :
                         precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
 
-        double max_sum_intensity = 0.0;
+        double max_qscore = -10000.0;
         for (auto& pg: precursor_spectrum)
         {
           //std::sort(pg.begin(), pg.end());
@@ -390,7 +390,7 @@ namespace OpenMS
             continue;
           }
 
-          double sum_intensity = .0;
+          //double sum_intensity = .0;
           double max_intensity = .0;
           const LogMzPeak *tmp_precursor = nullptr;
           for (auto& tmp_peak:pg)
@@ -403,7 +403,7 @@ namespace OpenMS
             {
               break;
             }
-            sum_intensity += tmp_peak.intensity;
+            //sum_intensity += tmp_peak.intensity;
 
             if (tmp_peak.intensity < max_intensity)
             {
@@ -414,7 +414,7 @@ namespace OpenMS
             tmp_precursor = &tmp_peak;
           }
 
-          if (sum_intensity <= max_sum_intensity || tmp_precursor == nullptr)
+          if (pg.getQScore() <= max_qscore || tmp_precursor == nullptr)
           {
             continue;
           }
@@ -423,7 +423,7 @@ namespace OpenMS
           precursor_peak_.setIntensity(tmp_precursor->intensity);
           precursor_peak_
               .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge : -tmp_precursor->abs_charge);
-          max_sum_intensity = sum_intensity;
+          max_qscore = pg.getQScore();
           precursor_peak_group_ = pg;
         }
         if(!precursor_peak_group_.empty()){

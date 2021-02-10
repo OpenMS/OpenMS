@@ -74,6 +74,7 @@ namespace OpenMS
                                           weights_l);
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector_(pg, abs_charge);
+
     for (int i = 0; i < weights.size() - 1; i++)
     {
       score += fv[i] * weights[i];
@@ -83,19 +84,20 @@ namespace OpenMS
 
   std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
   {
-    std::vector<double> fvector;
+    std::vector<double> fvector(5);
 
     double a = pg->getChargeIsotopeCosine(abs_charge);
     double d = 1;
-    fvector.push_back(log2(a + d));
+    int index = 0;
+    fvector[index++] = (log2(a + d));
     a = pg->getChargeSNR(abs_charge);
-    fvector.push_back(log2(d + a / (1 + a)));
+    fvector[index++] = (log2(d + a / (1 + a)));
     a = pg->getIsotopeCosine();
-    fvector.push_back(log2(a + d));
+    fvector[index++] = (log2(a + d));
     a = pg->getSNR();
-    fvector.push_back(log2(d + a/(1+a)));
+    fvector[index++] = (log2(d + a / (1 + a)));
     a = pg->getChargeScore();
-    fvector.push_back(log2(a + d));
+    fvector[index++] = (log2(a + d));
 
     return fvector;
   }
