@@ -300,6 +300,7 @@ protected:
 
     vector<ProteinIdentification> all_prot_ids;
     ProteinIdentification all_prot_id;
+    vector<PeptideIdentification> all_pep_ids;
 
     MSExperiment current_batch;
     for (size_t k = 0; k < chunks; ++k)
