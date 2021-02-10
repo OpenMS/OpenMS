@@ -163,5 +163,101 @@ namespace OpenMS
       > MoleculeQueryMatches;
     typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;
 
+    /** @brief Stable reference to a query match.
+     *  This reference stays valid (as opposed to using e.g., iterators and memory addresses)
+     *  if an ID datastructure is copied or stored/loaded back from disc.       
+    */
+    struct StableQueryMatchRef
+    {
+      std::string basename; // filename with extension (without path)
+      std::string native_id; // the spectrum or consensus/feature native id
+      std::set<std::pair<MoleculeType, std::string>> identified_molecules; // identified molecule (peptide/RNA/compound) and identifier (sequence or database id)
+
+      // Construct from string representation e.g. "myfile1.mzML|spectrum=123|P_DEPIANGER|P_TESTPEPTIDER"
+      StableQueryMatchRef(std::string s)
+      {
+        size_t a = s.find("|");
+        if (a == string::npos) 
+        {
+          std::string msg = "Invalid string. Conversion to stable reference not possible.";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+        }
+        basename = s.substr(0, a)
+
+        size_t b = s.find("|", a + 1);
+        if (b == string::npos)
+        {
+          std::string msg = "Invalid string. Conversion to stable reference not possible.";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+
+        }
+        native_id = s.substr(a + 1, b - a - 1);
+
+        if (b == s.size() - 1) // end of native id was at end of string
+        {
+          // we have a valid query match to reference (no molecules have been identified->empty set)
+          return;
+        }
+
+        // parse set of molecules
+        size_t c = s.find("|", b + 1); // let c point to next | (if present)
+        while (c <= std::string::npos)
+        {
+          if (s[b + 1] == 'P')
+          {
+            identified_molecules.insert({MoleculeType::PROTEIN, s.substr(b + 3, c - b - 3)});
+          }
+          else if (s[b + 1] == 'C')
+          {
+            identified_molecules.insert({MoleculeType::COMPOUND, s.substr(b + 3, c - b - 3)});
+          }
+          else if (s[b + 1] == 'O')
+          {
+            identified_molecules.insert({MoleculeType::OLIGO, s.substr(b + 3, c - b - 3)});
+          }
+          else 
+          {
+            std::string msg = "Invalid character for molecule encoding found. Conversion to stable reference not possible.";
+            throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, msg);           
+          }
+
+          if (c == std::string::npos) return;
+
+          b = c;
+    	    c = s.find("|", b + 1);
+        }
+      }
+
+      // Convert to string representation e.g. "myfile2.mzML|spectrum=4|C_HMDB:23433"
+      // format: "basename|native_id|" is mandatory, 
+      //         followed by one or more molecule type (encoded by "P_", "C_", "O_" and molecule identifier.
+      //         Molecule identifier are sequences for Proteins and Oligos or database identifier for Compounds
+      std::string toStdString() const
+      {
+        std::string s = basename + '|' + native_id + '|';
+        for (const auto& m : identified_molecules)
+        {
+          switch (m.first)
+          {
+            case MoleculeType::PROTEIN:
+              s += "P_";
+            break;
+            case MoleculeType::COMPOUND:
+              s += "C_";
+            break;
+            case MoleculeType::OLIGO:
+              s += "O_";
+            break;            
+          }
+
+          if (&m != &identified_molecules.back()) s += m.second + "|";
+        }
+        return s;
+      }      
+    };
+
   }
 }
