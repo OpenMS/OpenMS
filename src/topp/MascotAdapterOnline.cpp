@@ -462,7 +462,7 @@ protected:
       
       current_batch.clear(true); // clear meta data
 
-      mergeIDs_(all_prot_id, all_pep_ids, prot_id, pep_ids);
+      mergeIDs_(all_prot_id, prot_id, all_pep_ids, pep_ids);
     }
 
     //-------------------------------------------------------------
