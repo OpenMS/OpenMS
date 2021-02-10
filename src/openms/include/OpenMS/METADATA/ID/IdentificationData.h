@@ -154,7 +154,8 @@ namespace OpenMS
     using MoleculeQueryMatch = IdentificationDataInternal::MoleculeQueryMatch;
     using MoleculeQueryMatches =
       IdentificationDataInternal::MoleculeQueryMatches;
-    using QueryMatchRef = IdentificationDataInternal::QueryMatchRef;
+    using QueryMatchRef = IdentificationDataInternal::QueryMatchRef;    
+    using StableQueryMatchRef = IdentificationDataInternal::StableQueryMatchRef;
 
     // @TODO: allow multiple sets of groups, like with parent molecules
     // ("ParentMoleculeGroupings")?
