@@ -114,7 +114,8 @@ namespace OpenMS
 
     std::vector<DeconvolutedSpectrum> tmp;
     std::vector<Precursor> triggeredPeaks;
-    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, triggeredPeaks, tmp, 0);
+    std::map<int, std::vector<std::vector<double>>> empty;
+    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, triggeredPeaks, tmp, 0, empty);
 
     // per spec deconvolution
     //    int specIndex = 0, massIndex = 0; // ..

@@ -124,15 +124,18 @@ namespace OpenMS
   DeconvolutedSpectrum &FLASHDeconvAlgorithm::getDeconvolutedSpectrum(const MSSpectrum &spec,
                                                                       const std::vector<Precursor> &triggeredPeaks,
                                                                       const std::vector<DeconvolutedSpectrum> &survey_scans,
-                                                                      const int scan_number)
+                                                                      const int scan_number,
+                                                                      const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
 
     triggeredMzs.clear();
+    ms_level_ = spec.getMSLevel();
     deconvoluted_spectrum_ = DeconvolutedSpectrum(spec, scan_number);
 
-    if (!survey_scans.empty())
+    if (ms_level_ > 1 && (!survey_scans.empty() || !precursor_map_for_real_time_acquisition.empty()))
     {
-      deconvoluted_spectrum_.registerPrecursor(survey_scans);
+      bool registered = deconvoluted_spectrum_.registerPrecursor(survey_scans, precursor_map_for_real_time_acquisition);
+
     }
     if (min_rt_ > 0 && spec.getRT() < min_rt_)
     {
@@ -142,7 +145,7 @@ namespace OpenMS
     {
       return deconvoluted_spectrum_;
     }
-    ms_level_ = spec.getMSLevel();
+
     current_min_charge_ = ms_level_ == 1 ? min_abs_charge_ : 1;
     current_max_charge_ = deconvoluted_spectrum_.getCurrentMaxAbsCharge(max_abs_charge_); //
     current_max_mass_ = deconvoluted_spectrum_.getCurrentMaxMass(max_mass_);
@@ -1314,7 +1317,7 @@ namespace OpenMS
         n_r++;
       }
       //spc >= a_charge/2
-      if (n_r >= min_support_peak_count_[ms_level_ - 1] || n_r >= cntr / 2)//
+      if (n_r >= min_support_peak_count_[ms_level_ - 1] - 1 || n_r >= cntr / 2)//
       {
         return true;
       }
@@ -1326,6 +1329,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::setTriggeredMzs_(const std::vector<Precursor> &triggeredPeaks)
   {
+    return;
     triggeredMzs.clear();
     /**/
     for (auto &peak : log_mz_peaks_)
@@ -1411,7 +1415,7 @@ namespace OpenMS
 
       peak_group.setChargeScore(cs);
 
-      if (ms_level_ == 1)
+      // if (ms_level_ == 1)
       {
         bool is_charge_well_distributed = checkChargeDistribution_(per_abs_charge_intensities);
         //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);

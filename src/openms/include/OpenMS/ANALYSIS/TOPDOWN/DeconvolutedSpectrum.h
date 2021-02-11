@@ -124,8 +124,10 @@ namespace OpenMS
      The mass containing the precursor peak is searched. If precursor_spectrum contains such a mass (or peak group), it is registered. Otherwise,
      no peak group is registered but only precursor peak is registered.
      @param survey_scans the precursor DeconvolutedSpectrum's
+     @param precursor_map_for_real_time_acquisition
      */
-    bool registerPrecursor(const std::vector<DeconvolutedSpectrum>& survey_scans);
+    bool registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
+                           const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
 
     /// original spectrum setter
     const MSSpectrum &getOriginalSpectrum() const;

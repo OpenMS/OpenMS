@@ -80,12 +80,14 @@ namespace OpenMS
       @param survey_scans the survey scans to assign precursor mass to the deconvoluted spectrum
       @param scan_number scan number can be retrieved from the spectrum in most cases.
       But this parameter is put for real time deconvolution where scan number may be put separately.
+      @precursor_map_for_real_time_acquisition
       @return the deconvoluted spectrum (as DeconvolutedSpectrum class)
  */
     DeconvolutedSpectrum &getDeconvolutedSpectrum(const MSSpectrum &spec,
                                                   const std::vector<Precursor> &triggeredPeaks,
                                                   const std::vector<DeconvolutedSpectrum> &survey_scans,
-                                                  const int scan_number);
+                                                  const int scan_number,
+                                                  const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
 
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();

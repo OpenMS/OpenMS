@@ -308,7 +308,7 @@ namespace OpenMS
         double average_mass = (precursor_peak_.getMZ() - FLASHDeconvHelperStructs::getChargeMass(precursor_peak_.getCharge() > 0)) *
             abs(precursor_peak_.getCharge());
         double mono_mass = average_mass - avg.getAverageMassDelta(average_mass);
-        fs << "MS_ONE_ID=" << 0 << "\n"
+        fs << "MS_ONE_ID=" << precursor_scan_number_ << "\n"
            << "MS_ONE_SCAN=" << precursor_scan_number_ << "\n"
            << "PRECURSOR_MZ="
            << std::to_string(precursor_peak_.getMZ()) << "\n"
@@ -350,24 +350,117 @@ namespace OpenMS
       fs << std::fixed << std::setprecision(2);
       fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t"
          << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge())
-                                                                                //  << "\t" << log10(pg.precursorSNR+1e-10) << "\t" << log10(pg.precursorTotalSNR+1e-10)
-                                                                                //  << "\t" << log10(pg.maxSNR + 1e-10) << "\t" << log10(pg.total_snr_ + 1e-10)
-                                                                                << "\n";
+         //  << "\t" << log10(pg.precursorSNR+1e-10) << "\t" << log10(pg.precursorTotalSNR+1e-10)
+         //  << "\t" << log10(pg.maxSNR + 1e-10) << "\t" << log10(pg.total_snr_ + 1e-10)
+         << "\n";
       fs << std::setprecision(-1);
     }
 
     fs << "END IONS\n\n";
   }
 
-  bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum>& survey_scans)
+  bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
+                                               const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
+
+    bool is_positive = true; // TODO update..
+
+    if (!precursor_map_for_real_time_acquisition.empty())
+    {
+      //for (int scan = scan_number_; scan >= 0 ; scan--)
+      // {
+
+
+      for (auto &precursor: spec_.getPrecursors())
+      {
+        for (auto &activation_method :  precursor.getActivationMethods())
+        {
+          activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
+          break;
+        }
+        precursor_peak_ = precursor;
+
+        double start_mz = precursor.getIsolationWindowLowerOffset() > 100.0 ?
+                          precursor.getIsolationWindowLowerOffset() :
+                          -precursor.getIsolationWindowLowerOffset() + precursor.getMZ();
+        double end_mz = precursor.getIsolationWindowUpperOffset() > 100.0 ?
+                        precursor.getIsolationWindowUpperOffset() :
+                        precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
+        // ms1 scan -> mass, charge ,score, mz range
+
+        for (auto map = precursor_map_for_real_time_acquisition.upper_bound(scan_number_);
+             map != precursor_map_for_real_time_acquisition.begin();
+             map--)
+        {
+          precursor_scan_number_ = map->first;
+          //std::cout<<scan_number_ << " * " << precursor_scan_number_ <<std::endl;
+          if (map != precursor_map_for_real_time_acquisition.end())
+          {
+            for (auto &smap : map->second)
+            {
+              //
+              if (abs(start_mz - smap[3]) < .1 || abs(end_mz - smap[4]) < .1)
+              {
+                LogMzPeak precursor_log_mz_peak(precursor, is_positive);
+                precursor_log_mz_peak.abs_charge = (int) smap[1];
+                precursor_log_mz_peak.isotopeIndex = 0;
+
+                precursor_peak_group_.push_back(precursor_log_mz_peak);
+                precursor_peak_group_.setQScore(smap[2]);
+                precursor_peak_group_.setRepAbsCharge((int) smap[1]);
+                precursor_peak_group_.updateMassesAndIntensity();
+                return true;
+              }
+            }
+          }
+        }
+
+        for (auto map = precursor_map_for_real_time_acquisition.upper_bound(scan_number_);
+             map != precursor_map_for_real_time_acquisition.end();
+             map++)
+        {
+          precursor_scan_number_ = map->first;
+          //std::cout<<scan_number_ << " * " << precursor_scan_number_ <<std::endl;
+          if (map != precursor_map_for_real_time_acquisition.end())
+          {
+            for (auto &smap : map->second)
+            {
+              //
+              if (abs(start_mz - smap[3]) < .1 || abs(end_mz - smap[4]) < .1)
+              {
+                LogMzPeak precursor_log_mz_peak(precursor, is_positive);
+                precursor_log_mz_peak.abs_charge = (int) smap[1];
+                precursor_log_mz_peak.isotopeIndex = 0;
+
+                precursor_peak_group_.push_back(precursor_log_mz_peak);
+                precursor_peak_group_.setQScore(smap[2]);
+                precursor_peak_group_.setRepAbsCharge((int) smap[1]);
+                precursor_peak_group_.updateMassesAndIntensity();
+                return true;
+              }
+            }
+          }
+        }
+
+        // auto map = precursor_map_for_real_time_acquisition.find(precursor_scan_number_);
+
+      }
+
+      //std::cout<<scan_number_ << " " << precursor_peak_.getMZ() <<std::endl;
+      return false;
+    }
+
     //precursor_spectrum.updatePeakGroupMap();
-    for (int i = survey_scans.size()-1; i >=0 ; i--)
+    for (int i = survey_scans.size() - 1; i >= 0; i--)
     {
       auto precursor_spectrum = survey_scans[i];
-      for (auto& precursor: spec_.getPrecursors())
+      if (precursor_spectrum.empty())
       {
-        for (auto& activation_method :  precursor.getActivationMethods())
+        continue;
+      }
+      for (auto &precursor: spec_.getPrecursors())
+      {
+        for (auto &activation_method :  precursor.getActivationMethods())
         {
           activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
           break;
@@ -381,8 +474,9 @@ namespace OpenMS
                         precursor.getIsolationWindowUpperOffset() :
                         precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
 
-        double max_qscore = -10000.0;
-        for (auto& pg: precursor_spectrum)
+
+        double max_isotope_cosine = -3.0;
+        for (auto &pg: precursor_spectrum)
         {
           //std::sort(pg.begin(), pg.end());
           if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
@@ -414,7 +508,7 @@ namespace OpenMS
             tmp_precursor = &tmp_peak;
           }
 
-          if (pg.getQScore() <= max_qscore || tmp_precursor == nullptr)
+          if (pg.getIsotopeCosine() < max_isotope_cosine || tmp_precursor == nullptr)
           {
             continue;
           }
@@ -423,7 +517,7 @@ namespace OpenMS
           precursor_peak_.setIntensity(tmp_precursor->intensity);
           precursor_peak_
               .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge : -tmp_precursor->abs_charge);
-          max_qscore = pg.getQScore();
+          max_isotope_cosine = pg.getIsotopeCosine();
           precursor_peak_group_ = pg;
         }
         if(!precursor_peak_group_.empty()){
