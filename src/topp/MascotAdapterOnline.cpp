@@ -97,11 +97,10 @@ using namespace std;
     unknown to Mascot, might pose a problem).
 
     @note Mascot returns incomplete/incorrect protein assignments for most
-    identified peptides (due to protein-level grouping/filtering). By default
+    identified peptides (due to protein-level grouping/filtering). Thus,
     the protein associations are therefore not included in the output of this
     adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
-    after this tool to get correct assignments. The flag @p keep_protein_links
-    can be used to override this behavior.
+    after this tool to get correct assignments.
 
     @note Currently mzIdentML (mzid) is not directly supported as an
     input/output format of this tool. Convert mzid files to/from idXML using
@@ -142,7 +141,6 @@ protected:
 
     registerSubsection_("Mascot_server", "Mascot server details");
     registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
-    registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
   }
 
   Param getSubsectionDefaults_(const String& section) const override
@@ -425,21 +423,6 @@ protected:
           }
           mergeIDs_(prot_id, decoy_prot_id, pep_ids, decoy_pep_ids);
         }
-
-        // keep or delete protein identifications?!
-        if (!getFlag_("keep_protein_links"))
-        {
-          // remove protein links from peptides
-          for (auto& pep : pep_ids)
-          {
-            for (auto& hit : pep.getHits())
-            {
-              hit.setPeptideEvidences({});
-            }
-          }
-          // remove proteins
-          prot_id.getHits().clear();
-        }
       }
 
       String search_number = mascot_query->getSearchIdentifier();
@@ -469,7 +452,19 @@ protected:
     // writing output
     //-------------------------------------------------------------
     all_prot_id.setPrimaryMSRunPath({ in }, exp);
+
+    // remove proteins as protein links seem are broken and reindexing is needed
+    all_prot_id.getHits().clear(); 
     all_prot_ids.push_back(all_prot_id);
+
+    // remove protein links from peptides as protein links seem are broken and reindexing is needed
+    for (auto& pep : all_pep_ids)
+    {
+      for (auto& hit : pep.getHits())
+      {
+        hit.setPeptideEvidences({});
+      }
+    }        
 
     // write all (!) parameters as metavalues to the search parameters
     DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
