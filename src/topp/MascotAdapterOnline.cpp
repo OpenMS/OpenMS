@@ -293,7 +293,8 @@ protected:
     SpectrumLookup lookup;        
     lookup.readSpectra(exp.getSpectra());
 
-    size_t batch_size = (size_t)getIntOption_("batch_size");
+    Param mascot_query_param = getParam_().copy("Mascot_server:", true);
+    size_t batch_size = (size_t)mascot_query_param.getValue("batch_size");
     size_t chunks = (exp.size() - 1) / batch_size + 1; // Note: safe as we have at least one spectrum
 
     vector<ProteinIdentification> all_prot_ids;
@@ -335,7 +336,6 @@ protected:
       char** argv2 = const_cast<char**>(argv);
       QCoreApplication event_loop(argc, argv2);
       MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
-      Param mascot_query_param = getParam_().copy("Mascot_server:", true);
       writeDebug_("Setting parameters for Mascot query", 1);
       mascot_query->setParameters(mascot_query_param);
       
