@@ -90,6 +90,27 @@ namespace OpenMS
      */
     void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
+    /**
+      * @brief computes FragmentMassError in ppm and Dalton (only of the first PeptideHit of each PepID)
+      *
+      * Stores average and variance of FragmentMassErrors in ppm as a struct in a vector.
+      * Each FragmentMassError (in ppm) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_ppm".
+      * Each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_da".
+      *
+      * @param pep_ids Input vector of peptide identifications for annotation and data for theoretical spectra
+      * @param search_params Input search_params (corresponding to ID search that generated @param pep_ids) for fragment mass tolerance and unit used
+      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
+      * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
+      * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
+      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap
+      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
+      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
+      * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
+      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
+      */
+    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance = 20);
+
     /// returns the name of the metric
     const String& getName() const override;
     

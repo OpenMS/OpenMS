@@ -161,102 +161,13 @@ namespace OpenMS
     std::function<void(PeptideIdentification&)> fCompPPM =
         [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
-      if (pep_id.getHits().empty())
-      {
-        OPENMS_LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
-        return;
-      }
-
-      //---------------------------------------------------------------------
-      // FIND DATA FOR THEORETICAL SPECTRUM
-      //---------------------------------------------------------------------
-
-      // sequence
-      const AASequence& seq = pep_id.getHits()[0].getSequence();
-
-      // charge: re-calulated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
-      Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
-
-      //-----------------------------------------------------------------------
-      // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
-      //-----------------------------------------------------------------------
-
-      if (!pep_id.metaValueExists("spectrum_reference"))
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
-      }
-      const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(pep_id.getMetaValue("spectrum_reference").toString())];
-
-      if (exp_spectrum.getMSLevel() != 2)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
-      }
-      Precursor::ActivationMethod act_method;
-      if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
-      {
-        if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
-        print_warning = false; // only print it once
-        act_method = Precursor::ActivationMethod::CID;
-      }
-      else
-      {
-        act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
-      }
-
-      //---------------------------------------------------------------------
-      // CREATE THEORETICAL SPECTRUM
-      //---------------------------------------------------------------------
-      PeakSpectrum theo_spectrum = getTheoSpec_(act_method, seq, charge);
-
-      //-----------------------------------------------------------------------
-      // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
-      //-----------------------------------------------------------------------
-      if (exp_spectrum.empty() || theo_spectrum.empty())
-      {
-        OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
-        return;
-      }
-
-      auto exp_spectrum_filtered(exp_spectrum);
-      window_mower_filter.filterPeakSpectrum(exp_spectrum_filtered);
-
-      // stores ppms for one spectrum
-      DoubleList ppms{};
-      DoubleList dalton{};
-
-      // iterator, finds nearest peak of a target container to a given peak in a reference container
-      if (tolerance_unit == ToleranceUnit::DA)
-      {
-        using MIV = MatchedIterator<MSSpectrum, DaTrait, true>;
-        MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
-        twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
-      }
-      else
-      {
-        using MIV = MatchedIterator<MSSpectrum, PpmTrait, true>;
-        MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
-        twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
-      }
-
-      //-----------------------------------------------------------------------
-      // WRITE PPM ERROR IN PEPTIDEHIT
-      //-----------------------------------------------------------------------
-      pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
-      pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
+      calculate_FME(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
     };
 
     auto fVar =
         [&result](const PeptideIdentification& pep_id)
     {
-      if (pep_id.getHits().empty())
-      {
-        OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() <<  ") without PeptideHits. " << "\n";
-        return;
-      }
-      for (const auto& ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
-      {
-        result.variance_ppm += pow((ppm - result.average_ppm), 2);
-      }
+      calculate_Variance(result, pep_id);
     };
 
     // computation of ppms
@@ -278,6 +189,170 @@ namespace OpenMS
 
     results_.push_back(result);
 
+  }
+
+  void FragmentMassError::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
+  {
+    FMEStatistics result;
+
+    if (pep_ids.empty())
+    {
+      results_.push_back(result);
+      return;
+    }
+    // accumulates ppm errors over all first PeptideHits
+    double accumulator_ppm{};
+
+    // counts number of ppm errors
+    UInt32 counter_ppm{};
+
+    //---------------------------------------------------------------------
+    // Prepare MSExperiment
+    //---------------------------------------------------------------------
+
+    // filter settings
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 6, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+
+    //-------------------------------------------------------------------
+    // find tolerance unit and value
+    //------------------------------------------------------------------
+    if (tolerance_unit == ToleranceUnit::AUTO)
+    {
+      tolerance_unit = search_params.fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
+      tolerance = search_params.fragment_mass_tolerance;
+      if (tolerance <= 0.0)
+      { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given. Please choose a fragment_mass_unit and tolerance manually.");
+      }
+    }
+
+    bool print_warning{ false };
+
+    // computation of ppms
+    // computes the FragmentMassError
+    for (auto& pep_id : pep_ids)
+    {
+      calculate_FME(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
+      calculate_Variance(result, pep_id);
+    }
+
+    // if there are no matching peaks, the counter is zero and it is not possible to find ppms
+    if (counter_ppm == 0)
+    {
+      results_.push_back(result);
+      return;
+    }
+
+    // computes average
+    result.average_ppm = accumulator_ppm / counter_ppm;
+
+    result.variance_ppm = result.variance_ppm / counter_ppm;
+
+    results_.push_back(result);
+  }
+
+  void calculate_FME(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool &print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double &accumulator_ppm, UInt32 &counter_ppm, WindowMower &window_mower_filter)
+  {
+    if (pep_id.getHits().empty())
+    {
+      OPENMS_LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
+      return;
+    }
+
+    //---------------------------------------------------------------------
+    // FIND DATA FOR THEORETICAL SPECTRUM
+    //---------------------------------------------------------------------
+
+    // sequence
+    const AASequence& seq = pep_id.getHits()[0].getSequence();
+
+    // charge: re-calulated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
+    Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
+
+    //-----------------------------------------------------------------------
+    // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
+    //-----------------------------------------------------------------------
+
+    if (!pep_id.metaValueExists("spectrum_reference"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identifiction!");
+    }
+    const MSSpectrum& exp_spectrum = exp[map_to_spectrum.at(pep_id.getMetaValue("spectrum_reference").toString())];
+
+    if (exp_spectrum.getMSLevel() != 2)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
+    }
+    Precursor::ActivationMethod act_method;
+    if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
+    {
+      if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+      print_warning = false; // only print it once
+      act_method = Precursor::ActivationMethod::CID;
+    }
+    else
+    {
+      act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
+    }
+
+    //---------------------------------------------------------------------
+    // CREATE THEORETICAL SPECTRUM
+    //---------------------------------------------------------------------
+    PeakSpectrum theo_spectrum = getTheoSpec_(act_method, seq, charge);
+
+    //-----------------------------------------------------------------------
+    // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
+    //-----------------------------------------------------------------------
+    if (exp_spectrum.empty() || theo_spectrum.empty())
+    {
+      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
+      return;
+    }
+
+    auto exp_spectrum_filtered(exp_spectrum);
+    window_mower_filter.filterPeakSpectrum(exp_spectrum_filtered);
+
+    // stores ppms for one spectrum
+    DoubleList ppms{};
+    DoubleList dalton{};
+
+    // iterator, finds nearest peak of a target container to a given peak in a reference container
+    if (tolerance_unit == FragmentMassError::ToleranceUnit::DA)
+    {
+      using MIV = MatchedIterator<MSSpectrum, DaTrait, true>;
+      MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
+      twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
+    }
+    else
+    {
+      using MIV = MatchedIterator<MSSpectrum, PpmTrait, true>;
+      MIV mi(theo_spectrum, exp_spectrum_filtered, tolerance);
+      twoSpecErrors(mi, ppms, dalton, accumulator_ppm, counter_ppm);
+    }
+
+    //-----------------------------------------------------------------------
+    // WRITE PPM ERROR IN PEPTIDEHIT
+    //-----------------------------------------------------------------------
+    pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
+    pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
+  }
+
+  void calculate_Variance(FragmentMassError::FMEStatistics& result, const PeptideIdentification& pep_id)
+  {
+    if (pep_id.getHits().empty())
+    {
+      OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() << ") without PeptideHits. " << "\n";
+      return;
+    }
+    for (const auto& ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
+    {
+      result.variance_ppm += pow((ppm - result.average_ppm), 2);
+    }
   }
 
   const String& FragmentMassError::getName() const
