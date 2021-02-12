@@ -362,17 +362,13 @@ namespace OpenMS
   bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
                                                const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
-
     bool is_positive = true; // TODO update..
 
     if (!precursor_map_for_real_time_acquisition.empty())
     {
-      //for (int scan = scan_number_; scan >= 0 ; scan--)
-      // {
-
-
       for (auto &precursor: spec_.getPrecursors())
       {
+        //double max_precurosr_intensity = .0;
         for (auto &activation_method :  precursor.getActivationMethods())
         {
           activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
@@ -404,7 +400,8 @@ namespace OpenMS
                 LogMzPeak precursor_log_mz_peak(precursor, is_positive);
                 precursor_log_mz_peak.abs_charge = (int) smap[1];
                 precursor_log_mz_peak.isotopeIndex = 0;
-
+                precursor_log_mz_peak.mass = smap[0];
+                precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
                 precursor_peak_group_.push_back(precursor_log_mz_peak);
                 precursor_peak_group_.setQScore(smap[2]);
                 precursor_peak_group_.setRepAbsCharge((int) smap[1]);
@@ -431,7 +428,8 @@ namespace OpenMS
                 LogMzPeak precursor_log_mz_peak(precursor, is_positive);
                 precursor_log_mz_peak.abs_charge = (int) smap[1];
                 precursor_log_mz_peak.isotopeIndex = 0;
-
+                precursor_log_mz_peak.mass = smap[0];
+                precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
                 precursor_peak_group_.push_back(precursor_log_mz_peak);
                 precursor_peak_group_.setQScore(smap[2]);
                 precursor_peak_group_.setRepAbsCharge((int) smap[1]);
@@ -441,9 +439,6 @@ namespace OpenMS
             }
           }
         }
-
-        // auto map = precursor_map_for_real_time_acquisition.find(precursor_scan_number_);
-
       }
 
       //std::cout<<scan_number_ << " " << precursor_peak_.getMZ() <<std::endl;
@@ -474,7 +469,6 @@ namespace OpenMS
                         precursor.getIsolationWindowUpperOffset() :
                         precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
 
-
         double max_isotope_cosine = -3.0;
         for (auto &pg: precursor_spectrum)
         {
@@ -504,7 +498,6 @@ namespace OpenMS
               continue;
             }
             max_intensity = tmp_peak.intensity;
-
             tmp_precursor = &tmp_peak;
           }
 
@@ -513,8 +506,8 @@ namespace OpenMS
             continue;
           }
 
-          precursor_peak_.setMZ(tmp_precursor->mz);
-          precursor_peak_.setIntensity(tmp_precursor->intensity);
+          //precursor_peak_.setMZ(tmp_precursor->mz);
+          //precursor_peak_.setIntensity(tmp_precursor->intensity);
           precursor_peak_
               .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge : -tmp_precursor->abs_charge);
           max_isotope_cosine = pg.getIsotopeCosine();

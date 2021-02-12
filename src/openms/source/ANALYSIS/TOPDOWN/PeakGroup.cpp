@@ -109,7 +109,7 @@ namespace OpenMS
 
     for (auto& p : *this)
     {
-      double pi = p.intensity;
+      double pi = p.intensity + 1;
       intensity_ += pi;
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
     }

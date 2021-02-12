@@ -672,10 +672,11 @@ protected:
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
         double pmass =
             train_scan_numbers.find(scan_number) == train_scan_numbers.end() ? .0 : train_scan_numbers[scan_number];
+        double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
         QScore::writeAttTsv(train_scan_accessions[scan_number],
                             deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
                             deconvoluted_spectrum.getPrecursorPeakGroup(),
-                            deconvoluted_spectrum.getPrecursorCharge(),
+                            deconvoluted_spectrum.getPrecursorCharge(), precursor_intensity,
                             train_scan_numbers.find(scan_number) != train_scan_numbers.end(), avg, out_train_stream);
 
       }

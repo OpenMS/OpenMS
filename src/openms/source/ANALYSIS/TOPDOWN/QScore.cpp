@@ -107,7 +107,7 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream& f)
   {
     f
-        << "ACC,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorCharge,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+        << "ACC,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(const String &acc,
@@ -116,6 +116,7 @@ namespace OpenMS
                            const double pmz,
                            const PeakGroup pg,
                            const int charge,
+                           const double precursor_intensity,
                            const bool is_identified,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                            std::fstream &f)
@@ -125,6 +126,7 @@ namespace OpenMS
     {
       // return;
       f << acc << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass) << "," << pmz
+        << "," << precursor_intensity << ","
         << ",0,";
       f << "0,0,0,0,0,-5,";
       f << (is_identified ? "T" : "F") << "\n";
@@ -137,7 +139,8 @@ namespace OpenMS
 
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << acc << "," << rt << "," << monomass << "," << mass << "," << pmz << "," << pg.getRepAbsCharge() << ",";
+      f << acc << "," << rt << "," << monomass << "," << mass << "," << pmz << "," << precursor_intensity << ","
+        << pg.getRepAbsCharge() << ",";
       for (auto &item : fv)
       {
         f << item << ",";
