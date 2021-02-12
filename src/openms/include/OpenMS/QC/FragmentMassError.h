@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <vector>
 
@@ -41,6 +42,7 @@ namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
+  class PeptideIdentification;
   
   class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
@@ -109,7 +111,7 @@ namespace OpenMS
       * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
       * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
       */
-    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance = 20);
+    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
     const String& getName() const override;
