@@ -291,7 +291,12 @@ protected:
 
     // Build mapping to get correct spectrum reference later
     MSExperiment exp;
-    MzMLFile().load(in, exp);
+    MzMLFile m;
+    PeakFileOptions op;
+    op.setMetadataOnly(true); // no actual peak data
+    op.setMSLevels({ 2 }); //only MS2
+    m.setOptions(op);
+    m.load(in, exp);
     SpectrumLookup mapping;
     mapping.readSpectra(exp);
 
