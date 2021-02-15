@@ -316,8 +316,7 @@ protected:
         if (sl.empty() || sl[0][0] == '#') { continue; }
         
         PeptideIdentification pi;
-        MSSpectrum spectrum = exp[mapping.findByScanNumber(sl[1].toInt())];
-        pi.setMetaValue("spectrum_reference", spectrum.getNativeID());
+        pi.setMetaValue("spectrum_reference", exp[mapping.findByScanNumber(sl[1].toInt())].getNativeID());
         pi.setScoreType("novorscore");
         pi.setHigherScoreBetter(true);
         pi.setRT(sl[2].toDouble());
