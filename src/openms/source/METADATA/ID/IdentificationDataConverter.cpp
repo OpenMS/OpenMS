@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace std;
 
@@ -950,6 +951,145 @@ namespace OpenMS
       {
         protein.addPrimaryMSRunPath(primary_file, true);
       }
+    }
+  }
+
+
+  void IdentificationDataConverter::importFeatureIDs(FeatureMap& features,
+                                                     bool clear_original)
+  {
+    // collect all peptide IDs:
+    vector<PeptideIdentification> peptides = features.getUnassignedPeptideIdentifications();
+    // get peptide IDs from each feature and its subordinates, add meta values:
+    Size id_counter = 0;
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      handleFeatureImport_(features[i], IntList(1, i), peptides, id_counter, clear_original);
+    }
+
+    IdentificationData& id_data = features.getIdentificationData();
+    importIDs(id_data, features.getProteinIdentifications(),
+              peptides);
+
+    // map converted IDs back to features using meta values assigned in "handleFeatureImport_":
+    for (ID::InputItemRef ref = id_data.getInputItems().begin();
+         ref != id_data.getInputItems().end(); ++ref)
+    {
+      vector<String> meta_keys;
+      ref->getKeys(meta_keys);
+      for (const String& key : meta_keys)
+      {
+        if (key.hasPrefix("IDConverter_trace_"))
+        {
+          IntList indexes = ref->getMetaValue(key);
+          Feature* feat_ptr = &features.at(indexes[0]);
+          for (Size i = 1; i < indexes.size(); ++i)
+          {
+            feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
+          }
+          feat_ptr->addIDInputItem(ref);
+          // @TODO: remove meta value
+        }
+      }
+    }
+    if (clear_original)
+    {
+      features.getUnassignedPeptideIdentifications().clear();
+      features.getProteinIdentifications().clear();
+    }
+  }
+
+
+  void IdentificationDataConverter::handleFeatureImport_(Feature& feature, IntList indexes,
+                                                         vector<PeptideIdentification>& peptides,
+                                                         Size& id_counter, bool clear_original)
+  {
+    for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
+    {
+      peptides.push_back(pep);
+      // store trace of feature indexes so we can map the converted ID back;
+      // key needs to be unique in case the same ID matches multiple features:
+      String key = "IDConverter_trace_" + String(id_counter);
+      peptides.back().setMetaValue(key, indexes);
+      ++id_counter;
+    }
+    if (clear_original) feature.getPeptideIdentifications().clear();
+    for (Size i = 0; i < feature.getSubordinates().size(); ++i)
+    {
+      IntList extended = indexes;
+      extended.push_back(i);
+      handleFeatureImport_(feature.getSubordinates()[i], extended, peptides,
+                           id_counter, clear_original);
+    }
+  }
+
+
+  void IdentificationDataConverter::exportFeatureIDs(FeatureMap& features,
+                                                     bool clear_original)
+  {
+    Size id_counter = 0;
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      handleFeatureExport_(features[i], IntList(1, i),
+                           features.getIdentificationData(), id_counter);
+    }
+
+    exportIDs(features.getIdentificationData(), features.getProteinIdentifications(),
+              features.getUnassignedPeptideIdentifications());
+
+    // map converted IDs back to features using meta values assigned in "handleFeatureExport_":
+    auto& pep_ids = features.getUnassignedPeptideIdentifications();
+    for (Size i = 0; i < pep_ids.size(); )
+    {
+      PeptideIdentification& pep = pep_ids[i];
+      vector<String> meta_keys;
+      pep.getKeys(meta_keys);
+      bool is_assigned = false;
+      for (const String& key : meta_keys)
+      {
+        if (key.hasPrefix("IDConverter_trace_"))
+        {
+          is_assigned = true;
+          IntList indexes = pep.getMetaValue(key);
+          pep.removeMetaValue(key);
+          Feature* feat_ptr = &features.at(indexes[0]);
+          for (Size i = 1; i < indexes.size(); ++i)
+          {
+            feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
+          }
+          feat_ptr->getPeptideIdentifications().push_back(pep);
+        }
+      }
+      if (is_assigned)
+      {
+        pep_ids.erase(pep_ids.begin() + i);
+        // @TODO: use "std::remove" and "resize" to make this more efficient
+      }
+      else
+      {
+        ++i;
+      }
+    }
+    if (clear_original) features.getIdentificationData().clear();
+  }
+
+
+  void IdentificationDataConverter::handleFeatureExport_(Feature& feature, IntList indexes,
+                                                         IdentificationData& id_data, Size& id_counter)
+  {
+    for (ID::InputItemRef ref : feature.getIDInputItems())
+    {
+      // store trace of feature indexes so we can map the converted ID back;
+      // key needs to be unique in case the same ID matches multiple features:
+      String key = "IDConverter_trace_" + String(id_counter);
+      id_data.setMetaValue(ref, key, indexes);
+      ++id_counter;
+    }
+    for (Size i = 0; i < feature.getSubordinates().size(); ++i)
+    {
+      IntList extended = indexes;
+      extended.push_back(i);
+      handleFeatureExport_(feature.getSubordinates()[i], extended, id_data, id_counter);
     }
   }
 

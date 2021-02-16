@@ -42,6 +42,8 @@
 
 namespace OpenMS
 {
+  class FeatureMap;
+
   class OPENMS_DLLAPI IdentificationDataConverter
   {
   public:
@@ -73,6 +75,22 @@ namespace OpenMS
     /// Convert parent matches to peptide evidences
     static void exportParentMatches(
       const IdentificationData::ParentMatches& parent_matches, PeptideHit& hit);
+
+    /*!
+      @brief Convert IDs from legacy peptide/protein identifications in a feature map
+
+      @param features Feature map containing IDs in legacy format
+      @param clear_original Clear original IDs after conversion?
+    */
+    static void importFeatureIDs(FeatureMap& features, bool clear_original = true);
+
+    /*!
+      @brief Convert IDs in a feature map to legacy peptide/protein identifications
+
+      @param features Feature map containing IDs in new format
+      @param clear_original Clear original IDs after conversion?
+    */
+    static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
 
   protected:
 
@@ -272,5 +290,12 @@ namespace OpenMS
     static void exportMSRunInformation_(
       IdentificationData::ProcessingStepRef step_ref,
       ProteinIdentification& protein);
+
+    static void handleFeatureImport_(Feature& feature, IntList indexes,
+                                     std::vector<PeptideIdentification>& peptides,
+                                     Size& id_counter, bool clear_original);
+
+    static void handleFeatureExport_(Feature& feature, IntList indexes,
+                                     IdentificationData& id_data, Size& id_counter);
   };
 }
