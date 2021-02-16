@@ -581,10 +581,14 @@ namespace OpenMS
     }
 
     /// Set a meta value on a stored input match
-    void setMetaValue(const InputMatchRef ref, const String& key, const DataValue& value)
-    {
-      setMetaValue_(ref, key, value, input_matches_, input_match_lookup_);
-    }
+    void setMetaValue(const InputMatchRef ref, const String& key, const DataValue& value);
+
+    /// Set a meta value on a stored input item
+    void setMetaValue(const InputItemRef ref, const String& key, const DataValue& value);
+
+    /// Set a meta value on a stored identified molecule (variant)
+    void setMetaValue(const IdentifiedMolecule& var, const String& key, const DataValue& value);
+
     // @TODO: add overloads for other data types derived from MetaInfoInterface
 
   protected:

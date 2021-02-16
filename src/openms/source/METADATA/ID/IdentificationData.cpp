@@ -752,9 +752,6 @@ namespace OpenMS
             break;
           case IdentificationData::MoleculeType::RNA:
             identified_oligo_lookup_.insert(molecule_var.getIdentifiedOligoRef());
-            break;
-          default: // shouldn't happen
-            break;
         }
       }
       removeFromSetIfNotHashed_(input_items_, input_item_lookup_);
@@ -1115,6 +1112,40 @@ namespace OpenMS
   {
     IdentificationData tmp;
     swap(tmp);
+  }
+
+
+  void IdentificationData::setMetaValue(const InputMatchRef ref, const String& key,
+                                        const DataValue& value)
+  {
+    setMetaValue_(ref, key, value, input_matches_, input_match_lookup_);
+  }
+
+
+  void IdentificationData::setMetaValue(const InputItemRef ref, const String& key,
+                                        const DataValue& value)
+  {
+    setMetaValue_(ref, key, value, input_items_, input_item_lookup_);
+  }
+
+
+  void IdentificationData::setMetaValue(const IdentifiedMolecule& var, const String& key,
+                                        const DataValue& value)
+  {
+    switch (var.getMoleculeType())
+    {
+      case MoleculeType::PROTEIN:
+        setMetaValue_(var.getIdentifiedPeptideRef(), key, value,
+                      identified_peptides_, identified_peptide_lookup_);
+        break;
+      case MoleculeType::COMPOUND:
+        setMetaValue_(var.getIdentifiedCompoundRef(), key, value,
+                      identified_compounds_, identified_compound_lookup_);
+        break;
+      case MoleculeType::RNA:
+        setMetaValue_(var.getIdentifiedOligoRef(), key, value,
+                      identified_oligos_, identified_oligo_lookup_);
+    }
   }
 
 } // end namespace OpenMS
