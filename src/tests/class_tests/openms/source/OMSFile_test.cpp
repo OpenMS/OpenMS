@@ -39,6 +39,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 
@@ -123,6 +124,35 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(adduct_it->identified_molecule_var.toString(),
              ids.getInputMatches().begin()->identified_molecule_var.toString());
   TEST_EQUAL((*adduct_it->adduct_opt)->getName(), "Cl-");
+}
+END_SECTION
+
+START_SECTION(void store(const String& filename, const FeatureMap& features))
+{
+  FeatureMap features;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
+  // protein and peptide IDs use same score type (name) with different orientations;
+  // IdentificationData doesn't allow this, so change it here:
+  for (auto& run : features.getProteinIdentifications())
+  {
+    run.setScoreType(run.getScoreType() + "_protein");
+  }
+  IdentificationDataConverter::importFeatureIDs(features);
+
+  oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.oms");
+  // NEW_TMP_FILE(oms_path);
+  OMSFile().store(oms_path, features);
+  TEST_EQUAL(File::empty(oms_path), false);
+}
+END_SECTION
+
+START_SECTION(void load(const String& filename, FeatureMap& features))
+{
+  FeatureMap features;
+  OMSFile().load(oms_path, features);
+
+  TEST_EQUAL(features.size(), 2);
+  TEST_EQUAL(features[0].getSubordinates().size(), 2);
 }
 END_SECTION
 
