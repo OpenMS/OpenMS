@@ -201,10 +201,18 @@ protected:
   // merge b into a
   void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, vector<PeptideIdentification>& pep_a, const vector<PeptideIdentification>& pep_b)
   {
-    // add proteins of b to a
-    for (const ProteinHit& p : p_b.getHits())
+    // if p_a is empty use all meta values and hits from p_b to initialize p_a
+    if (p_a.empty())
     {
-      p_a.insertHit(p);
+      p_a = p_b;
+    }
+    else
+    {
+      // p_a already initialized? just add proteins of b to a
+      for (const ProteinHit& p : p_b.getHits())
+      {
+        p_a.insertHit(p);
+      }
     }
     
     map<String, size_t> native_id2id_index;
