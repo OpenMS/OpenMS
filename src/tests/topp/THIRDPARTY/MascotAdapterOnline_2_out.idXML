@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="SwissProt" db_version="SwissProt_2021_01.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 				<UserParam type="string" name="MascotAdapterOnline:1:in" value="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
 				<UserParam type="string" name="MascotAdapterOnline:1:out" value="MascotAdapterOnline_2_out1.tmp"/>
 				<UserParam type="string" name="MascotAdapterOnline:1:log" value=""/>
@@ -48,8 +48,9 @@
 				<UserParam type="string" name="MascotAdapterOnline:1:skip_export" value="false"/>
 				<UserParam type="int" name="MascotAdapterOnline:1:batch_size" value="50000"/>
 	</SearchParameters>
-	<IdentificationRun date="0000-00-00T00:00:00" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+	<IdentificationRun date="2021-02-16T13:04:58" search_engine="Mascot" search_engine_version="2.7.0.7" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<UserParam type="string" name="SearchNumber" value="TtcfxanL"/>
 			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="17.0" MZ="520.26279999999997" RT="2655.096000000000004" spectrum_reference="spectrum=0" >

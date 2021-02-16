@@ -202,7 +202,7 @@ protected:
   void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, vector<PeptideIdentification>& pep_a, const vector<PeptideIdentification>& pep_b)
   {
     // if p_a is empty use all meta values and hits from p_b to initialize p_a
-    if (p_a.empty())
+    if (p_a.getHits().empty())
     {
       p_a = p_b;
     }
@@ -461,13 +461,19 @@ protected:
     //-------------------------------------------------------------
     all_prot_id.setPrimaryMSRunPath({ in }, exp);
 
+    DateTime now = DateTime::now();
+    String date_string = now.get();
+    String run_identifier("Mascot_" + date_string);
+
     // remove proteins as protein links seem are broken and reindexing is needed
     all_prot_id.getHits().clear(); 
+    all_prot_id.setIdentifier(run_identifier);
     all_prot_ids.push_back(all_prot_id);
 
     // remove protein links from peptides as protein links seem are broken and reindexing is needed
     for (auto& pep : all_pep_ids)
     {
+      pep.setIdentifier(run_identifier);
       for (auto& hit : pep.getHits())
       {
         hit.setPeptideEvidences({});
