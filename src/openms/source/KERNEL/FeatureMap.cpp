@@ -467,8 +467,7 @@ namespace OpenMS
     set<IdentificationData::InputItemRef> assigned_items;
     for (const Feature& feat : *this)
     {
-      assigned_items.insert(feat.getIDInputItems().begin(),
-                              feat.getIDInputItems().end());
+      assigned_items.insert(feat.getIDInputItems().begin(), feat.getIDInputItems().end());
     }
     set<IdentificationData::InputItemRef> result;
     set_difference(all_items.begin(), all_items.end(),
