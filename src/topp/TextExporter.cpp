@@ -388,7 +388,8 @@ namespace OpenMS
     if (what.empty()) out << "#rt";
     else out << "#" + what << "rt";
     out << "mz" << "score" << "rank" << "sequence" << "charge" << "aa_before"
-        << "aa_after" << "score_type" << "search_identifier" << "accessions";
+        << "aa_after" << "score_type" << "search_identifier" << "accessions"
+        << "start" << "end";
     if (incl_pred_rt) out << "predicted_rt";
 
     if (incl_first_dim) out << "rt_first_dim" << "predicted_rt_first_dim";
@@ -447,20 +448,43 @@ namespace OpenMS
       {
         out << "-1";
       }
-
       out << *hit_it << pid.getScoreType() << pid.getIdentifier();
 
+      // For each accession/evidence, print the protein, the start and end position in one col each
       String accessions;
-      set<String> protein_accessions = hit_it->extractProteinAccessionsSet();
-      for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
+      String start;
+      bool printStart = false;
+      String end;
+      bool printEnd = false;
+      vector<PeptideEvidence> evid = hit_it->getPeptideEvidences();
+      for (vector<PeptideEvidence>::const_iterator evid_it = evid.begin(); evid_it != evid.end(); ++evid_it)
       {
-        if (acc_it != protein_accessions.begin())
+        if (evid_it != evid.begin())
         {
           accessions += ";";
+          start += ";";
+          end += ";";
         }
-        accessions += *acc_it;
+        accessions += evid_it->getProteinAccession();
+
+        if (evid_it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+        {
+          start += evid_it->getStart();
+          printStart = true;
+        }
+
+        if (evid_it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+        {
+          end += evid_it->getEnd();
+          printEnd = true;
+        }
       }
       out << accessions;
+      // do not just print a bunch of semicolons
+      if (printStart) out << start;
+      else out << "";
+      if (printEnd) out << end;
+      else out << "";
 
       if (incl_pred_rt)
       {

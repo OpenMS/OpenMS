@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#define DEBUG_QTCLUSTERFINDER_IDS
+//#define DEBUG_QTCLUSTERFINDER_IDS
 
 using std::list;
 using std::vector;
@@ -208,7 +208,7 @@ namespace OpenMS
       // start of the current bin and a tolerance based on Double MAD https://aakinshin.net/posts/harrell-davis-double-mad-outlier-detector/
       for (const auto& med_diffs : medians_diffs)
       {
-        if (tmp_diffs.size() > min_nr_diffs_per_bin_)
+        if (tmp_diffs.size() > min_nr_diffs_per_bin_ && !med_diffs.second.empty())
         {
           std::sort(tmp_diffs.begin(), tmp_diffs.end());
           // calculate allowed tolerance
@@ -234,7 +234,7 @@ namespace OpenMS
           #endif
           std::swap(tmp_diffs, last_tmp_diffs);
           tmp_diffs.clear();
-          start_rt = (med_diffs.first + medians_diffs[cnt-1].first)/2;
+          if (cnt > 0) start_rt = (med_diffs.first + medians_diffs[cnt-1].first)/2;
         }
         else
         {
@@ -246,12 +246,12 @@ namespace OpenMS
       std::sort(tmp_diffs.begin(), tmp_diffs.end());
       std::vector<double> last_and_before_diffs;
       last_and_before_diffs.reserve(tmp_diffs.size() + last_tmp_diffs.size());
-      std::merge(tmp_diffs.begin(), tmp_diffs.end(), last_tmp_diffs.begin(), last_tmp_diffs.end(), last_and_before_diffs.begin());
+      std::merge(tmp_diffs.begin(), tmp_diffs.end(), last_tmp_diffs.begin(), last_tmp_diffs.end(), std::back_inserter(last_and_before_diffs));
       if (!last_and_before_diffs.empty())
       {
-        q2 = Math::quantile(tmp_diffs, 0.5);
-        q3 = Math::quantile(tmp_diffs, 0.75);
-        tol = q2 + 2. * 1.4826 * (q3-q2);
+        q2 = Math::quantile(last_and_before_diffs, 0.5);
+        q3 = Math::quantile(last_and_before_diffs, 0.75);
+        tol = max(min_tolerance, q2 + 2. * 1.4826 * (q3-q2));
         bin_tolerances_.insert(make_pair(start_rt, tol));
 
         OPENMS_LOG_INFO << start_rt << ", " << tol << std::endl;
@@ -444,6 +444,8 @@ namespace OpenMS
       // std::cout << "Clusters: " << clustering.size() << std::endl;
 
       ConsensusFeature consensus_feature;
+      // pops heap until a valid best cluster or empty, makes a consensusFeature and updates
+      // other clusters affected by the inclusion of this cluster
       bool made_feature = makeConsensusFeature_(cluster_heads, consensus_feature, 
                                                 element_mapping, grid, handles);
 
@@ -548,6 +550,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
                                           const vector<Heap::handle_type>& handles,
                                           Size best_id)
   {
+    // remove the current best from the heap and consolidate the heap from previous lazy updates
+    // we cannot pop at the end since update_lazy may theoretically change top_element immediately.
+    cluster_heads.pop();
+
     for (const auto& element : elements)
     {
       const GridFeature* const curr_feature = element.feature;
@@ -587,9 +593,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
             Before that we must delete this clusters id from the element mapping. (important!)
             It is possible that addClusterElements_() removes features from the cluster 
-            we are updating. These are not to be confused with the features we removed 
+            we are updating. (Through finalizeCluster_ -> computeQuality_ -> optimizeAnnotations).
+            These are not to be confused with the features we removed
             because they are part of the current best cluster. Those are removed in 
-            QTCluster::update (above).  
+            QTCluster::update (above).
 
             If this happens, the element mapping for the additionally removed features 
             (which are valid and unused!) still contains the id of the cluster which 
@@ -597,18 +604,26 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
             When the cluster is deleted, the element mapping for the removed feature doesn't 
             get updated. The element mapping for the feature then contains an id of a 
             deleted cluster, which will surely lead to a segfault when the feature is actually 
-            used in another cluster later. 
-            */
+            used in another cluster later.
 
+            TODO Check guarantee that addClusterElements does not add a feature that was removed
+             earlier in the loop. Should not happen because they are in the already_used set by now.
+            */
             removeFromElementMapping_(cluster, element_mapping);
+
+            // re-add closest cluster elements that were not used yet.
             addClusterElements_(grid, cluster);
 
             // update the heap, because the quality has changed
+            // compares with top_element to see if a different node needs to be popped now.
+            // for comparison getQuality() is called for the clusters here
+            // TODO check if we can guarantee cluster_heads.increase/decrease since they may have
+            //  better theoretical runtimes although a lazy update until the next pop is probably not bad
             cluster_heads.update_lazy(handles[curr_id]);
 
             ////////////////////////////////////////
-            // Step 2: reinsert the updated clusters features into the element mapping
-
+            // Step 2: reinsert the updated cluster's features into a temporary element mapping.
+            // This can be merged later since the methods called in the loop here seem not to access the mapping.
             for (const auto& neighbor : cluster.getElements())
             {
               tmp_element_mapping[neighbor.feature].insert(curr_id);
@@ -620,17 +635,14 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       // we merge the tmp_element_mapping into the element_mapping after all clusters
       // that contained one feature of the current best cluster have been updated,
       // i.e. after every iteration of the outer loop
-      for (const auto& cluster_ids: tmp_element_mapping)
+      for (const auto& feat_clusterids : tmp_element_mapping)
       {
-        for (const Size id : cluster_ids.second)
+        for (const Size id : feat_clusterids.second)
         {
-          element_mapping[cluster_ids.first].insert(id);
+          element_mapping[feat_clusterids.first].insert(id);
         }
       }
     }
-
-    // remove the current best from the heap and remember its id
-    cluster_heads.pop();
   }
 
   void QTClusterFinder::addClusterElements_(const Grid& grid, QTCluster& cluster)

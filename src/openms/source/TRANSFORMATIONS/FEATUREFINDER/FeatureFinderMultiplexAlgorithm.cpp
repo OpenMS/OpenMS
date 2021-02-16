@@ -117,7 +117,7 @@ namespace OpenMS
     defaults_.setSectionDescription("labels", "mass shifts for all possible labels");
     
     MultiplexDeltaMassesGenerator generator;
-    Param p = generator.getParameters();
+    const Param& p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
       String label_name = "labels:";

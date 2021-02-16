@@ -41,6 +41,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -288,6 +289,17 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+    // Build mapping to get correct spectrum reference later
+    MSExperiment exp;
+    MzMLFile m;
+    PeakFileOptions op;
+    op.setMetadataOnly(true); // no actual peak data
+    op.setMSLevels({ 2 }); //only MS2
+    m.setOptions(op);
+    m.load(in, exp);
+    SpectrumLookup mapping;
+    mapping.readSpectra(exp);
+
     ifstream csvfile(tmp_out);
     if (csvfile) 
     {
@@ -304,7 +316,7 @@ protected:
         if (sl.empty() || sl[0][0] == '#') { continue; }
         
         PeptideIdentification pi;
-        pi.setMetaValue("scan_index", sl[1].toInt());
+        pi.setMetaValue("spectrum_reference", exp[mapping.findByScanNumber(sl[1].toInt())].getNativeID());
         pi.setScoreType("novorscore");
         pi.setHigherScoreBetter(true);
         pi.setRT(sl[2].toDouble());

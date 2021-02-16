@@ -34,14 +34,9 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -55,7 +50,6 @@
 #include <QtCore/QDir>
 
 #include <iostream>
-#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -101,11 +95,11 @@ using namespace std;
 
 
 class TOPPCruxAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPCruxAdapter() :
-    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.", true,
+    SearchEngineBase("CruxAdapter", "Identifies MS/MS spectra using Crux.", true,
       {
         { "Park CI, Klammer AA, Käll L, MacCoss MJ, Noble WS", "Rapid and accurate peptide identification from tandem mass spectra", "J Proteome Res 7(7):3022-3027, 2008.", "10.1021/pr800127y" }
       }
@@ -199,43 +193,16 @@ protected:
     bool report_decoys = getFlag_("report_decoys");
     bool run_percolator = getStringOption_("run_percolator") == "true";
 
-    String inputfile_name = getStringOption_("in");
-    writeDebug_(String("Input file: ") + inputfile_name, 1);
-    if (inputfile_name.empty())
-    {
-      writeLog_("No input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-
-    String out = getStringOption_("out");
-    writeDebug_(String("Output file___real one: ") + out, 1);
-    if (out.empty())
-    {
-      writeLog_("No output file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
 
-    String db_name(getStringOption_("database"));
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
+    String db_name = getDBFilename();
+    String inputfile_name = getRawfileName();
+
+    String out = getStringOption_("out");
+
 
     //tmp_dir
     File::TempDir tmp_dir(debug_level_ >= 2);
@@ -253,7 +220,7 @@ protected:
 
       PlainMSDataWritingConsumer consumer(tmp_mzml);
       consumer.getOptions().setForceTPPCompatability(true);
-      consumer.getOptions().addMSLevel(2); // only load msLevel 2
+      consumer.getOptions().setMSLevels({2}); // only load msLevel 2
       bool skip_full_count = true;
       mzml_file.transform(inputfile_name, &consumer, skip_full_count);
     }

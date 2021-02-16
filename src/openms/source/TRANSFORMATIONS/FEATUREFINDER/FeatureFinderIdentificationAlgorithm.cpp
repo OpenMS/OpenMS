@@ -201,6 +201,7 @@ namespace OpenMS
     params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom"));
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
     params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms2_isotope_scores", "false"); // since FFID only uses MS1 spectra, this is useless
     params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
     // precursor transition = first product transition, additionally biased
     params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
