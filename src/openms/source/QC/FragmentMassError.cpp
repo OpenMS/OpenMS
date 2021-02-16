@@ -337,6 +337,16 @@ namespace OpenMS
     for (auto& pep_id : pep_ids)
     {
       calculateFME_(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
+
+      // if there are no matching peaks, the counter is zero and it is not possible to find ppms
+      if (counter_ppm == 0)
+      {
+        results_.push_back(result);
+        return;
+      }
+      // computes average
+      result.average_ppm = accumulator_ppm / counter_ppm;
+
       calculateVariance_(result, pep_id);
     }
 
@@ -346,9 +356,6 @@ namespace OpenMS
       results_.push_back(result);
       return;
     }
-
-    // computes average
-    result.average_ppm = accumulator_ppm / counter_ppm;
 
     result.variance_ppm = result.variance_ppm / counter_ppm;
 
