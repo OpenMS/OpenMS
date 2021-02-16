@@ -39,6 +39,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -284,6 +285,46 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
 }
 END_SECTION
 */
+
+FeatureMap features; // persist through sections
+
+START_SECTION((void importFeatureIDs(FeatureMap& features, bool clear_original)))
+{
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
+  // protein and peptide IDs use same score type (name) with different orientations;
+  // IdentificationData doesn't allow this, so change it here:
+  for (auto& run : features.getProteinIdentifications())
+  {
+    run.setScoreType(run.getScoreType() + "_protein");
+  }
+  IdentificationDataConverter::importFeatureIDs(features);
+  TEST_EQUAL(features.getIdentificationData().getInputItems().size(), 5);
+  TEST_EQUAL(features.getIdentificationData().getInputMatches().size(), 7);
+  TEST_EQUAL(features.getIdentificationData().getIdentifiedPeptides().size(), 7);
+  TEST_EQUAL(features.getIdentificationData().getParentSequences().size(), 3);
+  TEST_EQUAL(features[0].getIDInputItems().size(), 2);
+  TEST_EQUAL(features[1].getIDInputItems().size(), 1);
+  TEST_EQUAL(features.getUnassignedInputItems().size(), 2);
+  // check that original IDs were cleared:
+  TEST_EQUAL(features.getProteinIdentifications().size(), 0);
+  TEST_EQUAL(features.getUnassignedPeptideIdentifications().size(), 0);
+  TEST_EQUAL(features[0].getPeptideIdentifications().size(), 0);
+  TEST_EQUAL(features[1].getPeptideIdentifications().size(), 0);
+}
+END_SECTION
+
+START_SECTION((void exportFeatureIDs(FeatureMap& features, bool clear_original)))
+{
+  // convert IDs from previous test back:
+  IdentificationDataConverter::exportFeatureIDs(features);
+  TEST_EQUAL(features.getProteinIdentifications().size(), 2);
+  TEST_EQUAL(features.getUnassignedPeptideIdentifications().size(), 2);
+  TEST_EQUAL(features[0].getPeptideIdentifications().size(), 2);
+  TEST_EQUAL(features[1].getPeptideIdentifications().size(), 1);
+  // check that "original" IDs were cleared:
+  TEST_EQUAL(features.getIdentificationData().empty(), true);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
