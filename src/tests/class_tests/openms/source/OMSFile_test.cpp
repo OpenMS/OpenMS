@@ -69,9 +69,9 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
   // add an adduct (not supported by idXML):
   AdductInfo adduct("Cl-", EmpiricalFormula("Cl"), -1);
   auto adduct_ref = ids.registerAdduct(adduct);
-  IdentificationData::InputMatch match = *ids.getInputMatches().begin();
+  IdentificationData::ObservationMatch match = *ids.getObservationMatches().begin();
   match.adduct_opt = adduct_ref;
-  ids.registerInputMatch(match);
+  ids.registerObservationMatch(match);
 
   NEW_TMP_FILE(oms_path);
   // oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_1.oms");
@@ -92,7 +92,7 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(ids.getDBSearchParams().size(), out.getDBSearchParams().size());
   TEST_EQUAL(ids.getProcessingSteps().size(),
              out.getProcessingSteps().size());
-  TEST_EQUAL(ids.getInputItems().size(), out.getInputItems().size());
+  TEST_EQUAL(ids.getObservations().size(), out.getObservations().size());
   TEST_EQUAL(ids.getParentSequences().size(),
              out.getParentSequences().size());
   TEST_EQUAL(ids.getParentGroupSets().size(),
@@ -104,25 +104,25 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
   TEST_EQUAL(ids.getIdentifiedCompounds().size(),
              out.getIdentifiedCompounds().size());
   TEST_EQUAL(ids.getAdducts().size(), out.getAdducts().size());
-  TEST_EQUAL(ids.getInputMatches().size(),
-             out.getInputMatches().size());
-  auto it1 = ids.getInputMatches().begin();
-  auto it2 = out.getInputMatches().begin();
-  auto adduct_it = out.getInputMatches().end();
-  for (; (it1 != ids.getInputMatches().end()) &&
-         (it2 != out.getInputMatches().end()); ++it1, ++it2)
+  TEST_EQUAL(ids.getObservationMatches().size(),
+             out.getObservationMatches().size());
+  auto it1 = ids.getObservationMatches().begin();
+  auto it2 = out.getObservationMatches().begin();
+  auto adduct_it = out.getObservationMatches().end();
+  for (; (it1 != ids.getObservationMatches().end()) &&
+         (it2 != out.getObservationMatches().end()); ++it1, ++it2)
   {
     TEST_EQUAL(it1->steps_and_scores.size(),
                it2->steps_and_scores.size());
     if (it2->adduct_opt) adduct_it = it2; // found PSM with adduct
   }
   // check PSM with adduct:
-  TEST_EQUAL(adduct_it != out.getInputMatches().end(), true);
-  ABORT_IF(adduct_it == out.getInputMatches().end());
-  TEST_EQUAL(adduct_it->input_item_ref->data_id,
-             ids.getInputMatches().begin()->input_item_ref->data_id);
+  TEST_EQUAL(adduct_it != out.getObservationMatches().end(), true);
+  ABORT_IF(adduct_it == out.getObservationMatches().end());
+  TEST_EQUAL(adduct_it->observation_ref->data_id,
+             ids.getObservationMatches().begin()->observation_ref->data_id);
   TEST_EQUAL(adduct_it->identified_molecule_var.toString(),
-             ids.getInputMatches().begin()->identified_molecule_var.toString());
+             ids.getObservationMatches().begin()->identified_molecule_var.toString());
   TEST_EQUAL((*adduct_it->adduct_opt)->getName(), "Cl-");
 }
 END_SECTION
@@ -150,6 +150,8 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
 {
   FeatureMap features;
   OMSFile().load(oms_path, features);
+  FeatureXMLFile().store(OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML"),
+                         features);
 
   TEST_EQUAL(features.size(), 2);
   TEST_EQUAL(features[0].getSubordinates().size(), 2);

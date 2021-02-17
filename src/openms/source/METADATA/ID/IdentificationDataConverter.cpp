@@ -189,7 +189,7 @@ namespace OpenMS
     progresslogger.endProgress();
 
     // PeptideIdentification:
-    Size unknown_query_counter = 1;
+    Size unknown_obs_counter = 1;
     progresslogger.startProgress(0, peptides.size(),
                                  "converting peptide identifications");
     Size peptides_counter = 0;
@@ -199,41 +199,41 @@ namespace OpenMS
       progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step[id];
-      ID::InputItem query(""); // fill in "data_id" later
+      ID::Observation obs(""); // fill in "data_id" later
       if (!step_ref->input_file_refs.empty())
       {
         // @TODO: what if there's more than one input file?
-        query.input_file_opt = step_ref->input_file_refs[0];
+        obs.input_file_opt = step_ref->input_file_refs[0];
       }
       else
       {
         String file = "UNKNOWN_INPUT_FILE_" + id;
         ID::InputFileRef file_ref =
           id_data.registerInputFile(ID::InputFile(file));
-        query.input_file_opt = file_ref;
+        obs.input_file_opt = file_ref;
       }
-      query.rt = pep.getRT();
-      query.mz = pep.getMZ();
-      static_cast<MetaInfoInterface&>(query) = pep;
+      obs.rt = pep.getRT();
+      obs.mz = pep.getMZ();
+      static_cast<MetaInfoInterface&>(obs) = pep;
       if (pep.metaValueExists("spectrum_reference"))
       {
-        query.data_id = pep.getMetaValue("spectrum_reference");
-        query.removeMetaValue("spectrum_reference");
+        obs.data_id = pep.getMetaValue("spectrum_reference");
+        obs.removeMetaValue("spectrum_reference");
       }
       else
       {
         if (pep.hasRT() && pep.hasMZ())
         {
-          query.data_id = String("RT=") + String(float(query.rt)) + "_MZ=" +
-            String(float(query.mz));
+          obs.data_id = String("RT=") + String(float(obs.rt)) + "_MZ=" +
+            String(float(obs.mz));
         }
         else
         {
-          query.data_id = "UNKNOWN_QUERY_" + String(unknown_query_counter);
-          ++unknown_query_counter;
+          obs.data_id = "UNKNOWN_OBSERVATION_" + String(unknown_obs_counter);
+          ++unknown_obs_counter;
         }
       }
-      ID::InputItemRef query_ref = id_data.registerInputItem(query);
+      ID::ObservationRef obs_ref = id_data.registerObservation(obs);
 
       ID::ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter());
       ID::ScoreTypeRef score_ref = id_data.registerScoreType(score_type);
@@ -261,7 +261,7 @@ namespace OpenMS
         ID::IdentifiedPeptideRef peptide_ref =
           id_data.registerIdentifiedPeptide(peptide);
 
-        ID::InputMatch match(peptide_ref, query_ref);
+        ID::ObservationMatch match(peptide_ref, obs_ref);
         match.charge = hit.getCharge();
         static_cast<MetaInfoInterface&>(match) = hit;
         if (!hit.getPeakAnnotations().empty())
@@ -297,9 +297,9 @@ namespace OpenMS
           ID::ProcessingSoftwareRef software_ref =
             id_data.registerProcessingSoftware(software);
           ID::ProcessingStep sub_step(software_ref);
-          if (query.input_file_opt)
+          if (obs.input_file_opt)
           {
-            sub_step.input_file_refs.push_back(*query.input_file_opt);
+            sub_step.input_file_refs.push_back(*obs.input_file_opt);
           }
           ID::ProcessingStepRef sub_step_ref =
             id_data.registerProcessingStep(sub_step);
@@ -309,7 +309,7 @@ namespace OpenMS
 
         // most recent step (with primary score) goes last:
         match.addProcessingStep(applied);
-        id_data.registerInputMatch(match);
+        id_data.registerObservationMatch(match);
       }
     }
     progresslogger.endProgress();
@@ -320,18 +320,18 @@ namespace OpenMS
     const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
     vector<PeptideIdentification>& peptides)
   {
-    // "InputItem" roughly corresponds to "PeptideIdentification",
+    // "Observation" roughly corresponds to "PeptideIdentification",
     // "ProcessingStep" roughly corresponds to "ProteinIdentification";
     // score type is stored in "PeptideIdent.", not "PeptideHit":
-    map<pair<ID::InputItemRef, boost::optional<ID::ProcessingStepRef>>,
+    map<pair<ID::ObservationRef, boost::optional<ID::ProcessingStepRef>>,
         pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
     const String& ppm_error_name =
       Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM;
 
-    for (const ID::InputMatch& input_match :
-           id_data.getInputMatches())
+    for (const ID::ObservationMatch& input_match :
+           id_data.getObservationMatches())
     {
       PeptideHit hit;
       static_cast<MetaInfoInterface&>(hit) = input_match;
@@ -401,7 +401,7 @@ namespace OpenMS
         {
           hit_copy.setPeakAnnotations(pos->second);
         }
-        auto key = make_pair(input_match.input_item_ref,
+        auto key = make_pair(input_match.observation_ref,
                              applied.processing_step_opt);
         psm_data[key].first.push_back(hit_copy);
         psm_data[key].second = scores[0].first; // primary score type
@@ -413,7 +413,7 @@ namespace OpenMS
 
     for (const auto& psm : psm_data)
     {
-      const ID::InputItem& query = *psm.first.first;
+      const ID::Observation& query = *psm.first.first;
       PeptideIdentification peptide;
       static_cast<MetaInfoInterface&>(peptide) = query;
       // set RT and m/z if they aren't missing (NaN):
@@ -656,27 +656,27 @@ namespace OpenMS
 
     MzTabPSMSectionRows psms;
     MzTabOSMSectionRows osms;
-    for (const auto& input_match : id_data.getInputMatches())
+    for (const auto& obs_match : id_data.getObservationMatches())
     {
       const ID::IdentifiedMolecule& molecule_var =
-        input_match.identified_molecule_var;
+        obs_match.identified_molecule_var;
       // @TODO: what about small molecules?
       ID::MoleculeType molecule_type = molecule_var.getMoleculeType();
       if (molecule_type == ID::MoleculeType::PROTEIN)
       {
         const AASequence& seq = molecule_var.getIdentifiedPeptideRef()->sequence;
-        double calc_mass = seq.getMonoWeight(Residue::Full, input_match.charge);
-        exportInputMatchToMzTab_(seq.toString(), input_match, calc_mass, psms,
-                                 psm_scores, file_map);
+        double calc_mass = seq.getMonoWeight(Residue::Full, obs_match.charge);
+        exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
+                                       psms, psm_scores, file_map);
         // "PSM_ID" field is set at the end, after sorting
       }
       else if (molecule_type == ID::MoleculeType::RNA)
       {
         const NASequence& seq = molecule_var.getIdentifiedOligoRef()->sequence;
         double calc_mass = seq.getMonoWeight(NASequence::Full,
-                                             input_match.charge);
-        exportInputMatchToMzTab_(seq.toString(), input_match, calc_mass, osms,
-                                 osm_scores, file_map);
+                                             obs_match.charge);
+        exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
+                                       osms, osm_scores, file_map);
       }
     }
 
@@ -972,8 +972,8 @@ namespace OpenMS
               peptides);
 
     // map converted IDs back to features using meta values assigned in "handleFeatureImport_":
-    for (ID::InputItemRef ref = id_data.getInputItems().begin();
-         ref != id_data.getInputItems().end(); ++ref)
+    for (ID::ObservationRef ref = id_data.getObservations().begin();
+         ref != id_data.getObservations().end(); ++ref)
     {
       vector<String> meta_keys;
       ref->getKeys(meta_keys);
@@ -987,7 +987,7 @@ namespace OpenMS
           {
             feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
           }
-          feat_ptr->addIDInputItem(ref);
+          feat_ptr->addIDObservation(ref);
           // @TODO: remove meta value
         }
       }
@@ -1077,7 +1077,7 @@ namespace OpenMS
   void IdentificationDataConverter::handleFeatureExport_(Feature& feature, IntList indexes,
                                                          IdentificationData& id_data, Size& id_counter)
   {
-    for (ID::InputItemRef ref : feature.getIDInputItems())
+    for (ID::ObservationRef ref : feature.getIDObservations())
     {
       // store trace of feature indexes so we can map the converted ID back;
       // key needs to be unique in case the same ID matches multiple features:

@@ -328,7 +328,7 @@ namespace OpenMS
              pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
            ++hit_it)
       {
-        const set<String>& current_accessions = 
+        const set<String>& current_accessions =
           hit_it->extractProteinAccessionsSet();
 
         run_to_accessions[run_id].insert(current_accessions.begin(),
@@ -783,17 +783,17 @@ namespace OpenMS
   }
 
 
-  void IDFilter::keepBestMatchPerQuery(
+  void IDFilter::keepBestMatchPerObservation(
     IdentificationData& id_data,
     IdentificationData::ScoreTypeRef score_ref)
   {
-    if (id_data.getInputMatches().size() <= 1) return; // nothing to do
+    if (id_data.getObservationMatches().size() <= 1) return; // nothing to do
 
-    vector<IdentificationData::InputMatchRef> best_matches =
-      id_data.getBestMatchPerQuery(score_ref);
+    vector<IdentificationData::ObservationMatchRef> best_matches =
+      id_data.getBestMatchPerObservation(score_ref);
     auto best_match_it = best_matches.begin();
-    for (auto it = id_data.input_matches_.begin();
-         it != id_data.input_matches_.end(); )
+    for (auto it = id_data.observation_matches_.begin();
+         it != id_data.observation_matches_.end(); )
     {
       if (it == *best_match_it)
       {
@@ -802,7 +802,7 @@ namespace OpenMS
       }
       else
       {
-        it = id_data.input_matches_.erase(it);
+        it = id_data.observation_matches_.erase(it);
       }
     }
 
@@ -810,12 +810,12 @@ namespace OpenMS
   }
 
 
-  void IDFilter::filterInputMatchesByScore(
+  void IDFilter::filterObservationMatchesByScore(
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
     id_data.removeFromSetIf_(
-      id_data.input_matches_, [&](IdentificationData::InputMatchRef it) -> bool
+      id_data.observation_matches_, [&](IdentificationData::ObservationMatchRef it) -> bool
       {
         pair<double, bool> score = it->getScore(score_ref);
         return !score.second || score_ref->isBetterScore(cutoff, score.first);

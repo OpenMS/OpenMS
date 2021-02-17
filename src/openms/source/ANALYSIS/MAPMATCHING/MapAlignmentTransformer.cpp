@@ -184,7 +184,7 @@ namespace OpenMS
     applyToBaseFeature_(feature, trafo, store_original_rt);
 
     // apply to grouped features (feature handles):
-    for (ConsensusFeature::HandleSetType::const_iterator it = 
+    for (ConsensusFeature::HandleSetType::const_iterator it =
            feature.getFeatures().begin(); it != feature.getFeatures().end();
          ++it)
     {
@@ -195,10 +195,10 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformRetentionTimes(
-    vector<PeptideIdentification>& pep_ids, 
+    vector<PeptideIdentification>& pep_ids,
     const TransformationDescription& trafo, bool store_original_rt)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin(); 
+    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
          pep_it != pep_ids.end(); ++pep_it)
     {
       if (pep_it->hasRT())
@@ -216,16 +216,16 @@ namespace OpenMS
     bool store_original_rt)
   {
     // update RTs in-place:
-    for (IdentificationData::InputItemRef it = id_data.input_items_.begin();
-         it != id_data.input_items_.end(); ++it)
+    for (IdentificationData::ObservationRef it = id_data.observations_.begin();
+         it != id_data.observations_.end(); ++it)
     {
-      id_data.input_items_.modify(it, [&](IdentificationData::InputItem& query)
+      id_data.observations_.modify(it, [&](IdentificationData::Observation& obs)
                                    {
                                      if (store_original_rt)
                                      {
-                                       storeOriginalRT_(query, query.rt);
+                                       storeOriginalRT_(obs, obs.rt);
                                      }
-                                     query.rt = trafo.apply(query.rt);
+                                     obs.rt = trafo.apply(obs.rt);
                                    });
     }
   }

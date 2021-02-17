@@ -273,11 +273,11 @@ START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<Protei
   TEST_EQUAL(ids.getParentSequences().size(), 11098);
   // problem: input data comes from multiple files, spectra with matching names
   // in different files get merged together -> lower number of input items:
-  TEST_EQUAL(ids.getInputItems().size(), 55522);
+  TEST_EQUAL(ids.getObservations().size(), 55522);
   TEST_EQUAL(ids.getIdentifiedPeptides().size(), 73950);
   // according to "grep" on the input file, there should be 335250 peptide hits
   // in total - maybe some duplicates?:
-  TEST_EQUAL(ids.getInputMatches().size(), 332778);
+  TEST_EQUAL(ids.getObservationMatches().size(), 332778);
 
   TEST_EQUAL(ids.getParentGroupSets().size(), 2);
   TEST_EQUAL(ids.getParentGroupSets()[0].groups.size(), 10853);
@@ -298,13 +298,13 @@ START_SECTION((void importFeatureIDs(FeatureMap& features, bool clear_original))
     run.setScoreType(run.getScoreType() + "_protein");
   }
   IdentificationDataConverter::importFeatureIDs(features);
-  TEST_EQUAL(features.getIdentificationData().getInputItems().size(), 5);
-  TEST_EQUAL(features.getIdentificationData().getInputMatches().size(), 7);
+  TEST_EQUAL(features.getIdentificationData().getObservations().size(), 5);
+  TEST_EQUAL(features.getIdentificationData().getObservationMatches().size(), 7);
   TEST_EQUAL(features.getIdentificationData().getIdentifiedPeptides().size(), 7);
   TEST_EQUAL(features.getIdentificationData().getParentSequences().size(), 3);
-  TEST_EQUAL(features[0].getIDInputItems().size(), 2);
-  TEST_EQUAL(features[1].getIDInputItems().size(), 1);
-  TEST_EQUAL(features.getUnassignedInputItems().size(), 2);
+  TEST_EQUAL(features[0].getIDObservations().size(), 2);
+  TEST_EQUAL(features[1].getIDObservations().size(), 1);
+  TEST_EQUAL(features.getUnassignedObservations().size(), 2);
   // check that original IDs were cleared:
   TEST_EQUAL(features.getProteinIdentifications().size(), 0);
   TEST_EQUAL(features.getUnassignedPeptideIdentifications().size(), 0);

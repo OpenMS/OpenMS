@@ -35,17 +35,17 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/ProcessingStep.h>
-#include <OpenMS/METADATA/ID/InputItem.h>
+#include <OpenMS/METADATA/ID/Observation.h>
 #include <OpenMS/METADATA/ID/DBSearchParam.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
 #include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/ParentMatch.h>
-#include <OpenMS/METADATA/ID/InputMatch.h>
+#include <OpenMS/METADATA/ID/ObservationMatch.h>
 #include <OpenMS/METADATA/ID/ParentSequence.h>
 #include <OpenMS/METADATA/ID/ParentGroup.h>
-#include <OpenMS/METADATA/ID/InputMatchGroup.h>
+#include <OpenMS/METADATA/ID/ObservationMatchGroup.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
 #include <boost/unordered_set.hpp>
@@ -67,10 +67,10 @@ namespace OpenMS
     <table>
     <tr><th>Class <th>Represents <th>Key <th>Proteomics example <th>Corresponding legacy class
     <tr><td>ProcessingStep <td>Information about a data processing step that was applied (e.g. input files, software used, parameters) <td>Combined information <td>Mascot search <td>ProteinIdentification
-    <tr><td>InputItem <td>A search query (with identifier, RT, m/z), i.e. an MS2 spectrum or feature (for accurate mass search) <td>Identifier <td>MS2 spectrum <td>PeptideIdentification
+    <tr><td>Observation <td>A search query (with identifier, RT, m/z) from an input file, i.e. an MS2 spectrum or feature (for accurate mass search) <td>File/Identifier <td>MS2 spectrum <td>PeptideIdentification
     <tr><td>ParentSequence <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
     <tr><td>IdentifiedPeptide/-Oligo/-Compound <td>An identified molecule of the respective type <td>Sequence (or identifier for a compound) <td>Peptide <td>PeptideHit
-    <tr><td>InputMatch <td>A match between a query (InputItem) and identified molecule (Identified...) <td>Combination of query and molecule references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
+    <tr><td>ObservationMatch <td>A match between a query (Observation), identified molecule (Identified...), and optionally adduct <td>Combination of query/molecule/adduct references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
     </table>
 
     To populate an IdentificationData instance with data, "register..." functions are used.
@@ -126,9 +126,9 @@ namespace OpenMS
     using AppliedProcessingSteps =
       IdentificationDataInternal::AppliedProcessingSteps;
 
-    using InputItem = IdentificationDataInternal::InputItem;
-    using InputItems = IdentificationDataInternal::InputItems;
-    using InputItemRef = IdentificationDataInternal::InputItemRef;
+    using Observation = IdentificationDataInternal::Observation;
+    using Observations = IdentificationDataInternal::Observations;
+    using ObservationRef = IdentificationDataInternal::ObservationRef;
 
     using ParentSequence = IdentificationDataInternal::ParentSequence;
     using ParentSequences = IdentificationDataInternal::ParentSequences;
@@ -159,14 +159,14 @@ namespace OpenMS
     using AdductRef = IdentificationDataInternal::AdductRef;
     using AdductOpt = IdentificationDataInternal::AdductOpt;
 
-    using InputMatch = IdentificationDataInternal::InputMatch;
-    using InputMatches = IdentificationDataInternal::InputMatches;
-    using InputMatchRef = IdentificationDataInternal::InputMatchRef;
+    using ObservationMatch = IdentificationDataInternal::ObservationMatch;
+    using ObservationMatches = IdentificationDataInternal::ObservationMatches;
+    using ObservationMatchRef = IdentificationDataInternal::ObservationMatchRef;
 
     // @TODO: allow multiple sets of groups, like with parent sequences
     // ("ParentGroupSets")?
-    using InputMatchGroup = IdentificationDataInternal::InputMatchGroup;
-    using InputMatchGroups = IdentificationDataInternal::InputMatchGroups;
+    using ObservationMatchGroup = IdentificationDataInternal::ObservationMatchGroup;
+    using ObservationMatchGroups = IdentificationDataInternal::ObservationMatchGroups;
     using MatchGroupRef = IdentificationDataInternal::MatchGroupRef;
 
     using ParentGroup = IdentificationDataInternal::ParentGroup;
@@ -187,13 +187,13 @@ namespace OpenMS
       std::map<ProcessingSoftwareRef, ProcessingSoftwareRef> processing_software_refs;
       std::map<SearchParamRef, SearchParamRef> search_param_refs;
       std::map<ProcessingStepRef, ProcessingStepRef> processing_step_refs;
-      std::map<InputItemRef, InputItemRef> input_item_refs;
+      std::map<ObservationRef, ObservationRef> observation_refs;
       std::map<ParentSequenceRef, ParentSequenceRef> parent_sequence_refs;
       std::map<IdentifiedPeptideRef, IdentifiedPeptideRef> identified_peptide_refs;
       std::map<IdentifiedOligoRef, IdentifiedOligoRef> identified_oligo_refs;
       std::map<IdentifiedCompoundRef, IdentifiedCompoundRef> identified_compound_refs;
       std::map<AdductRef, AdductRef> adduct_refs;
-      std::map<InputMatchRef, InputMatchRef> input_match_refs;
+      std::map<ObservationMatchRef, ObservationMatchRef> observation_match_refs;
 
       IdentifiedMolecule translateIdentifiedMolecule(IdentifiedMolecule old) const
       {
@@ -235,23 +235,23 @@ namespace OpenMS
       db_search_params_(std::move(other.db_search_params_)),
       db_search_steps_(std::move(other.db_search_steps_)),
       score_types_(std::move(other.score_types_)),
-      input_items_(std::move(other.input_items_)),
+      observations_(std::move(other.observations_)),
       parents_(std::move(other.parents_)),
       parent_groups_(std::move(other.parent_groups_)),
       identified_peptides_(std::move(other.identified_peptides_)),
       identified_compounds_(std::move(other.identified_compounds_)),
       identified_oligos_(std::move(other.identified_oligos_)),
-      input_matches_(std::move(other.input_matches_)),
-      input_match_groups_(std::move(other.input_match_groups_)),
+      observation_matches_(std::move(other.observation_matches_)),
+      observation_match_groups_(std::move(other.observation_match_groups_)),
       current_step_ref_(std::move(other.current_step_ref_)),
       no_checks_(std::move(other.no_checks_)),
       // look-up tables:
-      input_item_lookup_(std::move(other.input_item_lookup_)),
+      observation_lookup_(std::move(other.observation_lookup_)),
       parent_lookup_(std::move(other.parent_lookup_)),
       identified_peptide_lookup_(std::move(other.identified_peptide_lookup_)),
       identified_compound_lookup_(std::move(other.identified_compound_lookup_)),
       identified_oligo_lookup_(std::move(other.identified_oligo_lookup_)),
-      input_match_lookup_(std::move(other.input_match_lookup_))
+      observation_match_lookup_(std::move(other.observation_match_lookup_))
     {
     }
 
@@ -301,11 +301,11 @@ namespace OpenMS
     ScoreTypeRef registerScoreType(const ScoreType& score);
 
     /*!
-      @brief Register an input item (e.g. MS2 spectrum or feature)
+      @brief Register an observation (e.g. MS2 spectrum or feature)
 
-      @return Reference to the registered input item
+      @return Reference to the registered observation
     */
-    InputItemRef registerInputItem(const InputItem& query);
+    ObservationRef registerObservation(const Observation& obs);
 
     /*!
       @brief Register a parent sequence (e.g. protein or intact RNA)
@@ -348,18 +348,18 @@ namespace OpenMS
     AdductRef registerAdduct(const AdductInfo& adduct);
 
     /*!
-      @brief Register an input match (e.g. peptide-spectrum match)
+      @brief Register an observation match (e.g. peptide-spectrum match)
 
-      @return Reference to the registered input match
+      @return Reference to the registered observation match
     */
-    InputMatchRef registerInputMatch(const InputMatch& match);
+    ObservationMatchRef registerObservationMatch(const ObservationMatch& match);
 
     /*!
-      @brief Register a group of associated input matches
+      @brief Register a group of observation matches that belong together
 
-      @return Reference to the registered group of matches
+      @return Reference to the registered group of observation matches
     */
-    MatchGroupRef registerInputMatchGroup(const InputMatchGroup& group);
+    MatchGroupRef registerObservationMatchGroup(const ObservationMatchGroup& group);
 
     /// Return the registered input files (immutable)
     const InputFiles& getInputFiles() const
@@ -397,10 +397,10 @@ namespace OpenMS
       return score_types_;
     }
 
-    /// Return the registered input items (immutable)
-    const InputItems& getInputItems() const
+    /// Return the registered observations (immutable)
+    const Observations& getObservations() const
     {
-      return input_items_;
+      return observations_;
     }
 
     /// Return the registered parent sequences (immutable)
@@ -439,20 +439,20 @@ namespace OpenMS
       return adducts_;
     }
 
-    /// Return the registered input matches (immutable)
-    const InputMatches& getInputMatches() const
+    /// Return the registered observation matches (immutable)
+    const ObservationMatches& getObservationMatches() const
     {
-      return input_matches_;
+      return observation_matches_;
     }
 
-    /// Return the registered groups of input matches (immutable)
-    const InputMatchGroups& getInputMatchGroups() const
+    /// Return the registered groups of observation matches (immutable)
+    const ObservationMatchGroups& getObservationMatchGroups() const
     {
-      return input_match_groups_;
+      return observation_match_groups_;
     }
 
     /// Add a score to an input match (e.g. PSM)
-    void addScore(InputMatchRef match_ref, ScoreTypeRef score_ref,
+    void addScore(ObservationMatchRef match_ref, ScoreTypeRef score_ref,
                   double value);
 
     /*!
@@ -474,9 +474,8 @@ namespace OpenMS
     /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
-    /// Return the best match for each input item, according to a given score type
-    std::vector<InputMatchRef> getBestMatchPerQuery(ScoreTypeRef
-                                                    score_ref) const;
+    /// Return the best match for each observation, according to a given score type
+    std::vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const;
     // @TODO: this currently doesn't take molecule type into account - should it?
 
     /*!
@@ -494,13 +493,13 @@ namespace OpenMS
 
       Make sure there are no invalid references or "orphan" data entries.
 
-      @param require_input_match Remove identified molecules and input items that aren't part of input matches?
+      @param require_observation_match Remove identified molecules, observations and adducts that aren't part of observation matches?
       @param require_identified_sequence Remove parent sequences (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
       @param require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent sequence (protein/RNA)?
       @param require_parent_group Remove parent sequences that aren't part of parent sequence groups?
       @param require_match_group Remove input matches that aren't part of match groups?
     */
-    void cleanup(bool require_input_match = true,
+    void cleanup(bool require_observation_match = true,
                  bool require_identified_sequence = true,
                  bool require_parent_match = true,
                  bool require_parent_group = false,
@@ -581,10 +580,10 @@ namespace OpenMS
     }
 
     /// Set a meta value on a stored input match
-    void setMetaValue(const InputMatchRef ref, const String& key, const DataValue& value);
+    void setMetaValue(const ObservationMatchRef ref, const String& key, const DataValue& value);
 
     /// Set a meta value on a stored input item
-    void setMetaValue(const InputItemRef ref, const String& key, const DataValue& value);
+    void setMetaValue(const ObservationRef ref, const String& key, const DataValue& value);
 
     /// Set a meta value on a stored identified molecule (variant)
     void setMetaValue(const IdentifiedMolecule& var, const String& key, const DataValue& value);
@@ -602,15 +601,15 @@ namespace OpenMS
     // for many processing steps)
     DBSearchSteps db_search_steps_;
     ScoreTypes score_types_;
-    InputItems input_items_;
+    Observations observations_;
     ParentSequences parents_;
     ParentGroupSets parent_groups_;
     IdentifiedPeptides identified_peptides_;
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;
     Adducts adducts_;
-    InputMatches input_matches_;
-    InputMatchGroups input_match_groups_;
+    ObservationMatches observation_matches_;
+    ObservationMatchGroups observation_match_groups_;
 
     /// Reference to the current data processing step (see @ref setCurrentProcessingStep())
     ProcessingStepRef current_step_ref_;
@@ -623,13 +622,13 @@ namespace OpenMS
     bool no_checks_;
 
     // look-up tables for fast checking of reference validity:
-    AddressLookup input_item_lookup_;
+    AddressLookup observation_lookup_;
     AddressLookup parent_lookup_;
     // @TODO: just use one "identified_molecule_lookup_" for all molecule types?
     AddressLookup identified_peptide_lookup_;
     AddressLookup identified_compound_lookup_;
     AddressLookup identified_oligo_lookup_;
-    AddressLookup input_match_lookup_;
+    AddressLookup observation_match_lookup_;
 
     /// Helper function to check if all score types are valid
     void checkScoreTypes_(const std::map<ScoreTypeRef, double>& scores) const;

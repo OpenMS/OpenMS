@@ -126,7 +126,7 @@ namespace OpenMS
 
       void storeProcessingSteps_(const IdentificationData& id_data);
 
-      void storeInputItems_(const IdentificationData& id_data);
+      void storeObservations_(const IdentificationData& id_data);
 
       void storeParentSequences_(const IdentificationData& id_data);
 
@@ -138,7 +138,7 @@ namespace OpenMS
 
       void storeAdducts_(const IdentificationData& id_data);
 
-      void storeInputMatches_(const IdentificationData& id_data);
+      void storeObservationMatches_(const IdentificationData& id_data);
 
       void storeFeatures_(const FeatureMap& features);
 
@@ -279,7 +279,7 @@ namespace OpenMS
 
       void loadProcessingSteps_(IdentificationData& id_data);
 
-      void loadInputItems_(IdentificationData& id_data);
+      void loadObservations_(IdentificationData& id_data);
 
       void loadParentSequences_(IdentificationData& id_data);
 
@@ -291,7 +291,7 @@ namespace OpenMS
 
       void loadAdducts_(IdentificationData& id_data);
 
-      void loadInputMatches_(IdentificationData& id_data);
+      void loadObservationMatches_(IdentificationData& id_data);
 
       void loadMapMetaData_(FeatureMap& features);
 
@@ -324,7 +324,7 @@ namespace OpenMS
         Key molecule_id);
 
       void handleQueryPeakAnnotation_(
-        QSqlQuery& query, IdentificationData::InputMatch& match,
+        QSqlQuery& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
@@ -335,10 +335,10 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ProcessingSoftwareRef> processing_software_refs_;
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
-      std::unordered_map<Key, IdentificationData::InputItemRef> input_item_refs_;
+      std::unordered_map<Key, IdentificationData::ObservationRef> observation_refs_;
       std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
-      std::unordered_map<Key, IdentificationData::InputMatchRef> input_match_refs_;
+      std::unordered_map<Key, IdentificationData::ObservationMatchRef> observation_match_refs_;
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
     };
 

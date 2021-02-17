@@ -213,39 +213,39 @@ namespace OpenMS
   }
 
 
-  IdentificationData::InputItemRef
-  IdentificationData::registerInputItem(const InputItem& query)
+  IdentificationData::ObservationRef
+  IdentificationData::registerObservation(const Observation& obs)
   {
     // reference to spectrum or feature is required:
-    if (!no_checks_ && query.data_id.empty())
+    if (!no_checks_ && obs.data_id.empty())
     {
-      String msg = "missing identifier in input item";
+      String msg = "missing identifier in observation";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
     // ref. to input file may be missing, but must otherwise be valid:
-    if (!no_checks_ && query.input_file_opt &&
-        !isValidReference_(*query.input_file_opt, input_files_))
+    if (!no_checks_ && obs.input_file_opt &&
+        !isValidReference_(*obs.input_file_opt, input_files_))
     {
       String msg = "invalid reference to an input file - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    // can't use "insertIntoMultiIndex_" because InputItem doesn't have the
+    // can't use "insertIntoMultiIndex_" because Observation doesn't have the
     // "steps_and_scores" member (from ScoredProcessingResult)
-    auto result = input_items_.insert(query);
+    auto result = observations_.insert(obs);
     if (!result.second) // existing element - merge in new information
     {
-      input_items_.modify(result.first, [&query](InputItem& existing)
+      observations_.modify(result.first, [&obs](Observation& existing)
                            {
-                             existing += query;
+                             existing += obs;
                            });
     }
 
-    input_item_lookup_.insert(uintptr_t(&(*result.first)));
+    observation_lookup_.insert(uintptr_t(&(*result.first)));
 
-    // @TODO: add processing step (currently not supported by InputItem)
+    // @TODO: add processing step (currently not supported by Observation)
     return result.first;
   }
 
@@ -379,9 +379,8 @@ namespace OpenMS
   }
 
 
-  IdentificationData::InputMatchRef
-  IdentificationData::registerInputMatch(const InputMatch&
-                                                 match)
+  IdentificationData::ObservationMatchRef
+  IdentificationData::registerObservationMatch(const ObservationMatch& match)
   {
     if (!no_checks_)
     {
@@ -416,9 +415,9 @@ namespace OpenMS
         }
       }
 
-      if (!isValidHashedReference_(match.input_item_ref, input_item_lookup_))
+      if (!isValidHashedReference_(match.observation_ref, observation_lookup_))
       {
-        String msg = "invalid reference to a input item - register that first";
+        String msg = "invalid reference to an observation - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -431,18 +430,19 @@ namespace OpenMS
       }
     }
 
-    return insertIntoMultiIndex_(input_matches_, match, input_match_lookup_);
+    return insertIntoMultiIndex_(observation_matches_, match,
+                                 observation_match_lookup_);
   }
 
 
   IdentificationData::MatchGroupRef
-  IdentificationData::registerInputMatchGroup(const InputMatchGroup& group)
+  IdentificationData::registerObservationMatchGroup(const ObservationMatchGroup& group)
   {
     if (!no_checks_)
     {
-      for (const auto& ref : group.input_match_refs)
+      for (const auto& ref : group.observation_match_refs)
       {
-        if (!isValidHashedReference_(ref, input_match_lookup_))
+        if (!isValidHashedReference_(ref, observation_match_lookup_))
         {
           String msg = "invalid reference to an input match - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -451,11 +451,11 @@ namespace OpenMS
       }
     }
 
-    return insertIntoMultiIndex_(input_match_groups_, group);
+    return insertIntoMultiIndex_(observation_match_groups_, group);
   }
 
 
-  void IdentificationData::addScore(InputMatchRef match_ref,
+  void IdentificationData::addScore(ObservationMatchRef match_ref,
                                     ScoreTypeRef score_ref, double value)
   {
     if (!no_checks_ && !isValidReference_(score_ref, score_types_))
@@ -465,8 +465,8 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    ModifyMultiIndexAddScore<InputMatch> modifier(score_ref, value);
-    input_matches_.modify(match_ref, modifier);
+    ModifyMultiIndexAddScore<ObservationMatch> modifier(score_ref, value);
+    observation_matches_.modify(match_ref, modifier);
   }
 
 
@@ -509,18 +509,18 @@ namespace OpenMS
   }
 
 
-  vector<IdentificationData::InputMatchRef>
-  IdentificationData::getBestMatchPerQuery(ScoreTypeRef score_ref) const
+  vector<IdentificationData::ObservationMatchRef>
+  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref) const
   {
-    vector<InputMatchRef> results;
+    vector<ObservationMatchRef> results;
     pair<double, bool> best_score = make_pair(0.0, false);
-    InputMatchRef best_ref = input_matches_.end();
-    for (InputMatchRef ref = input_matches_.begin();
-         ref != input_matches_.end(); ++ref)
+    ObservationMatchRef best_ref = observation_matches_.end();
+    for (ObservationMatchRef ref = observation_matches_.begin();
+         ref != observation_matches_.end(); ++ref)
     {
       pair<double, bool> current_score = ref->getScore(score_ref);
-      if ((best_ref != input_matches_.end()) &&
-          (ref->input_item_ref != best_ref->input_item_ref))
+      if ((best_ref != observation_matches_.end()) &&
+          (ref->observation_ref != best_ref->observation_ref))
       {
         // finalize previous query:
         if (best_score.second) results.push_back(best_ref);
@@ -634,7 +634,7 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::cleanup(bool require_input_match,
+  void IdentificationData::cleanup(bool require_observation_match,
                                    bool require_identified_sequence,
                                    bool require_parent_match,
                                    bool require_parent_group,
@@ -642,7 +642,7 @@ namespace OpenMS
   {
     // we expect that only "primary results" (stored in classes derived from
     // "ScoredProcessingResult") will be directly removed (by filters) - not
-    // meta data (incl. input items, score types, processing steps etc.)
+    // meta data (incl. score types, processing steps etc.)
 
     // remove parent sequences based on parent groups:
     if (require_parent_group)
@@ -693,7 +693,7 @@ namespace OpenMS
                        });
     }
 
-    // remove input matches based on identified molecules:
+    // remove observation matches based on identified molecules:
     set<IdentifiedMolecule> id_vars;
     for (IdentifiedPeptideRef it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
@@ -710,37 +710,37 @@ namespace OpenMS
     {
       id_vars.insert(it);
     }
-    removeFromSetIf_(input_matches_, [&](InputMatches::iterator it)
+    removeFromSetIf_(observation_matches_, [&](ObservationMatches::iterator it)
                      {
                        return !id_vars.count(it->identified_molecule_var);
                      });
 
-    // remove input matches based on input match groups:
+    // remove observation matches based on observation match groups:
     if (require_match_group)
     {
-      input_match_lookup_.clear(); // will become invalid anyway
-      for (const auto& group : input_match_groups_)
+      observation_match_lookup_.clear(); // will become invalid anyway
+      for (const auto& group : observation_match_groups_)
       {
-        for (const auto& ref : group.input_match_refs)
+        for (const auto& ref : group.observation_match_refs)
         {
-          input_match_lookup_.insert(ref);
+          observation_match_lookup_.insert(ref);
         }
       }
-      removeFromSetIfNotHashed_(input_matches_, input_match_lookup_);
+      removeFromSetIfNotHashed_(observation_matches_, observation_match_lookup_);
     }
     // update look-up table of input match addresses:
-    updateAddressLookup_(input_matches_, input_match_lookup_);
+    updateAddressLookup_(observation_matches_, observation_match_lookup_);
 
-    // remove id'd molecules and input items based on input matches:
-    if (require_input_match)
+    // remove id'd molecules, observations and adducts based on observation matches:
+    if (require_observation_match)
     {
-      input_item_lookup_.clear();
+      observation_lookup_.clear();
       identified_peptide_lookup_.clear();
       identified_compound_lookup_.clear();
       identified_oligo_lookup_.clear();
-      for (const auto& match : input_matches_)
+      for (const auto& match : observation_matches_)
       {
-        input_item_lookup_.insert(match.input_item_ref);
+        observation_lookup_.insert(match.observation_ref);
         const IdentifiedMolecule& molecule_var = match.identified_molecule_var;
         switch (molecule_var.getMoleculeType())
         {
@@ -754,7 +754,7 @@ namespace OpenMS
             identified_oligo_lookup_.insert(molecule_var.getIdentifiedOligoRef());
         }
       }
-      removeFromSetIfNotHashed_(input_items_, input_item_lookup_);
+      removeFromSetIfNotHashed_(observations_, observation_lookup_);
       removeFromSetIfNotHashed_(identified_peptides_,
                                 identified_peptide_lookup_);
       removeFromSetIfNotHashed_(identified_compounds_,
@@ -762,7 +762,7 @@ namespace OpenMS
       removeFromSetIfNotHashed_(identified_oligos_, identified_oligo_lookup_);
     }
     // update look-up tables of addresses:
-    updateAddressLookup_(input_items_, input_item_lookup_);
+    updateAddressLookup_(observations_, observation_lookup_);
     updateAddressLookup_(identified_peptides_, identified_peptide_lookup_);
     updateAddressLookup_(identified_compounds_, identified_compound_lookup_);
     updateAddressLookup_(identified_oligos_, identified_oligo_lookup_);
@@ -824,21 +824,21 @@ namespace OpenMS
 
     // remove entries from input match groups based on input matches:
     warn = false;
-    for (auto group_it = input_match_groups_.begin();
-         group_it != input_match_groups_.end(); )
+    for (auto group_it = observation_match_groups_.begin();
+         group_it != observation_match_groups_.end(); )
     {
-      Size old_size = group_it->input_match_refs.size();
-      input_match_groups_.modify(group_it, [&](InputMatchGroup& group)
+      Size old_size = group_it->observation_match_refs.size();
+      observation_match_groups_.modify(group_it, [&](ObservationMatchGroup& group)
       {
-        removeFromSetIfNotHashed_(group.input_match_refs, input_match_lookup_);
+        removeFromSetIfNotHashed_(group.observation_match_refs, observation_match_lookup_);
       });
-      if (group_it->input_match_refs.empty())
+      if (group_it->observation_match_refs.empty())
       {
-        group_it = input_match_groups_.erase(group_it);
+        group_it = observation_match_groups_.erase(group_it);
       }
       else
       {
-        if (group_it->input_match_refs.size() != old_size)
+        if (group_it->observation_match_refs.size() != old_size)
         {
           warn = true;
         }
@@ -847,7 +847,7 @@ namespace OpenMS
     }
     if (warn)
     {
-      OPENMS_LOG_WARN << "Warning: filtering removed elements from input match groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from observation match groups - associated scores may not be valid any more" << endl;
     }
   }
 
@@ -857,11 +857,11 @@ namespace OpenMS
     return (input_files_.empty() && processing_softwares_.empty() &&
             processing_steps_.empty() && db_search_params_.empty() &&
             db_search_steps_.empty() && score_types_.empty() &&
-            input_items_.empty() && parents_.empty() &&
+            observations_.empty() && parents_.empty() &&
             parent_groups_.empty() &&
             identified_peptides_.empty() && identified_compounds_.empty() &&
             identified_oligos_.empty() && adducts_.empty() &&
-            input_matches_.empty() && input_match_groups_.empty());
+            observation_matches_.empty() && observation_match_groups_.empty());
   }
 
 
@@ -943,17 +943,17 @@ namespace OpenMS
       SearchParamRef param_ref = trans.search_param_refs[pair.second];
       db_search_steps_[step_ref] = param_ref;
     }
-    // input items:
-    for (InputItemRef other_ref = other.getInputItems().begin();
-         other_ref != other.getInputItems().end(); ++other_ref)
+    // observations:
+    for (ObservationRef other_ref = other.getObservations().begin();
+         other_ref != other.getObservations().end(); ++other_ref)
     {
       // update internal references:
-      InputItem copy = *other_ref;
+      Observation copy = *other_ref;
       if (copy.input_file_opt)
       {
         copy.input_file_opt = trans.input_file_refs[*copy.input_file_opt];
       }
-      trans.input_item_refs[other_ref] = registerInputItem(copy);
+      trans.observation_refs[other_ref] = registerObservation(copy);
     }
     // parent sequences:
     for (ParentSequenceRef other_ref = other.getParentSequences().begin();
@@ -1014,14 +1014,14 @@ namespace OpenMS
     {
       trans.adduct_refs[other_ref] = registerAdduct(*other_ref);
     }
-    // input matches:
-    for (InputMatchRef other_ref = other.getInputMatches().begin();
-         other_ref != other.getInputMatches().end(); ++other_ref)
+    // observation matches:
+    for (ObservationMatchRef other_ref = other.getObservationMatches().begin();
+         other_ref != other.getObservationMatches().end(); ++other_ref)
     {
       IdentifiedMolecule molecule_var =
         trans.translateIdentifiedMolecule(other_ref->identified_molecule_var);
-      InputItemRef item_ref = trans.input_item_refs[other_ref->input_item_ref];
-      InputMatch copy(molecule_var, item_ref, other_ref->charge);
+      ObservationRef obs_ref = trans.observation_refs[other_ref->observation_ref];
+      ObservationMatch copy(molecule_var, obs_ref, other_ref->charge);
       if (other_ref->adduct_opt)
       {
         copy.adduct_opt = trans.adduct_refs[*other_ref->adduct_opt];
@@ -1036,7 +1036,7 @@ namespace OpenMS
         copy.peak_annotations[opt_ref] = pair.second;
       }
       mergeScoredProcessingResults_(copy, *other_ref, trans);
-      trans.input_match_refs[other_ref] = registerInputMatch(copy);
+      trans.observation_match_refs[other_ref] = registerObservationMatch(copy);
     }
     // parent sequence groups:
     // @TODO: does this need to be more sophisticated?
@@ -1088,23 +1088,23 @@ namespace OpenMS
     db_search_params_.swap(other.db_search_params_);
     db_search_steps_.swap(other.db_search_steps_);
     score_types_.swap(other.score_types_);
-    input_items_.swap(other.input_items_);
+    observations_.swap(other.observations_);
     parents_.swap(other.parents_);
     parent_groups_.swap(other.parent_groups_);
     identified_peptides_.swap(other.identified_peptides_);
     identified_compounds_.swap(other.identified_compounds_);
     identified_oligos_.swap(other.identified_oligos_);
-    input_matches_.swap(other.input_matches_);
-    input_match_groups_.swap(other.input_match_groups_);
+    observation_matches_.swap(other.observation_matches_);
+    observation_match_groups_.swap(other.observation_match_groups_);
     std::swap(current_step_ref_, other.current_step_ref_);
     std::swap(no_checks_, other.no_checks_);
     // look-up tables:
-    input_item_lookup_.swap(other.input_item_lookup_);
+    observation_lookup_.swap(other.observation_lookup_);
     parent_lookup_.swap(other.parent_lookup_);
     identified_peptide_lookup_.swap(other.identified_peptide_lookup_);
     identified_compound_lookup_.swap(other.identified_compound_lookup_);
     identified_oligo_lookup_.swap(other.identified_oligo_lookup_);
-    input_match_lookup_.swap(other.input_match_lookup_);
+    observation_match_lookup_.swap(other.observation_match_lookup_);
   }
 
 
@@ -1115,17 +1115,17 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::setMetaValue(const InputMatchRef ref, const String& key,
+  void IdentificationData::setMetaValue(const ObservationMatchRef ref, const String& key,
                                         const DataValue& value)
   {
-    setMetaValue_(ref, key, value, input_matches_, input_match_lookup_);
+    setMetaValue_(ref, key, value, observation_matches_, observation_match_lookup_);
   }
 
 
-  void IdentificationData::setMetaValue(const InputItemRef ref, const String& key,
+  void IdentificationData::setMetaValue(const ObservationRef ref, const String& key,
                                         const DataValue& value)
   {
-    setMetaValue_(ref, key, value, input_items_, input_item_lookup_);
+    setMetaValue_(ref, key, value, observations_, observation_lookup_);
   }
 
 

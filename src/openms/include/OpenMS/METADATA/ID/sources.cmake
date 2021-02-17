@@ -7,7 +7,7 @@ AppliedProcessingStep.h
 DBSearchParam.h
 ProcessingSoftware.h
 ProcessingStep.h
-InputItem.h
+Observation.h
 IdentificationData.h
 IdentificationDataConverter.h
 IdentifiedCompound.h
@@ -16,10 +16,10 @@ IdentifiedSequence.h
 InputFile.h
 MetaData.h
 ParentMatch.h
-InputMatch.h
+ObservationMatch.h
 ParentSequence.h
 ParentGroup.h
-InputMatchGroup.h
+ObservationMatchGroup.h
 ScoreType.h
 ScoredProcessingResult.h
 )

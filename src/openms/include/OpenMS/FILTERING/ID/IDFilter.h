@@ -1353,11 +1353,11 @@ public:
 
     /// @name Filter functions for class IdentificationData
     ///@{
-    static void keepBestMatchPerQuery(
+    static void keepBestMatchPerObservation(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref);
 
-    static void filterInputMatchesByScore(
+    static void filterObservationMatchesByScore(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref, double cutoff);
 

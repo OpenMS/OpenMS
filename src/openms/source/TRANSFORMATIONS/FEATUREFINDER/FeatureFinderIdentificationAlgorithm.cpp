@@ -260,10 +260,10 @@ namespace OpenMS
     target_map_.clear();
 
     // @TODO: expose score choice to user via a parameter
-    ID::ScoreTypeRef score_ref = id_data.pickScoreType(id_data.getInputMatches());
-    IDFilter::keepBestMatchPerQuery(id_data, score_ref);
-    for (ID::InputMatchRef ref = id_data.getInputMatches().begin();
-         ref != id_data.getInputMatches().end(); ++ref)
+    ID::ScoreTypeRef score_ref = id_data.pickScoreType(id_data.getObservationMatches());
+    IDFilter::keepBestMatchPerObservation(id_data, score_ref);
+    for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
+         ref != id_data.getObservationMatches().end(); ++ref)
     {
       if (ref->getMetaValue("FFId_category", "") == "seed")
       {
@@ -287,9 +287,9 @@ namespace OpenMS
         String msg = "score type '" + score_name + "' not found in external IDs";
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
       }
-      IDFilter::keepBestMatchPerQuery(id_data_ext, score_ref);
-      for (ID::InputMatchRef ref = id_data_ext.getInputMatches().begin();
-         ref != id_data_ext.getInputMatches().end(); ++ref)
+      IDFilter::keepBestMatchPerObservation(id_data_ext, score_ref);
+      for (ID::ObservationMatchRef ref = id_data_ext.getObservationMatches().begin();
+         ref != id_data_ext.getObservationMatches().end(); ++ref)
       {
         addHitToTargetMap_(ref, true);
         id_data_ext.setMetaValue(ref, "FFId_category", "external");
@@ -369,7 +369,7 @@ namespace OpenMS
     }
     features.getProteinIdentifications().insert(features.getProteinIdentifications().end(),
                                                 proteins.begin(), proteins.end());
-    // generate look-up table to map from new (InputMatch) to old (PeptideIdent.):
+    // generate look-up table to map from new (ObservationMatch) to old (PeptideIdent.):
     for (const auto& peptide : peptides)
     {
       const PeptideHit& hit = peptide.getHits()[0];
@@ -448,11 +448,11 @@ namespace OpenMS
       // check if there's already a target that is close in RT and MZ;
       // if so, don't add seed
       // @TODO: this checks every (best) input match for every seed; can we be more efficient?
-      for (ID::InputMatchRef ref = id_data.getInputMatches().begin();
-           ref != id_data.getInputMatches().end(); ++ref)
+      for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
+           ref != id_data.getObservationMatches().end(); ++ref)
       {
-        double rt = ref->input_item_ref->rt;
-        double mz = ref->input_item_ref->mz;
+        double rt = ref->observation_ref->rt;
+        double mz = ref->observation_ref->mz;
 
         // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
         double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * mz : mz_window_;
@@ -476,18 +476,18 @@ namespace OpenMS
         const Feature& seed = seeds[feature_index];
         ++seeds_added; // count from 1
         String id = String(seed.getUniqueId());
-        ID::InputItem query(id, file_ref, seed.getRT(), seed.getMZ());
-        ID::InputItemRef query_ref = id_data.registerInputItem(query);
+        ID::Observation query(id, file_ref, seed.getRT(), seed.getMZ());
+        ID::ObservationRef query_ref = id_data.registerObservation(query);
 
         // represent seeds as compounds - no need to fake a peptide sequence:
         ID::IdentifiedCompound compound("SEED:" + String(seeds_added));
         ID::IdentifiedCompoundRef com_ref =
           id_data.registerIdentifiedCompound(compound);
 
-        ID::InputMatch match(com_ref, query_ref, seed.getCharge());
+        ID::ObservationMatch match(com_ref, query_ref, seed.getCharge());
         match.setMetaValue("FFId_category", "seed");
-        ID::InputMatchRef match_ref =
-          id_data.registerInputMatch(match);
+        ID::ObservationMatchRef match_ref =
+          id_data.registerObservationMatch(match);
         addHitToTargetMap_(match_ref);
       }
     }
@@ -790,9 +790,9 @@ namespace OpenMS
             << "'; estimating isotopic distribution based on peptide averagine" << endl;
         }
         // find m/z from an "input item" that we generated for the seed:
-        ID::InputMatchRef match_ref = target_it->second.hits_by_charge.begin()->second.first.begin()->second;
-        ID::InputItemRef query_ref = match_ref->input_item_ref;
-        target.theoretical_mass = (query_ref->mz - Constants::PROTON_MASS_U) * match_ref->charge;
+        ID::ObservationMatchRef match_ref = target_it->second.hits_by_charge.begin()->second.first.begin()->second;
+        ID::ObservationRef obs_ref = match_ref->observation_ref;
+        target.theoretical_mass = (obs_ref->mz - Constants::PROTON_MASS_U) * match_ref->charge;
         // @TODO: add support for RNA "averagine" option
         iso_dist = iso_gen.estimateFromPeptideWeight(target.theoretical_mass);
       }
@@ -1017,10 +1017,10 @@ namespace OpenMS
           set<PepIDKey> pep_id_keys;
           for (const auto& rt_pair : rt_internal)
           {
-            ID::InputMatchRef ref = rt_pair.second;
+            ID::ObservationMatchRef ref = rt_pair.second;
             String adduct;
             if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
-            auto key = make_tuple(ref->input_item_ref->rt, ref->input_item_ref->mz,
+            auto key = make_tuple(ref->observation_ref->rt, ref->observation_ref->mz,
                                   ref->identified_molecule_var.toString(), adduct);
             pep_id_keys.insert(key);
           }
@@ -1038,7 +1038,7 @@ namespace OpenMS
   {
     // @TODO: how much of this makes sense for features derived from seeds?
     RTMap transformed_internal;
-    map<Size, vector<ID::InputMatchRef>> feat_ids; // matching internal IDs per feature
+    map<Size, vector<ID::ObservationMatchRef>> feat_ids; // matching internal IDs per feature
 
     TargetData& target_data = target_map_.at(target_id);
     auto& rt_maps = target_data.hits_by_charge.at(charge);
@@ -1156,7 +1156,7 @@ namespace OpenMS
 
     // if internal IDs matched to feature candidates, find the best candidate
     // (with the most IDs):
-    set<ID::InputMatchRef> assigned_ids;
+    set<ID::ObservationMatchRef> assigned_ids;
     if (!feat_ids.empty())
     {
       Size best_index = 0;
@@ -1180,14 +1180,14 @@ namespace OpenMS
         // we define the (one) feature with most matching IDs as correct:
         features[best_index].setMetaValue("feature_class", "positive");
         features[best_index].getPeptideIdentifications().reserve(best_count);
-        // in theory, InputMatches from different MS runs could have the
+        // in theory, ObservationMatches from different MS runs could have the
         // same key, so avoid duplicates:
         set<PepIDKey> pep_id_keys;
-        for (ID::InputMatchRef ref : feat_ids[best_index])
+        for (ID::ObservationMatchRef ref : feat_ids[best_index])
         {
           String adduct;
           if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
-          auto key = make_tuple(ref->input_item_ref->rt, ref->input_item_ref->mz,
+          auto key = make_tuple(ref->observation_ref->rt, ref->observation_ref->mz,
                                 ref->identified_molecule_var.toString(), adduct);
           pep_id_keys.insert(key);
         }
@@ -1201,12 +1201,12 @@ namespace OpenMS
     set<PepIDKey> pep_id_keys; // same as above, to avoid duplicates
     for (const auto& pair : rt_internal)
     {
-      ID::InputMatchRef ref = pair.second;
+      ID::ObservationMatchRef ref = pair.second;
       String adduct;
       if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
       if (!assigned_ids.count(ref))
       {
-        auto key = make_tuple(ref->input_item_ref->rt, ref->input_item_ref->mz,
+        auto key = make_tuple(ref->observation_ref->rt, ref->observation_ref->mz,
                               ref->identified_molecule_var.toString(), adduct);
         pep_id_keys.insert(key);
       }
@@ -1264,7 +1264,7 @@ namespace OpenMS
   }
 
 
-  String makeTargetID(ID::InputMatchRef ref)
+  String makeTargetID(ID::ObservationMatchRef ref)
   {
     const ID::IdentifiedMolecule& molecule = ref->identified_molecule_var;
     const ID::AdductOpt& adduct = ref->adduct_opt;
@@ -1291,7 +1291,7 @@ namespace OpenMS
 
 
   void FeatureFinderIdentificationAlgorithm::addHitToTargetMap_(
-    ID::InputMatchRef ref, bool external)
+    ID::ObservationMatchRef ref, bool external)
   {
     String target_id = makeTargetID(ref);
     auto pos = target_map_.find(target_id);
@@ -1303,7 +1303,7 @@ namespace OpenMS
       pos = target_map_.emplace(target_id, data).first;
     }
 
-    double rt = ref->input_item_ref->rt;
+    double rt = ref->observation_ref->rt;
     if (!external)
     {
       OPENMS_LOG_DEBUG << "Adding " << target_id << " " << ref->charge << " " << rt << endl;

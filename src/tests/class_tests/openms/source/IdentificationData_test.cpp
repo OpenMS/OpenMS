@@ -64,13 +64,13 @@ IdentificationData::ProcessingSoftwareRef sw_ref;
 IdentificationData::SearchParamRef param_ref;
 IdentificationData::ProcessingStepRef step_ref;
 IdentificationData::ScoreTypeRef score_ref;
-IdentificationData::InputItemRef query_ref;
+IdentificationData::ObservationRef query_ref;
 IdentificationData::ParentSequenceRef protein_ref, rna_ref;
 IdentificationData::IdentifiedPeptideRef peptide_ref;
 IdentificationData::IdentifiedOligoRef oligo_ref;
 IdentificationData::IdentifiedCompoundRef compound_ref;
 IdentificationData::AdductRef adduct_ref;
-IdentificationData::InputMatchRef match_ref1, match_ref2, match_ref3;
+IdentificationData::ObservationMatchRef match_ref1, match_ref2, match_ref3;
 
 START_SECTION((const InputFiles& getInputFiles() const))
 {
@@ -193,22 +193,22 @@ START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
 }
 END_SECTION
 
-START_SECTION((const InputItems& getInputItems() const))
+START_SECTION((const Observations& getObservations() const))
 {
-  TEST_EQUAL(data.getInputItems().empty(), true);
+  TEST_EQUAL(data.getObservations().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((InputItemRef registerInputItem(const InputItem& query)))
+START_SECTION((ObservationRef registerObservation(const Observation& query)))
 {
-  IdentificationData::InputItem query("spectrum_1", file_ref, 100.0, 1000.0);
-  query_ref = data.registerInputItem(query);
-  TEST_EQUAL(data.getInputItems().size(), 1);
+  IdentificationData::Observation query("spectrum_1", file_ref, 100.0, 1000.0);
+  query_ref = data.registerObservation(query);
+  TEST_EQUAL(data.getObservations().size(), 1);
   TEST_EQUAL(*query_ref == query, true);
   // re-registering doesn't lead to redundant entries:
-  data.registerInputItem(query);
-  TEST_EQUAL(data.getInputItems().size(), 1);
+  data.registerObservation(query);
+  TEST_EQUAL(data.getObservations().size(), 1);
 }
 END_SECTION
 
@@ -389,62 +389,62 @@ START_SECTION((AdductRef registerAdduct(const AdductInfo& adduct)))
 }
 END_SECTION
 
-START_SECTION((const InputMatches& getInputMatches() const))
+START_SECTION((const ObservationMatches& getObservationMatches() const))
 {
-  TEST_EQUAL(data.getInputMatches().empty(), true);
+  TEST_EQUAL(data.getObservationMatches().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((InputMatchRef registerInputMatch(const InputMatch& match)))
+START_SECTION((ObservationMatchRef registerObservationMatch(const ObservationMatch& match)))
 {
   // match with a peptide:
-  IdentificationData::InputMatch match(peptide_ref, query_ref, 3);
-  match_ref1 = data.registerInputMatch(match);
-  TEST_EQUAL(data.getInputMatches().size(), 1);
+  IdentificationData::ObservationMatch match(peptide_ref, query_ref, 3);
+  match_ref1 = data.registerObservationMatch(match);
+  TEST_EQUAL(data.getObservationMatches().size(), 1);
   TEST_EQUAL(*match_ref1 == match, true);
 
   // match with an oligo (+ adduct):
-  match = IdentificationData::InputMatch(oligo_ref, query_ref, 2,
+  match = IdentificationData::ObservationMatch(oligo_ref, query_ref, 2,
                                                  adduct_ref);
-  match_ref2 = data.registerInputMatch(match);
-  TEST_EQUAL(data.getInputMatches().size(), 2);
+  match_ref2 = data.registerObservationMatch(match);
+  TEST_EQUAL(data.getObservationMatches().size(), 2);
   TEST_EQUAL(*match_ref2 == match, true);
   TEST_EQUAL((*match_ref2->adduct_opt)->getName(), "Na+");
 
   // match with a compound:
-  match = IdentificationData::InputMatch(compound_ref, query_ref, 1);
-  match_ref3 = data.registerInputMatch(match);
-  TEST_EQUAL(data.getInputMatches().size(), 3);
+  match = IdentificationData::ObservationMatch(compound_ref, query_ref, 1);
+  match_ref3 = data.registerObservationMatch(match);
+  TEST_EQUAL(data.getObservationMatches().size(), 3);
   TEST_EQUAL(*match_ref3 == match, true);
 
   // re-registering doesn't lead to redundant entries:
-  data.registerInputMatch(match);
-  TEST_EQUAL(data.getInputMatches().size(), 3);
+  data.registerObservationMatch(match);
+  TEST_EQUAL(data.getObservationMatches().size(), 3);
 }
 END_SECTION
 
-START_SECTION((const InputMatchGroups& getInputMatchGroups() const))
+START_SECTION((const ObservationMatchGroups& getObservationMatchGroups() const))
 {
-  TEST_EQUAL(data.getInputMatchGroups().empty(), true);
+  TEST_EQUAL(data.getObservationMatchGroups().empty(), true);
   // tested further below
 }
 END_SECTION
 
-START_SECTION((MatchGroupRef registerInputMatchGroup(const InputMatchGroup& group)))
+START_SECTION((MatchGroupRef registerObservationMatchGroup(const ObservationMatchGroup& group)))
 {
-  IdentificationData::InputMatchGroup group;
-  group.input_match_refs.insert(match_ref1);
-  group.input_match_refs.insert(match_ref2);
-  group.input_match_refs.insert(match_ref3);
+  IdentificationData::ObservationMatchGroup group;
+  group.observation_match_refs.insert(match_ref1);
+  group.observation_match_refs.insert(match_ref2);
+  group.observation_match_refs.insert(match_ref3);
 
-  data.registerInputMatchGroup(group);
-  TEST_EQUAL(data.getInputMatchGroups().size(), 1);
-  TEST_EQUAL(*data.getInputMatchGroups().begin() == group, true);
+  data.registerObservationMatchGroup(group);
+  TEST_EQUAL(data.getObservationMatchGroups().size(), 1);
+  TEST_EQUAL(*data.getObservationMatchGroups().begin() == group, true);
 }
 END_SECTION
 
-START_SECTION((void addScore(InputMatchRef match_ref, ScoreTypeRef score_ref, double value)))
+START_SECTION((void addScore(ObservationMatchRef match_ref, ScoreTypeRef score_ref, double value)))
 {
   TEST_EQUAL(match_ref1->steps_and_scores.empty(), true);
   data.addScore(match_ref1, score_ref, 100.0);
@@ -489,9 +489,9 @@ START_SECTION((void clearCurrentProcessingStep()))
 }
 END_SECTION
 
-START_SECTION((vector<InputMatchRef> getBestMatchPerQuery(ScoreTypeRef score_ref) const))
+START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const))
 {
-  vector<IdentificationData::InputMatchRef> result = data.getBestMatchPerQuery(score_ref);
+  vector<IdentificationData::ObservationMatchRef> result = data.getBestMatchPerObservation(score_ref);
   TEST_EQUAL(result.size(), 1);
   TEST_EQUAL(result[0] == match_ref2, true);
 }
@@ -522,7 +522,7 @@ START_SECTION((void calculateCoverages(bool check_molecule_length = false)))
 }
 END_SECTION
 
-START_SECTION((void cleanup(bool require_input_match = true, bool require_identified_sequence = true, bool require_parent_match = true, bool require_parent_group = false, bool require_match_group = false)))
+START_SECTION((void cleanup(bool require_observation_match = true, bool require_identified_sequence = true, bool require_parent_match = true, bool require_parent_group = false, bool require_match_group = false)))
 {
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 4);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
@@ -531,7 +531,7 @@ START_SECTION((void cleanup(bool require_input_match = true, bool require_identi
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 3);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
   data.cleanup();
-  // identified peptides without input matches are removed:
+  // identified peptides without matches are removed:
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
 }
@@ -609,8 +609,8 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   id.setCurrentProcessingStep(step_ref);
 
   // register spectrum
-  IdentificationData::InputItem query("spectrum_1", file_ref, 100.0, 1000.0);
-  auto query_ref = id.registerInputItem(query);
+  IdentificationData::Observation query("spectrum_1", file_ref, 100.0, 1000.0);
+  auto query_ref = id.registerObservation(query);
 
   // peptide without protein reference (yet)
   IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("TESTPEPTIDR")); // seq. is required
@@ -618,9 +618,9 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   TEST_EQUAL(peptide_ref->parent_matches.size(), 0);
 
   // peptide-spectrum match
-  IdentificationData::InputMatch match(peptide_ref, query_ref); // both refs. are required
+  IdentificationData::ObservationMatch match(peptide_ref, query_ref); // both refs. are required
   match.addScore(score_ref, 123, step_ref);
-  id.registerInputMatch(match);
+  id.registerObservationMatch(match);
 
   // some calculations, inference etc. could take place ...
   IdentificationData::ParentSequence protein("protein_1"); // accession is required

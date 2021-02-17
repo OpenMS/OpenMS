@@ -107,7 +107,7 @@ protected:
   // aggregate all search hits (internal and external) grouped by molecule (e.g.
   // peptide) and charge state, ordered by RT:
   /// mapping: RT (not necessarily unique) -> reference to search hit
-  typedef std::multimap<double, IdentificationData::InputMatchRef> RTMap;
+  typedef std::multimap<double, IdentificationData::ObservationMatchRef> RTMap;
   /// mapping: charge -> internal/external: (RT -> ref. to search hit)
   typedef std::map<Int, std::pair<RTMap, RTMap>> ChargeMap;
 
@@ -276,7 +276,7 @@ protected:
   */
   void createAssayLibrary_(TargetMap::iterator begin, TargetMap::iterator end);
 
-  void addHitToTargetMap_(IdentificationData::InputMatchRef ref, bool external = false);
+  void addHitToTargetMap_(IdentificationData::ObservationMatchRef ref, bool external = false);
 
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 

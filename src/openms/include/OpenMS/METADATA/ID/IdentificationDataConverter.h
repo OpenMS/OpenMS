@@ -209,9 +209,9 @@ namespace OpenMS
 
     /// Export an input match (peptide- or oligonucleotide-spectrum match) to mzTab
     template <typename MzTabSectionRow>
-    static void exportInputMatchToMzTab_(
+    static void exportObservationMatchToMzTab_(
       const String& sequence,
-      const IdentificationData::InputMatch& match, double calc_mass,
+      const IdentificationData::ObservationMatch& match, double calc_mass,
       std::vector<MzTabSectionRow>& output,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map,
       std::map<IdentificationData::InputFileRef, Size>& file_map)
@@ -221,7 +221,7 @@ namespace OpenMS
       xsm.sequence.set(sequence);
       exportStepsAndScoresToMzTab_(match.steps_and_scores, xsm.search_engine,
                                    xsm.search_engine_score, score_map);
-      const IdentificationData::InputItem& query = *match.input_item_ref;
+      const IdentificationData::Observation& query = *match.observation_ref;
       std::vector<MzTabDouble> rts(1);
       rts[0].set(query.rt);
       xsm.retention_time.set(rts);

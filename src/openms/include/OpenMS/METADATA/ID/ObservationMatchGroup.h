@@ -34,71 +34,69 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/ObservationMatch.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/optional.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      @brief Representation of an input data item, e.g. spectrum or feature.
+    /** @brief: Group of related (co-identified) input matches
+
+      E.g. for cross-linking data or multiplexed spectra.
     */
-    struct InputItem: public MetaInfoInterface
+    struct ObservationMatchGroup: public ScoredProcessingResult
     {
-      /// Spectrum or feature ID (from the file referenced by @t input_file_opt)
-      String data_id;
+      std::set<ObservationMatchRef> observation_match_refs;
 
-      /// (Optional) reference to the input file
-      boost::optional<InputFileRef> input_file_opt;
-      // @TODO: make this non-optional (i.e. required)?
-
-      double rt, mz; //< Position
-
-      /// Constructor
-      explicit InputItem(
-        const String& data_id,
-        boost::optional<InputFileRef> input_file_opt = boost::none,
-        double rt = std::numeric_limits<double>::quiet_NaN(),
-        double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
+      bool allSameMolecule() const
       {
+        // @TODO: return true or false for the empty set?
+        if (observation_match_refs.size() <= 1) return true;
+        const IdentifiedMolecule var =
+          (*observation_match_refs.begin())->identified_molecule_var;
+        for (auto it = ++observation_match_refs.begin();
+             it != observation_match_refs.end(); ++it)
+        {
+          if (!((*it)->identified_molecule_var == var)) return false;
+        }
+        return true;
       }
 
-      /// Merge in data from another object
-      InputItem& operator+=(const InputItem& other)
+      bool allSameQuery() const
       {
-        // merge meta info - existing entries may be overwritten:
-        std::vector<UInt> keys;
-        other.getKeys(keys);
-        for (const UInt key : keys)
+        // @TODO: return true or false for the empty set?
+        if (observation_match_refs.size() <= 1) return true;
+        ObservationRef ref = (*observation_match_refs.begin())->observation_ref;
+        for (auto it = ++observation_match_refs.begin();
+             it != observation_match_refs.end(); ++it)
         {
-          setMetaValue(key, other.getMetaValue(key));
+          if ((*it)->observation_ref != ref) return false;
         }
-        rt = other.rt;
-        mz = other.mz;
-        return *this;
+        return true;
+      }
+
+      bool operator==(const ObservationMatchGroup rhs) const
+      {
+        return ((rhs.observation_match_refs == observation_match_refs) &&
+                (rhs.steps_and_scores == steps_and_scores));
+      }
+
+      bool operator!=(const ObservationMatchGroup& rhs) const
+      {
+        return !operator==(rhs);
       }
     };
 
-    // combination of input file and data ID must be unique:
     typedef boost::multi_index_container<
-      InputItem,
+      ObservationMatchGroup,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
-          boost::multi_index::composite_key<
-            InputItem,
-            boost::multi_index::member<InputItem, boost::optional<InputFileRef>,
-                                       &InputItem::input_file_opt>,
-            boost::multi_index::member<InputItem, String,
-                                       &InputItem::data_id>>>>
-      > InputItems;
-    typedef IteratorWrapper<InputItems::iterator> InputItemRef;
-
+          boost::multi_index::member<ObservationMatchGroup, std::set<ObservationMatchRef>,
+                                     &ObservationMatchGroup::observation_match_refs>>>
+      > ObservationMatchGroups;
+    typedef IteratorWrapper<ObservationMatchGroups::iterator> MatchGroupRef;
   }
 }

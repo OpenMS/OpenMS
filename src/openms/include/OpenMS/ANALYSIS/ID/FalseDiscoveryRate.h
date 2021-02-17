@@ -164,14 +164,14 @@ public:
     double rocN(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff = 50) const;
 
     /**
-       @brief Calculate FDR on the level of input matches (e.g. peptide-spectrum matches) for "general" identification data
+       @brief Calculate FDR on the level of observation matches (e.g. peptide-spectrum matches) for "general" identification data
 
        @param id_data Identification data
        @param score_key Key of the score to use for FDR calculation
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeRef applyToInputMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
+    IdentificationData::ScoreTypeRef applyToObservationMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
 
 
 private:
@@ -185,14 +185,14 @@ private:
     /// calculates the FDR, given two vectors of scores
     void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
 
-    /// Helper function for applyToInputMatches()
-    void handleInputMatch_(
-        IdentificationData::InputMatchRef match_ref,
+    /// Helper function for applyToObservationMatches()
+    void handleObservationMatch_(
+        IdentificationData::ObservationMatchRef match_ref,
         IdentificationData::ScoreTypeRef score_ref,
         std::vector<double>& target_scores,
         std::vector<double>& decoy_scores,
         std::map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
-        std::map<IdentificationData::InputMatchRef, double>& match_to_score) const;
+        std::map<IdentificationData::ObservationMatchRef, double>& match_to_score) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
     /// in scores_to_FDR

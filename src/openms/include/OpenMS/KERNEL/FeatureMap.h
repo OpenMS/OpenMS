@@ -41,7 +41,7 @@
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/METADATA/ID/InputMatch.h>
+#include <OpenMS/METADATA/ID/Observation.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
@@ -305,7 +305,7 @@ public:
 
     OPENMS_DLLAPI AnnotationStatistics getAnnotationStatistics() const;
 
-    OPENMS_DLLAPI std::set<IdentificationDataInternal::InputItemRef> getUnassignedInputItems() const;
+    OPENMS_DLLAPI std::set<IdentificationDataInternal::ObservationRef> getUnassignedObservations() const;
 
     OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
 

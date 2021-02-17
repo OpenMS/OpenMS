@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/InputItem.h>
+#include <OpenMS/METADATA/ID/Observation.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
@@ -70,11 +70,11 @@ namespace OpenMS
     typedef boost::optional<AdductRef> AdductOpt;
 
     /// Representation of a search hit (e.g. peptide-spectrum match).
-    struct InputMatch: public ScoredProcessingResult
+    struct ObservationMatch: public ScoredProcessingResult
     {
       IdentifiedMolecule identified_molecule_var;
 
-      InputItemRef input_item_ref;
+      ObservationRef observation_ref;
 
       Int charge;
 
@@ -84,22 +84,22 @@ namespace OpenMS
       // data processing steps:
       PeakAnnotationSteps peak_annotations;
 
-      explicit InputMatch(
+      explicit ObservationMatch(
         IdentifiedMolecule identified_molecule_var,
-        InputItemRef input_item_ref, Int charge = 0,
+        ObservationRef observation_ref, Int charge = 0,
         const boost::optional<AdductRef>& adduct_opt = boost::none,
         const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
         const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
         ScoredProcessingResult(steps_and_scores),
         identified_molecule_var(identified_molecule_var),
-        input_item_ref(input_item_ref), charge(charge), adduct_opt(adduct_opt),
+        observation_ref(observation_ref), charge(charge), adduct_opt(adduct_opt),
         peak_annotations(peak_annotations)
       {
       }
 
-      InputMatch(const InputMatch&) = default;
+      ObservationMatch(const ObservationMatch&) = default;
 
-      InputMatch& operator+=(const InputMatch& other)
+      ObservationMatch& operator+=(const ObservationMatch& other)
       {
         ScoredProcessingResult::operator+=(other);
         if (charge == 0) charge = other.charge;
@@ -110,23 +110,22 @@ namespace OpenMS
       }
     };
 
-    // all matches for the same input item should be consecutive!
+    // all matches for the same observation should be consecutive!
     typedef boost::multi_index_container<
-      InputMatch,
+      ObservationMatch,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
           boost::multi_index::composite_key<
-            InputMatch,
-            boost::multi_index::member<InputMatch, InputItemRef,
-                                       &InputMatch::input_item_ref>,
+            ObservationMatch,
+            boost::multi_index::member<ObservationMatch, ObservationRef,
+                                       &ObservationMatch::observation_ref>,
             boost::multi_index::member<
-              InputMatch, IdentifiedMolecule,
-              &InputMatch::identified_molecule_var>,
-            boost::multi_index::member<InputMatch, AdductOpt,
-                                       &InputMatch::adduct_opt>>>>
-      > InputMatches;
+              ObservationMatch, IdentifiedMolecule,
+              &ObservationMatch::identified_molecule_var>,
+            boost::multi_index::member<ObservationMatch, AdductOpt,
+                                       &ObservationMatch::adduct_opt>>>>
+      > ObservationMatches;
 
-    typedef IteratorWrapper<InputMatches::iterator> InputMatchRef;
-
+    typedef IteratorWrapper<ObservationMatches::iterator> ObservationMatchRef;
   }
 }

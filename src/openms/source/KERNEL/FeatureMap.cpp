@@ -456,20 +456,20 @@ namespace OpenMS
   }
 
 
-  set<IdentificationDataInternal::InputItemRef> FeatureMap::getUnassignedInputItems() const
+  set<IdentificationDataInternal::ObservationRef> FeatureMap::getUnassignedObservations() const
   {
-    set<IdentificationData::InputItemRef> all_items;
-    for (auto it = id_data_.getInputItems().begin();
-         it != id_data_.getInputItems().end(); ++it)
+    set<IdentificationData::ObservationRef> all_items;
+    for (auto it = id_data_.getObservations().begin();
+         it != id_data_.getObservations().end(); ++it)
     {
       all_items.insert(it);
     }
-    set<IdentificationData::InputItemRef> assigned_items;
+    set<IdentificationData::ObservationRef> assigned_items;
     for (const Feature& feat : *this)
     {
-      assigned_items.insert(feat.getIDInputItems().begin(), feat.getIDInputItems().end());
+      assigned_items.insert(feat.getIDObservations().begin(), feat.getIDObservations().end());
     }
-    set<IdentificationData::InputItemRef> result;
+    set<IdentificationData::ObservationRef> result;
     set_difference(all_items.begin(), all_items.end(),
                    assigned_items.begin(), assigned_items.end(),
                    inserter(result, result.end()));

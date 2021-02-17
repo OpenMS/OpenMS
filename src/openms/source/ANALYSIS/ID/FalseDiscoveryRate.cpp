@@ -560,7 +560,7 @@ namespace OpenMS
     }
   }
 
-  IdentificationData::ScoreTypeRef FalseDiscoveryRate::applyToInputMatches(
+  IdentificationData::ScoreTypeRef FalseDiscoveryRate::applyToObservationMatches(
       IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
   const
   {
@@ -568,23 +568,23 @@ namespace OpenMS
     bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
     vector<double> target_scores, decoy_scores;
     map<IdentificationData::IdentifiedMolecule, bool> molecule_to_decoy;
-    map<IdentificationData::InputMatchRef, double> match_to_score;
+    map<IdentificationData::ObservationMatchRef, double> match_to_score;
     if (use_all_hits)
     {
-      for (auto it = id_data.getInputMatches().begin();
-           it != id_data.getInputMatches().end(); ++it)
+      for (auto it = id_data.getObservationMatches().begin();
+           it != id_data.getObservationMatches().end(); ++it)
       {
-        handleInputMatch_(it, score_ref, target_scores, decoy_scores,
+        handleObservationMatch_(it, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);
       }
     }
     else
     {
-      vector<IdentificationData::InputMatchRef> best_matches =
-          id_data.getBestMatchPerQuery(score_ref);
+      vector<IdentificationData::ObservationMatchRef> best_matches =
+          id_data.getBestMatchPerObservation(score_ref);
       for (auto match_ref : best_matches)
       {
-        handleInputMatch_(match_ref, score_ref, target_scores, decoy_scores,
+        handleObservationMatch_(match_ref, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);
       }
     }
@@ -607,9 +607,9 @@ namespace OpenMS
     }
     IdentificationData::ScoreTypeRef fdr_ref =
         id_data.registerScoreType(fdr_score);
-    for (IdentificationData::InputMatches::iterator it =
-           id_data.getInputMatches().begin(); it !=
-           id_data.getInputMatches().end(); ++it)
+    for (IdentificationData::ObservationMatches::iterator it =
+           id_data.getObservationMatches().begin(); it !=
+           id_data.getObservationMatches().end(); ++it)
     {
       if (!include_decoys)
       {
@@ -625,12 +625,12 @@ namespace OpenMS
   }
 
 
-  void FalseDiscoveryRate::handleInputMatch_(
-    IdentificationData::InputMatchRef match_ref,
+  void FalseDiscoveryRate::handleObservationMatch_(
+    IdentificationData::ObservationMatchRef match_ref,
     IdentificationData::ScoreTypeRef score_ref,
     vector<double>& target_scores, vector<double>& decoy_scores,
     map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
-    map<IdentificationData::InputMatchRef, double>& match_to_score) const
+    map<IdentificationData::ObservationMatchRef, double>& match_to_score) const
   {
     const IdentificationData::IdentifiedMolecule& molecule_var =
       match_ref->identified_molecule_var;

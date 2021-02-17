@@ -753,15 +753,15 @@ protected:
       if (annotated_hits[scan_index].empty()) continue;
 
       const MSSpectrum& spectrum = exp[scan_index];
-      IdentificationData::InputItem query(spectrum.getNativeID(), file_ref,
+      IdentificationData::Observation obs(spectrum.getNativeID(), file_ref,
                                           spectrum.getRT(),
                                           spectrum.getPrecursors()[0].getMZ());
-      query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-      query.setMetaValue("precursor_intensity",
+      obs.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+      obs.setMetaValue("precursor_intensity",
                          spectrum.getPrecursors()[0].getIntensity());
-      IdentificationData::InputItemRef query_ref;
+      IdentificationData::ObservationRef obs_ref;
 #pragma omp critical (id_data_access)
-      query_ref = id_data.registerInputItem(query);
+      obs_ref = id_data.registerObservation(obs);
 
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
@@ -784,18 +784,17 @@ protected:
 
         Int charge = hit.precursor_ref->charge;
         if ((charge > 0) && negative_mode) charge = -charge;
-        IdentificationData::InputMatch match(oligo_ref, query_ref,
-                                                     charge);
+        IdentificationData::ObservationMatch match(oligo_ref, obs_ref, charge);
         match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
-        // @TODO: add a field for this to "IdentificationData::InputMatch"?
+        // @TODO: add a field for this to "IdentificationData::ObservationMatch"?
         match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
         match.adduct_opt = hit.precursor_ref->adduct;
 #pragma omp critical (id_data_access)
-        id_data.registerInputMatch(match);
+        id_data.registerObservationMatch(match);
       }
     }
     id_data.cleanup();
@@ -813,7 +812,7 @@ protected:
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);
     IdentificationData::ScoreTypeRef fdr_ref =
-    fdr.applyToInputMatches(id_data, score_ref);
+    fdr.applyToObservationMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
     if (remove_decoys) // remove references to decoys from shared oligos
     {
@@ -821,11 +820,11 @@ protected:
     }
     if (fdr_cutoff < 1.0)
     {
-      IDFilter::filterInputMatchesByScore(id_data, fdr_ref, fdr_cutoff);
+      IDFilter::filterObservationMatchesByScore(id_data, fdr_ref, fdr_cutoff);
       OPENMS_LOG_INFO << "Search hits after FDR filtering: "
-                      << id_data.getInputMatches().size()
+                      << id_data.getObservationMatches().size()
                       << "\nIdentified spectra after FDR filtering: "
-                      << id_data.getInputItems().size() << endl;
+                      << id_data.getObservations().size() << endl;
     }
   }
 
@@ -837,15 +836,15 @@ protected:
     // mapping: charge -> list of precursors
     using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
     map<AdductedOligo, PrecursorsByCharge> rt_info;
-    for (const IdentificationData::InputMatch& match :
-           id_data.getInputMatches())
+    for (const IdentificationData::ObservationMatch& match :
+           id_data.getObservationMatches())
     {
       const NASequence& seq =
         match.identified_molecule_var.getIdentifiedOligoRef()->sequence;
       auto key = make_pair(seq, match.adduct_opt);
-      double rt = match.input_item_ref->rt;
+      double rt = match.observation_ref->rt;
       double prec_int =
-        match.input_item_ref->getMetaValue("precursor_intensity");
+        match.observation_ref->getMetaValue("precursor_intensity");
       rt_info[key][match.charge].push_back(make_pair(prec_int, rt));
     }
 
@@ -1389,7 +1388,7 @@ protected:
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
     progresslogger.endProgress();
-    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getInputItems().size()
+    OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;
 
     // FDR:

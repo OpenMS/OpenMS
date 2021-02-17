@@ -143,7 +143,7 @@ namespace OpenMS
     IdentificationData::ScoreTypeRef score_ref = id_data.getScoreTypes().end();
     if (score_type_.empty()) // choose a score type
     {
-      score_ref = id_data.pickScoreType(id_data.getInputMatches());
+      score_ref = id_data.pickScoreType(id_data.getObservationMatches());
       if (score_ref == id_data.getScoreTypes().end())
       {
         String msg = "no scores found";
@@ -171,13 +171,13 @@ namespace OpenMS
     IdentificationData& id_data, SeqToList& rt_data)
   {
     // @TODO: should this get handled as an error?
-    if (id_data.getInputMatches().empty()) return true;
+    if (id_data.getObservationMatches().empty()) return true;
 
     IdentificationData::ScoreTypeRef score_ref =
       handleIdDataScoreType_(id_data);
 
-    vector<IdentificationData::InputMatchRef> top_hits =
-      id_data.getBestMatchPerQuery(score_ref);
+    vector<IdentificationData::ObservationMatchRef> top_hits =
+      id_data.getBestMatchPerObservation(score_ref);
 
     for (const auto& hit : top_hits)
     {
@@ -198,7 +198,7 @@ namespace OpenMS
         {
           molecule += "+[" + (*hit->adduct_opt)->getName() + "]";
         }
-        rt_data[molecule].push_back(hit->input_item_ref->rt);
+        rt_data[molecule].push_back(hit->observation_ref->rt);
       }
     }
     return false;

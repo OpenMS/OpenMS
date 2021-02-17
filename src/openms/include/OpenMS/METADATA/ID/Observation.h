@@ -34,70 +34,70 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/InputMatch.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/optional.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief: Group of related (co-identified) input matches
-
-      E.g. for cross-linking data or multiplexed spectra.
+    /*!
+      @brief Representation of an observation, e.g. a spectrum or feature, in an input data file.
     */
-    struct InputMatchGroup: public ScoredProcessingResult
+    struct Observation: public MetaInfoInterface
     {
-      std::set<InputMatchRef> input_match_refs;
+      /// Spectrum or feature ID (from the file referenced by @t input_file_opt)
+      String data_id;
 
-      bool allSameMolecule() const
+      /// (Optional) reference to the input file
+      boost::optional<InputFileRef> input_file_opt;
+      // @TODO: make this non-optional (i.e. required)?
+
+      double rt, mz; //< Position
+
+      /// Constructor
+      explicit Observation(
+        const String& data_id,
+        boost::optional<InputFileRef> input_file_opt = boost::none,
+        double rt = std::numeric_limits<double>::quiet_NaN(),
+        double mz = std::numeric_limits<double>::quiet_NaN()):
+        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
       {
-        // @TODO: return true or false for the empty set?
-        if (input_match_refs.size() <= 1) return true;
-        const IdentifiedMolecule var =
-          (*input_match_refs.begin())->identified_molecule_var;
-        for (auto it = ++input_match_refs.begin(); it != input_match_refs.end();
-             ++it)
+      }
+
+      /// Merge in data from another object
+      Observation& operator+=(const Observation& other)
+      {
+        // merge meta info - existing entries may be overwritten:
+        std::vector<UInt> keys;
+        other.getKeys(keys);
+        for (const UInt key : keys)
         {
-          if (!((*it)->identified_molecule_var == var)) return false;
+          setMetaValue(key, other.getMetaValue(key));
         }
-        return true;
-      }
-
-      bool allSameQuery() const
-      {
-        // @TODO: return true or false for the empty set?
-        if (input_match_refs.size() <= 1) return true;
-        InputItemRef ref = (*input_match_refs.begin())->input_item_ref;
-        for (auto it = ++input_match_refs.begin(); it != input_match_refs.end();
-             ++it)
-        {
-          if ((*it)->input_item_ref != ref) return false;
-        }
-        return true;
-      }
-
-      bool operator==(const InputMatchGroup rhs) const
-      {
-        return ((rhs.input_match_refs == input_match_refs) &&
-                (rhs.steps_and_scores == steps_and_scores));
-      }
-
-      bool operator!=(const InputMatchGroup& rhs) const
-      {
-        return !operator==(rhs);
+        rt = other.rt;
+        mz = other.mz;
+        return *this;
       }
     };
 
+    // combination of input file and data ID must be unique:
     typedef boost::multi_index_container<
-      InputMatchGroup,
+      Observation,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
-          boost::multi_index::member<InputMatchGroup, std::set<InputMatchRef>,
-                                     &InputMatchGroup::input_match_refs>>>
-      > InputMatchGroups;
-    typedef IteratorWrapper<InputMatchGroups::iterator> MatchGroupRef;
-
+          boost::multi_index::composite_key<
+            Observation,
+            boost::multi_index::member<Observation, boost::optional<InputFileRef>,
+                                       &Observation::input_file_opt>,
+            boost::multi_index::member<Observation, String,
+                                       &Observation::data_id>>>>
+      > Observations;
+    typedef IteratorWrapper<Observations::iterator> ObservationRef;
   }
 }

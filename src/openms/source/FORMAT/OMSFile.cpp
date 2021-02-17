@@ -700,11 +700,11 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeInputItems_(const IdentificationData& id_data)
+  void OMSFile::OMSFileStore::storeObservations_(const IdentificationData& id_data)
   {
-    if (id_data.getInputItems().empty()) return;
+    if (id_data.getObservations().empty()) return;
 
-    createTable_("ID_InputItem",
+    createTable_("ID_Observation",
                  "id INTEGER PRIMARY KEY NOT NULL, "                    \
                  "data_id TEXT NOT NULL, "                              \
                  "input_file_id INTEGER, "                              \
@@ -714,35 +714,35 @@ namespace OpenMS
                  "FOREIGN KEY (input_file_id) REFERENCES ID_InputFile (id)");
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_InputItem VALUES (" \
+    query.prepare("INSERT INTO ID_Observation VALUES (" \
                   ":id, "                             \
                   ":data_id, "                        \
                   ":input_file_id, "                  \
                   ":rt, "                             \
                   ":mz)");
-    for (const ID::InputItem& input_item : id_data.getInputItems())
+    for (const ID::Observation& obs : id_data.getObservations())
     {
-      query.bindValue(":id", Key(&input_item)); // use address as primary key
-      query.bindValue(":data_id", input_item.data_id.toQString());
-      if (input_item.input_file_opt)
+      query.bindValue(":id", Key(&obs)); // use address as primary key
+      query.bindValue(":data_id", obs.data_id.toQString());
+      if (obs.input_file_opt)
       {
-        query.bindValue(":input_file_id", Key(&(**input_item.input_file_opt)));
+        query.bindValue(":input_file_id", Key(&(**obs.input_file_opt)));
       }
       else
       {
         query.bindValue(":input_file_id", QVariant(QVariant::String)); // NULL
       }
-      if (input_item.rt == input_item.rt)
+      if (obs.rt == obs.rt)
       {
-        query.bindValue(":rt", input_item.rt);
+        query.bindValue(":rt", obs.rt);
       }
       else // NaN
       {
         query.bindValue(":rt", QVariant(QVariant::Double)); // NULL
       }
-      if (input_item.mz == input_item.mz)
+      if (obs.mz == obs.mz)
       {
-        query.bindValue(":mz", input_item.mz);
+        query.bindValue(":mz", obs.mz);
       }
       else // NaN
       {
@@ -754,7 +754,7 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeMetaInfos_(id_data.getInputItems(), "ID_InputItem");
+    storeMetaInfos_(id_data.getObservations(), "ID_Observation");
   }
 
 
@@ -1162,40 +1162,40 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileStore::storeInputMatches_(const IdentificationData& id_data)
+  void OMSFile::OMSFileStore::storeObservationMatches_(const IdentificationData& id_data)
   {
-    if (id_data.getInputMatches().empty()) return;
+    if (id_data.getObservationMatches().empty()) return;
 
     String table_def =
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "identified_molecule_id INTEGER NOT NULL, "                       \
-      "input_item_id INTEGER NOT NULL, "                                \
+      "observation_id INTEGER NOT NULL, "                                \
       "adduct_id INTEGER, "                                             \
       "charge INTEGER, "                                                \
       "FOREIGN KEY (identified_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
-      "FOREIGN KEY (input_item_id) REFERENCES ID_InputItem (id)";
+      "FOREIGN KEY (observation_id) REFERENCES ID_Observation (id)";
     // add foreign key constraint if the adduct table exists (having the
     // constraint without the table would cause an error on data insertion):
     if (tableExists_(db_name_, "AdductInfo"))
     {
       table_def += ", FOREIGN KEY (adduct_id) REFERENCES AdductInfo (id)";
     }
-    createTable_("ID_InputMatch", table_def);
+    createTable_("ID_ObservationMatch", table_def);
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_InputMatch VALUES ("  \
+    query.prepare("INSERT INTO ID_ObservationMatch VALUES ("  \
                   ":id, "                                       \
                   ":identified_molecule_id, "                   \
-                  ":input_item_id, "                            \
+                  ":observation_id, "                            \
                   ":adduct_id, "                                \
                   ":charge)");
     bool any_peak_annotations = false;
-    for (const ID::InputMatch& match : id_data.getInputMatches())
+    for (const ID::ObservationMatch& match : id_data.getObservationMatches())
     {
       if (!match.peak_annotations.empty()) any_peak_annotations = true;
       query.bindValue(":id", Key(&match)); // use address as primary key
       query.bindValue(":identified_molecule_id", getAddress_(match.identified_molecule_var));
-      query.bindValue(":input_item_id", Key(&(*match.input_item_ref)));
+      query.bindValue(":observation_id", Key(&(*match.observation_ref)));
       if (match.adduct_opt)
       {
         query.bindValue(":adduct_id", Key(&(**match.adduct_opt)));
@@ -1211,23 +1211,23 @@ namespace OpenMS
                       "error inserting data");
       }
     }
-    storeScoredProcessingResults_(id_data.getInputMatches(), "ID_InputMatch");
+    storeScoredProcessingResults_(id_data.getObservationMatches(), "ID_ObservationMatch");
 
     if (any_peak_annotations)
     {
       createTable_(
-        "ID_InputMatch_PeakAnnotation",
+        "ID_ObservationMatch_PeakAnnotation",
         "parent_id INTEGER NOT NULL, "                                  \
         "processing_step_id INTEGER, "                                  \
         "peak_annotation TEXT, "                                        \
         "peak_charge INTEGER, "                                         \
         "peak_mz REAL, "                                                \
         "peak_intensity REAL, "                                         \
-        "FOREIGN KEY (parent_id) REFERENCES ID_InputMatch (id), " \
+        "FOREIGN KEY (parent_id) REFERENCES ID_ObservationMatch (id), " \
         "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
 
       query.prepare(
-        "INSERT INTO ID_InputMatch_PeakAnnotation VALUES (" \
+        "INSERT INTO ID_ObservationMatch_PeakAnnotation VALUES (" \
         ":parent_id, "                                              \
         ":processing_step_id, "                                     \
         ":peak_annotation, "                                        \
@@ -1235,7 +1235,7 @@ namespace OpenMS
         ":peak_mz, "                                                \
         ":peak_intensity)");
 
-      for (const ID::InputMatch& match : id_data.getInputMatches())
+      for (const ID::ObservationMatch& match : id_data.getObservationMatches())
       {
         if (match.peak_annotations.empty()) continue;
         query.bindValue(":parent_id", Key(&match));
@@ -1284,7 +1284,7 @@ namespace OpenMS
     nextProgress(); // 5
     storeProcessingSteps_(id_data);
     nextProgress(); // 6
-    storeInputItems_(id_data);
+    storeObservations_(id_data);
     nextProgress(); // 7
     storeParentSequences_(id_data);
     nextProgress(); // 8
@@ -1296,7 +1296,7 @@ namespace OpenMS
     nextProgress(); // 11
     storeAdducts_(id_data);
     nextProgress(); // 12
-    storeInputMatches_(id_data);
+    storeObservationMatches_(id_data);
     endProgress();
     // @TODO: store input match groups
   }
@@ -1363,12 +1363,12 @@ namespace OpenMS
       }
     }
     // store ID input items:
-    if (!feature.getIDInputItems().empty())
+    if (!feature.getIDObservations().empty())
     {
       query_item.bindValue(":feature_id", feature_id);
-      for (ID::InputItemRef ref : feature.getIDInputItems())
+      for (ID::ObservationRef ref : feature.getIDObservations())
       {
-        query_item.bindValue(":input_item_id", Key(&(*ref)));
+        query_item.bindValue(":observation_id", Key(&(*ref)));
         if (!query_item.exec())
         {
           raiseDBError_(query_item.lastError(), __LINE__,
@@ -1453,17 +1453,17 @@ namespace OpenMS
     }
     QSqlQuery query_item(QSqlDatabase::database(db_name_));
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
-      return !feature.getIDInputItems().empty();
+      return !feature.getIDObservations().empty();
     }))
     {
-      createTable_("FEAT_InputItem",
+      createTable_("FEAT_Observation",
                    "feature_id INTEGER NOT NULL, "                      \
-                   "input_item_id INTEGER NOT NULL, "                   \
+                   "observation_id INTEGER NOT NULL, "                   \
                    "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id), " \
-                   "FOREIGN KEY (input_item_id) REFERENCES ID_InputItem (id)");
-      query_item.prepare("INSERT INTO FEAT_InputItem VALUES (" \
+                   "FOREIGN KEY (observation_id) REFERENCES ID_Observation (id)");
+      query_item.prepare("INSERT INTO FEAT_Observation VALUES (" \
                           ":feature_id, "                       \
-                          ":input_item_id)");
+                          ":observation_id)");
     }
 
     // features and their subordinates are stored in DFS-like order:
@@ -1971,39 +1971,38 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadInputItems_(IdentificationData& id_data)
+  void OMSFile::OMSFileLoad::loadObservations_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_InputItem")) return;
+    if (!tableExists_(db_name_, "ID_Observation")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_InputItem"))
+    if (!query.exec("SELECT * FROM ID_Observation"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
     }
     QSqlQuery subquery_info(db);
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_InputItem");
+                                                "ID_Observation");
 
     while (query.next())
     {
-      ID::InputItem input_item(query.value("data_id").toString());
+      ID::Observation obs(query.value("data_id").toString());
       QVariant input_file_id = query.value("input_file_id");
       if (!input_file_id.isNull())
       {
-        input_item.input_file_opt =
-          input_file_refs_[input_file_id.toLongLong()];
+        obs.input_file_opt = input_file_refs_[input_file_id.toLongLong()];
       }
       QVariant rt = query.value("rt");
-      if (!rt.isNull()) input_item.rt = rt.toDouble();
+      if (!rt.isNull()) obs.rt = rt.toDouble();
       QVariant mz = query.value("mz");
-      if (!mz.isNull()) input_item.mz = mz.toDouble();
+      if (!mz.isNull()) obs.mz = mz.toDouble();
       Key id = query.value("id").toLongLong();
-      if (have_meta_info) handleQueryMetaInfo_(subquery_info, input_item, id);
-      ID::InputItemRef ref = id_data.registerInputItem(input_item);
-      input_item_refs_[id] = ref;
+      if (have_meta_info) handleQueryMetaInfo_(subquery_info, obs, id);
+      ID::ObservationRef ref = id_data.registerObservation(obs);
+      observation_refs_[id] = ref;
     }
   }
 
@@ -2300,7 +2299,7 @@ namespace OpenMS
 
 
   void OMSFile::OMSFileLoad::handleQueryPeakAnnotation_(
-    QSqlQuery& query, ID::InputMatch& match, Key parent_id)
+    QSqlQuery& query, ID::ObservationMatch& match, Key parent_id)
   {
     query.bindValue(":id", parent_id);
     if (!query.exec())
@@ -2351,14 +2350,14 @@ namespace OpenMS
   }
 
 
-  void OMSFile::OMSFileLoad::loadInputMatches_(IdentificationData& id_data)
+  void OMSFile::OMSFileLoad::loadObservationMatches_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_InputMatch")) return;
+    if (!tableExists_(db_name_, "ID_ObservationMatch")) return;
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_InputMatch"))
+    if (!query.exec("SELECT * FROM ID_ObservationMatch"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -2366,19 +2365,19 @@ namespace OpenMS
     // @TODO: can we combine handling of meta info and applied processing steps?
     QSqlQuery subquery_info(db);
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                                "ID_InputMatch");
+                                                "ID_ObservationMatch");
     QSqlQuery subquery_step(db);
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
-                                         "ID_InputMatch");
+                                         "ID_ObservationMatch");
     QSqlQuery subquery_ann(db);
     bool have_peak_annotations =
-      tableExists_(db_name_, "ID_InputMatch_PeakAnnotation");
+      tableExists_(db_name_, "ID_ObservationMatch_PeakAnnotation");
     if (have_peak_annotations)
     {
       subquery_ann.setForwardOnly(true);
       subquery_ann.prepare(
-        "SELECT * FROM ID_InputMatch_PeakAnnotation " \
+        "SELECT * FROM ID_ObservationMatch_PeakAnnotation " \
         "WHERE parent_id = :id");
     }
 
@@ -2386,9 +2385,9 @@ namespace OpenMS
     {
       Key id = query.value("id").toLongLong();
       Key molecule_id = query.value("identified_molecule_id").toLongLong();
-      Key query_id = query.value("input_item_id").toLongLong();
-      ID::InputMatch match(identified_molecule_vars_[molecule_id],
-                                   input_item_refs_[query_id],
+      Key query_id = query.value("observation_id").toLongLong();
+      ID::ObservationMatch match(identified_molecule_vars_[molecule_id],
+                                   observation_refs_[query_id],
                                    query.value("charge").toInt());
       QVariant adduct_id = query.value("adduct_id"); // adduct is optional
       if (!adduct_id.isNull())
@@ -2407,8 +2406,8 @@ namespace OpenMS
       {
         handleQueryPeakAnnotation_(subquery_ann, match, id);
       }
-      ID::InputMatchRef ref = id_data.registerInputMatch(match);
-      input_match_refs_[id] = ref;
+      ID::ObservationMatchRef ref = id_data.registerObservationMatch(match);
+      observation_match_refs_[id] = ref;
     }
   }
 
@@ -2426,7 +2425,7 @@ namespace OpenMS
     nextProgress();
     loadProcessingSteps_(id_data);
     nextProgress();
-    loadInputItems_(id_data);
+    loadObservations_(id_data);
     nextProgress();
     loadParentSequences_(id_data);
     nextProgress();
@@ -2438,7 +2437,7 @@ namespace OpenMS
     nextProgress();
     loadAdducts_(id_data);
     nextProgress();
-    loadInputMatches_(id_data);
+    loadObservationMatches_(id_data);
     endProgress();
     // @TODO: load input match groups
   }
@@ -2515,7 +2514,7 @@ namespace OpenMS
 
   Feature OMSFile::OMSFileLoad::loadFeatureAndSubordinates_(
     QSqlQuery& query_feat, boost::optional<QSqlQuery>& query_meta,
-    boost::optional<QSqlQuery>& query_hull, boost::optional<QSqlQuery>& query_item)
+    boost::optional<QSqlQuery>& query_hull, boost::optional<QSqlQuery>& query_obs)
   {
     Feature feature;
     int id = query_feat.value("id").toInt();
@@ -2561,19 +2560,19 @@ namespace OpenMS
         feature.getConvexHulls()[hull_index].addPoint(point);
       }
     }
-    // ID input items:
-    if (query_item)
+    // ID observations:
+    if (query_obs)
     {
-      query_item->bindValue(":id", id);
-      if (!query_item->exec())
+      query_obs->bindValue(":id", id);
+      if (!query_obs->exec())
       {
-        raiseDBError_(query_item->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+        raiseDBError_(query_obs->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error reading from database");
       }
-      while (query_item->next())
+      while (query_obs->next())
       {
-        Key input_item_id = query_item->value("input_item_id").toLongLong();
-        feature.addIDInputItem(input_item_refs_[input_item_id]);
+        Key obs_id = query_obs->value("observation_id").toLongLong();
+        feature.addIDObservation(observation_refs_[obs_id]);
       }
     }
     // subordinates:
@@ -2589,7 +2588,7 @@ namespace OpenMS
     while (query_sub.next())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
-                                                query_hull, query_item);
+                                                query_hull, query_obs);
       feature.getSubordinates().push_back(sub);
     }
     return feature;
@@ -2623,17 +2622,17 @@ namespace OpenMS
       query_hull->prepare("SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
                          "ORDER BY hull_index DESC, point_index ASC");
     }
-    boost::optional<QSqlQuery> query_item;
-    if (tableExists_(db_name_, "FEAT_InputItem"))
+    boost::optional<QSqlQuery> query_obs;
+    if (tableExists_(db_name_, "FEAT_Observation"))
     {
-      query_item = QSqlQuery(db);
-      query_item->prepare("SELECT * FROM FEAT_InputItem WHERE feature_id = :id");
+      query_obs = QSqlQuery(db);
+      query_obs->prepare("SELECT * FROM FEAT_Observation WHERE feature_id = :id");
     }
 
     while (query_feat.next())
     {
       Feature feature = loadFeatureAndSubordinates_(query_feat, query_meta,
-                                                    query_hull, query_item);
+                                                    query_hull, query_obs);
       features.push_back(feature);
     }
   }

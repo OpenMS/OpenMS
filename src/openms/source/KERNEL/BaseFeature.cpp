@@ -50,7 +50,7 @@ namespace OpenMS
 
   BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index) :
       RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
-      peptides_(rhs.peptides_), primary_id_(rhs.primary_id_), id_input_items_(rhs.id_input_items_)
+      peptides_(rhs.peptides_), primary_id_(rhs.primary_id_), id_observations_(rhs.id_observations_)
   {
     for (auto& pep : this->peptides_)
     {
@@ -85,7 +85,7 @@ namespace OpenMS
            && (width_ == rhs.width_)
            && (peptides_ == rhs.peptides_)
            && (primary_id_ == rhs.primary_id_)
-           && (id_input_items_ == rhs.id_input_items_);
+           && (id_observations_ == rhs.id_observations_);
   }
 
   bool BaseFeature::operator!=(const BaseFeature& rhs) const
@@ -200,21 +200,21 @@ namespace OpenMS
   }
 
 
-  const std::set<IdentificationData::InputItemRef>& BaseFeature::getIDInputItems() const
+  const std::set<IdentificationData::ObservationRef>& BaseFeature::getIDObservations() const
   {
-    return id_input_items_;
+    return id_observations_;
   }
 
 
-  std::set<IdentificationData::InputItemRef>& BaseFeature::getIDInputItems()
+  std::set<IdentificationData::ObservationRef>& BaseFeature::getIDObservations()
   {
-    return id_input_items_;
+    return id_observations_;
   }
 
 
-  void BaseFeature::addIDInputItem(IdentificationData::InputItemRef ref)
+  void BaseFeature::addIDObservation(IdentificationData::ObservationRef ref)
   {
-    id_input_items_.insert(ref);
+    id_observations_.insert(ref);
   }
 
   void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
@@ -223,11 +223,11 @@ namespace OpenMS
     {
       primary_id_ = trans.translateIdentifiedMolecule(*primary_id_);
     }
-    set<IdentificationData::InputItemRef> input_items;
-    input_items.swap(id_input_items_);
-    for (auto item : input_items)
+    set<IdentificationData::ObservationRef> observations;
+    observations.swap(id_observations_);
+    for (auto item : observations)
     {
-        id_input_items_.insert(trans.input_item_refs.at(item));
+        id_observations_.insert(trans.observation_refs.at(item));
     }
   }
 

@@ -89,7 +89,7 @@ using namespace std;
   Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML,
   the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
   supports traceability of analysis steps.)
-  
+
   Thermo raw files can be converted to mzML using the ThermoRawFileParser provided in the THIRDPARTY folder.
   On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono runtime needs to be
   present and accessible via the -NET_executable parameter. The path to the ThermoRawFileParser can be set
@@ -135,13 +135,13 @@ using namespace std;
 
 String extractCachedMetaFilename(const String& in)
 {
-  // Special handling of cached mzML as input types: 
+  // Special handling of cached mzML as input types:
   // we expect two paired input files which we should read into exp
   std::vector<String> split_out;
   in.split(".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
-    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in 
+    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in
       << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
@@ -161,12 +161,12 @@ IMType determineIMType(const MSExperiment& exp)
 {
   for (Size k = 0; k < exp.size(); k++)
   {
-    if (!exp[k].getFloatDataArrays().empty() && 
+    if (!exp[k].getFloatDataArrays().empty() &&
         exp[k].getFloatDataArrays()[0].getName().find("Ion Mobility") == 0)
     {
       return IMType::IM_STACKED;
     }
-    else if (exp[k].getDriftTime() >= 0.0) 
+    else if (exp[k].getDriftTime() >= 0.0)
     {
       return IMType::IM_MULTIPLE_SPECTRA;
     }
@@ -331,7 +331,7 @@ protected:
     vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
-    
+
     registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
@@ -467,7 +467,7 @@ protected:
       writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
       String net_executable = getStringOption_("NET_executable");
       QStringList arguments;
-#ifdef OPENMS_WINDOWSPLATFORM      
+#ifdef OPENMS_WINDOWSPLATFORM
       if (net_executable.empty())
       { // default on Windows: if NO mono executable is set use the "native" .NET one
         net_executable = getStringOption_("ThermoRaw_executable");
@@ -475,12 +475,12 @@ protected:
       else
       { // use e.g., mono
         arguments << getStringOption_("ThermoRaw_executable").toQString();
-      }      
+      }
 #else
       // default on Mac, Linux: use mono
       net_executable = net_executable.empty() ? "mono" : net_executable;
       arguments << getStringOption_("ThermoRaw_executable").toQString();
-#endif            
+#endif
       arguments << ("-i=" + in).c_str()
                 << ("--output_file=" + out).c_str()
                 << "-f=2" // indexedMzML
@@ -783,8 +783,7 @@ protected:
         writeLog_("Warning: Converting peaks to features will lead to incomplete features!");
         fm.clear();
         fm.reserve(exp.getSize());
-        typedef FeatureMapType::FeatureType FeatureType;
-        FeatureType feature;
+        Feature feature;
         feature.setQuality(0, 1); // override default
         feature.setQuality(1, 1); // override default
         feature.setOverallQuality(1); // override default
