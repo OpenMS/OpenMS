@@ -738,6 +738,7 @@ namespace OpenMS
       identified_peptide_lookup_.clear();
       identified_compound_lookup_.clear();
       identified_oligo_lookup_.clear();
+      set<AdductRef> adduct_refs;
       for (const auto& match : observation_matches_)
       {
         observation_lookup_.insert(match.observation_ref);
@@ -753,6 +754,7 @@ namespace OpenMS
           case IdentificationData::MoleculeType::RNA:
             identified_oligo_lookup_.insert(molecule_var.getIdentifiedOligoRef());
         }
+        if (match.adduct_opt) adduct_refs.insert(*match.adduct_opt);
       }
       removeFromSetIfNotHashed_(observations_, observation_lookup_);
       removeFromSetIfNotHashed_(identified_peptides_,
@@ -760,6 +762,10 @@ namespace OpenMS
       removeFromSetIfNotHashed_(identified_compounds_,
                                 identified_compound_lookup_);
       removeFromSetIfNotHashed_(identified_oligos_, identified_oligo_lookup_);
+      removeFromSetIf_(adducts_, [&](Adducts::iterator it)
+      {
+        return !adduct_refs.count(it);
+      });
     }
     // update look-up tables of addresses:
     updateAddressLookup_(observations_, observation_lookup_);
