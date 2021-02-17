@@ -1423,7 +1423,7 @@ namespace OpenMS
                        ":primary_molecule_id, "            \
                        ":subordinate_of)");
     QSqlQuery query_meta;
-    // if (anyMetaInfos_(features))
+    // any meta infos on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
       return !feature.isMetaEmpty();
     }))
@@ -1432,7 +1432,7 @@ namespace OpenMS
       query_meta = getQueryMetaInfo_("FEAT_Feature");
     }
     QSqlQuery query_hull(QSqlDatabase::database(db_name_));
-    // if (anyConvexHulls_(features))
+    // any convex hulls on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
       return !feature.getConvexHulls().empty();
     }))
@@ -1452,6 +1452,7 @@ namespace OpenMS
                          ":point_y)");
     }
     QSqlQuery query_item(QSqlDatabase::database(db_name_));
+    // any ID observations on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
       return !feature.getIDObservations().empty();
     }))
@@ -1515,23 +1516,28 @@ namespace OpenMS
     if (features.getDataProcessing().empty()) return;
 
     createTable_("FEAT_DataProcessing",
-                 "position INTEGER NOT NULL, "  \
-                 "software_name TEXT, "         \
-                 "software_version TEXT, "      \
-                 "processing_actions TEXT, "    \
+                 "id INTEGER PRIMARY KEY NOT NULL, "    \
+                 "position INTEGER NOT NULL, "          \
+                 "software_name TEXT, "                 \
+                 "software_version TEXT, "              \
+                 "processing_actions TEXT, "            \
                  "completion_time TEXT");
-    // "index" may be a better name than "position", but is an SQL keyword...
+    // "id" is needed to connect to meta info table (see "storeMetaInfos_");
+    // "position" is position in the vector ("index" is a reserved word in SQL)
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO FEAT_DataProcessing VALUES (" \
+                  ":id, "                                    \
                   ":position, "                              \
                   ":software_name, "                         \
                   ":software_version, "                      \
                   ":processing_actions, "                    \
                   ":completion_time)");
-    int position = 0;
+
+    int index = 0;
     for (const DataProcessing& proc : features.getDataProcessing())
     {
-      query.bindValue(":position", position);
+      query.bindValue(":id", Key(&proc));
+      query.bindValue(":position", index);
       query.bindValue(":software_name", proc.getSoftware().getName().toQString());
       query.bindValue(":software_version", proc.getSoftware().getVersion().toQString());
       String actions;
@@ -1547,8 +1553,9 @@ namespace OpenMS
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error inserting data");
       }
-      position++;
+      index++;
     }
+    storeMetaInfos_(features.getDataProcessing(), "FEAT_DataProcessing");
   }
 
 
@@ -1926,8 +1933,7 @@ namespace OpenMS
                             "WHERE processing_step_id = :id");
     }
     QSqlQuery subquery_info(db);
-    bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
-                                              "ID_ProcessingStep");
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_ProcessingStep");
     while (query.next())
     {
       Key id = query.value("id").toLongLong();
@@ -2482,6 +2488,9 @@ namespace OpenMS
                     "error reading from database");
     }
 
+    QSqlQuery subquery_info(QSqlDatabase::database(db_name_));
+    bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "FEAT_DataProcessing");
+
     while (query.next())
     {
       DataProcessing proc;
@@ -2507,6 +2516,11 @@ namespace OpenMS
       DateTime time;
       time.set(query.value("completion_time").toString());
       proc.setCompletionTime(time);
+      if (have_meta_info)
+      {
+        Key id = query.value("id").toLongLong();
+        handleQueryMetaInfo_(subquery_info, proc, id);
+      }
       features.getDataProcessing().push_back(proc);
     }
   }
