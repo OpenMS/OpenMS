@@ -544,6 +544,13 @@ namespace OpenMS
   }
 
 
+  pair<IdentificationData::ObservationMatchRef, IdentificationData::ObservationMatchRef>
+  IdentificationData::getMatchesForObservation(ObservationRef obs_ref) const
+  {
+    return observation_matches_.equal_range(obs_ref);
+  }
+
+
   void IdentificationData::calculateCoverages(bool check_molecule_length)
   {
     // aggregate parent matches by parent:

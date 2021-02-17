@@ -478,6 +478,9 @@ namespace OpenMS
     std::vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const;
     // @TODO: this currently doesn't take molecule type into account - should it?
 
+    /// Get range of matches (cf. @p equal_range) for a given observation
+    std::pair<ObservationMatchRef, ObservationMatchRef> getMatchesForObservation(ObservationRef obs_ref) const;
+
     /*!
       @brief Look up a score type by name.
 

@@ -51,6 +51,8 @@ START_TEST(IdentificationData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
+using ID = IdentificationData;
+
 IdentificationData* ptr = 0;
 IdentificationData* null = 0;
 START_SECTION((IdentificationData()))
@@ -59,18 +61,18 @@ START_SECTION((IdentificationData()))
 END_SECTION
 
 IdentificationData data;
-IdentificationData::InputFileRef file_ref;
-IdentificationData::ProcessingSoftwareRef sw_ref;
-IdentificationData::SearchParamRef param_ref;
-IdentificationData::ProcessingStepRef step_ref;
-IdentificationData::ScoreTypeRef score_ref;
-IdentificationData::ObservationRef query_ref;
-IdentificationData::ParentSequenceRef protein_ref, rna_ref;
-IdentificationData::IdentifiedPeptideRef peptide_ref;
-IdentificationData::IdentifiedOligoRef oligo_ref;
-IdentificationData::IdentifiedCompoundRef compound_ref;
-IdentificationData::AdductRef adduct_ref;
-IdentificationData::ObservationMatchRef match_ref1, match_ref2, match_ref3;
+ID::InputFileRef file_ref;
+ID::ProcessingSoftwareRef sw_ref;
+ID::SearchParamRef param_ref;
+ID::ProcessingStepRef step_ref;
+ID::ScoreTypeRef score_ref;
+ID::ObservationRef obs_ref;
+ID::ParentSequenceRef protein_ref, rna_ref;
+ID::IdentifiedPeptideRef peptide_ref;
+ID::IdentifiedOligoRef oligo_ref;
+ID::IdentifiedCompoundRef compound_ref;
+ID::AdductRef adduct_ref;
+ID::ObservationMatchRef match_ref1, match_ref2, match_ref3;
 
 START_SECTION((const InputFiles& getInputFiles() const))
 {
@@ -81,7 +83,7 @@ END_SECTION
 
 START_SECTION((InputFileRef registerInputFile(const InputFile& file)))
 {
-  IdentificationData::InputFile file("test.mzML");
+  ID::InputFile file("test.mzML");
   file_ref = data.registerInputFile(file);
   TEST_EQUAL(data.getInputFiles().size(), 1);
   TEST_STRING_EQUAL(file_ref->name, file.name);
@@ -100,7 +102,7 @@ END_SECTION
 
 START_SECTION((ProcessingSoftwareRef registerProcessingSoftware(const Software& software)))
 {
-  IdentificationData::ProcessingSoftware sw("Tool", "1.0");
+  ID::ProcessingSoftware sw("Tool", "1.0");
   sw_ref = data.registerProcessingSoftware(sw);
   TEST_EQUAL(data.getProcessingSoftwares().size(), 1);
   TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile - same below
@@ -119,7 +121,7 @@ END_SECTION
 
 START_SECTION((SearchParamRef registerDBSearchParam(const DBSearchParam& param)))
 {
-  IdentificationData::DBSearchParam param;
+  ID::DBSearchParam param;
   param.database = "test-db.fasta";
   param.precursor_mass_tolerance = 1;
   param.fragment_mass_tolerance = 2;
@@ -141,8 +143,8 @@ END_SECTION
 
 START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& step)))
 {
-  vector<IdentificationData::InputFileRef> file_refs(1, file_ref);
-  IdentificationData::ProcessingStep step(sw_ref, file_refs);
+  vector<ID::InputFileRef> file_refs(1, file_ref);
+  ID::ProcessingStep step(sw_ref, file_refs);
   step_ref = data.registerProcessingStep(step);
   TEST_EQUAL(data.getProcessingSteps().size(), 1);
   TEST_EQUAL(*step_ref == step, true);
@@ -161,7 +163,7 @@ END_SECTION
 
 START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& step, SearchParamRef search_ref)))
 {
-  IdentificationData::ProcessingStep step(sw_ref);
+  ID::ProcessingStep step(sw_ref);
   step_ref = data.registerProcessingStep(step, param_ref);
   TEST_EQUAL(data.getProcessingSteps().size(), 2);
   TEST_EQUAL(*step_ref == step, true);
@@ -183,7 +185,7 @@ END_SECTION
 
 START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
 {
-  IdentificationData::ScoreType score("test_score", true);
+  ID::ScoreType score("test_score", true);
   score_ref = data.registerScoreType(score);
   TEST_EQUAL(data.getScoreTypes().size(), 1);
   TEST_EQUAL(*score_ref == score, true);
@@ -200,14 +202,14 @@ START_SECTION((const Observations& getObservations() const))
 }
 END_SECTION
 
-START_SECTION((ObservationRef registerObservation(const Observation& query)))
+START_SECTION((ObservationRef registerObservation(const Observation& obs)))
 {
-  IdentificationData::Observation query("spectrum_1", file_ref, 100.0, 1000.0);
-  query_ref = data.registerObservation(query);
+  ID::Observation obs("spectrum_1", file_ref, 100.0, 1000.0);
+  obs_ref = data.registerObservation(obs);
   TEST_EQUAL(data.getObservations().size(), 1);
-  TEST_EQUAL(*query_ref == query, true);
+  TEST_EQUAL(*obs_ref == obs, true);
   // re-registering doesn't lead to redundant entries:
-  data.registerObservation(query);
+  data.registerObservation(obs);
   TEST_EQUAL(data.getObservations().size(), 1);
 }
 END_SECTION
@@ -221,7 +223,7 @@ END_SECTION
 
 START_SECTION((ParentSequenceRef registerParentSequence(const ParentSequence& parent)))
 {
-  IdentificationData::ParentSequence protein("");
+  ID::ParentSequence protein("");
   // can't register a parent sequence without accession:
   TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerParentSequence(protein));
@@ -233,8 +235,8 @@ START_SECTION((ParentSequenceRef registerParentSequence(const ParentSequence& pa
   TEST_EQUAL(data.getParentSequences().size(), 1);
   TEST_EQUAL(*protein_ref == protein, true);
 
-  IdentificationData::ParentSequence rna("rna_1",
-                                         IdentificationData::MoleculeType::RNA);
+  ID::ParentSequence rna("rna_1",
+                                         ID::MoleculeType::RNA);
   rna_ref = data.registerParentSequence(rna);
   TEST_EQUAL(data.getParentSequences().size(), 2);
   TEST_EQUAL(*rna_ref == rna, true);
@@ -253,10 +255,10 @@ END_SECTION
 
 START_SECTION((void registerParentGroupSet(const ParentGroupSet& groups)))
 {
-  IdentificationData::ParentGroup group;
+  ID::ParentGroup group;
   group.parent_refs.insert(protein_ref);
   group.parent_refs.insert(rna_ref);
-  IdentificationData::ParentGroupSet groups;
+  ID::ParentGroupSet groups;
   groups.label = "test_grouping";
   groups.groups.insert(group);
   data.registerParentGroupSet(groups);
@@ -275,7 +277,7 @@ END_SECTION
 
 START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide& peptide)))
 {
-  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString(""));
+  ID::IdentifiedPeptide peptide(AASequence::fromString(""));
   // can't register a peptide without a sequence:
   TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedPeptide(peptide));
@@ -289,7 +291,7 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPe
 
   // peptide with protein reference:
   peptide.sequence = AASequence::fromString("PEPTIDE");
-  peptide.parent_matches[protein_ref].insert(IdentificationData::
+  peptide.parent_matches[protein_ref].insert(ID::
                                              ParentMatch(4, 10));
   peptide_ref = data.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
@@ -315,7 +317,7 @@ END_SECTION
 
 START_SECTION((IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo)))
 {
-  IdentificationData::IdentifiedOligo oligo(NASequence::fromString(""));
+  ID::IdentifiedOligo oligo(NASequence::fromString(""));
   // can't register an oligo without a sequence:
   TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedOligo(oligo));
@@ -354,13 +356,13 @@ END_SECTION
 
 START_SECTION((IdentifiedCompoundRef registerIdentifiedCompound(const IdentifiedCompound& compound)))
 {
-  IdentificationData::IdentifiedCompound compound("");
+  ID::IdentifiedCompound compound("");
   // can't register a compound without identifier:
   TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedCompound(compound));
   TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
 
-  compound = IdentificationData::IdentifiedCompound("compound_1",
+  compound = ID::IdentifiedCompound("compound_1",
                                                     EmpiricalFormula("C2H5OH"),
                                                     "ethanol");
   compound_ref = data.registerIdentifiedCompound(compound);
@@ -399,13 +401,13 @@ END_SECTION
 START_SECTION((ObservationMatchRef registerObservationMatch(const ObservationMatch& match)))
 {
   // match with a peptide:
-  IdentificationData::ObservationMatch match(peptide_ref, query_ref, 3);
+  ID::ObservationMatch match(peptide_ref, obs_ref, 3);
   match_ref1 = data.registerObservationMatch(match);
   TEST_EQUAL(data.getObservationMatches().size(), 1);
   TEST_EQUAL(*match_ref1 == match, true);
 
   // match with an oligo (+ adduct):
-  match = IdentificationData::ObservationMatch(oligo_ref, query_ref, 2,
+  match = ID::ObservationMatch(oligo_ref, obs_ref, 2,
                                                  adduct_ref);
   match_ref2 = data.registerObservationMatch(match);
   TEST_EQUAL(data.getObservationMatches().size(), 2);
@@ -413,7 +415,7 @@ START_SECTION((ObservationMatchRef registerObservationMatch(const ObservationMat
   TEST_EQUAL((*match_ref2->adduct_opt)->getName(), "Na+");
 
   // match with a compound:
-  match = IdentificationData::ObservationMatch(compound_ref, query_ref, 1);
+  match = ID::ObservationMatch(compound_ref, obs_ref, 1);
   match_ref3 = data.registerObservationMatch(match);
   TEST_EQUAL(data.getObservationMatches().size(), 3);
   TEST_EQUAL(*match_ref3 == match, true);
@@ -433,7 +435,7 @@ END_SECTION
 
 START_SECTION((MatchGroupRef registerObservationMatchGroup(const ObservationMatchGroup& group)))
 {
-  IdentificationData::ObservationMatchGroup group;
+  ID::ObservationMatchGroup group;
   group.observation_match_refs.insert(match_ref1);
   group.observation_match_refs.insert(match_ref2);
   group.observation_match_refs.insert(match_ref3);
@@ -473,7 +475,7 @@ START_SECTION((void setCurrentProcessingStep(ProcessingStepRef step_ref)))
   data.setCurrentProcessingStep(step_ref);
   TEST_EQUAL(data.getCurrentProcessingStep() == step_ref, true);
   // registering new data automatically adds the processing step:
-  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("EDIT"));
+  ID::IdentifiedPeptide peptide(AASequence::fromString("EDIT"));
   peptide.parent_matches[protein_ref];
   peptide_ref = data.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(peptide_ref->steps_and_scores.size(), 1);
@@ -491,9 +493,22 @@ END_SECTION
 
 START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const))
 {
-  vector<IdentificationData::ObservationMatchRef> result = data.getBestMatchPerObservation(score_ref);
+  vector<ID::ObservationMatchRef> result = data.getBestMatchPerObservation(score_ref);
   TEST_EQUAL(result.size(), 1);
   TEST_EQUAL(result[0] == match_ref2, true);
+}
+END_SECTION
+
+START_SECTION((pair<ID::ObservationMatchRef, ID::ObservationMatchRef> getMatchesForObservation(ObservationRef obs_ref) const))
+{
+  pair<ID::ObservationMatchRef, ID::ObservationMatchRef> result =
+    data.getMatchesForObservation(obs_ref);
+  TEST_EQUAL(distance(result.first, result.second), 3);
+  for (; result.first != result.second; ++result.first)
+  {
+    TEST_EQUAL((result.first == match_ref1) || (result.first == match_ref2) ||
+               (result.first == match_ref3), true);
+  }
 }
 END_SECTION
 
@@ -512,9 +527,9 @@ START_SECTION((void calculateCoverages(bool check_molecule_length = false)))
   data.calculateCoverages();
   TEST_REAL_SIMILAR(protein_ref->coverage, 0.5);
   // partially overlapping peptide:
-  IdentificationData::IdentifiedPeptide peptide(AASequence::
+  ID::IdentifiedPeptide peptide(AASequence::
                                                 fromString("TESTPEP"));
-  peptide.parent_matches[protein_ref].insert(IdentificationData::
+  peptide.parent_matches[protein_ref].insert(ID::
                                              ParentMatch(0, 6));
   data.registerIdentifiedPeptide(peptide);
   data.calculateCoverages();
@@ -547,7 +562,7 @@ START_SECTION((ProcessingStepRef merge(const IdentificationData& other)))
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
   TEST_EQUAL(data.getParentSequences().size(), 2);
   IdentificationData other;
-  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("MASSSPEC"));
+  ID::IdentifiedPeptide peptide(AASequence::fromString("MASSSPEC"));
   other.registerIdentifiedPeptide(peptide);
   data.merge(other);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
@@ -570,20 +585,20 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
 {
   IdentificationData id;
 
-  IdentificationData::InputFile file("file://ROOT/FOLDER/SPECTRA.mzML");
+  ID::InputFile file("file://ROOT/FOLDER/SPECTRA.mzML");
   auto file_ref = id.registerInputFile(file);
 
   // register a score type
-  IdentificationData::ScoreType score("MySearchEngineScore", true);
+  ID::ScoreType score("MySearchEngineScore", true);
   auto score_ref = id.registerScoreType(score);
 
   // register software (connected to score)
-  IdentificationData::ProcessingSoftware sw("MySearchEngineTool", "1.0");
+  ID::ProcessingSoftware sw("MySearchEngineTool", "1.0");
   sw.assigned_scores.push_back(score_ref);
   auto sw_ref = id.registerProcessingSoftware(sw);
 
   // all supported search settings
-  IdentificationData::DBSearchParam search_param;
+  ID::DBSearchParam search_param;
   search_param.database = "file://ROOT/FOLDER/DATABASE.fasta";
   search_param.database_version = "nextprot1234";
   search_param.taxonomy = "Homo Sapiens";
@@ -602,36 +617,36 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   auto search_param_ref = id.registerDBSearchParam(search_param);
 
   // file has been processed by software
-  IdentificationData::ProcessingStep step(sw_ref);
+  ID::ProcessingStep step(sw_ref);
   step.input_file_refs.push_back(file_ref);
   auto step_ref = id.registerProcessingStep(step, search_param_ref);
   // all further data comes from this processing step
   id.setCurrentProcessingStep(step_ref);
 
   // register spectrum
-  IdentificationData::Observation query("spectrum_1", file_ref, 100.0, 1000.0);
-  auto query_ref = id.registerObservation(query);
+  ID::Observation obs("spectrum_1", file_ref, 100.0, 1000.0);
+  auto obs_ref = id.registerObservation(obs);
 
   // peptide without protein reference (yet)
-  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("TESTPEPTIDR")); // seq. is required
+  ID::IdentifiedPeptide peptide(AASequence::fromString("TESTPEPTIDR")); // seq. is required
   auto peptide_ref = id.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(peptide_ref->parent_matches.size(), 0);
 
   // peptide-spectrum match
-  IdentificationData::ObservationMatch match(peptide_ref, query_ref); // both refs. are required
+  ID::ObservationMatch match(peptide_ref, obs_ref); // both refs. are required
   match.addScore(score_ref, 123, step_ref);
   id.registerObservationMatch(match);
 
   // some calculations, inference etc. could take place ...
-  IdentificationData::ParentSequence protein("protein_1"); // accession is required
+  ID::ParentSequence protein("protein_1"); // accession is required
   protein.sequence = "PRTTESTPEPTIDRPRT";
   protein.description = "Human Random Protein 1";
   auto protein_ref = id.registerParentSequence(protein);
 
   // add reference to parent (protein) and update peptide
-  IdentificationData::IdentifiedPeptide augmented_pep = *peptide_ref;
+  ID::IdentifiedPeptide augmented_pep = *peptide_ref;
   // @TODO: wrap this in a convenience function (like "match.addScore" above)
-  augmented_pep.parent_matches[protein_ref].insert(IdentificationData::ParentMatch(3, 13));
+  augmented_pep.parent_matches[protein_ref].insert(ID::ParentMatch(3, 13));
   id.registerIdentifiedPeptide(augmented_pep); // protein reference will be added
   // peptide_ref should still be valid and now contain link to protein
   TEST_EQUAL(peptide_ref->sequence, augmented_pep.sequence);
