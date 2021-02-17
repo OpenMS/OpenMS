@@ -150,11 +150,13 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
 {
   FeatureMap features;
   OMSFile().load(oms_path, features);
-  FeatureXMLFile().store(OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML"),
-                         features);
 
   TEST_EQUAL(features.size(), 2);
   TEST_EQUAL(features[0].getSubordinates().size(), 2);
+
+  IdentificationDataConverter::exportFeatureIDs(features);
+  FeatureXMLFile().store(OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML"),
+                         features);
 }
 END_SECTION
 
