@@ -11,10 +11,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>" namesp
 
       libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping] constructTargetDecoyMassMapping(TargetedExperiment& t_exp) nogil except +
 
-      resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping ]& mappings, double& mass_to_add);
+      void resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping ]& mappings, double& mass_to_add) nogil except +
 
-      generateMissingDecoysByMassShift(TargetedExperiment& t_exp, libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping ]& mappings, double& mass_to_add);
-
+      void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, libcpp_vector[ MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping ]& mappings, double& mass_to_add) nogil except +
 
   cdef cppclass MetaboTargetedTargetDecoy_MetaboTargetDecoyMassMapping "OpenMS::MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping":
 

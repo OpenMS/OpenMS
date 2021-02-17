@@ -50,6 +50,8 @@ using namespace std;
 namespace OpenMS
 {
 
+  // get charge from adduct in standard format [M+H]+ or [M+H]1+
+  // only for singly charged species
   int MetaboTargetedAssay::getChargeFromAdduct_(const String& adduct)
   {
     int adduct_charge;
