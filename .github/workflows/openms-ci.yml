@@ -149,11 +149,3 @@ jobs:
             strip --strip-all lib/libOpenMS.so
             strip --strip-all lib/libOpenSwathAlgo.so
             strip --strip-all lib/libSuperHirn.so
-            
-# Tests the build workflows
-  test:
-    needs: [build-win, build-macos, build-lnx]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
