@@ -297,13 +297,14 @@ namespace OpenMS
   String TOPPASOutputFileListVertex::getOutputDir() const
   {
     String dir = String("TOPPAS_out") + String(QDir::separator());
-    if (output_folder_name_.isEmpty()) {
+    if (output_folder_name_.isEmpty())
+    {
       TOPPASEdge* e = *inEdgesBegin();
       if (e == nullptr)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "To open the output folder, an input edge is required to knit a folder name.");
       }
-      TOPPASVertex* tv = e->getSourceVertex();
+      const TOPPASVertex* tv = e->getSourceVertex();
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
       dir += get3CharsNumber_(topo_nr_) + "-"
              + tv->getName() + "-" 

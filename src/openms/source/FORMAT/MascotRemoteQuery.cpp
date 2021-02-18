@@ -833,7 +833,7 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
 #endif
-    int pos = path.find_last_of("/\\");
+    size_t pos = path.find_last_of("/\\");
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);
