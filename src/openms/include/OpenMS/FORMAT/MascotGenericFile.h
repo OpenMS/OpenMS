@@ -34,11 +34,12 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 #include <fstream>
