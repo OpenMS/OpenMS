@@ -61,7 +61,7 @@ namespace OpenMS
   const std::string MZTrafoModel::names_of_modeltype[] = {"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"};
 
   Math::RANSACParam* MZTrafoModel::ransac_params_ = nullptr;
-  int ransac_seed_ = time(nullptr);
+  int MZTrafoModel::ransac_seed_ = time(nullptr);
   double MZTrafoModel::limit_offset_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_scale_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_power_ = std::numeric_limits<double>::max(); // no limit by default
