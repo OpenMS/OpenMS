@@ -596,10 +596,6 @@ protected:
       int add_hit_metavalues = getIntOption_("id:add_hit_metavalues");
       int add_protein_hit_metavalues = getIntOption_("id:add_protein_hit_metavalues");
 
-      // separator etc.
-      String sep;
-      Size idx;
-
       // output file names and types
       FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
@@ -608,7 +604,8 @@ protected:
         out_type = FileHandler::getTypeByFileName(out);
       }
 
-      if (out_type == FileTypes::CSV) 
+      String sep;
+      if (out_type == FileTypes::CSV)
       {
         sep = ",";
       }
