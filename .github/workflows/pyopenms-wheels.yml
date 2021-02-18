@@ -77,6 +77,9 @@ jobs:
  
           mkdir pyopenms_whls
 
+          // store original PATH configuration
+          ORIGINAL_PATH_CONFIG=$PATH
+
           for py in $SUPPORTED_PYTHONS
           do
             conda create -n pyoms-bld-$py python=$py
@@ -99,8 +102,6 @@ jobs:
             pip install -U numpy==1.19.3
             pip install -U wheel
 
-            #conda deactivate
-
             echo $CURRENT_PYTHON_EXECUTABLE
 
             # build pyopenms distribution
@@ -115,6 +116,9 @@ jobs:
 
             # clean previous pyopenms libs
             find . -name "pyopenms*.so" -exec rm -rf {} \;
+
+            // reset path variable to original configuration
+            PATH=$ORIGINAL_PATH_CONFIG
 
           done
           
@@ -300,7 +304,7 @@ jobs:
             make -j4 OpenMS SuperHirn
 
             # compile and configure OpenMS
-            for i in 0{1..1} # 3
+            for i in 0{1..3}
             do
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
 
@@ -402,7 +406,7 @@ jobs:
     - name: Test
       shell: bash 
       run: |
-        # Search for the latest 4 main python versions in the repository pkgs/main
+        # Search for the latest 3 main python versions in the repository pkgs/main
         SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
 
         echo $SUPPORTED_PYTHONS
