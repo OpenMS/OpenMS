@@ -110,6 +110,7 @@ public:
       typename MapType::SpectrumType spectrum;
       spectrum.setMSLevel(2);
       spectrum.getPrecursors().resize(1);
+      spectrum.setType(SpectrumSettings::SpectrumType::CENTROID); // MGF is always centroided, by definition
       while (getNextSpectrum_(is, spectrum, line_number, spectrum_number))
       {
         exp.addSpectrum(spectrum);
