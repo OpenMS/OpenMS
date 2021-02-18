@@ -72,6 +72,7 @@ namespace OpenMS
     double rt_; ///< retention time associated to the model (i.e. where the calibrant data was taken from)
 
     static Math::RANSACParam* ransac_params_; ///< global pointer, init to NULL at startup; set class-global RANSAC params
+    static int ransac_seed_;
     static double limit_offset_; ///< acceptable boundary for the estimated offset; if estimated offset is larger (absolute) the model does not validate (isValidModel())
     static double limit_scale_; ///< acceptable boundary for the estimated scale; if estimated scale is larger (absolute) the model does not validate (isValidModel())
     static double limit_power_; ///< acceptable boundary for the estimated power; if estimated power is larger (absolute) the model does not validate (isValidModel())
@@ -124,6 +125,11 @@ namespace OpenMS
       @param p RANSAC params
     */
     static void setRANSACParams(const Math::RANSACParam& p);
+
+    /**
+      @brief Set RANSAC seed
+    */
+    static void setRANSACSeed(int seed);
 
     /**
       @brief Set coefficient boundaries for which the model coefficient must not exceed to be considered a valid model
