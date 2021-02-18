@@ -77,9 +77,6 @@ jobs:
  
           mkdir pyopenms_whls
 
-          // store original PATH configuration
-          ORIGINAL_PATH_CONFIG=$PATH
-
           for py in $SUPPORTED_PYTHONS
           do
             conda create -n pyoms-bld-$py python=$py
@@ -116,9 +113,6 @@ jobs:
 
             # clean previous pyopenms libs
             find . -name "pyopenms*.so" -exec rm -rf {} \;
-
-            // reset path variable to original configuration
-            PATH=$ORIGINAL_PATH_CONFIG
 
           done
           
