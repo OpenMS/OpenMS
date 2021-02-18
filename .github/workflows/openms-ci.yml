@@ -134,7 +134,8 @@ jobs:
 
     - name: Build on manylinux2014
       shell: bash
-      run:  LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+      run: |
+            LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
             mkdir openms-build
             cd openms-build
