@@ -241,6 +241,7 @@ namespace OpenMS
       identified_peptides_(std::move(other.identified_peptides_)),
       identified_compounds_(std::move(other.identified_compounds_)),
       identified_oligos_(std::move(other.identified_oligos_)),
+      adducts_(std::move(other.adducts_)),
       observation_matches_(std::move(other.observation_matches_)),
       observation_match_groups_(std::move(other.observation_match_groups_)),
       current_step_ref_(std::move(other.current_step_ref_)),

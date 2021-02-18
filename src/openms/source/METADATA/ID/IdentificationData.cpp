@@ -1107,6 +1107,7 @@ namespace OpenMS
     identified_peptides_.swap(other.identified_peptides_);
     identified_compounds_.swap(other.identified_compounds_);
     identified_oligos_.swap(other.identified_oligos_);
+    adducts_.swap(other.adducts_);
     observation_matches_.swap(other.observation_matches_);
     observation_match_groups_.swap(other.observation_match_groups_);
     std::swap(current_step_ref_, other.current_step_ref_);
