@@ -398,7 +398,7 @@ namespace OpenMS
   }
 
 
-  void FeatureMap::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  void FeatureMap::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
@@ -456,22 +456,23 @@ namespace OpenMS
   }
 
 
-  set<IdentificationDataInternal::ObservationRef> FeatureMap::getUnassignedObservations() const
+  set<IdentificationDataInternal::ObservationMatchRef> FeatureMap::getUnassignedIDMatches() const
   {
-    set<IdentificationData::ObservationRef> all_items;
-    for (auto it = id_data_.getObservations().begin();
-         it != id_data_.getObservations().end(); ++it)
+    set<IdentificationData::ObservationMatchRef> all_matches;
+    for (auto it = id_data_.getObservationMatches().begin();
+         it != id_data_.getObservationMatches().end(); ++it)
     {
-      all_items.insert(it);
+      all_matches.insert(it);
     }
-    set<IdentificationData::ObservationRef> assigned_items;
+    set<IdentificationData::ObservationMatchRef> assigned_matches;
     for (const Feature& feat : *this)
     {
-      assigned_items.insert(feat.getIDObservations().begin(), feat.getIDObservations().end());
+      assigned_matches.insert(feat.getIDMatches().begin(), feat.getIDMatches().end());
+      // @TODO: consider subordinate features? - probably not
     }
-    set<IdentificationData::ObservationRef> result;
-    set_difference(all_items.begin(), all_items.end(),
-                   assigned_items.begin(), assigned_items.end(),
+    set<IdentificationData::ObservationMatchRef> result;
+    set_difference(all_matches.begin(), all_matches.end(),
+                   assigned_matches.begin(), assigned_matches.end(),
                    inserter(result, result.end()));
     return result;
   }

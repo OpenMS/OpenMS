@@ -971,9 +971,9 @@ namespace OpenMS
     importIDs(id_data, features.getProteinIdentifications(),
               peptides);
 
-    // map converted IDs back to features using meta values assigned in "handleFeatureImport_":
-    for (ID::ObservationRef ref = id_data.getObservations().begin();
-         ref != id_data.getObservations().end(); ++ref)
+    // map converted IDs back to features using meta values assigned in "handleFeatureImport_";
+    for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
+         ref != id_data.getObservationMatches().end(); ++ref)
     {
       vector<String> meta_keys;
       ref->getKeys(meta_keys);
@@ -987,7 +987,7 @@ namespace OpenMS
           {
             feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
           }
-          feat_ptr->addIDObservation(ref);
+          feat_ptr->addIDMatch(ref);
           // @TODO: remove meta value
         }
       }
@@ -1010,7 +1010,10 @@ namespace OpenMS
       // store trace of feature indexes so we can map the converted ID back;
       // key needs to be unique in case the same ID matches multiple features:
       String key = "IDConverter_trace_" + String(id_counter);
-      peptides.back().setMetaValue(key, indexes);
+      for (PeptideHit& hit : peptides.back().getHits())
+      {
+        hit.setMetaValue(key, indexes);
+      }
       ++id_counter;
     }
     if (clear_original) feature.getPeptideIdentifications().clear();
@@ -1037,36 +1040,69 @@ namespace OpenMS
     exportIDs(features.getIdentificationData(), features.getProteinIdentifications(),
               features.getUnassignedPeptideIdentifications());
 
-    // map converted IDs back to features using meta values assigned in "handleFeatureExport_":
+    // map converted IDs back to features using meta values assigned in "handleFeatureExport_";
+    // in principle, different "observation matches" from one "observation"
+    // can map to different features, which makes things complicated when they
+    // are converted to "peptide hits"/"peptide identifications"...
+
     auto& pep_ids = features.getUnassignedPeptideIdentifications();
     for (Size i = 0; i < pep_ids.size(); )
     {
       PeptideIdentification& pep = pep_ids[i];
-      vector<String> meta_keys;
-      pep.getKeys(meta_keys);
-      bool is_assigned = false;
-      for (const String& key : meta_keys)
+      // move hits outside of peptide ID so ID can be copied without the hits:
+      vector<PeptideHit> all_hits;
+      all_hits.swap(pep.getHits());
+      vector<bool> assigned_hits(all_hits.size(), false);
+      // which hits map to which features:
+      map<Feature*, set<Size>> features_to_hits;
+      for (Size j = 0; j < all_hits.size(); ++j)
       {
-        if (key.hasPrefix("IDConverter_trace_"))
+        PeptideHit& hit = all_hits[j];
+        vector<String> meta_keys;
+        hit.getKeys(meta_keys);
+        for (const String& key : meta_keys)
         {
-          is_assigned = true;
-          IntList indexes = pep.getMetaValue(key);
-          pep.removeMetaValue(key);
-          Feature* feat_ptr = &features.at(indexes[0]);
-          for (Size i = 1; i < indexes.size(); ++i)
+          if (key.hasPrefix("IDConverter_trace_"))
           {
-            feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
+            IntList indexes = hit.getMetaValue(key);
+            hit.removeMetaValue(key);
+            Feature* feat_ptr = &features.at(indexes[0]);
+            for (Size i = 1; i < indexes.size(); ++i)
+            {
+              feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
+            }
+            features_to_hits[feat_ptr].insert(j);
+            assigned_hits[j] = true;
           }
-          feat_ptr->getPeptideIdentifications().push_back(pep);
         }
       }
-      if (is_assigned)
+      // copy peptide ID with corresponding hits to relevant features:
+      for (auto& pair : features_to_hits)
+      {
+        auto& feat_ids = pair.first->getPeptideIdentifications();
+        feat_ids.push_back(pep);
+        for (Size hit_index : pair.second)
+        {
+          feat_ids.back().getHits().push_back(all_hits[hit_index]);
+        }
+      }
+
+      bool all_assigned = all_of(assigned_hits.begin(), assigned_hits.end(),
+                                 [](bool b) { return b; });
+      if (all_assigned) // remove peptide ID from unassigned IDs
       {
         pep_ids.erase(pep_ids.begin() + i);
-        // @TODO: use "std::remove" and "resize" to make this more efficient
+        // @TODO: use "std::remove" to make this more efficient
       }
-      else
+      else // only keep hits that weren't assigned:
       {
+        for (Size j = 0; j < assigned_hits.size(); ++j)
+        {
+          if (!assigned_hits[j])
+          {
+            pep.getHits().push_back(all_hits[j]);
+          }
+        }
         ++i;
       }
     }
@@ -1077,7 +1113,7 @@ namespace OpenMS
   void IdentificationDataConverter::handleFeatureExport_(Feature& feature, IntList indexes,
                                                          IdentificationData& id_data, Size& id_counter)
   {
-    for (ID::ObservationRef ref : feature.getIDObservations())
+    for (ID::ObservationMatchRef ref : feature.getIDMatches())
     {
       // store trace of feature indexes so we can map the converted ID back;
       // key needs to be unique in case the same ID matches multiple features:

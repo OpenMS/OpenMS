@@ -50,7 +50,7 @@ namespace OpenMS
 
   BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index) :
       RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
-      peptides_(rhs.peptides_), primary_id_(rhs.primary_id_), id_observations_(rhs.id_observations_)
+      peptides_(rhs.peptides_), primary_id_(rhs.primary_id_), id_matches_(rhs.id_matches_)
   {
     for (auto& pep : this->peptides_)
     {
@@ -85,7 +85,7 @@ namespace OpenMS
            && (width_ == rhs.width_)
            && (peptides_ == rhs.peptides_)
            && (primary_id_ == rhs.primary_id_)
-           && (id_observations_ == rhs.id_observations_);
+           && (id_matches_ == rhs.id_matches_);
   }
 
   bool BaseFeature::operator!=(const BaseFeature& rhs) const
@@ -150,23 +150,38 @@ namespace OpenMS
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
   {
-    if (peptides_.empty()) return FEATURE_ID_NONE;
-    if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
-      return FEATURE_ID_SINGLE;
-    std::set<String> seqs;
-    for (Size i = 0; i < peptides_.size(); ++i)
+    if (id_matches_.empty()) // consider IDs in old format
     {
-      if (peptides_[i].getHits().size() > 0)
+      if (peptides_.empty()) return FEATURE_ID_NONE;
+      if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
+        return FEATURE_ID_SINGLE;
+      std::set<String> seqs;
+      for (Size i = 0; i < peptides_.size(); ++i)
       {
-        PeptideIdentification id_tmp = peptides_[i];
-        id_tmp.sort();  // look at best hit only - requires sorting
-        seqs.insert(id_tmp.getHits()[0].getSequence().toString());
+        if (peptides_[i].getHits().size() > 0)
+        {
+          PeptideIdentification id_tmp = peptides_[i];
+          id_tmp.sort();  // look at best hit only - requires sorting
+          seqs.insert(id_tmp.getHits()[0].getSequence().toString());
+        }
       }
+      if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      if (seqs.size() > 1)
+        return FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
+      else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
     }
-    if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
-    if (seqs.size() > 1)
-      return FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
-    else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
+    else // consider IDs in new format
+    {
+      if (id_matches_.size() == 1) return FEATURE_ID_SINGLE;
+      // if there are multiple IDs, check if all are equal (to the first):
+      auto it = id_matches_.begin();
+      IdentificationData::IdentifiedMolecule molecule = (*it)->identified_molecule_var;
+      for (++it; it != id_matches_.end(); ++it)
+      {
+        if ((*it)->identified_molecule_var != molecule) return FEATURE_ID_MULTIPLE_DIVERGENT;
+      }
+      return FEATURE_ID_MULTIPLE_SAME;
+    }
   }
 
 
@@ -200,21 +215,21 @@ namespace OpenMS
   }
 
 
-  const std::set<IdentificationData::ObservationRef>& BaseFeature::getIDObservations() const
+  const std::set<IdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches() const
   {
-    return id_observations_;
+    return id_matches_;
   }
 
 
-  std::set<IdentificationData::ObservationRef>& BaseFeature::getIDObservations()
+  std::set<IdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches()
   {
-    return id_observations_;
+    return id_matches_;
   }
 
 
-  void BaseFeature::addIDObservation(IdentificationData::ObservationRef ref)
+  void BaseFeature::addIDMatch(IdentificationData::ObservationMatchRef ref)
   {
-    id_observations_.insert(ref);
+    id_matches_.insert(ref);
   }
 
   void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
@@ -223,11 +238,11 @@ namespace OpenMS
     {
       primary_id_ = trans.translateIdentifiedMolecule(*primary_id_);
     }
-    set<IdentificationData::ObservationRef> observations;
-    observations.swap(id_observations_);
-    for (auto item : observations)
+    set<IdentificationData::ObservationMatchRef> matches;
+    matches.swap(id_matches_);
+    for (auto item : matches)
     {
-        id_observations_.insert(trans.observation_refs.at(item));
+      id_matches_.insert(trans.observation_match_refs.at(item));
     }
   }
 

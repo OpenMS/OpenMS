@@ -1169,7 +1169,7 @@ namespace OpenMS
     String table_def =
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "identified_molecule_id INTEGER NOT NULL, "                       \
-      "observation_id INTEGER NOT NULL, "                                \
+      "observation_id INTEGER NOT NULL, "                               \
       "adduct_id INTEGER, "                                             \
       "charge INTEGER, "                                                \
       "FOREIGN KEY (identified_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
@@ -1183,10 +1183,10 @@ namespace OpenMS
     createTable_("ID_ObservationMatch", table_def);
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_ObservationMatch VALUES ("  \
+    query.prepare("INSERT INTO ID_ObservationMatch VALUES ("    \
                   ":id, "                                       \
                   ":identified_molecule_id, "                   \
-                  ":observation_id, "                            \
+                  ":observation_id, "                           \
                   ":adduct_id, "                                \
                   ":charge)");
     bool any_peak_annotations = false;
@@ -1305,7 +1305,7 @@ namespace OpenMS
   void OMSFile::OMSFileStore::storeFeatureAndSubordinates_(
     const Feature& feature, int& feature_id, int parent_id,
     QSqlQuery& query_feat, QSqlQuery& query_meta, QSqlQuery& query_hull,
-    QSqlQuery& query_item)
+    QSqlQuery& query_match)
   {
     query_feat.bindValue(":id", feature_id);
     query_feat.bindValue(":rt", feature.getRT());
@@ -1363,15 +1363,15 @@ namespace OpenMS
       }
     }
     // store ID input items:
-    if (!feature.getIDObservations().empty())
+    if (!feature.getIDMatches().empty())
     {
-      query_item.bindValue(":feature_id", feature_id);
-      for (ID::ObservationRef ref : feature.getIDObservations())
+      query_match.bindValue(":feature_id", feature_id);
+      for (ID::ObservationMatchRef ref : feature.getIDMatches())
       {
-        query_item.bindValue(":observation_id", Key(&(*ref)));
-        if (!query_item.exec())
+        query_match.bindValue(":observation_match_id", Key(&(*ref)));
+        if (!query_match.exec())
         {
-          raiseDBError_(query_item.lastError(), __LINE__,
+          raiseDBError_(query_match.lastError(), __LINE__,
                         OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
       }
@@ -1382,7 +1382,7 @@ namespace OpenMS
     for (const Feature& sub : feature.getSubordinates())
     {
       storeFeatureAndSubordinates_(sub, feature_id, parent_id,
-                                   query_feat, query_meta, query_hull, query_item);
+                                   query_feat, query_meta, query_hull, query_match);
     }
   }
 
@@ -1451,20 +1451,20 @@ namespace OpenMS
                          ":point_x, "                           \
                          ":point_y)");
     }
-    QSqlQuery query_item(QSqlDatabase::database(db_name_));
+    QSqlQuery query_match(QSqlDatabase::database(db_name_));
     // any ID observations on features?
     if (anyFeaturePredicate_(features, [](const Feature& feature) {
-      return !feature.getIDObservations().empty();
+      return !feature.getIDMatches().empty();
     }))
     {
-      createTable_("FEAT_Observation",
+      createTable_("FEAT_ObservationMatch",
                    "feature_id INTEGER NOT NULL, "                      \
-                   "observation_id INTEGER NOT NULL, "                   \
+                   "observation_match_id INTEGER NOT NULL, "            \
                    "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id), " \
-                   "FOREIGN KEY (observation_id) REFERENCES ID_Observation (id)");
-      query_item.prepare("INSERT INTO FEAT_Observation VALUES (" \
-                          ":feature_id, "                       \
-                          ":observation_id)");
+                   "FOREIGN KEY (observation_match_id) REFERENCES ID_ObservationMatch (id)");
+      query_match.prepare("INSERT INTO FEAT_ObservationMatch VALUES (" \
+                          ":feature_id, "                              \
+                          ":observation_match_id)");
     }
 
     // features and their subordinates are stored in DFS-like order:
@@ -1472,7 +1472,7 @@ namespace OpenMS
     for (const Feature& feat : features)
     {
       storeFeatureAndSubordinates_(feat, feature_id, -1, query_feat,
-                                   query_meta, query_hull, query_item);
+                                   query_meta, query_hull, query_match);
       nextProgress();
     }
   }
@@ -2528,7 +2528,7 @@ namespace OpenMS
 
   Feature OMSFile::OMSFileLoad::loadFeatureAndSubordinates_(
     QSqlQuery& query_feat, boost::optional<QSqlQuery>& query_meta,
-    boost::optional<QSqlQuery>& query_hull, boost::optional<QSqlQuery>& query_obs)
+    boost::optional<QSqlQuery>& query_hull, boost::optional<QSqlQuery>& query_match)
   {
     Feature feature;
     int id = query_feat.value("id").toInt();
@@ -2574,19 +2574,19 @@ namespace OpenMS
         feature.getConvexHulls()[hull_index].addPoint(point);
       }
     }
-    // ID observations:
-    if (query_obs)
+    // ID matches:
+    if (query_match)
     {
-      query_obs->bindValue(":id", id);
-      if (!query_obs->exec())
+      query_match->bindValue(":id", id);
+      if (!query_match->exec())
       {
-        raiseDBError_(query_obs->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+        raiseDBError_(query_match->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error reading from database");
       }
-      while (query_obs->next())
+      while (query_match->next())
       {
-        Key obs_id = query_obs->value("observation_id").toLongLong();
-        feature.addIDObservation(observation_refs_[obs_id]);
+        Key match_id = query_match->value("observation_match_id").toLongLong();
+        feature.addIDMatch(observation_match_refs_[match_id]);
       }
     }
     // subordinates:
@@ -2602,7 +2602,7 @@ namespace OpenMS
     while (query_sub.next())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
-                                                query_hull, query_obs);
+                                                query_hull, query_match);
       feature.getSubordinates().push_back(sub);
     }
     return feature;
@@ -2636,17 +2636,17 @@ namespace OpenMS
       query_hull->prepare("SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
                          "ORDER BY hull_index DESC, point_index ASC");
     }
-    boost::optional<QSqlQuery> query_obs;
-    if (tableExists_(db_name_, "FEAT_Observation"))
+    boost::optional<QSqlQuery> query_match;
+    if (tableExists_(db_name_, "FEAT_ObservationMatch"))
     {
-      query_obs = QSqlQuery(db);
-      query_obs->prepare("SELECT * FROM FEAT_Observation WHERE feature_id = :id");
+      query_match = QSqlQuery(db);
+      query_match->prepare("SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
     }
 
     while (query_feat.next())
     {
       Feature feature = loadFeatureAndSubordinates_(query_feat, query_meta,
-                                                    query_hull, query_obs);
+                                                    query_hull, query_match);
       features.push_back(feature);
     }
   }

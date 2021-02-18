@@ -193,16 +193,16 @@ public:
     /// set the primary ID (peptide, RNA, compound) for this feature
     void setPrimaryID(const IdentificationData::IdentifiedMolecule& id);
 
-    /// immutable access to the set of observations (e.g. MS2 spectra) supporting IDs of this feature
-    const std::set<IdentificationData::ObservationRef>& getIDObservations() const;
+    /// immutable access to the set of matches (e.g. PSMs) with IDs for this feature
+    const std::set<IdentificationData::ObservationMatchRef>& getIDMatches() const;
 
-    /// mutable access to the set of observations (e.g. MS2 spectra) supporting IDs of this feature
-    std::set<IdentificationData::ObservationRef>& getIDObservations();
+    /// mutable access to the set of matches (e.g. PSMs) with IDs for this feature
+    std::set<IdentificationData::ObservationMatchRef>& getIDMatches();
 
-    /// add an observation (e.g. MS2 spectrum) for this feature
-    void addIDObservation(IdentificationData::ObservationRef ref);
+    /// add an ID match (e.g. PSM) for this feature
+    void addIDMatch(IdentificationData::ObservationMatchRef ref);
 
-    /// update ID referenes (primary ID, observations) for this feature
+    /// update ID referenes (primary ID, matches) for this feature
     void updateIDReferences(const IdentificationData::RefTranslator& trans);
 
 protected:
@@ -222,8 +222,8 @@ protected:
     /// primary ID (peptide, RNA, compound) assigned to this feature
     boost::optional<IdentificationData::IdentifiedMolecule> primary_id_;
 
-    /// set of observations (e.g. MS2 spectra) supporting IDs of this feature
-    std::set<IdentificationData::ObservationRef> id_observations_;
+    /// set of observation matches (e.g. PSMs) with IDs for this feature
+    std::set<IdentificationData::ObservationMatchRef> id_matches_;
   };
 
 } // namespace OpenMS
