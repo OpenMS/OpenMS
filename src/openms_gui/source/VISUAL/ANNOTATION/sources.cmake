@@ -8,6 +8,7 @@ Annotation1DItem.cpp
 Annotation1DPeakItem.cpp
 Annotation1DCaret.cpp
 Annotation1DTextItem.cpp
+Annotation1DVerticalLineItem.cpp
 Annotations1DContainer.cpp
 )
 

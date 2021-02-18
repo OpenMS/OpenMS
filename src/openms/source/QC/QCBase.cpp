@@ -88,7 +88,7 @@ namespace OpenMS
 
     for (Size i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
     {
-      if (this->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
+      if (this->requires().isSuperSetOf(QCBase::Requires(i)) && !s.isSuperSetOf(QCBase::Requires(i)) )
       {
         OPENMS_LOG_WARN << "Note: Metric '" << this->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
       }

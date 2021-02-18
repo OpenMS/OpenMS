@@ -215,7 +215,11 @@ public:
     /// Returns the OpenMS home path (environment variable overwrites the default home path)
     static String getOpenMSHomePath();
 
-    /// The current OpenMS temporary data path (for temporary files)
+    /// The current OpenMS temporary data path (for temporary files).
+    /// Looks up the following locations, taking the first one which is non-null:
+    ///   - environment variable OPENMS_TMPDIR
+    ///   - 'temp_dir' in the ~/OpenMS.ini file
+    ///   - Sytem temp directory (usually defined by environment 'TMP' or 'TEMP'
     static String getTempDirectory();
 
     /// The current OpenMS user data path (for result files)

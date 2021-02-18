@@ -34,6 +34,10 @@
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+
+#include <unordered_set>
+
 
 using namespace std;
 
@@ -98,6 +102,7 @@ namespace OpenMS
   void IDMapper::annotate(PeakMap& map, const vector<PeptideIdentification>& peptide_ids, const vector<ProteinIdentification>& protein_ids, const bool clear_ids, const bool map_ms1)
   {
     checkHits_(peptide_ids);
+    SpectrumLookup lookup;
 
     if (clear_ids)
     { // start with empty IDs
@@ -115,84 +120,106 @@ namespace OpenMS
     // append protein identifications
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
-    // store mapping of scan RT to index
-    multimap<double, Size> experiment_precursors;
-    for (Size i = 0; i < map.size(); i++)
-    {
-      experiment_precursors.insert(make_pair(map[i].getRT(), i));
-    }
+    lookup.readSpectra(map);
 
+    // remember which peptides were mapped (for stats later)
+    unordered_set<Size> peptides_mapped;
     // store mapping of identification RT to index (ignore empty hits)
     multimap<double, Size> identifications_precursors;
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       if (!peptide_ids[i].empty())
-      {
-        identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
-      }
-    }
-    // note that mappings are sorted by key via multimap (we rely on that down below)
-
-    // remember which peptides were mapped (for stats later)
-    set<Size> peptides_mapped;
-
-    // calculate the actual mapping
-    multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
-    multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
-    // to achieve O(n) complexity we now move along the spectra
-    // and for each spectrum we look at the peptide id's with the allowed RT range
-    // once we finish a spectrum, we simply move back in the peptide id window a little to get from the
-    // right end of the old interval to the left end of the new interval
-    while (experiment_iterator != experiment_precursors.end())
-    {
-      // maybe we hit end() of IDs during the last scan - go back to a real value
-      if (identifications_iterator == identifications_precursors.end())
-      {
-        --identifications_iterator; // this is valid, since we have at least one peptide ID
-      }
-
-      // go to left border of RT interval
-      while (identifications_iterator != identifications_precursors.begin() &&
-             (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_) // do NOT use fabs() here, since we want the LEFT border
-      {
-        --identifications_iterator;
-      }
-      // ... we might have stepped too far left
-      if (identifications_iterator != identifications_precursors.end() && ((experiment_iterator->first - identifications_iterator->first) > rt_tolerance_))
-      {
-        ++identifications_iterator; // get into interval again (we can potentially be at end() afterwards)
-      }
-
-      if (identifications_iterator == identifications_precursors.end())
-      { // no more ID's, so we don't have any chance of matching the next spectra
-        break; // ... do NOT put this block below, since hitting the end of ID's for one spec, still allows to match stuff in the next (when going to left border)
-      }
-
-      // run through RT interval
-      while (identifications_iterator != identifications_precursors.end() &&
-             (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definitely within left border, and wait until exceeding the right
-      {
-        bool success = map_ms1;
-        if (!success)
-        {
-          for (const auto& precursor : map[experiment_iterator->second].getPrecursors())
-          {
-            if (isMatch_(0, peptide_ids[identifications_iterator->second].getMZ(), precursor.getMZ()))
-            {
-              success = true;
-              break;
-            }
+      { // mapping is done by either native id or by comparing peptide_id RT with experiment RT
+        if (!peptide_ids[i].metaValueExists("spectrum_reference")) 
+        { // use RT for mapping 
+          identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
+        } 
+        else 
+        { // use native id for mapping
+          DataValue native_id = peptide_ids[i].getMetaValue("spectrum_reference");
+          try 
+          { // spectrum can be retrieved
+            Size spectrum_idx = lookup.findByNativeID(native_id);
+            map[spectrum_idx].getPeptideIdentifications().push_back(peptide_ids[i]);
+            peptides_mapped.insert(i);
+          } 
+          catch (const Exception::ElementNotFound& e) 
+          { // use RT for mapping
+            identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
           }
         }
-        if (success)
-        {
-          map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
-          peptides_mapped.insert(identifications_iterator->second);
-        }
-        ++identifications_iterator;
       }
-      // we are at the right border now (or likely even beyond)
-      ++experiment_iterator;
+    }
+
+    if (!identifications_precursors.empty()) 
+    {
+      // store mapping of scan RT to index
+      multimap<double, Size> experiment_precursors;
+      for (Size i = 0; i < map.size(); i++)
+      {
+        experiment_precursors.insert(make_pair(map[i].getRT(), i));
+      }
+
+      // note that mappings are sorted by key via multimap (we rely on that down below)
+
+      // calculate the actual mapping
+      multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
+      multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
+      // to achieve O(n) complexity we now move along the spectra
+      // and for each spectrum we look at the peptide id's with the allowed RT range
+      // once we finish a spectrum, we simply move back in the peptide id window a little to get from the
+      // right end of the old interval to the left end of the new interval
+      while (experiment_iterator != experiment_precursors.end())
+      {
+        // maybe we hit end() of IDs during the last scan - go back to a real value
+        if (identifications_iterator == identifications_precursors.end())
+        {
+          --identifications_iterator; // this is valid, since we have at least one peptide ID
+        }
+
+        // go to left border of RT interval
+        while (identifications_iterator != identifications_precursors.begin() &&
+              (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_) // do NOT use fabs() here, since we want the LEFT border
+        {
+          --identifications_iterator;
+        }
+        // ... we might have stepped too far left
+        if (identifications_iterator != identifications_precursors.end() && ((experiment_iterator->first - identifications_iterator->first) > rt_tolerance_))
+        {
+          ++identifications_iterator; // get into interval again (we can potentially be at end() afterwards)
+        }
+
+        if (identifications_iterator == identifications_precursors.end())
+        { // no more ID's, so we don't have any chance of matching the next spectra
+          break; // ... do NOT put this block below, since hitting the end of ID's for one spec, still allows to match stuff in the next (when going to left border)
+        }
+
+        // run through RT interval
+        while (identifications_iterator != identifications_precursors.end() &&
+              (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definitely within left border, and wait until exceeding the right
+        {
+          bool success = map_ms1;
+          if (!success)
+          {
+            for (const auto& precursor : map[experiment_iterator->second].getPrecursors())
+            {
+              if (isMatch_(0, peptide_ids[identifications_iterator->second].getMZ(), precursor.getMZ()))
+              {
+                success = true;
+                break;
+              }
+            }
+          }
+          if (success)
+          {
+            map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
+            peptides_mapped.insert(identifications_iterator->second);
+          }
+          ++identifications_iterator;
+        }
+        // we are at the right border now (or likely even beyond)
+        ++experiment_iterator;
+      }
     }
 
     // some statistics output

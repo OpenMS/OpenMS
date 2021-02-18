@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<bioml title="peptide residue molecular mass values for an all 15N organism">
+<aa type="A" mass="72.0341485" />
+<aa type="B" mass="116.036998" />
+<aa type="C" mass="104.0062203" />
+<aa type="D" mass="116.0239777" />
+<aa type="E" mass="130.0396277" />
+<aa type="F" mass="148.0654485" />
+<aa type="G" mass="58.0184985" />
+<aa type="H" mass="140.0500163" />
+<aa type="I" mass="114.0810985" />
+<aa type="J" mass="0.0" />
+<aa type="K" mass="130.0890324" />
+<aa type="L" mass="114.0810985" />
+<aa type="M" mass="132.0375203" />
+<aa type="N" mass="116.0369970" />
+<aa type="O" mass="0.0" />
+<aa type="P" mass="98.0497985" />
+<aa type="Q" mass="130.0526470" />
+<aa type="R" mass="160.0892502" />
+<aa type="S" mass="88.0290631" />
+<aa type="T" mass="102.0447131" />
+<aa type="U" mass="151.9506693" />
+<aa type="V" mass="100.0654485" />
+<aa type="W" mass="188.0733824" />
+<aa type="X" mass="112.057034" />
+<aa type="Y" mass="164.0603631" />
+<aa type="Z" mass="130.052648" />
+<molecule type="NH3" mass="18.02358311" />
+<molecule type="H2O" mass="18.01056470" />
+</bioml>

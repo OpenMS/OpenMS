@@ -536,7 +536,7 @@ namespace OpenMS
 
       if (experiment.size() < fs_i->second.back().second)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enought scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
       }
 
       for (vector<pair<Size, Size> >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i)

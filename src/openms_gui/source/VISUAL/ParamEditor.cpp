@@ -39,6 +39,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/VISUAL/ListEditor.h>
+#include <OpenMS/VISUAL/DIALOGS/ListFilterDialog.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtWidgets/QMessageBox>
@@ -90,71 +92,78 @@ namespace OpenMS
     {
     }
 
-    QWidget * ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
+    QWidget* ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
     {
       Int type = index.sibling(index.row(), 0).data(Qt::UserRole).toInt();
 
       // only create editor for first column (value column)
-      if (index.column() == 1 && type != ParamEditor::NODE)
+      if (index.column() != 1 || type == ParamEditor::NODE)
       {
-        has_uncommited_data_ = false; // by default all data is committed
-
-        QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-        QString restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
-        QString value = index.sibling(index.row(), 1).data(Qt::DisplayRole).toString();
-        if (dtype == "string" && restrictions != "")     //Drop-down list for enums
-        {
-          QComboBox * editor = new QComboBox(parent);
-          QStringList list;
-          list.append("");
-          list += restrictions.split(",");
-          editor->addItems(list);
-          connect(editor, SIGNAL(activated(int)), this, SLOT(commitAndCloseComboBox_()));
-          return editor;
-        }
-        else if (dtype == "output file")
-        {
-          QLineEdit * editor = new QLineEdit(parent);
-          QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
-          if (File::isDirectory(value) || File::writable(value))
-          {
-            dir = File::absolutePath(value).toQString();
-          }
-          fileName_ = QFileDialog::getSaveFileName(editor, tr("Output File"), dir);
-          return editor;
-        }
-        else if (dtype == "input file")
-        {
-          QLineEdit * editor = new QLineEdit(parent);
-          QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
-          if (File::isDirectory(value) || File::exists(value))
-          {
-            dir = File::absolutePath(value).toQString();
-          }
-          fileName_ = QFileDialog::getOpenFileName(editor, tr("Input File"), dir);
-          return editor;
-        }
-        else if (dtype == "string list" || dtype == "int list" || dtype == "double list" || dtype == "input file list" || dtype == "output file list")   // for lists
-        {
-          QString str = "<" + index.sibling(index.row(), 0).data(Qt::DisplayRole).toString() + "> " + "(<" + dtype + ">)";
-          ListEditor * editor = new ListEditor(nullptr, str);
-          editor->setTypeName(index.sibling(index.row(), 0).data(Qt::DisplayRole).toString());
-          editor->setModal(true);
-          connect(editor, SIGNAL(accepted()), this, SLOT(commitAndCloseListEditor_()));
-          connect(editor, SIGNAL(rejected()), this, SLOT(closeListEditor_()));
-          return editor;
-        }
-        else         //LineEditor for rest
-        {
-          OpenMSLineEdit * editor = new OpenMSLineEdit(parent);
-          editor->setFocusPolicy(Qt::StrongFocus);
-          connect(editor, SIGNAL(lostFocus()), this, SLOT(commitAndCloseLineEdit_()));
-          //std::cerr << "created ... \n";
-          has_uncommited_data_ = true;
-          return editor;
-        }
+        return nullptr;
       }
-      return nullptr;
+
+      has_uncommited_data_ = false; // by default all data is committed
+
+      QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
+      QString restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
+      QString value = index.sibling(index.row(), 1).data(Qt::DisplayRole).toString();
+      if (dtype == "string" && restrictions != "")     //Drop-down list for enums
+      {
+        QComboBox* editor = new QComboBox(parent);
+        QStringList list;
+        list.append("");
+        list += restrictions.split(",");
+        editor->addItems(list);
+        connect(editor, SIGNAL(activated(int)), this, SLOT(commitAndCloseEditor_()));
+        return editor;
+      }
+      else if (dtype == "output file")
+      {
+        QLineEdit* editor = new QLineEdit(parent);
+        QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+        if (File::isDirectory(value) || File::writable(value))
+        {
+          dir = File::absolutePath(value).toQString();
+        }
+        fileName_ = QFileDialog::getSaveFileName(editor, tr("Output File"), dir);
+        return editor;
+      }
+      else if (dtype == "input file")
+      {
+        QLineEdit* editor = new QLineEdit(parent);
+        QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+        if (File::isDirectory(value) || File::exists(value))
+        {
+          dir = File::absolutePath(value).toQString();
+        }
+        fileName_ = QFileDialog::getOpenFileName(editor, tr("Input File"), dir);
+        return editor;
+      }
+      else if (dtype == "string list" && !restrictions.isEmpty())
+      {
+        ListFilterDialog* editor = new ListFilterDialog(nullptr);
+        connect(editor, SIGNAL(accepted()), this, SLOT(commitAndCloseEditor_()));
+        connect(editor, SIGNAL(rejected()), this, SLOT(closeEditor_()));
+        return editor;
+      }
+      else if (dtype == "string list" || dtype == "int list" || dtype == "double list" || dtype == "input file list" || dtype == "output file list")   // for lists
+      {
+        QString title = "<" + index.sibling(index.row(), 0).data(Qt::DisplayRole).toString() + "> " + "(<" + dtype + ">)";
+        ListEditor* editor = new ListEditor(nullptr, title);
+        editor->setTypeName(index.sibling(index.row(), 0).data(Qt::DisplayRole).toString());
+        editor->setModal(true);
+        connect(editor, SIGNAL(accepted()), this, SLOT(commitAndCloseEditor_()));
+        connect(editor, SIGNAL(rejected()), this, SLOT(closeEditor_()));
+        return editor;
+      }
+      else 
+      { // LineEditor for rest
+        OpenMSLineEdit* editor = new OpenMSLineEdit(parent);
+        editor->setFocusPolicy(Qt::StrongFocus);
+        connect(editor, &Internal::OpenMSLineEdit::lostFocus, this, &Internal::ParamEditorDelegate::commitAndCloseLineEdit_);
+        has_uncommited_data_ = true;
+        return editor;
+      }
     }
 
     void ParamEditorDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
@@ -162,52 +171,52 @@ namespace OpenMS
       QString str = index.data(Qt::DisplayRole).toString();
 
       // only set editor data for first column (value column)
-      if (index.column() == 1)
+      if (index.column() != 1) return;
+
+
+      if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
       {
-        if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
+        int index = static_cast<QComboBox *>(editor)->findText(str);
+        if (index == -1)
         {
-          int index = static_cast<QComboBox *>(editor)->findText(str);
-          if (index == -1)
-          {
-            index = 0;
-          }
-          static_cast<QComboBox *>(editor)->setCurrentIndex(index);
+          index = 0;
         }
-        else if (qobject_cast<QLineEdit *>(editor))      // LineEdit for other values
+        static_cast<QComboBox *>(editor)->setCurrentIndex(index);
+      }
+      else if (qobject_cast<QLineEdit *>(editor))      // LineEdit for other values
+      {
+        QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
+        if (dtype == "output file" || dtype == "input file")          /// for output/input file
         {
-          QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-          if (dtype == "output file" || dtype == "input file")          /// for output/input file
+          if (!fileName_.isNull())
           {
-            if (!fileName_.isNull())
-            {
-              static_cast<QLineEdit *>(editor)->setText(fileName_);
-            }
+            static_cast<QLineEdit *>(editor)->setText(fileName_);
+          }
+        }
+        else
+        {
+          if (str == "" && (dtype == "int" || dtype == "float"))
+          {
+            if (dtype == "int")
+              static_cast<QLineEdit *>(editor)->setText("0");
+            else if (dtype == "float")
+              static_cast<QLineEdit *>(editor)->setText("nan");
           }
           else
           {
-            if (str == "" && (dtype == "int" || dtype == "float"))
-            {
-              if (dtype == "int")
-                static_cast<QLineEdit *>(editor)->setText("0");
-              else if (dtype == "float")
-                static_cast<QLineEdit *>(editor)->setText("nan");
-            }
-            else
-            {
-              static_cast<QLineEdit *>(editor)->setText(str);
-            }
+            static_cast<QLineEdit *>(editor)->setText(str);
           }
         }
-        else                // ListEditor for lists
+      }
+      else  //  for lists
+      {
+        String list = str.mid(1, str.length() - 2);
+        StringList rlist = ListUtils::create<String>(list);
+        for (auto& item : rlist) item.trim(); // remove '\n'
+        String restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
+        if (qobject_cast<ListEditor*>(editor))
         {
-          String list;
-          list = str.mid(1, str.length() - 2);
           QString type = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-          StringList rlist = ListUtils::create<String>(list);
-          for (UInt i = 0; i < rlist.size(); ++i)
-          {
-            rlist[i]  = rlist[i].trim();
-          }
           if (type == "int list")
           {
             static_cast<ListEditor *>(editor)->setList(rlist, ListEditor::INT);
@@ -228,139 +237,142 @@ namespace OpenMS
           {
             static_cast<ListEditor *>(editor)->setList(rlist, ListEditor::OUTPUT_FILE);
           }
-          static_cast<ListEditor *>(editor)->setListRestrictions(index.sibling(index.row(), 2).data(Qt::UserRole).toString());
+          static_cast<ListEditor *>(editor)->setListRestrictions(restrictions);
+        }
+        else if (qobject_cast<ListFilterDialog*>(editor))  // for StringLists with restrictions
+        {
+          static_cast<ListFilterDialog*>(editor)->setItems(restrictions.toQString().split(','));
+          static_cast<ListFilterDialog*>(editor)->setPrechosenItems(GUIHelpers::convert(rlist));
         }
       }
     }
 
-    void ParamEditorDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const
+    void ParamEditorDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
     {
+      // only set model data for first column (value column)
+      if (index.column() != 1) return;
+
       QVariant present_value = index.data(Qt::DisplayRole);
       QVariant new_value;
-      StringList list;
-      bool new_list = false;
-      // only set model data for first column (value column)
-      if (index.column() == 1)
+      //extract new value
+      if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
       {
-        //extract new value
-        if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
+        new_value = QVariant(static_cast<QComboBox *>(editor)->currentText());
+      }
+      else if (qobject_cast<QLineEdit *>(editor))
+      {
+        QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
+        if (dtype == "output file" || dtype == "input file")        // input/outut file
         {
-          new_value = QVariant(static_cast<QComboBox *>(editor)->currentText());
-        }
-        else if (qobject_cast<QLineEdit *>(editor))
-        {
-          QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-          if (dtype == "output file" || dtype == "input file")        // input/outut file
-          {
 
-            new_value = QVariant(static_cast<QLineEdit *>(editor)->text());
-            fileName_ = "\0";
-          }
-          else if (static_cast<QLineEdit *>(editor)->text() == "" && ((dtype == "int") || (dtype == "float")))         //numeric
-          {
-            if (dtype == "int")
-              new_value = QVariant("0");
-            else if (dtype == "float")
-              new_value = QVariant("nan");
-          }
-          else
-          {
-            new_value = QVariant(static_cast<QLineEdit *>(editor)->text());
-          }
+          new_value = QVariant(static_cast<QLineEdit *>(editor)->text());
+          fileName_ = "\0";
+        }
+        else if (static_cast<QLineEdit *>(editor)->text() == "" && ((dtype == "int") || (dtype == "float")))         //numeric
+        {
+          if (dtype == "int")
+            new_value = QVariant("0");
+          else if (dtype == "float")
+            new_value = QVariant("nan");
         }
         else
         {
-          list = static_cast<ListEditor *>(editor)->getList();
-          for (UInt i = 1; i < list.size(); ++i)
-          {
-            list[i] = "\n" + list[i];
-          }
-          new_list = true;
-        }
-        //check if it matches the restrictions or is empty
-        if (new_value.toString() != "")
-        {
-          QString type = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-          bool restrictions_met = true;
-          String restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
-          if (type == "int")         //check if valid integer
-          {
-            bool ok(true);
-            new_value.toString().toLong(&ok);
-            if (!ok)
-            {
-              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
-              new_value = present_value;
-            }
-            //restrictions
-            vector<String> parts;
-            if (restrictions.split(' ', parts))
-            {
-              if (parts[0] != "" && new_value.toInt() < parts[0].toInt())
-              {
-                restrictions_met = false;
-              }
-              if (parts[1] != "" && new_value.toInt() > parts[1].toInt())
-              {
-                restrictions_met = false;
-              }
-            }
-          }
-          else if (type == "float")         //check if valid float
-          {
-            bool ok(true);
-            new_value.toString().toDouble(&ok);
-            if (!ok)
-            {
-              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
-              new_value = present_value;
-            }
-            //restrictions
-            vector<String> parts;
-            if (restrictions.split(' ', parts))
-            {
-              if (parts[0] != "" && new_value.toDouble() < parts[0].toDouble())
-              {
-                restrictions_met = false;
-              }
-              if (parts[1] != "" && new_value.toDouble() > parts[1].toDouble())
-              {
-                restrictions_met = false;
-              }
-            }
-          }
-          if (!restrictions_met)
-          {
-            QMessageBox::warning(nullptr, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
-            new_value = present_value;
-          }
+          new_value = QVariant(static_cast<QLineEdit *>(editor)->text());
         }
       }
-      if (new_list)
+      else if (qobject_cast<ListEditor*>(editor))
       {
-        stringstream ss;
-        ss << list;
-        QVariant new_value;
-        new_value = QVariant(QString::fromStdString(ss.str()));
-        model->setData(index, new_value);
-        model->setData(index, QBrush(Qt::yellow), Qt::BackgroundRole);
-        emit modified(true);
+        new_value = QString("[%1]").arg(ListUtils::concatenate(static_cast<ListEditor *>(editor)->getList(), ",\n").toQString());
+      }
+      else if (qobject_cast<ListFilterDialog*>(editor))
+      {
+        new_value = QString("[%1]").arg(static_cast<ListFilterDialog*>(editor)->getChosenItems().join(",\n"));
       }
       else
       {
-        //check if modified
-        if (new_value != present_value)
+        // some new editor ...
+      }
+
+      // check if it matches the restrictions or is empty
+      if (new_value.toString() != "")
+      {
+        QString type = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
+        bool restrictions_met = true;
+        String restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
+        if (type == "int")         //check if valid integer
         {
-          model->setData(index, new_value);
-          model->setData(index, QBrush(Qt::yellow), Qt::BackgroundRole);
-          emit modified(true);
+          bool ok(true);
+          new_value.toString().toLong(&ok);
+          if (!ok)
+          {
+            QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
+            return;
+          }
+          //restrictions
+          vector<String> parts;
+          if (restrictions.split(' ', parts))
+          {
+            if (parts[0] != "" && new_value.toInt() < parts[0].toInt())
+            {
+              restrictions_met = false;
+            }
+            if (parts[1] != "" && new_value.toInt() > parts[1].toInt())
+            {
+              restrictions_met = false;
+            }
+          }
         }
+        else if (type == "float")         //check if valid float
+        {
+          bool ok(true);
+          new_value.toString().toDouble(&ok);
+          if (!ok)
+          {
+            QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
+            return;
+          }
+          //restrictions
+          vector<String> parts;
+          if (restrictions.split(' ', parts))
+          {
+            if (parts[0] != "" && new_value.toDouble() < parts[0].toDouble())
+            {
+              restrictions_met = false;
+            }
+            if (parts[1] != "" && new_value.toDouble() > parts[1].toDouble())
+            {
+              restrictions_met = false;
+            }
+          }
+        }
+        if (!restrictions_met)
+        {
+          QMessageBox::warning(nullptr, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
+          return;
+        }
+      }
+
+      // check if modified
+      if (new_value != present_value)
+      {
+        model->setData(index, new_value);
+        model->setData(index, QBrush(Qt::yellow), Qt::BackgroundRole);
+        emit modified(true);  // let parent know that we changed something
       }
     }
 
     void ParamEditorDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex &) const
     {
       editor->setGeometry(option.rect);
+    }
+
+    bool ParamEditorDelegate::eventFilter(QObject* editor, QEvent* event)
+    {
+      // NEVER EVER commit data (which calls setModelData()), without explicit calls to commit() for non-embedded Dialogs ;
+      if (qobject_cast<ListEditor*>(editor) || qobject_cast<ListFilterDialog*>(editor)) return false;
+
+      // default: will call commit(), if the event was handled (e.g. a press of 'Enter')
+      return QItemDelegate::eventFilter(editor, event);
     }
 
     bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
@@ -387,12 +399,19 @@ namespace OpenMS
       return false;
     }
 
-    void ParamEditorDelegate::commitAndCloseListEditor_()
+    void ParamEditorDelegate::commitAndCloseEditor_()
     {
-      ListEditor * editor = qobject_cast<ListEditor *>(sender());
-      emit commitData(editor);
+      QWidget* editor = qobject_cast<QWidget*>(sender());
+      emit commitData(editor); // calls .setModelData(...)
       emit closeEditor(editor);
     }
+
+    void ParamEditorDelegate::closeEditor_()
+    {
+      QWidget* editor = qobject_cast<QWidget*>(sender());
+      emit closeEditor(editor);
+    }
+
     void ParamEditorDelegate::commitAndCloseLineEdit_()
     {
       has_uncommited_data_ = false;
@@ -401,18 +420,6 @@ namespace OpenMS
       emit closeEditor(editor);
     }
 
-    void ParamEditorDelegate::commitAndCloseComboBox_()
-    {
-      QComboBox * editor = qobject_cast<QComboBox *>(sender());
-      emit commitData(editor);
-      emit closeEditor(editor);
-    }
-
-    void ParamEditorDelegate::closeListEditor_()
-    {
-      ListEditor * editor = qobject_cast<ListEditor *>(sender());
-      emit closeEditor(editor);
-    }
 
     bool ParamEditorDelegate::hasUncommittedData() const
     {
@@ -543,51 +550,36 @@ namespace OpenMS
         item->setTextColor(3, Qt::darkGray);
       }
 
+      // advanced parameter
       if (it->tags.count("advanced"))
       {
         item->setData(0, Qt::UserRole, ADVANCED_ITEM);
         has_advanced_item = true;
       }
-      else       //advanced parameter
+      else      
       {
         item->setData(0, Qt::UserRole, NORMAL_ITEM);
       }
-      //name
+      // name
       item->setText(0, it->name.toQString());
-      //value
+      // value
       if (it->value.valueType() == DataValue::STRING_LIST)
       {
-        StringList string_list = it->value;
-        String list_string = String("[") + ListUtils::concatenate(string_list, ",\n") + "]";
-        item->setText(1, list_string.toQString());
+        item->setText(1, QString("[%1]").arg(GUIHelpers::convert(it->value.toStringList()).join(",\n")));
       }
       else if (it->value.valueType() == DataValue::INT_LIST)
       {
-        IntList list = it->value;
-        StringList string_list;
-        for (Size i = 0; i < list.size(); ++i)
-        {
-          string_list.push_back(list[i]);
-        }
-        String list_string = String("[") + ListUtils::concatenate(string_list, ",\n") + "]";
-        item->setText(1, list_string.toQString());
+        item->setText(1, QString("[%1]").arg(GUIHelpers::convert(ListUtils::toStringList(it->value.toIntList())).join(",\n")));
       }
       else if (it->value.valueType() == DataValue::DOUBLE_LIST)
       {
-        DoubleList list = it->value;
-        StringList string_list;
-        for (Size i = 0; i < list.size(); ++i)
-        {
-          string_list.push_back(list[i]);
-        }
-        String list_string = String("[") + ListUtils::concatenate(string_list, ",\n") + "]";
-        item->setText(1, list_string.toQString());
+        item->setText(1, QString("[%1]").arg(GUIHelpers::convert(ListUtils::toStringList(it->value.toDoubleList())).join(",\n")));
       }
       else
       {
         item->setText(1, String(it->value).toQString());
       }
-      //type
+      // type
       switch (it->value.valueType())
       {
       case DataValue::INT_VALUE:
@@ -699,12 +691,8 @@ namespace OpenMS
       case DataValue::STRING_VALUE:
       case DataValue::STRING_LIST:
       {
-        String irest = "";
-        if (it->valid_strings.size() != 0)
-        {
-          irest.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
-        }
-        if (irest != "")
+        String irest = ListUtils::concatenate(it->valid_strings, ",");
+        if (!irest.empty())
         {
           String r_text = irest;
           if (r_text.size() > 255) // truncate restriction text, as some QT versions (4.6 & 4.7) will crash if text is too long
@@ -721,9 +709,9 @@ namespace OpenMS
         break;
       }
 
-      //description
+      // description
       item->setData(1, Qt::UserRole, it->description.toQString());
-      //flags
+      // flags
       if (param_ != nullptr)
       {
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);

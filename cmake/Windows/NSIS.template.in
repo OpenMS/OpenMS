@@ -54,6 +54,7 @@ SetCompressor /SOLID lzma
   !insertmacro ${_action} ".mzData" "TOPPView"
   !insertmacro ${_action} ".mzXML" "TOPPView"
   !insertmacro ${_action} ".mzML" "TOPPView"
+  !insertmacro ${_action} ".sqMass" "TOPPView"
   !insertmacro ${_action} ".dta" "TOPPView"
   !insertmacro ${_action} ".dta2D" "TOPPView"
   !insertmacro ${_action} ".cdf" "TOPPView"
@@ -417,12 +418,13 @@ Function CreateShortcuts
     
 		## warning: create shortcuts only AFTER installing files, OR renew SetOutPath
 		## otherwise all files will be installed to the default install directory
-    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\doc\html\index.html
-    !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP and TOPPView tutorial (pdf)" $INSTDIR\doc\TOPP_tutorial.pdf
-    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Tutorial (pdf)" $INSTDIR\doc\OpenMS_tutorial.pdf
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\share\doc\html\index.html
+    !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP and TOPPView tutorial (pdf)" $INSTDIR\share\doc\TOPP_tutorial.pdf
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Tutorial (pdf)" $INSTDIR\share\doc\OpenMS_tutorial.pdf
 
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPView $INSTDIR\bin\TOPPView.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPAS $INSTDIR\bin\TOPPAS.exe
+    !insertmacro CREATE_SMGROUP_SHORTCUT SwathWizard $INSTDIR\bin\SwathWizard.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\bin\INIFileEditor.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" http://www.OpenMS.de/
     !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\bin\command.bat"

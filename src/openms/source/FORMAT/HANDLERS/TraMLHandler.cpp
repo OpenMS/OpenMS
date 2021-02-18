@@ -302,8 +302,7 @@ namespace OpenMS
     {
       if (open_tags_.back() == "Sequence")
       {
-        String protein_sequence = sm_.convert(chars);
-        actual_protein_.sequence = protein_sequence;
+        actual_protein_.sequence = sm_.convert(chars);
         return;
       }
       return;

@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <boost/math/special_functions/gamma.hpp>
 #include <cmath>
@@ -322,6 +323,26 @@ namespace OpenMS
     inline double factLn(UInt x)
     {
       return lgamma(double(x+1));
+    }
+
+    /**
+       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @x
+    */
+    template <typename T1> typename T1::value_type quantile(const T1 &x, double q)
+    {
+      if (x.empty()) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                       "Quantile requested from empty container.");
+      if (q < 0.0) q = 0.;
+      if (q > 1.0) q = 1.;
+
+      const auto n  = x.size();
+      const auto id = std::max(0., n * q - 1); // -1 for c++ index starting at 0
+      const auto lo = floor(id);
+      const auto hi = ceil(id);
+      const auto qs = x[lo];
+      const auto h  = (id - lo);
+
+      return (1.0 - h) * qs + h * x[hi];
     }
 
   } // namespace Math

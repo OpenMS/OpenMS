@@ -52,6 +52,7 @@ set(datastructures_executables_list
   DefaultParamHandler_test
   DistanceMatrix_test
   FASTAContainer_test
+  FlagSet_test
   GridBasedCluster_test
   GridBasedClustering_test
   GridFeature_test
@@ -226,6 +227,7 @@ set(format_executables_list
   TraMLValidator_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
+  OSWFile_test
   PTMXMLFile_test
   ParamXMLFile_test
   PeakFileOptions_test
@@ -486,6 +488,7 @@ set(analysis_executables_list
   IDRipper_test
   IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
+  IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
   InclusionExclusionList_test
   IsobaricChannelExtractor_test

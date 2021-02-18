@@ -585,6 +585,20 @@ public:
     };
 
     /**
+      @brief SqlOperation failed exception.
+
+      E.g. when retrieving data from a table using the wrong column name or index.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI SqlOperationFailed :
+      public BaseException
+    {
+public:
+      SqlOperationFailed(const char* file, int line, const char* function, const std::string& description)  noexcept;
+    };
+
+    /**
       @brief File is empty.
 
       A given file is empty.

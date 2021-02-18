@@ -97,7 +97,7 @@ namespace OpenMS
     defaults_.setValue("algorithm:averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
     defaults_.setMinFloat("algorithm:averagine_similarity", -1.0);
     defaults_.setMaxFloat("algorithm:averagine_similarity", 1.0);
-    defaults_.setValue("algorithm:averagine_similarity_scaling", 0.95, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("algorithm:averagine_similarity_scaling", 0.95, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simultaneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("algorithm:averagine_similarity_scaling", 0.0);
     defaults_.setMaxFloat("algorithm:averagine_similarity_scaling", 1.0);
     defaults_.setValue("algorithm:missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
@@ -117,7 +117,7 @@ namespace OpenMS
     defaults_.setSectionDescription("labels", "mass shifts for all possible labels");
     
     MultiplexDeltaMassesGenerator generator;
-    Param p = generator.getParameters();
+    const Param& p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
       String label_name = "labels:";
@@ -939,7 +939,9 @@ namespace OpenMS
     {
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
     }
-    
+
+    //TODO allow skipping?
+
     // update m/z and RT ranges
     exp.updateRanges();
     
@@ -947,10 +949,12 @@ namespace OpenMS
     exp.sortSpectra();
     
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType(true);
+    SpectrumSettings::SpectrumType spectrum_type;
 
     if (param_.getValue("algorithm:spectrum_type") == "automatic")
     {
+      spectrum_type = exp[0].getType(true);
+      // The following means that UNKNOWN will be handled as profile.
       centroided_ = (spectrum_type == SpectrumSettings::CENTROID);
     }
     else if (param_.getValue("algorithm:spectrum_type") == "centroid")
@@ -962,7 +966,7 @@ namespace OpenMS
       centroided_ = false;
     }
     
-    // store experiment in member varaibles
+    // store experiment in member variables
     if (centroided_)
     {
       exp.swap(exp_centroid_);
@@ -1038,7 +1042,7 @@ namespace OpenMS
       /**
        * cluster filter results
        */
-      MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
+      MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"));
       clustering.setLogType(getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
@@ -1063,7 +1067,7 @@ namespace OpenMS
       /**
        * cluster filter results
        */
-      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
+      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"));
       clustering.setLogType(getLogType());
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
       
@@ -1077,6 +1081,7 @@ namespace OpenMS
 
     // finalize consensus map
 
+    //TODO only if sample labels are not empty
     consensus_map_.setExperimentType("labeled_MS1");
     consensus_map_.sortByPosition();
     consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -1105,7 +1110,7 @@ namespace OpenMS
         if (temp_samples[i]=="no_label")
         {
           vector<String> temp_labels;
-          temp_labels.push_back("no_label");
+          temp_labels.emplace_back("no_label");
           samples_labels.push_back(temp_labels);
         }
         else
@@ -1120,7 +1125,7 @@ namespace OpenMS
     if (samples_labels.empty())
     {
       vector<String> temp_labels;
-      temp_labels.push_back("no_label");
+      temp_labels.emplace_back("no_label");
       samples_labels.push_back(temp_labels);
     }
     

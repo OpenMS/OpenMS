@@ -38,12 +38,6 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # returns the name of the residue
         String getName() nogil except +
 
-        # sets the short name of the residue, this name is used in the PeptideSequence for output
-        void setShortName(String short_name) nogil except +
-
-        # returns the short name of the residue
-        String getShortName() nogil except +
-
         # sets the synonyms
         void setSynonyms(libcpp_set[String] synonyms) nogil except +
 

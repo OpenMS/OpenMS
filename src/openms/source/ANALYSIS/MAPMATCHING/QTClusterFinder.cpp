@@ -36,8 +36,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
-// #define DEBUG_QTCLUSTERFINDER
+//#define DEBUG_QTCLUSTERFINDER_IDS
 
 using std::list;
 using std::vector;
@@ -55,9 +56,14 @@ namespace OpenMS
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
-    defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
+    defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution).");
     defaults_.setMinInt("nr_partitions", 1);
-
+    defaults_.setValue("min_nr_diffs_per_bin", 50, "If IDs are used: How many differences from matching IDs should be used to calculate a linking tolerance for unIDed features in an RT region. RT regions will be extended until that number is reached.");
+    defaults_.setMinInt("min_nr_diffs_per_bin", 5);
+    defaults_.setValue("min_IDscore_forTolCalc", 1., "If IDs are used: What is the minimum score of an ID to assume a reliable match for tolerance calculation. Check your current score type!");
+    defaults_.setValue("noID_penalty", 0.0, "If IDs are used: For the normalized distances, how high should the penalty for missing IDs be? 0 = no bias, 1 = IDs inside the max tolerances always preferred (even if much further away).");
+    defaults_.setMinFloat("noID_penalty", 0.0);
+    defaults_.setMaxFloat("noID_penalty", 1.0);
 
     defaults_.insert("", feature_distance_.getDefaults());
 
@@ -78,6 +84,9 @@ namespace OpenMS
     }
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
     nr_partitions_ = param_.getValue("nr_partitions");
+    min_nr_diffs_per_bin_ = param_.getValue("min_nr_diffs_per_bin");
+    min_score_ = param_.getValue("min_IDscore_forTolCalc");
+    noID_penalty_ = param_.getValue("noID_penalty");
     max_diff_rt_ = param_.getValue("distance_RT:max_difference");
     max_diff_mz_ = param_.getValue("distance_MZ:max_difference");
     // compute m/z tolerance in Da (if given in ppm; for the hash grid):
@@ -88,6 +97,9 @@ namespace OpenMS
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("nr_partitions");
+    distance_params.remove("min_nr_diffs_per_bin");
+    distance_params.remove("min_IDscore_forTolCalc");
+    distance_params.remove("noID_penalty");
     feature_distance_ = FeatureDistance(max_intensity, true);
     feature_distance_.setParameters(distance_params);
   }
@@ -99,10 +111,172 @@ namespace OpenMS
     // update parameters (dummy)
     setParameters_(1, 1);
 
+    if (use_IDs_)
+    {
+      // map string "modified sequence/charge" to all RTs the feature has been observed in the different maps
+      std::unordered_map<String, std::vector<double>> ided_feat_rts;
+      //std::unordered_map<String, std::vector<const typename MapType::FeatureType*>> ided_feats;
+      double minRT = std::numeric_limits<double>::max();
+      for (auto& map : input_maps)
+      {
+        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE
+        {
+          if (feat.getRT() < minRT) minRT = feat.getRT();
+          auto& pepIDs = feat.getPeptideIdentifications();
+          if (!pepIDs.empty())
+          {
+            //TODO I think we sort in run_internal again. Could be avoided.
+            feat.sortPeptideIdentifications();
+            auto& hits = pepIDs[0].getHits();
+            if (!hits.empty())
+            {
+              if ((hits[0].getScore() > min_score_ && pepIDs[0].isHigherScoreBetter()) ||
+                  (hits[0].getScore() < min_score_ && !pepIDs[0].isHigherScoreBetter()))
+              {
+                //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
+                // Would require a second pass though
+                const String key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
+                const auto it_inserted = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
+                if (!it_inserted.second) // already present
+                {
+                  it_inserted.first->second.push_back(feat.getRT());
+                }
+                //TODO we could score the whole feature instead of just the RT to calculate tolerances based on
+                // a combined score (RT/mz; using the scoring function of this class) instead of just RT
+                /*const auto it_inserted_feat = ided_feats.emplace(key, std::vector<const typename MapType::FeatureType*>{&feat});
+                if (!it_inserted_feat.second)
+                {
+                  it_inserted_feat.first->second.push_back(&feat);
+                }*/
+              }
+            }
+          }
+        }
+      }
+
+      //Note: this does not differentiate between the variety of differences between distinct map pairs. E.g.
+      // differences between map 1 and map 2 might be usually very small (e.g. they are replicates), while
+      // differences between map 1 and map 3 are large, since they are different conditions. But we might lose
+      // robust estimates and use more memory if we split them.
+      std::vector<std::pair<double,std::vector<double>>> medians_diffs;
+      medians_diffs.resize(ided_feat_rts.size());
+      Size c = 0;
+      // for every ID, calculate median RT and differences
+      for (auto& id_rts : ided_feat_rts)
+      {
+        #ifdef DEBUG_QTCLUSTERFINDER_IDS
+        std::cout << "Stats for " << id_rts.first << ": ";
+        for (const auto& rt : id_rts.second)
+        {
+          std::cout << rt << ", ";
+        }
+        std::cout << std::endl;
+        #endif
+
+        auto& rts = id_rts.second;
+        std::sort(rts.begin(),rts.end());
+        medians_diffs[c].first = rts[rts.size()/2];
+        medians_diffs[c].second.reserve(rts.size()-1);
+        Size i = 0;
+        for (const auto& rt : rts)
+        {
+          if (i++ == rts.size()/2) continue;
+          //TODO would relative diffs solve the RT dependency issue sufficiently? Probably not with non-linear shifts
+          //Note: One the one hand using abs. val. destroys the Gaussian distribution, on the other hand, if you only have
+          // two RTs for an ID, you will always have a negative difference from the median (and therefore the distribution
+          // would be biased anyway). We could use a stable median for evenly sized vectors but that would not reflect
+          // real distances then. Or always add positive AND negative differences.
+          medians_diffs[c].second.push_back(std::fabs(rt - medians_diffs[c].first));
+        }
+        c++;
+      }
+
+      //TODO check if we can assume sorted
+      std::sort(medians_diffs.begin(), medians_diffs.end());
+
+      Size cnt = 0;
+      vector<double> tmp_diffs, last_tmp_diffs;
+      // we calculate minRT (instead of starting first bin at 0) since RTs may start in the "negative" region after alignment.
+      double start_rt = minRT;
+      double min_tolerance = 20;
+      double tol, q2, q3 = 0.;
+      OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
+      OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << std::endl;
+
+      // For every pair of median RT and differences, collect
+      // differences until min_nr_diffs_per_bin_ is reached, then add the
+      // start of the current bin and a tolerance based on Double MAD https://aakinshin.net/posts/harrell-davis-double-mad-outlier-detector/
+      for (const auto& med_diffs : medians_diffs)
+      {
+        if (tmp_diffs.size() > min_nr_diffs_per_bin_ && !med_diffs.second.empty())
+        {
+          std::sort(tmp_diffs.begin(), tmp_diffs.end());
+          // calculate allowed tolerance
+          //q1 = quantile_(tmp_diffs, 0.25);
+          q2 = Math::quantile(tmp_diffs, 0.5);
+          q3 = Math::quantile(tmp_diffs, 0.75);
+          //q95 = quantile_(tmp_diffs, 0.95);
+          //iqr = q3 - q1;
+          //tol = max(min_tolerance, max(fabs(q3 + iqr_mult * iqr), fabs(q1 - iqr_mult * iqr)));
+          //tol = q95;
+          //tol = 2. * 1.4826 * q2;
+          tol = max(min_tolerance, q2 + 2. * 1.4826 * (q3-q2));
+          bin_tolerances_.insert(make_pair(start_rt, tol));
+
+          OPENMS_LOG_INFO << start_rt << ", " << tol << std::endl;
+          #ifdef DEBUG_QTCLUSTERFINDER_IDS
+          std::cout << "Differences used: ";
+          for (const auto& diff : tmp_diffs)
+          {
+            std::cout << diff << ", ";
+          }
+          std::cout << std::endl;
+          #endif
+          std::swap(tmp_diffs, last_tmp_diffs);
+          tmp_diffs.clear();
+          if (cnt > 0) start_rt = (med_diffs.first + medians_diffs[cnt-1].first)/2;
+        }
+        else
+        {
+          tmp_diffs.insert(tmp_diffs.end(), med_diffs.second.begin(), med_diffs.second.end());
+        }
+        cnt++;
+      }
+      // calculate allowed tolerance
+      std::sort(tmp_diffs.begin(), tmp_diffs.end());
+      std::vector<double> last_and_before_diffs;
+      last_and_before_diffs.reserve(tmp_diffs.size() + last_tmp_diffs.size());
+      std::merge(tmp_diffs.begin(), tmp_diffs.end(), last_tmp_diffs.begin(), last_tmp_diffs.end(), std::back_inserter(last_and_before_diffs));
+      if (!last_and_before_diffs.empty())
+      {
+        q2 = Math::quantile(last_and_before_diffs, 0.5);
+        q3 = Math::quantile(last_and_before_diffs, 0.75);
+        tol = max(min_tolerance, q2 + 2. * 1.4826 * (q3-q2));
+        bin_tolerances_.insert(make_pair(start_rt, tol));
+
+        OPENMS_LOG_INFO << start_rt << ", " << tol << std::endl;
+        #ifdef DEBUG_QTCLUSTERFINDER_IDS
+        std::cout << "Differences used: ";
+        for (const auto& diff : last_and_before_diffs)
+        {
+          std::cout << diff << ", ";
+        }
+        std::cout << std::endl;
+        #endif
+
+        #ifdef DEBUG_QTCLUSTERFINDER_IDS
+        std::cout << "size of last bin: " << last_and_before_diffs.size() << std::endl;
+        #endif
+      }
+      last_and_before_diffs.clear();
+      last_tmp_diffs.clear();
+      tmp_diffs.clear();
+    }
+
     result_map.clear(false);
 
     std::vector< double > massrange; 
-    for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
+    for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
          map_it != input_maps.end(); ++map_it)
     {
       for (typename MapType::const_iterator feat_it = map_it->begin();
@@ -125,7 +299,7 @@ namespace OpenMS
 
       // minimal differences between two m/z values 
       double massrange_diff = max_diff_mz_;
-      int pts_per_partition = massrange.size() / nr_partitions_;
+      int pts_per_partition = int(massrange.size()) / nr_partitions_;
 
       // if m/z tolerance is specified in ppm, we adapt massrange_diff
       // in each iteration below
@@ -227,12 +401,10 @@ namespace OpenMS
                       feature_index));
         GridFeature& gfeat = grid_features.back();
         // sort peptide hits once now, instead of multiple times later:
-        BaseFeature& bfeat = const_cast<BaseFeature&>(gfeat.getFeature());
-        for (vector<PeptideIdentification>::iterator pep_it =
-               bfeat.getPeptideIdentifications().begin(); pep_it !=
-               bfeat.getPeptideIdentifications().end(); ++pep_it)
+        auto& bfeat = const_cast<BaseFeature&>(gfeat.getFeature());
+        for (auto& pep : bfeat.getPeptideIdentifications())
         {
-          pep_it->sort();
+          pep.sort();
         }
         grid.insert(make_pair(Grid::ClusterCenter(gfeat.getRT(), gfeat.getMZ()),
                               &gfeat));
@@ -272,6 +444,8 @@ namespace OpenMS
       // std::cout << "Clusters: " << clustering.size() << std::endl;
 
       ConsensusFeature consensus_feature;
+      // pops heap until a valid best cluster or empty, makes a consensusFeature and updates
+      // other clusters affected by the inclusion of this cluster
       bool made_feature = makeConsensusFeature_(cluster_heads, consensus_feature, 
                                                 element_mapping, grid, handles);
 
@@ -376,6 +550,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
                                           const vector<Heap::handle_type>& handles,
                                           Size best_id)
   {
+    // remove the current best from the heap and consolidate the heap from previous lazy updates
+    // we cannot pop at the end since update_lazy may theoretically change top_element immediately.
+    cluster_heads.pop();
+
     for (const auto& element : elements)
     {
       const GridFeature* const curr_feature = element.feature;
@@ -415,9 +593,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
             Before that we must delete this clusters id from the element mapping. (important!)
             It is possible that addClusterElements_() removes features from the cluster 
-            we are updating. These are not to be confused with the features we removed 
+            we are updating. (Through finalizeCluster_ -> computeQuality_ -> optimizeAnnotations).
+            These are not to be confused with the features we removed
             because they are part of the current best cluster. Those are removed in 
-            QTCluster::update (above).  
+            QTCluster::update (above).
 
             If this happens, the element mapping for the additionally removed features 
             (which are valid and unused!) still contains the id of the cluster which 
@@ -425,18 +604,26 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
             When the cluster is deleted, the element mapping for the removed feature doesn't 
             get updated. The element mapping for the feature then contains an id of a 
             deleted cluster, which will surely lead to a segfault when the feature is actually 
-            used in another cluster later. 
-            */
+            used in another cluster later.
 
+            TODO Check guarantee that addClusterElements does not add a feature that was removed
+             earlier in the loop. Should not happen because they are in the already_used set by now.
+            */
             removeFromElementMapping_(cluster, element_mapping);
+
+            // re-add closest cluster elements that were not used yet.
             addClusterElements_(grid, cluster);
 
             // update the heap, because the quality has changed
+            // compares with top_element to see if a different node needs to be popped now.
+            // for comparison getQuality() is called for the clusters here
+            // TODO check if we can guarantee cluster_heads.increase/decrease since they may have
+            //  better theoretical runtimes although a lazy update until the next pop is probably not bad
             cluster_heads.update_lazy(handles[curr_id]);
 
             ////////////////////////////////////////
-            // Step 2: reinsert the updated clusters features into the element mapping
-
+            // Step 2: reinsert the updated cluster's features into a temporary element mapping.
+            // This can be merged later since the methods called in the loop here seem not to access the mapping.
             for (const auto& neighbor : cluster.getElements())
             {
               tmp_element_mapping[neighbor.feature].insert(curr_id);
@@ -448,17 +635,14 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       // we merge the tmp_element_mapping into the element_mapping after all clusters
       // that contained one feature of the current best cluster have been updated,
       // i.e. after every iteration of the outer loop
-      for (const auto& cluster_ids: tmp_element_mapping)
+      for (const auto& feat_clusterids : tmp_element_mapping)
       {
-        for (const Size id : cluster_ids.second)
+        for (const Size id : feat_clusterids.second)
         {
-          element_mapping[cluster_ids.first].insert(id);
+          element_mapping[feat_clusterids.first].insert(id);
         }
       }
     }
-
-    // remove the current best from the heap and remember its id
-    cluster_heads.pop();
   }
 
   void QTClusterFinder::addClusterElements_(const Grid& grid, QTCluster& cluster)
@@ -512,6 +696,14 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
               if (dist == FeatureDistance::infinity)
               {
                 continue; // conditions not satisfied
+              }
+              // if IDs are used during linking, check if unidentified features are too far off from "usual" RT shifts
+              // in that region
+              if (use_IDs_ && neighbor_feature->getAnnotations().empty())
+              {
+                double rt_dist = std::fabs(neighbor_feature->getRT() - center_feature->getRT());
+                if (distIsOutlier_(rt_dist, center_feature->getRT())) continue;
+                dist += noID_penalty_;
               }
               // if neighbor point is a possible cluster point, add it:
               cluster.add(neighbor_feature, dist);
@@ -576,8 +768,8 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
     Size id = 0;
 
-    // FeatureDistance produces normalized distances (between 0 and 1):
-    const double max_distance = 1.0;
+    // FeatureDistance produces normalized distances (between 0 and 1 plus a possible noID penalty):
+    const double max_distance = 1.0 + noID_penalty_;
 
     // iterate over all grid cells:
     for (Grid::const_iterator it = grid.begin(); it != grid.end(); ++it)
@@ -614,6 +806,14 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
                                        const OpenMS::GridFeature* right)
   {
     return feature_distance_(left->getFeature(), right->getFeature()).second;
+  }
+
+  bool QTClusterFinder::distIsOutlier_(double dist, double rt)
+  {
+    if (bin_tolerances_.empty()) return false;
+    auto it = bin_tolerances_.upper_bound(rt);
+    if (it == bin_tolerances_.begin()) return dist >= it->second;
+    return dist >= (--it)->second;
   }
   
   QTClusterFinder::~QTClusterFinder() = default;

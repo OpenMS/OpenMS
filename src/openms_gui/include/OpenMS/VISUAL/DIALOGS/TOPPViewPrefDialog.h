@@ -73,7 +73,6 @@ public:
 
 protected slots:
       void browseDefaultPath_();
-      void browseTempPath_();
 private:
       Ui::TOPPViewPrefDialogTemplate* ui_;
       mutable Param param_; ///< is updated in getParam()
