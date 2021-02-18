@@ -66,12 +66,34 @@ namespace OpenMS
         const auto& lvl_info = centroid_info.find(ms_level);
         if (lvl_info == centroid_info.end())
         {
-          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
+          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: No MS" + String(ms_level) + " spectra in input file.");
         }
 
-        if (lvl_info->second.count_profile_or_unknown > 0 && !getFlag_("force"))
+        if (lvl_info->second.count_profile > 0)
         {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
+          if (getFlag_("force"))
+          {
+            OPENMS_LOG_WARN << "Warning: Profile data found, but centroid MS spectra required. "
+                               "Since '-force' flag is in effect, we will continue, but results are likely bogus." << std::endl;
+          }
+          else
+          {
+            throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Error: Profile data provided but centroided MS" + String(ms_level) + " spectra required. To enforce processing (unwise!) of the data enable the -force flag (results will be bogus!).");
+          }
+        }
+        if (lvl_info->second.count_unknown > 0)
+        {
+          if (getFlag_("force"))
+          {
+            OPENMS_LOG_WARN << "Warning: Could not determine data type (centroided/profile data), but centroid MS" + String(ms_level) + " spectra required. "
+                               "Since '-force' flag is in effect, we will continue, but results might be bogus." << std::endl;
+          }
+          else
+          {
+            throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Error: The MS" + String(ms_level) + " spectra's type could not be determined (centroided vs. profile data). Centroided data is required! To enforce processing of the data enable the -force flag (if you are sure these are centroided spectra!).");
+          }
         }
       }
       case FileTypes::MGF:
