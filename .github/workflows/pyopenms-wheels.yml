@@ -8,7 +8,7 @@ on:
   push:
     tags:
       - 'Release*'
-    branches: [ nightly, fix/paths_actions ]
+    branches: [ nightly, fix/paths_actions, ci/github_actions ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
