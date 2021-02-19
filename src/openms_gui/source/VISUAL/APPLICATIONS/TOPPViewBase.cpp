@@ -2092,14 +2092,14 @@ namespace OpenMS
     }
 
     // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
-    std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
+    std::map< int, std::shared_ptrSSpectrum> > im_map;
     auto im_arr = tmps.getFloatDataArrays()[0]; // the first array should be the IM array (see containsIMData)
     for (Size k = 0;  k < tmps.size(); k++)
     {
       double im = im_arr[ k ];
       if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
       {
-        boost::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
+        std::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
         news->setRT(im);
         news->setMSLevel(1);
         im_map[ int(im*IM_BINNING) ] = news;

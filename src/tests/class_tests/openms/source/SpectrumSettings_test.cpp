@@ -338,7 +338,7 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
-    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+    DataProcessingPtr dp = std::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
 	TEST_EQUAL(edit==empty, false);
 
@@ -389,7 +389,7 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
-    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+    DataProcessingPtr dp = std::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
 	TEST_EQUAL(edit!=empty, true);
 
@@ -445,13 +445,13 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   appended.getPeptideIdentifications().push_back(appended_ident);
 
   // DataProcessings
-  DataProcessingPtr org_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
+  DataProcessingPtr org_processing = std::shared_ptr<DataProcessing>(new DataProcessing);
   Software org_software;
   org_software.setName("org_software");
   org_processing->setSoftware(org_software);
   org.getDataProcessing().push_back(org_processing);
 
-  DataProcessingPtr appended_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
+  DataProcessingPtr appended_processing = std::shared_ptr<DataProcessing>(new DataProcessing);
   Software appended_software;
   appended_software.setName("appended_software");
   appended_processing->setSoftware(appended_software);

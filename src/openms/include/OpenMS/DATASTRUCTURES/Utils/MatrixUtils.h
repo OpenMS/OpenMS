@@ -46,8 +46,8 @@ namespace OpenMS
    *
    */
 
-  typedef boost::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
-  typedef boost::shared_ptr< Eigen::MatrixXd > MutableEigenMatrixXdPtr;
+  typedef std::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
+  typedef std::shared_ptr< Eigen::MatrixXd > MutableEigenMatrixXdPtr;
 
   static EigenMatrixXdPtr
   convertOpenMSMatrix2EigenMatrixXd( const Matrix<double>& m )

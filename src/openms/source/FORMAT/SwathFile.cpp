@@ -56,7 +56,7 @@ namespace OpenMS
   /// Loads a Swath run from a list of split mzML files
   std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list, 
 	String tmp,
-    boost::shared_ptr<ExperimentalSettings>& exp_meta,
+    std::shared_ptr<ExperimentalSettings>& exp_meta,
     String readoptions)
   {
     int progress = 0;
@@ -78,7 +78,7 @@ namespace OpenMS
 
       String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
 
-      boost::shared_ptr<PeakMap > exp(new PeakMap);
+      std::shared_ptr<PeakMap > exp(new PeakMap);
       OpenSwath::SpectrumAccessPtr spectra_ptr;
 
       // Populate meta-data
@@ -144,7 +144,7 @@ namespace OpenMS
   /// Loads a Swath run from a single mzML file
   std::vector<OpenSwath::SwathMap> SwathFile::loadMzML(const String& file,
                                                        const String& tmp,
-                                                       boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                       std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                        const String& readoptions,
                                                        Interfaces::IMSDataConsumer* plugin_consumer)
   {
@@ -152,7 +152,7 @@ namespace OpenMS
     String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
     startProgress(0, 1, "Loading metadata file " + file);
-    boost::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
+    std::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
     exp_meta = exp_stripped;
 
     // First pass through the file -> get the meta data
@@ -210,14 +210,14 @@ namespace OpenMS
   /// Loads a Swath run from a single mzXML file
   std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(String file,
     String tmp,
-    boost::shared_ptr<ExperimentalSettings>& exp_meta,
+    std::shared_ptr<ExperimentalSettings>& exp_meta,
     String readoptions)
   {
     std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << std::endl;
     String tmp_fname = "openswath_tmpfile";
 
     startProgress(0, 1, "Loading metadata file " + file);
-    boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
+    std::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
     MzXMLFile f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
@@ -266,7 +266,7 @@ namespace OpenMS
   }
 
   /// Loads a Swath run from a single sqMass file
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(String file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */)
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(String file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */)
   {
     startProgress(0, 1, "Loading sqmass data file " + file);
 
@@ -299,7 +299,7 @@ namespace OpenMS
 
   /// Cache a file to disk
   OpenSwath::SpectrumAccessPtr SwathFile::doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
-    boost::shared_ptr<PeakMap > experiment_metadata)
+    std::shared_ptr<PeakMap > experiment_metadata)
   {
     String cached_file = tmp + tmp_fname + ".cached";
     String meta_file = tmp + tmp_fname;
@@ -311,15 +311,15 @@ namespace OpenMS
       Internal::CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
     } // ensure that filestream gets closed
 
-    boost::shared_ptr<PeakMap > exp(new PeakMap);
+    std::shared_ptr<PeakMap > exp(new PeakMap);
     MzMLFile().load(meta_file, *exp.get());
     return SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   }
 
   /// Only read the meta data from a file and use it to populate exp_meta
-  boost::shared_ptr< PeakMap > SwathFile::populateMetaData_(const String& file)
+  std::shared_ptr< PeakMap > SwathFile::populateMetaData_(const String& file)
   {
-    boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
+    std::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
     MzMLFile f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);

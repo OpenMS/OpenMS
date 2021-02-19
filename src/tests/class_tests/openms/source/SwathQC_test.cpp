@@ -80,7 +80,7 @@ START_SECTION(~SwathQC())
 END_SECTION
 
 // Create a mock spectrum fitting to the transition group
-boost::shared_ptr<MSExperiment> exp(new MSExperiment);
+std::shared_ptr<MSExperiment> exp(new MSExperiment);
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML"), *exp);
 OpenSwath::SpectrumAccessPtr sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 

@@ -89,9 +89,9 @@ public:
 
     ~MRMFeatureOpenMS() override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
+    std::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
 
     std::vector<std::string> getNativeIDs() const override;
 
@@ -105,8 +105,8 @@ public:
 
 private:
     const MRMFeature& mrmfeature_;
-    std::map<std::string, boost::shared_ptr<FeatureOpenMS> > features_;
-    std::map<std::string, boost::shared_ptr<FeatureOpenMS> > precursor_features_;
+    std::map<std::string, std::shared_ptr<FeatureOpenMS> > features_;
+    std::map<std::string, std::shared_ptr<FeatureOpenMS> > precursor_features_;
   };
 
   /**

@@ -58,7 +58,7 @@ public:
     typedef OpenMS::MSChromatogram MSChromatogramType;
 
     /// Constructor
-    explicit SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment);
+    explicit SpectrumAccessOpenMS(std::shared_ptr<MSExperimentType> ms_experiment);
 
     /// Destructor
     ~SpectrumAccessOpenMS() override;
@@ -81,7 +81,7 @@ public:
       the same underlying MSExperiment.
 
     */
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
+    std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
@@ -105,7 +105,7 @@ public:
     std::string getChromatogramNativeID(int id) const override;
 
 private:
-    boost::shared_ptr<MSExperimentType> ms_experiment_;
+    std::shared_ptr<MSExperimentType> ms_experiment_;
 
   };
 } //end namespace OpenMS

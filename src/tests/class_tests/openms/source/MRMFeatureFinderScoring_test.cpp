@@ -82,12 +82,12 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   MRMFeature feature;
   FeatureMap featureFile;
   TransformationDescription trafo;
-  boost::shared_ptr<PeakMap> swath_map (new PeakMap);
+  std::shared_ptr<PeakMap> swath_map (new PeakMap);
   TransitionGroupMapType transition_group_map;
   MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
 
   // Load the chromatograms (mzML) and the meta-information (TraML)
-  boost::shared_ptr<PeakMap> exp (new PeakMap);
+  std::shared_ptr<PeakMap> exp (new PeakMap);
   OpenSwath::LightTargetedExperiment transitions;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), *exp);
   {
@@ -244,11 +244,11 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   MRMFeature feature;
   FeatureMap featureFile;
   TransformationDescription trafo;
-  boost::shared_ptr<PeakMap> swath_map (new PeakMap);
+  std::shared_ptr<PeakMap> swath_map (new PeakMap);
   TransitionGroupMapType transition_group_map;
 
   // Load the chromatograms (mzML) and the meta-information (TraML)
-  boost::shared_ptr<PeakMap> exp (new PeakMap);
+  std::shared_ptr<PeakMap> exp (new PeakMap);
   OpenSwath::LightTargetedExperiment transitions;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), *exp);
   { 
@@ -330,7 +330,7 @@ START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr in
   MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
 
   // Load the chromatograms (mzML) and the meta-information (TraML)
-  boost::shared_ptr<PeakMap> exp (new PeakMap);
+  std::shared_ptr<PeakMap> exp (new PeakMap);
   OpenSwath::LightTargetedExperiment transitions;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), *exp);
   {
