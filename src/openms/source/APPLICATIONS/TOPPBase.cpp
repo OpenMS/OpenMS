@@ -64,7 +64,7 @@
 #include <QFile>
 #include <QStringList>
 
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 #include <ctime>
 #include <cstdio>
@@ -1251,7 +1251,7 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     double tmp = getParamAsDouble_(name, (double)p.default_value);
-    if (p.required && boost::math::isnan(tmp))
+    if (p.required && std::isnan(tmp))
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }

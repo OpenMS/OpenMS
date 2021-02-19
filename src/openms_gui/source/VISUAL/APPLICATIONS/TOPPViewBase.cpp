@@ -116,7 +116,7 @@
 #include <QtWidgets/QWhatsThis>
 #include <QTextCodec>
 
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 #include <algorithm>
 #include <utility>
@@ -1036,7 +1036,7 @@ namespace OpenMS
     {
       mz_label_->setText("m/z: ");
     }
-    else if (boost::math::isinf(mz) || boost::math::isnan(mz))
+    else if (std::isinf(mz) || std::isnan(mz))
     {
       mz_label_->setText("m/z: n/a");
     }
@@ -1049,7 +1049,7 @@ namespace OpenMS
     {
       rt_label_->setText("RT: ");
     }
-    else if (boost::math::isinf(rt) || boost::math::isnan(rt))
+    else if (std::isinf(rt) || std::isnan(rt))
     {
       rt_label_->setText("RT: n/a");
     }

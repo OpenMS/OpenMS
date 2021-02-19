@@ -47,7 +47,7 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 #include <iomanip>
 
@@ -328,12 +328,12 @@ namespace OpenMS
         ratio = 0.;
         fuzzy_message.clear();
 
-        if (boost::math::isnan(number_1))
+        if (std::isnan(number_1))
         {
           fuzzy_message = "number_1 is nan";
           return false;
         }
-        if (boost::math::isnan(number_2))
+        if (std::isnan(number_2))
         {
           fuzzy_message = "number_2 is nan";
           return false;

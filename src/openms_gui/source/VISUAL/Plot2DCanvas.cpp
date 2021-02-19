@@ -62,7 +62,7 @@
 #include <QtWidgets/QMessageBox>
 
 //boost
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 #define PEN_SIZE_MAX_LIMIT 100    // maximum size of a rectangle representing a point for raw peak data
 #define PEN_SIZE_MIN_LIMIT 1      // minimum. This should not be changed without adapting the way dots are plotted
@@ -1880,7 +1880,7 @@ namespace OpenMS
     QStringList lines;
     lines.push_back("RT delta:  " + QString::number(rt, 'f', 2));
     lines.push_back("m/z delta: " + QString::number(mz, 'f', 6) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
-    if (boost::math::isinf(it) || boost::math::isnan(it))
+    if (std::isinf(it) || std::isnan(it))
     {
       lines.push_back("Int ratio: n/a");
     }

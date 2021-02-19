@@ -36,7 +36,7 @@
 
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/MATH/MISC/MSNumpress.h>
-#include <boost/math/special_functions/fpclassify.hpp> // boost::math::isfinite
+#include <cmath> // std::isfinite
 // #define NUMPRESS_DEBUG
 
 #include <iostream>
@@ -207,7 +207,7 @@ namespace OpenMS
         {
           for (n = static_cast<int>(dataSize)-1; n>=0; n-- ) // check for overflow, strange rounding
           {
-            if ((!boost::math::isfinite(unpressed[n])) || (fabs(in[n] - unpressed[n]) >= 1.0))
+            if ((!std::isfinite(unpressed[n])) || (fabs(in[n] - unpressed[n]) >= 1.0))
             {
               break;
             }
@@ -219,7 +219,7 @@ namespace OpenMS
           {
             double u = unpressed[n];
             double d = in[n];
-            if (!boost::math::isfinite(u) || !boost::math::isfinite(d))
+            if (!std::isfinite(u) || !std::isfinite(d))
             {
 #ifdef NUMPRESS_DEBUG
               std::cout << "infinite u: " << u << " d: " << d << std::endl;
