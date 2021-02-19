@@ -116,6 +116,10 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS SuperHirn
 
+    - name: Tests osx
+      run: |
+          ctest --output-on-failure -V -S ../OpenMS/tools/travis/cibuild.cmake
+
   build-lnx:
     runs-on: ubuntu-latest
     container: openms/manylinux:latest
@@ -149,3 +153,7 @@ jobs:
             strip --strip-all lib/libOpenMS.so
             strip --strip-all lib/libOpenSwathAlgo.so
             strip --strip-all lib/libSuperHirn.so
+
+    - name: Tests manylinux
+      run: |
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
