@@ -195,21 +195,44 @@ namespace OpenMS
       std::map<AdductRef, AdductRef> adduct_refs;
       std::map<ObservationMatchRef, ObservationMatchRef> observation_match_refs;
 
-      IdentifiedMolecule translateIdentifiedMolecule(IdentifiedMolecule old) const
+      bool allow_missing = false;
+
+      IdentifiedMolecule translate(IdentifiedMolecule old) const
       {
         switch (old.getMoleculeType())
         {
           case MoleculeType::PROTEIN:
-            return identified_peptide_refs.at(old.getIdentifiedPeptideRef());
+          {
+            auto pos = identified_peptide_refs.find(old.getIdentifiedPeptideRef());
+            if (pos != identified_peptide_refs.end()) return pos->second;
+          }
           case MoleculeType::COMPOUND:
-            return identified_compound_refs.at(old.getIdentifiedCompoundRef());
+          {
+            auto pos = identified_compound_refs.find(old.getIdentifiedCompoundRef());
+            if (pos != identified_compound_refs.end()) return pos->second;
+          }
           case MoleculeType::RNA:
-            return identified_oligo_refs.at(old.getIdentifiedOligoRef());
+          {
+            auto pos = identified_oligo_refs.find(old.getIdentifiedOligoRef());
+            if (pos != identified_oligo_refs.end()) return pos->second;
+          }
           default:
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "invalid molecule type",
                                           String(old.getMoleculeType()));
         }
+        if (allow_missing) return old;
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "no match for reference");
+      }
+
+      ObservationMatchRef translate(ObservationMatchRef old) const
+      {
+        auto pos = observation_match_refs.find(old);
+        if (pos != observation_match_refs.end()) return pos->second;
+        if (allow_missing) return old;
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "no match for reference");
       }
     };
 

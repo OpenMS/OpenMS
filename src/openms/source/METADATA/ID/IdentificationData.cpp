@@ -1032,7 +1032,7 @@ namespace OpenMS
          other_ref != other.getObservationMatches().end(); ++other_ref)
     {
       IdentifiedMolecule molecule_var =
-        trans.translateIdentifiedMolecule(other_ref->identified_molecule_var);
+        trans.translate(other_ref->identified_molecule_var);
       ObservationRef obs_ref = trans.observation_refs[other_ref->observation_ref];
       ObservationMatch copy(molecule_var, obs_ref, other_ref->charge);
       if (other_ref->adduct_opt)

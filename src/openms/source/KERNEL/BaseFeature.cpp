@@ -236,13 +236,13 @@ namespace OpenMS
   {
     if (primary_id_)
     {
-      primary_id_ = trans.translateIdentifiedMolecule(*primary_id_);
+      primary_id_ = trans.translate(*primary_id_);
     }
     set<IdentificationData::ObservationMatchRef> matches;
     matches.swap(id_matches_);
     for (auto item : matches)
     {
-      id_matches_.insert(trans.observation_match_refs.at(item));
+      id_matches_.insert(trans.translate(item));
     }
   }
 
