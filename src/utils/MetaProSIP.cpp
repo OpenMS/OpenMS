@@ -191,8 +191,7 @@ struct SIPPeptide
 };
 
 ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
-struct SizeLess :
-  public std::binary_function<vector<SIPPeptide>, vector<SIPPeptide>, bool>
+struct SizeLess
 {
   inline bool operator()(const vector<SIPPeptide>& a, const vector<SIPPeptide>& b) const
   {
@@ -201,8 +200,7 @@ struct SizeLess :
 
 };
 
-struct SequenceLess :
-  public std::binary_function<pair<SIPPeptide, Size>, pair<SIPPeptide, Size>, bool>
+struct SequenceLess
 {
   inline bool operator()(const pair<SIPPeptide, Size>& a, const pair<SIPPeptide, Size>& b) const
   {
@@ -211,8 +209,7 @@ struct SequenceLess :
 
 };
 
-struct RIALess :
-  public std::binary_function<SIPIncorporation, SIPIncorporation, bool>
+struct RIALess
 {
   inline bool operator()(const SIPIncorporation& a, const SIPIncorporation& b) const
   {

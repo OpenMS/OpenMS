@@ -394,7 +394,7 @@ endif()
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
-	## copy build.bat to root of binary dir to enable convenient invokation (instead of typing path to source dir all the time)
+	## copy build.bat to root of binary dir to enable convenient invocation (instead of typing path to source dir all the time)
 	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
 		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
 	endif()
