@@ -66,20 +66,12 @@ public:
      @param features Output feature map
      @param id_data Primary ("internal") identifications as targets for feature detection
      @param id_data_ext Additional ("external") identifications as targets for feature detection
-     @param peptides Internal IDs in legacy format (to avoid conversion for output)
-     @param proteins Internal IDs in legacy format (to avoid conversion for output)
-     @param peptides_ext External IDs in legacy format (to avoid conversion for output)
-     @param proteins_ext External IDs in legacy format (to avoid conversion for output)
 
      External IDs (@p id_data_ext) may be empty, in which case no machine learning or FDR estimation will be performed.
   */
   void run(FeatureMap& features,
            IdentificationData& id_data,
-           IdentificationData& id_data_ext,
-           std::vector<PeptideIdentification> peptides = std::vector<PeptideIdentification>(),
-           std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>(),
-           const std::vector<PeptideIdentification>& peptides_ext = std::vector<PeptideIdentification>(),
-           const std::vector<ProteinIdentification>& proteins_ext = std::vector<ProteinIdentification>());
+           IdentificationData& id_data_ext);
 
   /// Convert seeds to an IdentificationData representation
   void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
@@ -120,58 +112,12 @@ protected:
   /// mapping: target ion ID -> associated data
   typedef std::map<String, TargetData> TargetMap;
 
-  // need to map from a InputMatch to the corresponding exported
-  // PeptideIdentification, so generate a look-up table:
-  typedef std::tuple<double, double, String, String> PepIDKey; ///< (RT, m/z, molecule, adduct)
-  typedef std::multimap<PepIDKey, const PeptideIdentification*> PepIDLookup;
-  // @TODO: why does this crash when a reference is used instead of the pointer?
-
   /// region in RT in which a target elutes:
   struct RTRegion
   {
     double start, end;
     ChargeMap ids; ///< internal/external IDs (per charge) in this region
   };
-
-  /// predicate for filtering features by overall quality:
-  struct FeatureFilterQuality
-  {
-    bool operator()(const Feature& feature)
-    {
-      return feature.getOverallQuality() == 0.0;
-    }
-  } feature_filter_quality_;
-
-  /// predicate for filtering features by assigned peptides:
-  struct FeatureFilterPeptides
-  {
-    bool operator()(const Feature& feature)
-    {
-      return feature.getPeptideIdentifications().empty();
-    }
-  } feature_filter_peptides_;
-
-  /// comparison functor for (unassigned) peptide IDs
-  struct PeptideCompare
-  {
-    bool operator()(const PeptideIdentification& p1,
-                    const PeptideIdentification& p2)
-    {
-      const String& seq1 = p1.getHits()[0].getSequence().toString();
-      const String& seq2 = p2.getHits()[0].getSequence().toString();
-      if (seq1 == seq2)
-      {
-        Int charge1 = p1.getHits()[0].getCharge();
-        Int charge2 = p2.getHits()[0].getCharge();
-        if (charge1 == charge2)
-        {
-          return p1.getRT() < p2.getRT();
-        }
-        return charge1 < charge2;
-      }
-      return seq1 < seq2;
-    }
-  } peptide_compare_;
 
   /// comparison functor for features
   struct FeatureCompare
@@ -189,7 +135,6 @@ protected:
   } feature_compare_;
 
   TargetMap target_map_; ///< aggregated IDs for each identified molecule
-  PepIDLookup pep_id_lookup_; ///< mapping to PeptideIdentifications
 
   Size n_internal_targets_; ///< number of internal target molecules
   Size n_external_targets_; ///< number of external target molecules
@@ -288,18 +233,13 @@ protected:
   void classifyFeatures_(FeatureMap& features);
 
   void filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
-                                    const double quality_cutoff);
+                                    const double quality_cutoff, const String& target_id);
 
   void filterFeatures_(FeatureMap& features, bool classified);
 
   void calculateFDR_(FeatureMap& features);
 
-  /// Look up peptide IDs based on given keys and store the results
-  void lookUpPeptideIDs_(const std::set<PepIDKey> pep_id_keys,
-                         std::vector<PeptideIdentification>& output);
-
-  std::pair<String, Int> extractTargetID_(const Feature& feature,
-                                          bool extract_charge = false);
+  std::pair<String, Int> extractTargetID_(const Feature& feature, bool extract_charge = false);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size @p batch_size.
   /// Last batch might be smaller.

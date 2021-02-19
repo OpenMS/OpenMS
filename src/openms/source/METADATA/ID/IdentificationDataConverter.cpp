@@ -335,13 +335,11 @@ namespace OpenMS
     {
       PeptideHit hit;
       static_cast<MetaInfoInterface&>(hit) = input_match;
+      const ID::IdentifiedMolecule& molecule_var = input_match.identified_molecule_var;
       const ID::ParentMatches* parent_matches_ptr = nullptr;
-      const ID::IdentifiedMolecule& molecule_var =
-        input_match.identified_molecule_var;
       if (molecule_var.getMoleculeType() == ID::MoleculeType::PROTEIN)
       {
-        ID::IdentifiedPeptideRef peptide_ref =
-          molecule_var.getIdentifiedPeptideRef();
+        ID::IdentifiedPeptideRef peptide_ref = molecule_var.getIdentifiedPeptideRef();
         hit.setSequence(peptide_ref->sequence);
         parent_matches_ptr = &(peptide_ref->parent_matches);
       }
@@ -354,11 +352,14 @@ namespace OpenMS
       }
       else // small molecule
       {
-        ID::IdentifiedCompoundRef compound_ref =
-          molecule_var.getIdentifiedCompoundRef();
+        ID::IdentifiedCompoundRef compound_ref = molecule_var.getIdentifiedCompoundRef();
         // @TODO: use "name" member instead of "identifier" here?
         hit.setMetaValue("label", compound_ref->identifier);
         hit.setMetaValue("molecule_type", "compound");
+      }
+      if (parent_matches_ptr != nullptr)
+      {
+        exportParentMatches(*parent_matches_ptr, hit);
       }
       hit.setCharge(input_match.charge);
       if (input_match.adduct_opt)
@@ -371,14 +372,6 @@ namespace OpenMS
         hit.setMetaValue(ppm_error_name,
                          input_match.getMetaValue(ppm_error_name));
       }
-      if (parent_matches_ptr != nullptr)
-      {
-        exportParentMatches(*parent_matches_ptr, hit);
-      }
-      // sort the evidences:
-      vector<PeptideEvidence> evidences = hit.getPeptideEvidences();
-      sort(evidences.begin(), evidences.end());
-      hit.setPeptideEvidences(evidences);
 
       // generate hits in different ID runs for different processing steps:
       for (ID::AppliedProcessingStep applied : input_match.steps_and_scores)
@@ -413,13 +406,13 @@ namespace OpenMS
 
     for (const auto& psm : psm_data)
     {
-      const ID::Observation& query = *psm.first.first;
+      const ID::Observation& obs = *psm.first.first;
       PeptideIdentification peptide;
-      static_cast<MetaInfoInterface&>(peptide) = query;
+      static_cast<MetaInfoInterface&>(peptide) = obs;
       // set RT and m/z if they aren't missing (NaN):
-      if (query.rt == query.rt) peptide.setRT(query.rt);
-      if (query.mz == query.mz) peptide.setMZ(query.mz);
-      peptide.setMetaValue("spectrum_reference", query.data_id);
+      if (obs.rt == obs.rt) peptide.setRT(obs.rt);
+      if (obs.mz == obs.mz) peptide.setMZ(obs.mz);
+      peptide.setMetaValue("spectrum_reference", obs.data_id);
       peptide.setHits(psm.second.first);
       const ID::ScoreType& score_type = *psm.second.second;
       peptide.setScoreType(score_type.cv_term.getName());
@@ -518,8 +511,7 @@ namespace OpenMS
           id_data.getDBSearchSteps().find(step_ref);
         if (ss_pos != id_data.getDBSearchSteps().end())
         {
-          protein.setSearchParameters(exportDBSearchParameters_(ss_pos->
-                                                                second));
+          protein.setSearchParameters(exportDBSearchParameters_(ss_pos->second));
         }
       }
       auto pd_pos = prot_data.find(step_ref_opt);
@@ -762,6 +754,10 @@ namespace OpenMS
         hit.addPeptideEvidence(evidence);
       }
     }
+    // sort the evidences:
+    vector<PeptideEvidence> evidences = hit.getPeptideEvidences();
+    sort(evidences.begin(), evidences.end());
+    hit.setPeptideEvidences(evidences);
   }
 
 
@@ -1110,9 +1106,23 @@ namespace OpenMS
   }
 
 
-  void IdentificationDataConverter::handleFeatureExport_(Feature& feature, IntList indexes,
-                                                         IdentificationData& id_data, Size& id_counter)
+  void IdentificationDataConverter::handleFeatureExport_(
+    Feature& feature, IntList indexes, IdentificationData& id_data, Size& id_counter)
   {
+    if (feature.getIDMatches().empty() && feature.hasPrimaryID())
+    {
+      // primary ID without supporting ID matches - generate a "dummy" ID match
+      // so we can export it:
+      ID::InputFile file("ConvertedFromFeature");
+      ID::InputFileRef file_ref = id_data.registerInputFile(file);
+      ID::Observation obs(String(feature.getUniqueId()), file_ref,
+                          feature.getRT(), feature.getMZ());
+      ID::ObservationRef obs_ref = id_data.registerObservation(obs);
+      ID::ObservationMatch match(feature.getPrimaryID(), obs_ref,
+                                 feature.getCharge());
+      ID::ObservationMatchRef match_ref = id_data.registerObservationMatch(match);
+      feature.addIDMatch(match_ref);
+    }
     for (ID::ObservationMatchRef ref : feature.getIDMatches())
     {
       // store trace of feature indexes so we can map the converted ID back;
@@ -1125,7 +1135,8 @@ namespace OpenMS
     {
       IntList extended = indexes;
       extended.push_back(i);
-      handleFeatureExport_(feature.getSubordinates()[i], extended, id_data, id_counter);
+      handleFeatureExport_(feature.getSubordinates()[i], extended, id_data,
+                           id_counter);
     }
   }
 

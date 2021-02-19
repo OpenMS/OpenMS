@@ -198,7 +198,7 @@ protected:
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' identifications (e.g. from aligned runs). Same file type as 'id' required.", false);
     setValidFormats_("id_ext", {"idXML", "oms"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
-    setValidFormats_("out", {"featureXML"});
+    setValidFormats_("out", {"featureXML", "oms"});
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
     setValidFormats_("lib_out", {"traML"});
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
@@ -224,8 +224,7 @@ protected:
     // parameter handling:
     String out = getStringOption_("out");
     String candidates_out = getStringOption_("candidates_out");
-
-    String candidates_in = getStringOption_("candidates_in");
+    // String candidates_in = getStringOption_("candidates_in");
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
@@ -258,8 +257,6 @@ protected:
 
       // load IDs:
       IdentificationData id_data, id_data_ext;
-      vector<PeptideIdentification> peptides, peptides_ext;
-      vector<ProteinIdentification> proteins, proteins_ext;
       if (id_type == FileTypes::OMS)
       {
         OMSFile(log_type_).load(id, id_data);
@@ -267,6 +264,8 @@ protected:
       }
       else // idXML input
       {
+        vector<PeptideIdentification> peptides, peptides_ext;
+        vector<ProteinIdentification> proteins, proteins_ext;
         IdXMLFile().load(id, proteins, peptides);
         IdentificationDataConverter::importIDs(id_data, proteins, peptides);
         if (!id_ext.empty())
@@ -278,8 +277,7 @@ protected:
       }
 
       // run feature detection:
-      ffid_algo.run(features, id_data, id_data_ext, peptides, proteins,
-                    peptides_ext, proteins_ext);
+      ffid_algo.run(features, id_data, id_data_ext);
 
       // write auxiliary output:
       bool keep_chromatograms = !chrom_out.empty();
@@ -320,12 +318,19 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FeatureXMLFile().store(out, features);
-
+    FileTypes::Type out_type = FileHandler::getType(out);
+    if (out_type == FileTypes::OMS)
+    {
+      OMSFile(log_type_).store(out, features);
+    }
+    else
+    {
+      IdentificationDataConverter::exportFeatureIDs(features);
+      FeatureXMLFile().store(out, features);
+    }
 
     return EXECUTION_OK;
   }
-
 };
 
 

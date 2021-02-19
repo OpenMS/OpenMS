@@ -172,14 +172,9 @@ namespace OpenMS
   void FeatureFinderIdentificationAlgorithm::run(
     FeatureMap& features,
     IdentificationData& id_data,
-    IdentificationData& id_data_ext,
-    vector<PeptideIdentification> peptides,
-    vector<ProteinIdentification> proteins,
-    const vector<PeptideIdentification>& peptides_ext,
-    const vector<ProteinIdentification>& proteins_ext)
+    IdentificationData& id_data_ext)
   {
     target_map_.clear();
-    pep_id_lookup_.clear();
 
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
     {
@@ -240,7 +235,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        OPENMS_LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to align RTs of internal/external IDs. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
       }
     }
 
@@ -362,53 +357,27 @@ namespace OpenMS
 
     ms_data_.reset(); // not needed anymore, free up the memory
 
-    if (peptides.empty())
-    {
-      // convert IDs to legacy format for inclusion in output feature map:
-      IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
-    }
-    features.getProteinIdentifications().insert(features.getProteinIdentifications().end(),
-                                                proteins.begin(), proteins.end());
-    // generate look-up table to map from new (ObservationMatch) to old (PeptideIdent.):
-    for (const auto& peptide : peptides)
-    {
-      const PeptideHit& hit = peptide.getHits()[0];
-      const AASequence& seq = hit.getSequence();
-      String molecule = seq.empty() ? String(hit.getMetaValue("label")) : seq.toString();
-      String adduct = hit.getMetaValue("adduct", "");
-      auto key = make_tuple(peptide.getRT(), peptide.getMZ(), molecule, adduct);
-      pep_id_lookup_.insert(make_pair(key, &peptide));
-    }
     // complete feature annotation:
     annotateFeatures_(features);
-    if (with_external_ids)
-    {
-      if (peptides_ext.empty())
-      {
-        IdentificationDataConverter::exportIDs(
-          id_data_ext, features.getProteinIdentifications(),
-          features.getUnassignedPeptideIdentifications());
-      }
-      else
-      {
-        features.getProteinIdentifications().insert(
-          features.getProteinIdentifications().end(),
-          proteins_ext.begin(), proteins_ext.end());
-        features.getUnassignedPeptideIdentifications().insert(
-          features.getUnassignedPeptideIdentifications().begin(),
-          peptides_ext.begin(), peptides_ext.end());
-      }
-    }
     // sort everything:
-    sort(features.getUnassignedPeptideIdentifications().begin(),
-         features.getUnassignedPeptideIdentifications().end(),
-         peptide_compare_);
     sort(features.begin(), features.end(), feature_compare_);
 
     postProcess_(features, with_external_ids);
     statistics_(features, with_external_ids);
 
-    features.ensureUniqueId();
+    // move IDs:
+    IdentificationData& feat_ids = features.getIdentificationData();
+    feat_ids.swap(id_data);
+    if (with_external_ids)
+    {
+      ID::RefTranslator trans = feat_ids.merge(id_data_ext);
+      // references to internal IDs don't need to be translated:
+      trans.allow_missing = true;
+      for (Feature& feature : features)
+      {
+        feature.updateAllIDReferences(trans);
+      }
+    }
   }
 
 
@@ -983,7 +952,7 @@ namespace OpenMS
   /// annotate identified features with m/z, isotope probabilities, etc.
   void FeatureFinderIdentificationAlgorithm::annotateFeatures_(FeatureMap& features)
   {
-    // map indexes of features to the targets (ID, charge)that generated them:
+    // map indexes of features to the targets (ID, charge) that generated them:
     map<pair<String, Int>, vector<Size>> features_per_target;
     for (Size index = 0; index < features.size(); ++index)
     {
@@ -1004,31 +973,6 @@ namespace OpenMS
       annotateFeaturesOneTarget_(features, element.first.first,
                                  element.first.second, element.second);
     }
-
-    // store unassigned internal IDs from assays that did not generate any
-    // feature candidates:
-    for (const auto& target_pair : target_map_)
-    {
-      for (const auto& charge_pair : target_pair.second.hits_by_charge)
-      {
-        const RTMap& rt_internal = charge_pair.second.first;
-        if (!rt_internal.empty()) // not cleared by "annotateFeaturesOneTarget_()"
-        {
-          set<PepIDKey> pep_id_keys;
-          for (const auto& rt_pair : rt_internal)
-          {
-            ID::ObservationMatchRef ref = rt_pair.second;
-            String adduct;
-            if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
-            auto key = make_tuple(ref->observation_ref->rt, ref->observation_ref->mz,
-                                  ref->identified_molecule_var.toString(), adduct);
-            pep_id_keys.insert(key);
-          }
-          lookUpPeptideIDs_(pep_id_keys,
-                            features.getUnassignedPeptideIdentifications());
-        }
-      }
-    }
   }
 
 
@@ -1038,12 +982,13 @@ namespace OpenMS
   {
     // @TODO: how much of this makes sense for features derived from seeds?
     RTMap transformed_internal;
-    map<Size, vector<ID::ObservationMatchRef>> feat_ids; // matching internal IDs per feature
-
     TargetData& target_data = target_map_.at(target_id);
     auto& rt_maps = target_data.hits_by_charge.at(charge);
     RTMap& rt_internal = rt_maps.first;
     RTMap& rt_external = rt_maps.second;
+
+    // track which feature candidate (index) has most matching internal IDs:
+    Size best_index = 0, best_count = 0;
 
     for (Size index : indexes)
     {
@@ -1061,11 +1006,13 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      if (!rt_internal.empty()) // validate based on internal IDs
+      // RT span of feature including tolerance for mapping IDs:
+      double rt_min = 0, rt_max = 0;
+      // calculate values only if needed below:
+      if (!rt_internal.empty() || !trafo_external_.getDataPoints().empty())
       {
-        // map IDs to features (based on RT, taking tolerance into account):
-        double rt_min = feature.getMetaValue("leftWidth");
-        double rt_max = feature.getMetaValue("rightWidth");
+        rt_min = feature.getMetaValue("leftWidth");
+        rt_max = feature.getMetaValue("rightWidth");
         if (mapping_tolerance_ > 0.0)
         {
           double abs_tol = mapping_tolerance_;
@@ -1076,12 +1023,17 @@ namespace OpenMS
           rt_min -= abs_tol;
           rt_max += abs_tol;
         }
+      }
+
+      if (!rt_internal.empty()) // validate based on internal IDs
+      {
+        // map IDs to features based on RT:
         RTMap::const_iterator lower = rt_internal.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_internal.upper_bound(rt_max);
         Size id_count = 0;
         for (; lower != upper; ++lower)
         {
-          feat_ids[index].push_back(lower->second);
+          feature.addIDMatch(lower->second);
           ++id_count;
         }
         // "total" only includes IDs from this RT region:
@@ -1090,6 +1042,14 @@ namespace OpenMS
         if (id_count > 0) // matching IDs -> feature may be "correct"
         {
           feature.setMetaValue("feature_class", "ambiguous");
+          // is this the new "best" feature candidate (with most matching IDs)?
+          if ((id_count > best_count) ||
+              ((id_count == best_count) && // break ties by intensity
+               (feature.getIntensity() > features[best_index].getIntensity())))
+          {
+            best_count = id_count;
+            best_index = index;
+          }
         }
         else // no matching IDs -> feature is wrong
         {
@@ -1119,18 +1079,6 @@ namespace OpenMS
           }
         }
         const RTMap& rt_ref = (rt_external.empty() ? transformed_internal : rt_external);
-        double rt_min = feature.getMetaValue("leftWidth");
-        double rt_max = feature.getMetaValue("rightWidth");
-        if (mapping_tolerance_ > 0.0)
-        {
-          double abs_tol = mapping_tolerance_;
-          if (abs_tol < 1.0)
-          {
-            abs_tol *= (rt_max - rt_min);
-          }
-          rt_min -= abs_tol;
-          rt_max += abs_tol;
-        }
         RTMap::const_iterator lower = rt_ref.lower_bound(rt_min);
         RTMap::const_iterator upper = rt_ref.upper_bound(rt_max);
         if (lower != upper) // there's at least one ID within the feature
@@ -1154,88 +1102,17 @@ namespace OpenMS
       }
     }
 
-    // if internal IDs matched to feature candidates, find the best candidate
+    // if internal IDs matched to feature candidates, select the best candidate:
     // (with the most IDs):
-    set<ID::ObservationMatchRef> assigned_ids;
-    if (!feat_ids.empty())
+    if (best_count > 0)
     {
-      Size best_index = 0;
-      Size best_count = 0;
-      for (const auto& pair : feat_ids)
-      {
-        Size current_index = pair.first;
-        Size current_count = pair.second.size();
-        if ((current_count > best_count) ||
-            ((current_count == best_count) && // break ties by intensity
-             (features[current_index].getIntensity() >
-              features[best_index].getIntensity())))
-        {
-          best_count = current_count;
-          best_index = current_index;
-        }
-      }
-      // assign IDs:
-      if (best_count > 0)
-      {
-        // we define the (one) feature with most matching IDs as correct:
-        features[best_index].setMetaValue("feature_class", "positive");
-        features[best_index].getPeptideIdentifications().reserve(best_count);
-        // in theory, ObservationMatches from different MS runs could have the
-        // same key, so avoid duplicates:
-        set<PepIDKey> pep_id_keys;
-        for (ID::ObservationMatchRef ref : feat_ids[best_index])
-        {
-          String adduct;
-          if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
-          auto key = make_tuple(ref->observation_ref->rt, ref->observation_ref->mz,
-                                ref->identified_molecule_var.toString(), adduct);
-          pep_id_keys.insert(key);
-        }
-        lookUpPeptideIDs_(pep_id_keys,
-                          features[best_index].getPeptideIdentifications());
-        assigned_ids.insert(feat_ids[best_index].begin(),
-                            feat_ids[best_index].end());
-      }
+      // we define the (one) feature with most matching IDs as correct:
+      features[best_index].setMetaValue("feature_class", "positive");
+      features[best_index].setPrimaryID(target_data.molecule);
     }
-    // store unassigned IDs from the current RT region:
-    set<PepIDKey> pep_id_keys; // same as above, to avoid duplicates
-    for (const auto& pair : rt_internal)
-    {
-      ID::ObservationMatchRef ref = pair.second;
-      String adduct;
-      if (ref->adduct_opt) adduct = (*ref->adduct_opt)->getName();
-      if (!assigned_ids.count(ref))
-      {
-        auto key = make_tuple(ref->observation_ref->rt, ref->observation_ref->mz,
-                              ref->identified_molecule_var.toString(), adduct);
-        pep_id_keys.insert(key);
-      }
-    }
-    lookUpPeptideIDs_(pep_id_keys,
-                      features.getUnassignedPeptideIdentifications());
+
     // clear internal IDs for this target (no longer needed):
     rt_internal.clear();
-  }
-
-
-  void FeatureFinderIdentificationAlgorithm::lookUpPeptideIDs_(
-    const set<PepIDKey> pep_id_keys, vector<PeptideIdentification>& output)
-  {
-    for (const PepIDKey& key : pep_id_keys)
-    {
-      auto range = pep_id_lookup_.equal_range(key);
-      if (range.first == range.second) // key not found
-      {
-        String msg = "PeptideIdentification at RT=" + String(get<0>(key)) +
-          ", m/z=" + String(get<1>(key)) + ", id=" + get<2>(key) + ", adduct=" + get<3>(key);
-        throw Exception::ElementNotFound(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-      for (auto it = range.first; it != range.second; ++it)
-      {
-        output.push_back(*(it->second));
-      }
-    }
   }
 
 
@@ -1581,12 +1458,14 @@ namespace OpenMS
 
 
   void FeatureFinderIdentificationAlgorithm::filterFeaturesFinalizeAssay_(
-    Feature& best_feature, double best_quality, const double quality_cutoff)
+    Feature& best_feature, double best_quality, const double quality_cutoff,
+    const String& target_id)
   {
     const String& feature_class = best_feature.getMetaValue("feature_class");
     if (feature_class == "positive") // true positive prediction
     {
       svm_probs_internal_[best_quality].first++;
+      // feature primary ID is already set in this case
     }
     else if ((feature_class == "negative")  || // false positive prediction
              (feature_class == "ambiguous")) // let's be strict about this
@@ -1596,9 +1475,9 @@ namespace OpenMS
     else if (feature_class == "unknown")
     {
       svm_probs_external_.insert(best_quality);
-      if (best_quality >= quality_cutoff)
+      if (best_quality >= quality_cutoff) // winning prediction for this assay
       {
-        best_feature.setOverallQuality(best_quality);
+        best_feature.setPrimaryID(target_map_.at(target_id).molecule);
         ++n_external_features_;
       }
     }
@@ -1620,27 +1499,26 @@ namespace OpenMS
       FeatureMap::Iterator best_it = features.begin();
       double best_quality = 0.0;
       String previous_id;
+      pair<String, Int> target_id_pair;
       for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
       {
         // features from same assay (same "PeptideRef") appear consecutively;
         // if this is a new assay, finalize the previous one:
-        String target_id = it->getMetaValue("PeptideRef");
-        // remove region number, if present:
-        Size pos_slash = target_id.rfind('/');
-        Size pos_hash = target_id.find('#', pos_slash + 2);
-        target_id = target_id.substr(0, pos_hash);
-
+        target_id_pair = extractTargetID_(*it, true);
+        // target ID incl. charge:
+        String target_id = target_id_pair.first + "/" + String(target_id_pair.second);
         if (target_id != previous_id)
         {
           if (!previous_id.empty())
           {
-            filterFeaturesFinalizeAssay_(*best_it, best_quality, svm_quality_cutoff);
+            filterFeaturesFinalizeAssay_(*best_it, best_quality, svm_quality_cutoff,
+                                         target_id_pair.first);
             best_quality = 0.0;
           }
           previous_id = target_id;
         }
 
-        // update qualities:
+        // find feature with best quality (from SVM prediction):
         if ((it->getOverallQuality() > best_quality) ||
             // break ties by intensity:
             ((it->getOverallQuality() == best_quality) &&
@@ -1653,23 +1531,17 @@ namespace OpenMS
         {
           n_internal_features_++;
         }
-        else
-        {
-          it->setOverallQuality(0.0); // gets overwritten for "best" candidate
-        }
       }
-      // set of features from the last assay:
-      filterFeaturesFinalizeAssay_(*best_it, best_quality, svm_quality_cutoff);
+      // finalize set of features from the last assay:
+      filterFeaturesFinalizeAssay_(*best_it, best_quality, svm_quality_cutoff,
+                                   target_id_pair.first);
+    }
 
-      features.erase(remove_if(features.begin(), features.end(),
-                               feature_filter_quality_), features.end());
-    }
-    else
-    {
-      // remove features without ID (or pseudo ID from seeds)
-      features.erase(remove_if(features.begin(), features.end(),
-                               feature_filter_peptides_), features.end());
-    }
+    // remove "losing" feature candidates (without assigned primary ID):
+    features.erase(remove_if(features.begin(), features.end(),
+                             [](const Feature& feature)
+                             { return !feature.hasPrimaryID(); }),
+                   features.end());
   }
 
 
