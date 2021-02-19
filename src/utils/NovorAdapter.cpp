@@ -108,10 +108,10 @@ public:
   TOPPNovorAdapter() :
     TOPPBase("NovorAdapter", "Template for Tool creation", false, 
     {
-      {"Ma Bin",
-       "Novor: Real-Time Peptide de Novo Sequencing Software",
-       "Journal of The American Society for Mass Spectrometry; 30 June 2015",
-       "0.1007/s13361-015-1204-0"}
+      Citation{"Ma Bin",
+               "Novor: Real-Time Peptide de Novo Sequencing Software",
+               "Journal of The American Society for Mass Spectrometry; 30 June 2015",
+               "10.1007/s13361-015-1204-0"}
     })
     {}
 
