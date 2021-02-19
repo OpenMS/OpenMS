@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
 #include <cmath>
 #include <utility>
 
@@ -345,6 +347,38 @@ namespace OpenMS
       return (1.0 - h) * qs + h * x[hi];
     }
 
+    // portable random shuffle
+    class OPENMS_DLLAPI RandomShuffler
+    {
+    public:
+      explicit RandomShuffler(int seed):
+      rng_(boost::mt19937_64(seed))
+      {}
+
+      explicit RandomShuffler(const boost::mt19937_64& mt_rng):
+          rng_(mt_rng)
+      {}
+
+      RandomShuffler() = default;
+      ~RandomShuffler() = default;
+
+      boost::mt19937_64 rng_;
+      template <class RandomAccessIterator>
+      void portable_random_shuffle (RandomAccessIterator first, RandomAccessIterator last)
+      {
+        for (auto i = (last-first)-1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE
+        {
+          boost::uniform_int<decltype(i)> d(0, i);
+          std::swap(first[i], first[d(rng_)]);
+        }
+      }
+
+
+      void seed(uint64_t val)
+      {
+        rng_.seed(val);
+      }
+    };
   } // namespace Math
 } // namespace OpenMS
 

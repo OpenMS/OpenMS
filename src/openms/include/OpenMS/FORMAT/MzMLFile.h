@@ -179,21 +179,25 @@ public:
     struct SpecInfo
     {
       Size count_centroided = 0;
-      Size count_profile_or_unknown = 0;
+      Size count_profile = 0;
+      Size count_unknown = 0;
     };
       
     /**
-     * @brief Gets info on centroidedness of spectra based on their metadata
+     * @brief Check type of spectra based on their metadata (if available) or by inspecting the spectra.
      * 
-     * The current PeakFileOptions, e.g. which MS-level to read/skip, are honored.
+     * By default, only the first @p first_n_spectra_only are checked to save time.
+     * The current PeakFileOptions, e.g. which MS-level to read/skip, are honored, e.g. skipped spectra do not count
+     * towards @p first_n_spectra_only.
      * 
      * @param filename File name of the mzML file to be checked
+     * @param first_n_spectra_only Only inspect this many spectra and then end parsing the file
      * 
-     * @return Map from MS level to counts (centroided, non-centroided)
+     * @return Map of MS level to counts (centroided, profile, unknown)
      * 
      * @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    std::map<UInt, SpecInfo> getCentroidInfo(const String& filename);
+    std::map<UInt, SpecInfo> getCentroidInfo(const String& filename, const Size first_n_spectra_only = 10);
 
 protected:
 

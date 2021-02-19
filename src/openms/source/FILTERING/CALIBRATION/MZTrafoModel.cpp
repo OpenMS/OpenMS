@@ -61,6 +61,7 @@ namespace OpenMS
   const std::string MZTrafoModel::names_of_modeltype[] = {"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"};
 
   Math::RANSACParam* MZTrafoModel::ransac_params_ = nullptr;
+  int MZTrafoModel::ransac_seed_ = time(nullptr);
   double MZTrafoModel::limit_offset_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_scale_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_power_ = std::numeric_limits<double>::max(); // no limit by default
@@ -78,14 +79,18 @@ namespace OpenMS
     return names_of_modeltype[mt];
   }
 
-  void MZTrafoModel::setRANSACParams( const Math::RANSACParam& p )
+  void MZTrafoModel::setRANSACParams(const Math::RANSACParam& p)
   {
-    if (ransac_params_ != nullptr) delete ransac_params_;
+    delete ransac_params_;
     ransac_params_ = new Math::RANSACParam(p);
-    //std::cerr << p.toString();
   }
 
-  void MZTrafoModel::setCoefficientLimits( double offset, double scale, double power )
+  void MZTrafoModel::setRANSACSeed(int seed)
+  {
+    ransac_seed_ = seed;
+  }
+
+  void MZTrafoModel::setCoefficientLimits(double offset, double scale, double power)
   {
     limit_offset_ = fabs(offset);
     limit_scale_ = fabs(scale);
@@ -200,9 +205,9 @@ namespace OpenMS
           std::vector<std::pair<double, double> > r, pairs;
           for (Size i = 0; i < obs_mz.size(); ++i)
           {
-            pairs.push_back(std::make_pair(theo_mz[i], obs_mz[i]));
+            pairs.emplace_back(theo_mz[i], obs_mz[i]);
           }
-          r = Math::RANSAC<Math::RansacModelLinear>().ransac(pairs, *ransac_params_);
+          r = Math::RANSAC<Math::RansacModelLinear>(ransac_seed_).ransac(pairs, *ransac_params_);
           if (r.size() < 2)
           {
             return false; // RANSAC failed
@@ -245,9 +250,9 @@ namespace OpenMS
           std::vector<std::pair<double, double> > r, pairs;
           for (Size i = 0; i < obs_mz.size(); ++i)
           {
-            pairs.push_back(std::make_pair(theo_mz[i], obs_mz[i]));
+            pairs.emplace_back(theo_mz[i], obs_mz[i]);
           }
-          r = Math::RANSAC<Math::RansacModelQuadratic>().ransac(pairs, *ransac_params_);
+          r = Math::RANSAC<Math::RansacModelQuadratic>(ransac_seed_).ransac(pairs, *ransac_params_);
           obs_mz.clear();
           theo_mz.clear();
           for (Size i = 0; i < r.size(); ++i)
@@ -316,7 +321,7 @@ namespace OpenMS
   Size MZTrafoModel::findNearest( const std::vector<MZTrafoModel>& tms, double rt )
   {
     // no peak => no search
-    if (tms.size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one model to determine the nearest model!");
+    if (tms.empty()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one model to determine the nearest model!");
 
     // search for position for inserting
     std::vector<MZTrafoModel>::const_iterator it = lower_bound(tms.begin(), tms.end(), rt, MZTrafoModel::RTLess());
