@@ -279,9 +279,9 @@ namespace OpenMS
       */
       extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM;
 
-      extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_PPM_METAVALUE;
+      extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM;
 
-      extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_DA_METAVALUE;
+      extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_DA_METAVALUE_USERPARAM;
 
       /** User parameter name for fragment annotations
               String
