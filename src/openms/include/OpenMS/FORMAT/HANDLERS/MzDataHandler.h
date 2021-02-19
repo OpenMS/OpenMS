@@ -207,7 +207,7 @@ protected:
       inline void writeBinary_(std::ostream & os, Size size, const String & tag, const String & name = "", SignedSize id = -1);
 
       //Data processing auxiliary variable
-      boost::shared_ptr< DataProcessing > data_processing_;
+      std::shared_ptr< DataProcessing > data_processing_;
 
     };
 

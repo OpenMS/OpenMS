@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
 
 # TODO C++ compiler errors
 # pyopenms/pyopenms.cpp: error: template argument 1 is invalid
-# on boost::shared_ptr<OpenMS::IsotopeWaveletTransform::TransSpectrum> inst;
+# on std::shared_ptr<OpenMS::IsotopeWaveletTransform::TransSpectrum> inst;
 # cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>" namespace "OpenMS::IsotopeWaveletTransform":
 
 #     cdef cppclass TransSpectrum "OpenMS::IsotopeWaveletTransform::TransSpectrum":

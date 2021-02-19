@@ -128,11 +128,11 @@ START_SECTION(([EXTRA]virtual ~SwathFile()))
 END_SECTION
 
 // fast
-START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") )
+START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") )
 {
   Size nr_swathes = 6;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
   std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", "./", meta);
 
   TEST_EQUAL(maps.size(), nr_swathes+1)
@@ -151,11 +151,11 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tm
 END_SECTION
 
 // medium (2x slower than normal mzML)
-START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") )
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") )
 {
   Size nr_swathes = 2;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
   std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", "./", meta, "cache");
 
   TEST_EQUAL(maps.size(), nr_swathes+1)
@@ -174,7 +174,7 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, St
 END_SECTION
 
 // medium (2x slower than normal mzML)
-START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal"))
+START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal"))
 {
   std::vector<String> swath_filenames;
   Size nr_swathes = 3;
@@ -184,7 +184,7 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
     swath_filenames.push_back( String("swathFile_2_sw" ) + String(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
   std::vector< OpenSwath::SwathMap > maps = SwathFile().loadSplit(swath_filenames, "./", meta);
 
   // ensure they are sorted ... 
@@ -207,7 +207,7 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
 END_SECTION
 
 // slow (7x slower than normal mzML)
-START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache"))
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache"))
 {
   std::vector<String> swath_filenames;
   Size nr_swathes = 2;
@@ -217,7 +217,7 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
     swath_filenames.push_back( String("swathFile_3_sw" ) + String(i) + ".tmp");
   }
   storeSplitSwathFile(swath_filenames);
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
+  std::shared_ptr<ExperimentalSettings> meta = std::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
   std::vector< OpenSwath::SwathMap > maps = SwathFile().loadSplit(swath_filenames, "./", meta, "cache");
   // ensure they are sorted ... 
   std::sort(maps.begin(), maps.end(), sortSwathMaps);
@@ -238,7 +238,7 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
 }
 END_SECTION
 
-START_SECTION((std::vector< OpenSwath::SwathMap > loadMzXML(String file, String tmp, boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") ) )
+START_SECTION((std::vector< OpenSwath::SwathMap > loadMzXML(String file, String tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") ) )
 {
   NOT_TESTABLE // mzXML is not supported
 }

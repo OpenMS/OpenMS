@@ -582,7 +582,7 @@ namespace OpenMS
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileClass>");
       String svm_filename(*(++left_marker));
 
-      boost::shared_ptr<SVMWrapper> sh_ptr_c(new SVMWrapper);
+      std::shared_ptr<SVMWrapper> sh_ptr_c(new SVMWrapper);
       sh_ptr_c.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.class_models.push_back(sh_ptr_c);
@@ -592,7 +592,7 @@ namespace OpenMS
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileReg>");
       svm_filename = *(++left_marker);
 
-      boost::shared_ptr<SVMWrapper> sh_ptr_r(new SVMWrapper);
+      std::shared_ptr<SVMWrapper> sh_ptr_r(new SVMWrapper);
       sh_ptr_r.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.reg_models.push_back(sh_ptr_r);

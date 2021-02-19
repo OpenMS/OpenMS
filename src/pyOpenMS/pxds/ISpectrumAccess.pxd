@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>" namespace
       ISpectrumAccess() nogil except +
       ISpectrumAccess(ISpectrumAccess) nogil except +
 
-      # virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
+      # virtual std::shared_ptr<ISpectrumAccess> lightClone() const = 0;
 
       shared_ptr[OSSpectrum] getSpectrumById(int id_) nogil except +
       libcpp_vector[size_t] getSpectraByRT(double RT, double deltaRT) nogil except +

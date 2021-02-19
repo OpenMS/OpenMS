@@ -171,7 +171,7 @@ private:
     };
 
     //Sim Shared Pointer type
-    typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
+    typedef std::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
 
   }
 

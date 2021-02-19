@@ -77,12 +77,12 @@ public:
      static double DebugMonoIsoMassMax;
      */
 
-    CentroidData(int, boost::shared_ptr<RawData>, bool);
-    CentroidData(int, boost::shared_ptr<RawData>, double, bool);
+    CentroidData(int, std::shared_ptr<RawData>, bool);
+    CentroidData(int, std::shared_ptr<RawData>, double, bool);
     virtual ~CentroidData();
 
     void get(std::list<CentroidPeak> &);
-    void set(boost::shared_ptr<RawData>);
+    void set(std::shared_ptr<RawData>);
     void set(std::vector<double> &, std::vector<double> &);
 
     void setWidth(int pWidth);
@@ -101,7 +101,7 @@ public:
 
 protected:
 
-    void calcCentroids(boost::shared_ptr<RawData>);
+    void calcCentroids(std::shared_ptr<RawData>);
 
     int fWindowWidth;
     double fNoise;
