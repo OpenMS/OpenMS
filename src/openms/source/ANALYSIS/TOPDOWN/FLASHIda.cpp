@@ -134,9 +134,10 @@ namespace OpenMS
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
     int mass_count = mass_count_[ms_level - 1];
 
-    const auto color_order = std::vector<char>({'B', 'R', 'G', 'b', 'r'});
+    const auto color_order = std::vector<char>({'B', 'R', 'b', 'r'});
 
     std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map; // integer mass, rt, qscore
+    std::unordered_map<int, double> new_mass_qscore_map;
     std::unordered_map<int, char> new_color_map; // integer mass, color
 
     for (auto &item : mass_rt_qscore_map_)
@@ -148,7 +149,7 @@ namespace OpenMS
       new_mass_rt_qscore_map[item.first] = item.second;
     }
 
-    for (auto& item : mass_color_map_)
+    for (auto &item : mass_color_map_)
     {
       if (new_mass_rt_qscore_map.find(item.first) == new_mass_rt_qscore_map.end())
       {
@@ -157,16 +158,41 @@ namespace OpenMS
       new_color_map[item.first] = item.second;
     }
 
-    for (auto& pg : deconvoluted_spectrum_) // now update color and new_mass_rt_qscore_map
+    for (Size i = 0; i < deconvoluted_spectrum_.size(); i++) // now update new_mass_qscore_map, per mass max qscore
     {
+      auto pg = deconvoluted_spectrum_[i];
       int m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
       double qscore = pg.getQScore();
 
-      if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end()){ // new mass
+      if (new_mass_qscore_map.find(m) == new_mass_qscore_map.end())
+      { // new mass
+        new_mass_qscore_map[m] = qscore;
+      }
+      else if (new_mass_qscore_map[m] < qscore)
+      { // increasing mass
+        new_mass_qscore_map[m] = qscore;
+      }
+    }
+
+    std::map<char, int> color_count_map = {{'R', 0},
+                                           {'r', 0},
+                                           {'B', 0},
+                                           {'b', 0},
+                                           {'G', 0}};
+
+    for (auto &item : new_mass_qscore_map) // now update color and new_mass_rt_qscore_map
+    {
+      int m = item.first;
+      double qscore = item.second;
+
+      if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end())
+      {
         new_mass_rt_qscore_map[m] = std::vector<double>(2);
         new_mass_rt_qscore_map[m][1] = qscore;
         new_color_map[m] = 'G';
-      }else if (new_mass_rt_qscore_map[m][1] < qscore) { // increasing mass
+      }
+      else if (new_mass_rt_qscore_map[m][1] < qscore)
+      { // increasing mass
         new_mass_rt_qscore_map[m][1] = qscore;
         if (new_color_map[m] == 'G' || new_color_map[m] == 'R')
         {//new_color_map.find(m) == new_color_map.end() ||
@@ -176,7 +202,9 @@ namespace OpenMS
         {
           new_color_map[m] = 'b';
         }
-      }else{ // decreasing mass
+      }
+      else
+      { // decreasing mass
         if (new_color_map[m] == 'G' || new_color_map[m] == 'B')
         {//new_color_map.find(m) == new_color_map.end() ||
           new_color_map[m] = 'R';
@@ -186,8 +214,23 @@ namespace OpenMS
           new_color_map[m] = 'r';
         }
       }
+      char new_color = new_color_map[m];
+      color_count_map[new_color]++;
+
       new_mass_rt_qscore_map[m][0] = rt;
     }
+
+    std::cout << "%";
+    for (auto &item:color_count_map)
+    {
+      std::cout << item.first << " ";
+    }
+    std::cout << "\n";
+    for (auto &item:color_count_map)
+    {
+      std::cout << item.second << " ";
+    }
+    std::cout << "\n";
 
     new_mass_rt_qscore_map.swap(mass_rt_qscore_map_);
     std::unordered_map<int, std::vector<double>>().swap(new_mass_rt_qscore_map);

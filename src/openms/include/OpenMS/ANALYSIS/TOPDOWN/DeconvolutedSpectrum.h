@@ -106,8 +106,11 @@ namespace OpenMS
       @param fs file stream to the output file
       @param index the index to the spectrum. updated outside.
       @param avg averagine information to calculate monoisotope and average mass difference
+      @param harmonic_factor this factor will be multipled to precursor mass and charge. To generate decoy spectra
+      @param precursor_offset this value will be added to precursor mass. To generate decoy spectra
  */
-    void writeTopFD(std::fstream& fs, const int index, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
+    void writeTopFD(std::fstream &fs, const int index, const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+                    const double harmonic_factor = 1.0, const double precursor_offset = .0);
 
     /// cast DeconvolutedSpectrum into MSSpectrum object to write mzml format
     ///  @param mass_charge the charge of each mass for mzml output

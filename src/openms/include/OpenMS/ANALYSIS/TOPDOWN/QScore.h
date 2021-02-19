@@ -58,6 +58,7 @@ namespace OpenMS
 
     /// function to generate attribute tsv file for weka interface (for now)
     static void writeAttTsv(const String &acc,
+                            const int proID,
                             const double rt,
                             const double pmass,
                             const double pmz,

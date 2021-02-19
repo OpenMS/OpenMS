@@ -107,10 +107,11 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream& f)
   {
     f
-        << "ACC,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
   }
 
   void QScore::writeAttTsv(const String &acc,
+                           const int proID,
                            const double rt,
                            const double pmass,
                            const double pmz,
@@ -125,7 +126,8 @@ namespace OpenMS
     if (pg.empty())
     {
       // return;
-      f << acc << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass) << "," << pmz
+      f << acc << "," << proID << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass)
+        << "," << pmz
         << "," << precursor_intensity << ","
         << ",0,";
       f << "0,0,0,0,0,-5,";
@@ -139,7 +141,8 @@ namespace OpenMS
 
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << acc << "," << rt << "," << monomass << "," << mass << "," << pmz << "," << precursor_intensity << ","
+      f << acc << "," << proID << "," << rt << "," << monomass << "," << mass << "," << pmz << ","
+        << precursor_intensity << ","
         << pg.getRepAbsCharge() << ",";
       for (auto &item : fv)
       {

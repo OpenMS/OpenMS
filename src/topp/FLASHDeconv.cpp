@@ -283,6 +283,7 @@ protected:
     }
 
     std::unordered_map<int, double> train_scan_numbers;
+    std::unordered_map<int, int> train_scan_proID;
     std::unordered_map<int, String> train_scan_accessions;
     if (!in_train_file.empty() && !out_train_file.empty())
     {
@@ -314,6 +315,7 @@ protected:
         train_scan_accessions[std::stoi(results[4])] = acc.substr(first + 1, second - first - 1);
         //std::cout<<acc.substr(first+1, second - first)<<std::endl;
         train_scan_numbers[std::stoi(results[4])] = std::stod(results[9]);
+        train_scan_proID[std::stoi(results[4])] = std::stoi(results[10]);
       }
       in_trainstream.close();
     }
@@ -615,30 +617,6 @@ protected:
       {
         precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
-      /*
-            if(!tmp_map.empty() && ms_level > 1 ){
-              auto pmz = it->getPrecursors()[0].getMZ();
-              for(int sn = scan_number; sn > scan_number - 100;sn--){
-                if(tmp_map.find(sn) == tmp_map.end()){
-                  continue;
-                }
-                auto stmp = tmp_map[sn];// m/z, charge
-                bool set = false;
-                for(auto st : stmp){
-                  if(abs(st.first - pmz) > 0.1){
-                    continue;
-                  }
-                  it->getPrecursors()[0].setCharge(st.second);
-                  //std::cout<<it->getPrecursors()[0].getCharge()<<std::endl;
-                  set = true;
-                  break;
-                }
-                if(set){
-                  break;
-                }
-              }
-            }
-                    */        // per spec deconvolution
 
       std::vector<Precursor> triggeredPeaks;
       if (ms_level < current_max_ms_level)
@@ -673,7 +651,8 @@ protected:
         double pmass =
             train_scan_numbers.find(scan_number) == train_scan_numbers.end() ? .0 : train_scan_numbers[scan_number];
         double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
-        QScore::writeAttTsv(train_scan_accessions[scan_number],
+
+        QScore::writeAttTsv(train_scan_accessions[scan_number], train_scan_proID[scan_number],
                             deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
                             deconvoluted_spectrum.getPrecursorPeakGroup(),
                             deconvoluted_spectrum.getPrecursorCharge(), precursor_intensity,
@@ -728,6 +707,12 @@ protected:
       if (out_topfd_streams.size() > ms_level - 1)
       {
         deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number, avg);
+
+        //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 100000, avg, 2);
+        //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 200000, avg, .5);
+        //double precursor_offset = ((double) rand() / (RAND_MAX)) * 90 + 10; // 10 - 100
+        //precursor_offset = ((double) rand() / (RAND_MAX))>.5? precursor_offset : -precursor_offset;
+        //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 300000, avg, 1, precursor_offset);
       }
 
       //deconvoluted_spectrum_.clearPeakGroupsChargeInfo();
