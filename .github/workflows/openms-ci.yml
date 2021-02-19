@@ -118,7 +118,7 @@ jobs:
 
     - name: Tests osx
       run: |
-          ctest --output-on-failure -V -S ../OpenMS/tools/travis/cibuild.cmake
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/tools/travis/cibuild.cmake
 
   build-lnx:
     runs-on: ubuntu-latest
@@ -156,4 +156,4 @@ jobs:
 
     - name: Tests manylinux
       run: |
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/tools/travis/cibuild.cmake
