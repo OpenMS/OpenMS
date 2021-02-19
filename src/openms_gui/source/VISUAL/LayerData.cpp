@@ -100,7 +100,7 @@ namespace OpenMS
 
   const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
   {
-    return boost::static_pointer_cast<const ExperimentType>(peak_map_);
+    return std::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
   void LayerData::updateRanges()
