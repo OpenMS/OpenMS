@@ -32,12 +32,12 @@
 // $Authors: Eva Lange, Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
+
+#include <cmath>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -681,7 +681,6 @@ namespace OpenMS
     sech.r_value = correlate_(sech, area);
 
 #ifdef DEBUG_PEAK_PICKING
-
     std::cout << "r: " << lorentz.r_value << " " << sech.r_value << std::endl;
     std::cout << "pos: " << lorentz.mz_position <<  " " << sech.mz_position << std::endl;
     std::cout << "w1, w2: " << lorentz.left_width << " " << lorentz.right_width << " "
@@ -690,7 +689,7 @@ namespace OpenMS
 #endif
 
     // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
-    if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
+    if ((lorentz.r_value > sech.r_value) || std::isnan(sech.r_value))
     {
       return lorentz;
     }
@@ -714,7 +713,6 @@ namespace OpenMS
 #ifdef DEBUG_DECONV
     std::cout << "------------------\n---------------------\nconvoluted area begin " << shape.getLeftEndpoint()->getMZ() << "\tend " << shape.getRightEndpoint()->getMZ() << std::endl;
 #endif
-
 
     Int charge = 2;
     std::vector<double> peak_values;
@@ -973,8 +971,7 @@ namespace OpenMS
       }
       dif /= peaks - 1;
       charge = (Int) Math::round(1 / dif);
-      if (boost::math::isnan((double)charge) || boost::math::isinf((double)charge))
-        charge = 0;
+      if (std::isnan((double)charge) || std::isinf(charge)) charge = 0;
 #ifdef DEBUG_DECONV
       std::cout << "1/dif = " << 1 / dif << ";\tcharge = " << charge << std::endl;
 #endif

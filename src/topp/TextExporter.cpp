@@ -46,7 +46,7 @@
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 #include <vector>
 #include <algorithm>

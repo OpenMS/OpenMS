@@ -50,7 +50,7 @@ namespace OpenMS
   {
     // @TODO: move "PeakAnnotation" out of "PeptideHit"
     typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
-    typedef std::map<boost::optional<ProcessingStepRef>,
+    typedef std::map<std::optional<ProcessingStepRef>,
                      PeakAnnotations> PeakAnnotationSteps;
 
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
