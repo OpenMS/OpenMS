@@ -163,7 +163,7 @@ START_TEST(FragmentMassError, "$Id$")
     // test with valid input - default parameter
     //--------------------------------------------------------------------
     frag_ma_err.compute(fmap, exp, spectra_map);
-    std::vector<FragmentMassError::FMEStatistics> result = frag_ma_err.getResults();
+    std::vector<FragmentMassError::Statistics> result = frag_ma_err.getResults();
 
     TEST_REAL_SIMILAR(result[0].average_ppm, 5.0)
     TEST_REAL_SIMILAR(result[0].variance_ppm, 0.0)  // offset is constant, i.e. no variance
@@ -174,7 +174,7 @@ START_TEST(FragmentMassError, "$Id$")
 
     FragmentMassError frag_ma_err_ppm;
     frag_ma_err_ppm.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::PPM, 6);
-    std::vector<FragmentMassError::FMEStatistics> result_ppm = frag_ma_err_ppm.getResults();
+    std::vector<FragmentMassError::Statistics> result_ppm = frag_ma_err_ppm.getResults();
 
     TEST_REAL_SIMILAR(result_ppm[0].average_ppm, 5.0)
     TEST_REAL_SIMILAR(result_ppm[0].variance_ppm, 0.0) // offset is constant, i.e. no variance
@@ -184,7 +184,7 @@ START_TEST(FragmentMassError, "$Id$")
     //--------------------------------------------------------------------
     FragmentMassError frag_ma_err_flag_da;
     frag_ma_err_flag_da.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::DA, 1);
-    std::vector<FragmentMassError::FMEStatistics> result_flag_da = frag_ma_err_flag_da.getResults();
+    std::vector<FragmentMassError::Statistics> result_flag_da = frag_ma_err_flag_da.getResults();
 
     TEST_REAL_SIMILAR(result_flag_da[0].average_ppm, 5.0)
     TEST_REAL_SIMILAR(result_flag_da[0].variance_ppm, 0.0)  // offset is constant, i.e. no variance
@@ -252,7 +252,7 @@ START_TEST(FragmentMassError, "$Id$")
 
     FragmentMassError frag_ma_err_excp;
     frag_ma_err_excp.compute(fmap, exp, spectra_map);
-    std::vector<FragmentMassError::FMEStatistics> result_excp;
+    std::vector<FragmentMassError::Statistics> result_excp;
     result_excp = frag_ma_err_excp.getResults();
 
     TEST_REAL_SIMILAR(result_excp[0].average_ppm, 0)
@@ -317,7 +317,7 @@ START_TEST(FragmentMassError, "$Id$")
     // test with valid input - default parameter
     //--------------------------------------------------------------------
     frag_ma_err.compute(pep_ids, param, exp, spectra_map);
-    std::vector<FragmentMassError::FMEStatistics> result = frag_ma_err.getResults();
+    std::vector<FragmentMassError::Statistics> result = frag_ma_err.getResults();
 
     TEST_REAL_SIMILAR(result[0].average_ppm, 5.0)
     TEST_REAL_SIMILAR(result[0].variance_ppm, 0.0)  // offset is constant, i.e. no variance
@@ -328,7 +328,7 @@ START_TEST(FragmentMassError, "$Id$")
 
     FragmentMassError frag_ma_err_ppm;
     frag_ma_err_ppm.compute(pep_ids, param, exp, spectra_map, FragmentMassError::ToleranceUnit::PPM, 6);
-    std::vector<FragmentMassError::FMEStatistics> result_ppm = frag_ma_err_ppm.getResults();
+    std::vector<FragmentMassError::Statistics> result_ppm = frag_ma_err_ppm.getResults();
 
     TEST_REAL_SIMILAR(result_ppm[0].average_ppm, 5.0)
     TEST_REAL_SIMILAR(result_ppm[0].variance_ppm, 0.0) // offset is constant, i.e. no variance
@@ -338,7 +338,7 @@ START_TEST(FragmentMassError, "$Id$")
     //--------------------------------------------------------------------
     FragmentMassError frag_ma_err_flag_da;
     frag_ma_err_flag_da.compute(pep_ids, param, exp, spectra_map, FragmentMassError::ToleranceUnit::DA, 1);
-    std::vector<FragmentMassError::FMEStatistics> result_flag_da = frag_ma_err_flag_da.getResults();
+    std::vector<FragmentMassError::Statistics> result_flag_da = frag_ma_err_flag_da.getResults();
 
     TEST_REAL_SIMILAR(result_flag_da[0].average_ppm, 5.0)
     TEST_REAL_SIMILAR(result_flag_da[0].variance_ppm, 0.0)  // offset is constant, i.e. no variance
@@ -403,7 +403,7 @@ START_TEST(FragmentMassError, "$Id$")
 
     FragmentMassError frag_ma_err_excp;
     frag_ma_err_excp.compute(no_peaks_id, param, exp, spectra_map);
-    std::vector<FragmentMassError::FMEStatistics> result_excp;
+    std::vector<FragmentMassError::Statistics> result_excp;
     result_excp = frag_ma_err_excp.getResults();
 
     TEST_REAL_SIMILAR(result_excp[0].average_ppm, 0)

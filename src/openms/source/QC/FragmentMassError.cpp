@@ -190,8 +190,8 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     // WRITE PPM ERROR IN PEPTIDEHIT
     //-----------------------------------------------------------------------
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE, ppms);
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE, dalton);
+    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM, ppms);
+    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM, dalton);
   }
 
   void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm)

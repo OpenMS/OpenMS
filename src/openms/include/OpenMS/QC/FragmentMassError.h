@@ -73,11 +73,12 @@ namespace OpenMS
     };
 
     /**
-     * @brief computes FragmentMassError in ppm and Dalton (only of the first PeptideHit of each PepID)
+     * @brief computes FragmentMassError (FME) in ppm and Dalton (only of the first PeptideHit of each PepID)
      *
-     * Stores average and variance of FragmentMassErrors in ppm as a struct in a vector.
-     * Each FragmentMassError (in ppm) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_ppm".
-     * Each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_da".
+     * Stores average FME over all spectra (one for each PeptideIdentification) and its variance in ppm as a struct in a vector.
+     * Each FME (in ppm) is stored at the first PeptideHit of the corresponding PeptideIdentification as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
+     * and contains the FME for each peak in the corresponding spectrum.
+     * Same is done for the FME in Da - as metavalue Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM.
      *
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
@@ -93,11 +94,12 @@ namespace OpenMS
     void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /**
-      * @brief computes FragmentMassError in ppm and Dalton (only of the first PeptideHit of each PepID)
+      * @brief computes FragmentMassError (FME) in ppm and Dalton (only of the first PeptideHit of each PepID)
       *
-      * Stores average and variance of FragmentMassErrors in ppm as a struct in a vector.
-      * Each FragmentMassError (in ppm) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_ppm".
-      * Each FragmentMassError (in Da) is stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "fragment_mass_error_da".
+      * Stores average FME over all spectra and its variance in ppm as a struct in a vector.
+      * Each FME (in ppm) is stored at the first PeptideHit of the corresponding PeptideIdentification as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
+      * and contains the FME for each peak in the corresponding spectrum.
+      * Same is done for the FME in Da - as metavalue Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM.
       *
       * @param pep_ids Input vector of peptide identifications for annotation and data for theoretical spectra
       * @param search_params Input search parameters (corresponding to ID search that generated @param pep_ids) for finding fragment mass tolerance and unit automaticly
@@ -128,7 +130,7 @@ namespace OpenMS
 
   private:
     /// container that stores results
-    std::vector<Statistics> results_{};
+    std::vector<Statistics> results_;
   };
 
 } //namespace OpenMS
