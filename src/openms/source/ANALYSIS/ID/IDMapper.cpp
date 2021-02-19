@@ -143,7 +143,7 @@ namespace OpenMS
             map[spectrum_idx].getPeptideIdentifications().push_back(peptide_ids[i]);
             peptides_mapped.insert(i);
           } 
-          catch (const Exception::ElementNotFound& e) 
+          catch (const Exception::ElementNotFound& /*e*/) 
           { // use RT for mapping
             identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
           }
