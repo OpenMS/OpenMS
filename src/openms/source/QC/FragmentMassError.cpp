@@ -190,11 +190,11 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     // WRITE PPM ERROR IN PEPTIDEHIT
     //-----------------------------------------------------------------------
-    pep_id.getHits()[0].setMetaValue("fragment_mass_error_ppm", ppms);
-    pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
+    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE, ppms);
+    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE, dalton);
   }
 
-  void calculateVariance_(FragmentMassError::FMEStatistics& result, const PeptideIdentification& pep_id)
+  void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm)
   {
     if (pep_id.getHits().empty())
     {
@@ -203,14 +203,16 @@ namespace OpenMS
     }
     for (const auto& ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
     {
-      result.variance_ppm += pow((ppm - result.average_ppm), 2);
+      double tmp = ppm - result.average_ppm;
+      result.variance_ppm += tmp*tmp;
     }
+    result.variance_ppm = result.variance_ppm / num_ppm;
   }
 
 
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
-    FMEStatistics result;
+    Statistics result;
 
     bool has_pepIDs = QCBase::hasPepID(fmap);
     // if there are no matching peaks, the counter is zero and it is not possible to find ppms
@@ -264,9 +266,9 @@ namespace OpenMS
     };
 
     auto fVar =
-        [&result](const PeptideIdentification& pep_id)
+        [&result, &counter_ppm](const PeptideIdentification& pep_id)
     {
-      calculateVariance_(result, pep_id);
+      calculateVariance_(result, pep_id, counter_ppm);
     };
 
     // computation of ppms
@@ -284,15 +286,13 @@ namespace OpenMS
     // computes variance
     fmap.applyFunctionOnPeptideIDs(fVar);
 
-    result.variance_ppm = result.variance_ppm / counter_ppm;
-
     results_.push_back(result);
 
   }
 
   void FragmentMassError::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
-    FMEStatistics result;
+    Statistics result;
 
     if (pep_ids.empty())
     {
@@ -347,17 +347,8 @@ namespace OpenMS
       // computes average
       result.average_ppm = accumulator_ppm / counter_ppm;
 
-      calculateVariance_(result, pep_id);
+      calculateVariance_(result, pep_id, counter_ppm);
     }
-
-    // if there are no matching peaks, the counter is zero and it is not possible to find ppms
-    if (counter_ppm == 0)
-    {
-      results_.push_back(result);
-      return;
-    }
-
-    result.variance_ppm = result.variance_ppm / counter_ppm;
 
     results_.push_back(result);
   }
@@ -368,7 +359,7 @@ namespace OpenMS
     return name;
   }
 
-  const std::vector<FragmentMassError::FMEStatistics>& FragmentMassError::getResults() const
+  const std::vector<FragmentMassError::Statistics>& FragmentMassError::getResults() const
   {
     return results_;
   }
