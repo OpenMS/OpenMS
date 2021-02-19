@@ -60,7 +60,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/build/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
-          SOURCE_DIRECTORY: $GITHUB_WORKSPACE
+          SOURCE_DIRECTORY: $GITHUB_WORKSPACE/OpenMS/
           BUILD_PATH: $GITHUB_WORKSPACE/build/
           BUILD_NAME: "openms-ci-${GITHUB_REPOSITORY}-${GITHUB_HEAD_REF}-${GITHUB_BASE_REF}"
           OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
@@ -140,7 +140,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/build/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
-          SOURCE_DIRECTORY: $GITHUB_WORKSPACE
+          SOURCE_DIRECTORY: $GITHUB_WORKSPACE/OpenMS/
           BUILD_PATH: $GITHUB_WORKSPACE/build/
           BUILD_NAME: "openms-ci-${GITHUB_REPOSITORY}-${GITHUB_HEAD_REF}-${GITHUB_BASE_REF}"
           OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
@@ -193,7 +193,7 @@ jobs:
           mkdir  $GITHUB_WORKSPACE/build/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
-          SOURCE_DIRECTORY: $GITHUB_WORKSPACE
+          SOURCE_DIRECTORY: $GITHUB_WORKSPACE/OpenMS/
           BUILD_PATH: $GITHUB_WORKSPACE/build/
           BUILD_NAME: "openms-ci-${GITHUB_REPOSITORY}-${GITHUB_HEAD_REF}-${GITHUB_BASE_REF}"
           OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
