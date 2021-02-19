@@ -63,7 +63,7 @@ jobs:
           SOURCE_DIRECTORY: $GITHUB_WORKSPACE
           BUILD_PATH: $GITHUB_WORKSPACE/build/
           BUILD_NAME: "openms-ci-${GITHUB_REPOSITORY}-${GITHUB_HEAD_REF}-${GITHUB_BASE_REF}"
-          OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"          
+          OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/contribbld"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
