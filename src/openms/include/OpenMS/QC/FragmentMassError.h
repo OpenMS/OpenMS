@@ -66,7 +66,7 @@ namespace OpenMS
     /**
      * @brief Structure for storing results: average and variance of all FragmentMassErrors in ppm
      */
-    struct FMEStatistics
+    struct Statistics
     {
       double average_ppm = 0;
       double variance_ppm = 0;
@@ -117,7 +117,7 @@ namespace OpenMS
     const String& getName() const override;
     
     /// returns results
-    const std::vector<FMEStatistics>& getResults() const;
+    const std::vector<Statistics>& getResults() const;
 
 
     /**
@@ -128,7 +128,7 @@ namespace OpenMS
 
   private:
     /// container that stores results
-    std::vector<FMEStatistics> results_{};
+    std::vector<Statistics> results_{};
   };
 
 } //namespace OpenMS
