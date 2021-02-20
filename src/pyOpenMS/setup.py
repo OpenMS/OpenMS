@@ -138,10 +138,10 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 
 import numpy
 
-include_dirs =
-[
+
+include_dirs = [
     "extra_includes",
-    j(numpy.core.__path__[0], "include"),
+    j(numpy.core.__path__[0], "include")
 ]
 
 # append all include and library dirs exported by CMake
