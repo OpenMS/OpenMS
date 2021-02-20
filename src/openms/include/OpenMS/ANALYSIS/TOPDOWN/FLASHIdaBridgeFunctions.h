@@ -45,10 +45,24 @@
 
 namespace OpenMS
 {
-	extern "C" OPENMS_DLLAPI FLASHIda * CreateFLASHIda(char* arg);
-	extern "C" OPENMS_DLLAPI void DisposeFLASHIda(FLASHIda * object);
-	extern "C" OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda * object, double* mzs, double* ints, int length, double rt, int ms_level, char* name);
-	extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda * object,  double* wstart, double* wend, double* qscores, int* charges, double* avg_masses);
+  extern "C" OPENMS_DLLAPI FLASHIda *CreateFLASHIda(char *arg);
+  extern "C" OPENMS_DLLAPI void DisposeFLASHIda(FLASHIda *object);
+  extern "C" OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda *object,
+                                                double *mzs,
+                                                double *ints,
+                                                int length,
+                                                double rt,
+                                                int ms_level,
+                                                char *name);
+  extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda *object,
+                                                    double *wstart,
+                                                    double *wend,
+                                                    double *qscores,
+                                                    int *charges,
+                                                    double *mono_masses,
+                                                    char *colors,
+                                                    double *precursor_intensities,
+                                                    double *peakgroup_intensities);
 
-	static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
+  static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
 }

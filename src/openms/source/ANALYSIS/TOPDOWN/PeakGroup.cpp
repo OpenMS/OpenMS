@@ -202,6 +202,12 @@ namespace OpenMS
     qscore_ = q;
   }
 
+
+  void PeakGroup::setColor(const char color)
+  {
+    color_ = color;
+  }
+
   std::tuple<double, double> PeakGroup::getMaxQScoreMzRange() const
   {
     return std::tuple<double, double>{max_qscore_mz_start_, max_qscore_mz_end_};
@@ -286,4 +292,10 @@ namespace OpenMS
   {
     return is_positive_;
   }
+
+  char PeakGroup::getColor() const
+  {
+    return color_;
+  }
+
 }

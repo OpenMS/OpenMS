@@ -185,18 +185,17 @@ namespace OpenMS
       int m = item.first;
       double qscore = item.second;
 
-      if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end())
-      {
-        new_mass_rt_qscore_map[m] = std::vector<double>(2);
-        new_mass_rt_qscore_map[m][1] = qscore;
-        new_color_map[m] = 'G';
-      }
-      else if (new_mass_rt_qscore_map[m][1] < qscore)
-      { // increasing mass
-        new_mass_rt_qscore_map[m][1] = qscore;
-        if (new_color_map[m] == 'G' || new_color_map[m] == 'R')
-        {//new_color_map.find(m) == new_color_map.end() ||
-          new_color_map[m] = 'B';
+       if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end())
+       {
+         new_mass_rt_qscore_map[m] = std::vector<double>(2);
+         //new_mass_rt_qscore_map[m][1] = qscore;
+         new_color_map[m] = 'G';
+       }
+       else if (new_mass_rt_qscore_map[m][1] < qscore)
+       { // increasing mass
+         if (new_color_map[m] == 'G' || new_color_map[m] == 'R')
+         {//new_color_map.find(m) == new_color_map.end() ||
+           new_color_map[m] = 'B';
         }
         else if (new_color_map[m] == 'r' || new_color_map[m] == 'g')
         {
@@ -218,6 +217,7 @@ namespace OpenMS
       color_count_map[new_color]++;
 
       new_mass_rt_qscore_map[m][0] = rt;
+      new_mass_rt_qscore_map[m][1] = qscore;
     }
 
     std::cout << "%";
@@ -243,47 +243,62 @@ namespace OpenMS
     std::set<int> current_selected_masses; // current selected masses
     std::set<int> current_selected_mzs; // current selected mzs
 
-    for (auto& c: color_order)
+    for (int i = 0; i < 2; i++)
     {
-      for (auto& pg : deconvoluted_spectrum_)
+      for (auto &c: color_order)
       {
-        if (filtered_peakgroups.size() >= mass_count){
+        for (auto &pg : deconvoluted_spectrum_)
+        {
+          if (filtered_peakgroups.size() >= mass_count)
+          {
+            break;
+          }
+          if (i == 0 && pg.getQScore() < qscore_threshold_)
+          {
+            break;
+          }
+          int mz = (int) round((std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+          if (current_selected_mzs.find(mz) != current_selected_mzs.end())
+          {
+            continue;
+          }
+
+          int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+          if (current_selected_masses.find(nominal_mass) != current_selected_masses.end())
+          {
+            continue;
+          }
+          if (mass_color_map_.find(nominal_mass) == mass_color_map_.end() || mass_color_map_[nominal_mass] != c)
+          {
+            continue;
+          }
+
+          char prev_color = mass_color_map_[nominal_mass];
+          pg.setColor(prev_color);
+
+          if (prev_color == 'B')
+          {
+            mass_color_map_[nominal_mass] = 'b';
+          }
+          else if (prev_color == 'R')
+          {
+            mass_color_map_[nominal_mass] = 'r';
+          }
+          else if (prev_color == 'G')
+          {
+            mass_color_map_[nominal_mass] = 'g';
+          }
+
+          filtered_peakgroups.push_back(pg);
+          current_selected_masses.insert(nominal_mass - 1);
+          current_selected_masses.insert(nominal_mass);
+          current_selected_masses.insert(nominal_mass + 1);
+          current_selected_mzs.insert(mz);
+        }
+        if (filtered_peakgroups.size() >= mass_count)
+        {
           break;
         }
-        if (pg.getQScore() < qscore_threshold_)
-        {
-          break;
-        }
-        int mz = (int)round((std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
-        if (current_selected_mzs.find(mz) != current_selected_mzs.end()) {
-          continue;
-        }
-
-        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-        if (current_selected_masses.find(nominal_mass) != current_selected_masses.end()) {
-          continue;
-        }
-        if(mass_color_map_.find(nominal_mass) == mass_color_map_.end() || mass_color_map_[nominal_mass] != c){
-          continue;
-        }
-
-        char prev_color = mass_color_map_[nominal_mass];
-        if (prev_color == 'B')
-        {
-          mass_color_map_[nominal_mass] = 'b';
-        }
-        else if (prev_color == 'R')
-        {
-          mass_color_map_[nominal_mass] = 'r';
-        }
-        else if (prev_color == 'G')
-        {
-          mass_color_map_[nominal_mass] = 'g';
-        }
-
-        filtered_peakgroups.push_back(pg);
-        current_selected_masses.insert(nominal_mass);
-        current_selected_mzs.insert(mz);
       }
       if (filtered_peakgroups.size() >= mass_count)
       {
@@ -669,20 +684,31 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(filtered);
   }
 */
-  void FLASHIda::getIsolationWindows(double* window_start, double* window_end, double* qscores, int* charges, double* mono_masses)
+  void FLASHIda::getIsolationWindows(double *window_start,
+                                     double *window_end,
+                                     double *qscores,
+                                     int *charges,
+                                     double *mono_masses,
+                                     char *colors,
+                                     double *precursor_intensities,
+                                     double *peakgroup_intensities)
   {
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
 
     for (int i = 0; i < deconvoluted_spectrum_.size(); i++)
     {
-      auto mz_range = deconvoluted_spectrum_[i].getMaxQScoreMzRange();
+      auto peakgroup = deconvoluted_spectrum_[i];
+      auto mz_range = peakgroup.getMaxQScoreMzRange();
       window_start[i] = std::get<0>(mz_range) - min_isolation_window_half_;
       window_end[i] = std::get<1>(mz_range) + min_isolation_window_half_;
 
-      qscores[i] = deconvoluted_spectrum_[i].getQScore();
-      charges[i] = deconvoluted_spectrum_[i].getRepAbsCharge();
-     // double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
-      mono_masses[i] = deconvoluted_spectrum_[i].getMonoMass();
+      qscores[i] = peakgroup.getQScore();
+      charges[i] = peakgroup.getRepAbsCharge();
+      // double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
+      mono_masses[i] = peakgroup.getMonoMass();
+      colors[i] = peakgroup.getColor();
+      peakgroup_intensities[i] = peakgroup.getIntensity();
+      precursor_intensities[i] = peakgroup.getChargeIntensity(charges[i]);
     }
     std::vector<PeakGroup> empty;
     deconvoluted_spectrum_.swap(empty);

@@ -93,7 +93,14 @@ namespace OpenMS
            @param charges charges of windows
            @param avg_masses average masses of windows
       */
-    void getIsolationWindows(double *window_start, double *window_end, double *qscores, int *charges, double *mono_masses);
+    void getIsolationWindows(double *window_start,
+                             double *window_end,
+                             double *qscores,
+                             int *charges,
+                             double *mono_masses,
+                             char *colors,
+                             double *precursor_intensities,
+                             double *peakgroup_intensities);
 
   private:
 

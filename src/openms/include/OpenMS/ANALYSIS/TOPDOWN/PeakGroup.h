@@ -132,6 +132,9 @@ namespace OpenMS
     /// set charge score
     void setChargeScore(const float charge_score);
 
+    /// set color of the peak group; only for FLASHIda
+    void setColor(const char color);
+
     /// get scan number
     int getScanNumber() const;
 
@@ -174,6 +177,9 @@ namespace OpenMS
     /// get if it is positive mode
     bool isPositive() const;
 
+    /// get color of the peak group; only for FLASHIda
+    char getColor() const;
+
   private:
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_snr_;
@@ -199,5 +205,8 @@ namespace OpenMS
     float charge_score_;
     float qscore_;
     float total_snr_;
+
+    /// for FLASHIda
+    char color_;
   };
 }

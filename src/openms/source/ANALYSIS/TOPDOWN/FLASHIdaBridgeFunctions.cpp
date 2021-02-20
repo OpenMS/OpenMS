@@ -65,11 +65,20 @@ namespace OpenMS
                            double *wend,
                            double *qScores,
                            int *charges,
-                           double *avgMasses)
+                           double *mono_masses,
+                           char *colors, double *precursor_intensities, double *peakgroup_intensities
+  )
   {
     if (pObject != nullptr)
     {
-      pObject->getIsolationWindows(wstart, wend, qScores, charges, avgMasses);
+      pObject->getIsolationWindows(wstart,
+                                   wend,
+                                   qScores,
+                                   charges,
+                                   mono_masses,
+                                   colors,
+                                   precursor_intensities,
+                                   peakgroup_intensities);
     }
   }
 }

@@ -256,8 +256,8 @@ protected:
     fstream out_stream, out_train_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
 
-    // fstream fi_out;
-    // fi_out.open(in_file+".txt", fstream::out); //
+    fstream fi_out;
+    fi_out.open(in_file + ".txt", fstream::out); //
 
     out_stream.open(out_file, fstream::out);
     MassFeatureTrace::writeHeader(out_stream);
@@ -378,46 +378,6 @@ protected:
       }
       instream.close();
     }
-    /*std::map<int, std::unordered_map<double, int>> tmp_map; // ms 1 scan, m/z, charge
-    std::map<int, std::unordered_map<double, double>> tmp_map2;// ms 1 scan, m/z, mono m/z
-    if(in_log_file)
-    {
-      std::ifstream instream("/Users/kyowonjeong/Documents/A4B/Flash-2020-12-13-03-58-53.log");//Flash-2020-12-13-15-25-28  Flash-2020-12-13-03-58-53
-      String line;
-      int cms1 = 0;
-      while (std::getline(instream, line))
-      {
-        if(line.hasPrefix("RECD FTMS MS1 Scan #")){
-          auto st = line.find_first_of('#');
-          auto ed = line.find_first_of(';');
-          auto n = line.substr(st + 1, ed);
-          cms1 = atoi(n.c_str());
-          tmp_map[cms1] = std::unordered_map<double, int>();
-       //   tmp_map2[cms1] = std::unordered_map<double, double>();
-        }
-
-        if(line.hasPrefix("ADD m/z")){
-          //ADD m/z 1026.9316/3.59 (6+)
-          auto st = 7;
-          auto ed= line.find_first_of('/', st);
-          auto n = line.substr(st + 1, ed);
-          auto mz = atof(n.c_str());
-          st = ed;
-          ed = line.find_first_of('(', st);
-          n = line.substr(st + 1, ed);
-          auto width = atof(n.c_str());
-          st = ed;
-          ed = line.find_first_of('+', st);
-          n = line.substr(st + 1, ed);
-          auto c = atoi(n.c_str());
-          tmp_map[cms1][mz] = c;
-         // auto ma = (mz - (width/2.0) + 1.2);
-       //   tmp_map2[cms1][mz] = ma;
-        }
-      }
-      instream.close();
-    }
-*/
     int current_max_ms_level = 0;
 
     auto spec_cntr = std::vector<int>(max_ms_level, 0);
@@ -596,12 +556,12 @@ protected:
       }
 
       if(ms_level == 1){
-        // fi_out<<"Spec\t" <<it->getRT()<<"\n";
+        fi_out << "Spec\t" << it->getRT() << "\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
             continue;
           }
-          //  fi_out << p.getMZ() << "\t" << p.getIntensity()<<"\n";
+          fi_out << p.getMZ() << "\t" << p.getIntensity() << "\n";
         }
       }
 
@@ -782,18 +742,22 @@ protected:
 
       OPENMS_LOG_INFO << "-- deconv per MS" << (j + 1) << " spectrum (except spec loading, feature finding) [took "
                       << 1000.0 * elapsed_deconv_cpu_secs[j] / total_spec_cntr
-                      << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / total_spec_cntr << " ms (Wall)] --" << endl;
+                      << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / total_spec_cntr << " ms (Wall)] --"
+                      << endl;
     }
 
-    // fi_out.close(); //
+    fi_out.close(); //
 
     out_stream.close();
 
-    if(!out_promex_file.empty()){
+    if (!out_promex_file.empty())
+    {
       out_promex_stream.close();
     }
-    if(!out_topfd_file.empty()){
-      for(auto & out_topfd_stream : out_topfd_streams){
+    if (!out_topfd_file.empty())
+    {
+      for (auto &out_topfd_stream : out_topfd_streams)
+      {
         out_topfd_stream.close();
       }
     }
