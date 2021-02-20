@@ -181,7 +181,7 @@ def doCythonCompile(arg):
     m_filename = "pyopenms/%s.pyx" % modname
     print ("Cython compile", m_filename)
     # By omitting "compiler_directives": {"language_level": 3} as extra_opt, autowrap will choose the language_level of the used python executable
-    autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs + ["./pyopenms/"], extra_opts={}, out=m_filename)
+    autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts={}, out=m_filename)
 
     if False:
         #
