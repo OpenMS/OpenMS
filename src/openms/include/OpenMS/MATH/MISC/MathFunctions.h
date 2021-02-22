@@ -35,8 +35,11 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
 #include <cmath>
 #include <utility>
 
@@ -327,8 +330,10 @@ namespace OpenMS
     /**
        @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @x
     */
-    template <typename T1, typename T2> typename T1::value_type quantile(const T1 &x, T2 q)
+    template <typename T1> typename T1::value_type quantile(const T1 &x, double q)
     {
+      if (x.empty()) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                       "Quantile requested from empty container.");
       if (q < 0.0) q = 0.;
       if (q > 1.0) q = 1.;
 
@@ -342,6 +347,38 @@ namespace OpenMS
       return (1.0 - h) * qs + h * x[hi];
     }
 
+    // portable random shuffle
+    class OPENMS_DLLAPI RandomShuffler
+    {
+    public:
+      explicit RandomShuffler(int seed):
+      rng_(boost::mt19937_64(seed))
+      {}
+
+      explicit RandomShuffler(const boost::mt19937_64& mt_rng):
+          rng_(mt_rng)
+      {}
+
+      RandomShuffler() = default;
+      ~RandomShuffler() = default;
+
+      boost::mt19937_64 rng_;
+      template <class RandomAccessIterator>
+      void portable_random_shuffle (RandomAccessIterator first, RandomAccessIterator last)
+      {
+        for (auto i = (last-first)-1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE
+        {
+          boost::uniform_int<decltype(i)> d(0, i);
+          std::swap(first[i], first[d(rng_)]);
+        }
+      }
+
+
+      void seed(uint64_t val)
+      {
+        rng_.seed(val);
+      }
+    };
   } // namespace Math
 } // namespace OpenMS
 

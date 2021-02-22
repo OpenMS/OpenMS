@@ -47,11 +47,13 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <vector>
 #include <numeric>
 #include <fstream>
 #include <algorithm>
+#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -201,6 +203,7 @@ namespace OpenMS
     params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom"));
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
     params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms2_isotope_scores", "false"); // since FFID only uses MS1 spectra, this is useless
     params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
     // precursor transition = first product transition, additionally biased
     params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
@@ -1373,7 +1376,9 @@ namespace OpenMS
     {
       selection.push_back(it->first);
     }
-    random_shuffle(selection.begin(), selection.end());
+    //TODO check how often this is potentially called and move out the initialization
+    Math::RandomShuffler shuffler;
+    shuffler.portable_random_shuffle(selection.begin(), selection.end());
     // However, ensure that at least "svm_n_parts_" pos./neg. observations are
     // included (for cross-validation) - there must be enough, otherwise
     // "checkNumObservations_" would have thrown an error. To this end, move
