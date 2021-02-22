@@ -63,7 +63,7 @@ jobs:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
           BUILD_PATH: "${{ github.workspace }}/bld/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OS_PREFIX_PATH: "${{ Qt5_Dir }}/lib/cmake;${{ Qt5_Dir }}"
+          OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
