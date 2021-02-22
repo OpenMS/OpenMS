@@ -61,7 +61,6 @@ jobs:
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
-          BUILD_PATH: "${{ github.workspace }}/bld/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
           OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
@@ -129,11 +128,6 @@ jobs:
             done
             otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
-          mkdir bld
-          pushd bld
-          # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-          cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
-          make -j4 OpenMS SuperHirn
 
     - name: Tests osx
       run: |
@@ -141,7 +135,6 @@ jobs:
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
-          BUILD_PATH: "${{ github.workspace }}/bld/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
           OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
@@ -170,31 +163,12 @@ jobs:
       with:
         path: OpenMS
 
-    - name: Build on manylinux2014
-      shell: bash
+    - name: Build and tests manylinux
       run: |
-            LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
-
-            mkdir openms-build
-            cd openms-build
-            cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
-            make -j4 OpenMS SuperHirn
-
-            # ensure auditwheel can find the libraries
-            export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
-
-            # strip the libraries before repairing
-            strip --strip-all lib/libOpenMS.so
-            strip --strip-all lib/libOpenSwathAlgo.so
-            strip --strip-all lib/libSuperHirn.so
-
-    - name: Tests manylinux
-      run: |
-          mkdir  $GITHUB_WORKSPACE/build/
+          mkdir  $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
-          BUILD_PATH: "${{ github.workspace }}/bld/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
           OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
