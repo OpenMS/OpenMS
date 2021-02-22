@@ -59,7 +59,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contrib"
           ENABLE_STYLE_TESTING: "OFF"
@@ -132,7 +132,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
@@ -166,7 +166,7 @@ jobs:
           mkdir  $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
