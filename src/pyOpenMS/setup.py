@@ -138,9 +138,10 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 
 import numpy
 
+
 include_dirs = [
     "extra_includes",
-    j(numpy.core.__path__[0], "include"),
+    j(numpy.core.__path__[0], "include")
 ]
 
 # append all include and library dirs exported by CMake
@@ -271,6 +272,7 @@ setup(
         "Topic :: Scientific/Engineering :: Chemistry",
     ],
     long_description=open("README.rst").read(),
+    long_description_content_type="text/x-rst",
     zip_safe=False,
 
     url="http://open-ms.de",
