@@ -164,7 +164,7 @@ jobs:
 
     - name: Build and tests manylinux
       run: |
-          export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}
+          export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           mkdir  $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
