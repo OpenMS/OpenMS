@@ -39,8 +39,8 @@ jobs:
 
     - name: Load contrib build
       run: |
-          mkdir contribbld
-          cd contribbld
+          mkdir OpenMS/contrib
+          cd OpenMS/contrib
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
@@ -51,7 +51,7 @@ jobs:
           mkdir bld
           pushd bld
           # TODO: set generator via variable, then we can share this step
-          cmake -G "Visual Studio 16 2019" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+          cmake -G "Visual Studio 16 2019" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
           # Note: multiple --targets only supported by CMake 3.15+
           cmake --build . --config Release --target OpenMS SuperHirn
 
@@ -62,7 +62,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -94,8 +94,8 @@ jobs:
 
     - name: Load contrib build
       run: |
-          mkdir contribbld
-          cd contribbld
+          mkdir OpenMS/contrib
+          cd OpenMS/contrib
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.3/x64/appleclang-11.0.0/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
@@ -103,7 +103,7 @@ jobs:
     - name: Fix contrib install names
       shell: bash 
       run: |
-          for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
+          for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
           do
             install_name_tool -id $lib $lib
           done
@@ -136,7 +136,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -170,7 +170,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
