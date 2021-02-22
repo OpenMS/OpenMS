@@ -57,7 +57,7 @@ jobs:
 
     - name: Tests windows
       run: |
-          mkdir $GITHUB_WORKSPACE/build/
+          mkdir $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
@@ -137,7 +137,7 @@ jobs:
 
     - name: Tests osx
       run: |
-          mkdir $GITHUB_WORKSPACE/build/
+          mkdir $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
