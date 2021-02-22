@@ -61,9 +61,9 @@ jobs:
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
-          BUILD_PATH: "${{ github.workspace }}/build/"
+          BUILD_PATH: "${{ github.workspace }}/bld/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
+          OS_PREFIX_PATH: "${{ Qt5_Dir }}/lib/cmake;${{ Qt5_Dir }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
@@ -139,11 +139,11 @@ jobs:
       run: |
           mkdir $GITHUB_WORKSPACE/build/
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
-      env:i
+      env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
-          BUILD_PATH: "${{ github.workspace }}/build/"
+          BUILD_PATH: "${{ github.workspace }}/bld/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
+          OS_PREFIX_PATH: "${{ Qt5_Dir }}/lib/cmake;${{ Qt5_Dir }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
@@ -194,9 +194,9 @@ jobs:
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS/"
-          BUILD_PATH: "${{ github.workspace }}/build/"
+          BUILD_PATH: "${{ github.workspace }}/bld/"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OS_PREFIX_PATH: "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
+          OS_PREFIX_PATH: "${{ Qt5_Dir }}/lib/cmake;${{ Qt5_Dir }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/contribbld"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
