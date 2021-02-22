@@ -39,7 +39,6 @@ jobs:
 
     - name: Load contrib build
       run: |
-          mkdir OpenMS/contrib
           cd OpenMS/contrib
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
@@ -94,7 +93,6 @@ jobs:
 
     - name: Load contrib build
       run: |
-          mkdir OpenMS/contrib
           cd OpenMS/contrib
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.3/x64/appleclang-11.0.0/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
