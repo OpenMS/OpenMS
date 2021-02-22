@@ -128,7 +128,7 @@ jobs:
             otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
 
-    - name: Tests osx
+    - name: Build and test osx
       run: |
           export OS_PREFIX_PATH = "${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           mkdir $GITHUB_WORKSPACE/bld/
