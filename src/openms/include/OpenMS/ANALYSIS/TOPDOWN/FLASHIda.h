@@ -98,7 +98,7 @@ namespace OpenMS
                              double *qscores,
                              int *charges,
                              double *mono_masses,
-                             char *colors,
+                             int *colors,
                              double *precursor_intensities,
                              double *peakgroup_intensities);
 

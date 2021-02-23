@@ -1118,10 +1118,9 @@ namespace OpenMS
 
     scoreAndFilterPeakGroups_();
 
-    //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]); //
-
     if (ms_level_ == 1)
     {
+      removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
       removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1]);
     }
     else
@@ -1540,6 +1539,11 @@ namespace OpenMS
       }
 
       peak_group.setSNR(total_signal / total_noise);
+      if (ms_level_ == 1 && peak_group.getSNR() < .3)
+      { // TODO
+        continue;
+      }
+
       peak_group.setQScore(-10000);
 
       for (int abs_charge = std::get<0>(current_charge_range);
@@ -1560,6 +1564,17 @@ namespace OpenMS
         }
         peak_group.setRepAbsCharge(abs_charge);
         peak_group.setQScore(q_score);
+      }
+
+      if (ms_level_ == 1 && peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < .3)
+      { // TODO
+        continue;
+      }
+
+      if (ms_level_ == 1 &&
+          peak_group.getChargeIsotopeCosine(peak_group.getRepAbsCharge()) < min_isotope_cosine_[ms_level_ - 1])
+      { // TODO
+        continue;
       }
 
       double max_q_score_mz_start = peak_group.getMonoMass() * 2;
@@ -1585,47 +1600,6 @@ namespace OpenMS
       peak_group.setMaxQScoreMzRange(max_q_score_mz_start, max_q_score_mz_end);
       filtered_peak_groups.push_back(peak_group);
     }
-    /*
-    if(!triggeredMzs.empty())
-    {
-      auto tmp_filtered_peak_groups = filtered_peak_groups;
-      filtered_peak_groups.clear();
-      bool start = true;
-      for (double t_mz : triggeredMzs)
-      {
-        double max_iso_cos = -100;
-        PeakGroup max_iso_cos_peak_group;
-        for (auto &peak_group: tmp_filtered_peak_groups)
-        {
-          bool select = true;
-          for (auto &peak : peak_group)
-          {
-            if(select && triggeredMzs.find(peak.mz) != triggeredMzs.end()){
-              select = false;
-            }
-            if (t_mz == peak.mz)
-            {
-              //select = false;
-              if (max_iso_cos < peak_group.getIsotopeCosine())
-              {
-                max_iso_cos = peak_group.getIsotopeCosine();
-                max_iso_cos_peak_group = peak_group;
-              }
-              break;
-            }
-          }
-
-          if(select && start){
-            filtered_peak_groups.push_back(peak_group);
-          }
-        }
-        start = false;
-        if(max_iso_cos > -100){
-          filtered_peak_groups.push_back(max_iso_cos_peak_group);
-        }
-      }
-    }
-    */
     deconvoluted_spectrum_.swap(filtered_peak_groups);
 
     if (ms_level_ > 1)

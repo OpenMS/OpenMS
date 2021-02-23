@@ -63,7 +63,6 @@ using namespace std;
 // We do not want this class to show up in the docu:
 // NEED to fill this part later
 
-
 class TOPPFLASHDeconv :
     public TOPPBase
 {
@@ -73,6 +72,7 @@ public:
                false)
   {
   }
+
 
 protected:
   //typedef FLASHDeconvHelperStructs::Parameter Parameter;
@@ -274,17 +274,18 @@ protected:
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
       }
     }
-    if(!out_spec_file.empty()){
+    if (!out_spec_file.empty())
+    {
       out_spec_streams = std::vector<fstream>(out_spec_file.size());
-      for(int i=0; i < out_spec_file.size(); i++){
+      for (int i = 0; i < out_spec_file.size(); i++)
+      {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
         DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_spec_streams[i], i + 1, write_detail);
       }
     }
 
-    std::unordered_map<int, double> train_scan_numbers;
-    std::unordered_map<int, int> train_scan_proID;
-    std::unordered_map<int, String> train_scan_accessions;
+    std::unordered_map<int, FLASHDeconvHelperStructs::TopPicItem> top_pic_map;
+
     if (!in_train_file.empty() && !out_train_file.empty())
     {
       out_train_stream.open(out_train_file, fstream::out);
@@ -294,7 +295,8 @@ protected:
       bool start = false;
       while (std::getline(in_trainstream, line))
       {
-        if (line.rfind("Data file name", 0) == 0){
+        if (line.rfind("Data file name", 0) == 0)
+        {
           start = true;
           continue;
         }
@@ -302,20 +304,9 @@ protected:
         {
           continue;
         }
-        vector<String> results;
-        stringstream tmp_stream(line);
-        String str;
-        while (getline(tmp_stream, str, '\t'))
-        {
-          results.push_back(str);
-        }
-        String acc = results[13];
-        int first = acc.find("|");
-        int second = acc.find("|", first + 1);
-        train_scan_accessions[std::stoi(results[4])] = acc.substr(first + 1, second - first - 1);
-        //std::cout<<acc.substr(first+1, second - first)<<std::endl;
-        train_scan_numbers[std::stoi(results[4])] = std::stod(results[9]);
-        train_scan_proID[std::stoi(results[4])] = std::stoi(results[10]);
+
+        auto tp = FLASHDeconvHelperStructs::TopPicItem(line);
+        top_pic_map[tp.scan_] = tp;
       }
       in_trainstream.close();
     }
@@ -505,7 +496,7 @@ protected:
 
     int scan_number = 0;
     float prev_progress = .0;
-    int const num_last_deconvoluted_spectra = 1;
+    int const num_last_deconvoluted_spectra = 120;
     auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
     //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
@@ -578,7 +569,9 @@ protected:
         precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
 
+
       std::vector<Precursor> triggeredPeaks;
+      /*
       if (ms_level < current_max_ms_level)
       {
         auto tit = it + 1;
@@ -594,7 +587,7 @@ protected:
             triggeredPeaks.push_back(peak);
           }
         }
-      }
+      }*/
 
       auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it,
                                                               triggeredPeaks,
@@ -609,14 +602,17 @@ protected:
 
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
         double pmass =
-            train_scan_numbers.find(scan_number) == train_scan_numbers.end() ? .0 : train_scan_numbers[scan_number];
+            top_pic_map[scan_number].unexp_mod_ < 0 ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
         double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
 
-        QScore::writeAttTsv(train_scan_accessions[scan_number], train_scan_proID[scan_number],
+        QScore::writeAttTsv(top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
                             deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
                             deconvoluted_spectrum.getPrecursorPeakGroup(),
-                            deconvoluted_spectrum.getPrecursorCharge(), precursor_intensity,
-                            train_scan_numbers.find(scan_number) != train_scan_numbers.end(), avg, out_train_stream);
+                            deconvoluted_spectrum.getPrecursorCharge(),
+                            precursor_intensity, top_pic_map[scan_number].unexp_mod_,
+                            top_pic_map[scan_number].unexp_mod_ >= 0,
+                            top_pic_map[scan_number].e_value_,
+                            avg, out_train_stream);
 
       }
       if (!out_mzml_file.empty())

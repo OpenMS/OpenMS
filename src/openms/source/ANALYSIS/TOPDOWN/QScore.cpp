@@ -56,6 +56,14 @@ namespace OpenMS
     //ChargeScore    -0.9714
     //Intercept       9.2687
 
+    //ChargeCos             2.4538
+    //ChargeSNR             0.8122
+    //Cos                  17.5431
+    //SNR                   0.3349
+    //ChargeScore           0.6167
+    //Intercept           -20.5774
+
+
     //ChargeCos        1.3522 ///>30kda
     //ChargeSNR       -1.0877
     //Cos            -16.4956
@@ -107,7 +115,7 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream& f)
   {
     f
-        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Class\n";
+        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Evalue,Class\n";
   }
 
   void QScore::writeAttTsv(const String &acc,
@@ -118,7 +126,9 @@ namespace OpenMS
                            const PeakGroup pg,
                            const int charge,
                            const double precursor_intensity,
+                           const int num_ptm,
                            const bool is_identified,
+                           const double e_value,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                            std::fstream &f)
   {
@@ -129,8 +139,8 @@ namespace OpenMS
       f << acc << "," << proID << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass)
         << "," << pmz
         << "," << precursor_intensity << ","
-        << ",0,";
-      f << "0,0,0,0,0,-5,";
+        << ",0," << (proID ? num_ptm : -1);
+      f << ",0,0,0,0,0,-5,";
       f << (is_identified ? "T" : "F") << "\n";
     }
     else
@@ -143,12 +153,13 @@ namespace OpenMS
       double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
       f << acc << "," << proID << "," << rt << "," << monomass << "," << mass << "," << pmz << ","
         << precursor_intensity << ","
-        << pg.getRepAbsCharge() << ",";
+        << pg.getRepAbsCharge() << ","
+        << (proID ? num_ptm : -1) << ",";
       for (auto &item : fv)
       {
         f << item << ",";
       }
-      f << pg.getQScore() << ",";
+      f << pg.getQScore() << "," << e_value << ",";
       f << (is_identified ? "T" : "F") << "\n";
     }
   }

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -227,5 +228,46 @@ namespace OpenMS
   double FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
   {
     return std::log(mz - getChargeMass(positive));
+  }
+
+  FLASHDeconvHelperStructs::TopPicItem::TopPicItem(String in)
+  {
+    str_ = in;
+    std::vector<String> results;
+    std::stringstream tmp_stream(in);
+    String str;
+    //Data file name	Prsm ID	Spectrum ID	Fragmentation	Scan(s)	Retention time	#peaks	Charge	Precursor mass
+    // Adjusted precursor mass	Proteoform ID	Feature intensity	Feature score	Protein accession	Protein description
+    // First residue	Last residue	Proteoform	#unexpected modifications	MIScore	#variable PTMs	#matched peaks
+    // #matched fragment ions	E-value	Spectrum-level Q-value	Proteoform-level Q-value
+
+    while (getline(tmp_stream, str, '\t'))
+    {
+      results.push_back(str);
+    }
+    prsm_id_ = stoi(results[1]);
+    spec_id_ = stoi(results[2]);
+    scan_ = stoi(results[4]);
+    rt_ = stod(results[5]);
+    peak_count_ = stoi(results[6]);
+    charge_ = stoi(results[7]);
+    precursor_mass_ = stod(results[8]);
+    adj_precursor_mass_ = stod(results[9]);
+    proteform_id_ = stoi(results[10]);
+    String acc = results[13];
+    int first = acc.find("|");
+    int second = acc.find("|", first + 1);
+    protein_acc_ = acc.substr(first + 1, second - first - 1);
+    first_residue_ = stoi(results[15]);
+    last_residue_ = stoi(results[16]);
+    unexp_mod_ = stoi(results[18]);
+    matched_peaks_ = stoi(results[21]);
+    matched_frags_ = stoi(results[22]);
+    e_value_ = stod(results[23]);
+    if (results[24] != "-")
+    {
+      spec_q_value_ = stod(results[24]);
+      proteofrom_q_value_ = stod(results[25]);
+    }
   }
 }

@@ -66,7 +66,7 @@ namespace OpenMS
                            double *qScores,
                            int *charges,
                            double *mono_masses,
-                           char *colors, double *precursor_intensities, double *peakgroup_intensities
+                           int *colors, double *precursor_intensities, double *peakgroup_intensities
   )
   {
     if (pObject != nullptr)

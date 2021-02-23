@@ -112,6 +112,36 @@ namespace OpenMS
 
     };
 
+
+    struct OPENMS_DLLAPI TopPicItem
+    {
+    public:
+      TopPicItem() = default;
+
+      explicit TopPicItem(String in);
+
+      String str_;
+      int prsm_id_;
+      int spec_id_;
+      int scan_;
+      double rt_;
+      int peak_count_;
+      int charge_;
+      double precursor_mass_;
+      double adj_precursor_mass_;
+      int proteform_id_ = 0;
+      String protein_acc_ = "";
+      int first_residue_;
+      int last_residue_;
+      int unexp_mod_ = -1;
+      int matched_peaks_;
+      int matched_frags_;
+      double e_value_;
+      double spec_q_value_;
+      double proteofrom_q_value_;
+    };
+
+
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
     struct OPENMS_DLLAPI LogMzPeak
     {

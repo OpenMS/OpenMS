@@ -65,7 +65,9 @@ namespace OpenMS
                             const PeakGroup pg,
                             const int charge,
                             const double precursor_intensity,
+                            const int num_ptm,
                             const bool is_identified,
+                            const double e_value,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                             std::fstream &f);
 
