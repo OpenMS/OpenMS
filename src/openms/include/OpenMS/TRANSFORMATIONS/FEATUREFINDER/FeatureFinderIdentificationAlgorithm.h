@@ -221,7 +221,7 @@ protected:
   */
   void createAssayLibrary_(TargetMap::iterator begin, TargetMap::iterator end);
 
-  void addHitToTargetMap_(IdentificationData::ObservationMatchRef ref, bool external = false);
+  void addMatchToTargetMap_(IdentificationData::ObservationMatchRef ref, bool external = false);
 
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
@@ -239,7 +239,7 @@ protected:
 
   void calculateFDR_(FeatureMap& features);
 
-  std::pair<String, Int> extractTargetID_(const Feature& feature, bool extract_charge = false);
+  static std::pair<String, Int> extractTargetID_(const Feature& feature, bool extract_charge = false);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size @p batch_size.
   /// Last batch might be smaller.

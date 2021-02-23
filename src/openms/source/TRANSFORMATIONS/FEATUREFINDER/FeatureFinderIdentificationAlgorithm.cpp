@@ -66,7 +66,8 @@ using ID = OpenMS::IdentificationData;
 namespace OpenMS
 {
   FeatureFinderIdentificationAlgorithm::FeatureFinderIdentificationAlgorithm() :
-    DefaultParamHandler("FeatureFinderIdentificationAlgorithm")
+    DefaultParamHandler("FeatureFinderIdentificationAlgorithm"),
+    n_internal_targets_(0), n_external_targets_(0), n_seed_targets_(0)
   {
     StringList output_file_tags;
     output_file_tags.push_back("output file");
@@ -268,7 +269,7 @@ namespace OpenMS
       {
         id_data.setMetaValue(ref, "FFId_category", "internal");
       }
-      addHitToTargetMap_(ref);
+      addMatchToTargetMap_(ref);
     }
     n_internal_targets_ = target_map_.size() - n_seed_targets_;
 
@@ -286,7 +287,7 @@ namespace OpenMS
       for (ID::ObservationMatchRef ref = id_data_ext.getObservationMatches().begin();
          ref != id_data_ext.getObservationMatches().end(); ++ref)
       {
-        addHitToTargetMap_(ref, true);
+        addMatchToTargetMap_(ref, true);
         id_data_ext.setMetaValue(ref, "FFId_category", "external");
       }
     }
@@ -457,7 +458,7 @@ namespace OpenMS
         match.setMetaValue("FFId_category", "seed");
         ID::ObservationMatchRef match_ref =
           id_data.registerObservationMatch(match);
-        addHitToTargetMap_(match_ref);
+        addMatchToTargetMap_(match_ref);
       }
     }
     OPENMS_LOG_INFO << seeds_added << " seeds without RT and m/z overlap with existing IDs added" << endl;
@@ -469,9 +470,12 @@ namespace OpenMS
   {
     String target_id = feature.getMetaValue("PeptideRef");
     Size pos_slash = target_id.rfind('/');
-    Size pos_hash = target_id.find('#', pos_slash + 2);
     Int charge = 0;
-    if (extract_charge) charge = target_id.substr(pos_slash + 1, pos_hash).toInt();
+    if (extract_charge)
+    {
+      Size pos_hash = target_id.find('#', pos_slash + 2);
+      charge = target_id.substr(pos_slash + 1, pos_hash).toInt();
+    }
     return make_pair(target_id.substr(0, pos_slash), charge);
   }
 
@@ -627,19 +631,17 @@ namespace OpenMS
   void FeatureFinderIdentificationAlgorithm::statistics_(
     const FeatureMap& features, bool with_external_ids) const
   {
-    // same peptide sequence may be quantified based on internal and external
-    // IDs if charge states differ!
+    // same molecule may be quantified based on internal and external IDs if
+    // charge states differ!
     set<String> quantified_internal, quantified_seed, quantified_all;
     for (const Feature& feature : features)
     {
-      String target_id = feature.getMetaValue("PeptideRef");
-      Size pos_slash = target_id.rfind('/');
-      target_id = target_id.substr(0, pos_slash); // remove charge number
+      String target_id = extractTargetID_(feature, false).first;
       if (feature.getIntensity() > 0.0)
       {
         quantified_all.insert(target_id);
-        const PeptideHit& hit = feature.getPeptideIdentifications()[0].getHits()[0];
-        String category = hit.getMetaValue("FFId_category");
+        if (feature.getIDMatches().empty()) continue;
+        String category = (*feature.getIDMatches().begin())->getMetaValue("FFId_category");
         if (category == "internal")
         {
           quantified_internal.insert(target_id);
@@ -1167,7 +1169,7 @@ namespace OpenMS
   }
 
 
-  void FeatureFinderIdentificationAlgorithm::addHitToTargetMap_(
+  void FeatureFinderIdentificationAlgorithm::addMatchToTargetMap_(
     ID::ObservationMatchRef ref, bool external)
   {
     String target_id = makeTargetID(ref);
