@@ -293,10 +293,13 @@ namespace OpenMS
   return csv_rows;
 }
 
-  void RNPxlProteinReport::annotateProteinModificationForTopHits(vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peps, TextFile& tsv_file, bool report_decoys)
+  void RNPxlProteinReport::annotateProteinModificationForTopHits(
+    vector<ProteinIdentification>& prot_ids, 
+    const vector<PeptideIdentification>& peps, 
+    TextFile& tsv_file, bool report_decoys)
   {
     cout << "Creating protein report. " << endl;
-    assert(prots.size() == 1); // support for one run only
+    assert(prot_ids.size() == 1); // support for one run only
 
     // protein identification run
     ProteinIdentification& prot_id = prot_ids[0];
