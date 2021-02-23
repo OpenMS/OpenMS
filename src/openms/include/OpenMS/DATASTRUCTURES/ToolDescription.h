@@ -43,7 +43,6 @@
 
 namespace OpenMS
 {
-
   namespace Internal
   {
     /**
