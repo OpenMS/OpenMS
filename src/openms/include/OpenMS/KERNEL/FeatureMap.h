@@ -312,8 +312,6 @@ public:
     OPENMS_DLLAPI IdentificationData& getIdentificationData();
 
 protected:
-    IdentificationData id_;
-
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;
 

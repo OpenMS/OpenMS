@@ -293,10 +293,10 @@ private:
 
     void addMatchesToID_(
       const std::vector<AccurateMassSearchResult>& amr, 
-      const InputFileRef& file_ref, 
-      const ScoreTypeRef& mass_error_ppm_score_ref,
-      const ScoreTypeRef& mass_error_Da_score_ref, 
-      const ProcessingStepRef& step_ref, 
+      const IdentificationData::InputFileRef& file_ref,
+      const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
+      const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
+      const IdentificationData::ProcessingStepRef& step_ref,
       BaseFeature& f) const;
 
     /// For two vectors of identical length, compute the cosine of the angle between them.
