@@ -142,6 +142,8 @@ jobs:
           ## TODO potentially parse some OS infos and add to build name
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
+          CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-macOS-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
@@ -193,6 +195,8 @@ jobs:
           ## TODO allow changing Contrib path to get rid of the extra cmake file!
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild_lnx.cmake
       env:
+          CONTRIB_BUILD_DIRECTORY: "/contrib-build"
+          CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
