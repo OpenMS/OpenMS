@@ -55,9 +55,11 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
+#include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
+#include <OpenMS/MATH/MISC/RANSAC.h>
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
-
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -221,6 +223,7 @@ struct RIALess
 class MetaProSIPInterpolation
 {
 public:
+
   ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
   static vector<RateScorePair> getHighPoints(double threshold, const MapRateToScoreType& rate2score, bool debug = false)
   {
@@ -246,7 +249,6 @@ public:
 
     const size_t n = x.size();
 
-    //Wm5::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
     CubicSpline2d spline(x, y);
 
     if (debug)
@@ -262,7 +264,7 @@ public:
 
       if (debug)
       {
-        cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
+        OPENMS_LOG_DEBUG << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }
 
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
@@ -801,35 +803,61 @@ public:
                                   const QString& executable = QString("R"))
   {
     vector<SIPPeptide> sip_peptides;
-    for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
+    vector<vector<SIPPeptide> > new_sip_cluster; // filtered (clustered) SIP peptides
+    
+    // for all clusters
+    size_t old_cluster_index(-1);
+    for (Size i = 0; i != sip_peptide_cluster.size(); ++i)
     {
-      for (vector<SIPPeptide>::const_iterator sit = cit->begin(); sit != cit->end(); ++sit)
+      const vector<SIPPeptide>& current_cluster = sip_peptide_cluster[i];
+      for (auto sit = current_cluster.begin(); sit != current_cluster.end(); ++sit)
       {
-        // skip non natural peptides for reporting if flag is set
-        if (!report_natural_peptides && sit->incorporations.size() == 1 && sit->incorporations[0].rate < 5.0)
+        // skip natural peptides for repoting if flag is set
+        if (report_natural_peptides || sit->incorporations.back().rate >= 5.0)
         {
-          continue;
+          // cout << report_natural_peptides << sit->incorporations.size() << "\t" << sit->incorporations.back().rate << endl;
+
+          // adding a sip peptide from a different cluster (potentially with much higher index)? then also add a new cluster to the vector
+          if (old_cluster_index != i) 
+          {
+            new_sip_cluster.push_back(vector<SIPPeptide>());
+            old_cluster_index = i;
+          }
+
+          sip_peptides.push_back(*sit);
+          new_sip_cluster.back().push_back(*sit);
         }
-        sip_peptides.push_back(*sit);
       }
     }
 
-    // heat map based on peptide RIAs
-    OPENMS_LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
-    vector<vector<double> > binned_peptide_ria;
-    vector<String> class_labels;
-    createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
-    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
-
-    OPENMS_LOG_INFO << "Plotting filtered spectra for quality report" << endl;
-    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
-
-    OPENMS_LOG_INFO << "Plotting correlation score and weight distribution" << endl;
-    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
-
-    if (file_extension != "pdf") // html doesn't support pdf as image
+    if (!sip_peptides.empty())
     {
-      writeHTML(qc_output_directory, file_suffix, file_extension, sip_peptides);
+      // heat map based on peptide RIAs
+      OPENMS_LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
+      vector<vector<double>> binned_peptide_ria;
+      vector<String> class_labels;
+
+      createBinnedPeptideRIAData_(n_heatmap_bins, new_sip_cluster, binned_peptide_ria, class_labels);
+      plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
+
+      OPENMS_LOG_INFO << "Plotting filtered spectra for quality report" << endl;
+      plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
+
+      OPENMS_LOG_INFO << "Plotting correlation score and weight distribution" << endl;
+      plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
+
+      if (file_extension != "pdf") // html doesn't support pdf as image
+      {
+        writeHTML(qc_output_directory, file_suffix, file_extension, sip_peptides);
+      }
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "No SIP labeled peptides found. No plots generated." << endl;
+      if (!report_natural_peptides)
+      {
+        OPENMS_LOG_INFO << "You might still generate plots for the unlabeled peptides by enabling reporting of natural (unlabeled) peptides." << endl;
+      }
     }
   }
 
@@ -1847,35 +1875,34 @@ public:
 
 class MetaProSIPXICExtraction
 {
-public:
-  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_toelrance_ppm, double rt_tolerance_s, const PeakMap& peak_map)
+public:  
+  // input: PeakMap, retention time and m/z values used to extract an XIC in windows of +- m/z and rt tolerance
+  // output: a vector of XICs
+  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_tolerance_ppm, double rt_tolerance_s, const PeakMap& peak_map)
   {
     // point on first spectrum in tolerance window
-    PeakMap::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
+    auto rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
 
     // point on after last spectrum in tolerance window
-    PeakMap::ConstIterator rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
+    auto rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
 
     // create set containing all rts of spectra in tolerance window
     set<double> all_rts;
-    for (PeakMap::ConstIterator rt_it = rt_begin; rt_it != rt_end; ++rt_it)
+    for (auto rt_it = rt_begin; rt_it != rt_end; ++rt_it)
     {
       all_rts.insert(rt_it->getRT());
     }
 
-    vector<vector<double> > xics(xic_mzs.size(), vector<double>());
+    vector<vector<double>> xics(xic_mzs.size(), vector<double>());
 
     for (Size i = 0; i < xic_mzs.size(); ++i)
     {
       // create and initialize xic to contain values for all rts
       map<double, double> xic; // rt to summed intensity
-      for (set<double>::const_iterator sit = all_rts.begin(); sit != all_rts.end(); ++sit)
-      {
-        xic[*sit] = 0;
-      }
+      for (double sit : all_rts) { xic[sit] = 0; }
 
-      double mz_da = mz_toelrance_ppm * xic_mzs[i] * 1e-6; // mz tolerance in Dalton
-      PeakMap::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
+      double mz_da = mz_tolerance_ppm * xic_mzs[i] * 1e-6; // mz tolerance in Dalton
+      auto it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
 
       for (; it != peak_map.areaEndConst(); ++it)
       {
@@ -1892,7 +1919,7 @@ public:
 
       // copy map to vector for easier processing
       vector<double> v;
-      for (map<double, double>::const_iterator xic_it = xic.begin(); xic_it != xic.end(); ++xic_it)
+      for (auto xic_it = xic.begin(); xic_it != xic.end(); ++xic_it)
       {
         v.push_back(xic_it->second);
       }
@@ -1902,6 +1929,57 @@ public:
     return xics;
   }
 
+  // similar to above but with variable errors
+  static vector<vector<double> > extractXICVariableMZWindows(double seed_rt, vector<pair<double, double> > xic_mz_windows, double rt_tolerance_s, const MSExperiment& peak_map)
+  {
+    // point on first spectrum in tolerance window
+    auto rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
+
+    // point on after last spectrum in tolerance window
+    auto rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
+
+    // create set containing all rts of spectra in tolerance window
+    set<double> all_rts;
+    for (auto rt_it = rt_begin; rt_it != rt_end; ++rt_it)
+    {
+      all_rts.insert(rt_it->getRT());
+    }
+
+    vector<vector<double> > xics(xic_mz_windows.size(), vector<double>());
+
+    for (Size i = 0; i < xic_mz_windows.size(); ++i)
+    {
+      // create and initialize xic to contain values for all rts
+      map<double, double> xic; // rt to summed intensity
+      for (double sit : all_rts) { xic[sit] = 0; }
+
+      auto it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mz_windows[i].first, xic_mz_windows[i].second);
+
+      for (; it != peak_map.areaEndConst(); ++it)
+      {
+        double rt = it.getRT();
+        if (xic.find(rt) != xic.end())
+        {
+          xic[rt] += it->getIntensity();
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "RT: " << rt << " not contained in rt set." << endl;
+        }
+      }
+
+      // copy map to vector for easier processing
+      vector<double> v;
+      for (auto it = xic.begin(); it != xic.end(); ++it)
+      {
+        v.push_back(it->second);
+      }
+
+      xics[i] = v;
+    }
+    return xics;
+  }
+  
   static vector<double> correlateXICsToMono(const vector<vector<double> >& xics)
   {
     vector<double> rrs(xics.size(), 0); // correlation of isotopic xics to monoisotopic xic
@@ -1953,6 +2031,233 @@ public:
     return xic_intensities;
   }
 
+  // generate extraction windows given the seed m/z, element count and tolerances
+  static vector<pair<double, double>> extractXICMZWindows_(
+    Size element_count,    
+    double seed_mz,
+    double mass_diff, 
+    double charge,
+    double mz_tolerance_ppm)
+  {
+    vector<pair<double, double>> xic_mz_windows;
+
+    // calculate centers of XICs to be extracted and the mass tolerance window to collect potential resolved isotopic peaks
+    for (Size k = 0; k != element_count; ++k)
+    {
+      // expected m/z if only the labeling element is responsible for the isotopic trace
+      double mz = seed_mz + k * mass_diff / charge;
+
+      double left(0), right(0);
+
+      if (k <= 5)
+      {
+        left = mz;
+        right = seed_mz + k * Constants::C13C12_MASSDIFF_U / charge;
+      }
+      else // k > 5
+      {
+        left = mz;
+        right = seed_mz + ((k-5) * mass_diff + 5 * Constants::C13C12_MASSDIFF_U)/charge;
+      }
+
+      if (left > right) std::swap<double>(left, right);
+      left -= mz_tolerance_ppm * left * 1e-6;
+      right += mz_tolerance_ppm * right * 1e-6;
+
+      xic_mz_windows.push_back(make_pair(left, right));
+    }
+
+    return xic_mz_windows;
+  }
+
+  // For unlabeled peptides, distances between isotopic peaks are dominated by the 13C-12C m/z difference
+  // If non-carbon labeling elements are used we need to make sure that peaks are collected at the correct position by changing the mass difference to the labeling element.
+  // In addition we need to change the m/z tolerance window so we collect all isotopic peaks if these are resolved by the mass spectrometer.
+  // To do so we need to consider the fractional mass of 13C (=0.0033548) and the fractional mass of the labeling element (frac(mass_diff) e.g. for 15N-14N = 0.9970349 = 1-0.0029651)
+  //   Consider that 1 to 5 mass shifts might stem from 13C incorporation (higher than the 5th natural isotopic 13C peaks is of very low intensity and doesn't contribute to the signal)
+  //   but also from 1 to 5 heavy labeling isotopes.
+  //   Then, the extraction windows for the n-th isotopic trace (with n>=5) must range from: seed_mz + n*mass_diff/charge to seed_mz + (n-5)*mass_diff/charge + 5 * (13C-12C)/charge
+  //   For n < 5: seed_mz + n * mass_diff/charge to seed_mz + n * (13C-12C)/charge
+  //   (+/- the additional error tolerances)
+  static vector<double> extractXICsOfIsotopeTracesVariableWindows(
+    Size element_count, 
+    double mass_diff, 
+    double mz_tolerance_ppm, 
+    double rt_tolerance_s, 
+    double seed_rt, 
+    double seed_mz, 
+    double charge, 
+    const MSExperiment& peak_map, 
+    const double min_corr_mono = -1.0)
+  {
+    vector<pair<double, double>> xic_mz_windows = extractXICMZWindows_(
+      element_count,    
+      seed_mz,
+      mass_diff, 
+      charge,
+      mz_tolerance_ppm);
+
+    // extract xics
+    vector<vector<double> > xics = extractXICVariableMZWindows(
+      seed_rt, xic_mz_windows, 
+      rt_tolerance_s, 
+      peak_map);
+   
+    // incorporation of deuterium imposes retention time shifts of mass traces which must be treated accordingly
+    // the current approach:
+    // 1. detects all apices in each mass trace
+    // 2. use a Theil–Sen estimator to fit a robust line through the apices. This regression line has a slope that corresponds to the RT shift
+    // 3. The XIC intensities are filtered if they fall out of the regression line +- some RT tolerance
+    // 4. XIC intensities are aligned according to the regression model so apices line up and can be correlated to detected (RT corrected) co-elution
+    // For the sake of a simpler treatment we calculate mainly with indices in the XIC vectors instead of the true RTs. This should be no problem
+    // as the filtering only affects strongly deviating elution profiles.
+
+    // create smoothed xics
+    vector<vector<double>> xics_smoothed = xics;
+    for (Size k = 0; k != xics.size(); ++k)
+    {
+      const vector<double>& current_xic = xics[k];
+      Size n_current = current_xic.size();
+      vector<double> smoothed_xic(n_current, 0);
+
+      for (Size i = 0; i != n_current; ++i)
+      {
+        for (Size j = 0; j != n_current; ++j)
+        {
+          normal s(j, 5.0);
+          double y = current_xic[j];
+          smoothed_xic[i] += y * pdf(s, (double) i);
+        }
+      }
+      xics_smoothed[k].swap(smoothed_xic);
+    }     
+
+    // determine rt window of 20s around seed
+    auto seed_rt_minus_20 = peak_map.RTBegin(seed_rt - 20.0);
+    auto seed_rt_it = peak_map.RTBegin(seed_rt);
+    auto seed_rt_plus_20 = peak_map.RTBegin(seed_rt + 20.0);
+
+    // index offset (nummber of scans) required to reach +/- 20s in XIC double vector
+    Size scans_plus_20s = (seed_rt_plus_20 - seed_rt_it) + 1;
+    Size scans_minus_20s = (seed_rt_it - seed_rt_minus_20) + 1;
+
+    std::vector<std::pair<double, double>> xy;
+
+    // extract potential apices as high points in the smoothed XICs
+    Size n_current = xics_smoothed[0].size();
+    Size apex_idx = n_current / 2;
+
+    for (Size k = 0; k < xics_smoothed.size(); ++k)
+    {
+      const vector<double>& current_xic = xics_smoothed[k];
+      if (n_current != current_xic.size()) throw -1;
+
+      for (Size i = 1; i < n_current - 1; ++i)
+      {
+        bool is_local_maximum = current_xic[i] > current_xic[i - 1] && current_xic[i] > current_xic[i + 1];
+        if (is_local_maximum)
+        {
+          // index of current maximum is expected at the same index as the current apex (+- 20s) except for deuterium
+          // here we also allow the maximum to come earlier depending on the number of incorporated deuterium
+          if (i < apex_idx + scans_plus_20s && (double)i > static_cast<double>(apex_idx) - scans_minus_20s - k)  // only maxima that are not too much earlier (but may depend on number of deuterium incorporated)
+          { 
+            //cout << k << ";" << scan_to_apex << ";" << current_xic[i] << endl;
+            //slopes.push_back(scan_to_apex / k); // slope (Note: should be around zero or negative as deuterium rich elute earlier)
+            xy.push_back(make_pair(k, i)); // add isotope number and index in mass trace
+          }
+        }
+      }
+    }
+
+    // Theil–Sen estimator (with slope and intercept determination by median)
+    vector<double> slopes, intercepts;
+    for (Size i = 0; i != xy.size(); ++i)
+    {
+      for (Size j = i + 1; j < xy.size(); ++j)
+      {
+        double dx = xy[i].first - xy[j].first;
+        double dy = xy[i].second - xy[j].second;
+        double slope = dy/dx;
+        double intercept = xy[i].second - slope * xy[i].first;
+
+        // discard improbable models (if intercept lies outside of monoisotopic peak apex (+- 20s) or if RT shift larger than 5s per isotopic position
+        const double avg_scans_per_second = (scans_minus_20s + scans_plus_20s) / 40.0;
+        if (intercept < apex_idx - scans_minus_20s 
+        || intercept > apex_idx + scans_plus_20s 
+        || fabs(slope) > 5.0 * avg_scans_per_second ) continue;
+          
+        slopes.push_back(slope);
+        intercepts.push_back(intercept);
+      }
+    }
+
+    if (!slopes.empty())
+    {
+      double median_slope = Math::median(slopes.begin(), slopes.end());
+      double median_intercept = Math::median(intercepts.begin(), intercepts.end());
+
+      OPENMS_LOG_DEBUG << "Median slope: " << median_slope << endl;
+      OPENMS_LOG_DEBUG << "Median intercept (offset from apex): " << (median_intercept - apex_idx)  << endl;
+
+      for (Size k = 0; k != xics.size(); ++k)
+      {
+        double new_apex_index = median_intercept + k * median_slope;
+        vector<double>& cx = xics[k];
+
+        // remove all XIC intensities that are too far from the k-th isotopic apex (as determined by the regression)
+        for (Size j = 0; j != cx.size(); ++j)
+        {
+          if (j < new_apex_index - scans_minus_20s || j > new_apex_index + scans_plus_20s) cx[j] = 0;
+        }
+
+        // offset (in index) of current mass trace apex
+        int offset = static_cast<int>(new_apex_index - median_intercept); 
+
+        // line up mass traces according to regression model 
+        // if apices exhibit a shift e.g. 20,21,22,23 according to the regression, rearrange all xic entries so apices line up: 20,20,20,20 again
+        if (offset > 0)
+        {
+          for (Size j = offset; j < cx.size(); ++j)
+          {
+            cx[j - offset] = cx[j];
+          }
+        } 
+        else if (offset < 0)
+        {
+          for (int j = cx.size() + offset - 1; j >= 0; --j)
+          {
+            cx[j - offset] = cx[j];
+          }
+        }
+      }
+    }
+// ----- end deuterium code
+  
+    vector<double> xic_intensities(xics.size(), 0.0);
+
+    // filtering of mass traces with bad correlation to mono-isotopic peak
+    if (min_corr_mono > 0)
+    {
+      // calculate correlation to mono-isotopic peak
+      vector<double> RRs = correlateXICsToMono(xics);
+
+      // sum over XICs to yield one intensity value for each XIC. If correlation to mono-isotopic is lower then threshold, delete intensity.
+      for (Size i = 0; i != xic_intensities.size(); ++i)
+      {
+        double v = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
+        xic_intensities[i] = RRs[i] > min_corr_mono ? v : 0.0;
+      }
+    }
+    else // correlation disabled so just take the XIC intensities
+    {
+      for (Size i = 0; i != xic_intensities.size(); ++i)
+      {
+        xic_intensities[i] = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
+      }
+    }
+
+    return xic_intensities;
+  }
 };
 
 class RIntegration
@@ -3321,7 +3626,8 @@ protected:
         OPENMS_LOG_DEBUG << "Extract XICs" << endl;
       }
 
-      vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(isotopic_trace_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
+      //vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(isotopic_trace_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
+      vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTracesVariableWindows(isotopic_trace_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
 
       // set intensity to zero if not enough neighboring isotopic peaks are present
       for (Size i = 0; i != isotopic_intensities.size(); ++i)
@@ -3626,7 +3932,6 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
 int main(int argc, const char** argv)
