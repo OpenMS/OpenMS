@@ -1539,10 +1539,6 @@ namespace OpenMS
       }
 
       peak_group.setSNR(total_signal / total_noise);
-      if (ms_level_ == 1 && peak_group.getSNR() < .3)
-      { // TODO
-        continue;
-      }
 
       peak_group.setQScore(-10000);
 
@@ -1564,17 +1560,6 @@ namespace OpenMS
         }
         peak_group.setRepAbsCharge(abs_charge);
         peak_group.setQScore(q_score);
-      }
-
-      if (ms_level_ == 1 && peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < .3)
-      { // TODO
-        continue;
-      }
-
-      if (ms_level_ == 1 &&
-          peak_group.getChargeIsotopeCosine(peak_group.getRepAbsCharge()) < min_isotope_cosine_[ms_level_ - 1])
-      { // TODO
-        continue;
       }
 
       double max_q_score_mz_start = peak_group.getMonoMass() * 2;

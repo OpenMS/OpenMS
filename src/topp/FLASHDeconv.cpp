@@ -256,8 +256,8 @@ protected:
     fstream out_stream, out_train_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
 
-    fstream fi_out;
-    fi_out.open(in_file + ".txt", fstream::out); //
+    //fstream fi_out;
+    //fi_out.open(in_file + ".txt", fstream::out); //
 
     out_stream.open(out_file, fstream::out);
     MassFeatureTrace::writeHeader(out_stream);
@@ -496,7 +496,7 @@ protected:
 
     int scan_number = 0;
     float prev_progress = .0;
-    int const num_last_deconvoluted_spectra = 120;
+    int const num_last_deconvoluted_spectra = 1;
     auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
     //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
@@ -547,12 +547,12 @@ protected:
       }
 
       if(ms_level == 1){
-        fi_out << "Spec\t" << it->getRT() << "\n";
+        //fi_out << "Spec\t" << it->getRT() << "\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
             continue;
           }
-          fi_out << p.getMZ() << "\t" << p.getIntensity() << "\n";
+          //fi_out << p.getMZ() << "\t" << p.getIntensity() << "\n";
         }
       }
 
@@ -742,7 +742,7 @@ protected:
                       << endl;
     }
 
-    fi_out.close(); //
+    //fi_out.close(); //
 
     out_stream.close();
 

@@ -82,7 +82,7 @@ namespace OpenMS
       mass_count_.push_back((int) j);
     }
 
-    fd_defaults.setValue("min_mass_count", mass_count_);
+    //fd_defaults.setValue("min_mass_count", mass_count_);
 
     fd_.setParameters(fd_defaults);
     fd_.calculateAveragine(false);
@@ -134,7 +134,7 @@ namespace OpenMS
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
     int mass_count = mass_count_[ms_level - 1];
 
-    const auto color_order = std::vector<char>({'B', 'R', 'b', 'r'});
+    const auto color_order = std::vector<char>({'B', 'R', 'b', 'r', 'G'});
 
     std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map; // integer mass, rt, qscore
     std::unordered_map<int, double> new_mass_qscore_map;
@@ -249,6 +249,11 @@ namespace OpenMS
       {
         for (auto &pg : deconvoluted_spectrum_)
         {
+          if (pg.getSNR() < snr_threshold || pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold ||
+              pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < isotope_cosine_threshold)
+          {
+            continue;
+          }
           if (filtered_peakgroups.size() >= mass_count)
           {
             break;
