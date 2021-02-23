@@ -175,8 +175,8 @@ jobs:
       if: github.event_name == 'push'
       shell: bash
       run: |
-        apt-get update -y
-        apt-get install -y jq
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
         ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
         ref=${ref#"refs/heads/"}
         ref=${ref#"refs/"}
@@ -187,8 +187,8 @@ jobs:
       if: github.event_name == 'pull_request'
       shell: bash
       run: |
-        apt-get update
-        apt-get install jq
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
         echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
     - name: Build and test osx
