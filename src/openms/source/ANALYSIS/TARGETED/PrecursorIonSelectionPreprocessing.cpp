@@ -69,7 +69,7 @@ namespace OpenMS
     defaults_.setValue("preprocessed_db_path", "", "Path where the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_rt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_dt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
-    defaults_.setValue("max_peptides_per_run", 100000, "Number of peptides for that the pt and rt are parallely predicted.");
+    defaults_.setValue("max_peptides_per_run", 100000, "Number of peptides for that the pt and rt are parallelly predicted.");
     defaults_.setMinInt("max_peptides_per_run", 1);
     defaults_.setValue("missed_cleavages", 1, "Number of allowed missed cleavages.");
     defaults_.setMinInt("missed_cleavages", 0);
@@ -498,7 +498,7 @@ namespace OpenMS
     }
     std::sort(masses_.begin(), masses_.end());
     // now get minimal and maximal mass and create counter_-vectors
-    // count mass occurences using bins
+    // count mass occurrences using bins
 #ifdef PISP_DEBUG
     std::cout << "min\tmax " << masses_[0] << "\t" << *(masses_.end() - 1) << std::endl;
     std::cout << "prot_masses.size() " << prot_masses_.size() << std::endl;
@@ -1155,7 +1155,7 @@ namespace OpenMS
 
     if (obs_scan_begin == -1 || obs_scan_end == -1)
     {
-      std::cerr << "Probably an error occured during RTProb-calc: scan = -1: "
+      std::cerr << "Probably an error occurred during RTProb-calc: scan = -1: "
                 << obs_scan_begin << " " << obs_scan_end << std::endl;
       return 0.;
     }

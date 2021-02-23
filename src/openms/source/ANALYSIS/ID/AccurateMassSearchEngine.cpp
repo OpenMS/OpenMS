@@ -968,8 +968,8 @@ namespace OpenMS
 
     Size id_group(1);
 
-    std::map<String, UInt> adduct_stats; // adduct --> # occurences
-    std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
+    std::map<String, UInt> adduct_stats; // adduct --> # occurrences
+    std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurrences (count each feature only once)
 
     bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 

@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP_tests")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 #
 # README:
@@ -997,6 +997,18 @@ set_tests_properties("TOPP_IDFileConverter_30_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_31" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_31_input.mzid -out IDFileConverter_31_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_31_out1" ${DIFF} -in1 IDFileConverter_31_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_31_output.idXML)
 set_tests_properties("TOPP_IDFileConverter_31_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_31")
+# Test FASTA to MzML
+# default parameters
+add_test("TOPP_IDFileConverter_32" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_32_input.FASTA -out IDFileConverter_32_output.tmp -out_type mzML)
+add_test("TOPP_IDFileConverter_32_File_Conversion" ${TOPP_BIN_PATH}/FileConverter -test -in IDFileConverter_32_output.tmp -out IDFileConverter_32_output_mgf.tmp -out_type mgf)
+set_tests_properties("TOPP_IDFileConverter_32_File_Conversion" PROPERTIES DEPENDS "TOPP_IDFileConverter_32")
+add_test("TOPP_IDFileConverter_32_out1" ${DIFF} -in1 IDFileConverter_32_output_mgf.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_32_output.mgf -whitelist "TITLE")
+set_tests_properties("TOPP_IDFileConverter_32_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_32_File_Conversion")
+add_test("TOPP_IDFileConverter_33" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_32_input.FASTA -out IDFileConverter_33_output.tmp -out_type mzML -fasta_to_mzml:missed_cleavages 1 -fasta_to_mzml:precursor_charge 3)
+add_test("TOPP_IDFileConverter_33_File_Conversion" ${TOPP_BIN_PATH}/FileConverter -test -in IDFileConverter_33_output.tmp -out IDFileConverter_33_output_mgf.tmp -out_type mgf)
+set_tests_properties("TOPP_IDFileConverter_33_File_Conversion" PROPERTIES DEPENDS "TOPP_IDFileConverter_33")
+add_test("TOPP_IDFileConverter_33_out1" ${DIFF} -in1 IDFileConverter_33_output_mgf.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_33_output.mgf  -whitelist "TITLE")
+set_tests_properties("TOPP_IDFileConverter_33_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_33_File_Conversion")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -2883,8 +2895,6 @@ set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_2_out_4" ${DIFF}  -in1 BSA_plusTransfer.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_2_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
 
-
-
 add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -2903,6 +2913,7 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
          -Alignment:align_algorithm:max_rt_shift 0
+         -Linking:min_nr_diffs_per_bin 10
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false

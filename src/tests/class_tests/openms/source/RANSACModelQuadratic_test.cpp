@@ -164,7 +164,8 @@ START_SECTION([EXTRA](static Math::RANSAC<Math::RANSACModelQuadratic>::ransac(co
     @param d The number of close data values (according to 't') required to assert that a model fits well to data
     @param rng Custom RNG function (useful for testing with fixed seeds)
   */
-  std::vector<std::pair<double, double> > test_pairs_out = RANSAC<RansacModelQuadratic>::ransac(test_pairs_o, 5, 5, 2.0, 3, false, myRNG);
+  RANSAC<RansacModelQuadratic> r{0};
+  std::vector<std::pair<double, double> > test_pairs_out = r.ransac(test_pairs_o, 5, 50, 2.0, 3, false);
 
   TEST_EQUAL( test_pairs_out.size(), 15)
   ABORT_IF(test_pairs_out.size() != 15)

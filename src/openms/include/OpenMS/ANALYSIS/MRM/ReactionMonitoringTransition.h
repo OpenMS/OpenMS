@@ -280,8 +280,7 @@ public:
    */
     //@{
     /// Comparator by Product ion MZ
-    struct ProductMZLess :
-      std::binary_function<ReactionMonitoringTransition, ReactionMonitoringTransition, bool>
+    struct ProductMZLess
     {
       inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
       {

@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QAction>
@@ -78,6 +79,34 @@ namespace OpenMS
     sync_();
   }
 
+  unsigned RecentFilesMenu::setFromParam(const Param& filenames)
+  {
+    QStringList rfiles;
+    unsigned count{ 0 };
+    for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
+    {
+      QString filename = it->value.toQString();
+      if (File::exists(filename))
+      {
+        rfiles.append(filename);
+        ++count;
+      }
+    }
+    set(rfiles);
+    return count;
+  }
+
+  Param RecentFilesMenu::getAsParam() const
+  {
+    Param p;
+    int i{ 0 };
+    for (const auto& f : recent_files_)
+    {
+      p.setValue(String(i), f);
+      ++i;
+    }
+    return p;
+  }
 
   QMenu* RecentFilesMenu::getMenu()
   {

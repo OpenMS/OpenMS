@@ -1544,10 +1544,10 @@ namespace OpenMS
         error = true;
       }
 
-      //set parameters to defaults when something is fishy with the parameters file
+      // set parameters to defaults when something is fishy with the parameters file
       if (error)
       {
-        //reset parameters (they will be stored again when TOPPView quits)
+        // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
 
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
@@ -1559,28 +1559,16 @@ namespace OpenMS
     }
     param_.setValue("PreferencesFile", filename);
 
-    //set the recent files
-    Param p = param_.copy("preferences:RecentFiles");
-    QStringList rfiles;
-    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
-    {
-      QString filename = it->value.toQString();
-      if (File::exists(filename))
-        rfiles.append(filename);
-    }
-    recent_files_.set(rfiles);
+    // set the recent files
+    recent_files_.setFromParam(param_.copy("preferences:RecentFiles"));
   }
 
   void TOPPViewBase::savePreferences()
   {
     // replace recent files
     param_.removeAll("preferences:RecentFiles");
-    const QStringList& rfiles = recent_files_.get();
-    for (int i = 0; i < rfiles.size(); ++i)
-    {
-      param_.setValue("preferences:RecentFiles:" + String(i), rfiles[i]);
-    }
-
+    param_.insert("preferences:RecentFiles:", recent_files_.getAsParam());
+    
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
 
@@ -2008,15 +1996,6 @@ namespace OpenMS
         return;
       }
 
-      // set precursor information
-      vector<Precursor> precursors;
-      Precursor precursor;
-      precursor.setMZ(aa_sequence.getMZ(charge));
-      precursor.setCharge(charge);
-      precursors.push_back(precursor);
-      spectrum.setPrecursors(precursors);
-      spectrum.setMSLevel(2);
-
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
@@ -2314,7 +2293,7 @@ namespace OpenMS
     if (getActive1DWidget()) // switch from 1D to 3D
     {
       //TODO:
-      //- doesnt make sense for fragment scan
+      //- doesn't make sense for fragment scan
       //- build new Area with mz range equal to 1D visible range
       //- rt range either overall MS1 data range or some convenient window
 

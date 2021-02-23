@@ -36,6 +36,7 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 // declare Qt classes OUTSIDE of namespace OpenMS!
 class QString; 
@@ -187,11 +188,14 @@ namespace OpenMS
       template<class COLOR_CLASS>
       static QColor getColor(uint32_t index)
       {
-        // cycle if neccessary
+        // cycle if necessary
         if (index >= COLOR_CLASS::NAMES::SIZE_OF_NAMES) index = index % COLOR_CLASS::NAMES::SIZE_OF_NAMES;
         return COLOR_CLASS().values[index];
       }
     }; // ColorBrewer
+
+    StringList convert(const QStringList& in);
+    QStringList convert(const StringList& in);
 
   }; // GUIHelpers
 }

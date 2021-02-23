@@ -1,5 +1,8 @@
 from Types cimport *
 from Matrix cimport *
+from libcpp.map cimport map as libcpp_map
+from DoubleList cimport *
+from String cimport *
 from Feature cimport *
 from FeatureMap cimport *
 from String cimport *
@@ -19,28 +22,28 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
           Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
 
         void calculateIsotopicPurity(
-          const Feature & normalized_feature, Feature & feature_with_isotopic_purity,
+          const Feature & normalized_feature,
           const libcpp_vector[double] & experiment_data, const String & isotopic_purity_name) nogil except +
 
-        void calculateIsotopicPurities(
-          const FeatureMap & normalized_feature, FeatureMap & feature_with_isotopic_purity,
-          const libcpp_vector[double] & experiment_data, const String & isotopic_purity_name) nogil except +
+        # void calculateIsotopicPurities(
+        #  const FeatureMap & normalized_feature,
+        #  const libcpp_vector[ DoubleList ] & experiment_data, const libcpp_vector[String] & isotopic_purity_name) nogil except +
 
         void calculateMDVAccuracy(
-          const Feature & normalized_feature, Feature & feature_with_accuracy_info,
-          const libcpp_vector[double] & fragment_isotopomer_measured, const String & fragment_isotopomer_theoretical_formula) nogil except +
+          const Feature & normalized_feature,
+          const String & feature_name, const String & fragment_isotopomer_theoretical_formula) nogil except +
 
         void calculateMDVAccuracies(
-          const FeatureMap & normalized_featureMap, FeatureMap & featureMap_with_accuracy_info,
-          const libcpp_vector[double] & fragment_isotopomer_measured, const String & fragment_isotopomer_theoretical_formula) nogil except +
+          const FeatureMap & normalized_featureMap,
+          const String & feature_name, const libcpp_map[ libcpp_string, libcpp_string ] & fragment_isotopomer_theoretical_formulas) nogil except +
 
         void calculateMDV(
           const Feature & measured_feature, Feature & normalized_feature,
-          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const String & feature_name) nogil except +
 
         void calculateMDVs(
           const FeatureMap & measured_featureMap, FeatureMap & normalized_featureMap,
-          const MassIntensityType & mass_intensity_type, const FeatureName & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const String & feature_name) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS::IsotopeLabelingMDVs":
@@ -51,13 +54,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
         NOT_SELECTED,
         TBDMS,
         SIZE_OF_DERIVATIZATIONAGENT
-
-    cdef enum FeatureName "OpenMS::IsotopeLabelingMDVs::FeatureName":
-        #wrap-attach:
-        #    FeatureName
-        INTENSITY,
-        PEAK_APEX_INT,
-        SIZE_OF_FEATURENAME
 
     cdef enum MassIntensityType "OpenMS::IsotopeLabelingMDVs::MassIntensityType":
         #wrap-attach:
