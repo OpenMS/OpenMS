@@ -175,6 +175,8 @@ jobs:
       if: github.event_name == 'push'
       shell: bash
       run: |
+        sudo apt update -y
+        sudo apt install -y jq
         ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
         ref=${ref#"refs/heads/"}
         ref=${ref#"refs/"}
@@ -184,7 +186,10 @@ jobs:
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
-      run: echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      run: |
+        sudo apt update
+        sudo apt install jq
+        echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
     - name: Build and test osx
       run: |
