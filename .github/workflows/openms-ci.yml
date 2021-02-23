@@ -164,11 +164,11 @@ jobs:
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           mkdir  $GITHUB_WORKSPACE/bld/
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild_lnx.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
+          OPENMS_CONTRIB_LIBS: "/contrib-build"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
