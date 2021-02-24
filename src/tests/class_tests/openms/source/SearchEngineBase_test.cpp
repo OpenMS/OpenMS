@@ -88,7 +88,6 @@ class SearchEngineBaseTest
 
       return EXECUTION_OK;
     }
-
 };
 
 std::vector<const char*> toArgV(const StringList& args)
