@@ -80,11 +80,11 @@ class SearchEngineBaseTest
 
     ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
-      MzMLFile file;
-      MSExperiment exp;
-      file.load(getRawfileName(), exp);
+      // check raw file (must contain centroided MS2 spectra)
+      String in = getRawfileName();
 
-
+      // check if DB is found (no PATH lookup possible here, since we do not control the OpenMS.ini; so usefulness is limited)
+      String db = getDBFilename();
 
       return EXECUTION_OK;
     }
