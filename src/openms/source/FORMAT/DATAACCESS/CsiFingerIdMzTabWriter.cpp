@@ -126,7 +126,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-4.5");
+        md.description = MzTabString("CSI:FingerID-4.6.0");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
@@ -158,11 +158,14 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
             smsr.identifier.set(pubchemids);
             smsr.inchi_key = MzTabString(hit.inchikey2D);
             smsr.smiles = MzTabString(hit.smiles);
-            std::vector < MzTabString > uri;
+            std::vector < MzTabString > links;
+            MzTabStringList m_links;
+            m_links.setSeparator('|');
             for (Size k = 0; k < hit.links.size(); ++k)
             {
-              uri.emplace_back(MzTabString(hit.links[k]));
-            }  
+              links.emplace_back(MzTabString(hit.links[k]));
+            }
+            m_links.set(links);
 
             smsr.exp_mass_to_charge = MzTabDouble(id.mz);
 
@@ -179,6 +182,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
             MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
             MzTabOptionalColumnEntry adduct = make_pair("opt_global_adduct", MzTabString(hit.adduct));
             MzTabOptionalColumnEntry xlogp = make_pair("opt_global_rank", MzTabString(hit.xlogp));
+            MzTabOptionalColumnEntry dblinks = make_pair("opt_global_dblinks", MzTabString(m_links.toCellString()));
             MzTabOptionalColumnEntry dbflags = make_pair("opt_global_dbflags", MzTabString(hit.dbflags));
 
             vector<MzTabString> m_native_ids;
@@ -199,6 +203,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
             smsr.opt_.push_back(native_ids);
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(xlogp);
+            smsr.opt_.push_back(dblinks);
             smsr.opt_.push_back(dbflags);
             smsd.push_back(smsr);
           } 
