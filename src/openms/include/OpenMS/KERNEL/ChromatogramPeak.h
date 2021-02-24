@@ -201,8 +201,7 @@ public:
     */
     //@{
     /// Comparator by intensity
-    struct IntensityLess :
-      std::binary_function<ChromatogramPeak, ChromatogramPeak, bool>
+    struct IntensityLess
     {
       inline bool operator()(ChromatogramPeak const & left, ChromatogramPeak const & right) const
       {
@@ -227,8 +226,7 @@ public:
     };
 
     /// Comparator by RT position.
-    struct RTLess :
-      public std::binary_function<ChromatogramPeak, ChromatogramPeak, bool>
+    struct RTLess
     {
       inline bool operator()(const ChromatogramPeak & left, const ChromatogramPeak & right) const
       {
@@ -253,8 +251,7 @@ public:
     };
 
     /// Comparator by position. As this class has dimension 1, this is basically an alias for RTLess.
-    struct PositionLess :
-      public std::binary_function<ChromatogramPeak, ChromatogramPeak, bool>
+    struct PositionLess
     {
       inline bool operator()(const ChromatogramPeak & left, const ChromatogramPeak & right) const
       {

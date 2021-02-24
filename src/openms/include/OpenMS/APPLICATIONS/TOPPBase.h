@@ -164,6 +164,14 @@ public:
       UNEXPECTED_RESULT
     };
 
+
+
+    /// No default constructor
+    TOPPBase() = delete;
+
+    /// No default copy constructor.
+    TOPPBase(const TOPPBase&) = delete;
+
     /**
       @brief Constructor
 
@@ -212,12 +220,6 @@ private:
 
     /// Location in the ini file where to look for parameters.
     String const ini_location_;
-
-    /// No default constructor.  It is "declared away".
-    TOPPBase();
-
-    /// No default copy constructor.  It is "declared away".
-    TOPPBase(const TOPPBase&);
 
     /// All parameters relevant to this invocation of the program.
     Param param_;

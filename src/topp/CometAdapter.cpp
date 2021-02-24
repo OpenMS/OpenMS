@@ -32,7 +32,7 @@
 // $Authors: Leon Bichmann, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -102,11 +102,11 @@ using namespace std;
 
 
 class TOPPCometAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPCometAdapter() :
-    TOPPBase("CometAdapter", "Annotates MS/MS spectra using Comet.", true,
+    SearchEngineBase("CometAdapter", "Annotates MS/MS spectra using Comet.", true,
              {
                  {"Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R.",
                  "Comet: An open-source MS/MS sequence database search tool",
@@ -621,37 +621,23 @@ protected:
     }
     writeDebug_("Comet Version extracted is: '" + comet_version + "\n", 2);
 
-    String inputfile_name = getStringOption_("in");
-    String out = getStringOption_("out");
-
-
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
 
-    String db_name(getStringOption_("database"));
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
 
-    //tmp_dir
+    int ms_level = getIntOption_("ms_level");
+    String inputfile_name = getRawfileName(ms_level);
+    String out = getStringOption_("out");
+    String db_name = getDBFilename();
+
+    // tmp_dir
     String tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
     String tmp_pin = tmp_dir.getPath() + "result.pin";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
-    //default params given or to be written
+    // default params given or to be written
     if (default_params.empty())
     {
         tmp_file = tmp_dir.getPath() + "param.txt";
@@ -667,15 +653,6 @@ protected:
     {
         tmp_file = default_params;
     }
-
-    int ms_level = getIntOption_("ms_level");
-    const auto& centroid_info = MzMLFile().getCentroidInfo(inputfile_name);
-    const auto& lvl_info = centroid_info.find(ms_level);
-    if (lvl_info == centroid_info.end())
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
-    if (lvl_info->second.second > 0 && !getFlag_("force"))
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
-
 
     // check for mzML index (comet requires one)
     MSExperiment exp;

@@ -180,8 +180,8 @@ namespace OpenMS
     DIAHelpers::extractSecond(spectrumWIso, intTheor);
     std::vector<double> intExp, mzExp;
     DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp);
-    std::transform(intExp.begin(), intExp.end(), intExp.begin(), OpenSwath::mySqrt());
-    std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), OpenSwath::mySqrt());
+    std::transform(intExp.begin(), intExp.end(), intExp.begin(), [](double val){return std::sqrt(val);});
+    std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), [](double val){return std::sqrt(val);});
 
     // get sum for normalization. All entries in both should be positive
     double intExpTotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);

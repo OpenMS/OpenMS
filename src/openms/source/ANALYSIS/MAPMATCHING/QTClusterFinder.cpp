@@ -136,10 +136,10 @@ namespace OpenMS
                 //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
                 // Would require a second pass though
                 const String key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
-                const auto it_inserted = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
-                if (!it_inserted.second) // already present
+                const auto [it, inserted] = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
+                if (!inserted) // already present
                 {
-                  it_inserted.first->second.push_back(feat.getRT());
+                  it->second.push_back(feat.getRT());
                 }
                 //TODO we could score the whole feature instead of just the RT to calculate tolerances based on
                 // a combined score (RT/mz; using the scoring function of this class) instead of just RT

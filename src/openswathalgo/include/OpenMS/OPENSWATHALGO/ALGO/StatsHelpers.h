@@ -65,16 +65,6 @@ namespace OpenSwath
     return sqrt(res);
   }
 
-  struct mySqrt :
-    std::unary_function<double, double>
-  {
-    double operator()(double x)
-    {
-      return sqrt(x);
-    }
-
-  };
-
   /**
   @brief compute dotprod of vectors
   */
