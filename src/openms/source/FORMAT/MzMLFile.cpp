@@ -267,11 +267,13 @@ namespace OpenMS
         {
           case (MSSpectrum::SpectrumType::CENTROID):
             ++ret[lvl].count_centroided;
+            --first_n_spectra_only_remaining;
             break;
           case (MSSpectrum::SpectrumType::PROFILE):
             ++ret[lvl].count_profile;
+            --first_n_spectra_only_remaining;
             break;
-          case (MSSpectrum::SpectrumType::UNKNOWN):
+          case (MSSpectrum::SpectrumType::UNKNOWN):  // this can only happen for spectra with very few peaks (or completely empty spectra)
             ++ret[lvl].count_unknown;
             break;
           default:
@@ -280,7 +282,7 @@ namespace OpenMS
         }
 
         // stop parsing after 10 or so spectra
-        if (--first_n_spectra_only_remaining == 0)
+        if (first_n_spectra_only_remaining == 0)
         {
           throw Internal::XMLHandler::EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
