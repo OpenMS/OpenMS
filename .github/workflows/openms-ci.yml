@@ -47,7 +47,7 @@ jobs:
     - name: Tests windows
       run: |
           mkdir $GITHUB_WORKSPACE/bld/
-          ctest --output-on-failure -V -S ../OpenMS/tools/travis/cibuild.cmake
+          ctest --output-on-failure -V -S ../tools/travis/cibuild.cmake
       env:
           CTEST_CMAKE_GENERATOR: "Visual Studio 16 2019"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
