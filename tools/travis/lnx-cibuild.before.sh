@@ -33,7 +33,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U nose
   pip install -U numpy
   pip install -U wheel
-  pip install -U Cython==0.29.21
+  pip install -U Cython
   pip install -U autowrap
 fi
 
