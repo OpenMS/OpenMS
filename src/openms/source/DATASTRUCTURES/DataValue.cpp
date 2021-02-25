@@ -679,26 +679,7 @@ namespace OpenMS
 
   QString DataValue::toQString() const
   {
-    QString result;
-    switch (value_type_)
-    {
-    case DataValue::EMPTY_VALUE: break;
-
-    case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
-
-    case DataValue::STRING_LIST: result = QString::fromStdString(this->toString()); break;
-
-    case DataValue::INT_LIST: result = QString::fromStdString(this->toString()); break;
-
-    case DataValue::DOUBLE_LIST: result = QString::fromStdString(this->toString()); break;
-
-    case DataValue::INT_VALUE: result.setNum(data_.ssize_); break;
-
-    case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_, 'f'); break;
-
-    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to QString");
-    }
-    return result;
+    return toString(true).toQString();
   }
 
   bool DataValue::toBool() const

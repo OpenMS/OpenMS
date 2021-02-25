@@ -90,8 +90,7 @@ public:
 
 
     /// Compare by score
-    struct TotalScoreMore :
-      std::binary_function<Feature, Feature, bool>
+    struct TotalScoreMore
     {
       inline bool operator()(Feature const & left, Feature const & right) const
       {
@@ -101,8 +100,7 @@ public:
     };
 
     /// Compare by score
-    struct SeqTotalScoreMore :
-      std::binary_function<Feature, Feature, bool>
+    struct SeqTotalScoreMore
     {
       inline bool operator()(Feature const & left, Feature const & right) const
       {

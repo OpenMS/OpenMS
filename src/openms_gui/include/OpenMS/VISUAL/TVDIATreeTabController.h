@@ -42,7 +42,8 @@
 namespace OpenMS
 {
   class TOPPViewBase;
-
+  class Plot1DWidget;
+  struct MiniLayer;
   struct OSWIndexTrace;
 
   /**
@@ -59,6 +60,12 @@ public:
 
 public slots:
     /// shows all transitions from the given subtree
-    virtual void showData(const OSWIndexTrace& trace);
+    virtual void showChromatograms(const OSWIndexTrace& trace);
+
+    /// shows all transitions from the given subtree in a new 1D canvas
+    virtual void showChromatogramsAsNew1D(const OSWIndexTrace& trace);
+    
+private:    
+    bool showChromatogramsInCanvas_(const OSWIndexTrace& trace, MiniLayer& ml, Plot1DWidget* w);
   };
 }

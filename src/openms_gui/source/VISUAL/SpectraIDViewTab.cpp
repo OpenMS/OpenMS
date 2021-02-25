@@ -127,15 +127,15 @@ namespace OpenMS
 
     connect(table_widget_, &QTableWidget::currentCellChanged, this, &SpectraIDViewTab::currentCellChanged_);
     connect(table_widget_, &QTableWidget::itemChanged, this, &SpectraIDViewTab::updatedSingleCell_);
-    connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries);
-    connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries);
+    connect(hide_no_identification_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries_);
+    connect(create_rows_for_commmon_metavalue_, &QCheckBox::toggled, this, &SpectraIDViewTab::updateEntries_);
     connect(export_table, &QPushButton::clicked, table_widget_, &TableView::exportEntries);
   }
 
   void SpectraIDViewTab::clear()
   {
-    // remove all entries
-    setLayer(nullptr);
+    table_widget_->clear();
+    layer_ = nullptr;
   }
 
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
@@ -158,6 +158,9 @@ namespace OpenMS
     const auto& exp = *layer_->getPeakData();
     const auto& spec2 = exp[current_spectrum_index];
 
+    //
+    // Signal for a new spectrum to be shown
+    //
     // show precursor spectrum (usually MS1)
     if (column == Clmn::PRECURSOR_MZ)
     {
@@ -256,12 +259,23 @@ namespace OpenMS
     } // PeakAnnotation cell clicked
   }
 
-  void SpectraIDViewTab::setLayer(LayerData* cl)
+  bool SpectraIDViewTab::hasData(const LayerData* layer)
+  {
+    // this is a very easy check.
+    // We do not check for PeptideIdentifications attached to Spectra, because the user could just 
+    // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
+    bool no_data = (layer == nullptr
+                || (layer->type == LayerData::DT_PEAK && layer->getPeakData()->empty())
+                || (layer->type == LayerData::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+    return !no_data;
+  }
+
+  void SpectraIDViewTab::updateEntries(LayerData* cl)
   {
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
     layer_ = cl;
-    updateEntries();
+    updateEntries_(); // we need this extra function since its an internal slot
   }
 
   LayerData* SpectraIDViewTab::getLayer()
@@ -281,14 +295,12 @@ namespace OpenMS
     };
   }
 
-  void SpectraIDViewTab::updateEntries()
+  void SpectraIDViewTab::updateEntries_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr
-        || (layer_->type == LayerData::DT_PEAK && layer_->getPeakData()->empty())
-        || (layer_->type == LayerData::DT_CHROMATOGRAM && layer_->getChromatogramData()->empty()))
+    if (!hasData(layer_))
     {
-      table_widget_->clear();
+      clear();
       return;
     }
 
@@ -297,7 +309,6 @@ namespace OpenMS
     if (!isVisible()) { return; }
 
     int restore_spec_index = layer_->getCurrentSpectrumIndex();
-    std::cout << "spec index selected:" << restore_spec_index << '\n';
 
     set<String> common_keys;
     bool has_peak_annotations(false);
@@ -348,11 +359,6 @@ namespace OpenMS
     table_widget_->clear();
     table_widget_->setRowCount(0);
     table_widget_->setColumnCount(headers.size());
-
-    QTableWidgetItem* proto_item = new QTableWidgetItem();
-    proto_item->setTextAlignment(Qt::AlignCenter);
-    table_widget_->setItemPrototype(proto_item);
-
     table_widget_->setSortingEnabled(false);
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
@@ -362,14 +368,11 @@ namespace OpenMS
     // index i is needed, so iterate the old way...
     for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
-      QTableWidgetItem* item = nullptr;
-
       const MSSpectrum& spectrum = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
       const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
       const Size id_count = pi.size();
       const vector<Precursor> & precursors = spectrum.getPrecursors();
-
 
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
       if (ms_level != 2 && id_count == 0) { continue; }
@@ -405,14 +408,12 @@ namespace OpenMS
             table_widget_->setAtBottomRow((int)ph.getRank(), Clmn::RANK, bg_color);
             table_widget_->setAtBottomRow(ph.getCharge(), Clmn::CHARGE, bg_color);
 
-            //sequence
+            // sequence
             String seq = ph.getSequence().toString();
             if (seq.empty()) seq = ph.getMetaValue("label");
             table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
 
-            //Accession
-            item = table_widget_->itemPrototype()->clone();
-            item->setTextAlignment(Qt::AlignLeft);
+            // accession
             set<String> protein_accessions = ph.extractProteinAccessionsSet();
             String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
             table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
@@ -457,7 +458,6 @@ namespace OpenMS
               // add peak annotation column (part of meta-value assessment above)
               if (has_peak_annotations)
               {
-                table_widget_->setAtBottomRow("show", current_col, bg_color);
                 // set hidden data for export to TSV
                 QString annotation;
                 for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
@@ -467,23 +467,22 @@ namespace OpenMS
                     String(pa.charge).toQString() + "|" +
                     pa.annotation.toQString() + ";";
                 }
-                table_widget_->item(table_widget_->rowCount() - 1, current_col)->setData(Qt::UserRole, annotation);
+                QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color);
+                item->setData(Qt::UserRole, annotation);
                 ++current_col;
               }
               for (const auto& ck : common_keys)
               {
                 DataValue dv = ph.getMetaValue(ck);
-                item = table_widget_->itemPrototype()->clone();
-                item->setTextAlignment(Qt::AlignLeft);
                 if (dv.valueType() == DataValue::DOUBLE_VALUE)
                 {
-                  item->setData(Qt::DisplayRole, (double)dv);
+                  table_widget_->setAtBottomRow(double(dv), current_col, bg_color);
                 }
                 else
                 {
-                  item->setText(dv.toQString());
+                  table_widget_->setAtBottomRow(dv.toQString(), current_col, bg_color);
                 }
-                table_widget_->setAtBottomRow(item, current_col, bg_color);
+                
                 ++current_col;
               }
             }
@@ -585,6 +584,9 @@ namespace OpenMS
     int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+
+    // maintain sortability of our checkbox column
+    TableView::updateCheckBoxItem(item);
 
     vector<PeptideIdentification>& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].getPeptideIdentifications();
 

@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("SuperHirn")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # Find Boost lib for shared pointers

@@ -66,12 +66,22 @@ namespace OpenMS
     */
     virtual void exportEntries();
 
+    /// adds a new row to the bottom
+    void appendRow();
 
-    void setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(bool selected, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
-    void setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground);
+    QTableWidgetItem* setAtBottomRow(const QString& text, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    QTableWidgetItem* setAtBottomRow(const char* text, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    QTableWidgetItem* setAtBottomRow(const int i, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    QTableWidgetItem* setAtBottomRow(const double d, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    /// create a checkbox item (with no text)
+    QTableWidgetItem* setAtBottomRow(const bool selected, size_t column_index, const QColor& background, const QColor& foreground = QColor("SomeInvalidColor"));
+    /// create a custom item (if above methods are not sufficient)
+    QTableWidgetItem* setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground);
+
+    /// if the item is purely a checkbox (e.g. added with setAtBottomRow(const bool selected, ...)),
+    /// we set its DisplayRole to either '' or ' ', depending on checked state, to allow for row sorting 
+    /// This function should be called whenever the check-state of the item changes
+    static void updateCheckBoxItem(QTableWidgetItem* item);
 
     /// sets the visible headers (and the number of columns)
     void setHeaders(const QStringList& headers);
@@ -123,6 +133,14 @@ namespace OpenMS
     /// get the displayed name of the header in column with index @p header_column
     /// @throws Exception::ElementNotFound if header at index @p header_column is not valid
     QString getHeaderName(const int header_column);
+
+  signals:
+    /// emitted when the widget is resized
+    void resized();
+
+  protected:
+    // emits the resized signal
+    void resizeEvent(QResizeEvent* event) override;
 
   protected slots:
     /// Display header context menu; allows to show/hide columns

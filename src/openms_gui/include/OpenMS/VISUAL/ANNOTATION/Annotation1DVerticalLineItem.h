@@ -48,8 +48,25 @@ namespace OpenMS
       public Annotation1DItem
   {
   public:
-    /// Constructor
-    Annotation1DVerticalLineItem(const double& x, const QColor& color, const QString& text="");
+    /**
+      Constructor for a single vertical line of 1px width.
+
+      @param pos X-coordinate as show on the axis
+      @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
+      @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
+    **/ 
+    Annotation1DVerticalLineItem(const double x_pos, const QColor& color = QColor("as_before"), const QString& text = "");
+    /**
+      Constructor for a single vertical line of 1px width or a broader line (band) with the given width
+
+      @param pos X-coordinate of the center as show on the axis
+      @param width Full width of the band; use 0 or 1 for a 1px line.
+      @param alpha255 A transparency value from 0 (not visible), to 255 (fully opaque)
+      @param dashed_line Should the line/band be dashed
+      @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
+      @param text Optional text displayed next to the line/band. Can contain '\n' which will force multiple lines. Text will be plotted at the very top (modify using setTextYOffset())
+    **/
+    Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int alpha255 = 128, const bool dashed_line = false, const QColor& color = QColor("as_before"), const QString& text = "");
     /// Copy constructor
     Annotation1DVerticalLineItem(const Annotation1DVerticalLineItem& rhs) = default;
     /// Destructor
@@ -63,13 +80,28 @@ namespace OpenMS
     /// Sets the uppermost position of the line
     void setPosition(const double& x);
     /// Returns the position
-    const double & getPosition() const;
+    const double& getPosition() const;
+
+    /// size of the painted text (width and height of the rectangle)
+    QRectF getTextRect() const;
+
+    /// offset the text by this much downwards in y-direction (to avoid overlaps etc)
+    void setTextYOffset(int y_offset);
 
   protected:
     /// The position of the vertical line
-    double x_;
+    double x_ = -1;
+    /// offset in y for the text (to avoid overlaps)
+    int y_text_offset_{0};
 
-    /// The color of the line
-    QColor color_;
+    /// width of the item (allowing to show a 'band' if > 1)
+    float width_ = 1;
+    /// transparency 0...255 of the band/line
+    float alpha255_ = 128;
+    /// is the band/line dashed?
+    bool dashed_{false};
+
+    /// The color of the line; if invalid, the current painter color will be used
+    QColor color_ = Qt::black;
   };
 } // namespace OpenMS

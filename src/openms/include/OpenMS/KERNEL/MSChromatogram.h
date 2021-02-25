@@ -60,8 +60,7 @@ namespace OpenMS
 public:
 
     /// Comparator for the retention time.
-    struct OPENMS_DLLAPI MZLess :
-      public std::binary_function<MSChromatogram, MSChromatogram, bool>
+    struct OPENMS_DLLAPI MZLess
     {
       bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
     };

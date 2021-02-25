@@ -36,7 +36,7 @@
 
 #include <QtWidgets>
 
-
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
 class QLineEdit;
@@ -54,8 +54,8 @@ namespace OpenMS
 
     @ingroup PlotWidgets
   */
-  class DIATreeTab :
-    public QWidget
+  class OPENMS_GUI_DLLAPI DIATreeTab :
+    public QWidget, public DataTabBase
   {
     Q_OBJECT
   public:
@@ -64,15 +64,20 @@ namespace OpenMS
     /// Destructor
     ~DIATreeTab() = default;
 
+    // docu in base class
+    bool hasData(const LayerData* layer) override;
+
     /// refresh the table using data from @p cl
     /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
-    void updateEntries(LayerData& cl);
+    void updateEntries(LayerData* cl) override;
     /// remove all visible data
     void clear();
 
   signals:
-    /// emitted when a protein, peptide, feature or transition was clicked
-    void dataSelected(const OSWIndexTrace& trace);
+    /// emitted when a protein, peptide, feature or transition was selected
+    void entityClicked(const OSWIndexTrace& trace);
+    /// emitted when a protein, peptide, feature or transition was double-clicked
+    void entityDoubleClicked(const OSWIndexTrace& trace);
 
   private:
     QLineEdit* spectra_search_box_ = nullptr;
@@ -83,15 +88,25 @@ namespace OpenMS
     /// Useful to avoid useless repaintings, which would loose the open/close state of internal tree nodes and selected items
     OSWData* current_data_ = nullptr;
 
+    /** 
+      @brief convert a tree item to a pointer into an OSWData structure
+
+      @param item The tree item (protein, peptide,...) that was clicked
+      @return The index into the current OSWData @p current_data_
+    **/
+    OSWIndexTrace prepareSignal_(QTreeWidgetItem* item);
+
   private slots:
     /// fill the search-combo-box with current column header names
     void populateSearchBox_();
     /// searches for rows containing a search text (from spectra_search_box_); called when text search box is used
     void spectrumSearchText_();
-    /// emits transitionSelected() for all subitems
+    /// emits entityClicked() for all subitems
     void rowSelectionChange_(QTreeWidgetItem*, QTreeWidgetItem*);
-    /// emits transitionSelected() for all subitems
-    void rowSelectionChange2_(QTreeWidgetItem*, int col);
+    /// emits entityClicked() for all subitems
+    void rowClicked_(QTreeWidgetItem*, int col);
+    /// emits entityDoubleClicked() for all subitems
+    void rowDoubleClicked_(QTreeWidgetItem*, int col);
     /// searches using text box and plots the spectrum
     void searchAndShow_();
   };

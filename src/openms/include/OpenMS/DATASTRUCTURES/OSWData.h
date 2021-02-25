@@ -35,13 +35,13 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <map>
 #include <vector>
 
 namespace OpenMS
 {
+    class MSExperiment;
 
     /// hierarchy levels of the OSWData tree
     struct OPENMS_DLLAPI OSWHierarchy
@@ -61,6 +61,7 @@ namespace OpenMS
 
     /// Describes a node in the OSWData model tree. 
     /// If a lower level, e.g. feature, is set, the upper levels need to be set as well.
+    /// The lowest level which is set, must be indicated by setting @p lowest.
     struct OPENMS_DLLAPI OSWIndexTrace
     {
       int idx_prot = -1;
@@ -68,6 +69,13 @@ namespace OpenMS
       int idx_feat = -1;
       int idx_trans = -1;
       OSWHierarchy::Level lowest = OSWHierarchy::Level::SIZE_OF_VALUES;
+
+      /// is the trace default constructed (=false), or does it point somewhere (=true)?
+      bool isSet() const
+      {
+        return lowest != OSWHierarchy::Level::SIZE_OF_VALUES;
+      }
+
     };
 
     /// high-level meta data of a transition
@@ -125,7 +133,7 @@ namespace OpenMS
     class OPENMS_DLLAPI OSWPeakGroup
     {
       public:
-        /// return value of getQValue() if .osw file did not undergo pyProphet
+        /// fallback value of getQValue() if .osw file did not undergo pyProphet
         static constexpr float QVALUE_MISSING = -1;
 
         /// just a dummy feature to allow for acceptor output values etc
@@ -296,7 +304,6 @@ namespace OpenMS
     class OPENMS_DLLAPI OSWData
     {
       public:
-
         /// Adds a transition; do this before adding Proteins
         void addTransition(const OSWTransition& tr)
         {
@@ -357,11 +364,40 @@ namespace OpenMS
           return source_file_;
         }
 
+        void setRunID(const UInt64 run_id)
+        {
+          run_id_ = run_id;
+        }
+
+        UInt64 getRunID() const
+        {
+          return run_id_;
+        }
+
         /// forget all data
         void clear();
 
         /// only forget protein data
         void clearProteins();
+
+        /**
+          @brief Create an internal mapping from the nativeIDs of all chromatograms (extracted by OpenSwathWorkflow (e.g. as sqMass file)) to their index (.getChromatograms[index])
+
+          The mapping is stored internally and can be used to translate transition.ids (which are native_ids) to a chromatogram index of the external sqMass file.
+
+          The mapping can be queried using fromNativeID(int transition.id).
+
+          Make sure that the other OSW data is loaded (at least via OSWFile::readMinimal()) before building this mapping here.
+
+          @param chrom_traces The external sqMass file, which we build the mapping on
+          @throws Exception::MissingInformation if any nativeID is not known internally
+          @throws Exception::Precondition if the run_ids do not match
+        */
+        void buildNativeIDResolver(const MSExperiment& chrom_traces);
+
+        /// resolve a transition.id (=nativeID) to a simple chromatogram index (.getChromatograms[index]) of the corresponding sqMass file
+        /// Requires prior call to buildNativeIDResolver(), throws Exception::InvalidValue otherwise (or when nativeID is not known)
+        UInt fromNativeID(int transition_id) const;
 
       protected:
         /// All transition references are checked against transitions_ to make sure
@@ -372,7 +408,9 @@ namespace OpenMS
       private:
         std::map<UInt32, OSWTransition> transitions_;
         std::vector<OSWProtein> proteins_;
-        String source_file_;
+        String source_file_;                        ///< remember from which sql OSW file this data is loaded (to lazy load more data)
+        UInt64 run_id_;                             ///< the ID of this run from the SQL RUN table
+        std::map<UInt32, UInt32> transID_to_index_; ///< map a Transition.ID (==native_id) to a chromatogram index in the sqMass experiment which contains the raw data
     };
     
 

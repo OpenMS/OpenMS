@@ -111,8 +111,8 @@ namespace OpenMS
     dia_treewidget_->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(dia_treewidget_, &QTreeWidget::currentItemChanged, this, &DIATreeTab::rowSelectionChange_);
-
-    connect(dia_treewidget_, &QTreeWidget::itemClicked, this, &DIATreeTab::rowSelectionChange2_);
+    connect(dia_treewidget_, &QTreeWidget::itemClicked, this, &DIATreeTab::rowClicked_);
+    connect(dia_treewidget_, &QTreeWidget::itemDoubleClicked, this, &DIATreeTab::rowDoubleClicked_);
 
     spectra_widget_layout->addWidget(dia_treewidget_);
 
@@ -188,6 +188,7 @@ namespace OpenMS
     return item_prot;
   }
 
+
   void DIATreeTab::spectrumSearchText_()
   {
     const QString& text = spectra_search_box_->text(); // get text from QLineEdit
@@ -209,38 +210,54 @@ namespace OpenMS
     }
   }
 
-  void DIATreeTab::rowSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
+
+  OSWIndexTrace DIATreeTab::prepareSignal_(QTreeWidgetItem* item)
   {
-    if (current == nullptr || current_data_ == nullptr)
+    OSWIndexTrace tr;
+    if (item == nullptr || current_data_ == nullptr)
     {
-      return;
+      return tr;
     }
 
-    OSWIndexTrace tr = getTrace(current);
+    tr = getTrace(item);
     switch (tr.lowest)
     {
-      case OSWHierarchy::Level::PROTEIN:
-        if (current->childCount() == 0)
-        { // no peptides... load them
-          OSWFile f(current_data_->getSqlSourceFile());
-          f.readProtein(*current_data_, tr.idx_prot);
-        }
-        fillProt(current_data_->getProteins()[tr.idx_prot], current);
-        // do nothing else -- showing all transitions for a protein is overwhelming...      
-        break;
-      case OSWHierarchy::Level::PEPTIDE:
-      case OSWHierarchy::Level::FEATURE:
-      case OSWHierarchy::Level::TRANSITION:
-        break;
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    case OSWHierarchy::Level::PROTEIN:
+      if (item->childCount() == 0)
+      { // no peptides... load them
+        OSWFile f(current_data_->getSqlSourceFile());
+        f.readProtein(*current_data_, tr.idx_prot);
+        fillProt(current_data_->getProteins()[tr.idx_prot], item);
+      }
+      // do nothing else -- showing all transitions for a protein is overwhelming...      
+      break;
+    case OSWHierarchy::Level::PEPTIDE:
+    case OSWHierarchy::Level::FEATURE:
+    case OSWHierarchy::Level::TRANSITION:
+      break;
+    default:
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    emit dataSelected(tr);
+
+    return tr;
   }
 
-  void DIATreeTab::rowSelectionChange2_(QTreeWidgetItem* item, int /*col*/)
+  void DIATreeTab::rowSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
   {
-    rowSelectionChange_(item, nullptr);
+    auto tr = prepareSignal_(current);
+    if (tr.isSet()) emit entityClicked(tr);
+  }
+
+  void DIATreeTab::rowClicked_(QTreeWidgetItem* item, int /*col*/)
+  {
+    auto tr = prepareSignal_(item);
+    if (tr.isSet()) emit entityClicked(tr);
+  }
+
+  void DIATreeTab::rowDoubleClicked_(QTreeWidgetItem* item, int /*col*/)
+  {
+    auto tr = prepareSignal_(item);
+    if (tr.isSet()) entityDoubleClicked(tr);
   }
 
   void DIATreeTab::searchAndShow_()
@@ -252,13 +269,27 @@ namespace OpenMS
   }
 
 
-  void DIATreeTab::updateEntries(LayerData& cl)
+  bool DIATreeTab::hasData(const LayerData* layer)
   {
+    if (layer == nullptr) return false;
+    OSWData* data = layer->getChromatogramAnnotation().get();
+    return (data != nullptr && !data->getProteins().empty());
+  }
+
+  void DIATreeTab::updateEntries(LayerData* layer)
+  {
+    if (layer == nullptr)
+    {
+      clear();
+      return;
+    }
+
     if (!dia_treewidget_->isVisible() || dia_treewidget_->signalsBlocked())
     {
       return;
     }
- 
+    LayerData& cl = *layer;
+
     OSWData* data = cl.getChromatogramAnnotation().get();
 
     if (current_data_ == data)

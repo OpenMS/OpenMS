@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
 
 //QT
 #include <QtWidgets/QButtonGroup>
@@ -215,6 +216,9 @@ protected:
     //@{
     QToolBar* tool_bar_;
     //@}
+
+    /// manages recent list of filenames and the menu that goes with it
+    RecentFilesMenu recent_files_menu_;  // needs to be declared before 'menu_', because its needed there
 
     /// Main workspace
     EnhancedWorkspace* ws_;
