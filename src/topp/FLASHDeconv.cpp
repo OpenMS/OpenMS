@@ -119,11 +119,16 @@ protected:
                         "promex format output file (ms1ft) - only MS1 deconvoluted masses are recorded", false);
     setValidFormats_("out_promex", ListUtils::create<String>("ms1ft"), false);
 
-    registerOutputFileList_("out_topFD", "<file for MS1, file for MS2, ...>", {""},
+    registerOutputFileList_("out_topFD",
+                            "<file for MS1, file for MS2, ...>",
+                            {""},
                             "topFD format output files (msalign) - spectrum level deconvoluted masses per ms level. The file name for MSn should end with msn.msalign to be able to be recognized by TopPIC. "
-                            "For example, -out_topFD [name]_ms1.msalign [name]_ms2.msalign", false);
+                            "For example, -out_topFD [name]_ms1.msalign [name]_ms2.msalign",
+                            false);
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
 
+    registerDoubleOption_("topFD_snr_threshold", "<value>", .3,
+                          "precursor SNR threshold for TopFD output.", false, true);
     registerIntOption_("mzml_mass_charge",
                        "<0:uncharged 1: +1 charged -1: -1 charged>",
                        0,
@@ -133,13 +138,18 @@ protected:
     setMinInt_("mzml_mass_charge", -1);
     setMaxInt_("mzml_mass_charge", 1);
 
-    /*registerDoubleList_("tol",
-                        "<ms1_tol, ms2_tol, ...>",
-                        {10.0, 10.0},
-                        "ppm tolerance for MS1, 2, ...  "
-                        "(e.g., -tol 10.0 15.0 to specify 10.0 and 15.0 ppm for MS1 and MS2, respectively)",
-                        false);
-*/
+
+    registerIntOption_("preceding_MS1_count",
+                       "<number>",
+                       1,
+                       "Specifies the number of preceding MS1 spectra for MS2 precursor determination. In TDP, some precursor peaks in MS2 are not part of "
+                       "the deconvoluted masses in MS1 immediatly preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
+                       "MS1 spectra and helps determine exact precursor masses.",
+                       false,
+                       false);
+
+    setMinInt_("preceding_MS1_count", 1);
+
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
@@ -244,7 +254,7 @@ protected:
     String out_mzml_file = getStringOption_("out_mzml");
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
-
+    double snr_threshold = getDoubleOption_("topFD_snr_threshold");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
     bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
@@ -496,7 +506,7 @@ protected:
 
     int scan_number = 0;
     float prev_progress = .0;
-    int const num_last_deconvoluted_spectra = 1;
+    int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
     auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
     //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
@@ -662,7 +672,7 @@ protected:
       }
       if (out_topfd_streams.size() > ms_level - 1)
       {
-        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number, avg);
+        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number, snr_threshold, avg);
 
         //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 100000, avg, 2);
         //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 200000, avg, .5);

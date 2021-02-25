@@ -275,6 +275,7 @@ namespace OpenMS
 
   void DeconvolutedSpectrum::writeTopFD(std::fstream &fs,
                                         const int id,
+                                        const double snr_threshold,
                                         const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                         const double harmonic_factor,
                                         const double precursor_offset)//, fstream& fsm, fstream& fsp)
@@ -282,13 +283,25 @@ namespace OpenMS
 
     UInt ms_level = spec_.getMSLevel();
 
-    if (ms_level > 1) //
+    if (ms_level > 1)
     {
       if (precursor_peak_group_.empty())
       {
         return;
       }
+      if (precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge()) < snr_threshold)
+      {//
+        return;
+      }
+      //if(precursor_peak_group_.getChargeIsotopeCosine(precursor_peak_.getCharge()) < .75){
+      //  return;
+      //}
+      if (precursor_peak_group_.getSNR() < snr_threshold)
+      {
+        return;
+      }
     }
+
 
     fs << std::fixed << std::setprecision(2);
     fs << "BEGIN IONS\n"

@@ -1120,7 +1120,7 @@ namespace OpenMS
 
     if (ms_level_ == 1)
     {
-      removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
+      //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
       removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1]);
     }
     else
