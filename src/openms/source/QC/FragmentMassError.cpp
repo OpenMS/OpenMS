@@ -50,8 +50,6 @@
 
 namespace OpenMS
 {
-  const std::string FragmentMassError::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
-
   template <typename MIV>
   void twoSpecErrors (MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
   {

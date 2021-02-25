@@ -47,16 +47,6 @@ namespace OpenMS
   class OPENMS_DLLAPI PSMCorrectness : public QCBase
   {
   public:
-    enum class ToleranceUnit
-    {
-      AUTO,
-      PPM,
-      DA,
-      SIZE_OF_TOLERANCEUNIT
-    };
-    /// strings corresponding to enum ToleranceUnit
-    static const std::string names_of_toleranceUnit[];
-
     /// Default constructor
     PSMCorrectness() = default;
 

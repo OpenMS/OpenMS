@@ -47,8 +47,6 @@
 
 namespace OpenMS
 {
-  const std::string PSMCorrectness::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
-
   template <typename MIV>
   double sumOfMatchedIntensities(MIV& mi)
   {
