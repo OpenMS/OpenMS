@@ -226,11 +226,11 @@ namespace OpenMS
   {
     for (size_t feature_idx = 0; feature_idx < normalized_featureMap.size(); ++feature_idx)
     {
-      if (normalized_featureMap.at(feature_idx).metaValueExists("peptideRef"))
+      if (normalized_featureMap.at(feature_idx).metaValueExists("PeptideRef"))
       {
         calculateMDVAccuracy(normalized_featureMap.at(feature_idx),
                              feature_name,
-                             fragment_isotopomer_theoretical_formulas.find((std::string)normalized_featureMap.at(feature_idx).getMetaValue("peptideRef"))->second);
+                             fragment_isotopomer_theoretical_formulas.find((std::string)normalized_featureMap.at(feature_idx).getMetaValue("PeptideRef"))->second);
       }
       else
       {
