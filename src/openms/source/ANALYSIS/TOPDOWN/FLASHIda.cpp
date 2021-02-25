@@ -134,7 +134,7 @@ namespace OpenMS
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
     int mass_count = mass_count_[ms_level - 1];
 
-    const auto color_order = std::vector<char>({'B', 'R', 'b', 'r', 'G'});
+    const auto color_order = std::vector<char>({'B', 'R', 'b', 'r'});
 
     std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map; // integer mass, rt, qscore
     std::unordered_map<int, double> new_mass_qscore_map;

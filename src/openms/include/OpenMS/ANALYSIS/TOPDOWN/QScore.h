@@ -62,17 +62,18 @@ namespace OpenMS
                             const double rt,
                             const double pmass,
                             const double pmz,
-                            const PeakGroup pg,
+                            PeakGroup pg,
                             const int charge,
                             const double precursor_intensity,
                             const int num_ptm,
                             const bool is_identified,
                             const double e_value,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                            std::fstream &f);
+                            std::fstream &f,
+                            bool write_detail = false);
 
     /// write header for attirbute tsv file
-    static void writeAttHeader(std::fstream &f);
+    static void writeAttHeader(std::fstream &f, bool write_detail = false);
 
   private:
     /// convert a peak group to a feature vector for QScore calculation

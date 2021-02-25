@@ -58,8 +58,10 @@ namespace OpenMS
       {
         break;
       }
-      auto iso = use_RNA_averagine ? generator->estimateFromRNAWeight(mass_delta) : generator->estimateFromPeptideWeight(mass_delta);
-      double factor = .01;
+      auto iso = use_RNA_averagine ?
+                 generator->estimateFromRNAWeight(mass_delta) :
+                 generator->estimateFromPeptideWeight(mass_delta);
+      const double factor = .05;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;

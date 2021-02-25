@@ -766,7 +766,7 @@ namespace OpenMS
   //With mass_bins_, select peaks from the same mass in the original input spectrum
   void FLASHDeconvAlgorithm::getCandidatePeakGroups_(const Matrix<int> &per_mass_abs_charge_ranges)
   {
-    const int max_missing_isotope = 3;
+    //const int max_missing_isotope = 3;
     double bin_width = bin_width_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
     int charge_range = current_max_charge_ - current_min_charge_ + 1;
@@ -851,10 +851,10 @@ namespace OpenMS
             break;
           }
 
-          if (tmp_i - candidate_i > max_missing_isotope)
-          {
-            break;
-          }
+          //if (tmp_i - candidate_i > max_missing_isotope)
+          //{
+          //  break;
+          //}
 
           if (abs(mz_diff - tmp_i * iso_delta) >= mz_delta) // noise   max_intensity  vs   intensity
           {
@@ -891,10 +891,10 @@ namespace OpenMS
             break;
           }
 
-          if (tmp_i - candidate_i > max_missing_isotope)
-          {
-            break;
-          }
+          //if (tmp_i - candidate_i > max_missing_isotope)
+          //{
+          //  break;
+          //}
 
           if (abs(mz_diff - tmp_i * iso_delta) >= mz_delta)
           {

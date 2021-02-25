@@ -34,6 +34,7 @@
 
 #include "OpenMS/ANALYSIS/TOPDOWN/QScore.h"
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 
 namespace OpenMS
 {
@@ -77,9 +78,9 @@ namespace OpenMS
     //SNR               -3.1146
     //ChargeScore       -1.9595
     //Intercept         -2.3368
-    const std::vector<double> &weights = (abs_charge > 6 ?
-                                          (pg->getMonoMass() > 30000.0 ? weights_vh : weights_h) :
-                                          weights_l);
+    const std::vector<double> &weights = weights_h;// (abs_charge > 6 ?
+    //(pg->getMonoMass() > 30000.0 ? weights_vh : weights_h) :
+    //weights_l);
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector_(pg, abs_charge);
 
@@ -111,11 +112,15 @@ namespace OpenMS
   }
 
 
-
-  void QScore::writeAttHeader(std::fstream& f)
+  void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Evalue,Class\n";
+        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Evalue,";
+    if (write_detail)
+    {
+      f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
+    }
+    f << "Class\n";
   }
 
   void QScore::writeAttTsv(const String &acc,
@@ -123,14 +128,15 @@ namespace OpenMS
                            const double rt,
                            const double pmass,
                            const double pmz,
-                           const PeakGroup pg,
+                           PeakGroup pg,
                            const int charge,
                            const double precursor_intensity,
                            const int num_ptm,
                            const bool is_identified,
                            const double e_value,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                           std::fstream &f)
+                           std::fstream &f,
+                           bool write_detail)
   {
     auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
     if (pg.empty())
@@ -150,7 +156,7 @@ namespace OpenMS
       //  return;
 
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
-      double mass = pmass <= .0? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
+      double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
       f << acc << "," << proID << "," << rt << "," << monomass << "," << mass << "," << pmz << ","
         << precursor_intensity << ","
         << pg.getRepAbsCharge() << ","
@@ -160,6 +166,45 @@ namespace OpenMS
         f << item << ",";
       }
       f << pg.getQScore() << "," << e_value << ",";
+      if (write_detail)
+      {
+        f << std::fixed << std::setprecision(2);
+        for (auto &p : pg)
+        {
+          f << p.mz << " ";
+        }
+        f << ";,";
+
+        f << std::fixed << std::setprecision(1);
+        for (auto &p : pg)
+        {
+          f << p.intensity << " ";
+        }
+        f << ";,";
+        f << std::setprecision(-1);
+
+
+        for (auto &p : pg)
+        {
+          f << p.getUnchargedMass() << " ";
+        }
+        f << ";,";
+
+        for (auto &p : pg)
+        {
+          f << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
+        }
+        f << ";,";
+
+        for (auto &p : pg)
+        {
+          f << p.isotopeIndex << " ";
+        }
+        f << ";,";
+        f << std::fixed << std::setprecision(-1);
+      }
+
+
       f << (is_identified ? "T" : "F") << "\n";
     }
   }

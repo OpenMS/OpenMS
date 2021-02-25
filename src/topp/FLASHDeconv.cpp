@@ -141,7 +141,7 @@ protected:
 
     registerIntOption_("preceding_MS1_count",
                        "<number>",
-                       1,
+                       5,
                        "Specifies the number of preceding MS1 spectra for MS2 precursor determination. In TDP, some precursor peaks in MS2 are not part of "
                        "the deconvoluted masses in MS1 immediatly preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
                        "MS1 spectra and helps determine exact precursor masses.",
@@ -240,6 +240,7 @@ protected:
   ExitCodes main_(int, const char **) override
   {
     OPENMS_LOG_INFO << "Initializing ... " << endl;
+    const bool write_detail_qscore_att = false;
 
     //-------------------------------------------------------------
     // parsing parameters
@@ -299,7 +300,7 @@ protected:
     if (!in_train_file.empty() && !out_train_file.empty())
     {
       out_train_stream.open(out_train_file, fstream::out);
-      QScore::writeAttHeader(out_train_stream);
+      QScore::writeAttHeader(out_train_stream, write_detail_qscore_att);
       std::ifstream in_trainstream(in_train_file);
       String line;
       bool start = false;
@@ -622,7 +623,7 @@ protected:
                             precursor_intensity, top_pic_map[scan_number].unexp_mod_,
                             top_pic_map[scan_number].unexp_mod_ >= 0,
                             top_pic_map[scan_number].e_value_,
-                            avg, out_train_stream);
+                            avg, out_train_stream, write_detail_qscore_att);
 
       }
       if (!out_mzml_file.empty())
