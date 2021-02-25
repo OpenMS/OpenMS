@@ -72,7 +72,7 @@ namespace OpenMS
   }
 
 
-  PeakSpectrum getTheoSpec_(const Precursor::ActivationMethod& fm, const AASequence& seq, const int charge)
+  MSSpectrum FragmentMassError::getTheoSpec(const Precursor::ActivationMethod& fm, const AASequence& seq, const int charge)
   {
     // initialize a TheoreticalSpectrumGenerator
     TheoreticalSpectrumGenerator theo_gen;
@@ -206,7 +206,7 @@ namespace OpenMS
       //---------------------------------------------------------------------
       // CREATE THEORETICAL SPECTRUM
       //---------------------------------------------------------------------
-      PeakSpectrum theo_spectrum = getTheoSpec_(act_method, seq, charge);
+      PeakSpectrum theo_spectrum = getTheoSpec(act_method, seq, charge);
 
       //-----------------------------------------------------------------------
       // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM

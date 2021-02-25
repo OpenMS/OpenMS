@@ -34,13 +34,16 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/QC/QCBase.h>
 #include <vector>
 
 namespace OpenMS
 {
+  class MSSpectrum;
   class FeatureMap;
   class MSExperiment;
+  class AASequence;
   
   class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
@@ -60,6 +63,8 @@ namespace OpenMS
 
     /// Destructor
     virtual ~FragmentMassError() = default;
+
+    static MSSpectrum getTheoSpec(const Precursor::ActivationMethod& fm, const AASequence& seq, const int charge);
 
     /**
      * @brief Structure for storing results: average and variance of all FragmentMassErrors in ppm
