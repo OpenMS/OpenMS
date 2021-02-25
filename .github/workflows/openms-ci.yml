@@ -69,7 +69,6 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"
-          MATRIX_EVAL: "CC=gcc-7 && CXX=g++-7"
 
   build-macos:
     runs-on: macos-latest
@@ -106,12 +105,6 @@ jobs:
             install_name_tool -id $lib $lib
           done
 
-    - name: Build
-      run: |
-          export CC=clang
-          export CXX=clang++
-          export MACOSX_DEPLOYMENT_TARGET=10.9
-
           # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
           pushd $Qt5_Dir/include
             for f in $Qt5_Dir/lib/*.framework/Headers
@@ -126,14 +119,33 @@ jobs:
             otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
 
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      run: |
+        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
+        ref=${ref#"refs/heads/"}
+        ref=${ref#"refs/"}
+        ref=${ref//\//-}
+        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+      id: extract_branch
+    - name: Extract PR number
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      id: extract_pr
     - name: Build and test osx
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           mkdir $GITHUB_WORKSPACE/bld/
+          ## TODO allow changing of ctest build site in cmake
+          ## TODO potentially parse some OS infos and add to build name
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
+          CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
+          BUILD_NAME: "${{ env.RUN_NAME }}-macOS-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
@@ -142,7 +154,6 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"
-          MATRIX_EVAL: "CC=gcc-7 && CXX=g++-7"
 
   build-lnx:
     runs-on: ubuntu-latest
@@ -160,15 +171,40 @@ jobs:
       with:
         path: OpenMS
 
-    - name: Build and tests manylinux
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      run: |
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
+        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
+        ref=${ref#"refs/heads/"}
+        ref=${ref#"refs/"}
+        ref=${ref//\//-}
+        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+      id: extract_branch
+    - name: Extract PR number
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: |
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
+        echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      id: extract_pr
+    - name: Build and test osx
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
-          mkdir  $GITHUB_WORKSPACE/bld/
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild_lnx.cmake
+          mkdir $GITHUB_WORKSPACE/bld/
+          ## TODO allow changing of ctest build site in cmake
+          ## TODO potentially parse some OS infos and add to build name
+          ## TODO allow changing Contrib path to get rid of the extra cmake file!
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
+          CONTRIB_BUILD_DIRECTORY: "/contrib-build"
+          CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "openms-ci-${{ github.repository }}-${{ github.head_ref }}-${{ github.base_ref }}"
-          OPENMS_CONTRIB_LIBS: "/contrib-build"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -176,4 +212,3 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"
-          MATRIX_EVAL: "CC=gcc-7 && CXX=g++-7"
