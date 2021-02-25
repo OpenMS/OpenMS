@@ -84,7 +84,7 @@ jobs:
     - name: Load contrib build
       run: |
           cd OpenMS/contrib
-          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.3/x64/appleclang-11.0.0/contrib_build.tar.gz
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
 
@@ -183,7 +183,7 @@ jobs:
         yum -y install jq
         echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
-    - name: Build and test osx
+    - name: Build and test lnx
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           mkdir $GITHUB_WORKSPACE/bld/
