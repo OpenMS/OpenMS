@@ -62,8 +62,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	add_compile_options(-O0)
 endif()
 
-# we want makefiles
-set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
+CTEST_CMAKE_GENERATOR=$ENV{CTEST_CMAKE_GENERATOR}
 
 # run the classical CTest suite without update
 # travis-ci handles this for us
