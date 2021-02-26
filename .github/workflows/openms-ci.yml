@@ -189,6 +189,8 @@ jobs:
       # open step log to get ssh access
     - name: Debugging with tmate
       uses: mxschmitt/action-tmate@v3.3
+      with:
+        sudo: false
       
     - name: Build and test lnx
       run: |
