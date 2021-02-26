@@ -35,6 +35,7 @@ MSSimulator
 MSstatsConverter
 MultiplexResolver
 MzMLSplitter
+MzQCCalculator
 NovorAdapter
 NucleicAcidSearchEngine
 OpenMSInfo
