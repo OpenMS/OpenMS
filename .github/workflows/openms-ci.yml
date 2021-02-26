@@ -79,7 +79,7 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
-          BUILD_FLAGS: "-m"
+          BUILD_FLAGS: "-mp"
 
   build-macos:
     runs-on: macos-latest
