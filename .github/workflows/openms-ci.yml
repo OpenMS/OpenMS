@@ -192,16 +192,16 @@ jobs:
       #  If the CI has failed and the branch is ci-debug then start a tmate
       #  session. SSH rendezvous point is emited continuously in the job output.
       #  hack needed to fix apt dependency
-    - name: "Debug: Package dependancies for tmate"
-      run: |
-        yum install -y xz
-        ln -s /bin/true /bin/apt-get      
-      
-    - name: "Debug: Start tmate"
-      uses: mxschmitt/action-tmate@v3.3
-      with:
-        limit-access-to-actor: true
-        sudo: false
+#    - name: "Debug: Package dependancies for tmate"
+#      run: |
+#        yum install -y xz
+#        ln -s /bin/true /bin/apt-get      
+#      
+#    - name: "Debug: Start tmate"
+#      uses: mxschmitt/action-tmate@v3.3
+#      with:
+#        limit-access-to-actor: true
+#        sudo: false
             
     - name: Build and test lnx
       run: |
