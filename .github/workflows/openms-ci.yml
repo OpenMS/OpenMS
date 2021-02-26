@@ -50,6 +50,7 @@ jobs:
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
       env:
           CMAKE_GENERATOR: "Visual Studio 16 2019"
+          GENERATOR_PLATFORM: "x64"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -138,6 +139,7 @@ jobs:
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Unix Makefiles"
+          GENERATOR_PLATFORM: "x64"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-macOS-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
@@ -197,6 +199,7 @@ jobs:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Unix Makefiles"
+          GENERATOR_PLATFORM: "x64"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
