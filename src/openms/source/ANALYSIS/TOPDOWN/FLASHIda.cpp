@@ -134,7 +134,7 @@ namespace OpenMS
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
     int mass_count = mass_count_[ms_level - 1];
 
-    const auto color_order = std::vector<char>({'B', 'R', 'b', 'r'});
+    const auto color_order = std::vector<char>({'B', 'R', 'G', 'b', 'r'});
 
     std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map; // integer mass, rt, qscore
     std::unordered_map<int, double> new_mass_qscore_map;
@@ -243,7 +243,7 @@ namespace OpenMS
     std::set<int> current_selected_masses; // current selected masses
     std::set<int> current_selected_mzs; // current selected mzs
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 1; i++)
     {
       for (auto &c: color_order)
       {
@@ -259,6 +259,10 @@ namespace OpenMS
             break;
           }
           if (i == 0 && pg.getQScore() < qscore_threshold_)
+          {
+            break;
+          }
+          if (i == 0 && c == 'G' && pg.getQScore() < 0)
           {
             break;
           }
