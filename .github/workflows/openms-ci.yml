@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
-        
+
     - name: Reduce PATH
       run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
@@ -187,6 +187,22 @@ jobs:
         yum -y install jq
         echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
+      
+      #  open step log to get ssh access
+      #  If the CI has failed and the branch is ci-debug then start a tmate
+      #  session. SSH rendezvous point is emited continuously in the job output.
+      #  hack needed to fix apt dependency
+    - name: "Debug: Package dependancies for tmate"
+      run: |
+        yum install -y xz
+        ln -s /bin/true /bin/apt-get      
+      
+    - name: "Debug: Start tmate"
+      uses: mxschmitt/action-tmate@v3.3
+      with:
+        limit-access-to-actor: true
+        sudo: false
+            
     - name: Build and test lnx
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
@@ -210,5 +226,3 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"          
-    - name: Debugging with tmate
-      uses: mxschmitt/action-tmate@v3.3
