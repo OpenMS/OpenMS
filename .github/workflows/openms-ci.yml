@@ -206,4 +206,6 @@ jobs:
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
-          OPENMP: "On"
+          OPENMP: "On"          
+    - name: Debugging with tmate
+      uses: mxschmitt/action-tmate@v3.3
