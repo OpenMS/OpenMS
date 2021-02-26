@@ -185,6 +185,11 @@ jobs:
         yum -y install jq
         echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
+      
+      # open step log to get ssh access
+    - name: Debugging with tmate
+      uses: mxschmitt/action-tmate@v3.3
+      
     - name: Build and test lnx
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
@@ -207,5 +212,3 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"          
-    - name: Debugging with tmate
-      uses: mxschmitt/action-tmate@v3.3
