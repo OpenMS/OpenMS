@@ -63,6 +63,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(CTEST_CMAKE_GENERATOR "$ENV{CMAKE_GENERATOR}")
+set(CMAKE_GENERATOR_PLATFORM "$ENV{GENERATOR_PLATFORM}")
 
 # run the classical CTest suite without update
 # travis-ci handles this for us
