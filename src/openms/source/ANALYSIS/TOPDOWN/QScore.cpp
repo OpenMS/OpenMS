@@ -142,7 +142,7 @@ namespace OpenMS
       double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
       f << acc << "," << proID << "," << rt << "," << monomass << "," << mass << "," << pmz << ","
         << precursor_intensity << ","
-        << pg.getRepAbsCharge() << ","
+        << charge << ","
         << (proID ? num_ptm : -1) << ",";
       for (auto &item : fv)
       {
@@ -150,7 +150,7 @@ namespace OpenMS
       }
 
 
-      f << pg.getQScore() << "," << e_value << ",";
+      f << getQScore(&pg, charge) << "," << e_value << ",";
       if (write_detail)
       {
         f << std::fixed << std::setprecision(2);

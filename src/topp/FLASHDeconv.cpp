@@ -127,8 +127,8 @@ protected:
                             false);
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
 
-    registerDoubleOption_("topFD_snr_threshold", "<value>", -.0,
-                          "precursor SNR threshold for TopFD output.", false, true);
+    //registerDoubleOption_("topFD_snr_threshold", "<value>", -.0,
+    //                      "precursor SNR threshold for TopFD output.", false, true);
     registerIntOption_("mzml_mass_charge",
                        "<0:uncharged 1: +1 charged -1: -1 charged>",
                        0,
@@ -255,7 +255,7 @@ protected:
     String out_mzml_file = getStringOption_("out_mzml");
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
-    double snr_threshold = getDoubleOption_("topFD_snr_threshold");
+    double snr_threshold = -0;//getDoubleOption_("topFD_snr_threshold");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
     bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;

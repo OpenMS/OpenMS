@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h"
-
+#include "include/OpenMS/ANALYSIS/TOPDOWN/QScore.h"
 namespace OpenMS
 {
   DeconvolutedSpectrum::DeconvolutedSpectrum(const MSSpectrum &spectrum, const int scan_number) :
@@ -293,7 +293,7 @@ namespace OpenMS
       {//
         return;
       }
-      if (precursor_peak_group_.getQScore() < -1)
+      if (QScore::getQScore(&precursor_peak_group_, precursor_peak_.getCharge()) < -1)
       { // TODO
         return;
       }
