@@ -132,6 +132,9 @@ namespace OpenMS
     /// set charge score
     void setChargeScore(const float charge_score);
 
+    /// get average mass ppm error;
+    void setAvgPPMError(const float error);
+
     /// set color of the peak group; only for FLASHIda
     void setColor(const char color);
 
@@ -174,6 +177,9 @@ namespace OpenMS
     /// get charge score
     float getChargeScore() const;
 
+    /// get average mass ppm error;
+    float getAvgPPMError() const;
+
     /// get if it is positive mode
     bool isPositive() const;
 
@@ -205,6 +211,7 @@ namespace OpenMS
     float charge_score_;
     float qscore_;
     float total_snr_;
+    float avg_ppm_error_;
 
     /// for FLASHIda
     char color_;

@@ -191,6 +191,10 @@ namespace OpenMS
     charge_score_ = score;
   }
 
+  void PeakGroup::setAvgPPMError(const float error)
+  {
+    avg_ppm_error_ = error;
+  }
 
   void PeakGroup::setSNR(const float snr)
   {
@@ -256,6 +260,11 @@ namespace OpenMS
   float PeakGroup::getChargeScore() const
   {
     return charge_score_;
+  }
+
+  float PeakGroup::getAvgPPMError() const
+  {
+    return avg_ppm_error_;
   }
 
 

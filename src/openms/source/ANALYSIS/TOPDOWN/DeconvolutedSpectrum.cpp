@@ -293,6 +293,10 @@ namespace OpenMS
       {//
         return;
       }
+      if (precursor_peak_group_.getQScore() < -1)
+      { // TODO
+        return;
+      }
       //if(precursor_peak_group_.getChargeIsotopeCosine(precursor_peak_.getCharge()) < .75){
       //  return;
       //}

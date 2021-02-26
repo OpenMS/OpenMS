@@ -110,7 +110,7 @@ protected:
       e_value_ = stod(results[15]);
     }
 
-    const String header = "Findex,ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Evalue,Class";
+    //const String header="Findex,";// = "Findex,ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Evalue,Class";
 
     String str_;
     double rt_;
@@ -132,8 +132,8 @@ protected:
     auto outfile = getStringOption_("out");
 
     fstream outstream;
+    String header = "";
     outstream.open(outfile, fstream::out); //
-    outstream << TopPicItem().header << "\n";
     vector<vector<TopPicItem>> results;
     map<String, map<int, vector<TopPicItem>>> acc_map; // acc, input index, matches
 
@@ -147,20 +147,28 @@ protected:
 
       while (std::getline(in_trainstream, line))
       {
-        if (!line.hasSuffix("T"))
+        if (line.hasPrefix("ACC"))
         {
+          header = "FileIndex," + line;
+          continue;
+        }
+        if (line.hasSuffix("F"))
+        {
+          //outstream << "FileIndex,"<<line << "\n";
           continue;
         }
         TopPicItem item(line);
-        if (item.e_value_ > 1e-2)
-        { //
-          continue;
-        }
+
+        //if (item.e_value_ > 1e-2)
+        //{ //
+        //  continue;
+        //}
         results[i].push_back(item);
       }
       cout << "# entries: " << results[i].size() << endl;
       in_trainstream.close();
     }
+    outstream << header << "\n";
 
     //map<String, map<int, vector<TopPicItem>>> acc_map; // acc, input index, matches
     for (int i = 0; i < infiles.size(); i++)
@@ -251,7 +259,6 @@ protected:
           //cout<< s1.size() << " " << s2.size() << " " << s1o<< endl;
         }
       }
-
       // acc, input index, matches
       for (auto &s_item : item.second)
       {

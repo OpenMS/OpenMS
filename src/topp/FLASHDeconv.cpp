@@ -127,7 +127,7 @@ protected:
                             false);
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
 
-    registerDoubleOption_("topFD_snr_threshold", "<value>", .3,
+    registerDoubleOption_("topFD_snr_threshold", "<value>", -.0,
                           "precursor SNR threshold for TopFD output.", false, true);
     registerIntOption_("mzml_mass_charge",
                        "<0:uncharged 1: +1 charged -1: -1 charged>",
@@ -141,7 +141,7 @@ protected:
 
     registerIntOption_("preceding_MS1_count",
                        "<number>",
-                       5,
+                       10,
                        "Specifies the number of preceding MS1 spectra for MS2 precursor determination. In TDP, some precursor peaks in MS2 are not part of "
                        "the deconvoluted masses in MS1 immediatly preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
                        "MS1 spectra and helps determine exact precursor masses.",

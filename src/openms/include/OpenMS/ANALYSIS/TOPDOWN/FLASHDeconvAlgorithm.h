@@ -206,6 +206,8 @@ namespace OpenMS
     ///static function that converts value to bin
     static Size getBinNumber_(const double value, const double min_value, const double bin_width);
 
+    static float getAvgPPMError_(PeakGroup pg);
+
     ///generate log mz peaks from the input spectrum
     void updateLogMzPeaks_(const MSSpectrum *spec);
 
@@ -213,7 +215,7 @@ namespace OpenMS
         @param bin_number number of mz bins
         @param mz_bin_intensities intensity per mz bin
      */
-    void updateMzBins_(const Size& bin_number, std::vector<float>& mz_bin_intensities);
+    void updateMzBins_(const Size &bin_number, std::vector<float> &mz_bin_intensities);
 
     ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();

@@ -1540,6 +1540,12 @@ namespace OpenMS
 
       peak_group.setSNR(total_signal / total_noise);
 
+      peak_group.setAvgPPMError(getAvgPPMError_(peak_group));
+
+      //if(peak_group.getAvgPPMError() > 3e-6){
+      //  continue;
+      //}
+
       peak_group.setQScore(-10000);
 
       for (int abs_charge = std::get<0>(current_charge_range);
@@ -2177,4 +2183,42 @@ namespace OpenMS
     }
     return std::max(.0, 1.0 - p / summed_intensity);
   }
+
+  float FLASHDeconvAlgorithm::getAvgPPMError_(PeakGroup pg)
+  {
+    std::vector<float> diffs;
+    std::vector<std::vector<float>> per_isotope_masses;
+    int isotope_end_index = 0;
+
+    for (auto &p : pg)
+    {
+      isotope_end_index = isotope_end_index < p.isotopeIndex ? p.isotopeIndex : isotope_end_index;
+    }
+    per_isotope_masses = std::vector<std::vector<float>>(isotope_end_index + 1, std::vector<float>());
+    for (auto &p : pg)
+    {
+      per_isotope_masses[p.isotopeIndex].push_back(p.getUnchargedMass());
+    }
+    diffs.reserve(pg.size());
+    for (int i = 0; i < per_isotope_masses.size(); i++)
+    {
+      auto &v = per_isotope_masses[i];
+      Size n = v.size();
+      if (n < 2)
+      {
+        continue;
+      }
+      double average =
+          accumulate(v.begin(), v.end(), 0.0) / n;//pg.getMonoMass() + i * Constants::ISOTOPE_MASSDIFF_55K_U;  //
+      for (float &t:v)
+      {
+        diffs.push_back((t - average) * (t - average));
+      }
+    }
+    Size n = diffs.size();
+    return n == 0 ? .0 : sqrt(accumulate(diffs.begin(), diffs.end(), 0.0) / n);
+
+  }
+
+
 }

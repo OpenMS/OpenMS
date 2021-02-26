@@ -35,6 +35,8 @@
 #include "OpenMS/ANALYSIS/TOPDOWN/QScore.h"
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <iomanip>
 
 namespace OpenMS
 {
@@ -45,39 +47,19 @@ namespace OpenMS
     { // all zero
       return -100;
     }
-    const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-    const std::vector<double> weights_h({-0.1738, -1.4679, -6.8065, -1.2966, -0.9714, 9.2687});
-    const std::vector<double> weights_l({-3.203, -2.6899, 11.1909, -3.1146, -1.9595, -2.3368});
+    //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
+    const std::vector<double> weights_h({-1.9872, -2.0671, -10.9254, -1.1691, -0.5801, 1.2846, 15.2453});
+    //const std::vector<double> weights_l({-3.203, -2.6899, 11.1909, -3.1146, -1.9595, -2.3368});
 
     //
-    //ChargeCos      -0.1738 <<30kda
-    //ChargeSNR      -1.4679
-    //Cos            -6.8065
-    //SNR            -1.2966
-    //ChargeScore    -0.9714
-    //Intercept       9.2687
+    //ChargeCos       -1.9872
+    //ChargeSNR       -2.0671
+    //Cos            -10.9254
+    //SNR             -1.1691
+    //ChargeScore     -0.5801
+    //AvgPPMerror      1.2846
+    //Intercept       15.2453
 
-    //ChargeCos             2.4538
-    //ChargeSNR             0.8122
-    //Cos                  17.5431
-    //SNR                   0.3349
-    //ChargeScore           0.6167
-    //Intercept           -20.5774
-
-
-    //ChargeCos        1.3522 ///>30kda
-    //ChargeSNR       -1.0877
-    //Cos            -16.4956
-    //SNR              -2.036
-    //ChargeScore     -0.9439
-    //Intercept        18.251
-
-    //ChargeCos          -3.203 // < abs_charge 6
-    //ChargeSNR         -2.6899
-    //Cos               11.1909
-    //SNR               -3.1146
-    //ChargeScore       -1.9595
-    //Intercept         -2.3368
     const std::vector<double> &weights = weights_h;// (abs_charge > 6 ?
     //(pg->getMonoMass() > 30000.0 ? weights_vh : weights_h) :
     //weights_l);
@@ -93,7 +75,7 @@ namespace OpenMS
 
   std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
   {
-    std::vector<double> fvector(5);
+    std::vector<double> fvector(6);
 
     double a = pg->getChargeIsotopeCosine(abs_charge);
     double d = 1;
@@ -107,7 +89,8 @@ namespace OpenMS
     fvector[index++] = (log2(d + a / (1 + a)));
     a = pg->getChargeScore();
     fvector[index++] = (log2(a + d));
-
+    a = pg->getAvgPPMError();
+    fvector[index++] = (log2(a + d));
     return fvector;
   }
 
@@ -115,7 +98,7 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Evalue,";
+        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -141,7 +124,7 @@ namespace OpenMS
     auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
     if (pg.empty())
     {
-      // return;
+      return;
       f << acc << "," << proID << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass)
         << "," << pmz
         << "," << precursor_intensity << ","
@@ -165,6 +148,8 @@ namespace OpenMS
       {
         f << item << ",";
       }
+
+
       f << pg.getQScore() << "," << e_value << ",";
       if (write_detail)
       {
