@@ -43,7 +43,6 @@ jobs:
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
-          ls lib/
 
     - name: Extract branch name
       if: github.event_name == 'push'
@@ -80,6 +79,7 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
+          BUILD_FLAGS: "-m"
 
   build-macos:
     runs-on: macos-latest
@@ -167,6 +167,7 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j5"
 
   build-lnx:
     runs-on: ubuntu-latest
@@ -242,4 +243,5 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"
-          USE_STATIC_BOOST: "Off" 
+          USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j5"

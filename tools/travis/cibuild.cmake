@@ -64,7 +64,7 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     )
 
 # try to speed up the builds so we don't get killed
-set(CTEST_BUILD_FLAGS -j5)
+set(CTEST_BUILD_FLAGS "$ENV{BUILD_FLAGS}")
 
 ## speed up compile time on GCC
 if (CMAKE_COMPILER_IS_GNUCXX)
