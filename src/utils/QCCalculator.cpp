@@ -132,7 +132,7 @@ protected:
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Your qcML file.");
-    setValidFormats_("out", ListUtils::create<String>("qcML,json"));
+    setValidFormats_("out", ListUtils::create<String>("qcML"));
     registerInputFile_("id", "<file>", "", "Input idXML file containing the identifications. Your identifications will be exported in an easy-to-read format", false);
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerInputFile_("feature", "<file>", "", "feature input file (this is relevant for most QC issues)", false);
@@ -229,7 +229,7 @@ protected:
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
  
-     QcFile qcfile;
+     QcMLFile qcmlfile;
 
     //-------------------------------------------------------------
     // MS acquisition
@@ -246,11 +246,11 @@ protected:
     UInt max_mz = 0;
     std::map<Size, UInt> mslevelcounts;
     
-    qcfile.registerRun(base_name,base_name); //TODO use UIDs
+    qcmlfile.registerRun(base_name,base_name); //TODO use UIDs
     
     //---base MS aquisition qp
     String msaq_ref = base_name + "_msaq";
-    QcFile::QualityParameter qp;
+    QcMLFile::QualityParameter qp;
     qp.id = msaq_ref; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000004";
@@ -263,35 +263,35 @@ protected:
     {
       qp.name = "mzML file"; ///< Name
     }
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
     
     //---file origin qp
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.name = "mzML file"; ///< Name
     qp.id = base_name + "_run_name"; ///< Identifier
     qp.cvRef = "MS"; ///< cv reference
     qp.cvAcc = "MS:1000577";
     qp.value = base_name;
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
     
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.name = "instrument model"; ///< Name
     qp.id = base_name + "_instrument_name"; ///< Identifier
     qp.cvRef = "MS"; ///< cv reference
     qp.cvAcc = "MS:1000031";
     qp.value = exp.getInstrument().getName();
-    qcfile.addRunQualityParameter(base_name, qp);    
+    qcmlfile.addRunQualityParameter(base_name, qp);    
 
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.name = "completion time"; ///< Name
     qp.id = base_name + "_date"; ///< Identifier
     qp.cvRef = "MS"; ///< cv reference
     qp.cvAcc = "MS:1000747";
     qp.value = exp.getDateTime().getDate();
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
     //---precursors and SN
-    QcFile::Attachment at;
+    QcMLFile::Attachment at;
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000044";
     at.qualityRef = msaq_ref;
@@ -333,10 +333,10 @@ protected:
         at.tableRows.push_back(row);
       }
     }
-    qcfile.addRunAttachment(base_name, at);
+    qcmlfile.addRunAttachment(base_name, at);
 
     //---aquisition results qp
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000006"; ///< cv accession for "aquisition results"
     qp.id = base_name + "_ms1aquisition"; ///< Identifier
@@ -350,10 +350,10 @@ protected:
     {
       qp.name = "number of ms1 spectra"; ///< Name
     }
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
     
 
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000007"; ///< cv accession for "aquisition results"
     qp.id = base_name + "_ms2aquisition"; ///< Identifier
@@ -367,9 +367,9 @@ protected:
     {
       qp.name = "number of ms2 spectra"; ///< Name
     }
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000008"; ///< cv accession for "aquisition results"
     qp.id = base_name + "_Chromaquisition"; ///< Identifier
@@ -383,9 +383,9 @@ protected:
     {
       qp.name = "number of chromatograms"; ///< Name
     }
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
     
-    at = QcFile::Attachment();
+    at = QcMLFile::Attachment();
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000009";
     at.qualityRef = msaq_ref;
@@ -406,9 +406,9 @@ protected:
     rowmz.push_back(String(min_mz));
     rowmz.push_back(String(max_mz));
     at.tableRows.push_back(rowmz);
-    qcfile.addRunAttachment(base_name, at);
+    qcmlfile.addRunAttachment(base_name, at);
 
-    at = QcFile::Attachment();
+    at = QcMLFile::Attachment();
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000012";
     at.qualityRef = msaq_ref;
@@ -429,11 +429,11 @@ protected:
     rowrt.push_back(String(exp.begin()->getRT()));
     rowrt.push_back(String(exp.getSpectra().back().getRT()));
     at.tableRows.push_back(rowrt);
-    qcfile.addRunAttachment(base_name, at);
+    qcmlfile.addRunAttachment(base_name, at);
     
 
     //---ion current stability ( & tic ) qp
-    at = QcFile::Attachment();
+    at = QcMLFile::Attachment();
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000022";
     at.qualityRef = msaq_ref;
@@ -473,9 +473,9 @@ protected:
           break;  // what if there are more than one? should generally not be though ...
         }
       }
-      qcfile.addRunAttachment(base_name, at);
+      qcmlfile.addRunAttachment(base_name, at);
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.id = base_name + "_ticslump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000023";
@@ -489,11 +489,11 @@ protected:
       {
         qp.name = "percentage of tic slumps"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
     }
 
     // -- reconstructed TIC or RIC from the MS1 intensities
-    at = QcFile::Attachment();
+    at = QcMLFile::Attachment();
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000056";
     at.qualityRef = msaq_ref;
@@ -547,9 +547,9 @@ protected:
         at.tableRows.push_back(row);
       }
     }
-    qcfile.addRunAttachment(base_name, at);
+    qcmlfile.addRunAttachment(base_name, at);
 
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.id = base_name + "_ricslump"; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000057";
@@ -563,9 +563,9 @@ protected:
     {
       qp.name = "percentage of ric slumps"; ///< Name
     }
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.id = base_name + "_ricjump"; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000059";
@@ -579,9 +579,9 @@ protected:
     {
       qp.name = "IS-1A"; ///< Name
     }
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
-    qp = QcFile::QualityParameter();
+    qp = QcMLFile::QualityParameter();
     qp.id = base_name + "_ricdump"; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000060";
@@ -595,10 +595,10 @@ protected:
     {
       qp.name = "IS-1B"; ///< Name
     }
-    qcfile.addRunQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
     //---injection times MSn
-    at = QcFile::Attachment();
+    at = QcMLFile::Attachment();
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000018";
     at.qualityRef = msaq_ref;
@@ -633,7 +633,7 @@ protected:
     }
     if (!at.tableRows.empty())
     {
-      qcfile.addRunAttachment(base_name, at);
+      qcmlfile.addRunAttachment(base_name, at);
     }
 
     //-------------------------------------------------------------
@@ -649,7 +649,7 @@ protected:
       //~ boost::regex re("(?<=[KR])(?=[^P])");
      
       String msid_ref = base_name + "_msid";
-      QcFile::QualityParameter qp;
+      QcMLFile::QualityParameter qp;
       qp.id = msid_ref; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000025";
@@ -662,10 +662,10 @@ protected:
       {
         qp.name = "MS identification result details"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      at = QcFile::Attachment();
+      at = QcMLFile::Attachment();
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000026";
       at.qualityRef = msid_ref;
@@ -688,7 +688,7 @@ protected:
       row.push_back(String(prot_ids.front().getSearchParameters().db_version));
       row.push_back(String(prot_ids.front().getSearchParameters().taxonomy));
       at.tableRows.push_back(row);
-      qcfile.addRunAttachment(base_name, at);
+      qcmlfile.addRunAttachment(base_name, at);
 
 
       UInt spectrum_count = 0;
@@ -732,7 +732,7 @@ protected:
           proteins.insert(temp_hits[j].getAccession());
         }
       }
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000037"; ///< cv accession
       qp.id = base_name + "_misscleave"; ///< Identifier
@@ -746,10 +746,10 @@ protected:
       {
         qp.name = "total number of missed cleavages"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
       
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000032"; ///< cv accession
       qp.id = base_name + "_totprot"; ///< Identifier
@@ -763,10 +763,10 @@ protected:
       {
         qp.name = "total number of identified proteins"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000033"; ///< cv accession
       qp.id = base_name + "_totuniqprot"; ///< Identifier
@@ -780,10 +780,10 @@ protected:
       {
          qp.name = "total number of uniquely identified proteins"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000029"; ///< cv accession
       qp.id = base_name + "_psms"; ///< Identifier
@@ -797,10 +797,10 @@ protected:
       {
          qp.name = "total number of PSM"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000030"; ///< cv accession
       qp.id = base_name + "_totpeps"; ///< Identifier
@@ -814,10 +814,10 @@ protected:
       {
          qp.name = "total number of identified peptides"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000031"; ///< cv accession
       qp.id = base_name + "_totuniqpeps"; ///< Identifier
@@ -831,10 +831,10 @@ protected:
       {
          qp.name = "total number of uniquely identified peptides"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      at = QcFile::Attachment();
+      at = QcMLFile::Attachment();
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000038";
       at.qualityRef = msid_ref;
@@ -913,10 +913,10 @@ protected:
           at.tableRows.push_back(row);
         }
       }
-      qcfile.addRunAttachment(base_name, at);
+      qcmlfile.addRunAttachment(base_name, at);
       
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000040"; ///< cv accession
       qp.id = base_name + "_mean_delta"; ///< Identifier
@@ -930,10 +930,10 @@ protected:
       {
          qp.name = "mean delta ppm"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000041"; ///< cv accession
       qp.id = base_name + "_median_delta"; ///< Identifier
@@ -947,10 +947,10 @@ protected:
       {
          qp.name = "median delta ppm"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000035"; ///< cv accession
       qp.id = base_name + "_ratio_id"; ///< Identifier
@@ -964,7 +964,7 @@ protected:
       {
          qp.name = "id ratio"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
     }
 
     //-------------------------------------------------------------
@@ -983,7 +983,7 @@ protected:
       map.sortByRT();
       map.updateRanges();
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000045"; ///< cv accession
       qp.id = msqu_ref; ///< Identifier
@@ -996,9 +996,9 @@ protected:
       {
          qp.name = "MS quantification result details"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
       
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000046"; ///< cv accession
       qp.id = base_name + "_feature_count"; ///< Identifier
@@ -1012,14 +1012,14 @@ protected:
       {
          qp.name = "number of features"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);      
+      qcmlfile.addRunQualityParameter(base_name, qp);      
     }
 
     if (inputfile_feature != "" && !remove_duplicate_features)
     {
       
-      QcFile::Attachment at;
-      at = QcFile::Attachment();
+      QcMLFile::Attachment at;
+      at = QcMLFile::Attachment();
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000047";
       at.qualityRef = msqu_ref;
@@ -1062,9 +1062,9 @@ protected:
         fiter++;
         at.tableRows.push_back(row);
       }     
-      qcfile.addRunAttachment(base_name, at);
+      qcmlfile.addRunAttachment(base_name, at);
 
-      qp = QcFile::QualityParameter();
+      qp = QcMLFile::QualityParameter();
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000058"; ///< cv accession
       qp.id = base_name + "_idfeature_count"; ///< Identifier
@@ -1078,13 +1078,13 @@ protected:
       {
          qp.name = "number of identified features"; ///< Name
       }
-      qcfile.addRunQualityParameter(base_name, qp);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
     }
     else if (inputfile_feature != "" && remove_duplicate_features)
     {
-      QcFile::Attachment at;
-      at = QcFile::Attachment();
+      QcMLFile::Attachment at;
+      at = QcMLFile::Attachment();
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000047";
       at.qualityRef = msqu_ref;
@@ -1137,7 +1137,7 @@ protected:
           retif++;
         }
       }
-      qcfile.addRunAttachment(base_name, at);
+      qcmlfile.addRunAttachment(base_name, at);
     }
     if (inputfile_consensus != "")
     {
@@ -1149,7 +1149,7 @@ protected:
       //~ String combined_out = outputfile_name + CONSENSUS_NAME;
       //~ ofstream out(combined_out.c_str());
 
-      at = QcFile::Attachment();
+      at = QcMLFile::Attachment();
       qp.name = "consensuspoints"; ///< Name
       //~ qp.id = base_name + "_consensuses"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
@@ -1179,14 +1179,14 @@ protected:
           at.tableRows.push_back(row);
         }
       }
-      qcfile.addRunAttachment(base_name, at);
+      qcmlfile.addRunAttachment(base_name, at);
     }
     
     
     //-------------------------------------------------------------
     // finalize
     //------------------------------------------------------------
-    qcfile.storeMzQC(outputfile_name, inputfile_raw);
+    qcmlfile.store(outputfile_name);
     return EXECUTION_OK;
   }
 

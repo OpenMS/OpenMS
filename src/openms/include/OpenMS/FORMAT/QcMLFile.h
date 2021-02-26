@@ -42,9 +42,6 @@
 #include <map>
 #include <set>
 #include <algorithm>
-#include <ctime>
-#include <iomanip>
-#include <unistd.h>
 
 namespace OpenMS
 {
@@ -57,7 +54,7 @@ namespace OpenMS
 
       @ingroup FileIO
   */
-  class OPENMS_DLLAPI QcFile :
+  class OPENMS_DLLAPI QcMLFile :
     public Internal::XMLHandler,
     public Internal::XMLFile,
     public ProgressLogger
@@ -85,7 +82,7 @@ public:
       bool operator==(const QualityParameter& rhs) const;
       bool operator<(const QualityParameter& rhs) const;
       bool operator>(const QualityParameter& rhs) const;
-      String toJSONString() const;
+
       String toXMLString(UInt indentation_level) const;
     };
 
@@ -114,15 +111,15 @@ public:
       bool operator==(const Attachment& rhs) const;
       bool operator<(const Attachment& rhs) const;
       bool operator>(const Attachment& rhs) const;
+
       String toXMLString(UInt indentation_level) const;
-      String toJSONString() const;
       String toCSVString(String separator) const;
     };
 
     ///Default constructor
-    QcFile();
+    QcMLFile();
     ///Destructor
-    ~QcFile() override;
+    ~QcMLFile() override;
 
     String map2csv(const std::map< String, std::map<String, String> >& cvs_table, const String& separator) const;
     String exportIDstats(const String& filename) const;
@@ -148,7 +145,7 @@ public:
     ///Just removes qualityparameter going by one of the ID attributes given in ids.
     void removeQualityParameter(String r, std::vector<String>& ids);
     ///merges the given QCFile into this one
-    void merge(const QcFile & addendum, String setname = "");
+    void merge(const QcMLFile & addendum, String setname = "");
     ///collects the values of given QPs (as CVid) of the given set
     void/* std::vector<String>& */ collectSetParameter(const String setname, const String qp, std::vector<String>& ret);
     ///Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
@@ -169,10 +166,8 @@ public:
     void existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
     ///Returns the ids of the parameter name given if found in given set, empty else
     void existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
-    ///Store the QcFile
-    void storeQcML(const String & filename) const;
-    ///Store the MzQCFile
-    void storeMzQC(const String & outputfilename, const String& inputfilename) const;
+    ///Store the QCFile
+    void store(const String & filename) const;
     ///Load a QCFile
     void load(const String & filename);
 

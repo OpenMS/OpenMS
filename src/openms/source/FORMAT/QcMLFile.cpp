@@ -39,7 +39,6 @@
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
-#include <iostream>
 using namespace std;
 
 // TODO fix all the shadowed "const_iterator qpsit"
@@ -49,7 +48,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  QcFile::QualityParameter::QualityParameter() :
+  QcMLFile::QualityParameter::QualityParameter() :
     name(),
     id(),
     value(),
@@ -61,7 +60,7 @@ namespace OpenMS
   {
   }
 
-  QcFile::QualityParameter::QualityParameter(const QualityParameter& rhs) :
+  QcMLFile::QualityParameter::QualityParameter(const QualityParameter& rhs) :
     name(rhs.name),
     id(rhs.id),
     value(rhs.value),
@@ -73,7 +72,7 @@ namespace OpenMS
   {
   }
 
-  QcFile::QualityParameter& QcFile::QualityParameter::operator=(const QualityParameter& rhs)
+  QcMLFile::QualityParameter& QcMLFile::QualityParameter::operator=(const QualityParameter& rhs)
   {
     if (this != &rhs)
     {
@@ -89,44 +88,22 @@ namespace OpenMS
     return *this;
   }
 
-  bool QcFile::QualityParameter::operator<(const QualityParameter& rhs) const
+  bool QcMLFile::QualityParameter::operator<(const QualityParameter& rhs) const
   {
     return name.toQString() < rhs.name.toQString();
   }
 
-  bool QcFile::QualityParameter::operator>(const QualityParameter& rhs) const
+  bool QcMLFile::QualityParameter::operator>(const QualityParameter& rhs) const
   {
     return name.toQString() > rhs.name.toQString();
   }
 
-  bool QcFile::QualityParameter::operator==(const QualityParameter& rhs) const
+  bool QcMLFile::QualityParameter::operator==(const QualityParameter& rhs) const
   {
     return name.toQString() == rhs.name.toQString();
   }
 
-  String QcFile::QualityParameter::toJSONString() const
-  { 
-    String s;
-    s += String(10, ' ') + "{\n";
-    // adding name and accession of QualityParameter
-    s += String(12, ' ') + "\"accession\": " + "\"" + cvAcc + "\",\n";
-    s += String(12, ' ') + "\"name\": " + "\"" + name + "\"";
-    // adding optional value
-    if (value != "")
-    {
-      s += ",\n" +  String(12, ' ') + "\"value\": " + "\"" + value + "\"";
-    }
-    // adding optional unit
-    if (unitAcc != "")
-    {
-      s += ",\n" + String(12, ' ') + "\"unit\": " + "\"" + unitAcc + "\"";
-    }
-    s += "\n" + String(10, ' ') + "},\n";
-    
-    return s;
-  }
-
-  String QcFile::QualityParameter::toXMLString(UInt indentation_level) const
+  String QcMLFile::QualityParameter::toXMLString(UInt indentation_level) const
   {
     String indent = String(indentation_level, '\t');
     String s = indent;
@@ -154,7 +131,7 @@ namespace OpenMS
     return s;
   }
 
-  QcFile::Attachment::Attachment() :
+  QcMLFile::Attachment::Attachment() :
     name(),
     id(),
     value(),
@@ -168,7 +145,7 @@ namespace OpenMS
   {
   }
 
-  QcFile::Attachment::Attachment(const Attachment& rhs) :
+  QcMLFile::Attachment::Attachment(const Attachment& rhs) :
     name(rhs.name),
     id(rhs.id),
     value(rhs.value),
@@ -183,7 +160,7 @@ namespace OpenMS
   {
   }
 
-  QcFile::Attachment& QcFile::Attachment::operator=(const Attachment& rhs)
+  QcMLFile::Attachment& QcMLFile::Attachment::operator=(const Attachment& rhs)
   {
     if (this != &rhs)
     {
@@ -202,22 +179,22 @@ namespace OpenMS
     return *this;
   }
 
-  bool QcFile::Attachment::operator<(const Attachment& rhs) const
+  bool QcMLFile::Attachment::operator<(const Attachment& rhs) const
   {
     return name.toQString() < rhs.name.toQString();
   }
 
-  bool QcFile::Attachment::operator>(const Attachment& rhs) const
+  bool QcMLFile::Attachment::operator>(const Attachment& rhs) const
   {
     return name.toQString() > rhs.name.toQString();
   }
 
-  bool QcFile::Attachment::operator==(const Attachment& rhs) const
+  bool QcMLFile::Attachment::operator==(const Attachment& rhs) const
   {
     return name.toQString() == rhs.name.toQString();
   }
 
-  String QcFile::Attachment::toCSVString(const String separator) const
+  String QcMLFile::Attachment::toCSVString(const String separator) const
   {
     String s = "";
     if ((!colTypes.empty()) && (!tableRows.empty()))
@@ -249,7 +226,7 @@ namespace OpenMS
   }
 
   //TODO CHANGE TO ACCEPTABLE WAY OF GENERATING A PRETTY XML FILE
-  String QcFile::Attachment::toXMLString(UInt indentation_level) const
+  String QcMLFile::Attachment::toXMLString(UInt indentation_level) const
   {
     //TODO manage IDREF to qp internally
     String indent = String(indentation_level, '\t');
@@ -318,67 +295,20 @@ namespace OpenMS
     return s;
   }
 
-  String QcFile::Attachment::toJSONString() const
-  {
-    String s = "";
-    // add accession and name, both are always present?!
-    s += String(10,' ') + "{\n";
-    s += String(12,' ') + "\"accession\": " + "\"" + cvAcc + "\",\n";
-    s += String(12,' ') + "\"name\": " + "\"" + name + "\"";
-
-    // unit is optional and added if present
-    if (unitAcc != "")
-    {
-      s += String(12,' ') + "\"unit\": " + "\"" + unitAcc + "\",\n";
-    }
-
-    // ONLY if values in tableRows add the name, accession, unit (optional) and values
-    if (tableRows.size() > 0) {
-      // add values; keys from colTypes and values from transposed tableRows
-      s += ",\n" + String(12, ' ') + "\"value\": {\n";
-
-      for (unsigned int i = 0; i < colTypes.size(); i++) {
-        s += String(String(14, ' ') + "\"") + colTypes[i] + "\": [";
-        for (unsigned int j = 0; j < tableRows.size(); j++) {
-          // add items to array in transposed order from tableRows
-          // some entries inf in array of floats/ints, add as String
-          if (tableRows[j][i] == "inf") {
-            s += "\"inf\", ";
-          }
-          else {
-            s += String(tableRows[j][i]) + ", ";
-          }
-        }
-        //remove trailing ", " from last item
-        s.pop_back(); 
-        s.pop_back();
-        s += "],\n";
-      }
-      // remove trailing ",\n" from last array
-      s.pop_back(); 
-      s.pop_back();
-      s += "\n" + String(12, ' ') + "}";
-    }
-    
-
-    s += "\n" + String(10, ' ') + "},\n";
-    return s;
-  }
-
-  QcFile::QcFile() :
+  QcMLFile::QcMLFile() :
     XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version uptodate
   {
   }
 
-  QcFile::~QcFile()
+  QcMLFile::~QcMLFile()
   {
 
   }
 
-  void QcFile::addRunQualityParameter(String run_id, QualityParameter qp)
+  void QcMLFile::addRunQualityParameter(String run_id, QualityParameter qp)
   {
     // TODO warn that run has to be registered!
-    std::map<String, std::vector<QcFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
     if (qpsit != runQualityQPs_.end())
     {
       runQualityQPs_[run_id].push_back(qp);
@@ -394,10 +324,10 @@ namespace OpenMS
     //TODO redundancy check
   }
 
-  void QcFile::addSetQualityParameter(String set_id, QualityParameter qp)
+  void QcMLFile::addSetQualityParameter(String set_id, QualityParameter qp)
   {
     // TODO warn that set has to be registered!
-    std::map<String, std::vector<QcFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(set_id); //if 'filename is a ID:'
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(set_id); //if 'filename is a ID:'
     if (qpsit != setQualityQPs_.end())
     {
       setQualityQPs_[set_id].push_back(qp);
@@ -413,31 +343,31 @@ namespace OpenMS
     //TODO redundancy check
   }
 
-  void QcFile::addRunAttachment(String run_id, Attachment at)
+  void QcMLFile::addRunAttachment(String run_id, Attachment at)
   {
     runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan writeout in store),redundancy check
   }
 
-  void QcFile::addSetAttachment(String run_id, Attachment at)
+  void QcMLFile::addSetAttachment(String run_id, Attachment at)
   {
     setQualityAts_[run_id].push_back(at); //TODO add file QP to set member
   }
 
-  void QcFile::getRunNames(std::vector<String>& ids) const
+  void QcMLFile::getRunNames(std::vector<String>& ids) const
   {
     ids.clear();
     boost::copy(run_Name_ID_map_ | boost::adaptors::map_keys, std::back_inserter(ids));
   }
 
-  void QcFile::getRunIDs(std::vector<String>& ids) const
+  void QcMLFile::getRunIDs(std::vector<String>& ids) const
   {
     ids.clear();
     boost::copy(runQualityQPs_ | boost::adaptors::map_keys, std::back_inserter(ids));
   }
 
-  bool QcFile::existsRun(const String filename, bool checkname) const
+  bool QcMLFile::existsRun(const String filename, bool checkname) const
   {
-    std::map<String, std::vector<QcFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename); //if 'filename is a ID:'
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename); //if 'filename is a ID:'
     if (qpsit != runQualityQPs_.end()) //NO, do not!: permit AT without a QP
     {
       return true;
@@ -454,9 +384,9 @@ namespace OpenMS
     return false;
   }
 
-  bool QcFile::existsSet(const String filename, bool checkname) const
+  bool QcMLFile::existsSet(const String filename, bool checkname) const
   {
-    std::map<String, std::vector<QcFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename); //if 'filename is a ID:'
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename); //if 'filename is a ID:'
     if (qpsit != setQualityQPs_.end()) //NO, do not!: permit AT without a QP
     {
       return true;
@@ -472,10 +402,10 @@ namespace OpenMS
     return false;
   }
 
-  void QcFile::existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
+  void QcMLFile::existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
   {
     ids.clear();
-    std::map<String, std::vector<QcFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
       std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
@@ -486,7 +416,7 @@ namespace OpenMS
     }
     if (qpsit != runQualityQPs_.end())
     {
-      for (std::vector<QcFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if (qpname == qit->cvAcc)
         {
@@ -496,10 +426,10 @@ namespace OpenMS
     }
   }
 
-  void QcFile::existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
+  void QcMLFile::existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
   {
     ids.clear();
-    std::map<String, std::vector<QcFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
     if (qpsit == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
       std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
@@ -510,7 +440,7 @@ namespace OpenMS
     }
     if (qpsit != setQualityQPs_.end())
     {
-      for (std::vector<QcFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         //~ std::cout << qit->name << "setexists" << std::endl;
         //~ std::cout << qpname << "qpname" << std::endl;
@@ -522,12 +452,12 @@ namespace OpenMS
     }
   }
 
-  void QcFile::removeQualityParameter(String r, std::vector<String>& ids)
+  void QcMLFile::removeQualityParameter(String r, std::vector<String>& ids)
   {
     removeAttachment(r, ids);
     for (Size i = 0; i < ids.size(); ++i)
     {
-      std::vector<QcFile::QualityParameter>::iterator qit = runQualityQPs_[r].begin();
+      std::vector<QcMLFile::QualityParameter>::iterator qit = runQualityQPs_[r].begin();
       while (qit != runQualityQPs_[r].end())
       {
         if (qit->id == ids[i])
@@ -554,12 +484,12 @@ namespace OpenMS
     }
   }
 
-  void QcFile::removeAttachment(String r, std::vector<String>& ids, String at)
+  void QcMLFile::removeAttachment(String r, std::vector<String>& ids, String at)
   {
     bool not_all = at.size();
     for (Size i = 0; i < ids.size(); ++i)
     {
-      std::vector<QcFile::Attachment>::iterator qit = runQualityAts_[r].begin();
+      std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
       while (qit != runQualityAts_[r].end())
       {
         if (qit->qualityRef == ids[i] && ((qit->name == at) || (!not_all)))
@@ -586,11 +516,11 @@ namespace OpenMS
     }
   }
 
-  void QcFile::removeAttachment(String r, String at)
+  void QcMLFile::removeAttachment(String r, String at)
   {
     if (existsRun(r))
     {
-      std::vector<QcFile::Attachment>::iterator qit = runQualityAts_[r].begin();
+      std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
       //~ cout << "remove from " << r << endl;
       while (qit != runQualityAts_[r].end())
       {
@@ -607,7 +537,7 @@ namespace OpenMS
     }
     if (existsSet(r))
     {
-      std::vector<QcFile::Attachment>::iterator qit = setQualityAts_[r].begin();
+      std::vector<QcMLFile::Attachment>::iterator qit = setQualityAts_[r].begin();
       while (qit != setQualityAts_[r].end())
       {
         if (qit->cvAcc == at)
@@ -622,7 +552,7 @@ namespace OpenMS
     }
   }
 
-  void QcFile::removeAllAttachments(String at)
+  void QcMLFile::removeAllAttachments(String at)
   {
     for (std::map<String, std::vector<Attachment> >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
     {
@@ -630,14 +560,14 @@ namespace OpenMS
     }
   }
 
-  void QcFile::registerRun(const String id, const String name)
+  void QcMLFile::registerRun(const String id, const String name)
   {
     runQualityQPs_[id] = std::vector<QualityParameter>();
     runQualityAts_[id] = std::vector<Attachment>();
     run_Name_ID_map_[name] = id;
   }
 
-  void QcFile::registerSet(const String id, const String name, const std::set<String>& names)
+  void QcMLFile::registerSet(const String id, const String name, const std::set<String>& names)
   {
     setQualityQPs_[id] = std::vector<QualityParameter>();
     setQualityAts_[id] = std::vector<Attachment>();
@@ -645,7 +575,7 @@ namespace OpenMS
     setQualityQPs_members_[id] = names;
   }
 
-  void QcFile::merge(const QcFile& addendum, String setname)
+  void QcMLFile::merge(const QcMLFile& addendum, String setname)
   {
     //~ runs (and create set if setname not empty)
     for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
@@ -686,9 +616,9 @@ namespace OpenMS
     }
   }
 
-  String QcFile::exportAttachment(const String filename, const String qpname) const
+  String QcMLFile::exportAttachment(const String filename, const String qpname) const
   {
-    std::map<String, std::vector<QcFile::Attachment> >::const_iterator qpsit = runQualityAts_.find(filename);
+    std::map<String, std::vector<QcMLFile::Attachment> >::const_iterator qpsit = runQualityAts_.find(filename);
     if (qpsit == runQualityAts_.end()) //try name mapping if 'filename' is no ID but name
     {
       std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
@@ -699,7 +629,7 @@ namespace OpenMS
     }
     if (qpsit != runQualityAts_.end())
     {
-      for (std::vector<QcFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if ((qpname == qit->name) || (qpname == qit->cvAcc))
         {
@@ -721,7 +651,7 @@ namespace OpenMS
     }
     if (qpsit != setQualityAts_.end())
     {
-      for (std::vector<QcFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if ((qpname == qit->name) || (qpname == qit->cvAcc))
         {
@@ -734,9 +664,9 @@ namespace OpenMS
     return "";
   }
 
-  String QcFile::exportQP(const String filename, const String qpname) const
+  String QcMLFile::exportQP(const String filename, const String qpname) const
   {
-    std::map<String, std::vector<QcFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
       std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
@@ -747,7 +677,7 @@ namespace OpenMS
     }
     if (qpsit != runQualityQPs_.end())
     {
-      for (std::vector<QcFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if (qpname == qit->cvAcc)
         {
@@ -768,7 +698,7 @@ namespace OpenMS
     }
     if (qpsit != setQualityQPs_.end())
     {
-      for (std::vector<QcFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if (qpname == qit->name)
         {
@@ -780,7 +710,7 @@ namespace OpenMS
     return "N/A";
   }
 
-  String QcFile::exportQPs(const String filename, const StringList qpnames) const
+  String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
   {
     String ret = "";
     for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
@@ -791,7 +721,7 @@ namespace OpenMS
     return ret;
   }
 
-  String QcFile::map2csv(const std::map<String, std::map<String, String> >& cvs_table, const String& separator) const
+  String QcMLFile::map2csv(const std::map<String, std::map<String, String> >& cvs_table, const String& separator) const
   {
     String ret = "";
     std::vector<String> cols;
@@ -828,7 +758,7 @@ namespace OpenMS
     return ret;
   }
 
-  String QcFile::exportIDstats(const String& filename) const
+  String QcMLFile::exportIDstats(const String& filename) const
   {
     std::map<String, std::vector<QualityParameter> >::const_iterator found = setQualityQPs_.find(filename);
     if (found == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
@@ -862,7 +792,7 @@ namespace OpenMS
     return "";
   }
 
-  void QcFile::collectSetParameter(const String setname, const String qp, std::vector<String>& ret)
+  void QcMLFile::collectSetParameter(const String setname, const String qp, std::vector<String>& ret)
   {
     for (std::set<String>::const_iterator it = setQualityQPs_members_[setname].begin(); it != setQualityQPs_members_[setname].end(); ++it)
     {
@@ -876,7 +806,7 @@ namespace OpenMS
     }
   }
 
-  void QcFile::load(const String& filename)
+  void QcMLFile::load(const String& filename)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -890,7 +820,7 @@ namespace OpenMS
     parse_(filename, this);
   }
 
-  void QcFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void QcMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     tag_ = sm_.convert(qname);
     String parent_tag;
@@ -984,7 +914,7 @@ namespace OpenMS
     }
   }
 
-  void QcFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+  void QcMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     if (tag_ == "tableRowValues")
     {
@@ -1011,7 +941,7 @@ namespace OpenMS
     }
   }
 
-  void QcFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void QcMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     static set<String> to_ignore;
     if (to_ignore.empty())
@@ -1108,7 +1038,7 @@ namespace OpenMS
     }
   }
 
-  void QcFile::storeQcML(const String& filename) const
+  void QcMLFile::store(const String& filename) const
   {
     //~ startProgress(0, 0, "storing qcML file");
     //~ progress_ = 0;
@@ -1173,7 +1103,7 @@ namespace OpenMS
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
         if (qpsit != runQualityQPs_.end())
         {
-          for (std::vector<QcFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+          for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
           {
             os << qit->toXMLString(4);
           }
@@ -1181,7 +1111,7 @@ namespace OpenMS
         std::map<String, std::vector<Attachment> >::const_iterator attit = runQualityAts_.find(*it);
         if (attit != runQualityAts_.end())
         {
-          for (std::vector<QcFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
+          for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
           {
             os << ait->toXMLString(4); //TODO check integrity of reference to qp!
           }
@@ -1218,7 +1148,7 @@ namespace OpenMS
             std::map<String, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(*kt);
             if (rq != runQualityQPs_.end())
             {
-                QcFile::QualityParameter qp;
+                QcMLFile::QualityParameter qp;
                 qp.id = *kt; ///< Identifier
                 qp.name = "set name"; ///< Name
                 qp.cvRef = "QC"; ///< cv reference
@@ -1241,7 +1171,7 @@ namespace OpenMS
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
         if (qpsit != setQualityQPs_.end())
         {
-          for (std::vector<QcFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+          for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
           {
             os << qit->toXMLString(4);
           }
@@ -1250,7 +1180,7 @@ namespace OpenMS
         std::map<String, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(*it);
         if (attit != setQualityAts_.end())
         {
-          for (std::vector<QcFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
+          for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
           {
             os << ait->toXMLString(4);
           }
@@ -1270,150 +1200,6 @@ namespace OpenMS
     }
 
     os << "</qcML>\n";
-  }
-
-  void QcFile::storeMzQC(const String& outputfilename, const String& inputfilename) const {
-    cout << "Storing mzQC file... " << endl;
-
-    // adding QualityParameters and QualityAttachments to qualityMetrics String and collect other information (e.g. local time)
-    String qualityMetrics;
-    String instrumentModel;
-    String completionTime;
-
-    time_t now = time(0);
-    tm *ltm = localtime(&now);
-
-    int lastSlash = inputfilename.find_last_of("\\/");
-    String inputFileName;
-    inputFileName = inputfilename.substr(lastSlash + 1, inputfilename.size() - 6 - lastSlash);
-    
-    String outputFilePath;
-    lastSlash = outputfilename.find_last_of("\\/");
-    if (lastSlash == -1) {
-      char* cwd;
-      char buff[PATH_MAX + 1];
-      cwd = getcwd( buff, PATH_MAX + 1 );
-      if( cwd != NULL ) {
-        outputFilePath = String(cwd) + "/" + outputfilename; // consider Windows backslash!
-      }
-      else outputFilePath = outputfilename;
-    } else outputFilePath = outputfilename;
-    
-
-
-    std::set<String> keys;
-
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = runQualityQPs_.begin(); it != runQualityQPs_.end(); ++it)
-    {
-      keys.insert(it->first);
-    }
-    for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
-      { 
-        // adding QualityParameters to qualityMetrics
-        std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
-        if (qpsit != runQualityQPs_.end())
-        { 
-          for (std::vector<QcFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
-          { 
-            qualityMetrics += qit->toJSONString();
-            if (qit->name == "instrument model") 
-            {
-              instrumentModel = qit->value;
-            } else if (qit->name == "completion time")
-            {
-              completionTime = qit-> value;
-            }
-          }
-        }
-        // adding QualityAttachments to qualityMetrics
-        std::map<String, std::vector<Attachment> >::const_iterator attit = runQualityAts_.find(*it);
-        if (attit != runQualityAts_.end())
-        {
-          for (std::vector<QcFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
-          {
-            qualityMetrics += ait->toJSONString(); //TODO check integrity of reference to qp!
-          }
-        }
-      }
-    // removing trailing ",\n" from last qualityMetric
-    qualityMetrics.pop_back();
-    qualityMetrics.pop_back();
-
-    ofstream os(outputfilename.c_str());
-    if (!os)
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outputfilename);
-    }
-
-    os.precision(writtenDigits<double>(0.0));
-
-    
-    os << String("{ \"mzQC\": {\n")
-        << String(4, ' ') << "\"creationDate\": \"" << put_time(ltm, "%Y-%m-%dT%H:%M:%S") <<"\",\n"
-        << String(4, ' ') << "\"version\": \"1.0.0\",\n"
-        // runQualities
-        << String(4, ' ') << "\"runQualities\": [\n"
-        << String(6, ' ') << "{\n"
-        << String(8, ' ') << "\"metadata\": {\n"
-        // runQualities metadata input files and file properties
-        << String(10, ' ') << "\"inputFiles\": [\n"
-        << String(12, ' ') << "{\n"
-        << String(14, ' ') << "\"location\": \"" << outputFilePath << "\",\n"
-        << String(14, ' ') << "\"name\": \"" << inputFileName << "\",\n"
-        << String(14, ' ') << "\"fileFormat\": {\n"
-        << String(16, ' ') << "\"accession\": \"MS:1000584\",\n" 
-        << String(16, ' ') << "\"name\": \"mzML format\"\n"
-        << String(14, ' ') << "},\n"
-        << String(14, ' ') << "\"fileProperties\": [\n"
-        << String(16, ' ') << "{\n"
-        << String(18, ' ') << "\"accession\": \"MS:1000747\",\n" // exclude in qualityMetrics?
-        << String(18, ' ') << "\"name\": \"completion time\",\n"
-        << String(18, ' ') << "\"value\": \"" + completionTime + "\"\n"
-        << String(16, ' ') << "},\n"
-        << String(16, ' ') << "{\n"
-        << String(18, ' ') << "\"accession\": \"MS:1000569\",\n"
-        << String(18, ' ') << "\"name\": \"SHA-1\",\n"
-        << String(18, ' ') << "\"value\": \"" << "\"\n" // how to calculate SHA sum?
-        << String(16, ' ') << "},\n"
-        << String(16, ' ') << "{\n"        
-        << String(18, ' ') << "\"accession\": \"MS:1000031\",\n" // exclude in qualityMetrics?
-        << String(18, ' ') << "\"name\": \"instrument model\",\n"
-        << String(18, ' ') << "\"value\": \"" << instrumentModel << "\"\n"
-        << String(16, ' ') << "}\n"
-        << String(14, ' ') << "]\n"
-        << String(14, ' ') << "}\n"
-        << String(10, ' ') << "],\n"
-        << String(10, ' ') << "\"analysisSoftware\": [\n"
-        // analysis software: OpenMS QCCalculator
-        << String(12, ' ') << "{\n"
-        << String(16, ' ') << "\"accession\": \"MS:1009001\",\n" // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
-        << String(16, ' ') << "\"name\": \"QCCalculator\",\n"
-        << String(16, ' ') << "\"version\": \"2.6.0\",\n"
-        << String(16, ' ') << "\"uri\": \"https://www.openms.de/\"\n"
-        << String(12, ' ') << "}\n"
-        << String(10, ' ') << "]\n"
-        << String(8, ' ') << "},\n"
-        << String(8, ' ') << "\"qualityMetrics\": [\n"
-        << qualityMetrics
-        << "\n" + String(8, ' ') << "]"
-        << "\n" + String(6, ' ') << "}"
-        << "\n" + String(4, ' ') << "],"
-        << "\n" + String(4, ' ') << "\"controlledVocabularies\": [\n"
-        // controlled vocabularies; TODO update to newest version
-        << String(6, ' ') << "{\n"
-        << String(8, ' ') << "\"name\": \"Proteomics Standards Initiative Quality Control Ontology\",\n"
-        << String(8, ' ') << "\"uri\": \"https://github.com/HUPO-PSI/qcML-development/blob/master/cv/v0_1_0/qc-cv.obo\",\n"
-        << String(8, ' ') << "\"version\": \"0.1.0\"\n"
-        << String(6, ' ') << "},\n"
-        << String(6, ' ') << "{\n"
-        << String(8, ' ') << "\"name\": \"Proteomics Standards Initiative Mass Spectrometry Ontology\",\n"
-        << String(8, ' ') << "\"uri\": \"https://github.com/HUPO-PSI/psi-ms-CV/blob/master/psi-ms.obo\",\n"
-        << String(8, ' ') << "\"version\": \"4.1.28\"\n"
-        << String(6, ' ') << "}\n"
-        << "    ]\n"
-        << "  }\n"
-        << "}";
-
   }
 
 }
