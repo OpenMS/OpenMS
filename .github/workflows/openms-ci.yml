@@ -44,6 +44,22 @@ jobs:
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
 
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      run: |
+        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
+        ref=${ref#"refs/heads/"}
+        ref=${ref#"refs/"}
+        ref=${ref//\//-}
+        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+      id: extract_branch
+    - name: Extract PR number
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      id: extract_pr
+      
     - name: Tests windows
       run: |
           mkdir $GITHUB_WORKSPACE/bld/
