@@ -41,6 +41,7 @@ if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
    "${INITIAL_CACHE}
    CMAKE_GENERATOR_PLATFORM=x64"
   )
+  message(${INITIAL_CACHE})
 endif()
 
 # create cache
