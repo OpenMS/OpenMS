@@ -559,6 +559,7 @@ protected:
         }
         hit.setMetaValue("Proteins", ListUtils::concatenate(proteins, '\t'));
         
+        StringList feats_names;
         StringList feats;
         for (vector<String>::const_iterator feat = feature_set.begin(); feat != feature_set.end(); ++feat)
         {
@@ -566,11 +567,20 @@ protected:
           if (hit.metaValueExists(*feat))
           {
             feats.push_back(hit.getMetaValue(*feat).toString());
+            feats_names.push_back(*feat);
           }
         }
         if (feats.size() == feature_set.size())
         { // only if all feats were present add
           txt.addLine(ListUtils::concatenate(feats, '\t'));
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "Features missing in peptide hit (will skip):" << endl;
+          for (const auto& f : feature_set)
+          {
+            if (std::find(feats_names.begin(), feats_names.end(), f) == feats_names.end()) OPENMS_LOG_WARN << f << endl;
+          }
         }
       }
     }

@@ -3555,7 +3555,8 @@ static void scoreXLIons_(
     const Size scan_index, 
     const MSSpectrum& spec,
     const map<String, PrecursorPurity::PurityScores>& purities,
-    const vector<size_t>& nr_candidates)
+    const vector<size_t>& nr_candidates,
+    const String& can_cross_link)
   {
     pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
     pi.setMetaValue("spectrum_reference", spec.getNativeID());
@@ -3691,7 +3692,6 @@ static void scoreXLIons_(
       ph.setMetaValue("NuXL:best_localization_position", ah.best_localization_position);
 
       // one-hot encoding of cross-linked nucleotide
-      const String can_cross_link = getStringOption_("RNPxl:can_cross_link");
       for (const auto& c : can_cross_link) 
       {
         if (c == ah.cross_linked_nucleotide)
@@ -3756,7 +3756,8 @@ static void scoreXLIons_(
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
     const map<String, PrecursorPurity::PurityScores>& purities,
-    const vector<size_t>& nr_candidates)
+    const vector<size_t>& nr_candidates,
+    const String& can_cross_link)
   {
     assert(annotated_XL_hits.size() == annotated_peptide_hits.size());
     SignedSize hit_count = static_cast<SignedSize>(annotated_XL_hits.size());
@@ -3784,7 +3785,8 @@ static void scoreXLIons_(
           scan_index, 
           spec,
           purities,
-          nr_candidates);
+          nr_candidates,
+          can_cross_link);
       }
 
       if (!ahs_peptide.empty())
@@ -3799,7 +3801,8 @@ static void scoreXLIons_(
           scan_index, 
           spec,
           purities,
-          nr_candidates);
+          nr_candidates,
+          can_cross_link);
       }
     }
     // hits have rank and are sorted by score
@@ -5863,7 +5866,8 @@ static void scoreXLIons_(
                      variable_modifications, 
                      max_variable_mods_per_peptide,
                      purities,
-                     nr_candidates);
+                     nr_candidates,
+                     can_cross_link);
 
     progresslogger.endProgress();
 
