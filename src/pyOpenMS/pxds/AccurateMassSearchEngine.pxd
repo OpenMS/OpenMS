@@ -48,6 +48,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
 ##         bool isCompatible(EmpiricalFormula db_entry) nogil except +
 ##         int getCharge() nogil except +
 ##         String getName() nogil except +
-##         int getMolMultiplier() nogile except +
+##         UInt getMolMultiplier() nogile except +
 ##         # AdductInfo parseAdductString(String & adduct) nogil except +
 ## 

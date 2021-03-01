@@ -120,7 +120,7 @@ namespace OpenMS
     return name_;
   }
 
-  int AdductInfo::getMolMultiplier() const
+  UInt AdductInfo::getMolMultiplier() const
   {
     return mol_multiplier_;
   }
