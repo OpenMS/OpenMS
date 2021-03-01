@@ -95,17 +95,15 @@ public:
     */
     const XMLCh* getContentType() const override;
 
+    GzipInputStream() = delete;
+    GzipInputStream(const GzipInputStream& stream) = delete;
+    GzipInputStream& operator=(const GzipInputStream& stream) = delete;
 
 private:
     ///pointer to an compression stream
-    GzipIfstream* gzip_;
+    GzipIfstream* gzip_ = nullptr;
     ///current index of the actual file
     XMLSize_t file_current_index_;
-
-    //not implemented
-    GzipInputStream();
-    GzipInputStream(const GzipInputStream& stream);
-    GzipInputStream& operator=(const GzipInputStream& stream);
   };
 
   inline XMLFilePos GzipInputStream::curPos() const

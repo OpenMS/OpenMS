@@ -85,6 +85,8 @@ namespace OpenMS
     defaults_.setValue("export_params", "_ignoreionsscorebelow=0&_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", ListUtils::create<String>("advanced"));
     defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator (via GenericWrapper): Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("skip_export", ListUtils::create<String>("true,false"));
+    defaults_.setValue("batch_size", 50000, "Number of spectra processed in one batch by Mascot (default 50000)", ListUtils::create<String>("advanced"));
+    defaults_.setMinInt("batch_size", 0);
     defaultsToParam_();
   }
 
@@ -831,7 +833,7 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
 #endif
-    int pos = path.find_last_of("/\\");
+    size_t pos = path.find_last_of("/\\");
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);

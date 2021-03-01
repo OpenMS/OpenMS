@@ -8,6 +8,7 @@ INIUpdater.h
 MapAlignerBase.h
 OpenSwathBase.h
 ParameterInformation.h
+SearchEngineBase.h
 ToolHandler.h
 TOPPBase.h
 )

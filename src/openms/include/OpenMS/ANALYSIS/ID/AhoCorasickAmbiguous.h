@@ -233,6 +233,8 @@ namespace seqan
       mismatches_seen(mm_seen)
 	  {}	
 
+    Spawn(const Spawn& other) = default;
+
     private:
       Spawn();
       Spawn& operator=(const Spawn&);
