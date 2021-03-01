@@ -116,6 +116,11 @@ namespace OpenMS
     return name_;
   }
 
+  int AdductInfo::getMolMultiplier() const
+  {
+    return mol_multiplier_;
+  }
+
   const EmpiricalFormula& AdductInfo::getEmpiricalFormula() const
   {
     return ef_;
@@ -620,7 +625,11 @@ namespace OpenMS
       // What about the adduct?
       // absolute mass error: the adduct itself is irrelevant here since its a constant for both the theoretical and observed mass
       //       ppm tolerance: the diff_mz accounts for it already (heavy adducts lead to larger m/z tolerance)
-      double diff_mass = diff_mz * std::abs(it->getCharge()); // do not use observed charge (could be 0=unknown)
+
+      // The adduct mass multiplier has to be taken into account when calculating the diff_mass (observed = 228 Da; Multiplier = 2M; theoretical mass = 114 Da)
+      // if not the allowed mass error will be the one from 228 Da instead of 114 Da (in this example twice as high).
+
+      double diff_mass = (diff_mz * std::abs(it->getCharge())) / it->getMolMultiplier(); // do not use observed charge (could be 0=unknown)
 
       searchMass_(neutral_mass, diff_mass, hit_idx);
 
