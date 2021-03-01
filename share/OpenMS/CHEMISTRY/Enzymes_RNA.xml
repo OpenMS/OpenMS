@@ -55,6 +55,24 @@
       <ITEM name="ThreePrimeGain" value="" type="string" />
       <ITEM name="FivePrimeGain" value="p" type="string" />
     </NODE>
+    <NODE name="mazF">
+      <ITEM name="Name" value="mazF" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=ACA)" type="string" />
+      <ITEM name="RegExDescription" value="mazF cuts before ACA." type="string" />
+      <ITEM name="CutsAfter" value=".*(?!m)$" type="string" />
+      <ITEM name="CutsBefore" value="ACA" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="colicin_E5">
+      <ITEM name="Name" value="colicin_E5" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=G)U" type="string" />
+      <ITEM name="RegExDescription" value="colicin E5 cuts after G followed by U." type="string" />
+      <ITEM name="CutsAfter" value="G(?!m)" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
     <NODE name="no cleavage">
       <ITEM name="Name" value="no cleavage" type="string" />
       <ITEM name="RegEx" value="()" type="string" />
