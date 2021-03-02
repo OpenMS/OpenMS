@@ -58,7 +58,7 @@ namespace OpenMS
     // sum formulas/charges - is this what we want?
     struct AdductCompare
     {
-      bool operator()(const AdductInfo& left, const AdductInfo& right)
+      bool operator()(const AdductInfo& left, const AdductInfo& right) const
       {
         return (std::make_pair(left.getCharge(), left.getEmpiricalFormula()) <
                 std::make_pair(right.getCharge(), right.getEmpiricalFormula()));

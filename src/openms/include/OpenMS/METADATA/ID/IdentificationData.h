@@ -206,16 +206,19 @@ namespace OpenMS
             auto pos = identified_peptide_refs.find(old.getIdentifiedPeptideRef());
             if (pos != identified_peptide_refs.end()) return pos->second;
           }
+          break;
           case MoleculeType::COMPOUND:
           {
             auto pos = identified_compound_refs.find(old.getIdentifiedCompoundRef());
             if (pos != identified_compound_refs.end()) return pos->second;
           }
+          break;
           case MoleculeType::RNA:
           {
             auto pos = identified_oligo_refs.find(old.getIdentifiedOligoRef());
             if (pos != identified_oligo_refs.end()) return pos->second;
           }
+          break;
           default:
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "invalid molecule type",

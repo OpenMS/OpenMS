@@ -302,9 +302,9 @@ START_SECTION((void importFeatureIDs(FeatureMap& features, bool clear_original))
   TEST_EQUAL(features.getIdentificationData().getObservationMatches().size(), 7);
   TEST_EQUAL(features.getIdentificationData().getIdentifiedPeptides().size(), 7);
   TEST_EQUAL(features.getIdentificationData().getParentSequences().size(), 3);
-  TEST_EQUAL(features[0].getIDObservations().size(), 2);
-  TEST_EQUAL(features[1].getIDObservations().size(), 1);
-  TEST_EQUAL(features.getUnassignedObservations().size(), 2);
+  TEST_EQUAL(features[0].getIDMatches().size(), 3);
+  TEST_EQUAL(features[1].getIDMatches().size(), 1);
+  TEST_EQUAL(features.getUnassignedIDMatches().size(), 3);
   // check that original IDs were cleared:
   TEST_EQUAL(features.getProteinIdentifications().size(), 0);
   TEST_EQUAL(features.getUnassignedPeptideIdentifications().size(), 0);

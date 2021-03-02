@@ -460,9 +460,8 @@ namespace OpenMS
             }))
         {
           target_already_exists[feature_index] = true;
-          String overlap_molecule = ref->identified_molecule_var.toString();
-          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from feature " << String(f_it->getUniqueId())
-                                  << " with z=" << seed_charge << ", RT=" << seed_RT << ", m/z=" << seed_MZ
+          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from feature " << String(seed.getUniqueId())
+                                  << " with z=" << seed_charge << ", RT=" << seed_rt << ", m/z=" << seed_mz
                                   << " due to overlap with observation " << ref->data_id
                                   << " at RT=" << ref->rt << ", m/z=" << ref->mz << endl;
           break;
