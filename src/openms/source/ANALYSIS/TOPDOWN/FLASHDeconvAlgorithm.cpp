@@ -2204,15 +2204,16 @@ namespace OpenMS
     {
       auto &v = per_isotope_masses[i];
       Size n = v.size();
-      if (n < 2)
-      {
-        continue;
-      }
-      double average =
-          accumulate(v.begin(), v.end(), 0.0) / n;//pg.getMonoMass() + i * Constants::ISOTOPE_MASSDIFF_55K_U;  //
+      //if (n < 2)
+      //{
+      //  continue;
+      //}
+      double average = n >= 2 ?
+                       accumulate(v.begin(), v.end(), 0.0) / n :
+                       pg.getMonoMass() + i * Constants::ISOTOPE_MASSDIFF_55K_U;  //
       for (float &t:v)
       {
-        diffs.push_back((t - average) * (t - average));
+        diffs.push_back(pow(1e6 * (t - average) / average, 2.0));
       }
     }
     Size n = diffs.size();

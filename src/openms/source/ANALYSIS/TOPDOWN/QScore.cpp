@@ -48,17 +48,17 @@ namespace OpenMS
       return -100;
     }
     //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-    const std::vector<double> weights_h({-1.9872, -2.0671, -10.9254, -1.1691, -0.5801, 1.2846, 15.2453});
+    const std::vector<double> weights_h({-4.8145, -2.0881, -21.4721, -0.6114, -0.8793, 0.0418, 28.1305});
     //const std::vector<double> weights_l({-3.203, -2.6899, 11.1909, -3.1146, -1.9595, -2.3368});
 
     //
-    //ChargeCos       -1.9872
-    //ChargeSNR       -2.0671
-    //Cos            -10.9254
-    //SNR             -1.1691
-    //ChargeScore     -0.5801
-    //AvgPPMerror      1.2846
-    //Intercept       15.2453
+    //ChargeCos       -4.8145
+    //ChargeSNR       -2.0881
+    //Cos            -21.4721
+    //SNR             -0.6114
+    //ChargeScore     -0.8793
+    //AvgPPMerror      0.0418
+    //Intercept       28.1305
 
     const std::vector<double> &weights = weights_h;// (abs_charge > 6 ?
     //(pg->getMonoMass() > 30000.0 ? weights_vh : weights_h) :
@@ -90,7 +90,7 @@ namespace OpenMS
     a = pg->getChargeScore();
     fvector[index++] = (log2(a + d));
     a = pg->getAvgPPMError();
-    fvector[index++] = (log2(a + d));
+    fvector[index++] = a;//(log2(a + d));
     return fvector;
   }
 

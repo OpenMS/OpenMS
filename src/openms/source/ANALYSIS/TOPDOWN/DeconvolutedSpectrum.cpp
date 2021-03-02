@@ -105,42 +105,42 @@ namespace OpenMS
         fs << std::fixed << std::setprecision(2);
         for (auto &p : pg)
         {
-          fs << p.mz << ";";
+          fs << p.mz << " ";
         }
-        fs << "\t";
+        fs << ";\t";
 
         fs << std::fixed << std::setprecision(1);
         for (auto &p : pg)
         {
-          fs << p.intensity << ";";
+          fs << p.intensity << " ";
         }
-        fs << "\t";
+        fs << ";\t";
         fs << std::setprecision(-1);
 
         for (auto &p : pg)
         {
-          fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << ";";
+          fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
         }
-        fs << "\t";
+        fs << ";\t";
         for (auto &p : pg)
         {
-          fs << p.getUnchargedMass() << ";";
+          fs << p.getUnchargedMass() << " ";
         }
-        fs << "\t";
+        fs << ";\t";
         for (auto &p : pg)
         {
-          fs << p.isotopeIndex << ";";
+          fs << p.isotopeIndex << " ";
         }
-        fs << "\t";
+        fs << ";\t";
 
         for (auto &p : pg)
         {
           double average_mass = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
           double mass_error =
               (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
-          fs << 1e6 * mass_error << ";";
+          fs << 1e6 * mass_error << " ";
         }
-        fs << "\t";
+        fs << ";\t";
       }
       if (spec_.getMSLevel() > 1)
       {
@@ -293,7 +293,7 @@ namespace OpenMS
       {//
         return;
       }
-      if (QScore::getQScore(&precursor_peak_group_, precursor_peak_.getCharge()) < -1)
+      if (QScore::getQScore(&precursor_peak_group_, precursor_peak_.getCharge()) < -2)
       { // TODO
         return;
       }
