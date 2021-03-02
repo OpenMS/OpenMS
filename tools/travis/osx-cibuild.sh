@@ -11,6 +11,20 @@ function cdashify()
 export SOURCE_DIRECTORY=`pwd`
 mkdir _build
 
+# additional variables
+export CMAKE_GENERATOR="Unix Makefiles"
+export CONTRIB_BUILD_DIRECTORY="$SOURCE_DIRECTORY/contrib"
+export CI_PROVIDER="Travis"
+export OPENMS_CONTRIB_LIBS="$SOURCE_DIRECTORY/contrib"
+export ENABLE_STYLE_TESTING="OFF"
+export ENABLE_TOPP_TESTING="ON"
+export ENABLE_CLASS_TESTING="ON"
+export WITH_GUI="ON"
+export ADDRESS_SANITIZER="Off"
+export BUILD_TYPE="Release"
+export OPENMP="On"
+export USE_STATIC_BOOST="Off"
+
 # assemble a proper build name
 _build_name="travis-ci-"$(cdashify ${TRAVIS_REPO_SLUG})"-"$(cdashify ${TRAVIS_BRANCH})
 
