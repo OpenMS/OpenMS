@@ -35,6 +35,7 @@
 
 #include <queue>
 #include <unordered_set>
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -693,13 +694,6 @@ namespace OpenMS
       ProteinIdentification& protein,
       vector<PeptideIdentification>& peptides)
   {
-    /* TODO for resolving ties:
-     while grpit not at end
-     while grpit.probability does not change:
-     save index with max nr of peptides in mapping and compare
-     grpit++
-     resolve(with max index grp)
-     */
     // TODO think about ignoring decoy proteins (at least when resolving ties!)
 
     // Nothing to resolve in a singleton group (will not be added to output though)
@@ -712,21 +706,49 @@ namespace OpenMS
 
     // Save the max probability in this component to add it (should be first one, since groups were sorted and
     // lower index means higher score and set is sorted by index)
-    ambiguity_grp.probability = origin_groups[*conn_comp.prot_grp_indices.begin()].probability;
-
+    size_t best_grp_index = *conn_comp.prot_grp_indices.begin();
+    ambiguity_grp.probability = origin_groups[best_grp_index].probability;
+    
+    // In the case that two groups have the same best probability we need to resolve the tie.
+    // We do so by choosing the protein group with more evidence (among those with best probability).
+    bool tie_resolved = false;
     for (set<Size>::iterator grp_it = conn_comp.prot_grp_indices.begin();
          grp_it != conn_comp.prot_grp_indices.end();
+         ++grp_it)
+    {
+      // Break if current group has worse score -> done resolving ties
+      if (origin_groups[*grp_it].probability < origin_groups[best_grp_index].probability) break;
+
+      // Same score: check if current group has more evidence. If so update best_grp_it to resolve tie
+      if (indist_prot_grp_to_pep_[*grp_it].size() > indist_prot_grp_to_pep_[best_grp_index].size())
+      {
+        best_grp_index = *grp_it;
+        tie_resolved = true;
+      }
+    }
+
+    // copy group indices
+    vector<Size> prot_grp_indices(conn_comp.prot_grp_indices.begin(), conn_comp.prot_grp_indices.end());
+    // after resolving ties, move the new best group to start
+    if (tie_resolved)
+    {
+      auto it = std::find(prot_grp_indices.begin(), prot_grp_indices.end(), best_grp_index);
+      swap(*it, *prot_grp_indices.begin());
+    }
+
+    for (vector<Size>::iterator grp_it = prot_grp_indices.begin();
+         grp_it != prot_grp_indices.end();
          ++grp_it)
     {
       if (*grp_it >= origin_groups.size())
       {
        OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
-                           "Group with index " << *grp_it << "doesn't exist. "
-                                                             " ProteinPeptideResolution: Groups changed"
-                                                             " after building data structures." << std::endl;
+                              << "Group with index " << *grp_it << "doesn't exist. "
+                              << " ProteinPeptideResolution: Groups changed"
+                              << " after building data structures." << std::endl;
       }
 
-      vector<String> accessions = origin_groups[*grp_it].accessions;
+      const vector<String>& accessions = origin_groups[*grp_it].accessions;
 
       // Put the accessions of the indist. groups into the subsuming
       // ambiguity group
@@ -736,17 +758,16 @@ namespace OpenMS
 
       if (statistics_)
       {
-       OPENMS_LOG_DEBUG << "Group: ";
-        for (const String& s : origin_groups[*grp_it].accessions)
+        OPENMS_LOG_DEBUG << "Group: ";
+        for (const String& s : accessions)
         {
-         OPENMS_LOG_DEBUG << s << ", ";
+          OPENMS_LOG_DEBUG << s << ", ";
         }
-       OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+        OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
       }
 
       // Update all the peptides the current best point to
-      for (set<Size>::iterator pepid_it =
-          indist_prot_grp_to_pep_[*grp_it].begin();
+      for (set<Size>::iterator pepid_it = indist_prot_grp_to_pep_[*grp_it].begin();
            pepid_it != indist_prot_grp_to_pep_[*grp_it].end(); ++pepid_it)
       {
         vector<PeptideHit> pep_id_hits = peptides[*pepid_it].getHits();
@@ -755,9 +776,9 @@ namespace OpenMS
 
         // Go through all _remaining_ proteins of the component and remove this
         // peptide from their mapping
-        set<Size>::iterator grp_it_cont = grp_it;
+        vector<Size>::iterator grp_it_cont = grp_it;
         ++grp_it_cont;
-        for (/*grp_it_cont*/; grp_it_cont != conn_comp.prot_grp_indices.end();
+        for (/*grp_it_cont*/; grp_it_cont != prot_grp_indices.end();
                               ++grp_it_cont)
         {
           indist_prot_grp_to_pep_[*grp_it_cont].erase(*pepid_it);
