@@ -300,7 +300,7 @@ namespace OpenMS
           auto prot_count_pair_it = acc_to_protein_hitP_and_count.find(std::string(acc));
           if (prot_count_pair_it == acc_to_protein_hitP_and_count.end())
           {
-            std::cout << "Warning, skipping pep that maps to a non existent protein accession. " 
+            OPENMS_LOG_WARN << "Warning, skipping pep that maps to a non existent protein accession. " 
               << first_peptide_hit.getSequence().toUnmodifiedString() << std::endl;
             continue; // very weird, has an accession that was not in the proteins loaded in the beginning
             //TODO error? Suppress log?

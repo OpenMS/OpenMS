@@ -709,32 +709,18 @@ namespace OpenMS
     size_t best_grp_index = *conn_comp.prot_grp_indices.begin();
     ambiguity_grp.probability = origin_groups[best_grp_index].probability;
     
-    // In the case that two groups have the same best probability we need to resolve the tie.
-    // We do so by choosing the protein group with more evidence (among those with best probability).
-    bool tie_resolved = false;
-    for (set<Size>::iterator grp_it = conn_comp.prot_grp_indices.begin();
-         grp_it != conn_comp.prot_grp_indices.end();
-         ++grp_it)
-    {
-      // Break if current group has worse score -> done resolving ties
-      if (origin_groups[*grp_it].probability < origin_groups[best_grp_index].probability) break;
-
-      // Same score: check if current group has more evidence. If so update best_grp_it to resolve tie
-      if (indist_prot_grp_to_pep_[*grp_it].size() > indist_prot_grp_to_pep_[best_grp_index].size())
-      {
-        best_grp_index = *grp_it;
-        tie_resolved = true;
-      }
-    }
-
-    // copy group indices
+    // copy group indices so we can reasily reorder them for tie resolution
     vector<Size> prot_grp_indices(conn_comp.prot_grp_indices.begin(), conn_comp.prot_grp_indices.end());
-    // after resolving ties, move the new best group to start
-    if (tie_resolved)
-    {
-      auto it = std::find(prot_grp_indices.begin(), prot_grp_indices.end(), best_grp_index);
-      swap(*it, *prot_grp_indices.begin());
-    }
+
+    // groups are currently only sorted by probability.
+    // in the presence of ties we need to resolve them by the number of peptides.
+    std::sort(prot_grp_indices.begin(), prot_grp_indices.end(), 
+      [&](const Size & a, const Size & b) -> bool
+      { 
+        size_t as = indist_prot_grp_to_pep_[a].size();
+        size_t bs = indist_prot_grp_to_pep_[b].size();
+        return std::tie(origin_groups[a].probability, as) > std::tie(origin_groups[b].probability, bs);
+      });   
 
     for (vector<Size>::iterator grp_it = prot_grp_indices.begin();
          grp_it != prot_grp_indices.end();
