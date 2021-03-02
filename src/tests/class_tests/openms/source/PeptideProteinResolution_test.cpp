@@ -57,7 +57,19 @@ END_SECTION
 
 START_SECTION(static void PeptideProteinResolution::buildGraphAndResolveGroups(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides))
 {
+  vector<ProteinIdentification> prots;
+  vector<PeptideIdentification> peps;
+  IdXMLFile idf;
+  idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
+  BasicProteinInferenceAlgorithm bpia;
+  Param p = bpia.getParameters();
+  p.setValue("min_peptides_per_protein", 0);
+  bpia.setParameters(p);
+  bpia.run(peps, prots);
   
+  PeptideProteinResolution::buildGraphAndResolveGroups(prots, peps);
+
+  IDXMLFile.store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), prots, peps)
 }
 END_SECTION
 
