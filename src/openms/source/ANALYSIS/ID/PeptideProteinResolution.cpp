@@ -799,7 +799,7 @@ namespace OpenMS
     protein.insertProteinGroup(ambiguity_grp);
   }
 
-  void PeptideProteinResolution::buildGraphAndResolveGroups(vector<ProteinIdentification>& inferred_protein_ids, 
+  void PeptideProteinResolution::run(vector<ProteinIdentification>& inferred_protein_ids, 
     vector<PeptideIdentification>& inferred_peptide_ids)
   {
     PeptideProteinResolution ppr;

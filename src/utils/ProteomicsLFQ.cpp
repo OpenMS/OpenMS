@@ -1392,7 +1392,7 @@ protected:
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
     if (greedy_group_resolution)
     {
-      PeptideProteinResolution::buildGraphAndResolveGroups(inferred_protein_ids, inferred_peptide_ids);
+      PeptideProteinResolution::run(inferred_protein_ids, inferred_peptide_ids);
       // TODO add an option to calculate FDR including those "second best protein hits"?
       if (debug_level_ >= 666)
       {

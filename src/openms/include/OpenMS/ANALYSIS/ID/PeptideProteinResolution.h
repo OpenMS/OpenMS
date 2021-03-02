@@ -136,8 +136,8 @@ namespace OpenMS
     /// After resolution, all unreferenced proteins are removed and groups updated.
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param peptides vector of ProteinIdentifications with links to the proteins
-    static void buildGraphAndResolveGroups(std::vector<ProteinIdentification>& inferred_protein_id, 
-                                           std::vector<PeptideIdentification>& inferred_peptide_ids);
+    static void run(std::vector<ProteinIdentification>& inferred_protein_id, 
+                    std::vector<PeptideIdentification>& inferred_peptide_ids);
 
     /// Initialize and store the graph (= maps), needs sorted groups for
     /// correct functionality. Therefore sorts the indist. protein groups
