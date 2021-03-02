@@ -1392,14 +1392,8 @@ protected:
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
     if (greedy_group_resolution)
     {
-      PeptideProteinResolution ppr{};
-      ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
-      ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
-      // TODO maybe move the removal as an option into the PPResolution class
+      PeptideProteinResolution::buildGraphAndResolveGroups(inferred_protein_ids, inferred_peptide_ids);
       // TODO add an option to calculate FDR including those "second best protein hits"?
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
       if (debug_level_ >= 666)
       {
         IdXMLFile().store("debug_mergedIDsGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);

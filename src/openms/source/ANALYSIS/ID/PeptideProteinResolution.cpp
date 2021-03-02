@@ -32,6 +32,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <queue>
 #include <unordered_set>
@@ -43,37 +44,35 @@ using namespace std;
 
 namespace OpenMS
 {
-  ConnectedComponent::ConnectedComponent() : prot_grp_indices(std::set<Size>()),
-    pep_indices(std::set<Size>())
-    {}
-
-  std::ostream& operator<< (std::ostream& os, const ConnectedComponent& conn_comp)
+  std::ostream& operator<<(std::ostream& os, const ConnectedComponent& conn_comp)
+  {
+    os << "Proteins: ";
+    for (std::set<Size>::const_iterator prot_it = conn_comp.prot_grp_indices.begin();
+          prot_it != conn_comp.prot_grp_indices.end();
+          ++prot_it)
     {
-      os << "Proteins: ";
-      for (std::set<Size>::const_iterator prot_it = conn_comp.prot_grp_indices.begin();
-           prot_it != conn_comp.prot_grp_indices.end();
-           ++prot_it)
-      {
-        os << *prot_it << ",";
-      }
-      os << std::endl;
-      os << "Peptides: ";
-      for (std::set<Size>::const_iterator pep_it = conn_comp.pep_indices.begin();
-           pep_it != conn_comp.pep_indices.end();
-           ++pep_it)
-      {
-        os << *pep_it << ",";
-      }
-      
-      return os;
-      
+      os << *prot_it << ",";
     }
+    os << std::endl;
+    os << "Peptides: ";
+    for (std::set<Size>::const_iterator pep_it = conn_comp.pep_indices.begin();
+          pep_it != conn_comp.pep_indices.end();
+          ++pep_it)
+    {
+      os << *pep_it << ",";
+    }
+
+    return os;    
+  }
 
 
   // C'tor
   PeptideProteinResolution::PeptideProteinResolution(bool statistics) :
-      /*indist_prot_grp_td_(),*/ indist_prot_grp_to_pep_(), pep_to_indist_prot_grp_(),
-  prot_acc_to_indist_prot_grp_(), statistics_(statistics)
+      /*indist_prot_grp_td_(),*/ 
+      indist_prot_grp_to_pep_(), 
+      pep_to_indist_prot_grp_(),
+      prot_acc_to_indist_prot_grp_(), 
+      statistics_(statistics)
   {
   }
 
@@ -798,6 +797,17 @@ namespace OpenMS
 
     //Finally insert ambiguity group
     protein.insertProteinGroup(ambiguity_grp);
+  }
+
+  void PeptideProteinResolution::buildGraphAndResolveGroups(vector<ProteinIdentification>& inferred_protein_ids, 
+    vector<PeptideIdentification>& inferred_peptide_ids)
+  {
+    PeptideProteinResolution ppr;
+    ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
+    ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);    
+    IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
+    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+    IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
   }
 
 }
