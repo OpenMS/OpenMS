@@ -1879,7 +1879,15 @@ namespace OpenMS
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //high-energy collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::BEAM);
+          }
+          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          {
+            spec_.getPrecursors().getActivationMethods().insert(Precursor::TRAP);
+          }          
+          else if (accession == "MS:1002481") //high-energy collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
           }
@@ -1899,6 +1907,14 @@ namespace OpenMS
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
           }
+          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::INSOURCE);
+          }
+          else if (accession == "MS:1002000") //LIFT
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LIFT);
+          }          
           else
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
@@ -1975,7 +1991,15 @@ namespace OpenMS
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //high-energy collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::BEAM);
+          }
+          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::TRAP);
+          }
+          else if (accession == "MS:1002481") //high-energy collision-induced dissociation          
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
           }
@@ -1995,8 +2019,18 @@ namespace OpenMS
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PQD);
           }
+          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::INSOURCE);
+          }
+          else if (accession == "MS:1002000") //LIFT
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LIFT);
+          }          
           else
+          {
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          }
         }
       }
       //------------------------- isolationWindow ----------------------------
@@ -3919,7 +3953,15 @@ namespace OpenMS
       }
       if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
       {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::BEAM) != 0)
+      {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::TRAP) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002472\" name=\"trap-type collision-induced dissociation\" />\n";
       }
       if (precursor.getActivationMethods().count(Precursor::LCID) != 0)
       {
@@ -3937,6 +3979,14 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
       }
+      if (precursor.getActivationMethods().count(Precursor::INSOURCE) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001880\" name=\"in-source collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::LIFT) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002000\" name=\"LIFT\" />\n";
+      }      
       if (precursor.getActivationMethods().empty())
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
