@@ -24,14 +24,14 @@ class TestAcquisitionInfo(unittest.TestCase):
 		exp[0].getAcquisitionInfo().size()  # is 1
 		self.assertEqual(exp[0].getAcquisitionInfo()[0].isMetaEmpty(), True)  # is True
 
-                spectra = exp.getSpectra()
-                aqis = spectra[0].getAcquisitionInfo()
-                aqi = aqis[0] # get a copy
-                aqi.setMetaValue('key', 420) # modify it
-                aqis[0] = aqi # and set entry
-                spectra[0].setAcquisitionInfo(aqis)
-                exp.setSpectra(spectra)
-                self.assertEqual(exp[0].getAcquisitionInfo()[0].getMetaValue('key'), 420)  # should be 420
+		spectra = exp.getSpectra()
+		aqis = spectra[0].getAcquisitionInfo()
+		aqi = aqis[0] # get a copy
+		aqi.setMetaValue('key', 420) # modify it
+		aqis[0] = aqi # and set entry
+		spectra[0].setAcquisitionInfo(aqis)
+		exp.setSpectra(spectra)
+		self.assertEqual(exp[0].getAcquisitionInfo()[0].getMetaValue('key'), 420)  # should be 420
 
 		acin = pyopenms.Acquisition()
 		acin.setMetaValue('key', 42)

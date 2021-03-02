@@ -38,11 +38,11 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
@@ -54,6 +54,7 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
+#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -77,7 +78,7 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("debug", 0);
 
-    defaults_.setValue("extract:batch_size", 1000, "Number of target molecules to consider in each batch of chromatogram extraction."
+    defaults_.setValue("extract:batch_size", 5000, "Number of target molecules to consider in each batch of chromatogram extraction."
                          " Smaller values decrease memory usage but increase runtime.");
     defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
@@ -135,11 +136,14 @@ namespace OpenMS
     defaults_.setValidStrings("svm:xval_out", ListUtils::create<String>("csv"));
     defaults_.insert("svm:", SimpleSVM().getParameters());
 
+    defaults_.setValue("quantify_decoys", "false", "Whether decoy peptides should be quantified (true) or skipped (false).");
+    defaults_.setValidStrings("quantify_decoys", ListUtils::create<String>("true,false"));
+
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
     // @TODO: intensity bias introduced by "peak_apices_sum"?
     // names of scores to use as SVM features
-    String score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
+    String score_metavalues = "peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_ms1_isotope_correlation_score,var_ms1_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
 
     defaults_.setValue(
       "svm:predictors",
@@ -166,6 +170,13 @@ namespace OpenMS
 
     defaults_.setSectionDescription("model", "Parameters for fitting elution models to features");
 
+    defaults_.setValue("EMGScoring:max_iteration", 100, "Maximum number of iterations for EMG fitting.");
+    defaults_.setMinInt("EMGScoring:max_iteration", 1);
+    defaults_.setValue("EMGScoring:init_mom", "false", "Alternative initial parameters for fitting through method of moments.");
+    defaults_.setValidStrings("EMGScoring:init_mom", {"true","false"});
+
+    defaults_.setSectionDescription("EMGScoring", "Parameters for fitting exp. mod. Gaussians to mass traces.");
+
     defaultsToParam_();
   }
 
@@ -189,7 +200,17 @@ namespace OpenMS
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration"));
+    params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom"));
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
+    params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms2_isotope_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
+    // precursor transition = first product transition, additionally biased
+    params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
+    //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
+    // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
+
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("write_convex_hull", "true");
@@ -211,8 +232,10 @@ namespace OpenMS
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
+    // to use MS1 Swath scores:
+    feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
 
-    double rt_uncertainty(0);
+    double rt_uncertainty = 0;
     bool with_external_ids = !id_data_ext.empty();
     if (with_external_ids)
     {
@@ -294,12 +317,12 @@ namespace OpenMS
     n_external_targets_ = target_map_.size() - n_internal_targets_ - n_seed_targets_;
 
     boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-    OpenSwath::SpectrumAccessPtr spec_temp =
-        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
+    OpenSwath::SpectrumAccessPtr spec_temp = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
     auto chunks = chunk_(target_map_.begin(), target_map_.end(), batch_size_);
 
     if (debug_level_ >= 666)
     {
+      OPENMS_LOG_INFO << "Creating full assay library for debugging." << endl;
       // Warning: this step is pretty inefficient, since it does the whole library generation twice
       // Really use for debug only
       createAssayLibrary_(target_map_.begin(), target_map_.end());
@@ -311,13 +334,14 @@ namespace OpenMS
     //-------------------------------------------------------------
     // run feature detection
     //-------------------------------------------------------------
-    for (Size chunk_index = 0; chunk_index < chunks.size(); ++chunk_index)
+    //Note: progress only works in non-debug when no logs come in-between
+    getProgressLogger().startProgress(0, chunks.size(), "Creating assay library and extracting chromatograms");
+    Size chunk_count = 0;
+    for (auto& chunk : chunks)
     {
-      OPENMS_LOG_INFO << "Processing chunk " << chunk_index + 1 << " of "
-                      << chunks.size() << ":" << endl;
-      auto chunk = chunks[chunk_index];
       OPENMS_LOG_INFO << "Creating assay library..." << endl;
       createAssayLibrary_(chunk.first, chunk.second);
+      OPENMS_LOG_DEBUG << "#Transitions: " << library_.getTransitions().size() << endl;
 
       OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
       ChromatogramExtractor extractor;
@@ -351,7 +375,9 @@ namespace OpenMS
       // Usually we could sanitize the identifiers or merge the runs, but since they are empty and we add the
       // "real" proteins later -> just clear them
       features.getProteinIdentifications().clear();
+      getProgressLogger().setProgress(++chunk_count);
     }
+    getProgressLogger().endProgress();
 
     OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total." << endl;
     // if (!candidates_out_.empty()) FeatureXMLFile().store(candidates_out_, features);
@@ -402,6 +428,7 @@ namespace OpenMS
     Size seeds_added(0);
     vector<bool> target_already_exists(seeds.size(), false);
     Size feature_index = 0;
+    double rt_tolerance = rt_window_seeds_ / 2.0;
     for (const Feature& seed : seeds)
     {
       double seed_rt = seed.getRT();
@@ -415,24 +442,29 @@ namespace OpenMS
         isotopes_mz[i] -= double(i) / seed_charge * Constants::C13C12_MASSDIFF_U;
       }
 
-      // check if there's already a target that is close in RT and MZ;
-      // if so, don't add seed
-      // @TODO: this checks every (best) input match for every seed; can we be more efficient?
-      for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
-           ref != id_data.getObservationMatches().end(); ++ref)
+      // check if there's already a target that is close in RT and MZ; if so, don't add seed
+      // @TODO: this checks every observation for every seed; can we be more efficient?
+      // (doing this after we have RT regions for the "real" IDs would be ideal)
+      for (ID::ObservationRef ref = id_data.getObservations().begin();
+           ref != id_data.getObservations().end(); ++ref)
       {
-        double rt = ref->observation_ref->rt;
-        double mz = ref->observation_ref->mz;
+        auto pair = id_data.getMatchesForObservation(ref);
+        if (pair.first == pair.second) continue; // no matches for this observation
 
-        // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
-        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * mz : mz_window_;
-        if ((fabs(seed_rt - rt) <= rt_window_) &&
+        // RT or MZ values of seed match in range -> target already exists -> don't add seed
+        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * ref->mz : mz_window_;
+        if ((fabs(seed_rt - ref->rt) <= rt_tolerance) &&
             any_of(isotopes_mz.begin(), isotopes_mz.end(), [=](double isotope_mz)
             {
-              return fabs(isotope_mz - mz) <= th_tolerance;
+              return fabs(isotope_mz - ref->mz) <= th_tolerance;
             }))
         {
           target_already_exists[feature_index] = true;
+          String overlap_molecule = ref->identified_molecule_var.toString();
+          OPENMS_LOG_DEBUG_NOFILE << "Skipping seed from feature " << String(f_it->getUniqueId())
+                                  << " with z=" << seed_charge << ", RT=" << seed_RT << ", m/z=" << seed_MZ
+                                  << " due to overlap with observation " << ref->data_id
+                                  << " at RT=" << ref->rt << ", m/z=" << ref->mz << endl;
           break;
         }
       }
@@ -550,6 +582,10 @@ namespace OpenMS
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
 
+    //TODO MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
+    // Would be nice if we could only do the fitting once, since it is one of the bottlenecks.
+    // What is the intention of this post-processing here anyway? Does it filter anything?
+    // If so, why not filter based on the corresponding Swath/MRM score?
     if (elution_model_ != "none")
     {
       ElutionModelFitter emf;
@@ -792,9 +828,10 @@ namespace OpenMS
         iso_dist.resize(n_isotopes_);
       }
 
-      // get regions in which peptide elutes (ideally only one):
+      // get regions in which target elutes (ideally only one):
       vector<RTRegion> rt_regions;
-      makeRTRegions_(target_it->second.hits_by_charge, rt_regions);
+      bool is_seed = target_id.hasPrefix("SEED:");
+      makeRTRegions_(target_it->second.hits_by_charge, rt_regions, is_seed);
       OPENMS_LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << endl;
 
       // go through different charge states:
@@ -836,7 +873,7 @@ namespace OpenMS
 
 
   void FeatureFinderIdentificationAlgorithm::makeRTRegions_(
-    const ChargeMap& charge_data, vector<RTRegion>& rt_regions) const
+    const ChargeMap& charge_data, vector<RTRegion>& rt_regions, bool is_seed) const
   {
     // use RTs from all charge states here to get a more complete picture:
     vector<double> rts;
@@ -852,7 +889,7 @@ namespace OpenMS
       }
     }
     sort(rts.begin(), rts.end());
-    double rt_tolerance = rt_window_ / 2.0;
+    double rt_tolerance = (is_seed ? rt_window_seeds_ : rt_window_) / 2.0;
 
     // create RT regions based on how close together the RTs are:
     for (double rt : rts)
@@ -924,6 +961,7 @@ namespace OpenMS
       transition.setLibraryIntensity(isotope.getIntensity());
       transition.setMetaValue("annotation", annotation);
       transition.setCompoundRef(target_id);
+      //TODO what about transition charge? A lot of DIA scores depend on it and default to charge 1 otherwise.
       library_.addTransition(transition);
       isotope_probs_[transition_name] = isotope.getIntensity();
       ++counter;
@@ -1176,6 +1214,17 @@ namespace OpenMS
     auto pos = target_map_.find(target_id);
     if (pos == target_map_.end()) // no entry for this target yet
     {
+      if (!quantify_decoys_)
+      {
+        // check target/decoy status of molecule, skip decoys:
+        const ID::IdentifiedMolecule& molecule = ref->identified_molecule_var;
+        ID::MoleculeType type = molecule.getMoleculeType();
+        if ((type == ID::MoleculeType::PROTEIN) &&
+            (molecule.getIdentifiedPeptideRef()->allParentsAreDecoys())) return;
+        if ((type == ID::MoleculeType::RNA) &&
+            (molecule.getIdentifiedOligoRef()->allParentsAreDecoys())) return;
+      }
+
       TargetData data;
       data.molecule = ref->identified_molecule_var;
       data.adduct = ref->adduct_opt;
@@ -1206,6 +1255,7 @@ namespace OpenMS
     rt_window_ = param_.getValue("extract:rt_window");
     mz_window_ = param_.getValue("extract:mz_window");
     mz_window_ppm_ = mz_window_ >= 1;
+    rt_window_seeds_ = 2.0 * peak_width_; // @TODO: add a parameter for this?
 
     n_isotopes_ = param_.getValue("extract:n_isotopes");
     max_isotopes_ = param_.getValue("extract:max_isotopes") == "true";
@@ -1225,6 +1275,9 @@ namespace OpenMS
     // debug
     debug_level_ = param_.getValue("debug");
     candidates_out_ = param_.getValue("candidates_out");
+
+    // quantification of decoys
+    quantify_decoys_ = param_.getValue("quantify_decoys").toBool();
   }
 
 
@@ -1314,7 +1367,9 @@ namespace OpenMS
     {
       selection.push_back(it->first);
     }
-    random_shuffle(selection.begin(), selection.end());
+    //TODO check how often this is potentially called and move out the initialization
+    Math::RandomShuffler shuffler;
+    shuffler.portable_random_shuffle(selection.begin(), selection.end());
     // However, ensure that at least "svm_n_parts_" pos./neg. observations are
     // included (for cross-validation) - there must be enough, otherwise
     // "checkNumObservations_" would have thrown an error. To this end, move

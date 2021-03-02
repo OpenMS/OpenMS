@@ -47,7 +47,7 @@ set(EXAMPLES_executables ${EXAMPLES_executables} ${executables_list})
 
 # --------------------------------------------------------------------------
 set(executables_list
-Tutorial_GUI_Spectrum1D
+Tutorial_GUI_Plot1D
 Tutorial_GUI_ParamEditor
 Tutorial_GUI_ListEditor
 )

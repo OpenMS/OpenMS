@@ -187,6 +187,11 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications, document_id);
 
+  vector<PeptideIdentification> identifications2;
+  vector<ProteinIdentification> protein_identifications2;
+  String document_id2;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_7.idXML"), protein_identifications2, identifications2, document_id2);
+
   TEST_EQUAL(identifications.size(),3)
   TEST_EQUAL(identifications[0].getHits().size(), 2)
   TEST_EQUAL(identifications[1].getHits().size(), 1)
@@ -194,6 +199,14 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   TEST_EQUAL(protein_identifications.size(),1)
   TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
 
+  TEST_EQUAL(identifications2.size(),3)
+  TEST_EQUAL(identifications2[0].getHits().size(), 2)
+  TEST_EQUAL(identifications2[1].getHits().size(), 1)
+  TEST_EQUAL(identifications2[2].getHits().size(), 2)
+  TEST_EQUAL(protein_identifications2.size(),1)
+  TEST_EQUAL(protein_identifications2[0].getHits().size(), 2)
+
+  // TEST RT MAPPING
   // create experiment
   PeakMap experiment;
   MSSpectrum spectrum;
@@ -238,8 +251,58 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)
   TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
-END_SECTION
 
+  //-----------------------------------------------------------------------------------
+  // TEST NATIVE_ID MAPPING
+
+  // create experiment
+  PeakMap experiment2;
+  MSSpectrum spectrum2;
+  Precursor precursor2;
+  precursor2.setMZ(0);
+  spectrum2.setRT(60);
+  spectrum2.setNativeID("spectrum=1234");
+  experiment2.addSpectrum(spectrum2);
+  experiment2[0].getPrecursors().push_back(precursor2);
+  precursor2.setMZ(20);
+  spectrum2.setRT(181);
+  spectrum2.setNativeID("spectrum=6666");
+  experiment2.addSpectrum(spectrum2);
+  experiment2[1].getPrecursors().push_back(precursor2);
+  precursor2.setMZ(11);
+  spectrum2.setRT(120.0001);
+  spectrum2.setNativeID("spectrum=4321");
+  experiment2.addSpectrum(spectrum2);
+  experiment2[2].getPrecursors().push_back(precursor2);
+
+  IDMapper mapper2;
+  Param p2 = mapper2.getParameters();
+  p2.setValue("rt_tolerance", 0.5);
+  p2.setValue("mz_tolerance", 0.05);
+  p2.setValue("mz_measure","Da");
+  p2.setValue("ignore_charge", "true");
+  mapper2.setParameters(p2);
+
+  mapper2.annotate(experiment2, identifications2, protein_identifications2);
+
+  //test
+  TEST_EQUAL(experiment2.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits().size(),2)
+  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+  //scan 1
+  TEST_EQUAL(experiment2[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits().size(), 2)
+  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  //scan 2
+  TEST_EQUAL(experiment2[1].getPeptideIdentifications().size(), 0)
+  //scan 3
+  TEST_EQUAL(experiment2[2].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(experiment2[2].getPeptideIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(experiment2[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+
+END_SECTION
 
 
 START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))

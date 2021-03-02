@@ -222,8 +222,6 @@ namespace OpenMS
     monoisotopic_mz_ = mean_ - isotopes_mean;
     interpolation_.setMapping(interpolation_step_, peak_width / interpolation_step_, monoisotopic_mz_);
 
-    //std::cerr << "mono now: " << monoisotopic_mz_ << " mono easy: " << formula.getMonoWeight()/formula.getCharge() << "\n";
-
     // scale data so that integral over distribution equals one
     // multiply sum by interpolation_step_ -> rectangular approximation of integral
     IntensityType factor = scaling_ / (interpolation_step_ * std::accumulate(result.begin(), result.end(), IntensityType(0)));

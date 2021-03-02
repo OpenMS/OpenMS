@@ -9,6 +9,20 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 2.7 (in development)                       ----
+------------------------------------------------------------------------------------------
+
+Adapters/Third-party support:
+- Easier 15N-labeling support for XTandemAdapter by shipping the required AA mass modification file (#5026)
+- Added basic Triqler export
+- ParamEditor with more convenient StringList editing  (#5135)
+- TOPPAS: add a `recent files` submenu
+
+Further fixes:
+- support for GLPK 5.x (#5127)
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
 ------------------------------------------------------------------------------------------
@@ -1151,7 +1165,7 @@ Resolved issues:
 	#506	added custom info.plist containing the path to OMSSA/XTandem for the GUI tools
 	#505	goto dialogs now act with error tolerance
 	#504	Fixed XTandemXMLFile loading when no encoding is given by XTandemXML file by enforcing ISO-Latin-1 (default would be utf-8, breaking the aminoacid sequence readin). Introduced enforceEncoding(encoding) to XMLFile.
-	#316	SpectraViewWidget is not cleaned up when last layer is deleted
+	#316	SpectraTreeTab is not cleaned up when last layer is deleted
 	#283	TOPPView: Scan view widget does not clear after closing last file
 	#379	MapAlignerPoseClustering: -reference:index has no effect
 	#384	replace zip libraries with The Boost Iostreams Library (already in contrib)

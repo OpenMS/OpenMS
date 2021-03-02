@@ -341,7 +341,7 @@ namespace OpenMS
       {
         precursor_charge = peptide.getChargeState();
       }
-      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      double precursor_mz = peptide_sequence.getMZ(precursor_charge);
       int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Compute all alternative peptidoforms compatible with ModificationsDB
@@ -487,7 +487,7 @@ namespace OpenMS
       }
 
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      double precursor_mz = peptide_sequence.getMZ(precursor_charge);
       int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Copy properties of target peptide to decoy and get sequence from map
@@ -556,7 +556,7 @@ namespace OpenMS
         precursor_charge = peptide.getChargeState();
       }
       AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      int target_precursor_swath = getSwath_(swathes, peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge);
+      int target_precursor_swath = getSwath_(swathes, peptide_sequence.getMZ(precursor_charge));
 
       // Sort all transitions and make them unique
       auto transition_vector = pep_it.second;
@@ -576,7 +576,7 @@ namespace OpenMS
           ReactionMonitoringTransition trn;
           trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
-          trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
+          trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMZ(precursor_charge), round_decPow));
           trn.setProductMZ(tr_it->second);
           trn.setPeptideRef(peptide.id);
           mrmis.annotateTransitionCV(trn, tr_it->first);
@@ -632,7 +632,7 @@ namespace OpenMS
         precursor_charge = target_peptide.getChargeState();
       }
       AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
-      int target_precursor_swath = getSwath_(swathes, target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge);
+      int target_precursor_swath = getSwath_(swathes, target_peptide_sequence.getMZ(precursor_charge));
 
       TargetedExperiment::Peptide decoy_peptide = TargetDecoyMap[decoy_pep_it.first];
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
@@ -656,7 +656,7 @@ namespace OpenMS
           trn.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
           trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
-          trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
+          trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMZ(precursor_charge), round_decPow));
           trn.setProductMZ(decoy_tr_it->second);
           trn.setPeptideRef(decoy_peptide.id);
           mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
@@ -736,7 +736,7 @@ namespace OpenMS
                                                     enable_unspecific_losses, round_decPow);
 
       // Generate theoretical precursor m.z
-      double precursor_mz = target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      double precursor_mz = target_peptide_sequence.getMZ(precursor_charge);
       precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
 
       for (Size i = 0; i < pep_it->second.size(); i++)
@@ -1090,7 +1090,7 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transistions."<< std::endl;
+        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transitions."<< std::endl;
       }
     }
     exp.setTransitions(transitions);

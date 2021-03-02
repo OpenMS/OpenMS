@@ -274,7 +274,7 @@ protected:
       void populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                           Size& length,
                                           const PeakFileOptions& peak_file_options,
-                                          ChromatogramType& inp_chromatogram);
+                                          ChromatogramType& chromatogram);
 
       /// Fills the current chromatogram with data points and meta data
       void fillChromatogramData_();
@@ -327,14 +327,13 @@ protected:
       void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
 
       /**
-          @brief Write a single <binaryDataArray> element to the output
+          @brief Write a single \<binaryDataArray\> element to the output
 
           @param os The stream into which to write
           @param options The PeakFileOptions which determines the compression type to use
           @param data The data to write (32bit float or 64 bit double)
           @param is32bit Whether data is 32bit
           @param array_type Which type of data array is written (mz, time, intensity or float_data)
-          @param array_name Optional array name (for float data arrays)
 
           @note The data argument may be modified by the function (see Base64 for reasons why)
 
@@ -347,7 +346,7 @@ protected:
                                  String array_type);
 
       /**
-          @brief Write a single <binaryDataArray> element for a float data array to the output
+          @brief Write a single \<binaryDataArray\> element for a float data array to the output
 
           This is only for non-standard data arrays which are treated slightly
           differently by the standard.
@@ -356,16 +355,16 @@ protected:
           @param options The PeakFileOptions which determines the compression type to use
           @param array The data to write
           @param spec_chrom_idx The index of the current spectrum or chromatogram
-          @param array_id The index of the current float data array
-          @param isSpectrum Whether data is associated with a spectrum (if false, a chromatogram is assumed)
+          @param array_idx The index of the current float data array
+          @param is_spectrum Whether data is associated with a spectrum (if false, a chromatogram is assumed)
           @param validator Validator object
       */
       void writeBinaryFloatDataArray_(std::ostream& os,
-                                      const PeakFileOptions& pf_options_,
+                                      const PeakFileOptions& options,
                                       const OpenMS::DataArrays::FloatDataArray& array,
                                       const Size spec_chrom_idx,
                                       const Size array_idx,
-                                      bool isSpectrum,
+                                      bool is_spectrum,
                                       const Internal::MzMLValidator& validator);
 
       /// Writes user terms
@@ -482,15 +481,16 @@ protected:
       std::vector<ChromatogramData> chromatogram_data_;
 
       //@}
+      
       /**@name temporary data structures to hold written data
        *
        * These data structures are used to store binary offsets required by the
-       * indexedMzML format, specifically the start of each <spectrum> and
-       * <chromatogram> tag is stored and will then be stored at the end of the file.
+       * indexedMzML format, specifically the start of each \<spectrum\> and
+       * \<chromatogram\> tag is stored and will then be stored at the end of the file.
        **/
       //@{
-      std::vector<std::pair<std::string, Int64> > spectra_offsets_; ///< Stores binary offsets for each <spectrum> tag
-      std::vector<std::pair<std::string, Int64> > chromatograms_offsets_; ///< Stores binary offsets for each <chromatogram> tag
+      std::vector<std::pair<std::string, Int64> > spectra_offsets_; ///< Stores binary offsets for each \<spectrum\> tag
+      std::vector<std::pair<std::string, Int64> > chromatograms_offsets_; ///< Stores binary offsets for each \<chromatogram\> tag
       //@}
 
       /// Progress logger

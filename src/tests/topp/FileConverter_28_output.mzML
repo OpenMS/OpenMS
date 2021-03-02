@@ -13,10 +13,11 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_28_input.mzML" location="file:///home/hr/openmsall/source/OpenMS_trunk/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_28_input.mzML" location="file:///home/sachsenb/OMS/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="fbc7be28bc7bef0b5915f623dba7b35e604fadd2" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
+				<userParam name="name" type="xsd:string" value="sourcefile1"/>
 			</sourceFile>
 		</sourceFileList>
 		<contact>
@@ -205,10 +206,10 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tic native">10267</offset>
-		<offset idRef="sic native">11890</offset>
+		<offset idRef="tic native">10320</offset>
+		<offset idRef="sic native">11943</offset>
 	</index>
 </indexList>
-<indexListOffset>13471</indexListOffset>
+<indexListOffset>13524</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

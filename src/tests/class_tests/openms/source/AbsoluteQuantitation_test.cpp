@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Maintainer: Douglas McCloskey $
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 //
@@ -406,9 +406,9 @@ START_SECTION((void (
   IS_component.setMetaValue("peak_apex_int",1.0);
   component_concentration.feature = component;
   component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 1.0;
+  component_concentration.actual_concentration = 2.0;
   component_concentration.IS_actual_concentration = 1.0;
-  component_concentration.dilution_factor = 1.0;
+  component_concentration.dilution_factor = 2.0;
   component_concentrations.push_back(component_concentration);
   // point #2
   component.setMetaValue("native_id","component");
@@ -417,9 +417,9 @@ START_SECTION((void (
   IS_component.setMetaValue("peak_apex_int",1.0);
   component_concentration.feature = component;
   component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 2.0;
+  component_concentration.actual_concentration = 4.0;
   component_concentration.IS_actual_concentration = 1.0;
-  component_concentration.dilution_factor = 1.0;
+  component_concentration.dilution_factor = 2.0;
   component_concentrations.push_back(component_concentration);
   // point #3
   component.setMetaValue("native_id","component");
@@ -428,9 +428,9 @@ START_SECTION((void (
   IS_component.setMetaValue("peak_apex_int",1.0);
   component_concentration.feature = component;
   component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 3.0;
+  component_concentration.actual_concentration = 6.0;
   component_concentration.IS_actual_concentration = 1.0;
-  component_concentration.dilution_factor = 1.0;
+  component_concentration.dilution_factor = 2.0;
   component_concentrations.push_back(component_concentration);
 
   String feature_name = "peak_apex_int";
@@ -473,7 +473,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = {1, 1, 1, 1, 1, 1};
   std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
-  static const double arrz1[] = {-2, -4, -6, 2, 4, 6};
+  static const double arrz1[] = {-4, -8, -12, 4, 8, 12};
   std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) );
 
   // set-up the features
@@ -490,7 +490,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     component_concentration.IS_feature = IS_component;
     component_concentration.actual_concentration = z1[i];
     component_concentration.IS_actual_concentration = 1.0;
-    component_concentration.dilution_factor = 1.0;
+    component_concentration.dilution_factor = 2.0;
     component_concentrations.push_back(component_concentration);
   }
 

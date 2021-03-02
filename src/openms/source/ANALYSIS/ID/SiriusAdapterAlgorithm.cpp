@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -50,7 +51,7 @@ namespace OpenMS
       DefaultParamHandler("SiriusAdapterAlgorithm")
     {      
       // adapter parameters (preprocessing)
-      defaults_.setValue("preprocessing:filter_by_num_masstraces", 1, "Features have to have at least x MassTraces. To use this parameter feature_only is neccessary");
+      defaults_.setValue("preprocessing:filter_by_num_masstraces", 1, "Features have to have at least x MassTraces. To use this parameter feature_only is necessary");
       defaults_.setMinInt("preprocessing:filter_by_num_masstraces", 1);
       defaults_.setValue("preprocessing:precursor_mz_tolerance", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)");
       defaults_.setValue("preprocessing:precursor_mz_tolerance_unit", "Da", "Unit of the precursor_mz_tolerance");
@@ -183,7 +184,37 @@ namespace OpenMS
     {
       return tmp_ms_file_;
     }
-    
+
+    class OPENMS_DLLAPI SiriusWorkspaceIndex
+    {
+    public:
+      int array_index, scan_index;
+
+      SiriusWorkspaceIndex(int array_index, int scan_index) : array_index {array_index}, scan_index {scan_index} {}
+    };
+
+     void  SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs)
+    {
+      std::vector<String> sorted_subdirs;
+      std::vector<SiriusWorkspaceIndex> indices;
+
+      for (size_t i = 0; i < subdirs.size(); i++)
+      {
+        indices.emplace_back(i, SiriusMzTabWriter::extractScanIndex(subdirs[i]));
+      }
+
+      std::sort(indices.begin(),
+                indices.end(),
+                [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
+
+      for (const auto& index : indices)
+      {
+        sorted_subdirs.emplace_back(std::move(subdirs[index.array_index]));
+      }
+
+      sorted_subdirs.swap(subdirs);
+    }
+
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      std::vector<FeatureMap>& v_fp,

@@ -38,6 +38,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <cstdio>
 #include <sstream>
 
@@ -794,8 +795,9 @@ namespace OpenMS
           training_data_by_class[*it].push_back(it - training_output[type_nr].begin());
         }
         Size min_size = std::min(training_data_by_class[0].size(), training_data_by_class[1].size());
-        std::random_shuffle(training_data_by_class[0].begin(), training_data_by_class[0].end());
-        std::random_shuffle(training_data_by_class[1].begin(), training_data_by_class[1].end());
+        Math::RandomShuffler shuffler;
+        shuffler.portable_random_shuffle(training_data_by_class[0].begin(), training_data_by_class[0].end());
+        shuffler.portable_random_shuffle(training_data_by_class[1].begin(), training_data_by_class[1].end());
 
         for (Size num = 0; num < min_size; ++num)
         {

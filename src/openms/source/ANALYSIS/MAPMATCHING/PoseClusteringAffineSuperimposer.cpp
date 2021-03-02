@@ -860,7 +860,7 @@ namespace OpenMS
         std::cout << "WARNING: your map likely has a scaling around " << slope
           << " but your parameters only allow for a maximal scaling of " <<
           param_.getValue("max_scaling") << std::endl;
-        std::cout << "It is strongly adviced to adjust your max_scaling factor" << std::endl;
+        std::cout << "It is strongly advised to adjust your max_scaling factor" << std::endl;
       }
 
       if ( (double)param_.getValue("max_shift") < shift * 1.2)
@@ -868,7 +868,7 @@ namespace OpenMS
         std::cout << "WARNING: your map likely has a shift around " << shift
           << " but your parameters only allow for a maximal shift of " <<
           param_.getValue("max_shift") << std::endl;
-        std::cout << "It is strongly adviced to adjust your max_shift factor" << std::endl;
+        std::cout << "It is strongly advised to adjust your max_shift factor" << std::endl;
       }
 
     }

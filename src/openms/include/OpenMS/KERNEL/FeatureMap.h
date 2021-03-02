@@ -136,7 +136,7 @@ public:
     using Base::push_back;
     using Base::emplace_back;
     using Base::pop_back; // FeatureXMLFile
-    using Base::erase; // source/VISUAL/Spectrum2DCanvas.cpp 2871, FeatureMap_test 599
+    using Base::erase; // source/VISUAL/Plot2DCanvas.cpp 2871, FeatureMap_test 599
 
     //@{
     typedef RangeManager<2> RangeManagerType;

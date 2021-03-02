@@ -35,6 +35,7 @@ Map.cpp
 MassExplainer.cpp
 MatchedIterator.cpp
 Matrix.cpp
+OSWData.cpp
 Param.cpp
 QTCluster.cpp
 String.cpp

@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -130,6 +131,7 @@ namespace OpenMS
     }
     OpenMS::TargetedExperiment::Peptide shuffled = peptide;
 
+    //TODO use Math::RandomShuffler (=same approach) and put this rather general method somewhere more prominent.
     boost::mt19937 generator(seed);
     boost::uniform_int<> uni_dist;
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
@@ -398,7 +400,8 @@ namespace OpenMS
     }
     else if ( aim_decoy_fraction < 1.0)
     {
-      std::random_shuffle(item_list.begin(), item_list.end());
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
       selection_list.reserve(aim_decoy_fraction * exp.getPeptides().size());
       Size k = 0;
       while (selection_list.size() < aim_decoy_fraction * exp.getPeptides().size())
@@ -514,7 +517,7 @@ namespace OpenMS
             enable_unspecific_losses, round_decPow);
 
       // Compute (new) decoy precursor m/z based on the K/R replacement and the AA changes in the shuffle algorithm
-      double decoy_precursor_mz = decoy_peptide_sequence.getMonoWeight(Residue::Full, decoy_charge) / decoy_charge;
+      double decoy_precursor_mz = decoy_peptide_sequence.getMZ(decoy_charge);
       decoy_precursor_mz += precursor_mz_shift; // fix for TOPPView: Duplicate precursor MZ is not displayed.
 
       for (Size i = 0; i < pep_it->second.size(); i++)

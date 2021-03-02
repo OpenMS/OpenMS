@@ -56,6 +56,14 @@ namespace OpenMS
     return r;
   }
 
+  FS_LAYER OPENMS_GUI_DLLAPI operator+(const LayerData::DataType left, const LayerData::DataType right)
+  {
+    FS_LAYER r;
+    r += left;
+    r += right;
+    return r;
+  }
+
   TOPPViewMenu::TOPPViewMenu(TOPPViewBase* const parent, EnhancedWorkspace* const ws, RecentFilesMenu* const recent_files)
     : QObject()
       //parent_(parent)
@@ -66,8 +74,8 @@ namespace OpenMS
     m_file->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_file);
 
-    m_file->addAction("&Open file", parent, &TOPPViewBase::openFileDialog, Qt::CTRL + Qt::Key_O);
-    m_file->addAction("Open &example file", parent, [parent]() { parent->openFileDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL + Qt::Key_E);
+    m_file->addAction("&Open file", parent, &TOPPViewBase::openFilesByDialog, Qt::CTRL + Qt::Key_O);
+    m_file->addAction("Open &example file", parent, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL + Qt::Key_E);
     addAction_(m_file->addAction("&Close tab", parent, &TOPPViewBase::closeTab, Qt::CTRL + Qt::Key_W),
                TV_STATUS::HAS_CANVAS);
     m_file->addSeparator();
@@ -82,8 +90,7 @@ namespace OpenMS
     m_file->addMenu(recent_files->getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
 
     m_file->addSeparator();
-    addAction_(m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog),
-               TV_STATUS::HAS_LAYER);
+    m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
     m_file->addAction("&Quit", qApp, SLOT(quit()));
 
     // Tools menu
@@ -97,20 +104,32 @@ namespace OpenMS
     addAction_(m_tools->addAction("&Statistics", parent, &TOPPViewBase::layerStatistics),
       TV_STATUS::HAS_LAYER);
     m_tools->addSeparator();
-    auto item = addAction_(m_tools->addAction("Apply TOPP tool (whole layer)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::Key_T),
+    action = addAction_(m_tools->addAction("Apply TOPP tool (whole layer)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::Key_T),
         TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
-    item.action->setData(false);
-    item = addAction_(m_tools->addAction("Apply TOPP tool (visible layer data)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::SHIFT + Qt::Key_T),
+    action->setData(false);
+    action = addAction_(m_tools->addAction("Apply TOPP tool (visible layer data)", parent, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::SHIFT + Qt::Key_T),
       TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
-    item.action->setData(true);
+    action->setData(true);
     addAction_(m_tools->addAction("Rerun TOPP tool", parent, &TOPPViewBase::rerunTOPPTool, Qt::Key_F4),
       TV_STATUS::HAS_LAYER + TV_STATUS::TOPP_IDLE);
     m_tools->addSeparator();
-    addAction_(m_tools->addAction("&Annotate with identification", parent, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I),
-      TV_STATUS::HAS_LAYER);
+    
+    action = addAction_(m_tools->addAction("&Annotate with AccurateMassSearch results", parent, &TOPPViewBase::annotateWithAMS, Qt::CTRL + Qt::Key_A),
+      TV_STATUS::HAS_LAYER, FS_LAYER(LayerData::DT_PEAK));
+    action->setToolTip("Annotate Peak layer with a featureXML from the AccurateMassSearch tool");
+    
+    action = addAction_(m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I),
+      TV_STATUS::HAS_LAYER, LayerData::DT_PEAK + LayerData::DT_FEATURE + LayerData::DT_CONSENSUS);
+    action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
+
+    action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW, Qt::CTRL + Qt::Key_P),
+      TV_STATUS::HAS_LAYER, FS_LAYER(LayerData::DT_CHROMATOGRAM));
+    action->setToolTip("Annotate Chromatogram layer with OSW transition id data from OpenSwathWorkflow or pyProphet");
+    
     action = addAction_(m_tools->addAction("Align spectra", parent, &TOPPViewBase::showSpectrumAlignmentDialog),
-      TV_STATUS::HAS_MIRROR_MODE).action;
+      TV_STATUS::HAS_MIRROR_MODE);
     action->setToolTip("Only available in 1D View for mirrored (flipped) spectra. To flip, use the Layer View and right click a layer.");
+    
     m_tools->addAction("Generate theoretical spectrum", parent, &TOPPViewBase::showSpectrumGenerationDialog);
 
     // Layer menu
@@ -127,7 +146,7 @@ namespace OpenMS
     addAction_(m_layer->addAction("Show/hide axis legends", parent, &TOPPViewBase::toggleAxisLegends, Qt::CTRL + Qt::Key_L),
       TV_STATUS::HAS_CANVAS);
     action = addAction_(m_layer->addAction("Show/hide automated m/z annotations", parent, &TOPPViewBase::toggleInterestingMZs),
-      TV_STATUS::IS_1D_VIEW).action;
+      TV_STATUS::IS_1D_VIEW);
     action->setToolTip("Only available in 1D View");
     m_layer->addSeparator();
     addAction_(m_layer->addAction("Preferences", parent, &TOPPViewBase::showPreferences),
@@ -159,11 +178,11 @@ namespace OpenMS
     m_help->addAction("&About", [&]() {QApplicationTOPP::showAboutDialog(parent, "TOPPView"); });
   }
 
-  void TOPPViewMenu::update(const FS_TV status)
+  void TOPPViewMenu::update(const FS_TV status, const LayerData::DataType layer_type)
   {
     for (auto& ar : menu_items_)
     { // only disable if not supported by the view. This way, the user can still see the item (greyed out) and its ToolTip (for how to activate the item)
-      ar.action->setEnabled(status.isSuperSetOf(ar.needs));
+      ar.enableAction(status, layer_type);
     }
   }
 
@@ -172,16 +191,23 @@ namespace OpenMS
     m_windows_->addAction(window_toggle);
   }
 
-  const TOPPViewMenu::ActionRequirement_& TOPPViewMenu::addAction_(QAction* action, const TV_STATUS req)
+  QAction* TOPPViewMenu::addAction_(QAction* action, const TV_STATUS req, const FS_LAYER type)
   {
-    menu_items_.emplace_back(action, req);
-    return menu_items_.back();
+    menu_items_.emplace_back(action, req, type);
+    return action;
   }
-  const TOPPViewMenu::ActionRequirement_& TOPPViewMenu::addAction_(QAction* action, const FS_TV req)
+  QAction* TOPPViewMenu::addAction_(QAction* action, const FS_TV req, const FS_LAYER type)
   {
-    menu_items_.emplace_back(action, req);
-    return menu_items_.back();
+    menu_items_.emplace_back(action, req, type);
+    return action;
   }
 
+
+  void TOPPViewMenu::ActionRequirement_::enableAction(const FS_TV status, const LayerData::DataType layer_type)
+  {
+    bool status_ok = status.isSuperSetOf(needs_);
+    bool layer_ok = layer_set_.isSuperSetOf(layer_type) || layer_set_.empty();
+    this->action_->setEnabled(status_ok && layer_ok);
+  }
 
 } //Namespace

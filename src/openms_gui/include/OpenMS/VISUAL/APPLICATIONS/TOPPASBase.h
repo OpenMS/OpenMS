@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
 
 //QT
 #include <QtWidgets/QButtonGroup>
@@ -103,7 +104,7 @@ public slots:
     /// opens the file in a new window
     void addTOPPASFile(const String& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
-    void openFileDialog();
+    void openFilesByDialog();
     /// shows the dialog for opening example files
     void openExampleDialog();
     /// creates a new tab
@@ -215,6 +216,9 @@ protected:
     //@{
     QToolBar* tool_bar_;
     //@}
+
+    /// manages recent list of filenames and the menu that goes with it
+    RecentFilesMenu recent_files_menu_;  // needs to be declared before 'menu_', because its needed there
 
     /// Main workspace
     EnhancedWorkspace* ws_;

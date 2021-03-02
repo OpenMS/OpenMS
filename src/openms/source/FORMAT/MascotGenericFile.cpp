@@ -94,6 +94,8 @@ namespace OpenMS
     defaults_.setMinInt("number_of_hits", 0);
     defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
     defaults_.setValidStrings("skip_spectrum_charges", ListUtils::create<String>("true,false"));
+    defaults_.setValue("decoy", "false", "Set to true if mascot should generate the decoy database.");
+    defaults_.setValidStrings("decoy", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", ListUtils::create<String>("advanced"));
     defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", ListUtils::create<String>("advanced"));
@@ -248,6 +250,13 @@ namespace OpenMS
     writeParameterHeader_("DB", os);
     os << param_.getValue("database") << "\n";
 
+    // decoys
+    if (param_.getValue("decoy").toBool() == true)
+    {
+      writeParameterHeader_("DECOY", os);
+      os << 1 << "\n";
+    }
+
     // search type
     writeParameterHeader_("SEARCH", os);
     os << param_.getValue("search_type") << "\n";
@@ -356,7 +365,7 @@ namespace OpenMS
         }
         else
         {
-                os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
         }
       }
       else
@@ -442,15 +451,23 @@ namespace OpenMS
 
 
     String native_id_type_accession;
-    vector<SourceFile> sourcefiles = experiment.getExperimentalSettings().getSourceFiles();
+    vector<SourceFile> sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {
+      OPENMS_LOG_WARN << "MascotGenericFile: no native ID accession." << endl;
       native_id_type_accession = "UNKNOWN";
     }
     else
     {
-      native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+      native_id_type_accession = experiment.getSourceFiles()[0].getNativeIDTypeAccession();
+      if (native_id_type_accession.empty())
+      {
+        OPENMS_LOG_WARN << "MascotGenericFile: empty native ID accession." << endl;
+        native_id_type_accession = "UNKNOWN";
+      }
     }
+
+
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {

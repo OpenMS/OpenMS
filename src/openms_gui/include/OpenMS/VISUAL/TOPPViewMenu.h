@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/VISUAL/LayerData.h>
 
 #include <QObject>
 
@@ -64,9 +65,13 @@ namespace OpenMS
   };
   
   using FS_TV = FlagSet<TV_STATUS>;
-
   /// allow + operations on the enum, e.g. 'HAS_CANVAS + HAS_LAYER + IS_1D_VIEW'
   FS_TV OPENMS_GUI_DLLAPI operator+(const TV_STATUS left, const TV_STATUS right);
+
+  using FS_LAYER = FlagSet<LayerData::DataType>;
+  /// allow + operations on the enum, e.g. 'DT_PEAK + DT_FEATURE'
+  FS_LAYER OPENMS_GUI_DLLAPI operator+(const LayerData::DataType left, const LayerData::DataType right);
+
 
   /**
     @brief The file menu items for TOPPView
@@ -92,26 +97,33 @@ namespace OpenMS
 
   public slots:
     /// enable/disable entries according to a given state of TOPPViewBase
-    void update(const FS_TV status);
+    void update(const FS_TV status, const LayerData::DataType layer_type);
 
   private:
     struct ActionRequirement_
     {
-      ActionRequirement_(QAction* action, const FS_TV& needs)
-        : action(action), needs(needs) {}
-      ActionRequirement_(QAction* action, const TV_STATUS& needs)
-        : action(action), needs(needs) {}
+      ActionRequirement_(QAction* action, const FS_TV& needs, const FS_LAYER layer_set)
+        : action_(action), needs_(needs), layer_set_(layer_set) {}
+      ActionRequirement_(QAction* action, const TV_STATUS& needs, const FS_LAYER layer_set)
+        : action_(action), needs_(needs), layer_set_(layer_set) {}
 
-      QAction* action;
-      FS_TV needs;
+      /// check if an ActionRequirement is fulfilled by the arguments
+      /// i.e. @p status is a superset of needs_ and @p layer_type is a superset of layer_set_ (or layer_set_ is empty)
+      /// If yes, the the action to enabled, or disable it otherwise
+      void enableAction(const FS_TV status, const LayerData::DataType layer_type);
+
+    private:
+      QAction* action_;
+      FS_TV needs_;
+      FS_LAYER layer_set_;
     };
 
     /// fills menu_items_ members with ActionRequirements and returns the just created object
     /// Only use this for items which depend on the state of TOPPViewBase, 
     /// e.g. close() can only work if something is open. But open() is always allowed.
-    const ActionRequirement_& addAction_(QAction* action, const TV_STATUS req);
+    QAction* addAction_(QAction* action, const TV_STATUS req, const FS_LAYER layer_set = FS_LAYER());
     /// overload for multiple requirements
-    const ActionRequirement_& addAction_(QAction* action, const FS_TV req);
+    QAction* addAction_(QAction* action, const FS_TV req, const FS_LAYER layer_set = FS_LAYER());
 
     /// holds all actions which have a set of requirements, i.e. depend on the state of TOPPViewBase
     std::vector<ActionRequirement_> menu_items_;
