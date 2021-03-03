@@ -228,6 +228,8 @@ namespace OpenMS
       std::cout << item.first << " ";
     }
     std::cout << "\n";
+    std::cout << rt << " ";
+
     for (auto &item:color_count_map)
     {
       std::cout << item.second << " ";
