@@ -491,44 +491,6 @@ namespace OpenMS
     return *this;
   }
 
-  /*
-  DataValue& DataValue::operator=(const ParamValue& arg)
-  {
-      clear_();
-      switch(arg.valueType())
-      {
-      case ParamValue::EMPTY_VALUE:
-          value_type_ = EMPTY_VALUE;
-      break;
-      case ParamValue::INT_VALUE:
-          value_type_ = INT_VALUE;
-          data_.ssize_ = arg;
-      break;
-      case ParamValue::DOUBLE_VALUE:
-          value_type_ = DOUBLE_VALUE;
-          data_.dou_ = arg;
-      break;
-      case ParamValue::STRING_VALUE:
-          value_type_ = STRING_VALUE;
-          data_.str_ = new String(arg.toChar());
-      break;
-      case ParamValue::INT_LIST:
-          value_type_ = INT_LIST;
-          data_.int_list_ = new IntList(arg.toIntVector());
-      break;
-      case ParamValue::DOUBLE_LIST:
-          value_type_ = DOUBLE_LIST;
-          data_.dou_list_ = new DoubleList(arg.toDoubleVector());
-      break;
-      case ParamValue::STRING_LIST:
-          value_type_ = STRING_LIST;
-          data_.str_list_ = new StringList(ListUtils::toStringList<std::string>(arg));
-      break;
-      }
-      return *this;
-  }
-   */
-
   //---------------------------------------------------------------------------
   //                      Conversion operators
   //----------------------------------------------------------------------------
