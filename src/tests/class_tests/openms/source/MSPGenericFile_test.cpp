@@ -344,7 +344,6 @@ START_SECTION(void store(const String& filename, const MSExperiment& library) co
 
   NEW_TMP_FILE(output_filepath)
   TEST_EXCEPTION(Exception::MissingInformation, msp.store(output_filepath, invalid_exp))
-
 }
 END_SECTION
 
