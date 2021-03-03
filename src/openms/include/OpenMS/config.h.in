@@ -64,6 +64,37 @@
 // __PRETTY_FUNCTION__ is a GNU G++ extension so we use the alternative in boost
 #define OPENMS_PRETTY_FUNCTION BOOST_CURRENT_FUNCTION
 
+// __FILENAME__ prints the path that is used during compilation of the object. Per default in CMake it is the full absolute path.
+// This is confusing for debug logs from executables on user machines and unnecessary.
+// This shifts the pointer to the char array of the filepath to the filename only.
+// WARNING: Does not work for files outside of the src directory.
+// Needs the pragmas for CLangs superstrict compiler warnings. But the pragmas lead to failures in Win and Lnx.
+// Therefore it is not used for now.
+
+/*
+#define OPENMS_SHORT_FILE _Pragma("GCC diagnostic push") \
+_Pragma("GCC diagnostic push") \
+_Pragma("GCC diagnostic ignored \"-Wstring-plus-int\"") \
+( __FILE__ + @CF_SOURCE_PATH_SIZE@ ) \
+_Pragma("GCC diagnostic pop")
+*/
+
+using cstr = const char *;
+
+static constexpr cstr past_last_slash(cstr str, cstr last_slash)
+{
+  return
+    *str == '\0' ? last_slash :
+    *str == '/'  ? past_last_slash(str + 1, str + 1) :
+    *str == '\\'  ? past_last_slash(str + 1, str + 1) :
+    past_last_slash(str + 1, last_slash);
+}
+
+static constexpr cstr past_last_slash(cstr str)
+{
+  return past_last_slash(str, str);
+}
+
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
 #ifdef OPENMS_COMPILER_MSVC
 // we define this using NDEBUG on MSVC as there are multiple build types simultaneously in the Solution file,

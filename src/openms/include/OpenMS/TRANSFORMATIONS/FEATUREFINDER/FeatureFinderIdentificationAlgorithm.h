@@ -141,9 +141,10 @@ protected:
   Size n_seed_targets_; ///< number of targets derived from seeds
 
   Size batch_size_; ///< number of target molecules to consider together during chromatogram extraction
-  double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
+  double rt_window_; ///< RT window width (for "proper" IDs)
+  double rt_window_seeds_; ///< RT window width for seeds
 
   double mapping_tolerance_; ///< RT tolerance for mapping IDs to features
 
@@ -177,6 +178,8 @@ protected:
   TargetedExperiment library_; ///< accumulated assays for targets (one chunk)
   TargetedExperiment combined_library_; ///< accumulated assays for targets (all chunks)
 
+  bool quantify_decoys_;
+
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):
@@ -199,7 +202,8 @@ protected:
   void addTargetRT_(TargetedExperiment::Compound& target, double rt) const;
 
   /// get regions in which target elutes (ideally only one) by clustering RT elution times
-  void makeRTRegions_(const ChargeMap& charge_data, std::vector<RTRegion>& rt_regions) const;
+  void makeRTRegions_(const ChargeMap& charge_data, std::vector<RTRegion>& rt_regions,
+                      bool is_seed = false) const;
 
   /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features);
@@ -221,7 +225,7 @@ protected:
   */
   void createAssayLibrary_(TargetMap::iterator begin, TargetMap::iterator end);
 
-  void addHitToTargetMap_(IdentificationData::ObservationMatchRef ref, bool external = false);
+  void addMatchToTargetMap_(IdentificationData::ObservationMatchRef ref, bool external = false);
 
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
@@ -239,7 +243,7 @@ protected:
 
   void calculateFDR_(FeatureMap& features);
 
-  std::pair<String, Int> extractTargetID_(const Feature& feature, bool extract_charge = false);
+  static std::pair<String, Int> extractTargetID_(const Feature& feature, bool extract_charge = false);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size @p batch_size.
   /// Last batch might be smaller.

@@ -41,7 +41,7 @@
 
   @b Goal: Check the quality of the data (supports label-free workflows and @ref TOPP_IsobaricAnalyzer output).
 
-  The @ref TOPP_QualityControl TOPP tool computes and collects data which allow to compute QC metrics to check the quality of LC-MS data.
+  The @ref TOPP_QualityControl TOPP tool computes and collects data which allows to compute QC metrics to check the quality of LC-MS data.
   Depending on the given input data this tool collects data for metrics (see section 'Metrics' below).
   New metavalues will be added to existing data and the information will be written out in mzTab format.
   This mzTab file can then be processed using your custom scripts or

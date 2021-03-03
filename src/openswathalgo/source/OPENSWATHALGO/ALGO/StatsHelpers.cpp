@@ -51,7 +51,11 @@ namespace OpenSwath
     normalized_intensities.resize(intensities.size());
     if (normalizer > 0)
     {
-      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
+      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(),
+                     [&normalizer](double val)
+                     {
+                      return val / normalizer;
+                     });
     }
   }
 

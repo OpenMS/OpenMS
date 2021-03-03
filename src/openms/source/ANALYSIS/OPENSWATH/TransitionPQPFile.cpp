@@ -37,6 +37,8 @@
 #include <sqlite3.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 
+#include <sstream>
+
 namespace OpenMS
 {
 
@@ -514,7 +516,7 @@ namespace OpenMS
         gene_name = peptide.getMetaValue("GeneName");
       }
 
-      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = gene_map.size();
+      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
       peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
 
       insert_precursor_sql <<
@@ -643,15 +645,15 @@ namespace OpenMS
     // Compounds
     update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
       "(SELECT COMPOUND.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " << 
+      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " <<
       "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
     // Proteins
-    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " << 
+    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " <<
       "(SELECT PROTEIN.ID FROM PEPTIDE " <<
       "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
       "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
     // Genes
-    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " << 
+    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " <<
       "(SELECT GENE.ID FROM PEPTIDE " <<
       "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
       "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
@@ -661,19 +663,19 @@ namespace OpenMS
     // Execute SQL insert statement
     String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
     conn.executeStatement(insert_version);
-    conn.executeStatement(insert_protein_sql);
-    conn.executeStatement(insert_peptide_protein_mapping);
-    conn.executeStatement(insert_gene_sql);
-    conn.executeStatement(insert_peptide_gene_mapping);
-    conn.executeStatement(insert_peptide_sql);
-    conn.executeStatement(insert_compound_sql);
-    conn.executeStatement(insert_precursor_peptide_mapping);
-    conn.executeStatement(insert_precursor_compound_mapping);
-    conn.executeStatement(insert_precursor_sql);
-    conn.executeStatement(insert_transition_sql);
-    conn.executeStatement(insert_transition_peptide_mapping_sql);
-    conn.executeStatement(insert_transition_precursor_mapping_sql);
-    conn.executeStatement(update_decoys_sql);
+    conn.executeStatement(insert_protein_sql.str());
+    conn.executeStatement(insert_peptide_protein_mapping.str());
+    conn.executeStatement(insert_gene_sql.str());
+    conn.executeStatement(insert_peptide_gene_mapping.str());
+    conn.executeStatement(insert_peptide_sql.str());
+    conn.executeStatement(insert_compound_sql.str());
+    conn.executeStatement(insert_precursor_peptide_mapping.str());
+    conn.executeStatement(insert_precursor_compound_mapping.str());
+    conn.executeStatement(insert_precursor_sql.str());
+    conn.executeStatement(insert_transition_sql.str());
+    conn.executeStatement(insert_transition_peptide_mapping_sql.str());
+    conn.executeStatement(insert_transition_precursor_mapping_sql.str());
+    conn.executeStatement(update_decoys_sql.str());
     conn.executeStatement("END TRANSACTION");
   }
 
@@ -707,4 +709,3 @@ namespace OpenMS
   }
 
 }
-

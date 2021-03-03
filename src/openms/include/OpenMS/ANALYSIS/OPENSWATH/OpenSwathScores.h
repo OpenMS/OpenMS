@@ -67,6 +67,8 @@ namespace OpenMS
     bool use_ms1_fullscan = true;
     bool use_ms1_mi = true;
     bool use_uis_scores = true;
+    bool use_ionseries_scores = true;
+    bool use_ms2_isotope_scores = true;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH

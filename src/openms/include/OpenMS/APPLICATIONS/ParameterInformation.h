@@ -96,6 +96,8 @@ namespace OpenMS
 
     ParameterInformation();
 
+    ParameterInformation(const ParameterInformation& rhs) = default;
+
     ParameterInformation& operator=(const ParameterInformation& rhs);
 
   };

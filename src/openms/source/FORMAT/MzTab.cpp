@@ -1386,15 +1386,15 @@ namespace OpenMS
     entries_ = entries;
   }
 
-  void MzTab::addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row)
+  void MzTabPSMSectionRow::addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences)
   {
     if (peptide_evidences.empty())
     {
       // report without pep evidence information
-      row.pre = MzTabString();
-      row.post = MzTabString();
-      row.start = MzTabString();
-      row.end = MzTabString();
+      pre = MzTabString();
+      post = MzTabString();
+      start = MzTabString();
+      end = MzTabString();
       return;
     }
 
@@ -1456,11 +1456,11 @@ namespace OpenMS
 
       if (i < peptide_evidences.size() - 1) { pre += ','; post += ','; start += ','; end += ','; accession += ',';}
     }
-    row.pre = MzTabString(pre);
-    row.post = MzTabString(post);
-    row.start = MzTabString(start);
-    row.end = MzTabString(end);
-    row.accession = MzTabString(accession);
+    this->pre = MzTabString(pre);
+    this->post = MzTabString(post);
+    this->start = MzTabString(start);
+    this->end = MzTabString(end);
+    this->accession = MzTabString(accession);
   }
 
 
@@ -1622,7 +1622,7 @@ namespace OpenMS
 
     mztab.setMetaData(meta_data);
 
-    // pre-analyze data for occuring meta values at feature and peptide hit level
+    // pre-analyze data for occurring meta values at feature and peptide hit level
     // these are used to build optional columns containing the meta values in internal data structures
     set<String> feature_user_value_keys;
     set<String> peptide_hit_user_value_keys;
@@ -2070,7 +2070,7 @@ namespace OpenMS
     row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
     
     row.charge = MzTabInteger(best_ph.getCharge());
-    row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
+    row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMZ(best_ph.getCharge())) : MzTabDouble();
 
     // add opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
     MzTabOptionalColumnEntry opt_entry;
@@ -2094,7 +2094,7 @@ namespace OpenMS
     const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
 
     // add peptide evidences to Rows
-    addPepEvidenceToRows(peptide_evidences, row);
+    row.addPepEvidenceToRows(peptide_evidences);
   
     // remap target/decoy column
     remapTargetDecoyPSMAndPeptideSection_(row.opt_);

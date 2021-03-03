@@ -322,7 +322,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
           if (annotation_precursor_error_ppm)
           {
-            double theo_mz = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
+            double theo_mz = fixed_and_variable_modified_peptide.getMZ(charge);
             double ppm_difference = Math::getPPM(mz, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
@@ -492,7 +492,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
-      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
       digestor.setMissedCleavages(peptide_missed_cleavages_);
     }

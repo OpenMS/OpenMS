@@ -98,20 +98,17 @@ namespace OpenMS
     struct Protein :
       public CVTermList
     {
-      Protein() :
-        CVTermList()
+      Protein() = default;
+      bool operator==(const Protein& rhs) const
       {
+        return CVTermList::operator==(rhs) &&
+          id == rhs.id &&
+          sequence == rhs.sequence;
       }
 
       String id;
       String sequence;
 
-      bool operator==(const Protein & rhs) const
-      {
-        return CVTermList::operator==(rhs) &&
-               id == rhs.id &&
-               sequence == rhs.sequence;
-      }
     };
 
     /**
@@ -214,15 +211,7 @@ private:
       public CVTermList
     {
 public:
-
-      PeptideCompound() :
-        CVTermList(),
-        charge_(0),
-        charge_set_(false),
-        drift_time_(-1)
-      {
-      }
-
+      PeptideCompound() = default;
       PeptideCompound(const PeptideCompound &) = default;
       PeptideCompound(PeptideCompound &&) noexcept = default;
       PeptideCompound & operator=(const PeptideCompound &) & = default;
@@ -318,10 +307,9 @@ public:
       std::vector<RetentionTime> rts;
 
 protected:
-      int charge_;
-      bool charge_set_;
-      double drift_time_;
-
+      int charge_{0};
+      bool charge_set_{false};
+      double drift_time_{-1};
     };
 
     /**
@@ -371,7 +359,6 @@ protected:
       public PeptideCompound
     {
 public:
-
       struct Modification :
         public CVTermListInterface
       {
@@ -389,11 +376,7 @@ public:
 
       };
 
-      Peptide() :
-        PeptideCompound()
-      {
-      }
-
+      Peptide() = default;
       Peptide(const Peptide &) = default;
       Peptide(Peptide &&) noexcept = default;
       Peptide & operator=(const Peptide &) & = default;
@@ -588,14 +571,7 @@ protected:
     struct OPENMS_DLLAPI TraMLProduct :
       public CVTermListInterface
     {
-      TraMLProduct() :
-        CVTermListInterface(),
-        charge_(0),
-        charge_set_(false),
-        mz_(0)
-      {
-      }
-
+      TraMLProduct() = default;
       bool operator==(const TraMLProduct & rhs) const
       {
         return CVTermListInterface::operator==(rhs) &&
@@ -660,12 +636,11 @@ protected:
       }
 
 private:
-      int charge_; ///< Product ion charge
-      bool charge_set_; ///< Whether product ion charge is set or not
-      double mz_; ///< Product ion m/z
+      int charge_{0}; ///< Product ion charge
+      bool charge_set_{false}; ///< Whether product ion charge is set or not
+      double mz_{0}; ///< Product ion m/z
       std::vector<Configuration> configuration_list_; ///< Product ion configurations used
       std::vector<Interpretation> interpretation_list_;  ///< Product ion interpretation
-
     };
 
     /// helper function that converts a Peptide object to a AASequence object

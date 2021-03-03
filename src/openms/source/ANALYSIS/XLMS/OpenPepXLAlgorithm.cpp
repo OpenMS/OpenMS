@@ -74,28 +74,28 @@ using namespace OpenMS;
     StringList mass_tolerance_unit_valid_strings = ListUtils::create<String>("ppm,Da");
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", mass_tolerance_unit_valid_strings);
-    defaults_.setValue("precursor:min_charge", 3, "Minimum precursor charge to be considered.");
-    defaults_.setValue("precursor:max_charge", 7, "Maximum precursor charge to be considered.");
-    defaults_.setValue("precursor:corrections", ListUtils::create<int>("2, 1, 0"), "Monoisotopic peak correction. Matches candidates for possible monoisotopic precursor peaks for experimental mass m and given numbers n at masses (m - n * (C13-C12)). These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.");
+    defaults_.setValue("precursor:min_charge", 2, "Minimum precursor charge to be considered.");
+    defaults_.setValue("precursor:max_charge", 8, "Maximum precursor charge to be considered.");
+    defaults_.setValue("precursor:corrections", ListUtils::create<int>("4, 3, 2, 1, 0"), "Monoisotopic peak correction. Matches candidates for possible monoisotopic precursor peaks for experimental mass m and given numbers n at masses (m - n * (C13-C12)). These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.");
     defaults_.setSectionDescription("precursor", "Precursor filtering settings");
 
-    defaults_.setValue("fragment:mass_tolerance", 0.2, "Fragment mass tolerance");
-    defaults_.setValue("fragment:mass_tolerance_xlinks", 0.3, "Fragment mass tolerance for cross-link ions");
-    defaults_.setValue("fragment:mass_tolerance_unit", "Da", "Unit of fragment m");
+    defaults_.setValue("fragment:mass_tolerance", 20.0, "Fragment mass tolerance");
+    defaults_.setValue("fragment:mass_tolerance_xlinks", 20.0, "Fragment mass tolerance for cross-link ions");
+    defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", mass_tolerance_unit_valid_strings);
     defaults_.setSectionDescription("fragment", "Fragment peak matching settings");
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("modifications:fixed", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", all_mods);
-    defaults_.setValue("modifications:variable", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications:variable", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
     defaults_.setValidStrings("modifications:variable", all_mods);
-    defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
+    defaults_.setValue("modifications:variable_max_per_peptide", 3, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Peptide modification settings");
 
     defaults_.setValue("peptide:min_size", 5, "Minimum size a peptide must have after digestion to be considered in the search.");
-    defaults_.setValue("peptide:missed_cleavages", 2, "Number of missed cleavages.");
+    defaults_.setValue("peptide:missed_cleavages", 3, "Number of missed cleavages.");
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     defaults_.setValue("peptide:enzyme", "Trypsin", "The enzyme used for peptide digestion.");
@@ -110,7 +110,7 @@ using namespace OpenMS;
     defaults_.setValue("cross_linker:name", "DSS", "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)");
     defaults_.setSectionDescription("cross_linker", "Description of the cross-linker reagent");
 
-    defaults_.setValue("algorithm:number_top_hits", 5, "Number of top hits reported for each spectrum pair");
+    defaults_.setValue("algorithm:number_top_hits", 1, "Number of top hits reported for each spectrum pair");
     StringList deisotope_strings = ListUtils::create<String>("true,false,auto");
     defaults_.setValue("algorithm:deisotope", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("algorithm:deisotope", deisotope_strings);
@@ -555,9 +555,15 @@ using namespace OpenMS;
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, xlink_peaks, exp_charges);
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_beta, xlink_peaks, exp_charges);
         }
-        // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
-        Size n_xlink_charges = (precursor_charge - 1) - 2;
-        if (n_xlink_charges < 1) n_xlink_charges = 1;
+
+        // the maximal xlink ion charge is (precursor charge - 1) and the minimal xlink ion charge is 2.
+        // we need the difference between min and max here, which is (precursor_charge - 3) in most cases
+        // but we also need a number > 0, we set 1 as the minimum, in case the precursor charge is only 3 or smaller
+        Size n_xlink_charges = 1;
+        if (precursor_charge > 3)
+        {
+          n_xlink_charges = precursor_charge - 3;
+        }
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
         double match_odds_c_alpha = XQuestScores::matchOddsScoreSimpleSpec(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
@@ -775,10 +781,6 @@ using namespace OpenMS;
           // compute wTIC
           double wTIC = XQuestScores::weightedTICScore(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
           double wTICold = XQuestScores::weightedTICScoreXQuest(alpha.size(), beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
-
-          // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
-          Size n_xlink_charges = (precursor_charge - 1) - 2;
-          if (n_xlink_charges < 1) n_xlink_charges = 1;
 
           // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
           double log_occu_c_alpha = XQuestScores::logOccupancyProb(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);

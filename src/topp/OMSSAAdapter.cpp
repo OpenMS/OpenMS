@@ -32,7 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -128,7 +128,7 @@ using namespace std;
 
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
-    Hint: this adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
+    @note This adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
     will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
 
     @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
@@ -140,7 +140,6 @@ using namespace std;
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_OMSSAAdapter.html
 
-    @improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -148,11 +147,11 @@ using namespace std;
 
 
 class TOPPOMSSAAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPOMSSAAdapter() :
-    TOPPBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
+    SearchEngineBase("OMSSAAdapter", "Annotates MS/MS spectra using OMSSA.")
   {
   }
 
@@ -438,10 +437,8 @@ protected:
       }
     }
     // parse arguments
-    String inputfile_name = getStringOption_("in");
+    String inputfile_name = getRawfileName();
     String outputfile_name = getStringOption_("out");
-    String db_name = String(getStringOption_("database"));
-    // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
     //-------------------------------------------------------------
     // Validate user parameters
@@ -452,27 +449,14 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+
+    String db_name = getStringOption_("database");
     if (db_name.suffix('.') != "psq")
     {
       db_name += ".psq";
     }
-
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did generate the PSQ file (see OMSSAAdapter documentation)." << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
-
-    db_name = db_name.substr(0, db_name.size() - 4); // OMSSA requires the filename without the .psq part
+    db_name = getDBFilename(db_name); // resolve (search in DB dirs)
+    db_name = FileHandler::stripExtension(db_name); // OMSSA requires the filename without the .psq part
     // check for .pin and .phr files
     bool has_pin = File::readable(db_name + ".pin");
     bool has_phr = File::readable(db_name + ".phr");

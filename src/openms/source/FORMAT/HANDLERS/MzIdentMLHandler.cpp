@@ -261,7 +261,7 @@ namespace OpenMS
 
         return;
       }
-      error(LOAD, "MzIdentMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
+      error(LOAD, "MzIdentMLHandler::startElement: Unknown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
 
     void MzIdentMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -287,7 +287,7 @@ namespace OpenMS
         return;
       }
 
-      //error(LOAD, "MzIdentMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
+      //error(LOAD, "MzIdentMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring.");
     }
 
     void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -338,7 +338,7 @@ namespace OpenMS
         current_id_hit_ = IdentificationHit();
         return;
       }
-      error(LOAD, "MzIdentMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring.");
+      error(LOAD, "MzIdentMLHandler::endElement: Unknown element found: '" + tag_ + "', ignoring.");
     }
 
     void MzIdentMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* , const String& unit_accession */)
@@ -570,9 +570,13 @@ namespace OpenMS
         sip += String("\t\t</Threshold>\n");
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
+        
         // empty date would lead to XML schema validation error:
         DateTime date_time = it->getDateTime();
-        if (!date_time.isValid()) date_time = DateTime::now();
+        if (!date_time.isValid()) 
+        { 
+          date_time = DateTime::now(); 
+        }
         sil_2_date.insert(make_pair(sil_id, String(date_time.getDate() + "T" + date_time.getTime())));
 
         //~ collect SpectraData element for each ProteinIdentification
@@ -1366,7 +1370,7 @@ namespace OpenMS
           pevid_ids =  pep_evis[pepi];
         }
 
-        String cmz((hit.getSequence().getMonoWeight() +  hit.getCharge() * Constants::PROTON_MASS_U) / hit.getCharge()); //calculatedMassToCharge
+        String cmz(hit.getSequence().getMZ(hit.getCharge())); //calculatedMassToCharge
         String r(hit.getRank()); //rank
         String sc(hit.getScore());
 

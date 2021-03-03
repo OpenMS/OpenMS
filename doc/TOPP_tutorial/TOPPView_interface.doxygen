@@ -99,12 +99,17 @@
     '+' character between the file names. The following command opens three
     files in three layers of the same window:
     @code TOPPView file1.mzML + file2.mzML + file3.mzML@endcode
-    Without the '+' the files would be opened in three different windows.
+    Without the '+' the files would be opened in three different tabs.
 
     The color gradient used to display a file can be changed by adding one of
     several '@' commands. The following command opens the file with a white-to-black
     gradient:
     @code TOPPView file1.mzML @bw@endcode
+    
+    Automatic annotation of a layer with ID data (.osw files etc) can be performed by using the '!' character.
+    This will treat the next filename as annotation to the previous layer
+    The following command opens two layers in the same tab, with the first layer being annotated:
+    @code TOPPView file1.mzML ! file1.idXML + file2.mzML@endcode
 
     For more information on command line parameters call:
     @code TOPPView --help@endcode
@@ -201,8 +206,8 @@
 		The following example image shows a small section of a peak map and the detected features
 		in a second layer.
 
-		@image html Spectrum2DWidget.png
-		@image latex Spectrum2DWidget.png "" width=8cm
+		@image html Plot2DWidget.png
+		@image latex Plot2DWidget.png "" width=8cm
 
 		In addition to the normal top-down view, the 2D view can display the projections
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
@@ -229,8 +234,8 @@
 
 		The following example image shows a small region of a peak map:
 
-		@image html Spectrum3DWidget.png
-		@image latex Spectrum3DWidget.png "" width=8cm
+		@image html Plot3DWidget.png
+		@image latex Plot3DWidget.png "" width=8cm
 
 		Through the <B>context menu:</B> of the 3D view you can:
 		<UL>

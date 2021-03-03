@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_set[ unsigned int ]& precursor_isotopes, CoarseIsotopePatternGenerator method) nogil except +
 
         # returns the number of atoms
-        # doesnt work!
+        # doesn't work!
         ## Size getNumberOf(Element * element) nogil except +
 
         # returns the atoms total

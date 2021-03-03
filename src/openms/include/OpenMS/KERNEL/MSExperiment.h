@@ -425,6 +425,13 @@ public:
 
     ///@}
 
+    /// If the file is loaded from an sqMass file, this run-ID allows to connect to the corresponding OSW identification file
+    /// If the run-ID was not stored (older version) or this MSExperiment was not loaded from sqMass, then 0 is returned.
+    UInt64 getSqlRunID() const;
+
+    /// sets the run-ID which is used when storing an sqMass file
+    void setSqlRunID(UInt64 id);
+
     ///@name Sorting spectra and peaks
     ///@{
     /**

@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
@@ -650,6 +651,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     break;
 
+    case FileTypes::SQMASS:
+      SqMassFile().load(filename, exp);
+
+      break;
+
     case FileTypes::XMASS:
       exp.reset();
       exp.resize(1);
@@ -665,6 +671,20 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     if (rewrite_source_file)
     {
       SourceFile src_file;
+      if (exp.getSourceFiles().empty()) // copy settings like native ID format
+      {
+        OPENMS_LOG_WARN << "No source file annotated." << endl;
+      }
+      else 
+      {
+        if (exp.getSourceFiles().size() > 1) 
+        {
+          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() 
+                          << " will take only first one for rewriting." << endl;
+        }
+        src_file = exp.getSourceFiles()[0];
+      }
+      
       src_file.setNameOfFile(File::basename(filename));
       String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
 

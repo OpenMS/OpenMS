@@ -736,9 +736,9 @@ START_SECTION((QString toQString() const))
   a = DataValue(5);
   TEST_EQUAL(a.toQString().toStdString(), "5")
   a = DataValue(47.11);
-  TEST_EQUAL(a.toQString().toStdString(), "47.110000")
+  TEST_EQUAL(a.toQString().toStdString(), "47.109999999999999")
   a = DataValue(-23456.78);
-  TEST_EQUAL(a.toQString().toStdString(), "-23456.780000")
+  TEST_EQUAL(a.toQString().toStdString(), "-2.345678e04")
   a = DataValue(ListUtils::create<String>("test string,string2,last string"));
   TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
   a =DataValue(ListUtils::create<Int>("1,2,3"));

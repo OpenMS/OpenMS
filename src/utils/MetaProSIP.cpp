@@ -191,8 +191,7 @@ struct SIPPeptide
 };
 
 ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
-struct SizeLess :
-  public std::binary_function<vector<SIPPeptide>, vector<SIPPeptide>, bool>
+struct SizeLess
 {
   inline bool operator()(const vector<SIPPeptide>& a, const vector<SIPPeptide>& b) const
   {
@@ -201,8 +200,7 @@ struct SizeLess :
 
 };
 
-struct SequenceLess :
-  public std::binary_function<pair<SIPPeptide, Size>, pair<SIPPeptide, Size>, bool>
+struct SequenceLess
 {
   inline bool operator()(const pair<SIPPeptide, Size>& a, const pair<SIPPeptide, Size>& b) const
   {
@@ -211,8 +209,7 @@ struct SequenceLess :
 
 };
 
-struct RIALess :
-  public std::binary_function<SIPIncorporation, SIPIncorporation, bool>
+struct RIALess
 {
   inline bool operator()(const SIPIncorporation& a, const SIPIncorporation& b) const
   {
@@ -3044,8 +3041,7 @@ protected:
           {
             continue;
           }
-          double charged_weight = hits[0].getSequence().getMonoWeight(Residue::Full, charge);
-          double mz = charged_weight / charge;
+          double mz =  hits[0].getSequence().getMZ(charge);
           f.setMZ(mz);
           // add id to pseudo feature
           vector<PeptideIdentification> id;
@@ -3237,7 +3233,7 @@ protected:
       {
         feature_hit_aaseq = feature_hit.getSequence();
         feature_hit_seq = feature_hit_aaseq.toString();
-        feature_hit_theoretical_mz = feature_hit_aaseq.getMonoWeight(Residue::Full, feature_hit.getCharge()) / feature_hit.getCharge();
+        feature_hit_theoretical_mz = feature_hit_aaseq.getMZ(feature_hit.getCharge());
       }
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {

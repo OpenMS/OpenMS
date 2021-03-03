@@ -1,4 +1,4 @@
->compound _7231120865591443173-5228-UNKNOWN58
+>compound _7231120865591443173-5228--58--UNKNOWN
 >parentmass 398.092212485532
 >charge -1
 >rt 657.849900000000
@@ -39,7 +39,7 @@
 ##scan 72
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5270
 388.502746582031 9647.169921875000
->compound _0-5064-UNKNOWN0
+>compound _0-5064--0--UNKNOWN
 >parentmass 409.114078518168
 >charge -1
 >rt 635.158860000000
@@ -56,7 +56,7 @@
 ##scan 0
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5064
 388.512359619141 2733.562744140625
->compound _0-5078-UNKNOWN4
+>compound _0-5078--4--UNKNOWN
 >parentmass 414.066417938389
 >charge -1
 >rt 636.770880000000
@@ -77,7 +77,7 @@
 ##scan 4
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5078
 388.529785156250 2096.352050781250
->compound _0-5102-UNKNOWN9
+>compound _0-5102--9--UNKNOWN
 >parentmass 398.092218003740
 >charge -1
 >rt 639.851040000000
@@ -101,7 +101,7 @@
 ##scan 9
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5102
 388.514862060547 5612.131347656250
->compound _0-5104-UNKNOWN10
+>compound _0-5104--10--UNKNOWN
 >parentmass 466.079766775402
 >charge -1
 >rt 639.851040000000
@@ -125,7 +125,7 @@
 ##scan 10
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5104
 388.515228271484 2812.135742187500
->compound _0-5106-UNKNOWN11
+>compound _0-5106--11--UNKNOWN
 >parentmass 420.074165192656
 >charge -1
 >rt 639.851040000000
@@ -149,7 +149,7 @@
 ##scan 11
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5106
 388.520111083984 3175.204345703125
->compound _0-5112-UNKNOWN13
+>compound _0-5112--13--UNKNOWN
 >parentmass 408.082377334138
 >charge -1
 >rt 640.654800000000
@@ -174,7 +174,7 @@
 ##scan 13
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5112
 388.513275146484 2292.960449218750
->compound _0-5120-UNKNOWN16
+>compound _0-5120--16--UNKNOWN
 >parentmass 452.922900000000
 >charge -1
 >rt 642.224160000000
@@ -198,7 +198,7 @@
 ##scan 16
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5120
 388.523376464844 2778.042236328125
->compound _0-5123-UNKNOWN17
+>compound _0-5123--17--UNKNOWN
 >parentmass 482.054139526986
 >charge -1
 >rt 642.224160000000
@@ -222,7 +222,7 @@
 ##scan 17
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5123
 388.518035888672 3210.635986328125
->compound _0-5134-UNKNOWN20
+>compound _0-5134--20--UNKNOWN
 >parentmass 602.055005965531
 >charge -1
 >rt 643.816680000000
@@ -246,7 +246,7 @@
 ##scan 20
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5134
 388.504425048828 4407.778320312500
->compound _0-5140-UNKNOWN22
+>compound _0-5140--22--UNKNOWN
 >parentmass 588.897900000000
 >charge -1
 >rt 644.614260000000
@@ -270,7 +270,7 @@
 ##scan 22
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5140
 388.515411376953 3203.265136718750
->compound _0-5142-UNKNOWN23
+>compound _0-5142--23--UNKNOWN
 >parentmass 400.909359872837
 >charge -1
 >rt 644.614260000000
@@ -294,7 +294,7 @@
 ##scan 23
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5142
 388.512573242188 2397.379638671875
->compound _0-5144-UNKNOWN25
+>compound _0-5144--25--UNKNOWN
 >parentmass 398.092177220084
 >charge -1
 >rt 645.366780000000
@@ -319,7 +319,7 @@
 ##scan 25
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5144
 388.506378173828 5946.649902343750
->compound _0-5146-UNKNOWN26
+>compound _0-5146--26--UNKNOWN
 >parentmass 670.042786026349
 >charge -1
 >rt 645.366780000000
@@ -345,7 +345,7 @@
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5146
 380.871215820312 2421.481445312500
 388.522064208984 4752.849609375000
->compound _0-5147-UNKNOWN27
+>compound _0-5147--27--UNKNOWN
 >parentmass 656.885600000000
 >charge -1
 >rt 645.366780000000
@@ -370,7 +370,7 @@
 ##scan 27
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5147
 388.516876220703 3832.713867187500
->compound _0-5152-UNKNOWN29
+>compound _0-5152--29--UNKNOWN
 >parentmass 420.074362248786
 >charge -1
 >rt 646.171020000000
@@ -394,7 +394,7 @@
 ##scan 29
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5152
 388.510528564453 2463.083740234375
->compound _0-5154-UNKNOWN30
+>compound _0-5154--30--UNKNOWN
 >parentmass 468.896600000000
 >charge -1
 >rt 646.171020000000
@@ -418,7 +418,7 @@
 ##scan 30
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5154
 388.521301269531 2193.841552734375
->compound _0-5156-UNKNOWN32
+>compound _0-5156--32--UNKNOWN
 >parentmass 384.935449775622
 >charge -1
 >rt 646.970280000000
@@ -443,7 +443,7 @@
 ##scan 32
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5156
 388.532897949219 9376.273437500000
->compound _0-5166-UNKNOWN34
+>compound _0-5166--34--UNKNOWN
 >parentmass 724.873200000000
 >charge -1
 >rt 647.725560000000
@@ -467,7 +467,7 @@
 ##scan 34
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5166
 388.504455566406 3209.396240234375
->compound _0-5170-UNKNOWN36
+>compound _0-5170--36--UNKNOWN
 >parentmass 536.884400000000
 >charge -1
 >rt 648.491760000000
@@ -492,7 +492,7 @@
 ##scan 36
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5170
 388.497467041016 2736.907470703125
->compound _0-5175-UNKNOWN38
+>compound _0-5175--38--UNKNOWN
 >parentmass 624.036046217308
 >charge -1
 >rt 649.284420000000
@@ -515,7 +515,7 @@
 ##scan 38
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5175
 388.516937255859 3782.554199218750
->compound _0-5176-UNKNOWN39
+>compound _0-5176--39--UNKNOWN
 >parentmass 520.910100000000
 >charge -1
 >rt 649.284420000000
@@ -538,7 +538,7 @@
 ##scan 39
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5176
 388.515869140625 5777.634765625000
->compound _0-5182-UNKNOWN41
+>compound _0-5182--41--UNKNOWN
 >parentmass 792.860800000000
 >charge -1
 >rt 650.057160000000
@@ -562,7 +562,7 @@
 ##scan 41
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5182
 388.512176513672 3941.473388671875
->compound _0-5186-UNKNOWN43
+>compound _0-5186--43--UNKNOWN
 >parentmass 398.092122358423
 >charge -1
 >rt 650.857020000000
@@ -586,7 +586,7 @@
 ##scan 43
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5186
 388.530395507812 5454.081054687500
->compound _0-5190-UNKNOWN44
+>compound _0-5190--44--UNKNOWN
 >parentmass 588.897900000000
 >charge -1
 >rt 650.857020000000
@@ -611,7 +611,7 @@
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5190
 383.351745605469 2312.426513671875
 388.500946044922 2440.915527343750
->compound _0-5200-UNKNOWN47
+>compound _0-5200--47--UNKNOWN
 >parentmass 420.074449702016
 >charge -1
 >rt 652.412040000000
@@ -635,7 +635,7 @@
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5200
 388.521636962891 2728.623535156250
 389.533813476562 2144.039550781250
->compound _0-5204-UNKNOWN49
+>compound _0-5204--49--UNKNOWN
 >parentmass 488.061833722764
 >charge -1
 >rt 653.212800000000
@@ -659,7 +659,7 @@
 ##scan 49
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5204
 388.500518798828 2143.193603515625
->compound _0-5205-UNKNOWN50
+>compound _0-5205--50--UNKNOWN
 >parentmass 602.055113103032
 >charge -1
 >rt 653.212800000000
@@ -683,7 +683,7 @@
 ##scan 50
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5205
 388.505645751953 3585.830322265625
->compound _0-5208-UNKNOWN51
+>compound _0-5208--51--UNKNOWN
 >parentmass 414.066411324583
 >charge -1
 >rt 653.212800000000
@@ -707,7 +707,7 @@
 ##scan 51
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5208
 388.531311035156 2233.527832031250
->compound _0-5211-UNKNOWN53
+>compound _0-5211--53--UNKNOWN
 >parentmass 452.922900000000
 >charge -1
 >rt 654.015540000000
@@ -731,7 +731,7 @@
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5211
 388.489410400391 6644.488769531250
 388.536102294922 5805.115234375000
->compound _0-5213-UNKNOWN54
+>compound _0-5213--54--UNKNOWN
 >parentmass 656.885500000000
 >charge -1
 >rt 654.015540000000
@@ -755,7 +755,7 @@
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5213
 384.934570312500 3770.946289062500
 388.494903564453 4172.937500000000
->compound _0-5246-UNKNOWN62
+>compound _0-5246--62--UNKNOWN
 >parentmass 420.074370494077
 >charge -1
 >rt 658.645140000000
@@ -779,7 +779,7 @@
 ##scan 62
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5246
 388.524780273438 2684.740966796875
->compound _0-5247-UNKNOWN63
+>compound _0-5247--63--UNKNOWN
 >parentmass 488.061780273438
 >charge -1
 >rt 658.645140000000
@@ -803,7 +803,7 @@
 ##scan 63
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5247
 388.519042968750 3144.522216796875
->compound _0-5249-UNKNOWN64
+>compound _0-5249--64--UNKNOWN
 >parentmass 468.896800000000
 >charge -1
 >rt 658.645140000000
@@ -827,7 +827,7 @@
 ##scan 64
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5249
 388.518890380859 2521.047851562500
->compound _0-5256-UNKNOWN66
+>compound _0-5256--66--UNKNOWN
 >parentmass 414.066073286381
 >charge -1
 >rt 659.445660000000
@@ -851,7 +851,7 @@
 ##scan 66
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5256
 388.496612548828 2901.192382812500
->compound _0-5262-UNKNOWN68
+>compound _0-5262--68--UNKNOWN
 >parentmass 482.053282362254
 >charge -1
 >rt 660.248400000000
@@ -875,7 +875,7 @@
 ##scan 68
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5262
 388.503448486328 2561.519042968750
->compound _0-5266-UNKNOWN70
+>compound _0-5266--70--UNKNOWN
 >parentmass 452.922900000000
 >charge -1
 >rt 661.045800000000
@@ -900,7 +900,7 @@
 ##scan 70
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5266
 388.511413574219 3232.858154296875
->compound _0-5271-UNKNOWN73
+>compound _0-5271--73--UNKNOWN
 >parentmass 534.067167545687
 >charge -1
 >rt 661.787040000000
@@ -925,7 +925,7 @@
 ##scan 73
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5271
 388.510711669922 2436.738769531250
->compound _0-5272-UNKNOWN74
+>compound _0-5272--74--UNKNOWN
 >parentmass 520.910300000000
 >charge -1
 >rt 661.787040000000
@@ -950,7 +950,7 @@
 ##scan 74
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5272
 388.504974365234 2716.641601562500
->compound _0-5274-UNKNOWN75
+>compound _0-5274--75--UNKNOWN
 >parentmass 504.036135944250
 >charge -1
 >rt 661.787040000000
@@ -975,7 +975,7 @@
 ##scan 75
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5274
 388.500640869141 2533.258300781250
->compound _0-5277-UNKNOWN77
+>compound _0-5277--77--UNKNOWN
 >parentmass 615.212274781312
 >charge -1
 >rt 662.593440000000
@@ -999,7 +999,7 @@
 ##scan 77
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5277
 388.505798339844 3076.616943359375
->compound _0-5295-UNKNOWN81
+>compound _0-5295--81--UNKNOWN
 >parentmass 466.079703118647
 >charge -1
 >rt 664.918140000000
@@ -1024,7 +1024,7 @@
 ##scan 81
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5295
 388.527282714844 2542.034667968750
->compound _0-5303-UNKNOWN83
+>compound _0-5303--83--UNKNOWN
 >parentmass 602.054595799514
 >charge -1
 >rt 665.714280000000
@@ -1046,7 +1046,7 @@
 ##scan 83
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5303
 388.522491455078 3164.252685546875
->compound _0-5309-UNKNOWN85
+>compound _0-5309--85--UNKNOWN
 >parentmass 556.049835868136
 >charge -1
 >rt 666.487020000000
@@ -1070,7 +1070,7 @@
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5309
 388.489990234375 2685.556884765625
 388.536376953125 3150.391113281250
->compound _0-5316-UNKNOWN87
+>compound _0-5316--87--UNKNOWN
 >parentmass 550.041153388311
 >charge -1
 >rt 667.285020000000
@@ -1093,7 +1093,7 @@
 ##scan 87
 ##specref ms_run[1]:controllerType=0 controllerNumber=1 scan=5316
 388.520904541016 4145.904296875000
->compound _0-5320-UNKNOWN89
+>compound _0-5320--89--UNKNOWN
 >parentmass 452.923000000000
 >charge -1
 >rt 668.053260000000
