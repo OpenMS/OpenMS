@@ -203,19 +203,21 @@ namespace OpenMS
         }
       }
       else
-      { // decreasing mass
-        if (new_color_map[m] == 'G' || new_color_map[m] == 'B')
-        {//new_color_map.find(m) == new_color_map.end() ||
-          new_color_map[m] = 'R';
-        }
-        else if (new_color_map[m] == 'b' || new_color_map[m] == 'g')
-        {
-          new_color_map[m] = 'r';
-        }
+       { // decreasing mass
+         if (new_color_map[m] == 'G' || new_color_map[m] == 'B')
+         {//new_color_map.find(m) == new_color_map.end() ||
+           new_color_map[m] = 'R';
+         }
+         else if (new_color_map[m] == 'b' || new_color_map[m] == 'g')
+         {
+           new_color_map[m] = 'r';
+         }
+       }
+      if (qscore > qscore_threshold_)
+      {
+        char new_color = new_color_map[m];
+        color_count_map[new_color]++;
       }
-      char new_color = new_color_map[m];
-      color_count_map[new_color]++;
-
       new_mass_rt_qscore_map[m][0] = rt;
       new_mass_rt_qscore_map[m][1] = qscore;
     }
