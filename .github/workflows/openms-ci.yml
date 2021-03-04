@@ -221,7 +221,7 @@ jobs:
 
     - name: Install sudo package
       run: |
-            yum install xvfb
+            yum install xorg-x11-server-Xvfb
  
     - name: Build and test lnx
       run: |
