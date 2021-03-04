@@ -220,6 +220,7 @@ jobs:
 #        sudo: false
             
     - name: Build and test lnx
+      uses: GabrielBB/xvfb-action@v1
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
           mkdir $GITHUB_WORKSPACE/bld/
