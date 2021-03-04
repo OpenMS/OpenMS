@@ -218,6 +218,9 @@ jobs:
 #      with:
 #        limit-access-to-actor: true
 #        sudo: false
+
+    - name: Install sudo package
+      run: apt update && apt install sudo
             
     - name: Build and test lnx
       uses: GabrielBB/xvfb-action@v1
