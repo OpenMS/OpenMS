@@ -221,13 +221,14 @@ jobs:
             
     - name: Build and test lnx
       uses: GabrielBB/xvfb-action@v1
-      run: |
-          export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
-          mkdir $GITHUB_WORKSPACE/bld/
-          ## TODO allow changing of ctest build site in cmake
-          ## TODO potentially parse some OS infos and add to build name
-          ## TODO allow changing Contrib path to get rid of the extra cmake file!
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+      with:
+         run: |
+              export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
+              mkdir $GITHUB_WORKSPACE/bld/
+              ## TODO allow changing of ctest build site in cmake
+              ## TODO potentially parse some OS infos and add to build name
+              ## TODO allow changing Contrib path to get rid of the extra cmake file!
+              ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
