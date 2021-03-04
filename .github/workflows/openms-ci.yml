@@ -219,9 +219,9 @@ jobs:
 #        limit-access-to-actor: true
 #        sudo: false
 
-    - name: Install sudo package
+    - name: Install Xvfb package
       run: |
-            yum install xorg-x11-server-Xvfb
+            yum -y install xorg-x11-server-Xvfb
  
     - name: Build and test lnx
       run: |
