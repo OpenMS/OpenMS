@@ -53,6 +53,9 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("min_peptides_per_protein", 0);
       bpia.setParameters(p);
       bpia.run(peps, prots);
+
+      IdXMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), prots, peps);
+
       TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())

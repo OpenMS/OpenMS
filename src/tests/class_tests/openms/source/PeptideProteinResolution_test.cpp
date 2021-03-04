@@ -60,15 +60,8 @@ START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentifica
   vector<ProteinIdentification> prots;
   vector<PeptideIdentification> peps;
   IdXMLFile idf;
-  idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
-  BasicProteinInferenceAlgorithm bpia;
-  Param p = bpia.getParameters();
-  p.setValue("min_peptides_per_protein", 0);
-  bpia.setParameters(p);
-  bpia.run(peps, prots);
-  
+  idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);  
   PeptideProteinResolution::run(prots, peps);
-
   IDXMLFile.store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), prots, peps)
 }
 END_SECTION

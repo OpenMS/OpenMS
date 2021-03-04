@@ -50,16 +50,6 @@ namespace OpenMS
   {
     std::set<Size> prot_grp_indices;
     std::set<Size> pep_indices;
-    
-    // Default constructor
-    ConnectedComponent() = default;
-
-    // Copy constructor
-    ConnectedComponent(const ConnectedComponent&) = default;
-
-    // Copy assignment
-    ConnectedComponent& operator=(const ConnectedComponent&) = default;
-
     /// Overloaded operator '<<' for ConnectedComponents
     friend std::ostream& operator<<(std::ostream& os, const ConnectedComponent& conn_comp);
   };
