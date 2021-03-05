@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -54,14 +55,12 @@ namespace OpenMS
     while (mi != mi.end())
     {
       sum += mi->getIntensity();
-
-      // for statistics
       ++mi;
     }
     return sum;
   }
 
-  double annotatePSMCorrectness(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, PSMCorrectness::ToleranceUnit tolerance_unit, double tolerance)
+  double annotatePSMCorrectness(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter, PSMCorrectness::ToleranceUnit tolerance_unit, double tolerance)
   {
     if (pep_id.getHits().empty())
     {
@@ -104,12 +103,6 @@ namespace OpenMS
       act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
     }
 
-    double sum_of_intensities = 0;
-    for (const auto& peak : exp_spectrum)
-    {
-      sum_of_intensities += peak.getIntensity();
-    }
-
     //---------------------------------------------------------------------
     // CREATE THEORETICAL SPECTRUM
     //---------------------------------------------------------------------
@@ -123,19 +116,35 @@ namespace OpenMS
       OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
       return DBL_MAX;
     }
-      
-    double correctness;
+
+    // filter the spectrum
+    PeakSpectrum filtered_spec(exp_spectrum);
+    filter.filterPeakSpectrum(filtered_spec);
+
+    double sum_of_intensities = 0;
+    for (const auto& peak : filtered_spec)
+    {
+      sum_of_intensities += peak.getIntensity();
+    }
+     
+    if (sum_of_intensities <= 0)
+    {
+      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " has only peaks with intensity 0." << "\n";
+      return DBL_MAX;
+    }
+
+    double correctness = 0;
     // iterator, finds nearest peak of a target container to a given peak in a reference container
     if (tolerance_unit == PSMCorrectness::ToleranceUnit::DA)
     {
       using MIV = MatchedIterator<MSSpectrum, DaTrait, true>;
-      MIV mi(theo_spectrum, exp_spectrum, tolerance);
+      MIV mi(theo_spectrum, filtered_spec, tolerance);
       correctness = sumOfMatchedIntensities(mi) / sum_of_intensities;
     }
     else
     {
       using MIV = MatchedIterator<MSSpectrum, PpmTrait, true>;
-      MIV mi(theo_spectrum, exp_spectrum, tolerance);
+      MIV mi(theo_spectrum, filtered_spec, tolerance);
       correctness = sumOfMatchedIntensities(mi) / sum_of_intensities;
     }
 
@@ -155,6 +164,17 @@ namespace OpenMS
       results_.push_back(result);
       return;
     }
+
+    //---------------------------------------------------------------------
+    // Prepare Spectrum Filter
+    //---------------------------------------------------------------------
+
+    WindowMower wm_filter;
+    Param filter_param = wm_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 6, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    wm_filter.setParameters(filter_param);
 
     //-------------------------------------------------------------------
     // find tolerance unit and value
@@ -176,9 +196,9 @@ namespace OpenMS
     std::vector<double> correctnesses;
 
     std::function<void(PeptideIdentification&)> fCorrectness =
-      [&exp, &map_to_spectrum, &correctnesses, tolerance, tolerance_unit](PeptideIdentification& pep_id)
+      [&exp, &map_to_spectrum, &correctnesses, &wm_filter, tolerance, tolerance_unit](PeptideIdentification& pep_id)
     {
-      double correctness = annotatePSMCorrectness(pep_id, exp, map_to_spectrum, tolerance_unit, tolerance);
+      double correctness = annotatePSMCorrectness(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
       if (correctness != DBL_MAX)
       {
         correctnesses.push_back(correctness);
@@ -186,6 +206,11 @@ namespace OpenMS
     };
 
     fmap.applyFunctionOnPeptideIDs(fCorrectness);
+
+    if (correctnesses.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Couldn't calculate PSM correctness for any spectra! Check log for more information.");
+    }
 
     result.average_correctness = Math::mean(correctnesses.begin(), correctnesses.end());
     result.variance_correctness = Math::variance(correctnesses.begin(), correctnesses.end(), result.average_correctness);
@@ -202,6 +227,17 @@ namespace OpenMS
       results_.push_back(result);
       return;
     }
+
+    //---------------------------------------------------------------------
+    // Prepare Spectrum Filter
+    //---------------------------------------------------------------------
+
+    WindowMower wm_filter;
+    Param filter_param = wm_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 6, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    wm_filter.setParameters(filter_param);
 
     //-------------------------------------------------------------------
     // find tolerance unit and value
@@ -220,11 +256,16 @@ namespace OpenMS
 
     for (auto& pep_id : pep_ids)
     {
-      double correctness = annotatePSMCorrectness(pep_id, exp, map_to_spectrum, tolerance_unit, tolerance);
+      double correctness = annotatePSMCorrectness(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
       if (correctness != DBL_MAX)
       {
         correctnesses.push_back(correctness);
       }
+    }
+
+    if (correctnesses.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Couldn't calculate PSM correctness for any spectra! Check log for more information.");
     }
 
     result.average_correctness = Math::mean(correctnesses.begin(), correctnesses.end());
