@@ -65,6 +65,7 @@
     If you plan to use the development version of %OpenMS, clone %OpenMS and checkout the optional contrib submodule with
     \code
     git clone https://github.com/OpenMS/OpenMS
+    cd OpenMS
     git submodule update --init contrib
     \endcode
     to obtain the latest potentially unstable version.
