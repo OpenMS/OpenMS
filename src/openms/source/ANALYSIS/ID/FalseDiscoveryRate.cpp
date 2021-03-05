@@ -281,13 +281,14 @@ namespace OpenMS
         // calculate fdr for the forward scores
         map<double, double> score_to_fdr;
         calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
-
+/*
+        TODO: not sure if correct
         // make strictly monotonic by interpolating q-values (except for last bin)
         auto left = score_to_fdr.begin();
         while (left != score_to_fdr.end())
         {
           auto right = left;
-          std::advance(right, 1);
+          ++right;
 
           // advance right to next q-value
           while (right != score_to_fdr.end() && right->second == left->second)
@@ -308,6 +309,7 @@ namespace OpenMS
           }
           // now: left == right
         }
+*/
 
         // annotate fdr
         for (auto it = ids.begin(); it != ids.end(); ++it)
