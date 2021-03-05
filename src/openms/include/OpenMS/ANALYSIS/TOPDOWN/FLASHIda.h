@@ -135,7 +135,7 @@ namespace OpenMS
     /// minimum isolation window width divided by two
     const double min_isolation_window_half_ = 1.2;
 
-    const double snr_threshold = 0.0;
-    const double isotope_cosine_threshold = 0;
+    //const double snr_threshold = 0.0;
+    //const double isotope_cosine_threshold = 0;
   };
 }

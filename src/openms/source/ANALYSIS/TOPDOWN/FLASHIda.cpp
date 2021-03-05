@@ -253,11 +253,11 @@ namespace OpenMS
       {
         for (auto &pg : deconvoluted_spectrum_)
         {
-          if (pg.getSNR() < snr_threshold || pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold ||
-              pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < isotope_cosine_threshold)
-          {
-            continue;
-          }
+          //if (pg.getSNR() < snr_threshold || pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold ||
+          //    pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < isotope_cosine_threshold)
+          //{
+          //  continue;
+          //}
           if (filtered_peakgroups.size() >= mass_count)
           {
             break;
