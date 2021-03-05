@@ -61,6 +61,7 @@ jobs:
       id: extract_pr
       
     - name: Tests windows
+      shell: bash
       run: |
           mkdir $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
