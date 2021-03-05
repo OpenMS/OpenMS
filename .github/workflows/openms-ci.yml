@@ -230,7 +230,6 @@ jobs:
             ## TODO allow changing of ctest build site in cmake
             ## TODO potentially parse some OS infos and add to build name
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
-            Xvfb :1
             xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
       env:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
