@@ -64,6 +64,10 @@ namespace OpenMS
                        DoubleList{.75, .75},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
+    defaults_.setValue("min_qscore",
+                       .05,
+                       "minimum QScore threshold. QScore is the probability that a mass is correct, learned by a logistic regression.");
+
     defaults_.setValue("min_peaks",
                        IntList{3, 1},
                        "minimum number of supporting peaks for MS1, 2, ...  (e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively)");
@@ -202,6 +206,7 @@ namespace OpenMS
       bin_width_.push_back(.5 / tolerance_[j]);
     }
 
+    min_qscore_ = param_.getValue("min_qscore");
     min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
     //minChargeScore = param_.getValue("min_charge_score");
     //minChargeCosine = param_.getValue("min_charge_cosine");
@@ -1566,6 +1571,10 @@ namespace OpenMS
         }
         peak_group.setRepAbsCharge(abs_charge);
         peak_group.setQScore(q_score);
+      }
+      if (peak_group.getQScore() < min_qscore_)
+      {//
+        continue;
       }
 
       double max_q_score_mz_start = peak_group.getMonoMass() * 2;

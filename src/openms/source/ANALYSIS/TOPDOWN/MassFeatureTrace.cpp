@@ -110,6 +110,7 @@ namespace OpenMS
 
     for (auto& mt : m_traces)
     {
+      double max_qscore = .0;
       int min_feature_abs_charge = INT_MAX; // min feature charge
       int max_feature_abs_charge = INT_MIN; // max feature charge
 
@@ -176,6 +177,8 @@ namespace OpenMS
           per_charge_max_intensity[p.abs_charge - min_abs_charge] = p.intensity;
           per_charge_mz[p.abs_charge - min_abs_charge] = p.mz;
         }
+
+        max_qscore = max_qscore < pg.getQScore() ? pg.getQScore() : max_qscore;
       }
 
       //double charge_score_ = FLASHDeconvAlgorithm::getChargeFitScore(per_charge_intensity,
@@ -221,7 +224,8 @@ namespace OpenMS
           << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
           << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t"
           << charges.count() << "\t"
-          << isotope_score << "\t";
+          << isotope_score << "\t"
+          << max_qscore << "\t";
 
       if (is_positive)
       {
@@ -329,7 +333,7 @@ namespace OpenMS
   {
     fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tPerChargeIntensity\tPerIsotopeIntensity"
+          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tMaxQScore\tPerChargeIntensity\tPerIsotopeIntensity"
           "\n";
   }
 

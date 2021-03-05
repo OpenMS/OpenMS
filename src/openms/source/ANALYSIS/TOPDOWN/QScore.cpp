@@ -45,7 +45,7 @@ namespace OpenMS
   {
     if (pg == nullptr)
     { // all zero
-      return -100;
+      return .0;
     }
     //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
     const std::vector<double> weights_h({-4.8145, -2.0881, -21.4721, -0.6114, -0.8793, 0.0418, 28.1305});
@@ -70,7 +70,7 @@ namespace OpenMS
     {
       score += fv[i] * weights[i];
     }
-    return -score;
+    return 1.0 / (1.0 + exp(score));
   }
 
   std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)

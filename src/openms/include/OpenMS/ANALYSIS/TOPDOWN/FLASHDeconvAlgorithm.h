@@ -144,6 +144,8 @@ namespace OpenMS
     double current_max_mass_;
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
+    /// minimum qscore : 1/(1+exp(-qscore)) = prob that the mass is correct
+    double min_qscore_;
     /// minimum number of peaks supporting a mass
     IntList min_support_peak_count_;
     /// tolerance in ppm for each MS level

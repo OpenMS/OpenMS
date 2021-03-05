@@ -47,6 +47,8 @@
 using namespace OpenMS;
 using namespace std;
 
+//#define DEBUG_EXTRA_PARAMTER
+
 //-------------------------------------------------------------
 // Doxygen docu
 //-------------------------------------------------------------
@@ -75,8 +77,6 @@ public:
 
 
 protected:
-  //typedef FLASHDeconvHelperStructs::Parameter Parameter;
-
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
@@ -85,8 +85,12 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file (mzML)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
+    #ifdef DEBUG_EXTRA_PARAMTER
     registerInputFile_("in_train", "<file>", "", "topPIC result *prsm.tsv file for QScore training", false, true);
     setValidFormats_("in_train", ListUtils::create<String>("tsv"));
+    registerOutputFile_("out_train", "<file>", "","train result csv file for QScore training", false, true);
+    setValidFormats_("out_train", ListUtils::create<String>("csv"));
+    #endif
 
     registerInputFile_("in_log",
                        "<file>",
@@ -101,11 +105,6 @@ protected:
                         "",
                         "output file (tsv) - feature level deconvoluted masses (or ensemble spectrum level deconvluted mass if use_ensemble_spectrum is set to 1) ");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
-
-    registerOutputFile_("out_train", "<file>", "",
-                        "train result csv file for QScore training", false, true);
-    setValidFormats_("out_train", ListUtils::create<String>("csv"));
-
 
     registerOutputFileList_("out_spec", "<file for MS1, file for MS2, ...>", {""},
                             "output files (tsv) - spectrum level deconvoluted masses per ms level", false);
@@ -127,8 +126,6 @@ protected:
                             false);
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
 
-    //registerDoubleOption_("topFD_snr_threshold", "<value>", -.0,
-    //                      "precursor SNR threshold for TopFD output.", false, true);
     registerIntOption_("mzml_mass_charge",
                        "<0:uncharged 1: +1 charged -1: -1 charged>",
                        0,
@@ -208,7 +205,7 @@ protected:
     fd_defaults.addTag("max_mass_count", "advanced");
 
 
-    fd_defaults.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
+    fd_defaults.setValue("RT_window", 180.0, "RT window for MS1 deconvolution");
     fd_defaults.addTag("RT_window", "advanced");
 
     fd_defaults.remove("max_mass_count");
@@ -248,14 +245,14 @@ protected:
 
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
-    String in_train_file = getStringOption_("in_train");
+    String in_train_file = "";//getStringOption_("in_train");
     String in_log_file = getStringOption_("in_log");
-    String out_train_file = getStringOption_("out_train");
+    String out_train_file = "";//getStringOption_("out_train");
     auto out_spec_file = getStringList_("out_spec");
     String out_mzml_file = getStringOption_("out_mzml");
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
-    double snr_threshold = -0;//getDoubleOption_("topFD_snr_threshold");
+    //double topFD_qscore_threshold = getDoubleOption_("topFD_qscore_threshold");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
     bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
@@ -263,6 +260,11 @@ protected:
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
+
+    #ifdef DEBUG_EXTRA_PARAMTER
+    in_train_file = getStringOption_("in_train");
+    out_train_file = getStringOption_("out_train");
+    #endif
 
     fstream out_stream, out_train_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
@@ -486,8 +488,8 @@ protected:
         //spacing_difference_gap
         PeakPickerHiRes pickerHiRes;
         auto pickParam = pickerHiRes.getParameters();
-        pickParam.setValue("spacing_difference_gap", 1e-2);
-        //pickParam.setValue("spacing_difference", .0001);
+        //pickParam.setValue("spacing_difference_gap", 1e-1);
+        //pickParam.setValue("spacing_difference", 2.0);
         //pickParam.setValue("missing", 0);
 
         pickerHiRes.setParameters(pickParam);
@@ -557,15 +559,15 @@ protected:
         continue;
       }
 
-      if(ms_level == 1){
-        //fi_out << "Spec\t" << it->getRT() << "\n";
+      /*if(ms_level == 1){
+        fi_out << "Spec\t" << it->getRT() << "\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
             continue;
           }
-          //fi_out << p.getMZ() << "\t" << p.getIntensity() << "\n";
+          fi_out << p.getMZ() << "\t" << p.getIntensity() << "\n";
         }
-      }
+      }*/
 
       spec_cntr[ms_level - 1]++;
       auto deconv_begin = clock();
@@ -673,7 +675,7 @@ protected:
       }
       if (out_topfd_streams.size() > ms_level - 1)
       {
-        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number, snr_threshold, avg);
+        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number, avg);
 
         //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 100000, avg, 2);
         //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 200000, avg, .5);
