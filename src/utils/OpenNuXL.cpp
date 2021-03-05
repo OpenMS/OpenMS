@@ -989,7 +989,7 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.03, "Tolerance used to determine marker ions (Da).", false, true);
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
-    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration"}); 
+    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration", "optimize"}); 
 
 
     registerDoubleOption_("window_size", "<number>", 75.0, "Peak window for spectra precprocessing.", false, true);
@@ -1045,7 +1045,7 @@ protected:
     if (pscore <= std::numeric_limits<double>::min())
     {
       cout.precision(17);
-      cout << "matches,N,p: " << matches << " " << N << " " << p << "=" << -log10(std::numeric_limits<double>::min()) << endl;
+      OPENMS_LOG_ERROR << "matches,N,p: " << matches << " " << N << " " << p << "=" << -log10(std::numeric_limits<double>::min()) << endl;
       return -log10(std::numeric_limits<double>::min());
     }
     const double minusLog10p1pscore = -log10(pscore);
@@ -2377,7 +2377,7 @@ static void scoreXLIons_(
       const float mass = r->getMonoWeight(Residue::Internal);
       mass2aa[mass] = letter;
 #ifdef DEBUG_OPENNUXL_TAGGER
-      cout << "Mass: " << mass << "\t" << letter << endl; 
+      OPENMS_LOG_INFO << "Mass: " << mass << "\t" << letter << endl; 
 #endif
     }
 
@@ -2401,7 +2401,7 @@ static void scoreXLIons_(
     test.setParameters(param);
     MSSpectrum test_s;
     test.getSpectrum(test_s, AASequence::fromString("TESTPEPTIDE"), 1, 1); 
-    cout << "should be ESTPEPTIDE:" << getLongestTag(test_s) << endl; 
+    OPENMS_LOG_INFO << "should be ESTPEPTIDE:" << getLongestTag(test_s) << endl; 
 #endif
   }
 
@@ -2504,7 +2504,7 @@ static void scoreXLIons_(
         if (gap > max_gap_) { return; } // already too far away - continue with next parent
         const char aa = getAAByMass_(gap);
 #ifdef DEBUG_OPENNUXL_TAGGER
-        cout << i << "\t" << j << "\t" << mzs[i] << "\t" << mzs[j] << "\t" << gap << "\t'" << aa << "'" << endl;
+        OPENMS_LOG_INFO << i << "\t" << j << "\t" << mzs[i] << "\t" << mzs[j] << "\t" << gap << "\t'" << aa << "'" << endl;
 #endif
       
         if (aa == ' ') { ++j; continue; } // can't extend tag
@@ -2694,7 +2694,7 @@ static void scoreXLIons_(
           for (auto& r2s : residues2adductname)
           {
             const String& adduct_name = r2s.second;
-            cout << (am + bm) << ":" << tag << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
+            OPENMS_LOG_DEBUG << (am + bm) << ":" << tag << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
             tag2ADs[tag].insert(adduct_name);
             ADs2tag[adduct_name].insert(tag);
             vector<double> list;
@@ -2726,7 +2726,7 @@ static void scoreXLIons_(
           const String tag = A+B;
           for (auto& adduct_name : left->second)
           {
-            cout << (am + bm) << ":" << tag << "=" << adduct_name << endl;
+            OPENMS_LOG_DEBUG << (am + bm) << ":" << tag << "=" << adduct_name << endl;
             tag2ADs[tag].insert(adduct_name);
             ADs2tag[adduct_name].insert(tag);
             vector<double> list;
@@ -2758,7 +2758,7 @@ static void scoreXLIons_(
         for (auto& r2s : residues2adductname)
         {
           const String& adduct_name = r2s.second;
-          cout << am << ":" << A << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
+          OPENMS_LOG_DEBUG << am << ":" << A << "=" << r2s.first->getOneLetterCode() << "+" << adduct_name << endl;
           tag2ADs[A].insert(adduct_name);
           ADs2tag[adduct_name].insert(A);
           vector<double> list;
@@ -2783,7 +2783,7 @@ static void scoreXLIons_(
         const String& A = a->getOneLetterCode();
         for (auto& adduct_name : left->second)
         {
-          cout << am << ":" << A << "=" << adduct_name << endl;
+          OPENMS_LOG_DEBUG << am << ":" << A << "=" << adduct_name << endl;
           tag2ADs[A].insert(adduct_name);
           ADs2tag[adduct_name].insert(A);
           vector<double> list;
@@ -2912,7 +2912,7 @@ static void scoreXLIons_(
     }
 
     // calculate ranks
-    cout << "Calculating ranks..." << endl;
+    OPENMS_LOG_INFO << "Calculating ranks..." << endl;
     for (auto & spec : exp)
     {
       if (spec.getMSLevel() != 2) continue;
@@ -2930,9 +2930,9 @@ static void scoreXLIons_(
       for (int rank : idx) { spec.getIntegerDataArrays()[RNPxlConstants::IA_RANK_INDEX].push_back(rank); }
       spec.getIntegerDataArrays()[RNPxlConstants::IA_RANK_INDEX].setName("intensity_rank");
     }
-    cout << " done!" << endl;
+    OPENMS_LOG_INFO << " done!" << endl;
 
-    cout << "Calculating longest mass tags..." << endl;
+    OPENMS_LOG_INFO << "Calculating longest mass tags..." << endl;
     OpenNuXLTagger tagger(0.03, 3);
     for (auto & spec : exp)
     {
@@ -2947,21 +2947,21 @@ static void scoreXLIons_(
       #endif
       spec.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
-    cout << " done!" << endl;
+    OPENMS_LOG_INFO << " done!" << endl;
 
 
     if (debug_level_ > 0) 
     {
-      cout << "Distinct residue + adduct masses (including residues without shift): " << aa_plus_adduct_mass_count.size() << endl; 
+      OPENMS_LOG_DEBUG << "Distinct residue + adduct masses (including residues without shift): " << aa_plus_adduct_mass_count.size() << endl; 
       // Calculate background statistics on shifts
-      cout << "mass\tresidue\tshift:" << endl;
+      OPENMS_LOG_INFO << "mass\tresidue\tshift:" << endl;
       for (const auto& mra : aa_plus_adduct_mass)
       {
         double m = mra.first;
         const map<const Residue*, double>& residue2adduct = mra.second;
         for (auto& r2a : residue2adduct)
         {
-          cout << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
+          OPENMS_LOG_INFO << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
         }
       }
     }
@@ -2985,7 +2985,7 @@ static void scoreXLIons_(
       }
     }
 
-    if (debug_level_ > 0) { cout << "Total counts per residue:" << endl; }
+    if (debug_level_ > 0) { OPENMS_LOG_DEBUG << "Total counts per residue:" << endl; }
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
     mass2high_frequency_.clear();
@@ -3002,7 +3002,7 @@ static void scoreXLIons_(
 #endif
         if (debug_level_ > 0)
         {
-          cout << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
+          OPENMS_LOG_DEBUG << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
         }
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
@@ -3017,7 +3017,7 @@ static void scoreXLIons_(
 
     if (debug_level_ > 0)
     {
-      cout << "Normalized counts per residue:" << endl;
+      OPENMS_LOG_DEBUG << "Normalized counts per residue:" << endl;
       for (const auto& aa2 : aa2mass2count)
       {
         auto& mass2count = aa2.second;
@@ -3028,16 +3028,16 @@ static void scoreXLIons_(
           size_t current_residue_count = m2c.second;
           size_t unmodified_residue_count = mass2count.begin()->second;
           double frequency_normalized = (double)current_residue_count / unmodified_residue_count;
-          cout << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl; // aa mass count
+          OPENMS_LOG_DEBUG << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl; // aa mass count
         }
       }
     }
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
-    cout << "Frequent background mass shifts (mass vs. freq):" << endl;
+    OPENMS_LOG_DEBUG << "Frequent background mass shifts (mass vs. freq):" << endl;
     for (auto & hf : mass2high_frequency_)
     {
-      cout << hf.first << "\t" << hf.second << endl;
+      OPENMS_LOG_DEBUG << hf.first << "\t" << hf.second << endl;
     }
 #endif
 
@@ -3190,50 +3190,50 @@ static void scoreXLIons_(
         for (int & z : ia) { if (z == 0) { z = 1; } }
       } 
     #ifdef DEBUG_OpenNuXL
-      cout << "after deisotoping..." << endl;
-      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      cout << "Fragment charges in spectrum: " << exp_index  << endl;
+      OPENMS_LOG_DEBUG << "after deisotoping..." << endl;
+      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+      OPENMS_LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
       if (spec.getIntegerDataArrays().size())
         for (Size i = 0; i != spec.size(); ++i) 
-          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
-      cout << endl;
+          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
+      OPENMS_LOG_DEBUG << endl;
     #endif
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(spec);
 
     #ifdef DEBUG_OpenNuXL
-      cout << "after mower..." << endl;
-      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
-      cout << "Fragment charges in spectrum: " << exp_index  << endl;
+      OPENMS_LOG_DEBUG << "after mower..." << endl;
+      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+      for (Size i = 0; i != spec.size(); ++i) OPENMS_LOG_DEBUG << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
+      OPENMS_LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
       if (spec.getIntegerDataArrays().size())
         for (Size i = 0; i != spec.size(); ++i) 
-          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
+          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
     
       nlargest_filter.filterPeakSpectrum(spec);
 
     #ifdef DEBUG_OpenNuXL
-      cout << "after nlargest..." << endl;
-      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
-      cout << "Fragment charges in spectrum: " << exp_index  << endl;
+      OPENMS_LOG_DEBUG << "after nlargest..." << endl;
+      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+      for (Size i = 0; i != spec.size(); ++i) OPENMS_LOG_DEBUG << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
+      OPENMS_LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
       if (spec.getIntegerDataArrays().size())
         for (Size i = 0; i != spec.size(); ++i) 
-          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
+          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
  
       // sort (nlargest changes order)
       spec.sortByPosition();
   
     #ifdef DEBUG_OpenNuXL
-      cout << "after sort..." << endl;
-      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec.getIntensity() << endl;
+      OPENMS_LOG_DEBUG << "after sort..." << endl;
+      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+      for (Size i = 0; i != spec.size(); ++i) OPENMS_LOG_DEBUG << spec[i].getMZ() << "\t" << spec.getIntensity() << endl;
       if (spec.getIntegerDataArrays().size())
         for (Size i = 0; i != spec.size(); ++i) 
-          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
+          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
 
 #ifdef DEBUG_OpenNuXL
@@ -4442,9 +4442,8 @@ static void scoreXLIons_(
 
   void optimizeFDR(vector<PeptideIdentification>& peptide_ids)
   {
-
     size_t most_XLs{0};
-    double best_p{-1}, best_q{-1};
+    double best_p{1}, best_q{1};
     
     for (double q = 0.0; q < 1.01; q = q + 0.1)
     for (double p = 0.0; p < 1.01; p = p + 0.1)
@@ -4477,7 +4476,7 @@ static void scoreXLIons_(
         most_XLs = xl_pi.size();
         best_p = p;
         best_q = q;
-        cout << "found better p/q: " << p << "/" << q << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
+        OPENMS_LOG_DEBUG << "found better p/q: " << p << "/" << q << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
       }
     }
 
@@ -4569,6 +4568,7 @@ static void scoreXLIons_(
     bool idfilter = find(filter.begin(), filter.end(), "idfilter") != filter.end();
     bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
     bool pcrecalibration = find(filter.begin(), filter.end(), "pcrecalibration") != filter.end();
+    bool optimize = find(filter.begin(), filter.end(), "optimize") != filter.end();
 
     if (pcrecalibration) 
     {
@@ -4617,7 +4617,7 @@ static void scoreXLIons_(
           Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION
         });
       sse.setParameters(p);
-      cout << "Running autotune..." << endl;
+      OPENMS_LOG_INFO << "Running autotune..." << endl;
       sse.search(in_mzml, in_db, prot_ids, pep_ids);      
       
 /// try to run percolator
@@ -4671,10 +4671,10 @@ static void scoreXLIons_(
           }
         }
 
-        cout << "Filtering ..." << endl;
+        OPENMS_LOG_INFO << "Filtering ..." << endl;
         IDFilter::filterHitsByScore(perc_pep_ids, 0.01); // 1% PSM-FDR
         IDFilter::removeEmptyIdentifications(perc_pep_ids);
-        cout << "Peptide PSMs at 1% FDR: " << perc_pep_ids.size() << endl;
+        OPENMS_LOG_INFO << "Peptide PSMs at 1% FDR: " << perc_pep_ids.size() << endl;
 
         // ID-filter part for linear peptides
         if (idfilter)
@@ -4754,18 +4754,18 @@ static void scoreXLIons_(
               }
             }
           }
-          cout << "Excluded coelution precursors with high spectral similarity: " << skipped_similar_spectra << endl;           
+          OPENMS_LOG_INFO << "Excluded coelution precursors with high spectral similarity: " << skipped_similar_spectra << endl;           
         }
       }
 ////////// end percolator part
 
-      cout << "Calculating FDR..." << endl;
+      OPENMS_LOG_INFO << "Calculating FDR..." << endl;
       FalseDiscoveryRate fdr;
       fdr.apply(pep_ids);
-      cout << "Filtering ..." << endl;
+      OPENMS_LOG_INFO << "Filtering ..." << endl;
       IDFilter::filterHitsByScore(pep_ids, 0.01); // 1% PSM-FDR
       IDFilter::removeEmptyIdentifications(pep_ids);
-      cout << "Peptide PSMs at 1% FDR (no percolator): " << pep_ids.size() << endl;
+      OPENMS_LOG_INFO << "Peptide PSMs at 1% FDR (no percolator): " << pep_ids.size() << endl;
  
       if (pep_ids.size() > 100)
       {
@@ -4811,15 +4811,15 @@ static void scoreXLIons_(
 
         mean_suffix_ions_fraction /= (double) pep_ids.size();
         mean_prefix_ions_fraction /= (double) pep_ids.size();
-        cout << "Mean prefix/suffix ions fractino: " << mean_prefix_ions_fraction << "/" << mean_suffix_ions_fraction << endl;
+        OPENMS_LOG_INFO << "Mean prefix/suffix ions fraction: " << mean_prefix_ions_fraction << "/" << mean_suffix_ions_fraction << endl;
 
         if (autotune)
         {
           fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
         }
-        cout << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
-        cout << "Global fragment mass shift (ppm): " << global_fragment_error << endl;
-        cout << "Estimated precursor mass tolerance (ppm): " << left_precursor_mass_tolerance << "\t" << median_precursor_mass_tolerance << "\t" << right_precursor_mass_tolerance << endl;
+        OPENMS_LOG_INFO << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
+        OPENMS_LOG_INFO << "Global fragment mass shift (ppm): " << global_fragment_error << endl;
+        OPENMS_LOG_INFO << "Estimated precursor mass tolerance (ppm): " << left_precursor_mass_tolerance << "\t" << median_precursor_mass_tolerance << "\t" << right_precursor_mass_tolerance << endl;
       }
       else
       {
@@ -5509,7 +5509,7 @@ static void scoreXLIons_(
                     // This is just a safeguard to prevent regression.
                     assert(!partial_loss_modification.empty());
 
-                    if (partial_loss_modification.empty()) cout << "Error: empty partial loss modification" << endl;
+                    if (partial_loss_modification.empty()) OPENMS_LOG_ERROR << "Empty partial loss modification" << endl;
 
                     PeakSpectrum marker_ions_sub_score_spectrum_z1;
                     // add shifted marker ions of charge 1
@@ -6021,9 +6021,9 @@ static void scoreXLIons_(
         { 
           sd_positive = sqrt(1.0/static_cast<double>(c_positive) * sd_positive);
         }
-        cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << " calculated based on " << c << " best ids." << endl;
-        cout << "mean negative ppm error: " << mean_negative << " sd: " << sd_negative << " 5*sd: " << 5*sd_negative << " calculated based on " << c_negative << " best ids." << endl;
-        cout << "mean positive ppm error: " << mean_positive << " sd: " << sd_positive << " 5*sd: " << 5*sd_positive << " calculated based on " << c_positive << " best ids." << endl;
+        OPENMS_LOG_INFO << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << " calculated based on " << c << " best ids." << endl;
+        OPENMS_LOG_INFO << "mean negative ppm error: " << mean_negative << " sd: " << sd_negative << " 5*sd: " << 5*sd_negative << " calculated based on " << c_negative << " best ids." << endl;
+        OPENMS_LOG_INFO << "mean positive ppm error: " << mean_positive << " sd: " << sd_positive << " 5*sd: " << 5*sd_positive << " calculated based on " << c_positive << " best ids." << endl;
       } 
   
       if (filter_pc_mass_error && c != 0)
@@ -6046,7 +6046,7 @@ static void scoreXLIons_(
 
       if (impute_decoy_medians)
       {
-        cout << "Imputing decoy medians." << endl;
+        OPENMS_LOG_INFO << "Imputing decoy medians." << endl;
         // calculate median score of decoys for specific meta value
         auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
         {
@@ -6089,7 +6089,7 @@ static void scoreXLIons_(
         for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
         {
            medians[mn] = metaMedian(peptide_ids, mn);
-           cout << "median(" << mn << "):" << medians[mn] << endl;
+           OPENMS_LOG_DEBUG << "median(" << mn << "):" << medians[mn] << endl;
            //medians[mn] = metaMean(peptide_ids, mn);
         }
 
@@ -6110,14 +6110,19 @@ static void scoreXLIons_(
           }
           pi.assignRanks();
         }
-        cout << "Imputed XL features in " << imputed << " linear peptides." << endl;
+        OPENMS_LOG_INFO << "Imputed XL features in " << imputed << " linear peptides." << endl;
       }
 
 
       // q-value at PSM level irrespective of class (XL/non-XL)
       //fdr.QValueAtPSMLevel(peptide_ids); 
 
-      optimizeFDR(peptide_ids);
+      if (optimize)
+      {
+        OPENMS_LOG_INFO << "Parameter optimization." << endl;
+        optimizeFDR(peptide_ids);
+        OPENMS_LOG_INFO << "done." << endl;
+      }
      
 /* 
       vector<PeptideIdentification> pep_pi, xl_pi;
@@ -6156,10 +6161,12 @@ static void scoreXLIons_(
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
       // split PSMs into XLs and non-XLs but keep only best one of both
+      OPENMS_LOG_INFO << "Calculating peptide and XL q-values." << endl;
       String original_PSM_output_filename(out_idxml);
       original_PSM_output_filename.substitute(".idXML", "_");
       vector<PeptideIdentification> pep_pi, xl_pi;
       fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
+      OPENMS_LOG_INFO << "done." << endl;
 
       String percolator_executable = getStringOption_("percolator_executable");
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
@@ -6191,7 +6198,9 @@ static void scoreXLIons_(
         }
 //        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
 
+        OPENMS_LOG_INFO << "Running percolator." << endl;
         TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+        OPENMS_LOG_INFO << "done." << endl;
 
         if (exit_code != EXECUTION_OK) 
         { 
@@ -6226,12 +6235,17 @@ static void scoreXLIons_(
           
           String percolator_PSM_output_filename(out_idxml);
           percolator_PSM_output_filename.substitute(".idXML", "_perc_");
+          OPENMS_LOG_INFO << "Calculating peptide and XL q-values for percolator results." << endl;
           fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
+          OPENMS_LOG_INFO << "done." << endl;
         }
       }
       else
       {
-        if (sufficient_PSMs_for_score_recalibration == false) OPENMS_LOG_WARN << "Too few PSMs for score recalibration. Skipped." << endl;
+        if (sufficient_PSMs_for_score_recalibration == false) 
+        {
+          OPENMS_LOG_WARN << "Too few PSMs for score recalibration. Skipped." << endl;
+        }
       }
     }
     else  // no decoys
