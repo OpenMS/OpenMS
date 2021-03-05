@@ -198,7 +198,7 @@ namespace OpenMS
       peptides_counter++;
       progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
-      ID::ProcessingStepRef step_ref = id_to_step[id];
+      ID::ProcessingStepRef step_ref = id_to_step.at(id);
       ID::Observation obs(""); // fill in "data_id" later
       if (!step_ref->input_file_refs.empty())
       {
@@ -1058,14 +1058,14 @@ namespace OpenMS
         hit.getKeys(meta_keys);
         for (const String& key : meta_keys)
         {
-          if (key.hasPrefix("IDConverter_trace_"))
+          if (key.hasPrefix("IDConverter_trace_")) // TODO: What is happening here (comment)
           {
             IntList indexes = hit.getMetaValue(key);
             hit.removeMetaValue(key);
             Feature* feat_ptr = &features.at(indexes[0]);
             for (Size i = 1; i < indexes.size(); ++i)
             {
-              feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
+              feat_ptr = &feat_ptr->getSubordinates()[indexes[i]]; // TODO: What is happening here (comment)
             }
             features_to_hits[feat_ptr].insert(j);
             assigned_hits[j] = true;
@@ -1102,9 +1102,16 @@ namespace OpenMS
         ++i;
       }
     }
-    if (clear_original) features.getIdentificationData().clear();
+    if (clear_original)
+    {
+      features.getIdentificationData().clear();
+      for (auto& feat : features)
+      {
+        feat.clearPrimaryID();
+        feat.getIDMatches().clear();
+      }
+    }
   }
-
 
   void IdentificationDataConverter::handleFeatureExport_(
     Feature& feature, IntList indexes, IdentificationData& id_data, Size& id_counter)

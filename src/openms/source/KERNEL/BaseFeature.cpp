@@ -253,13 +253,13 @@ namespace OpenMS
 
   void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
   {
-    if (primary_id_)
+    if (primary_id_ != boost::none)
     {
       primary_id_ = trans.translate(*primary_id_);
     }
     set<IdentificationData::ObservationMatchRef> matches;
     matches.swap(id_matches_);
-    for (auto item : matches)
+    for (const auto& item : matches)
     {
       id_matches_.insert(trans.translate(item));
     }

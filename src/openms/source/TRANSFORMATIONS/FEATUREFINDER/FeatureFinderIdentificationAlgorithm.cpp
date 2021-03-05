@@ -504,8 +504,16 @@ namespace OpenMS
     Int charge = 0;
     if (extract_charge)
     {
-      Size pos_hash = target_id.find('#', pos_slash + 2);
-      charge = target_id.substr(pos_slash + 1, pos_hash).toInt();
+      if (target_id.find("#") != std::string::npos) // "PEP:XXXXX/3#1
+      {
+        Size pos_hash = target_id.find('#', pos_slash + 2);
+        size_t charge_size = pos_hash - pos_slash - 1;
+        charge = target_id.substr(pos_slash + 1, charge_size).toInt();
+      }
+      else // "PEP:XXXXX/2
+      {
+        charge = target_id.substr(pos_slash + 1, target_id.size()).toInt();
+      }
     }
     return make_pair(target_id.substr(0, pos_slash), charge);
   }
@@ -544,6 +552,7 @@ namespace OpenMS
       target_id = target_id.substr(target_id.find(':') + 1); // remove type prefix
       feature.setMetaValue("label", target_id);
 
+      // TODO: Why is the dummy data set here?
       if (feature.getPeptideIdentifications().empty())
       {
         // add "dummy" identification:

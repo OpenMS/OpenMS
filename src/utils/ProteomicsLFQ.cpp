@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MSstatsFile.h>
 #include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -1129,14 +1130,14 @@ protected:
       IdentificationDataConverter::importIDs(id_data_ext, ext_protein_ids, ext_peptide_ids);
       if (!seeds.empty()) ffi.convertSeeds(seeds, id_data);
 
-      FeatureMap tmp = fm;
-      ffi.run(tmp, id_data, id_data_ext);
+      ffi.run(fm, id_data, id_data_ext);
+
       // convert IDs in feature map to Peptide-/ProteinIdentification:
-      IdentificationDataConverter::exportFeatureIDs(tmp);
+      IdentificationDataConverter::exportFeatureIDs(fm);
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
-      for (auto & f : tmp)
+      for (auto & f : fm)
       {
         //TODO keep FWHM meta value for QC
         f.clearMetaInfo();
@@ -1144,10 +1145,10 @@ protected:
         f.setConvexHulls({});
       }
 
-      IDConflictResolverAlgorithm::resolve(tmp,
+      IDConflictResolverAlgorithm::resolve(fm,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
 
-      feature_maps.push_back(tmp);
+      feature_maps.push_back(std::move(fm));
 
       if (debug_level_ > 666)
       {
