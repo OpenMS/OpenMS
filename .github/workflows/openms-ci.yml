@@ -64,6 +64,13 @@ jobs:
       run: |
           mkdir $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
+
+          FAILED_TEST=$(find _build -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
+          if [ "$FAILED_TEST" -gt "0" ]; then
+            echo "$FAILED_TEST tests failed"
+            exit -1
+          fi
+
       env:
           CMAKE_GENERATOR: "Visual Studio 16 2019"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
@@ -151,6 +158,12 @@ jobs:
           ## TODO allow changing of ctest build site in cmake
           ## TODO potentially parse some OS infos and add to build name
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+
+          FAILED_TEST=$(find _build -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
+          if [ "$FAILED_TEST" -gt "0" ]; then
+            echo "$FAILED_TEST tests failed"
+            exit -1
+          fi
       env:
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
@@ -232,6 +245,13 @@ jobs:
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
             dbus-uuidgen > /var/lib/dbus/machine-id
             xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+
+            FAILED_TEST=$(find _build -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
+            if [ "$FAILED_TEST" -gt "0" ]; then
+              echo "$FAILED_TEST tests failed"
+              exit -1
+            fi
+
       env:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
