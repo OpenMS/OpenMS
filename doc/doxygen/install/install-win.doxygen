@@ -286,6 +286,11 @@
   \code
   MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
   \endcode
+  
+  Example:
+  \code
+  MSBuild.exe OpenMS_host.sln
+  \endcode
 
   @note Since the call can be a bit lengthy, there is a batch file in
   <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
