@@ -500,22 +500,23 @@ namespace OpenMS
     const Feature& feature, bool extract_charge)
   {
     String target_id = feature.getMetaValue("PeptideRef");
-    Size pos_slash = target_id.rfind('/');
+
+    vector<String> split;
+    bool result = target_id.split('/',split); // PEP:XXXXX/3#1 or PEP:XXXXX/2
     Int charge = 0;
     if (extract_charge)
     {
-      if (target_id.find("#") != std::string::npos) // "PEP:XXXXX/3#1
+      auto hash_pos = split[1].find("#");
+      if (hash_pos != std::string::npos)
       {
-        Size pos_hash = target_id.find('#', pos_slash + 2);
-        size_t charge_size = pos_hash - pos_slash - 1;
-        charge = target_id.substr(pos_slash + 1, charge_size).toInt();
+        charge = split[1].substr(0, hash_pos).toInt();
       }
-      else // "PEP:XXXXX/2
+      else
       {
-        charge = target_id.substr(pos_slash + 1, target_id.size()).toInt();
+        charge = split[1].toInt();
       }
     }
-    return make_pair(target_id.substr(0, pos_slash), charge);
+    return make_pair(split[0], charge);
   }
 
 
