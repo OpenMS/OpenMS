@@ -66,7 +66,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
 
-          FAILED_TEST=$(find _build -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
+          FAILED_TEST=$(find $GITHUB_WORKSPACE/bld -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
           if [ "$FAILED_TEST" -gt "0" ]; then
             echo "$FAILED_TEST tests failed"
             exit -1
@@ -160,7 +160,7 @@ jobs:
           ## TODO potentially parse some OS infos and add to build name
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
 
-          FAILED_TEST=$(find _build -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
+          FAILED_TEST=$(find $GITHUB_WORKSPACE/bld/ -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
           if [ "$FAILED_TEST" -gt "0" ]; then
             echo "$FAILED_TEST tests failed"
             exit -1
@@ -247,7 +247,7 @@ jobs:
             dbus-uuidgen > /var/lib/dbus/machine-id
             xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
 
-            FAILED_TEST=$(find _build -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
+            FAILED_TEST=$(find $GITHUB_WORKSPACE/bld/ -name "Test.xml" -type f | xargs grep "<Test Status=\"failed\">" -c)
             if [ "$FAILED_TEST" -gt "0" ]; then
               echo "$FAILED_TEST tests failed"
               exit -1
