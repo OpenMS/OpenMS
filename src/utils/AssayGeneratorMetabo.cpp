@@ -146,7 +146,7 @@ protected:
     registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
     registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
     setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
-    registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10.0, "Rz tolerance for the resolution of identification ambiguity over multiple files", false);
+    registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10.0, "RT tolerance in seconds for the resolution of identification ambiguity over multiple files", false);
     registerDoubleOption_("total_occurrence_filter", "<num>", 0.1, "Filter compound based on total occurrence in analysed samples", false);
     setMinFloat_("total_occurrence_filter", 0.0);
     setMaxFloat_("total_occurrence_filter", 1.0);
@@ -155,9 +155,9 @@ protected:
     setMinFloat_("fragment_annotation_score_threshold", 0.0);
     setMaxFloat_("fragment_annotation_score_threshold", 1.0);
 
-    registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting appraoch. This option does only work in combination with the fragment annotation via sirius.", false);
+    registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting approach. This option does only work in combination with the fragment annotation via Sirius.", false);
 
-    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach (original). This approach can be extended by using resolve_overlap, which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. Add_shift which will add a -CH2 mass shift to the target fragments and use them as additional decoy if fragmentation-tree re-rooting failed. Both combines the extended methods (resolve_overlap, add_shift).",false);
+    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. 'Add_shift' will add a -CH2 mass shift to the target fragments and use them as additional decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, add_shift).",false);
     setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,add_shift,both"));
 
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);

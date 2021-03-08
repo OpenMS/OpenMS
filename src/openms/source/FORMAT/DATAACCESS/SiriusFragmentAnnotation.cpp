@@ -209,7 +209,7 @@ namespace OpenMS
     return rank_filename;
   }
 
-  // provides a mapping of rank and the TreeIsotope_Score which can be used to resolved ambiguties in mapping
+  // provides a mapping of rank and the TreeIsotope_Score which can be used to resolve ambiguities in mapping
   // 43_Cyazofamid_[M+H]+_3 sample=1 period=1 cycle=683 experiment=3|sample=1 period=1 cycle=684 experiment=3|sample=1 period=1 cycle=685 experiment=5
   // 44_Ethofumesate_[M+K]+_3 sample=1 period=1 cycle=683 experiment=3|sample=1 period=1 cycle=684 experiment=3|sample=1 period=1 cycle=685 experiment=5
   // which have the same mass within 25 ppm due to their adduct in AccurateMassSearch

@@ -65,7 +65,7 @@ namespace OpenMS
     };
 
     /**
-    @brief Constructs a mass mapping of targets and decoys using a the unique m_id identifier.
+    @brief Constructs a mass mapping of targets and decoys using the unique m_id identifier.
 
     @param t_exp TransitionExperiment holds compound and transition information used for the mapping.
 
@@ -73,14 +73,14 @@ namespace OpenMS
     static std::vector<MetaboTargetDecoyMassMapping> constructTargetDecoyMassMapping(const TargetedExperiment& t_exp);
 
     /**
-    @brief Resolves overlapping target and decoy transitions masses by adding a specifiable mass (e.g. CH2) to the overlapping decoy fragment.
+    @brief Resolves overlapping target and decoy transition masses by adding a specifiable mass (e.g. CH2) to the overlapping decoy fragment.
 
     @param t_exp TransitionExperiment holds compound and transition information
     @param mappings map of identifier to target and decoy masses
     @param mass_to_add (e.g. CH2)
 
     */
-    static void resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add);
+    static void resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, double mass_to_add);
 
     /**
     @brief Generate a decoy for targets where fragmentation tree re-rooting was not possible, by adding a specifiable mass to the target fragments.
@@ -90,7 +90,7 @@ namespace OpenMS
     @param mass_to_add the maximum number of transitions required per assay
 
     */
-    static void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add);
+    static void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, double mass_to_add);
 
   protected:
     /**

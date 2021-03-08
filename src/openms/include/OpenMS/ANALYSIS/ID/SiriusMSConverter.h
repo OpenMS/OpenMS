@@ -163,7 +163,7 @@ public:
 
 
     /**
-    @brief Find highest intensity peak in near a mz to test in within a margin of error
+    @brief Find highest intensity peak near target mz to test if within a margin of error
 
     @param test_mz: Mass-to-charge to test
     @param spectrum: Spectrum to test
@@ -194,4 +194,3 @@ public:
   };
 
 } // namespace OpenMS
-

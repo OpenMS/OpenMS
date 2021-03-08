@@ -134,10 +134,10 @@ namespace OpenMS
       // nothing else is specified. For compression use the File
       // ending .zip or .sirius
 
-      // This should not be changes since the mztab writers/readers are depend on the default naming schema on it.
+      // This should not be changed since the mztab writers/readers are depending on the default naming schema of it.
       // --naming-convention=<projectSpaceFilenameFormatter>
-      //    Specify a naming scheme for the  compound
-      // directories ins the project-space. Default %index_%filename_%compoundname
+      //    Specify a naming scheme for the compound
+      //    directories in the project-space. Default %index_%filename_%compoundname
 
       // This will be called internal using the preprocessed .ms file
       // -i, --input=<input>

@@ -473,8 +473,7 @@ namespace OpenMS
 
         String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
 
-        double feature_rt;
-        feature_rt = csp.compound_info.rt;
+        double feature_rt = csp.compound_info.rt;
         description = csp.compound_info.des;
         int charge = csp.compound_info.charge;
         double precursor_int = csp.compound_info.pint_mono;
@@ -547,11 +546,9 @@ namespace OpenMS
           continue;
         }
 
-        vector <TargetedExperimentHelper::RetentionTime> v_cmp_rt;
         TargetedExperimentHelper::RetentionTime cmp_rt;
         cmp_rt.setRT(feature_rt);
-        v_cmp_rt.push_back(std::move(cmp_rt));
-        cmp.rts = std::move(v_cmp_rt);
+        cmp.rts = {v_cmp_rt};
         cmp.setChargeState(charge);
         String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + file_counter;
 
@@ -567,7 +564,7 @@ namespace OpenMS
           cmp.id = String(entry_counter) + "_" + description + "_" + identifier_suffix;
           cmp.setMetaValue("CompoundName", description);
         }
-        if (decoy == 1)
+        else if (decoy == 1)
         {
           description = String(description + "_decoy");
           cmp.id = String(entry_counter) + "_" + description + "_" + identifier_suffix;

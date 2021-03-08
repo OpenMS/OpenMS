@@ -194,7 +194,7 @@ public:
 
     @param exp the transition list which will be filtered
     @param min_transitions the minimum number of transitions required per assay (targets only)
-    @param max_transitions the maximum number of transitions required per assay
+    @param max_transitions the maximum number of transitions allowed per assay
 
     */
     void filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
@@ -423,4 +423,3 @@ protected:
 
   };
 }
-
