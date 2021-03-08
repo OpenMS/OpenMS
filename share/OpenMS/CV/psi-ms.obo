@@ -1,7 +1,7 @@
 format-version: 1.2
-data-version: 4.1.48
-date: 01:02:2021 19:50
-saved-by: Vladimir Gorshkov
+data-version: 4.1.49
+date: 03:05:2021 11:30
+saved-by: Matthew Robey
 auto-generated-by: OBO-Edit 2.3.1
 import: http://ontologies.berkeleybop.org/pato.obo
 import: http://ontologies.berkeleybop.org/uo.obo
@@ -20318,7 +20318,7 @@ id: MS:1003130
 name: ProSight:proteoform Q-value
 def: "ProSight proteoform-level Q-value." [PSI:MS]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1003127 ! proteoform-level Q-value
+is_a: MS:1003129 ! proteoform-level Q-value
 relationship: has_order MS:1002109 ! lower score better
 
 [Term]
