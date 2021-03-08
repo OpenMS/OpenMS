@@ -63,10 +63,10 @@ jobs:
     - name: Tests windows
       shell: bash
       run: |
-          mkdir $GITHUB_WORKSPACE/bld/
+          mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
 
-          FAILED_TEST=$(find $GITHUB_WORKSPACE/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
+          FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
           if [ "$FAILED_TEST" -gt "0" ] ; then
             echo "$FAILED_TEST tests failed"
             exit -1
@@ -155,12 +155,12 @@ jobs:
     - name: Build and test osx
       run: |
           export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
-          mkdir $GITHUB_WORKSPACE/bld/
+          mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ## TODO allow changing of ctest build site in cmake
           ## TODO potentially parse some OS infos and add to build name
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
 
-          FAILED_TEST=$(find $GITHUB_WORKSPACE/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
+          FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
           if [ "$FAILED_TEST" -gt "0" ] ; then
             echo "$FAILED_TEST tests failed"
             exit -1
@@ -240,14 +240,14 @@ jobs:
     - name: Build and test lnx
       run: |
             export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
-            mkdir $GITHUB_WORKSPACE/bld/
+            mkdir $GITHUB_WORKSPACE/OpenMS/bld/
             ## TODO allow changing of ctest build site in cmake
             ## TODO potentially parse some OS infos and add to build name
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
             dbus-uuidgen > /var/lib/dbus/machine-id
             xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
 
-            FAILED_TEST=$(find $GITHUB_WORKSPACE/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
+            FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
             if [ "$FAILED_TEST" -gt "0" ] ; then
               echo "$FAILED_TEST tests failed"
               exit -1
