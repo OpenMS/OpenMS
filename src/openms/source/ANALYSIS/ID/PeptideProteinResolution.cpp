@@ -338,7 +338,7 @@ namespace OpenMS
                 __FILE__,
                 __LINE__,
                 OPENMS_PRETTY_FUNCTION,
-                "Not all proteins present in an indistinguishable group. Make sure to add them as singletons.");
+                "Not all proteins present in an indistinguishable group. (" + acc + " not found). Make sure to add them as singletons.");
           }
           else
           {
@@ -803,7 +803,7 @@ namespace OpenMS
   void PeptideProteinResolution::run(vector<ProteinIdentification>& inferred_protein_ids, 
     vector<PeptideIdentification>& inferred_peptide_ids)
   {
-    PeptideProteinResolution ppr(true);
+    PeptideProteinResolution ppr;
     ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
     ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);    
     IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);

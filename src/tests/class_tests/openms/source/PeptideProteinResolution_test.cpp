@@ -64,13 +64,19 @@ START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentifica
   IdXMLFile idf;
   idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);  
   PeptideProteinResolution::run(prots, peps);
-  IdXMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), prots, peps);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  IdXMLFile().store(tmp_filename, prots, peps);
+  TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), tmp_filename);
 
   prots.clear();
   peps.clear();
+  tmp_filename.clear();
+  NEW_TMP_FILE(tmp_filename);
   idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in2.idXML"), prots, peps);  
   PeptideProteinResolution::run(prots, peps);
-  IdXMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out2.idXML"), prots, peps);
+  IdXMLFile().store(tmp_filename, prots, peps);
+  TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out2.idXML"), tmp_filename);
 }
 END_SECTION
 
