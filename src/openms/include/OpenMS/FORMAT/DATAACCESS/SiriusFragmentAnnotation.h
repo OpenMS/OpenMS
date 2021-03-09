@@ -193,6 +193,5 @@ namespace OpenMS
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
           static void extractAnnotationFromDecoyFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill);
-
   };
 } // namespace OpenMS

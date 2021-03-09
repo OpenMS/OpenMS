@@ -128,28 +128,6 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::Project::parameters()
     {
-      // This will be called internal using the "out_project_space" parameter (SiriusAdapter)
-      // -o, -p, --output, --project-space=<projectSpaceLocation>
-      // Specify project-space to read from and also write to if
-      // nothing else is specified. For compression use the File
-      // ending .zip or .sirius
-
-      // This should not be changed since the mztab writers/readers are depending on the default naming schema of it.
-      // --naming-convention=<projectSpaceFilenameFormatter>
-      //    Specify a naming scheme for the compound
-      //    directories in the project-space. Default %index_%filename_%compoundname
-
-      // This will be called internal using the preprocessed .ms file
-      // -i, --input=<input>
-      // Input for the analysis. Ths can be either preprocessed mass
-      // spectra in .ms or .mgf file format, LC/MS runs in .mzML/.
-      // mzXml format or already existing SIRIUS project-space(s)
-      // (uncompressed/compressed).
-
-      // --maxmz=<maxMz>
-      // Just consider compounds with a precursor mz lower or equal
-      // this maximum mz. All other compounds in the input file
-      // are ignored.
       parameter(
           ProjectName("maxmz"),
           DefaultValue(),
@@ -158,55 +136,31 @@ namespace OpenMS
                       "are ignored.")
       );
 
-      // --cores, --processors=<numOfCores>
-      // Number of cpu cores to use. If not specified Sirius uses
-      // all available cores.
       parameter(
           ProjectName("processors"),
           DefaultValue(1),
           Description("Number of cpu cores to use. If not specified SIRIUS uses all available cores.")
       );
 
-      // --ignore-formula
-      // Ignore given molecular formula in .ms or .mgf file format,
       flag(
           ProjectName("ignore-formula"),
           Description("Ignore given molecular formula in internal .ms format, while processing.")
       );
 
-      // -q  suppress shell output
       flag(
           ProjectName("q"),
           Description("Suppress shell output")
       );
-
-      // --compound-buffer, --initial-compound-buffer=<initialInstanceBuffer>
-      // Number of compounds that will be loaded into the Memory. A
-      // larger buffer ensures that there are enough compounds
-      // available to use all cores efficiently during
-      // computation. A smaller buffer saves Memory. To load all
-      // compounds immediately set it to 0. Default: 2 * --cores
-
-      // --recompute
-      // Recompute ALL results of ALL SubTools that are already
-      // present. By defaults already present results of an
-      // instance will be preserved and the instance will be
-      // skipped for the corresponding Task/Tool
     }
 
     void SiriusAdapterAlgorithm::Sirius::parameters()
     {
-      // --ppm-max=<ppmMax>
-      // Maximum allowed mass deviation in ppm for decomposing masses.
       parameter(
                  SiriusName("ppm-max"),
                  DefaultValue(10),
                  Description("Maximum allowed mass deviation in ppm for decomposing masses [ppm].")
                );
 
-      // --ppm-max-ms2=<ppmMaxMs2>
-      // Maximum allowed mass deviation in ppm for decomposing masses in MS2.
-      // If not specified, the same value as for the MS1 is used.
       parameter(
                  SiriusName("ppm-max-ms2"),
                  DefaultValue(10),
@@ -214,43 +168,29 @@ namespace OpenMS
                              "If not specified, the same value as for the MS1 is used. ")
                 );
 
-      // --tree-timeout=<treeTimeout>
-      // Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time.
-      // Default: 0
       parameter(
                  SiriusName("tree-timeout"),
                  DefaultValue(0),
                  Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time")
                ).withMinInt(0);
 
-      //--compound-timeout=<instanceTimeout>
-      // Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.
-      // Default: 0
       parameter(
                  SiriusName("compound-timeout"),
                  DefaultValue(100),
                  Description("Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.")
                ).withMinInt(0);
 
-      // --no-recalibration
-      // Disable Recalibration of input Spectra
       flag(
             SiriusName("no-recalibration"),
             Description("Disable recalibration of input spectra")
           );
 
-      // -p, --profile=<profile>
-      // Name of the configuration profile. Some of the default profiles are: 'qtof', 'orbitrap', 'fticr'.
       parameter(
                  SiriusName("profile"),
                  DefaultValue("qtof"),
                  Description("Name of the configuration profile")
                ).withValidStrings({"qtof", "orbitrap", "fticr"});
 
-      // -f, --formula, --formulas=<formula>
-      // Specify the neutral molecular formula of the measured compound to compute its tree or a list of candidate
-      // formulas the method should discriminate. Omit this option if you want to consider all possible
-      // molecular formulas
       parameter(
                  SiriusName("formula"),
                  DefaultValue(""),
@@ -260,10 +200,6 @@ namespace OpenMS
                              "option if you want to consider all possible molecular formulas")
                );
 
-      // -I, --ions-enforced=<ionsEnforced>
-      // the iontype/adduct of the MS/MS data.
-      // Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+.
-      // You can also provide a comma separated list of adducts.
       parameter(
                  SiriusName("ions-enforced"),
                  DefaultValue(-1),
@@ -271,19 +207,12 @@ namespace OpenMS
                              "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a comma separated list of adducts")
                );
 
-      // -c, --candidates=<numberOfCandidates>
-      // Number of formula candidates in the output.
       parameter(
                  SiriusName("candidates"),
                  DefaultValue(5),
                  Description("The number of formula candidates in the SIRIUS output")
                ).withMinInt(1);
 
-      // --candidates-per-ion=<numberOfCandidatesPerIon>
-      // Minimum number of candidates in the output for each
-      // ionization. Set to force output of results for each
-      // possible ionization, even if not part of highest
-      // ranked results.
       parameter(
                  SiriusName("candidates-per-ion"),
                  DefaultValue(-1),
@@ -293,20 +222,12 @@ namespace OpenMS
                              "ranked results. -1 omits parameter in Sirius.")
                 );
 
-      // -e, --elements-considered=<detectableElements>
-      // Set the allowed elements for rare element detection.
-      // Write SBrClBSe to allow the elements S,Br,Cl,B and Se.
       parameter(
                  SiriusName("elements-considered"),
                  DefaultValue(""),
                  Description("Set the allowed elements for rare element detection. "
                              "Write SBrClBSe to allow the elements S,Br,Cl,B and Se."));
 
-      // -E, --elements-enforced=<enforcedElements>
-      // Enforce elements for molecular formula determination.
-      // Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the
-      // minimal and maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1-2]. When one number is
-      // given then it is interpreted as upper bound. Default is CHNOP
       parameter(
                  SiriusName("elements-enforced"),
                  DefaultValue(""),
@@ -318,16 +239,11 @@ namespace OpenMS
                              "given then it is interpreted as upper bound. Default is CHNOP")
                 );
 
-      // --no-isotope-score=<isotopeHandling>
-      // Disable isotope pattern score.
       flag(
             SiriusName("no-isotope-score"),
             Description("Disable isotope pattern score.")
           );
 
-      // --no-isotope-filter
-      // Disable molecular formula filter. When filtering is enabled, molecular formulas are excluded if their
-      // theoretical isotope pattern does not match the theoretical one, even if their MS/MS pattern has high score.
       flag(
             SiriusName("no-isotope-filter"),
             Description("Disable molecular formula filter. When filtering is enabled, molecular formulas are "
@@ -335,10 +251,6 @@ namespace OpenMS
                         "their MS/MS pattern has high score.")
           );
 
-      // -i, --ions-considered=<ionsConsidered>
-      // The iontype/adduct of the MS/MS data. Example: [M+H]+,
-      // [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
-      // comma separated list of adducts.
       parameter(
                  SiriusName("ions-considered"),
                  DefaultValue(""),
@@ -347,8 +259,6 @@ namespace OpenMS
                              "You can also provide a comma separated list of adducts.")
                 );
 
-      // -d, --db=<database>
-      // Search formulas in given database: all, pubchem, bio, kegg, hmdb
       parameter(
                  SiriusName("db"),
                  DefaultValue("all"),
@@ -373,12 +283,14 @@ namespace OpenMS
                                    "ymdb",
                                    "keggmine",
                                    "ecocycmine",
-                                   "ymdbmine"});
+                                   "ymdbmine",
+                                   "custom",
+                                   "custom_0",
+                                   "custom_1",
+                                   "custom_2",
+                                   "custom_3",
+                                   "custom_4"});
 
-      // -I, --ions-enforced=<ionsEnforced>
-      // The iontype/adduct of the MS/MS data. Example: [M+H]+,
-      // [M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a
-      // comma separated list of adducts.
       parameter(
                  SiriusName("ions-enforced"),
                  DefaultValue(""),
@@ -386,33 +298,20 @@ namespace OpenMS
                              "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a \n"
                              "comma separated list of adducts.")
                );
-
-      // Parameters / Information covered by the .ms file:
-      // -1, --ms1=<ms1> MS1 spectrum file name
-      // -2, --ms2=<ms2> MS2 spectra file names
-      // -z, mz, precursor, --parentmass=<parentMz> The mass of the parent ion
     }
 
     void SiriusAdapterAlgorithm::Fingerid::parameters()
     {
-      // -c, --candidates=<numberOfCandidates>
-      // Number of molecular structure candidates in the output.
       parameter(
                  FingeridName("candidates"),
                  DefaultValue(10),
                  Description("Number of molecular structure candidates in the output.")
                ).withMinInt(1);
 
-      // -d, --db , --fingeriddb, --fingerid-db, --fingerid_db=<database>
-      // Search structure in given database. By default the same database
-      // for molecular formula search is also used for structure search.
-      // If no database is used for molecular formula search, PubChem is
-      // used for structure search.
-
       parameter(
                  FingeridName("db"),
                  DefaultValue("all"),
-                 Description("Search structure in given database.")
+                 Description("Search structure in given database. To use a custom database, please rename your database to custom_n (e.g. custom_0)")
                 ).withValidStrings({"all",
                                     "pubchem",
                                     "mesh",
@@ -435,31 +334,15 @@ namespace OpenMS
                                     "ecocycmine",
                                     "ymdbmine",
                                     "custom",
+                                    "custom_0",
                                     "custom_1",
                                     "custom_2",
                                     "custom_3",
                                     "custom_4"});
-
-      // -s, --formula-score=<predictors>
-      // Specifies the Score that is used to rank the list Molecular
-      // Formula Identifications before the thresholds for CSI:FingerID
-      // predictions are calculated.
-      //parameter(
-      //           FingeridName("formula-score"),
-      //           DefaultValue(""),
-      //           Description("Specifies the Score that is used to rank the list Molecular\n"
-      //                       "Formula Identifications before the thresholds for CSI:FingerID˜n"
-      //                       "predictions are calculated.")
-      //          ).withValidStrings({"","",""});
     }
 
     void SiriusAdapterAlgorithm::Passatutto::parameters()
     {
-//      Usage: night-sky passatutto [-hV] [COMMAND]
-//      Compute a decoy database based on the input spectra. If no molecular formula is
-//      provided in the input, the top scoring formula is used.
-//      -h, --help      Show this help message and exit.
-//      -V, --version   Print version information and exit.
     }
 
     void SiriusAdapterAlgorithm::updateExistingParameter(const OpenMS::Param &param)
@@ -741,7 +624,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__,
                                       __LINE__,
                                       OPENMS_PRETTY_FUNCTION,
-                                      "FATAL: External invocation of Sirius failed!",
+                                      "FATAL: SIRIUS could not be executed!",
                                       "");
       }
       qp.close();

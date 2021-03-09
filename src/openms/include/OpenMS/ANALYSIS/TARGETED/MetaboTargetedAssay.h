@@ -53,7 +53,6 @@ namespace OpenMS
   class OPENMS_DLLAPI MetaboTargetedAssay
   {
     public:
-
     /**
     @brief MetaboTargetedAssay is able to store a precursor, metadata as well as compound information.
     */
@@ -74,7 +73,6 @@ namespace OpenMS
     class CompoundTargetDecoyPair
     {
     public:
-
       SiriusMSFile::CompoundInfo compound_info;
       SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy_spectra;
 
@@ -95,8 +93,8 @@ namespace OpenMS
       double target_rt = 0.0;
       double decoy_mz = 0.0;
       double decoy_rt = 0.0;
-      int target_file_number;
-      int decoy_file_number;
+      int target_file_number = 0;
+      int decoy_file_number = 0;
     };
 
     /**
@@ -170,8 +168,10 @@ namespace OpenMS
     @param ar_mz_tol_unit_res FeatureGroupingAlgorithmQT parameter distance_MZ_unit (ppm, Da)
     @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
     */
-
-    static std::map< std::pair <double,double>, std::vector<MetaboTargetedAssay> > buildAmbiguityGroup(const std::vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size);
+    static std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> > buildAmbiguityGroup(const std::vector<MetaboTargetedAssay>& v_mta,
+                                                                                              const double& ar_mz_tol,
+                                                                                              const double& ar_rt_tol,
+                                                                                              const String& ar_mz_tol_unit_res, size_t in_files_size);
 
     /**
     @brief Resolve ambiguity groups based on occurrence in samples (e.g. at least in 20% of the samples) and if multiple possible identifications are reported within one ambiguity group use the one with the highest occurrence
@@ -181,9 +181,14 @@ namespace OpenMS
     @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
     @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
     */
-    static std::map< std::pair <double,double>, std::vector<MetaboTargetedAssay> > resolveAmbiguityGroup(std::map< std::pair <double,double>, std::vector<MetaboTargetedAssay> > map_mta_filter, double total_occurrence_filter, size_t in_files_size);
+    static void resolveAmbiguityGroup(std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> >& map_mta_filter,
+                                      const double& total_occurrence_filter,
+                                      size_t in_files_size);
 
   protected:
+
+    /// Used to calculate the hard noise intensity threshold hard minimal threshold of min_int * noise_threshold_constant_
+    static constexpr float noise_threshold_constant_ = 1.1;
 
     /**
     @brief Compare two peaks based on their intensity
@@ -191,7 +196,7 @@ namespace OpenMS
     static bool intensityLess_(Peak1D a, Peak1D b);
 
     /**
-    @brief Gets charge from an Adduct ([M+H]+)
+    @brief Gets charge from a singly charged adduct ([M+H]+/[M-H]-)
     */
     static int getChargeFromAdduct_(const String& adduct);
 
@@ -211,6 +216,11 @@ namespace OpenMS
     @return Vector of MetaboTargetedAssay
     */
     static void filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta);
+
+    /**
+    @brief Sort vector of MetaboTargetedAssay by precursor ion intensity
+    */
+    static void sortByPrecursorInt(std::vector<MetaboTargetedAssay>& vec_mta);
   };
 
 } // namespace OpenMS

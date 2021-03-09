@@ -1040,14 +1040,11 @@ namespace OpenMS
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
         }
 
-        // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
-        std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
-        std::reverse(LibraryIntensity.begin(), LibraryIntensity.end());
+        // Reverse-sort by intensity and delete all elements after max_transitions to find the best candidates
+        std::sort(LibraryIntensity.begin(), LibraryIntensity.end(), std::greater<>());
         if ((Size)max_transitions < LibraryIntensity.size())
         {
-          std::vector<double>::iterator start_delete = LibraryIntensity.begin();
-          std::advance(start_delete, max_transitions);
-          LibraryIntensity.erase(start_delete, LibraryIntensity.end());
+          LibraryIntensity.resize(max_transitions);
         }
 
         // Check if transitions are among the ones with maximum intensity
@@ -1105,14 +1102,16 @@ namespace OpenMS
     vector<std::string> difference_target_decoys;
     vector<std::pair<std::string, std::string>> reference_decoys;
     vector<std::string> single_decoy_id;
+    String decoy_suffix = "_decoy";
 
     for (const auto &it : compounds)
     {
-      // extract potential target TransitionIds based on the decoy annotation
+      // extract potential target TransitionIds based on the decoy annotation '0_CompoundName_decoy_[M+H]+_448_0'
       if (it.id.find("decoy") != std::string::npos)
       {
         String current_decoy = it.id;
-        String potential_target = std::regex_replace(current_decoy, std::regex("_decoy"), "");
+        String potential_target = current_decoy;
+        potential_target.erase(potential_target.find(decoy_suffix), decoy_suffix.size());
         descriptions_decoys.emplace_back(potential_target);
         reference_decoys.emplace_back(std::make_pair(current_decoy, potential_target));
       }

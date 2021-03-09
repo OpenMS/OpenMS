@@ -256,6 +256,11 @@ namespace OpenMS
       std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
       std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
 
+      if (rank_filename.empty() || rank_score.empty())
+      {
+        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed for, please check if the SIRIUS project space is correct for." << sirius_spectra_dir << std::endl;
+      }
+
       // use first file in folder (rank 1)
       String filename = rank_filename.at(1); // rank 1
       double score = rank_score.at(1); // rank 1
@@ -349,6 +354,11 @@ namespace OpenMS
     {
       std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
       std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
+
+      if (rank_filename.empty() || rank_score.empty())
+      {
+        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed for, please check if the SIRIUS project space is correct for." << sirius_spectra_dir << std::endl;
+      }
 
       // use first file in folder (rank 1)
       String filename = rank_filename.at(1); // rank 1

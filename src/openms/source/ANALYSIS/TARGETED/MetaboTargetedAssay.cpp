@@ -61,9 +61,13 @@ namespace OpenMS
     {
       adduct_suffix = "1" + adduct_suffix;
     }
-    if (adduct_suffix == "-")
+    else if (adduct_suffix == "-")
     {
       adduct_suffix = "1" + adduct_suffix;
+    }
+    else
+    {
+      OpenMS_Log_warn << "The adduct had the suffix '" << adduct_suffix << "', but only singly positive or singly negative charged adducts are supported." << std::endl;
     }
     String sign = adduct.back();
     adduct_suffix.resize(adduct_suffix.size()-1);
@@ -95,6 +99,16 @@ namespace OpenMS
     }
   }
 
+  void MetaboTargetedAssay::sortByPrecursorInt(std::vector<MetaboTargetedAssay>& vec_mta)
+  {
+    sort(vec_mta.begin(),
+         vec_mta.end(),
+         [](const MetaboTargetedAssay &a, const MetaboTargetedAssay &b) -> bool
+         {
+           return a.precursor_int > b.precursor_int;
+         });
+  }
+
   void MetaboTargetedAssay::filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta)
   {
     std::map<std::pair<String, String>, int> occ_map;
@@ -102,14 +116,10 @@ namespace OpenMS
     {
       for (const auto &t_it : mta)
       {
-        std::pair<String, String> current_key = std::make_pair(t_it.molecular_formula, t_it.compound_adduct);
-        if (occ_map.count(current_key) == 0)
+        auto [it, success] = occ_map.emplace(std::make_pair(t_it.molecular_formula, t_it.compound_adduct), 1);
+        if (!success)
         {
-          occ_map[current_key] = 1;
-        }
-        else
-        {
-          occ_map[current_key]++;
+          it->second++;
         }
       }
 
@@ -374,7 +384,7 @@ namespace OpenMS
       // threshold should be at x % of the maximum intensity
       // hard minimal threshold of min_int * 1.1
       float threshold_transition = max_int * (transition_threshold / 100);
-      float threshold_noise = min_int * 1.1;
+      float threshold_noise = min_int * noise_threshold_constant_;
 
       int transition_counter = 0;
       // here ms2 spectra information is used
@@ -528,7 +538,7 @@ namespace OpenMS
                     transition_spectrum.getFloatDataArrays()[0]
                       .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
                   }
-                  break; // if last element have to break if not iterator will go out of range
+                  break; // break to not increment when erase es called.
                 }
               }
             }
@@ -546,8 +556,10 @@ namespace OpenMS
           continue;
         }
 
+        vector <TargetedExperimentHelper::RetentionTime> v_cmp_rt;
         TargetedExperimentHelper::RetentionTime cmp_rt;
         cmp_rt.setRT(feature_rt);
+        v_cmp_rt = {cmp_rt};
         cmp.rts = {v_cmp_rt};
         cmp.setChargeState(charge);
         String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + file_counter;
@@ -596,7 +608,7 @@ namespace OpenMS
         // threshold should be at x % of the maximum intensity
         // hard minimal threshold of min_int * 1.1
         float threshold_transition = max_int * (transition_threshold / 100);
-        float threshold_noise = min_int * 1.1;
+        float threshold_noise = min_int * noise_threshold_constant_;
         int transition_counter = 0;
 
         // extract current StringDataArray with annotations/explanations;
@@ -688,7 +700,7 @@ namespace OpenMS
 
   // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
   std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                                                  const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra)
+                                                                                                                    const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra)
   {
     vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
     for (const auto& cmp : v_cmpinfo)
@@ -705,8 +717,10 @@ namespace OpenMS
     return v_cmp_spec;
   }
 
-  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > MetaboTargetedAssay::buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta, double ar_mz_tol, double ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size)
+  std::unordered_map< UInt64 , vector<MetaboTargetedAssay> > MetaboTargetedAssay::buildAmbiguityGroup(const vector<MetaboTargetedAssay>& v_mta,const double& ar_mz_tol, const double& ar_rt_tol, const String& ar_mz_tol_unit_res, size_t in_files_size)
   {
+    String decoy_suffix = "_decoy";
+
     // group target and decoy position in vector based on the unique CompoundID/TransitionGroupID
     std::map<String, MetaboTargetedAssay::TargetDecoyGroup> target_decoy_groups;
     for (Size i = 0; i < v_mta.size(); ++i)
@@ -719,53 +733,46 @@ namespace OpenMS
             ReactionMonitoringTransition::DecoyTransitionType::DECOY)
         {
           String compoundId = current_entry.potential_cmp.id;
-          compoundId = std::regex_replace(compoundId, std::regex("decoy_"), "");
-          if (target_decoy_groups.find(compoundId) != target_decoy_groups.end())
+          compoundId.erase(compoundId.find(decoy_suffix), decoy_suffix.size());
+          auto [it , success] = target_decoy_groups.emplace(compoundId, MetaboTargetedAssay::TargetDecoyGroup());
+          if (success)
           {
-            MetaboTargetedAssay::TargetDecoyGroup map_entry = target_decoy_groups[compoundId];
-            map_entry.decoy_index = i;
-            map_entry.decoy_mz = current_entry.precursor_mz;
-            map_entry.decoy_rt = current_entry.compound_rt;
-            map_entry.decoy_file_number = current_entry.compound_file;
-            target_decoy_groups[compoundId] = map_entry;
+            it->second.decoy_index = i;
+            it->second.decoy_mz = current_entry.precursor_mz;
+            it->second.decoy_rt = current_entry.compound_rt;
+            it->second.decoy_file_number = current_entry.compound_file;
           }
           else
           {
-            MetaboTargetedAssay::TargetDecoyGroup tdg;
-            tdg.decoy_index = i;
-            tdg.decoy_mz = current_entry.precursor_mz;
-            tdg.decoy_rt = current_entry.compound_rt;
-            tdg.decoy_file_number = current_entry.compound_file;
-            target_decoy_groups[compoundId] = tdg;
+            it->second.decoy_index = i;
+            it->second.decoy_mz = current_entry.precursor_mz;
+            it->second.decoy_rt = current_entry.compound_rt;
+            it->second.decoy_file_number = current_entry.compound_file;
           }
         }
         if (current_entry.potential_rmts[0].getDecoyTransitionType() ==
             ReactionMonitoringTransition::DecoyTransitionType::TARGET)
         {
-          String compoundId = current_entry.potential_cmp.id;
-          if (target_decoy_groups.find(compoundId) != target_decoy_groups.end()) // not in map
+          auto [it , success] = target_decoy_groups.emplace(current_entry.potential_cmp.id, MetaboTargetedAssay::TargetDecoyGroup());
+          if (success)
           {
-            MetaboTargetedAssay::TargetDecoyGroup map_entry = target_decoy_groups[compoundId];
-            map_entry.target_index = i;
-            map_entry.target_mz = current_entry.precursor_mz;
-            map_entry.target_rt = current_entry.compound_rt;
-            map_entry.target_file_number = current_entry.compound_file;
-            target_decoy_groups[compoundId] = map_entry;
+            it->second.target_index = i;
+            it->second.target_mz = current_entry.precursor_mz;
+            it->second.target_rt = current_entry.compound_rt;
+            it->second.target_file_number = current_entry.compound_file;
           }
-          else // not in map
+          else
           {
-            MetaboTargetedAssay::TargetDecoyGroup tdg;
-            tdg.target_index = i;
-            tdg.target_mz = current_entry.precursor_mz;
-            tdg.target_rt = current_entry.compound_rt;
-            tdg.target_file_number = current_entry.compound_file;
-            target_decoy_groups[compoundId] = tdg;
+            it->second.target_index = i;
+            it->second.target_mz = current_entry.precursor_mz;
+            it->second.target_rt = current_entry.compound_rt;
+            it->second.target_file_number = current_entry.compound_file;
           }
         }
       }
     }
 
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > ambiguity_groups;
+    std::unordered_map< UInt64 , vector<MetaboTargetedAssay> > ambiguity_groups;
     vector <FeatureMap> feature_maps;
 
     size_t loop_size;
@@ -781,6 +788,8 @@ namespace OpenMS
     for (size_t i = 0; i < loop_size; i++)
     {
       FeatureMap fmap;
+      fmap.setUniqueId();
+      fmap.ensureUniqueId();
       String internal_file_path = "File" + std::to_string(i) + ".mzML";
       fmap.setPrimaryMSRunPath({internal_file_path});
       feature_maps.emplace_back(fmap);
@@ -856,6 +865,9 @@ namespace OpenMS
     // build ambiguity groups based on FeatureGroupingAlgorithmQt
     fgaqt.group(feature_maps, c_map);
 
+    // assign unique ids
+    c_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
     // build ambiguity groups based on consensus entries
     for (const auto& c_it : c_map)
     {
@@ -875,22 +887,19 @@ namespace OpenMS
           ambi_group.push_back(v_mta[index]);
         }
       }
-      std::pair <double, double> entry = std::make_pair(c_it.getMZ(), c_it.getRT());
-      std::map< std::pair <double,double>, vector<MetaboTargetedAssay> >::iterator mit;
-      mit = ambiguity_groups.find(entry);
+
+      UInt64 entry = c_it.getUniqueId();
+      auto mit = ambiguity_groups.find(entry);
 
       // allow to add targets and decoys, since they are grouped independently
       // targets and decoys have the exact mz and rt
       if (!(mit == ambiguity_groups.end()))
       {
-        vector <MetaboTargetedAssay> tmp_mta;
-        tmp_mta = mit->second;
-        tmp_mta.insert(tmp_mta.end(), ambi_group.begin(), ambi_group.end());
-        ambiguity_groups[entry] = (tmp_mta);
+        mit->second.insert(mit->second.end(), ambi_group.begin(), ambi_group.end());
       }
       else
       {
-        ambiguity_groups[entry] = ambi_group;
+        ambiguity_groups.emplace(entry, ambi_group);
       }
     }
     return ambiguity_groups;
@@ -898,16 +907,16 @@ namespace OpenMS
 
   // resolve IDs based on the consensusXML
   // use the one with the highest intensity
-  std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > MetaboTargetedAssay::resolveAmbiguityGroup(std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta_filter, double total_occurrence_filter, size_t in_files_size)
+  void MetaboTargetedAssay::resolveAmbiguityGroup(std::unordered_map< UInt64, vector<MetaboTargetedAssay> >& map_mta_filter, const double& total_occurrence_filter, size_t in_files_size)
   {
-    std::map<std::pair<double, double>, vector<MetaboTargetedAssay> > map_mta;
-    for (const auto &map_it : map_mta_filter)
+    vector<UInt64> empty_keys;
+    for (auto& map_it : map_mta_filter)
     {
       // split the vector in targets and decoys
       vector<MetaboTargetedAssay> targets;
       vector<MetaboTargetedAssay> decoys;
       vector<MetaboTargetedAssay> targetdecoy;
-      for (const auto &it : map_it.second)
+      for (const auto& it : map_it.second)
       {
         if (it.potential_rmts[0].getDecoyTransitionType() == OpenMS::ReactionMonitoringTransition::TARGET)
         {
@@ -927,32 +936,30 @@ namespace OpenMS
       MetaboTargetedAssay::filterBasedOnMolFormAdductOccurrence_(targets);
       MetaboTargetedAssay::filterBasedOnMolFormAdductOccurrence_(decoys);
 
-      // sort by precursor intensity
+      // From the resolved groups, use the target and decoy with the highest precursor intensity
+      if (targets.empty() && decoys.empty())
+      {
+        empty_keys.push_back(map_it.first);
+      }
       if (!targets.empty())
       {
-        sort(targets.begin(),
-             targets.end(),
-             [](const MetaboTargetedAssay &a, const MetaboTargetedAssay &b) -> bool
-             {
-               return a.precursor_int > b.precursor_int;
-             });
+        sortByPrecursorInt(targets);
         targetdecoy.push_back(targets[0]);
       }
       if (!decoys.empty())
       {
-        sort(decoys.begin(),
-             decoys.end(),
-             [](const MetaboTargetedAssay &a, const MetaboTargetedAssay &b) -> bool
-             {
-               return a.precursor_int > b.precursor_int;
-             });
+        sortByPrecursorInt(decoys);
         targetdecoy.push_back(decoys[0]);
       }
-      map_mta[map_it.first] = targetdecoy;
-    }
-    return map_mta;
-  }
 
+      map_mta_filter[map_it.first] = targetdecoy;
+    }
+
+    for (const auto& key : empty_keys)
+    {
+      map_mta_filter.erase(key);
+    }
+  }
 } // namespace OpenMS
 
 /// @endcond

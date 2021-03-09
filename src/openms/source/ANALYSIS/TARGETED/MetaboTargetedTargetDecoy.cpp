@@ -39,18 +39,14 @@
 
 namespace OpenMS
 {
-
-  Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > MetaboTargetedTargetDecoy::constructTransitionsMap_(const TargetedExperiment& t_exp)
+  std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > MetaboTargetedTargetDecoy::constructTransitionsMap_(const TargetedExperiment& t_exp)
   {
     // mapping of the transitions to a specific compound reference
-    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
+    std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
     for (const auto& tr_it : t_exp.getTransitions())
     {
-      if (TransitionsMap.find(tr_it.getCompoundRef()) == TransitionsMap.end())
-      {
-        TransitionsMap[tr_it.getCompoundRef()];
-      }
-      TransitionsMap[tr_it.getCompoundRef()].push_back(tr_it);
+      auto [it, success] = TransitionsMap.emplace(tr_it.getCompoundRef(), std::vector<OpenMS::ReactionMonitoringTransition>());
+      it->second.push_back(tr_it);
     }
     return TransitionsMap;
   }
@@ -139,7 +135,7 @@ namespace OpenMS
       }
     }
 
-    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
+    std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
 
     // resolve mappings and add to current TargetedExperiment
     std::vector<OpenMS::ReactionMonitoringTransition> transitions;
@@ -188,7 +184,7 @@ namespace OpenMS
       }
     }
 
-    Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
+    std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap = MetaboTargetedTargetDecoy::constructTransitionsMap_(t_exp);
 
     std::vector<TargetedExperiment::Compound> compounds;
     std::vector<ReactionMonitoringTransition> transitions;

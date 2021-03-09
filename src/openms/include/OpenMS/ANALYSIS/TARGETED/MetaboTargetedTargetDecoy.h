@@ -80,7 +80,7 @@ namespace OpenMS
     @param mass_to_add (e.g. CH2)
 
     */
-    static void resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, double mass_to_add);
+    static void resolveOverlappingTargetDecoyMassesByIndividualMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add);
 
     /**
     @brief Generate a decoy for targets where fragmentation tree re-rooting was not possible, by adding a specifiable mass to the target fragments.
@@ -90,7 +90,7 @@ namespace OpenMS
     @param mass_to_add the maximum number of transitions required per assay
 
     */
-    static void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, double mass_to_add);
+    static void generateMissingDecoysByMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add);
 
   protected:
     /**
@@ -98,7 +98,7 @@ namespace OpenMS
 
     @param t_exp TransitionExperiment holds compound and transition information
     */
-    static Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > constructTransitionsMap_(const TargetedExperiment& t_exp);
+    static std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > constructTransitionsMap_(const TargetedExperiment& t_exp);
   };
 
 } // namespace OpenMS

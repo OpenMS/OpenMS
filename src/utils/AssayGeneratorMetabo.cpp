@@ -54,7 +54,6 @@
 #include <QDir>
 #include <algorithm>
 #include <map>
-//#include <regex>
 
 using namespace OpenMS;
 
@@ -160,7 +159,7 @@ protected:
     registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. 'Add_shift' will add a -CH2 mass shift to the target fragments and use them as additional decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, add_shift).",false);
     setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,add_shift,both"));
 
-    registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);
+    registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum is used for assay library construction (if no fragment annotation is used).",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
     registerFlag_("use_exact_mass", "Use exact mass for precursor and fragment annotations", false);
@@ -576,15 +575,15 @@ protected:
 
     // group ambiguous identification based on precursor_mz and feature retention time
     // Use featureMap and use FeatureGroupingAlgorithmQT
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, in.size());
+    std::unordered_map< UInt64, vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, in.size());
 
     // resolve identification ambiguity based on highest occurrence and highest intensity
-    std::map< std::pair <double,double>, vector<MetaboTargetedAssay> > map_mta = MetaboTargetedAssay::resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter ,in.size());
+    MetaboTargetedAssay::resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter ,in.size());
 
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
-    for (const auto &it : map_mta)
+    for (const auto &it : ambiguity_groups)
     {
       for (const auto &comp_it : it.second)
       {

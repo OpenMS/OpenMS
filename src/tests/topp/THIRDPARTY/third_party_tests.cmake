@@ -79,7 +79,7 @@ OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChoosePara
 
 #------------------------------------------------------------------------------
 # Sirius
-OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.sh;sirius.bat;sirius-console-64.exe" "Sirius")
+OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.app;sirius.sh;sirius.bat" "Sirius")
 
 #------------------------------------------------------------------------------
 # Novor
