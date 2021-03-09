@@ -44,6 +44,6 @@ add_subdirectory(eol-bspline)
 # evergreen Bayesian inference library (0.9)
 add_subdirectory(evergreen/src)
 add_subdirectory(IsoSpec)
-
+add_subdirectory(seqan)
 add_subdirectory(json)
 
