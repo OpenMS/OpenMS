@@ -91,7 +91,7 @@ namespace OpenMS
     defaults_.addTag("min_mass_count", "advanced");
 
     defaults_.setValue("min_intensity", .0, "intensity threshold");
-    defaults_.setValue("RT_window", 20.0, "RT window for MS1 deconvolution");
+    defaults_.setValue("rt_window", 20.0, "RT window for MS1 deconvolution");
     defaultsToParam_();
   }
 
@@ -212,7 +212,7 @@ namespace OpenMS
     //minChargeCosine = param_.getValue("min_charge_cosine");
     max_mass_count_ = param_.getValue("max_mass_count");
     min_mass_count_ = param_.getValue("min_mass_count");
-    rt_window_ = param_.getValue("RT_window");
+    rt_window_ = param_.getValue("rt_window");
     //setFilters_();
   }
 

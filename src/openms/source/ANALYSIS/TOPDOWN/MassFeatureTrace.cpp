@@ -42,9 +42,29 @@ namespace OpenMS
       DefaultParamHandler("MassFeatureTrace")
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
-    mtd_defaults.setValue("mass_error_da", 1.5);
     mtd_defaults.setValue("min_trace_length", 10.0);
-    mtd_defaults.setValue("min_sample_rate", .01);
+    mtd_defaults.setValue("min_sample_rate",
+                          .2,
+                          "Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.");
+
+    mtd_defaults.setValue("mass_error_da",
+                          1.5,
+                          "da tolerance for feature tracing. Due to frequent isotope errer, 1.5 Da is recommended.");
+    mtd_defaults.setValue("min_trace_length", 10.0);//
+
+    mtd_defaults.setValue("chrom_peak_snr", .0);
+    mtd_defaults.addTag("chrom_peak_snr", "advanced");
+    mtd_defaults.setValue("reestimate_mt_sd",
+                          "false");
+    mtd_defaults.addTag("reestimate_mt_sd", "advanced");
+    mtd_defaults.setValue("noise_threshold_int",
+                          .0);
+    mtd_defaults.addTag("noise_threshold_int", "advanced");
+    //mtd_defaults.setValue("min_isotope_cosine", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine_ option");
+    //mtd_defaults.addTag("min_isotope_cosine", "advanced");
+
+    mtd_defaults.setValue("quant_method", "area");
+    mtd_defaults.addTag("quant_method", "advanced"); // hide entry
 
     defaults_.insert("", mtd_defaults);
     defaults_.setValue("min_isotope_cosine", .75, "cosine threshold between avg. and observed isotope pattern for MS1");

@@ -62,8 +62,7 @@ using namespace std;
   @verbinclude
   @htmlinclude
 */
-// We do not want this class to show up in the docu:
-// NEED to fill this part later
+
 
 class TOPPFLASHDeconv :
     public TOPPBase
@@ -205,27 +204,25 @@ protected:
     fd_defaults.addTag("max_mass_count", "advanced");
 
 
-    fd_defaults.setValue("RT_window", 180.0, "RT window for MS1 deconvolution");
-    fd_defaults.addTag("RT_window", "advanced");
+    fd_defaults.setValue("rt_window", 180.0, "RT window for MS1 deconvolution");
+    fd_defaults.addTag("rt_window", "advanced");
 
     fd_defaults.remove("max_mass_count");
     //fd_defaults.remove("min_mass_count");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
-    mf_defaults.setValue("mass_error_da",
-                         1.5,
-                         "da tolerance for feature tracing. Due to frequent isotope errer, 1.5 Da is recommended.");
-    mf_defaults.remove("mass_error_ppm"); // hide entry
-    mf_defaults.remove("trace_termination_criterion");
-    mf_defaults.remove("reestimate_mt_sd");
-    mf_defaults.remove("noise_threshold_int");
-    mf_defaults.remove("min_sample_rate");
-    mf_defaults.remove("trace_termination_outliers"); // hide entry
-    mf_defaults.setValue("min_trace_length", 10.0, "min feature trace length in second");//
-    mf_defaults.setValue("quant_method", "area", "");
-    mf_defaults.addTag("quant_method", "advanced"); // hide entry
-    mf_defaults.setValue("min_isotope_cosine", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine_ option");
+    mf_defaults.setValue("min_isotope_cosine",
+                         -1.0,
+                         "Cosine threshold between avg. and observed isotope pattern for mass features. if not set, controlled by -Algorithm:min_isotope_cosine_ option");
     mf_defaults.addTag("min_isotope_cosine", "advanced");
+    mf_defaults.remove("noise_threshold_int");
+    mf_defaults.remove("reestimate_mt_sd");
+    mf_defaults.remove("trace_termination_criterion");
+    mf_defaults.remove("trace_termination_outliers");
+    mf_defaults.remove("chrom_peak_snr");
+
+    mf_defaults.remove("mass_error_ppm"); // hide entry
+    //mf_defaults.remove("min_sample_rate");
 
     Param combined;
     combined.insert("Algorithm:", fd_defaults);
@@ -530,12 +527,12 @@ protected:
     Param mf_param = getParam_().copy("FeatureTracing:", true);
     DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine");
     //mf_param.setValue("mass_error_ppm", ms1tol);
-    mf_param.setValue("noise_threshold_int", .0, "");
-    mf_param.setValue("reestimate_mt_sd", "false", "");
+    mf_param.setValue("noise_threshold_int", .0);
+    mf_param.setValue("reestimate_mt_sd", "false");
     mf_param.setValue("trace_termination_criterion", "outlier");
     mf_param.setValue("trace_termination_outliers", 20);
-    //mf_param.setValue("min_charge_cosine", fd_param.getValue("min_charge_cosine"));
-    if (((double)mf_param.getValue("min_isotope_cosine")) < 0)
+    mf_param.setValue("chrom_peak_snr", .0);
+    if (((double) mf_param.getValue("min_isotope_cosine")) < 0)
     {
       mf_param.setValue("min_isotope_cosine", isotope_cosines[0]);
     }
