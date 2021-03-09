@@ -38,7 +38,15 @@ jobs:
       with:
         arch: x64
 
+    - name: Cache contrib
+      id: cache-contrib-win
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/OpenMS/contrib
+        key: ${{ runner.os }}-contrib
+
     - name: Load contrib build
+      if: steps.cache-contrib-win.outputs.cache-hit != 'true'
       run: |
           cd OpenMS/contrib
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
@@ -110,7 +118,15 @@ jobs:
     - name: Install build tools
       run: brew install autoconf automake libtool
 
+    - name: Cache contrib
+      id: cache-contrib-os
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/OpenMS/contrib
+        key: ${{ runner.os }}-contrib
+
     - name: Load contrib build
+      if: steps.cache-contrib-os.outputs.cache-hit != 'true'
       run: |
           cd OpenMS/contrib
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
