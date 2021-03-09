@@ -30,8 +30,10 @@
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 			</ProteinHit>
       <UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML,file:///C:\c1f1r2.mzML]"/>
-			<UserParam type="string" name="indistinguishable_proteins_0" value="0.6,PH_0,PH_1"/>
-			<UserParam type="string" name="indistinguishable_proteins_1" value="0.6,PH_2,PH_3"/>      
+      <UserParam type="string" name="indistinguishable_proteins_0" value="0.6,PH_0"/>
+      <UserParam type="string" name="indistinguishable_proteins_1" value="0.6,PH_1"/>
+      <UserParam type="string" name="indistinguishable_proteins_2" value="0.6,PH_2"/>
+      <UserParam type="string" name="indistinguishable_proteins_3" value="0.6,PH_3"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >
       <!-- two proteins with same score but PH_1 has more peptides -> wins tie resolution during inference --> 
@@ -45,7 +47,7 @@
 			</PeptideHit>
 			<PeptideHit score="0.5" sequence="C" charge="2" aa_before="K [" aa_after="G ]" start="227 4" end="248 25" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="protein_references" value="non-unique"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
       <!-- two proteins PH_2 and PH_3 with different scores. PH_3 has better score -> PH_3 wins peptides DE and DDEE of PH_2 --> 
 			<PeptideHit score="0.99" sequence="D" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_2" >
