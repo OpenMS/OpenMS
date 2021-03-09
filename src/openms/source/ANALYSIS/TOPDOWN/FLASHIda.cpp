@@ -36,14 +36,16 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
+//#define DEBUG_COLOR
+
 namespace OpenMS
 {
   // constructor
-  FLASHIda::FLASHIda(char* arg)
+  FLASHIda::FLASHIda(char *arg)
   {
 
     std::unordered_map<std::string, std::vector<double>> inputs;
-    char* token = std::strtok(arg, " ");
+    char *token = std::strtok(arg, " ");
     std::string key;
     while (token != nullptr)
     {
@@ -173,13 +175,13 @@ namespace OpenMS
         new_mass_qscore_map[m] = qscore;
       }
     }
-
+    #ifdef DEBUG_COLOR
     std::map<char, int> color_count_map = {{'R', 0},
                                            {'r', 0},
                                            {'B', 0},
                                            {'b', 0},
                                            {'G', 0}};
-
+    #endif
     for (auto &item : new_mass_qscore_map) // now update color and new_mass_rt_qscore_map
     {
       int m = item.first;
@@ -213,15 +215,19 @@ namespace OpenMS
            new_color_map[m] = 'r';
          }
        }
+      #ifdef DEBUG_COLOR
       if (qscore > qscore_threshold_)
       {
         char new_color = new_color_map[m];
         color_count_map[new_color]++;
       }
+      #endif
+
       new_mass_rt_qscore_map[m][0] = rt;
       new_mass_rt_qscore_map[m][1] = qscore;
     }
 
+    #ifdef DEBUG_COLOR
     std::cout << "%";
     for (auto &item:color_count_map)
     {
@@ -230,11 +236,13 @@ namespace OpenMS
     std::cout << "\n";
     std::cout << rt << " ";
 
+
     for (auto &item:color_count_map)
     {
       std::cout << item.second << " ";
     }
     std::cout << "\n";
+    #endif
 
     new_mass_rt_qscore_map.swap(mass_rt_qscore_map_);
     std::unordered_map<int, std::vector<double>>().swap(new_mass_rt_qscore_map);
