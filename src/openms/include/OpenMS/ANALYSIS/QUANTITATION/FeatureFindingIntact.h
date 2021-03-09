@@ -76,7 +76,11 @@ namespace OpenMS
         rt_start_(),
         rt_end_(),
         mz_start_(),
-        mz_end_()
+        mz_end_(),
+        mz_score_(),
+        rt_score_(),
+        inty_score_(),
+        scores_per_mt_()
       {
       }
 
@@ -97,7 +101,11 @@ namespace OpenMS
           rt_start_(fh.rt_start_),
           rt_end_(fh.rt_end_),
           mz_start_(fh.mz_start_),
-          mz_end_(fh.mz_end_)
+          mz_end_(fh.mz_end_),
+          mz_score_(fh.mz_score_),
+          rt_score_(fh.rt_score_),
+          inty_score_(fh.inty_score_),
+          scores_per_mt_(fh.scores_per_mt_)
       {
       }
 
@@ -117,7 +125,23 @@ namespace OpenMS
         rt_end_ = fh.rt_end_;
         mz_start_ = fh.mz_start_;
         mz_end_ = fh.mz_end_;
+        mz_score_ = fh.mz_score_;
+        rt_score_ = fh.rt_score_;
+        inty_score_ = fh.inty_score_;
+        scores_per_mt_ = fh.scores_per_mt_;
         return *this;
+      }
+
+      /// comparison operator (descending order)
+      bool operator > (const FeatureHypothesis &fh) const
+      {
+        return (feat_score_ > fh.feat_score_);
+      }
+
+      /// comparison operator (ascending order)
+      bool operator < (const FeatureHypothesis &fh) const
+      {
+        return (feat_score_ < fh.feat_score_);
       }
 
       /// getter & setter
@@ -149,6 +173,21 @@ namespace OpenMS
       double getChargeScore() const
       {
         return charge_score_;
+      }
+
+      double getMZScore() const
+      {
+        return mz_score_;
+      }
+
+      double getRTScore() const
+      {
+        return rt_score_;
+      }
+
+      double getIntyScore() const
+      {
+        return inty_score_;
       }
 
       std::pair<double, double> getRTRange() const
@@ -186,6 +225,21 @@ namespace OpenMS
         charge_score_ = cscore;
       }
 
+      void setMZScore(const double score)
+      {
+        mz_score_ = score;
+      }
+
+      void setRTScore(const double score)
+      {
+        rt_score_ = score;
+      }
+
+      void setIntyScore(const double score)
+      {
+        inty_score_ = score;
+      }
+
       vector<double> getAllIntensities(bool smoothed = false) const
       {
         vector<double> tmp;
@@ -196,20 +250,16 @@ namespace OpenMS
         return tmp;
       }
 
-      double getCentroidMZofMonoisotopicFeature() const
-      {
-        if (iso_pattern_traces_.empty())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "FeatureHypothesis is empty, no centroid MZ!",
-                                        String(iso_pattern_traces_.size()));
-        }
-        return iso_pattern_traces_[0]->getCentroidMZ();
-      }
-
       vector<const MassTrace*> getMassTraces() const
       {
         return iso_pattern_traces_;
+      }
+
+      void removeMassTrace(const Size index)
+      {
+        iso_pattern_traces_.erase(iso_pattern_traces_.begin() + index);
+        scores_per_mt_.erase(scores_per_mt_.begin() + index);
+        iso_mt_index_pairs_.erase(iso_mt_index_pairs_.begin() + index);
       }
 
       /// adding mass trace
@@ -218,8 +268,15 @@ namespace OpenMS
         iso_pattern_traces_.push_back(&mt_ptr);
       }
 
+      // adding scores per mass traces
+      void addMassTraceScore(const double& mt_score)
+      {
+        scores_per_mt_.push_back(mt_score);
+      }
+
       void updateFeatureMass()
       {
+        // average mass
         double mono_mz = iso_pattern_traces_[0]->getCentroidMZ()
             - (iso_mt_index_pairs_[0].first * Constants::C13C12_MASSDIFF_U / charge_);
         feature_mass_ = (mono_mz - Constants::PROTON_MASS_U) * charge_;
@@ -253,11 +310,25 @@ namespace OpenMS
         mz_end_ = mz_start_ + mz_range;
       }
 
+      void reset_feature_score()
+      {
+        double score(0.0);
+        for (const auto& s : scores_per_mt_)
+        {
+          score += s;
+        }
+        feat_score_ = score;
+      }
+
     private:
       SignedSize charge_;
       double feat_score_;
+      double mz_score_;
+      double rt_score_;
+      double inty_score_;
       double feature_mass_;
       std::vector<const MassTrace*> iso_pattern_traces_;
+      std::vector<double> scores_per_mt_;
       // first: iso index of current feature, second : masstrace index of final masstraces
       std::vector<std::pair<Size, Size>> iso_mt_index_pairs_;
       double charge_score_;
@@ -456,7 +527,9 @@ namespace OpenMS
 
     void findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
                             const double total_intensity,
-                            std::vector<FeatureHypothesis>& output_hypotheses) const;
+                            std::vector<FeatureHypothesis>& output_hypotheses,
+                            std::vector<double> deconv_masses,
+                            std::vector<std::vector<Size>> deconv_charges) const;
 
     double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const;
 
