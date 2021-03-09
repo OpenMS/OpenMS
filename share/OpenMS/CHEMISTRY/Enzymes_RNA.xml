@@ -67,7 +67,7 @@
     <NODE name="colicin_E5">
       <ITEM name="Name" value="colicin_E5" type="string" />
       <ITEM name="RegEx" value="(?&lt;=G|Q)U" type="string" />
-      <ITEM name="RegExDescription" value="colicin E5 cuts after G followed by U." type="string" />
+      <ITEM name="RegExDescription" value="colicin E5 cuts after G (or Q) followed by U." type="string" />
       <ITEM name="CutsAfter" value="G|Q(?!m)" type="string" />
       <ITEM name="CutsBefore" value="U" type="string" />
       <ITEM name="ThreePrimeGain" value="p" type="string" />
