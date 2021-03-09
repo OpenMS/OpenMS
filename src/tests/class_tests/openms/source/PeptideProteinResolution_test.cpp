@@ -33,9 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -62,7 +64,7 @@ START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentifica
   IdXMLFile idf;
   idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);  
   PeptideProteinResolution::run(prots, peps);
-  IDXMLFile.store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), prots, peps)
+  IdXMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), prots, peps);
 }
 END_SECTION
 
