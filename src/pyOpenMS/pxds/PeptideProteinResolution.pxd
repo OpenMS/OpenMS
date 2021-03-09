@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
                                        libcpp_vector[ PeptideIdentification ] &
                                        peptides) nogil except +
 
-    run(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides)) nogil except +  #wrap-attach:PeptideProteinResolution
+    run(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) nogil except +  #wrap-attach:PeptideProteinResolution
 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS":
