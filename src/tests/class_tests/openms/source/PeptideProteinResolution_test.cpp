@@ -65,6 +65,12 @@ START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentifica
   idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);  
   PeptideProteinResolution::run(prots, peps);
   IdXMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out.idXML"), prots, peps);
+
+  prots.clear();
+  peps.clear();
+  idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in2.idXML"), prots, peps);  
+  PeptideProteinResolution::run(prots, peps);
+  IdXMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out2.idXML"), prots, peps);
 }
 END_SECTION
 

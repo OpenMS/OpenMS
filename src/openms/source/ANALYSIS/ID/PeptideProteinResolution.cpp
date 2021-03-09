@@ -688,6 +688,7 @@ namespace OpenMS
     protein.insertProteinGroup(ambiguity_grp);
   }*/
 
+
   void PeptideProteinResolution::resolveConnectedComponent(
       ConnectedComponent& conn_comp,
       ProteinIdentification& protein,
@@ -740,7 +741,6 @@ namespace OpenMS
       ambiguity_grp.accessions.insert(ambiguity_grp.accessions.end(),
                                       accessions.begin(),
                                       accessions.end());
-
       if (statistics_)
       {
         OPENMS_LOG_DEBUG << "Group: ";
@@ -763,7 +763,7 @@ namespace OpenMS
         // peptide from their mapping
         vector<Size>::iterator grp_it_cont = grp_it;
         ++grp_it_cont;
-        for (/*grp_it_cont*/; grp_it_cont != prot_grp_indices.end();
+        for (; grp_it_cont != prot_grp_indices.end();
                               ++grp_it_cont)
         {
           indist_prot_grp_to_pep_[*grp_it_cont].erase(*pepid_it);
@@ -799,10 +799,11 @@ namespace OpenMS
     protein.insertProteinGroup(ambiguity_grp);
   }
 
+
   void PeptideProteinResolution::run(vector<ProteinIdentification>& inferred_protein_ids, 
     vector<PeptideIdentification>& inferred_peptide_ids)
   {
-    PeptideProteinResolution ppr;
+    PeptideProteinResolution ppr(true);
     ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
     ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);    
     IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
