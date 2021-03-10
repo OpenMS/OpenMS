@@ -11,7 +11,7 @@ set(sources_list
   Ms2SpectrumStats.cpp
   MzCalibration.cpp
   PeptideMass.cpp
-  PSMCorrectness.cpp
+  PSMExplainedIonCurrent.cpp
   QCBase.cpp
   RTAlignment.cpp
   DBSuitability.cpp

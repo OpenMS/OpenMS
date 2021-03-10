@@ -36,7 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/QC/PSMCorrectness.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -114,7 +114,7 @@ const PeptideIdentification createPeptideIdentification(const String& id, const 
   return peptide_id;
 }
 
-START_TEST(PSMCorrectness, "$Id$")
+START_TEST(PSMExplainedIonCurrent, "$Id$")
 
 AASequence::fromString("").empty();
 
@@ -190,22 +190,22 @@ fmap.setUnassignedPeptideIdentifications(pep_ids);
 fmap.push_back(empty_feat);
 fmap.setProteinIdentifications({protId});
 
-PSMCorrectness* ptr = nullptr;
-PSMCorrectness* nulpt = nullptr;
-START_SECTION(PSMCorrectness())
+PSMExplainedIonCurrent* ptr = nullptr;
+PSMExplainedIonCurrent* nulpt = nullptr;
+START_SECTION(PSMExplainedIonCurrent())
 {
-  ptr = new PSMCorrectness();
+  ptr = new PSMExplainedIonCurrent();
   TEST_NOT_EQUAL(ptr, nulpt)
 }
 END_SECTION
 
-START_SECTION(~PSMCorrectness())
+START_SECTION(~PSMExplainedIonCurrent())
 {
   delete ptr;
 }
 END_SECTION
 
-PSMCorrectness psm_corr;
+PSMExplainedIonCurrent psm_corr;
 
 START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
 {
@@ -214,7 +214,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   // test with valid input - default parameter
   //--------------------------------------------------------------------
   psm_corr.compute(fmap, exp, spectra_map);
-  std::vector<PSMCorrectness::Statistics> result = psm_corr.getResults();
+  std::vector<PSMExplainedIonCurrent::Statistics> result = psm_corr.getResults();
 
   TEST_REAL_SIMILAR(result[0].average_correctness, (13./20 + 10./15) / 2.)
   TEST_REAL_SIMILAR(result[0].variance_correctness, 0.000138)
@@ -223,9 +223,9 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   // test with valid input - ToleranceUnit PPM
   //--------------------------------------------------------------------
 
-  PSMCorrectness psm_corr_ppm;
+  PSMExplainedIonCurrent psm_corr_ppm;
   psm_corr_ppm.compute(fmap, exp, spectra_map, QCBase::ToleranceUnit::PPM, 6);
-  std::vector<PSMCorrectness::Statistics> result_ppm = psm_corr_ppm.getResults();
+  std::vector<PSMExplainedIonCurrent::Statistics> result_ppm = psm_corr_ppm.getResults();
 
   TEST_REAL_SIMILAR(result_ppm[0].average_correctness, (13. / 20 + 10. / 15) / 2.)
   TEST_REAL_SIMILAR(result_ppm[0].variance_correctness, 0.000138)
@@ -233,9 +233,9 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   //--------------------------------------------------------------------
   // test with valid input and flags
   //--------------------------------------------------------------------
-  PSMCorrectness psm_corr_flag_da;
+  PSMExplainedIonCurrent psm_corr_flag_da;
   psm_corr_flag_da.compute(fmap, exp, spectra_map, QCBase::ToleranceUnit::DA, 1);
-  std::vector<PSMCorrectness::Statistics> result_flag_da = psm_corr_flag_da.getResults();
+  std::vector<PSMExplainedIonCurrent::Statistics> result_flag_da = psm_corr_flag_da.getResults();
 
   TEST_REAL_SIMILAR(result_flag_da[0].average_correctness, (13. / 20 + 10. / 15) / 2.)
   TEST_REAL_SIMILAR(result_flag_da[0].variance_correctness, 0.000138)
@@ -294,7 +294,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
 
     spectra_map.calculateMap(failing_exp);
 
-    PSMCorrectness psm_corr_failing;
+    PSMExplainedIonCurrent psm_corr_failing;
     TEST_EXCEPTION(Exception::MissingInformation, psm_corr_failing.compute(failing_fmap, failing_exp, spectra_map))
   }
 }
@@ -307,7 +307,7 @@ START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const Protein
   // test with valid input - default parameter
   //--------------------------------------------------------------------
   psm_corr.compute(pep_ids, param, exp, spectra_map);
-  std::vector<PSMCorrectness::Statistics> result = psm_corr.getResults();
+  std::vector<PSMExplainedIonCurrent::Statistics> result = psm_corr.getResults();
 
   TEST_REAL_SIMILAR(result[0].average_correctness, (13. / 20 + 10. / 15) / 2.)
   TEST_REAL_SIMILAR(result[0].variance_correctness, 0.000138)
@@ -316,9 +316,9 @@ START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const Protein
   // test with valid input - ToleranceUnit PPM
   //--------------------------------------------------------------------
 
-  PSMCorrectness psm_corr_ppm;
+  PSMExplainedIonCurrent psm_corr_ppm;
   psm_corr_ppm.compute(pep_ids, param, exp, spectra_map, QCBase::ToleranceUnit::PPM, 6);
-  std::vector<PSMCorrectness::Statistics> result_ppm = psm_corr_ppm.getResults();
+  std::vector<PSMExplainedIonCurrent::Statistics> result_ppm = psm_corr_ppm.getResults();
 
   TEST_REAL_SIMILAR(result_ppm[0].average_correctness, (13. / 20 + 10. / 15) / 2.)
   TEST_REAL_SIMILAR(result_ppm[0].variance_correctness, 0.000138)
@@ -326,9 +326,9 @@ START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const Protein
   //--------------------------------------------------------------------
   // test with valid input and flags
   //--------------------------------------------------------------------
-  PSMCorrectness psm_corr_flag_da;
+  PSMExplainedIonCurrent psm_corr_flag_da;
   psm_corr_flag_da.compute(pep_ids, param, exp, spectra_map, QCBase::ToleranceUnit::DA, 1);
-  std::vector<PSMCorrectness::Statistics> result_flag_da = psm_corr_flag_da.getResults();
+  std::vector<PSMExplainedIonCurrent::Statistics> result_flag_da = psm_corr_flag_da.getResults();
 
   TEST_REAL_SIMILAR(result_flag_da[0].average_correctness, (13. / 20 + 10. / 15) / 2.)
   TEST_REAL_SIMILAR(result_flag_da[0].variance_correctness, 0.000138)
@@ -381,7 +381,7 @@ START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const Protein
 
     spectra_map.calculateMap(failing_exp);
 
-    PSMCorrectness psm_corr_failing;
+    PSMExplainedIonCurrent psm_corr_failing;
     TEST_EXCEPTION(Exception::MissingInformation, psm_corr_failing.compute(failing_ids, param, failing_exp, spectra_map))
   }
 }
@@ -389,7 +389,7 @@ END_SECTION
 
 START_SECTION(const String& getName() const override)
 {
-  TEST_EQUAL(psm_corr.getName(), "PSMCorrectness");
+  TEST_EQUAL(psm_corr.getName(), "PSMExplainedIonCurrent");
 }
 END_SECTION
 

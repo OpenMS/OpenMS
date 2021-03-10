@@ -56,7 +56,7 @@
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/MzCalibration.h>
 #include <OpenMS/QC/PeptideMass.h>
-#include <OpenMS/QC/PSMCorrectness.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
@@ -245,7 +245,7 @@ protected:
     MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     PeptideMass qc_pepmass;
-    PSMCorrectness qc_psm_corr;
+    PSMExplainedIonCurrent qc_psm_corr;
     TIC qc_tic;
     Ms2SpectrumStats qc_ms2stats;
     MzMLFile mzml_file;

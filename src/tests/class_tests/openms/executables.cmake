@@ -25,7 +25,7 @@ set(qc_executables_list
   Ms2SpectrumStats_test
   MzCalibration_test
   PeptideMass_test
-  PSMCorrectness_test
+  PSMExplainedIonCurrent_test
   QCBase_test
   RTAlignment_test
   TIC_test
