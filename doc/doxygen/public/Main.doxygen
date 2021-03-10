@@ -100,7 +100,7 @@
         Documentation:
         <UL>
           <LI> @subpage OpenMS_tutorial
-          <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/release_2.4.0/index.html" target="_blank">Developer Python Quickstart Guide (online)</a>
+          <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/latest/index.html" target="_blank">Developer Python Quickstart Guide (online)</a>
           <LI> @subpage external_code
         </UL>
 
