@@ -290,6 +290,22 @@ public:
     };
     //@}
 
+    /**  @name  Comparator classes.
+   These classes implement binary predicates that can be used
+   to compare two transitions with respect to their precursor ions.
+*/
+    //@{
+    /// Comparator by Precursor ion MZ
+    struct PrecursorMZLess
+    {
+      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
+      {
+        return left.getPrecursorMZ() < right.getPrecursorMZ();
+      }
+
+    };
+    //@}
+
 protected:
 
     void updateMembers_();
