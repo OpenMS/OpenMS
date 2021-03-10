@@ -204,9 +204,8 @@ namespace OpenMS
     for (const auto& ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
     {
       double tmp = ppm - result.average_ppm;
-      result.variance_ppm += tmp*tmp;
+      result.variance_ppm += (tmp * tmp / num_ppm);
     }
-    result.variance_ppm = result.variance_ppm / num_ppm;
   }
 
 
