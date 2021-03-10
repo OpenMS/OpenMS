@@ -192,9 +192,15 @@ namespace OpenMS
     // WRITE PPM ERROR IN PEPTIDEHIT
     //-----------------------------------------------------------------------
     pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM, ppms);
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end(), Math::mean(ppms.begin(), ppms.end())));
     pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM, dalton);
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end(), Math::mean(dalton.begin(), dalton.end())));
+    if (!ppms.empty())
+    {
+      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end(), Math::mean(ppms.begin(), ppms.end())));
+    }
+    if (!dalton.empty())
+    {
+      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end(), Math::mean(dalton.begin(), dalton.end())));
+    }
   }
 
   void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm)
