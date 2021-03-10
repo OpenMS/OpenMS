@@ -467,9 +467,9 @@ namespace OpenMS
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
   }
 
-  void TargetedExperiment::sortTransitionsByPrecursorMZ()
+  void TargetedExperiment::sortTransitionsByName()
   {
-    std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::PrecursorMZLess());
+    std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::NameLess());
   }
 
   bool TargetedExperiment::containsInvalidReferences() const

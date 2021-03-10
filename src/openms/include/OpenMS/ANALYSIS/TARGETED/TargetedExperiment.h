@@ -262,9 +262,9 @@ public:
     ///@name Sorting peaks
     //@{
     /**
-      @brief Lexicographically sorts the transitions by their precursor m/z.
+      @brief Lexicographically sorts the transitions by their name.
     */
-    void sortTransitionsByPrecursorMZ();
+    void sortTransitionsByName();
     //@}
 
     /**

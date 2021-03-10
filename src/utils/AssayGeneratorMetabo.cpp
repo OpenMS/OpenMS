@@ -629,8 +629,8 @@ protected:
       }
     }
 
-    // sort TargetedExperiment by precursor m/z
-    t_exp.sortTransitionsByPrecursorMZ();
+    // sort TargetedExperiment by precursor m/z and name
+    t_exp.sortTransitionsByName();
 
     //-------------------------------------------------------------
     // writing output
