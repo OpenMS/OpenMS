@@ -205,7 +205,7 @@ namespace OpenMS
 
     // temporary vector
     std::vector<FeatureHypothesis> candidate_hypotheses;
-    std::vector<double> deconv_masses; // mass is from the feature with highest intensity
+    std::map<double, DeconvMassStruct> deconv_masses; // mass is from the feature with highest intensity (not mean)
     std::vector<std::vector<Size>> deconv_charges;
 
     // *********************************************************** //
@@ -240,7 +240,7 @@ namespace OpenMS
           local_traces.push_back(std::make_pair(&input_mtraces[ext_idx], ext_idx));
         }
       }
-      findLocalFeatures_(local_traces, total_intensity, candidate_hypotheses, deconv_masses, deconv_charges);
+      findLocalFeatures_(local_traces, total_intensity, candidate_hypotheses, deconv_masses);
     }
     this->endProgress();
 
@@ -282,8 +282,7 @@ namespace OpenMS
   void FeatureFindingIntact::findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
                                                 const double total_intensity,
                                                 std::vector<FeatureHypothesis>& output_hypotheses,
-                                                std::vector<double> deconv_masses,
-                                                std::vector<std::vector<Size>> deconv_charges) const
+                                                std::map<double, DeconvMassStruct>& deconv_masses) const
   {
     // not storing hypothesis with only one mass trace (with only mono), while FeatureFindingMetabo does
 
@@ -472,7 +471,51 @@ namespace OpenMS
     // TODO : allow more charge scenarios? for now, allowing only one charge state put current mass trace
     output_hypotheses.push_back(hypo_for_cur_candi[0]);
 
-    //    /// remove charge artifacts
+    // add to deconv_mass_map
+    std::map<double, DeconvMassStruct>::const_iterator low_it;
+    std::map<double, DeconvMassStruct>::const_iterator up_it;
+
+    const double &current_mass = hypo_for_cur_candi[0].getFeatureMass();
+    const double &tol = current_mass * mass_tolerance_ * 1e-6;
+    low_it = deconv_masses.lower_bound( current_mass-tol ); // less than or equal to
+    up_it = deconv_masses.upper_bound( current_mass+tol ); // greater than
+
+    // no matching in deconv_masses map
+    if (low_it == up_it)
+    {
+      DeconvMassStruct dms;
+      dms.deconv_mass = current_mass;
+      dms.intensity = hypo_for_cur_candi[0].computeQuant();
+      dms.charges.push_back(hypo_for_cur_candi[0].getCharge());
+      dms.features.push_back(&hypo_for_cur_candi[0]);
+      deconv_masses.insert(make_pair(current_mass, dms));
+      return;
+    }
+
+    // find nearest deconv mass
+    double smallest_diff(tol*2);
+    auto &selected_it = low_it;
+    for (; low_it != up_it; ++low_it)
+    {
+      double diff = std::abs(low_it->first-current_mass);
+      if (diff < smallest_diff)
+      {
+        selected_it = low_it;
+        smallest_diff = diff;
+      }
+    }
+    // put into deconv_massses map and update DeconvMassStruct in the map
+    if (selected_it->second.intensity < hypo_for_cur_candi[0].computeQuant()) // key of map should be changed
+    {
+      // change the key of map
+      auto curr_node = deconv_masses.extract(selected_it->first);
+      curr_node.key() = current_mass;
+      curr_node.mapped().deconv_mass = current_mass;
+      curr_node.mapped().intensity = hypo_for_cur_candi[0].getQuant();
+      deconv_masses.insert(std::move(curr_node));
+    }
+
+//    /// remove charge artifacts
 //    for (Size x=0; x<hypo_for_cur_candi.size(); x++)
 //    {
 //      auto& cur_candi = hypo_for_cur_candi[x];

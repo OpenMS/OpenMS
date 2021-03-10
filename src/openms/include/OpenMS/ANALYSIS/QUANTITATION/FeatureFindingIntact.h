@@ -80,7 +80,8 @@ namespace OpenMS
         mz_score_(),
         rt_score_(),
         inty_score_(),
-        scores_per_mt_()
+        scores_per_mt_(),
+        quant_value_()
       {
       }
 
@@ -105,7 +106,8 @@ namespace OpenMS
           mz_score_(fh.mz_score_),
           rt_score_(fh.rt_score_),
           inty_score_(fh.inty_score_),
-          scores_per_mt_(fh.scores_per_mt_)
+          scores_per_mt_(fh.scores_per_mt_),
+          quant_value_(fh.quant_value_)
       {
       }
 
@@ -129,6 +131,7 @@ namespace OpenMS
         rt_score_ = fh.rt_score_;
         inty_score_ = fh.inty_score_;
         scores_per_mt_ = fh.scores_per_mt_;
+        quant_value_ = fh.quant_value_;
         return *this;
       }
 
@@ -188,6 +191,11 @@ namespace OpenMS
       double getIntyScore() const
       {
         return inty_score_;
+      }
+
+      double getQuant() const
+      {
+        return quant_value_;
       }
 
       std::pair<double, double> getRTRange() const
@@ -320,6 +328,18 @@ namespace OpenMS
         feat_score_ = score;
       }
 
+      double computeQuant()
+      {
+        // from mass traces
+        double q(0.0);
+        for (auto& mt : iso_pattern_traces_)
+        {
+          q += mt->computePeakArea();
+        }
+        quant_value_ = q;
+        return q;
+      }
+
     private:
       SignedSize charge_;
       double feat_score_;
@@ -327,6 +347,7 @@ namespace OpenMS
       double rt_score_;
       double inty_score_;
       double feature_mass_;
+      double quant_value_;
       std::vector<const MassTrace*> iso_pattern_traces_;
       std::vector<double> scores_per_mt_;
       // first: iso index of current feature, second : masstrace index of final masstraces
@@ -520,6 +541,20 @@ namespace OpenMS
     }
 
   private:
+    struct DeconvMassStruct
+    {
+      double deconv_mass;
+      double intensity;
+      std::vector<FeatureHypothesis*> features;
+      std::vector<Size> charges;
+
+      DeconvMassStruct():
+          deconv_mass(0.0),
+          intensity(0.0)
+      {}
+
+    };
+
     /// method for builiding Feature Hypotheses
     void buildFeatureHypotheses_(std::vector<MassTrace>& input_mtraces,
                                  std::vector<FeatureHypothesis>& output_hypotheses,
@@ -528,8 +563,7 @@ namespace OpenMS
     void findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
                             const double total_intensity,
                             std::vector<FeatureHypothesis>& output_hypotheses,
-                            std::vector<double> deconv_masses,
-                            std::vector<std::vector<Size>> deconv_charges) const;
+                            std::map<double, DeconvMassStruct>& deconv_masses) const;
 
     double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const;
 
@@ -577,6 +611,7 @@ namespace OpenMS
     double mass_upper_bound_;
     Size max_nr_traces_; // calculated from iso_model_ (FeatureFindingIntact::setAveragineModel())
     bool use_smoothed_intensities_;
+    double mass_tolerance_ = 20; // ppm, for feature mass collection
 
     const std::vector<Size> harmonic_charges_{2, 3, 5};
 
