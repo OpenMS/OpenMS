@@ -135,7 +135,7 @@ protected:
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Your mzQC file.");
-    setValidFormats_("out", ListUtils::create<String>("qcML"));
+    setValidFormats_("out", ListUtils::create<String>("mzQC"));
     registerStringOption_("label", "<label>", "", "unique name for the run that can be used in a figure label", true);
     registerStringOption_("name", "<contactName>", "", "name of the person creating this mzQC file", false);
     registerStringOption_("address", "<contactAddress>", "", "contact address (mail/e-mail or phone)", false);

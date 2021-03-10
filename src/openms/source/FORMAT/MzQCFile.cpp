@@ -148,6 +148,15 @@ namespace OpenMS
 
 
     cout << out.dump(2) << endl;
+    //open stream
+    ofstream os(outputFileName.c_str());
+    if (!os)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outputFileName);
+    }
+
+    os.precision(writtenDigits<double>(0.0));
+    os << out.dump(2);
   }
 
 }
