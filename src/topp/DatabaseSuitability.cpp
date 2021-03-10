@@ -40,7 +40,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/DBSuitability.h>
-#include <OpenMS/QC/PSMCorrectness.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -204,12 +203,6 @@ protected:
 
     Ms2IdentificationRate::IdentificationRateData spectral_quality = q.getResults()[0];
 
-    PSMCorrectness c;
-    QCBase::SpectraMap mapping(exp);
-    c.compute(novo_peps, prot_ids[0].getSearchParameters(), exp, mapping);
-
-    PSMCorrectness::Statistics correctness = c.getResults()[0];
-
     DBSuitability s;
     Param p = getParam_().copy("algorithm:", true);
     s.setParameters(p);
@@ -228,7 +221,6 @@ protected:
     OPENMS_LOG_INFO << unique_novo.size() << " / " << spectral_quality.num_peptide_identification << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << spectral_quality.num_ms2_spectra << " ms2 spectra found" << endl;
     OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl;
-    OPENMS_LOG_INFO << "avg. correctness of novo PSMs [0, 1]: " << correctness.average_correctness << " (variance: " << correctness.variance_correctness << ")" << endl << endl;
 
     if (!out.empty())
     {
@@ -249,8 +241,6 @@ protected:
       os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
       os << "#ms2_spectra\t" << spectral_quality.num_ms2_spectra << "\n";
       os << "spectral_quality\t" << spectral_quality.identification_rate << "\n";
-      os << "avg. novo correctness\t" << correctness.average_correctness << "\n";
-      os << "variance novo correctness\t" << correctness.variance_correctness << "\n";
       os.close();
     }
 
