@@ -1597,8 +1597,12 @@ namespace OpenMS
           }
 
         }
-        else if (accession == "MS:1000497") //zoom scan
+        else if (accession == "MS:1000497") // deprecated: zoom scan is now a scan attribute
         {
+          OPENMS_LOG_DEBUG << "MS:1000497 - zoom scan is now a scan attribute. Reading it for backwards compatibility reasons as spectrum attribute." 
+                           << " You can make this warning go away by converting this file using FileConverter to a newer version of the PSI ontology."
+                           << " Or by using a recent converter that supports the newest PSI ontology."
+                           << std::endl;
           spec_.getInstrumentSettings().setZoomScan(true);
         }
         else if (accession == "MS:1000285") //total ion current
@@ -2233,6 +2237,10 @@ namespace OpenMS
         {
           //No member => meta data
           spec_.setMetaValue("scan law", String("quadratic"));
+        }
+        else if (accession == "MS:1000497") // zoom scan
+        {
+          spec_.getInstrumentSettings().setZoomScan(true);
         }
         else
         {
@@ -5044,10 +5052,6 @@ namespace OpenMS
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\" />\n";
       }
-      if (spec.getInstrumentSettings().getZoomScan())
-      {
-        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
-      }
 
       //spectrum type
       if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
@@ -5181,6 +5185,12 @@ namespace OpenMS
           }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
+
+        if (spec.getInstrumentSettings().getZoomScan())
+        {
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
+        }
+
         //scan windows
         if (j == 0 && spec.getInstrumentSettings().getScanWindows().size() != 0)
         {
@@ -5202,6 +5212,11 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t<scan>\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+
+        if (spec.getInstrumentSettings().getZoomScan())
+        {
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
+        }
         //scan windows
         if (spec.getInstrumentSettings().getScanWindows().size() != 0)
         {
