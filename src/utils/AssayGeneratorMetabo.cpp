@@ -629,7 +629,7 @@ protected:
       }
     }
 
-    // sort TargetedExperiment by precursor m/z and name
+    // sort TargetedExperiment by name (TransitionID)
     t_exp.sortTransitionsByName();
 
     //-------------------------------------------------------------
