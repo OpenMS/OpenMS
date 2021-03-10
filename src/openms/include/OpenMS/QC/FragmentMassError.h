@@ -79,12 +79,13 @@ namespace OpenMS
      * Each FME (in ppm) is stored at the first PeptideHit of the corresponding PeptideIdentification as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
      * and contains the FME for each peak in the corresponding spectrum.
      * Same is done for the FME in Da - as metavalue Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM.
+     * Note: If the metavalues already exist, they will be overwritten.
      *
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
-     * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
      * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
+     * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value (Will be overwritten if tolerance_unit AUTO is chosen)
      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
@@ -94,25 +95,26 @@ namespace OpenMS
     void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /**
-      * @brief computes FragmentMassError (FME) in ppm and Dalton (only of the first PeptideHit of each PepID)
-      *
-      * Stores average FME over all spectra and its variance in ppm as a struct in a vector.
-      * Each FME (in ppm) is stored at the first PeptideHit of the corresponding PeptideIdentification as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
-      * and contains the FME for each peak in the corresponding spectrum.
-      * Same is done for the FME in Da - as metavalue Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM.
-      *
-      * @param pep_ids Input vector of peptide identifications for annotation and data for theoretical spectra
-      * @param search_params Input search parameters (corresponding to ID search that generated @param pep_ids) for finding fragment mass tolerance and unit automaticly
-      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
-      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
-      * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
-      * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from @search_params)
-      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in @search_params
-      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
-      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
-      * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
-      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
-      */
+     * @brief computes FragmentMassError (FME) in ppm and Dalton (only of the first PeptideHit of each PepID)
+     *
+     * Stores average FME over all spectra and its variance in ppm as a struct in a vector.
+     * Each FME (in ppm) is stored at the first PeptideHit of the corresponding PeptideIdentification as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
+     * and contains the FME for each peak in the corresponding spectrum.
+     * Same is done for the FME in Da - as metavalue Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM.
+     * Note: If the metavalues already exist, they will be overwritten.
+     *
+     * @param pep_ids Input vector of peptide identifications for annotation and data for theoretical spectra
+     * @param search_params Input search parameters (corresponding to ID search that generated @param pep_ids) for finding fragment mass tolerance and unit automaticly
+     * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+     * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
+     * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
+     * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value (Will be overwritten if tolerance_unit AUTO is chosen)
+     * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in @search_params
+     * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
+     * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
+     * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
+     * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
+     */
     void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
