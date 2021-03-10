@@ -74,7 +74,7 @@ namespace OpenMS
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
     fd_defaults.setValue("tol", inputs["tol"]);
-    fd_defaults.setValue("RT_window", rt_window_, "");
+    fd_defaults.setValue("rt_window", rt_window_);
     fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
 
     auto mass_count_double = inputs["max_mass_count"];
@@ -187,17 +187,17 @@ namespace OpenMS
       int m = item.first;
       double qscore = item.second;
 
-       if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end())
-       {
-         new_mass_rt_qscore_map[m] = std::vector<double>(2);
-         //new_mass_rt_qscore_map[m][1] = qscore;
-         new_color_map[m] = 'G';
-       }
-       else if (new_mass_rt_qscore_map[m][1] < qscore)
-       { // increasing mass
-         if (new_color_map[m] == 'G' || new_color_map[m] == 'R')
-         {//new_color_map.find(m) == new_color_map.end() ||
-           new_color_map[m] = 'B';
+      if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end())
+      {
+        new_mass_rt_qscore_map[m] = std::vector<double>(2);
+        //new_mass_rt_qscore_map[m][1] = qscore;
+        new_color_map[m] = 'G';
+      }
+      else if (new_mass_rt_qscore_map[m][1] < qscore)
+      { // increasing mass
+        if (new_color_map[m] == 'G' || new_color_map[m] == 'R')
+        {//new_color_map.find(m) == new_color_map.end() ||
+          new_color_map[m] = 'B';
         }
         else if (new_color_map[m] == 'r' || new_color_map[m] == 'g')
         {
@@ -205,16 +205,16 @@ namespace OpenMS
         }
       }
       else
-       { // decreasing mass
-         if (new_color_map[m] == 'G' || new_color_map[m] == 'B')
-         {//new_color_map.find(m) == new_color_map.end() ||
-           new_color_map[m] = 'R';
-         }
-         else if (new_color_map[m] == 'b' || new_color_map[m] == 'g')
-         {
-           new_color_map[m] = 'r';
-         }
-       }
+      { // decreasing mass
+        if (new_color_map[m] == 'G' || new_color_map[m] == 'B')
+        {//new_color_map.find(m) == new_color_map.end() ||
+          new_color_map[m] = 'R';
+        }
+        else if (new_color_map[m] == 'b' || new_color_map[m] == 'g')
+        {
+          new_color_map[m] = 'r';
+        }
+      }
       #ifdef DEBUG_COLOR
       if (qscore > qscore_threshold_)
       {
@@ -274,10 +274,10 @@ namespace OpenMS
           {
             break;
           }
-          if (i == 0 && c == 'G' && pg.getQScore() < 0)
-          {
-            break;
-          }
+          //if (i == 0 && c == 'G' && pg.getQScore() < 0.5)
+          // {
+          //  break;
+          // }
           int mz = (int) round((std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
           if (current_selected_mzs.find(mz) != current_selected_mzs.end())
           {

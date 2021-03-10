@@ -65,11 +65,11 @@ namespace OpenMS
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
     defaults_.setValue("min_qscore",
-                       .05,
-                       "minimum QScore threshold. QScore is the probability that a mass is correct, learned by a logistic regression.");
+                       .02,
+                       "minimum QScore threshold. QScore is the probability that a mass is identified, learned by a logistic regression.");
 
     defaults_.setValue("min_peaks",
-                       IntList{3, 1},
+                       IntList{2, 1},
                        "minimum number of supporting peaks for MS1, 2, ...  (e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively)");
 
     //defaults_.setValue("min_charge_score",

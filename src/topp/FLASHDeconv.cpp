@@ -189,7 +189,7 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{3, 1});
+    fd_defaults.setValue("min_peaks", IntList{2, 1});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", .0, "intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
@@ -537,7 +537,7 @@ protected:
       mf_param.setValue("min_isotope_cosine", isotope_cosines[0]);
     }
     mass_tracer.setParameters(mf_param);
-    //std::cout<<mass_tracer.getParameters()<<std::endl;
+    //std::cout<<fd.getParameters()<<std::endl;
 
     OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
