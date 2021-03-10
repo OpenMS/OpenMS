@@ -279,8 +279,6 @@ START_SECTION(void compute(std::vector<PeptideIdentification>&& pep_ids, const M
   cout << data.num_top_novo << " " << data.num_top_novo_corr << endl;
   cout << data.suitability << " " << data.suitability_corr << endl;
   cout << data.corr_factor << endl;*/
-
-END_TEST
 }
 END_SECTION
 
