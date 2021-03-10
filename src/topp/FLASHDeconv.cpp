@@ -134,7 +134,6 @@ protected:
     setMinInt_("mzml_mass_charge", -1);
     setMaxInt_("mzml_mass_charge", 1);
 
-
     registerIntOption_("preceding_MS1_count",
                        "<number>",
                        10,
