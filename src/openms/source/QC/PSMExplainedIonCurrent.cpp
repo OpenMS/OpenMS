@@ -146,7 +146,7 @@ namespace OpenMS
       correctness = sumOfMatchedIntensities(mi) / sum_of_intensities;
     }
 
-    pep_id.getHits()[0].setMetaValue("PSM_correctness", correctness);
+    pep_id.getHits()[0].setMetaValue(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM, correctness);
 
     return correctness;
   }
