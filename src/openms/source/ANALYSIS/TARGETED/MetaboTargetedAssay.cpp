@@ -951,8 +951,7 @@ namespace OpenMS
         sortByPrecursorInt(decoys);
         targetdecoy.push_back(decoys[0]);
       }
-
-      map_mta_filter[map_it.first] = targetdecoy;
+      map_it.second = targetdecoy;
     }
 
     for (const auto& key : empty_keys)
