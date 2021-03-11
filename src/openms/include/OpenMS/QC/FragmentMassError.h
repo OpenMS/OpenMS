@@ -54,8 +54,6 @@ namespace OpenMS
     /// Destructor
     virtual ~FragmentMassError() = default;
 
-    static MSSpectrum getTheoSpec(const Precursor::ActivationMethod& fm, const AASequence& seq, const int charge);
-
     /**
      * @brief Structure for storing results: average and variance of all FragmentMassErrors in ppm
      */

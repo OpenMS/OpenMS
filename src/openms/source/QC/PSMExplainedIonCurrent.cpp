@@ -44,8 +44,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <OpenMS/QC/FragmentMassError.h>
-
 namespace OpenMS
 {
   template <typename MIV>
@@ -106,7 +104,7 @@ namespace OpenMS
     //---------------------------------------------------------------------
     // CREATE THEORETICAL SPECTRUM
     //---------------------------------------------------------------------
-    PeakSpectrum theo_spectrum = FragmentMassError::getTheoSpec(act_method, seq, charge);
+    PeakSpectrum theo_spectrum = TheoreticalSpectrumGenerator::generateSpectrum(act_method, seq, charge);
 
     //-----------------------------------------------------------------------
     // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
