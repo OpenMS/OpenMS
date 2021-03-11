@@ -2491,9 +2491,9 @@ namespace OpenMS
                       continue;
 /* TODO enetz: look up in XLDB and remvoe this ha
                         // this is a bad hack to avoid a long list of warnings in the case of XL-MS data
-                        if ( !(String(e.getMessage()).hasSubstring("'DSG'") || String(e.getMessage()).hasSubstring("'DSS'") || String(e.getMessage()).hasSubstring("'EDC'")) || String(e.getMessage()).hasSubstring("'BS3'") || String(e.getMessage()).hasSubstring("'BS2G'") )
+                        if ( !(String(e.what()).hasSubstring("'DSG'") || String(e.what()).hasSubstring("'DSS'") || String(e.what()).hasSubstring("'EDC'")) || String(e.what()).hasSubstring("'BS3'") || String(e.what()).hasSubstring("'BS2G'") )
                         {
-                          OPENMS_LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
+                          OPENMS_LOG_WARN << e.getName() << ": " << e.what() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
                         }
 */
                     }
@@ -2694,7 +2694,7 @@ namespace OpenMS
                   }
                   catch (Exception::BaseException& e)
                   {
-                    OPENMS_LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
+                    OPENMS_LOG_WARN << e.getName() << ": " << e.what() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
                   }
                 }
 

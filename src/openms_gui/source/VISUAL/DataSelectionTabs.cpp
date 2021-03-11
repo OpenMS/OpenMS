@@ -96,7 +96,7 @@ namespace OpenMS
     index = addTab(dia_widget_, dia_widget_->objectName());
     if (index != DIAOSW_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 2");
     // make sure initialization was correct
-    assert(tabBar()->count() == tab_ptrs_.size());
+    assert((size_t)tabBar()->count() == tab_ptrs_.size());
 
     // switch between different view tabs
     connect(this, &QTabWidget::currentChanged, this, &DataSelectionTabs::currentTabChanged);

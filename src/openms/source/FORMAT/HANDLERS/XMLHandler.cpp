@@ -84,9 +84,9 @@ namespace OpenMS
       if (mode == LOAD)
       {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
-	// test if file has the wrong extension and is therefore passed to the wrong parser
+	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
-	FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {

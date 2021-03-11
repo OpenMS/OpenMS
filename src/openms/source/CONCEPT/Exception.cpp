@@ -104,12 +104,6 @@ namespace OpenMS
       return name_.c_str();
     }
 
-/*
-    const char* BaseException::what() const noexcept
-    {
-      return what();
-    }
-*/
     const char* BaseException::getFile() const noexcept
     {
       return file_;
@@ -130,12 +124,6 @@ namespace OpenMS
       return line_;
     }
 
-/*
-    void BaseException::setMessage(const std::string& message) noexcept
-    {
-      what_ = message;
-    }
-*/
     Precondition::Precondition(const char* file, int line, const char* function, const string& condition) noexcept :
       BaseException(file, line, function, "Precondition failed", std::string(condition))
     {

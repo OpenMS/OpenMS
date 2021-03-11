@@ -591,7 +591,7 @@ namespace OpenMS
     }
     catch (Exception::FileNotFound& e)
     {
-      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.getMessage() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
+      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.what() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
       throw;
     }
 

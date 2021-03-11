@@ -166,7 +166,6 @@ namespace OpenMS
 
   ToolsDialog::~ToolsDialog()
   {
-
   }
 
   Param ToolsDialog::getParamFromIni_(const String& tool_name)
@@ -365,7 +364,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", QString("Error loading INI file: ") + e.what());
       arg_param_.clear();
       return;
     }
@@ -404,8 +403,11 @@ namespace OpenMS
     {
       return;
     }
+
     if (!filename_.endsWith(".ini"))
+    {
       filename_.append(".ini");
+    }
     editor_->store();
     arg_param_.insert(getTool() + ":1:", vis_param_);
     try
@@ -415,7 +417,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", QString("Error storing INI file: ") + e.what());
       return;
     }
   }

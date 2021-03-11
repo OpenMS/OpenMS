@@ -289,7 +289,7 @@ protected:
       }
       catch (Exception::ParseError& pe)
       {
-        writeLog_(pe.getMessage());
+        writeLog_(pe.what());
         return PARSE_ERROR;
       }
 
@@ -369,7 +369,7 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLog_(pe.getMessage());
+          writeLog_(pe.what());
           return PARSE_ERROR;
         }
         if (type != "mzXML")
@@ -607,7 +607,7 @@ protected:
         }
         catch (Exception::ParseError& p_e)
         {
-          writeLog_(String(p_e.getMessage()) + ". Aborting!");
+          writeLog_(String(p_e.what()) + ". Aborting!");
           return PARSE_ERROR;
         }
       }
@@ -870,7 +870,7 @@ protected:
           }
           catch (Exception::ParseError& pe)
           {
-            writeLog_(pe.getMessage());
+            writeLog_(pe.what());
             exit_code = INPUT_FILE_CORRUPT;
           }
           if (exit_code == EXECUTION_OK)
