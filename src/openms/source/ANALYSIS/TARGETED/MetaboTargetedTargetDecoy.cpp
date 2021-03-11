@@ -45,8 +45,8 @@ namespace OpenMS
     std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
     for (const auto& tr_it : t_exp.getTransitions())
     {
-      auto [it, success] = TransitionsMap.emplace(tr_it.getCompoundRef(), std::vector<OpenMS::ReactionMonitoringTransition>());
-      it->second.push_back(tr_it);
+      auto pair_it_success = TransitionsMap.emplace(tr_it.getCompoundRef(), std::vector<OpenMS::ReactionMonitoringTransition>());
+      pair_it_success.first->second.push_back(tr_it);
     }
     return TransitionsMap;
   }
