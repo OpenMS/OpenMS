@@ -146,7 +146,6 @@ protected:
 
       /// The name of the exception.
       std::string name_;
-
     };
 
     /**
