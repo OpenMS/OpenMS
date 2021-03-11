@@ -193,13 +193,13 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM, ppms);
     pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM, dalton);
-    if (!ppms.empty())
+    if (ppms.size() > 1)
     {
-      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end(), Math::mean(ppms.begin(), ppms.end())));
+      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end()));
     }
-    if (!dalton.empty())
+    if (dalton.size() > 1)
     {
-      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end(), Math::mean(dalton.begin(), dalton.end())));
+      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end()));
     }
   }
 
