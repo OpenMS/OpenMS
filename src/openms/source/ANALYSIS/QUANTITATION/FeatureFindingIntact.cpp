@@ -206,7 +206,6 @@ namespace OpenMS
     // temporary vector
     std::vector<FeatureHypothesis> candidate_hypotheses;
     std::map<double, DeconvMassStruct> deconv_masses; // mass is from the feature with highest intensity (not mean)
-    std::vector<std::vector<Size>> deconv_charges;
 
     // *********************************************************** //
     // Step 2 Iterate through all mass traces to find likely matches
@@ -251,6 +250,7 @@ namespace OpenMS
 //    std::sort(candidate_hypotheses.begin(), candidate_hypotheses.end(), greater<FeatureHypothesis>()); // sorting in descending order
 //    removeMassArtifacts_(candidate_hypotheses);
     OPENMS_LOG_INFO << "feature hypotheses size:" << candidate_hypotheses.size() << std::endl;
+    OPENMS_LOG_INFO << "feature masses size : " << deconv_masses.size() << std::endl;
 
     // *********************************************************** //
     // Step 4 add charge score
@@ -475,26 +475,27 @@ namespace OpenMS
     std::map<double, DeconvMassStruct>::const_iterator low_it;
     std::map<double, DeconvMassStruct>::const_iterator up_it;
 
-    const double &current_mass = hypo_for_cur_candi[0].getFeatureMass();
-    const double &tol = current_mass * mass_tolerance_ * 1e-6;
-    low_it = deconv_masses.lower_bound( current_mass-tol ); // less than or equal to
-    up_it = deconv_masses.upper_bound( current_mass+tol ); // greater than
+    const double &current_mass = output_hypotheses.back().getFeatureMass();
+//    const double &tol = current_mass * mass_tolerance_ * 1e-6;
+    low_it = deconv_masses.lower_bound( current_mass-mass_tolerance_ ); // less than or equal to
+    up_it = deconv_masses.upper_bound( current_mass+mass_tolerance_ ); // greater than
 
     // no matching in deconv_masses map
     if (low_it == up_it)
     {
       DeconvMassStruct dms;
       dms.deconv_mass = current_mass;
-      dms.intensity = hypo_for_cur_candi[0].computeQuant();
-      dms.charges.push_back(hypo_for_cur_candi[0].getCharge());
-      dms.features.push_back(&hypo_for_cur_candi[0]);
+//      dms.intensity = output_hypotheses.back().computeQuant();
+      dms.charges.insert(output_hypotheses.back().getCharge());
+      dms.features.push_back(&output_hypotheses.back());
+      dms.feature_masses.push_back(current_mass);
       deconv_masses.insert(make_pair(current_mass, dms));
       return;
     }
 
     // find nearest deconv mass
-    double smallest_diff(tol*2);
-    auto &selected_it = low_it;
+    double smallest_diff(mass_tolerance_);
+    auto selected_it = low_it;
     for (; low_it != up_it; ++low_it)
     {
       double diff = std::abs(low_it->first-current_mass);
@@ -504,14 +505,17 @@ namespace OpenMS
         smallest_diff = diff;
       }
     }
-    // put into deconv_massses map and update DeconvMassStruct in the map
-    if (selected_it->second.intensity < hypo_for_cur_candi[0].computeQuant()) // key of map should be changed
+    // add current feature to deconv_massses map
+    double key_mass = selected_it->first;
+    deconv_masses[key_mass].charges.insert(output_hypotheses.back().getCharge());
+    deconv_masses[key_mass].features.push_back(&output_hypotheses.back());
+    deconv_masses[key_mass].feature_masses.push_back(current_mass);
+
+    // update key of map if needed
+    if (deconv_masses[key_mass].updateDeconvMass())
     {
-      // change the key of map
-      auto curr_node = deconv_masses.extract(selected_it->first);
-      curr_node.key() = current_mass;
-      curr_node.mapped().deconv_mass = current_mass;
-      curr_node.mapped().intensity = hypo_for_cur_candi[0].getQuant();
+      auto curr_node = deconv_masses.extract(key_mass);
+      curr_node.key() = curr_node.mapped().deconv_mass;
       deconv_masses.insert(std::move(curr_node));
     }
 

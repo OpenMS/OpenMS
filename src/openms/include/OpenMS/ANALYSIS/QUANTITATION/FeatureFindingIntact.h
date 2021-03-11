@@ -543,15 +543,45 @@ namespace OpenMS
   private:
     struct DeconvMassStruct
     {
-      double deconv_mass;
-      double intensity;
-      std::vector<FeatureHypothesis*> features;
-      std::vector<Size> charges;
+      double deconv_mass; // median mass of current
+      std::vector<const FeatureHypothesis*> features;
+      std::vector<double> feature_masses;
+      std::set<const Size> charges;
 
       DeconvMassStruct():
-          deconv_mass(0.0),
-          intensity(0.0)
+          deconv_mass(0.0)
       {}
+
+      // update deconv_mass from calculating median of masses
+      // return true if deconv_mass is changed - this step is needed to reduce unnecessary step in DeconvMassStruct set update
+      bool updateDeconvMass()
+      {
+        if (feature_masses.size() == 1)
+        {
+          deconv_mass = feature_masses[0];
+          return false;
+        }
+        std::sort(feature_masses.begin(), feature_masses.end());
+
+        Size m_size = feature_masses.size();
+        Size mid = static_cast<Size>(m_size / 2.0);
+        double new_mass(0.0);
+        if ((m_size % 2) == 0)
+        {
+          new_mass = (feature_masses[mid - 1] +  feature_masses[mid]) / 2;
+        }
+        else
+        {
+          new_mass = feature_masses[mid];
+        }
+
+        if (new_mass != deconv_mass)
+        {
+          deconv_mass = new_mass;
+          return true;
+        }
+        return false;
+      }
 
     };
 
@@ -611,7 +641,7 @@ namespace OpenMS
     double mass_upper_bound_;
     Size max_nr_traces_; // calculated from iso_model_ (FeatureFindingIntact::setAveragineModel())
     bool use_smoothed_intensities_;
-    double mass_tolerance_ = 20; // ppm, for feature mass collection
+    const double mass_tolerance_ = 1.5; // Da, for feature mass collection
 
     const std::vector<Size> harmonic_charges_{2, 3, 5};
 
