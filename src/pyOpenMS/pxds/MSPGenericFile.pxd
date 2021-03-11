@@ -13,5 +13,6 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
         MSPGenericFile(const String& filename, MSExperiment& library) nogil except +
 
         void load(const String& filename, MSExperiment& library) nogil except +
+        void store(const String& filename, const MSExperiment& library) nogil except +
         void getDefaultParameters(Param & params) nogil except +
 

@@ -61,14 +61,16 @@ namespace OpenMS
 public:
     /// Constructor
     SpectraTreeTab(QWidget * parent = nullptr);
+
     /// Destructor
     ~SpectraTreeTab() = default;
 
-    // docu in base class
-    bool hasData(const LayerData* layer);
+    /// docu in base class
+    bool hasData(const LayerData* layer) override;
 
     /// refresh the table using data from @p cl
     void updateEntries(LayerData* cl) override;
+    
     /// remove all visible data
     void clear() override;
 

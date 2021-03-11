@@ -70,8 +70,9 @@ namespace OpenMS
     /// refresh the table using data from @p cl
     /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
     void updateEntries(LayerData* cl) override;
+
     /// remove all visible data
-    void clear();
+    void clear() override;
 
   signals:
     /// emitted when a protein, peptide, feature or transition was selected
