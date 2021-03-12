@@ -21,6 +21,7 @@ FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
 FeatureFinderIdentificationAlgorithm.h
+FeatureFinderAlgorithmMetaboIdent.h
 FeatureFinderMultiplexAlgorithm.h
 FeatureFinderDefs.h
 Fitter1D.h
