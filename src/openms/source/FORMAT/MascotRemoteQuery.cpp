@@ -85,6 +85,8 @@ namespace OpenMS
     defaults_.setValue("export_params", "_ignoreionsscorebelow=0&_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", ListUtils::create<String>("advanced"));
     defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator (via GenericWrapper): Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("skip_export", ListUtils::create<String>("true,false"));
+    defaults_.setValue("batch_size", 50000, "Number of spectra processed in one batch by Mascot (default 50000)", ListUtils::create<String>("advanced"));
+    defaults_.setMinInt("batch_size", 0);
     defaultsToParam_();
   }
 
@@ -476,6 +478,7 @@ namespace OpenMS
 
   void MascotRemoteQuery::readResponse(QNetworkReply* reply)
   {
+    static QString dat_file_path_;
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "\nvoid MascotRemoteQuery::readResponse(const QNetworkReply* reply): ";
     if (reply->error())
@@ -559,7 +562,8 @@ namespace OpenMS
       QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
       rx.setMinimal(true);
       rx.indexIn(response);
-      search_identifier_ = getSearchIdentifierFromFilePath(rx.cap(1));
+      dat_file_path_ = rx.cap(1);
+      search_identifier_ = getSearchIdentifierFromFilePath(dat_file_path_);
 
       if (param_.exists("skip_export") &&
           (param_.getValue("skip_export") == "true"))
@@ -571,7 +575,7 @@ namespace OpenMS
       QString results_path("");
       results_path.append(server_path_.toQString());
       results_path.append("/cgi/export_dat_2.pl?file=");
-      results_path.append(rx.cap(1));
+      results_path.append(dat_file_path_);
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
       cerr << "Results path to export: " << results_path.toStdString() << "\n";
@@ -579,12 +583,14 @@ namespace OpenMS
 
       // see http://www.matrixscience.com/help/export_help.html for parameter documentation
       String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
+    // TODO: check that export_params don't contain _show_decoy_report=1. This would add <decoy> at the top of the XML document and we can't easily distinguish the two files (target/decoy) from the search results later.
       String adjustable_params = param_.getValue("export_params");
+
       results_path.append(required_params.toQString() + "&" +
                           adjustable_params.toQString());
       // results_path.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1&generate_file=1&group_family=1");
 
-      //Finished search, fire off results retrieval
+      // Finished search, fire off results retrieval
       getResults(results_path);
     }
     else if (status == 303)
@@ -637,8 +643,36 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
         cerr << "Get the XML File" << "\n";
 #endif
-        mascot_xml_ = new_bytes;
-        endRun_();
+        if (new_bytes.contains("<decoy>"))
+        {
+          mascot_decoy_xml_ = new_bytes;          
+          endRun_();
+        }
+        else
+        {
+          mascot_xml_ = new_bytes;
+
+          // now retrieve decos
+          if (export_decoys_)
+          {
+            QString results_path("");
+            results_path.append(server_path_.toQString());
+            results_path.append("/cgi/export_dat_2.pl?file=");
+            results_path.append(dat_file_path_); // export again from dat file (now decoys)        
+            // see http://www.matrixscience.com/help/export_help.html for parameter documentation
+            String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
+            // TODO: check that export_params don't contain _show_decoy_report=1. This would add <decoy> at the top of the XML document and we can't easily distinguish the two files (target/decoy) from the search results later.
+            String adjustable_params = param_.getValue("export_params");
+            results_path.append(required_params.toQString() + "&" +
+                            adjustable_params.toQString() + "&_show_decoy_report=1&show_decoy=1"); // request 
+
+            getResults(results_path); 
+          }
+          else
+          {
+            endRun_();
+          }
+        }
       }
     }
   }
@@ -651,6 +685,16 @@ namespace OpenMS
   const QByteArray& MascotRemoteQuery::getMascotXMLResponse() const
   {
     return mascot_xml_;
+  }
+
+  const QByteArray& MascotRemoteQuery::getMascotXMLDecoyResponse() const
+  {
+    return mascot_decoy_xml_;
+  }
+
+  void MascotRemoteQuery::setExportDecoys(const bool b)
+  {
+    export_decoys_ = b;
   }
 
   bool MascotRemoteQuery::hasError() const
@@ -698,6 +742,7 @@ namespace OpenMS
     boundary_ = param_.getValue("boundary");
     cookie_ = "";
     mascot_xml_ = "";
+    mascot_decoy_xml_ = "";
 
     to_ = param_.getValue("timeout");
     timeout_.setInterval(1000 * to_);
@@ -788,7 +833,7 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
 #endif
-    int pos = path.find_last_of("/\\");
+    size_t pos = path.find_last_of("/\\");
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);

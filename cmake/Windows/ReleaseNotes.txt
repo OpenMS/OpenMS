@@ -32,7 +32,7 @@ files that every TOPP tool can use to adjust its parameters.
 The Windows command line
 ========================
 
-This part is usually not neccessary for the common user, even if you are advanced.
+This part is usually not necessary for the common user, even if you are advanced.
 However, special requirements (e.g. automated conversion tools, webserver or cluster integration)
 might require you to use the command line.
 To get familiar with the Windows command line, we recommend reading one of

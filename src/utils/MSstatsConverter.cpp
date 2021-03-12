@@ -77,15 +77,12 @@ class TOPPMSstatsConverter final :
   public TOPPBase
 {
 public:
-
   TOPPMSstatsConverter() :
           TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
   {
-
   }
 
 protected:
-
     // this function will be used to register the tool parameters
     // it gets automatically called on tool execution
     void registerOptionsAndFlags_() override
@@ -209,7 +206,6 @@ protected:
     static const String param_reannotate_filenames;
 
 private:
-
     static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
     {
       if (error_condition)
@@ -237,6 +233,4 @@ int main(int argc, const char **argv)
   TOPPMSstatsConverter tool;
   return tool.main(argc, argv);
 }
-
-
 /// @endcond

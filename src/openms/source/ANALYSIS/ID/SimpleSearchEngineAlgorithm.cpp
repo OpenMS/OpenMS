@@ -492,7 +492,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
-      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
       digestor.setMissedCleavages(peptide_missed_cleavages_);
     }

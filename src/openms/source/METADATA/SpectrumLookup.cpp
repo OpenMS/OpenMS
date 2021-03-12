@@ -285,6 +285,11 @@ namespace OpenMS
     {
       regexp = std::string("index=(?<GROUP>\\d+)");
     }
+    // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
+    else if (native_id_type_accession == "MS:1001508")
+    {
+      regexp = std::string("scanId=(?<GROUP>\\d+)");
+    }
     // "spectrum=NUMBER"
     else if (native_id_type_accession == "MS:1000777")
     {

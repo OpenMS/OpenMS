@@ -156,6 +156,16 @@ public:
     ///Destructor
     ~TOPPViewBase() override;
 
+
+    enum class LOAD_RESULT
+    {
+      OK,
+      FILE_NOT_FOUND,       ///< file did not exist
+      FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined                                                
+      FILETYPE_UNSUPPORTED, ///< filetype is known, but the format not supported as layer data
+      LOAD_ERROR            ///< an error occurred while loading the file
+    };
+
     /**
       @brief Opens and displays data from a file
 
@@ -168,7 +178,7 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    LOAD_RESULT addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /**
       @brief Adds a peak or feature map to the viewer
@@ -218,6 +228,9 @@ public:
 
     /// Returns the active Layer data (0 if no layer is active)
     const LayerData* getCurrentLayer() const;
+
+    /// Returns the active Layer data (0 if no layer is active)
+    LayerData* getCurrentLayer();
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.

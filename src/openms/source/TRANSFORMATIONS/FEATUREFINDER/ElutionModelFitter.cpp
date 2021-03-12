@@ -223,6 +223,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   }
 
   // collect peaks that constitute mass traces:
+  //TODO make progress logger?
   OPENMS_LOG_DEBUG << "Fitting elution models to features:" << endl;
   Size index = 0;
   for (FeatureMap::Iterator feat_it = features.begin();
@@ -268,7 +269,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
           peak.setMZ(sub_it->getMZ());
           peak.setIntensity(intensity);
           peaks.push_back(peak);
-          trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
+          trace.peaks.emplace_back(point_it->getX(), &peaks.back());
         }
       }
       trace.updateMaximum();
@@ -310,8 +311,8 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       peak.setIntensity(0.0);
       peaks.push_back(peak);
       double offset = 0.2 * (region_start - region_end);
-      trace.peaks.push_back(make_pair(region_start - offset, &peaks.back()));
-      trace.peaks.push_back(make_pair(region_end + offset, &peaks.back()));
+      trace.peaks.emplace_back(region_start - offset, &peaks.back());
+      trace.peaks.emplace_back(region_end + offset, &peaks.back());
       traces.push_back(trace);
     }
 
@@ -417,7 +418,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     {
       double area = feat_it->getMetaValue("model_area");
       if (impute)
-      { // apply log-transform to weight down high outliers:
+      { // apply log-transform to weigh down high outliers:
         double raw_intensity = feat_it->getIntensity();
         OPENMS_LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
                   << area << "; log(x) = " << log(raw_intensity)
@@ -438,7 +439,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     String x_weight, y_weight;
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
-    OPENMS_LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
+    OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;
     for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
          it != failed_models.end(); ++it)
     {

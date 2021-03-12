@@ -34,7 +34,7 @@
 
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/DTAFile.h>
@@ -113,11 +113,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPepNovoAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
   public:
   TOPPPepNovoAdapter() :
-    TOPPBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
+    SearchEngineBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
     {
     }
 
@@ -169,17 +169,13 @@ class TOPPPepNovoAdapter :
 
       PeakMap exp;
 
-      String inputfile_name = getStringOption_("in");
-      writeDebug_(String("Input file: ") + inputfile_name, 1);
+      String inputfile_name = getRawfileName();
 
       String outputfile_name = getStringOption_("out");
-      writeDebug_(String("Output file: ") + outputfile_name, 1);
 
       String model_directory = getStringOption_("model_directory");
-      writeDebug_(String("model directory: ") + model_directory, 1);
 
       String model_name = getStringOption_("model");
-      writeDebug_(String("model directory: ") + model_name, 1);
 
       double fragment_tolerance = getDoubleOption_("fragment_tolerance");
       if (fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))

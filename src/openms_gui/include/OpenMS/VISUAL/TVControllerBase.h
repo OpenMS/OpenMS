@@ -49,7 +49,7 @@ namespace OpenMS
   {
     Q_OBJECT
 
-protected:
+public:
     ///@name Type definitions
     //@{
     /// Feature map type
@@ -69,8 +69,6 @@ protected:
     /// Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
-
-public:
     TVControllerBase() = delete;
 
     virtual ~TVControllerBase() = default;

@@ -577,7 +577,7 @@ namespace OpenMS
         String::size_type length_after = s.size();
         String::size_type multiple = (length_before - length_after)/length_label;
         
-        // add as many labels to the set as occured in the peptide sequence
+        // add as many labels to the set as occurred in the peptide sequence
         for (String::size_type j = 0; j < multiple; ++j)
         {
           label_set.insert(labels_list_[i]);

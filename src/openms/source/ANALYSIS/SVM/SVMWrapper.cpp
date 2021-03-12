@@ -39,7 +39,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-
+#include <random>
 #include <fstream>
 
 #include <boost/math/distributions/normal.hpp>
@@ -608,7 +608,7 @@ namespace OpenMS
         indices.push_back(i);
       }
       // Shuffling the indices => random indices
-      random_shuffle(indices.begin(), indices.end());
+      shuffler_.portable_random_shuffle(indices.begin(), indices.end());
 
       indices_iterator = indices.begin();
 
@@ -676,7 +676,7 @@ namespace OpenMS
         indices.push_back(i);
       }
       // Shuffling the indices => random indices
-      random_shuffle(indices.begin(), indices.end());
+      shuffler_.portable_random_shuffle(indices.begin(), indices.end());
 
       indices_iterator = indices.begin();
 

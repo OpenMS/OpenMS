@@ -428,7 +428,10 @@ public:
     }
 
     // DEBUG ONLY: print counts of found decoys
-    for (auto &a : decoy_count) OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+    for (auto &a : decoy_count)
+    {
+      OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+    }
 
     // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
     // return default values
