@@ -426,7 +426,7 @@ namespace OpenMS
            map--)
       {
         precursor_scan_number_ = map->first;
-        //std::cout<<scan_number_ << " * " << precursor_scan_number_ <<std::endl;
+        // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
         if (map != precursor_map_for_real_time_acquisition.end())
         {
           for (auto &smap : map->second)
@@ -438,7 +438,9 @@ namespace OpenMS
               precursor_log_mz_peak.abs_charge = (int) smap[1];
               precursor_log_mz_peak.isotopeIndex = 0;
               precursor_log_mz_peak.mass = smap[0];
+              precursor_log_mz_peak.intensity = smap[6];
               precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
+              precursor_peak_.setIntensity(smap[5]);
               precursor_peak_group_.push_back(precursor_log_mz_peak);
               precursor_peak_group_.setQScore(smap[2]);
               precursor_peak_group_.setRepAbsCharge((int) smap[1]);
@@ -466,7 +468,9 @@ namespace OpenMS
               precursor_log_mz_peak.abs_charge = (int) smap[1];
               precursor_log_mz_peak.isotopeIndex = 0;
               precursor_log_mz_peak.mass = smap[0];
+              precursor_log_mz_peak.intensity = smap[6];
               precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
+              precursor_peak_.setIntensity(smap[5]);
               precursor_peak_group_.push_back(precursor_log_mz_peak);
               precursor_peak_group_.setQScore(smap[2]);
               precursor_peak_group_.setRepAbsCharge((int) smap[1]);

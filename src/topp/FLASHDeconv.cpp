@@ -47,7 +47,7 @@
 using namespace OpenMS;
 using namespace std;
 
-//#define DEBUG_EXTRA_PARAMTER
+#define DEBUG_EXTRA_PARAMTER
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -319,14 +319,13 @@ protected:
       }
       in_trainstream.close();
     }
-
-    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range
+    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
     if (!in_log_file.empty())
     {
       std::ifstream instream(in_log_file);
       String line;
       int scan;
-      double mass, charge, w1, w2, qscore;
+      double mass, charge, w1, w2, qscore, pint, mint, color;
       while (std::getline(instream, line))
       {
         if (line.find("0 targets") != line.npos)
@@ -339,22 +338,22 @@ protected:
           Size ed = line.find(')');
           String n = line.substr(st, ed);
           scan = atoi(n.c_str());
-          precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range
+          precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
         }
         if (line.hasPrefix("Mass"))
         {
           Size st = 5;
-          Size ed = line.find(' ');
+          Size ed = line.find('\t');
           String n = line.substr(st, ed);
           mass = atof(n.c_str());
 
           st = line.find("Z=") + 2;
-          ed = line.find(' ', st);
+          ed = line.find('\t', st);
           n = line.substr(st, ed);
           charge = atof(n.c_str());
 
           st = line.find("Score=") + 6;
-          ed = line.find(' ', st);
+          ed = line.find('\t', st);
           n = line.substr(st, ed);
           qscore = atof(n.c_str());
 
@@ -367,12 +366,51 @@ protected:
           ed = line.find(']', st);
           n = line.substr(st, ed);
           w2 = atof(n.c_str());
-          std::vector<double> e(5);
+
+          st = line.find("PrecursorIntensity=", ed) + 19;
+          ed = line.find('\t', st);
+          n = line.substr(st, ed);
+          pint = atof(n.c_str());
+
+          st = line.find("PrecursorMassIntensity=", ed) + 23;
+          ed = line.find('\t', st);
+          n = line.substr(st, ed);
+          mint = atof(n.c_str());
+
+          st = line.find("Color=", ed) + 6;
+          //ed = line.find(' ', st);
+          n = line.substr(st, st + 1);
+          if (n.hasPrefix("B"))
+          {
+            color = 1.0;
+          }
+          else if (n.hasPrefix("R"))
+          {
+            color = 2.0;
+          }
+          else if (n.hasPrefix("b"))
+          {
+            color = 3.0;
+          }
+          else if (n.hasPrefix("r"))
+          {
+            color = 4.0;
+          }
+          else
+          {
+            color = 5.0;
+          }
+
+          std::vector<double> e(8);
           e[0] = mass;
           e[1] = charge;
           e[2] = qscore;
           e[3] = w1;
           e[4] = w2;
+          e[5] = pint;
+          e[6] = mint;
+          e[7] = color;
+
           precursor_map_for_real_time_acquisition[scan].push_back(e);
         }
       }
@@ -613,10 +651,10 @@ protected:
         double pmass =
             top_pic_map[scan_number].unexp_mod_ < 0 ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
         double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
-
+        auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
         QScore::writeAttTsv(top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
                             deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
-                            deconvoluted_spectrum.getPrecursorPeakGroup(),
+                            pg,
                             deconvoluted_spectrum.getPrecursorCharge(),
                             precursor_intensity, top_pic_map[scan_number].unexp_mod_,
                             top_pic_map[scan_number].unexp_mod_ >= 0,

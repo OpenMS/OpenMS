@@ -62,7 +62,7 @@ namespace OpenMS
                             const double rt,
                             const double pmass,
                             const double pmz,
-                            PeakGroup pg,
+                            PeakGroup &pg,
                             const int charge,
                             const double precursor_intensity,
                             const int num_ptm,
