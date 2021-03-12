@@ -110,6 +110,16 @@ namespace OpenMS
     }
     
     corrected_feature = normalized_feature;
+
+    if (correction_matrix_eigen_inversed.cols() > MDV_observed.size())
+    {
+      size_t resize_diff = correction_matrix_eigen_inversed.cols() - MDV_observed.size();
+      for (size_t i = 0; i < resize_diff; ++i)
+      {
+        MDV_observed.push_back(0.0);
+      }
+    }
+
     for (int i = 0; i < correction_matrix_eigen_inversed.rows(); ++i)
     {
       double corrected_value = 0.0;
@@ -117,7 +127,35 @@ namespace OpenMS
       {
         corrected_value += correction_matrix_eigen_inversed(i,j) * MDV_observed[j];
       }
-      corrected_feature.getSubordinates().at(i).setIntensity(corrected_value);
+
+      if (corrected_feature.getSubordinates().size() < MDV_observed.size())
+      {
+        OPENMS_LOG_INFO << "isotopicCorrections: resizing feature subordinates from : " << corrected_feature.getSubordinates().size() << " to : " << MDV_observed.size() << std::endl;
+        std::vector<OpenMS::Feature> new_subordinates;
+        OpenMS::Feature feature_tmp, empty_feature;
+
+        feature_tmp.setSubordinates(corrected_feature.getSubordinates());
+
+        size_t resize_diff = MDV_observed.size() - corrected_feature.getSubordinates().size();
+
+        for (OpenMS::Feature& subordinate_copy : feature_tmp.getSubordinates()) 
+        {
+          new_subordinates.insert(new_subordinates.begin(), subordinate_copy);
+        }
+
+        // for (size_t i = 0; i < resize_diff; ++i)
+        // {
+        //   new_subordinates.insert(new_subordinates.end(), empty_feature);
+        // }
+
+        corrected_feature.setSubordinates(new_subordinates);
+        OPENMS_LOG_INFO << "isotopicCorrections: resized feature subordinates to : " << corrected_feature.getSubordinates().size() << std::endl;
+        corrected_feature.getSubordinates().at(i).setIntensity(corrected_value);
+      }
+      else
+      {
+        corrected_feature.getSubordinates().at(i).setIntensity(corrected_value);
+      }
     }
   }
 
@@ -234,7 +272,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_ERROR << "No peptideRef in FeatureMap (MetaValue doesn't exist)!" << std::endl;
+        OPENMS_LOG_ERROR << "No PeptideRef in FeatureMap (MetaValue doesn't exist)!" << std::endl;
       }
     }
   }
@@ -315,7 +353,8 @@ namespace OpenMS
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
+            // normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
+            normalized_feature.getSubordinates().at(i).setMetaValue(feature_name, (OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
           }
         }
       }
