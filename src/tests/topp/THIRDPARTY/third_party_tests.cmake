@@ -79,7 +79,7 @@ OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChoosePara
 
 #------------------------------------------------------------------------------
 # Sirius
-OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.app;sirius.sh;sirius.bat" "Sirius")
+OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.app;sirius.bat;sirius.exe" "Sirius")
 
 #------------------------------------------------------------------------------
 # Novor
@@ -323,7 +323,6 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   # Note: Following test are performed without adduct/id information, since these are obtained by the MetaboliteAdductDecharger/AccurateMassSearch
-  
   if (ENABLE_SIRIUS_TEST)
   # add dependencies for one test at a time to reduce memory and cpu consumption
   # test mzMl as input
