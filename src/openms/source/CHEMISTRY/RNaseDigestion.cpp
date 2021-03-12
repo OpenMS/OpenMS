@@ -103,7 +103,40 @@ namespace OpenMS
       vector<Size> fragment_pos(1, 0);
       for (Size i = 1; i < rna.size(); ++i)
       {
-        if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex_) &&
+        // For the case where either regex contains commas
+        if (String(cuts_after_regex_.str()).hasSubstring(',') || String(cuts_before_regex_.str()).hasSubstring(','))
+        {
+          // count the number of commas in each regex
+          String CAR = String(cuts_after_regex_.str());
+          String CBR = String(cuts_before_regex_.str());
+          size_t CAR_chars = count(CAR.begin(), CAR.end(), ',') + 1;
+          size_t CBR_chars = count(CBR.begin(), CBR.end(), ',') + 1;
+          //Check that there are enough nucleotides before and after for a match to be possible
+          if (CAR_chars > i || CBR_chars >= rna.size() - i)
+          {
+            continue; //no match possible at this position
+          }
+          //construct the comma separated sequence of nucleic acids to search against
+          
+          String pre_String = "";
+          String post_String = "";
+          for (size_t j = 0; j < CAR_chars; ++j)
+          {
+            pre_String = pre_String + rna[ i - (CAR_chars - j)]->getCode() + ",";
+          }
+          for (size_t j = 0; j < CBR_chars; ++j)
+          {
+            post_String = post_String + "," + rna[ i + j ]->getCode();
+          }
+          //do the search
+          if (boost::regex_search(pre_String, cuts_after_regex_) && boost::regex_search(post_String, cuts_before_regex_))
+          {
+            fragment_pos.push_back(i);
+          }
+
+        }
+        // If there are no commas in the regex we use the old behaviour.
+        else if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex_) &&
             boost::regex_search(rna[i]->getCode(), cuts_before_regex_))
         {
           fragment_pos.push_back(i);

@@ -57,10 +57,10 @@
     </NODE>
     <NODE name="mazF">
       <ITEM name="Name" value="mazF" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=ACA)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=A,C,A)" type="string" />
       <ITEM name="RegExDescription" value="mazF cuts before ACA." type="string" />
-      <ITEM name="CutsAfter" value=".*(?!m)$" type="string" />
-      <ITEM name="CutsBefore" value="ACA" type="string" />
+      <ITEM name="CutsAfter" value=".*" type="string" />
+      <ITEM name="CutsBefore" value="A,C,A" type="string" />
       <ITEM name="ThreePrimeGain" value="p" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
     </NODE>
