@@ -80,16 +80,7 @@ OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChoosePara
 #------------------------------------------------------------------------------
 # Sirius
 
-OPENMS_FINDBINARY(SIRIUS_BINARY "sirius" "Sirius") # THIRDPARTY linux/MacOS; Stand-alone linux
-if ((${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
-  OPENMS_FINDBINARY(SIRIUS_BINARY "sirius.bat" "Sirius") # THIRDPARTY win
-endif()
-if ((${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
-  OPENMS_FINDBINARY(SIRIUS_BINARY "sirius.app" "Sirius") # Stand-alone macOS
-endif()
-if ((${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
-  OPENMS_FINDBINARY(SIRIUS_BINARY "sirius.exe" "Sirius") # Stand-alone win
-endif()
+OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.app;sirius.bat;sirius.exe" "Sirius")
 
 #------------------------------------------------------------------------------
 # Novor
