@@ -29,46 +29,47 @@ usage() {
 # process output file options
 run_FLASH_with_options() {
 
-	# if out_mzml is true
-	[ ! -z $out_mzml ] && [ $out_mzml = "1" ] && out_mzml_file="-out_mzml ${out_prefix}_deconv.mzML"
-
-	# if out_promex is true
-	[ ! -z $out_promex ] && [ $out_promex = "1" ] && out_promex_file="-out_promex ${out_prefix}.ms1ft"
-
 	# add output options based on max_MS_level
 	[ -z "$max_MS_level" ] && max_MS_level=2
 
-	# files per MS levels
-	if [ -z $out_spec ] || [ $out_spec = "1" ]; then
-		out_spec_files="-out_spec"
-	fi
-	[ ! -z $out_topFD ] && [ $out_topFD = "1" ] && out_topFD_files="-out_topFD" || out_topFD_files=""
-	for num_ms in $(seq 1 $max_MS_level); do
-		# out_spec
-		if [ -z $out_spec ] || [ $out_spec = "1" ]; then
-			out_spec_files="${out_spec_files} ${out_prefix}_ms${num_ms}.tsv"
-		fi
+	# if out_mzml is true
+	[ ! -z $out_mzml ] && [ $out_mzml = "1" ] && out_mzml_file=" -out_mzml \"${out_prefix}_deconv.mzML\""
 
-		# out_topFD
-		[ ! -z $out_topFD ] && [ $out_topFD = "1" ] && out_topFD_files="${out_topFD_files} ${out_prefix}_ms${num_ms}.msalign"
-	done
+	# if out_promex is true
+	[ ! -z $out_promex ] && [ $out_promex = "1" ] && out_promex_file=" -out_promex \"${out_prefix}.ms1ft\""
+
+	# for spectral deconvolution outputs
+	if [ -z $out_spec ] || [ $out_spec = "1" ]; then
+		out_spec_files=" -out_spec"
+		for num_ms in $(seq 1 $max_MS_level); do
+			out_spec_files="${out_spec_files} \"${out_prefix}_ms${num_ms}.tsv\""
+		done
+	fi
+
+	# if out_topFD is true
+	if [ ! -z $out_topFD ] && [ $out_topFD = "1" ]; then
+		out_topFD_files=" -out_topFD"
+		for num_ms in $(seq 1 $max_MS_level); do
+			out_topFD_files="${out_topFD_files} \"${out_prefix}_ms${num_ms}.msalign\""
+		done
+	fi
 
 	# hidden argument - train
-	[ ! -z $hidden_train ] && [ $hidden_train = "1" ] && train_files="-in_train ${in_file%.*}_ms2_toppic_prsm.tsv -out_train ${out_prefix}_att.csv"
+	[ ! -z $hidden_train ] && [ $hidden_train = "1" ] && train_files=" -in_train \"${in_file%.*}_ms2_toppic_prsm.tsv\" -out_train \"${out_prefix}_att.csv\""
 
 	# hidden argument - read_flashida_log
 	if [ ! -z $hidden_flashida ] && [ $hidden_flashida = "1" ]; then
 		in_file_name=$(basename "$in_file")
 		in_file_name=${in_file_name%.*}
-		in_flashida_file="-in_log $(dirname "$in_file")/IDALog_${in_file_name}.log"
+		in_flashida_file=" -in_log \"$(dirname "$in_file")/IDALog_${in_file_name}.log\""
 	fi
 
-	file_options="-in ${in_file} -out ${out_prefix}.tsv ${out_spec_files} ${out_mzml_file} ${out_topFD_files} ${out_promex_file} -max_MS_level ${max_MS_level} ${train_files} ${in_flashida_file}"
-	file_options=$(echo $file_options | xargs ) # remove redundant white spaces
+	file_options="-in \"${in_file}\" -out \"${out_prefix}.tsv\"${out_spec_files}${out_mzml_file}${out_topFD_files}${out_promex_file} -max_MS_level ${max_MS_level}${train_files}${in_flashida_file}"
 
 	# running FLASHDeconv
+	echo " " # for blank line, indicating new file will be processed.
 	echo "$FLASHDeconvFile ${file_options}$1"
-	$FLASHDeconvFile ${file_options}$1
+	eval "$FLASHDeconvFile ${file_options}$1"
 }
 
 # # parsing arguments
