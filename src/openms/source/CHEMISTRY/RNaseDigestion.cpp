@@ -133,7 +133,6 @@ namespace OpenMS
           {
             fragment_pos.push_back(i);
           }
-
         }
         // If there are no commas in the regex we use the old behaviour.
         else if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex_) &&
