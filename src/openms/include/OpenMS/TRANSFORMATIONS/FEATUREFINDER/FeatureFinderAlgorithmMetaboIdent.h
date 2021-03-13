@@ -83,20 +83,7 @@ public:
 
 protected:
 
-  void extractTransformations_() const
-  {
-    TransformationDescription::DataPoints points;
-    for (FeatureMap::ConstIterator it = features.begin();
-          it != features.end(); ++it)
-    {
-      TransformationDescription::DataPoint point;
-      point.first = it->getMetaValue("expected_rt");
-      point.second = it->getRT();
-      point.note = it->getMetaValue("PeptideRef");
-      points.push_back(point);
-    }
-    trafo_.setDataPoints(points);
-  }
+  void extractTransformations_(const FeatureMap& features) const;
 
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width

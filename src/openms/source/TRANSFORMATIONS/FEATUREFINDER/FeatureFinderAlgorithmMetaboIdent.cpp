@@ -300,6 +300,7 @@ namespace OpenMS
       }
     }
 
+    extractTransformations_(features);
   }
 
   /// Calculate mass-to-charge ratio from mass and charge
@@ -871,6 +872,20 @@ namespace OpenMS
       features.getProteinIdentifications()[0].setIdentifier("id");
     }
     return n_shared; // for summary statistics
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::extractTransformations_(const FeatureMap& features) const
+  {
+    TransformationDescription::DataPoints points;
+    for (const auto& f : features)
+    {
+      TransformationDescription::DataPoint point;
+      point.first = f.getMetaValue("expected_rt");
+      point.second = f.getRT();
+      point.note = f.getMetaValue("PeptideRef");
+      points.push_back(point);
+    }
+    trafo_.setDataPoints(points);
   }
 
 
