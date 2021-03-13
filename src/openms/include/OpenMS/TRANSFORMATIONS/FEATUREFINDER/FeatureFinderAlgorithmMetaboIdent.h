@@ -34,11 +34,10 @@
 
 #pragma once
 
-
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI FeatureFinderMetaboIdentAlgorithm :
+class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
   public DefaultParamHandler
 {
 public:
@@ -57,7 +56,7 @@ public:
   using MetaboIdentTable = std::vector<Row>;
 
   /// default constructor
-  FeatureFinderMetaboIdentAlgorithm();
+  FeatureFinderAlgorithmMetaboIdent();
 
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
