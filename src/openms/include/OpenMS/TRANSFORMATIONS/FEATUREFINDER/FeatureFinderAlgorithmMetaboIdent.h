@@ -138,7 +138,7 @@ protected:
   };
 
   /// Boundaries for all mass traces per feature
-  typedef std::map<UInt64, vector<MassTraceBounds> > FeatureBoundsMap;
+  typedef std::map<UInt64, std::vector<MassTraceBounds> > FeatureBoundsMap;
 
   /// Predicate for filtering features by overall quality
   struct FeatureFilterQuality
