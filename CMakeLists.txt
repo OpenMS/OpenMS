@@ -230,14 +230,14 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
-# Enable SIRIUS_test (SiriusAdapter) 
+# Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
 #------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for fingerid (SiriusAdapter)" ON)
+option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" ON)
 
 #------------------------------------------------------------------------------
 # Enable CSI:FingerID_test (SiriusAdapter)
 #------------------------------------------------------------------------------
-option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
+option(ENABLE_FINGERID_TEST "Enable test for CSI:FingerID (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable Coverage
