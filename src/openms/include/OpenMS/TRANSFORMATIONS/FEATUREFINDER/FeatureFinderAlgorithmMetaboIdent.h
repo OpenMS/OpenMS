@@ -44,12 +44,12 @@
 
 namespace OpenMS
 {
-
+class IsotopeDistribution;
+  
 class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
   public DefaultParamHandler
 {
 public:
-
   struct Row 
   {
     String name;
