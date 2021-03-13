@@ -42,6 +42,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
+#include <map>
+#include <vector>
+
 namespace OpenMS
 {
 class IsotopeDistribution;
@@ -55,10 +58,10 @@ public:
     String name;
     String formula;
     double mass;
-    vector<Int> charges;
-    vector<double> rts;
-    vector<double> rt_ranges;
-    vector<double> iso_distrib;
+    std::vector<Int> charges;
+    std::vector<double> rts;
+    std::vector<double> rt_ranges;
+    std::vector<double> iso_distrib;
   }
   
   using MetaboIdentTable = std::vector<Row>;
@@ -118,13 +121,13 @@ protected:
   TargetedExperiment library_; ///< accumulated assays for targets
   
   CoarseIsotopePatternGenerator iso_gen_; ///< isotope pattern generator
-  map<String, double> isotope_probs_; ///< isotope probabilities of transitions
-  map<String, double> target_rts_; ///< RTs of targets (assays)
+  std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
+  std::map<String, double> target_rts_; ///< RTs of targets (assays)
   
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  typedef vector<Feature*> FeatureGroup; ///< group of (overlapping) features
+  typedef std::vector<Feature*> FeatureGroup; ///< group of (overlapping) features
 
   /// Boundaries for a mass trace in a feature
   struct MassTraceBounds
@@ -134,7 +137,7 @@ protected:
   };
 
   /// Boundaries for all mass traces per feature
-  typedef map<UInt64, vector<MassTraceBounds> > FeatureBoundsMap;
+  typedef std::map<UInt64, vector<MassTraceBounds> > FeatureBoundsMap;
 
   /// Predicate for filtering features by overall quality
   struct FeatureFilterQuality
