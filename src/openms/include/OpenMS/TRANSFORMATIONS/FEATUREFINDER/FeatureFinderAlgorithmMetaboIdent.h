@@ -62,7 +62,7 @@ public:
     std::vector<double> rts;
     std::vector<double> rt_ranges;
     std::vector<double> iso_distrib;
-  }
+  };
   
   using MetaboIdentTable = std::vector<Row>;
 
