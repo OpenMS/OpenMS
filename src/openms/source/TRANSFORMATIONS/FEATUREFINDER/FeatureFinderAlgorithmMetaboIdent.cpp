@@ -29,10 +29,29 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Timo Sachsenberg, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
+#include <vector>
+#include <numeric>
+#include <fstream>
+#include <algorithm>
+#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
