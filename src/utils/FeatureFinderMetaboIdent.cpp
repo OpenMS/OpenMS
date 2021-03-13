@@ -288,7 +288,7 @@ protected:
     // write expected vs. observed retention times
     if (!trafo_out.empty()) 
     {
-      TransformationDescription trafo = ff_mident.extractTransformations();
+      const TransformationDescription& trafo = ff_mident.getTransformations();
       TransformationXMLFile().store(trafo_out, trafo);
     }
 
