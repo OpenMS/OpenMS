@@ -70,16 +70,21 @@ public:
   /// default constructor
   FeatureFinderAlgorithmMetaboIdent();
 
+  void run(const MetaboIdentTable& metaboIdentTable, FeatureMap& features);
+
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
 
   const PeakMap& getChromatograms() const { return chrom_data_; }
 
   const TargetedExperiment& getLibrary() const { return library_; }
+  
+  const TransformationDescription& getTransformations() const { return trafo_; }
 
-  TransformationDescription extractTransformations() const
+protected:
+
+  void extractTransformations_() const
   {
-    TransformationDescription trafo;
     TransformationDescription::DataPoints points;
     for (FeatureMap::ConstIterator it = features.begin();
           it != features.end(); ++it)
@@ -90,10 +95,9 @@ public:
       point.note = it->getMetaValue("PeptideRef");
       points.push_back(point);
     }
-    trafo.setDataPoints(points);
+    trafo_.setDataPoints(points);
   }
 
-protected:
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
@@ -120,6 +124,8 @@ protected:
   MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
 
   TargetedExperiment library_; ///< accumulated assays for targets
+  
+  TransformationDescription trafo_;
   
   CoarseIsotopePatternGenerator iso_gen_; ///< isotope pattern generator
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
