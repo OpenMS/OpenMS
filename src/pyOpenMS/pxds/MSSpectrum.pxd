@@ -26,6 +26,45 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #     ms_level = spectrum.getMSLevel()
         #     rt = spectrum.getRT()
         #     mz, intensities = spectrum.get_peaks()
+        #
+        #   Usage:
+        #     from pyopenms import *
+        #
+        #     spectrum = MSSpectrum()
+        #     spectrum.setDriftTime(25) # 25 ms
+        #     spectrum.setRT(205.2) # 205.2 s
+        #     spectrum.setMSLevel(3) # MS3
+        #     p = Precursor()
+        #     p.setIsolationWindowLowerOffset(1.5)
+        #     p.setIsolationWindowUpperOffset(1.5)
+        #     p.setMZ(600) # isolation at 600 +/- 1.5 Th
+        #     p.setActivationEnergy(40) # 40 eV
+        #     p.setCharge(4) # 4+ ion
+        #     spectrum.setPrecursors( [p] )
+        #
+        #     # Add raw data to spectrum
+        #     spectrum.set_peaks( ([401.5], [900]) )
+        #
+        #     # Additional data arrays / peak annotations
+        #     fda = FloatDataArray()
+        #     fda.setName("Signal to Noise Array")
+        #     fda.push_back(15)
+        #     sda = StringDataArray()
+        #     sda.setName("Peak annotation")
+        #     sda.push_back("y15++")
+        #     spectrum.setFloatDataArrays( [fda] )
+        #     spectrum.setStringDataArrays( [sda] )
+        #
+        #     # Add spectrum to MSExperiment
+        #     exp = MSExperiment()
+        #     exp.addSpectrum(spectrum)
+        #
+        #     # Add second spectrum and store as mzML file
+        #     spectrum2 = MSSpectrum()
+        #     spectrum2.set_peaks( ([1, 2], [1, 2]) )
+        #     exp.addSpectrum(spectrum2)
+        #
+        #     MzMLFile().store("testfile.mzML", exp)
         #   -----
 
         MSSpectrum() nogil except +
@@ -51,10 +90,10 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         bool isSorted() nogil except +
 
-        int findNearest(double) nogil except+
-        int findNearest(double, double) nogil except+
-        int findNearest(double, double, double) nogil except+
-        int findHighestInWindow(double, double, double) nogil except+
+        int findNearest(double) nogil except +
+        int findNearest(double, double) nogil except +
+        int findNearest(double, double, double) nogil except +
+        int findHighestInWindow(double, double, double) nogil except +
 
         MSSpectrum select(libcpp_vector[ size_t ] & indices) nogil except +
 
