@@ -272,7 +272,7 @@ namespace OpenMS
                << n_overlap_features << " features in " << n_overlap_groups
                << " groups)." << endl;
     }
-    Size n_shared = addTargetAnnotations_(features); // TODO: check why unused
+    n_shared_ = addTargetAnnotations_(features);
 
     if (elution_model_ != "none")
     {
@@ -819,7 +819,7 @@ namespace OpenMS
   }
 
   /// Create a string of identifying information for a compound
-  String FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound_(const TargetedExperiment::Compound& compound)
+  String FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(const TargetedExperiment::Compound& compound)
   {
     return (String(compound.getMetaValue("name")) + " (m=" +
             String(float(compound.theoretical_mass)) + ", z=" +
@@ -843,7 +843,7 @@ namespace OpenMS
       }
     }
     // targets without features:
-    Size n_missing = library_.getCompounds().size() - found_refs.size();
+    size_t n_missing = library_.getCompounds().size() - found_refs.size();
     features.getUnassignedPeptideIdentifications().reserve(n_missing);
     for (vector<TargetedExperiment::Compound>::const_iterator it =
            library_.getCompounds().begin(); it != library_.getCompounds().end();

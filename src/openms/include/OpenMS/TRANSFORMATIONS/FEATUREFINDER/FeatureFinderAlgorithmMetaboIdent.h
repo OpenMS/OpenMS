@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Hendrik Weisser $
+// $Authors: Timo Sachsenberg, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -70,17 +70,22 @@ public:
   /// default constructor
   FeatureFinderAlgorithmMetaboIdent();
 
+  /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature
   void run(const MetaboIdentTable& metaboIdentTable, FeatureMap& features);
 
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
 
   const PeakMap& getChromatograms() const { return chrom_data_; }
+  PeakMap& getChromatograms() { return chrom_data_; }
 
   const TargetedExperiment& getLibrary() const { return library_; }
   
   const TransformationDescription& getTransformations() const { return trafo_; }
 
+  size_t getNShared() const  { return n_shared_; }
+
+  String prettyPrintCompound(const TargetedExperiment::Compound& compound);
 protected:
 
   /// Boundaries for a mass trace in a feature
@@ -167,8 +172,6 @@ protected:
 
   void selectFeaturesFromCandidates_(FeatureMap& features);
 
-  String prettyPrintCompound_(const TargetedExperiment::Compound& compound);
-
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
@@ -202,6 +205,7 @@ protected:
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
   std::map<String, double> target_rts_; ///< RTs of targets (assays)
   
+  size_t n_shared_;
 };
 
 } // namespace OpenMS

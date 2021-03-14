@@ -49,6 +49,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -160,16 +163,18 @@ protected:
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
 
     Param ffmetaboident_params;
-    ffmetaboident_params.insert("", FeatureFinderAlgrotihmMetaboIdent().getParameters());
+    ffmetaboident_params.insert("", FeatureFinderAlgorithmMetaboIdent().getParameters());
     registerFullParam_(ffmetaboident_params); // register algorithm paramters as command line parameters
   }
 
   ProgressLogger prog_log_; ///< progress logger
 
+  using MetaboIdentTable = FeatureFinderAlgorithmMetaboIdent::MetaboIdentTable;
+
   /// Read input file with information about targets
-  FeatureFinderAlgrotihmMetaboIdent::MetaboIdentTable readTargets_(const String& in_path)
+  MetaboIdentTable readTargets_(const String& in_path)
   {
-    FeatureFinderAlgrotihmMetaboIdent::MetaboIdentTable metaboIdentTable;
+    MetaboIdentTable metaboIdentTable;
 
     const string header =
       "CompoundName\tSumFormula\tMass\tCharge\tRetentionTime\tRetentionTimeRange\tIsoDistribution";
@@ -217,7 +222,7 @@ protected:
         continue;
       }
 
-      FeatureFinderAlgrotihmMetaboIdent::Row r;
+      FeatureFinderAlgorithmMetaboIdent::Row r;
       r.name = name;
       r.formula = parts[1];
       r.mass = parts[2].toDouble();
@@ -249,9 +254,9 @@ protected:
     // load input
     //-------------------------------------------------------------
     OPENMS_LOG_INFO << "Loading targets and creating assay library..." << endl;
-    FeatureFinderAlgrotihmMetaboIdent::MetaboIdentTable table = readTargets_(id);
+    MetaboIdentTable table = readTargets_(id);
 
-    FeatureFinderAlgrotihmMetaboIdent ff_mident;
+    FeatureFinderAlgorithmMetaboIdent ff_mident;
     // copy (command line) tool parameters that match the algorithm parameters back to the algorithm
     ff_mident.setParameters(getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults()));
 
@@ -268,7 +273,8 @@ protected:
 
     if (!chrom_out.empty())
     {
-      addDataProcessing_(chrom_data_,
+      PeakMap& chrom_data = ff_mident.getChromatograms();
+      addDataProcessing_(chrom_data,
                          getProcessingInfo_(DataProcessing::FILTERING));
       MzMLFile().store(chrom_out, ff_mident.getChromatograms());
     }
@@ -284,7 +290,7 @@ protected:
     // write transition library in TraML format
     if (!lib_out.empty())
     {
-      TraMLFile().store(lib_out, ff_mident.getLibrary();
+      TraMLFile().store(lib_out, ff_mident.getLibrary());
     }
 
     // write expected vs. observed retention times
@@ -300,9 +306,9 @@ protected:
 
     Size n_missing = features.getUnassignedPeptideIdentifications().size();
     OPENMS_LOG_INFO << "\nSummary statistics:\n"
-             << library_.getCompounds().size() << " targets specified\n"
+             << ff_mident.getLibrary().getCompounds().size() << " targets specified\n"
              << features.size() << " features found\n"
-             << n_shared << " features with multiple target annotations\n"
+             << ff_mident.getNShared() << " features with multiple target annotations\n"
              << n_missing << " targets without features";
     const Size n_examples = 5;
     if (n_missing)
@@ -315,8 +321,8 @@ protected:
         const PeptideIdentification& id =
           features.getUnassignedPeptideIdentifications()[i];
         const TargetedExperiment::Compound& compound =
-          library_.getCompoundByRef(id.getMetaValue("PeptideRef"));
-        OPENMS_LOG_INFO << "\n- " << prettyPrintCompound_(compound);
+          ff_mident.getLibrary().getCompoundByRef(id.getMetaValue("PeptideRef"));
+        OPENMS_LOG_INFO << "\n- " << ff_mident.prettyPrintCompound(compound);
       }
       if (n_missing > n_examples)
       {
