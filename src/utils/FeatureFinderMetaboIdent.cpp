@@ -264,6 +264,8 @@ protected:
     FeatureMap features;
     ff_mident.run(table, features);
 
+    addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
+
     if (!chrom_out.empty())
     {
       addDataProcessing_(chrom_data_,

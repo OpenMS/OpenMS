@@ -229,8 +229,7 @@ namespace OpenMS
     // write auxiliary output:
     // features.setProteinIdentifications(proteins);
     features.ensureUniqueId();
-    addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION)); // TODO
-
+    
     // sort features:
     sort(features.begin(), features.end(), feature_compare_);
 
@@ -278,7 +277,7 @@ namespace OpenMS
     if (elution_model_ != "none")
     {
       ElutionModelFitter emf;
-      Param emf_params = getParam_().copy("model:", true);
+      Param emf_params = param_.copy("model:", true);
       emf_params.remove("type");
       emf_params.setValue("asymmetric",
                           (elution_model_ == "asymmetric") ? "true" : "false");
