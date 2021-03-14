@@ -85,6 +85,46 @@ protected:
 
   void extractTransformations_(const FeatureMap& features) const;
 
+  /// Add a target (from the input file) to the assay library
+  void addTargetToLibrary_(const String& name, const String& formula,
+                           double mass, const vector<Int>& charges,
+                           const vector<double>& rts,
+                           vector<double> rt_ranges,
+                           const vector<double>& iso_distrib);
+
+  /// Add "peptide" identifications with information about targets to features
+  Size addTargetAnnotations_(FeatureMap& features);
+
+  void addTargetRT_(TargetedExperiment::Compound& target, double rt);
+
+  /// Calculate mass-to-charge ratio from mass and charge
+  double calculateMZ_(double mass, Int charge) const;
+
+  void generateTransitions_(const String& target_id, double mz, Int charge,
+                            const IsotopeDistribution& iso_dist);
+
+  /// Check if two sets of mass trace boundaries overlap
+  bool hasOverlappingBounds_(const vector<MassTraceBounds>& mtb1,
+                             const vector<MassTraceBounds>& mtb2);
+
+  void getFeatureBounds_(const FeatureMap& features,
+                         FeatureBoundsMap& feature_bounds);
+
+  void findOverlappingFeatures_(FeatureMap& features,
+                                const FeatureBoundsMap& feature_bounds,
+                                vector<FeatureGroup>& overlap_groups);
+
+  void resolveOverlappingFeatures_(FeatureGroup& group,
+                                   const FeatureBoundsMap& feature_bounds);
+
+  void annotateFeatures_(FeatureMap& features);
+
+  void ensureConvexHulls_(Feature& feature) const;
+
+  void selectFeaturesFromCandidates_(FeatureMap& features);
+
+  String prettyPrintCompound_(const TargetedExperiment::Compound& compound);
+
   double rt_window_; ///< RT window width
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?

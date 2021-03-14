@@ -152,7 +152,7 @@ namespace OpenMS
 
     // extract up to 10 isotopes if minimum probability is larger than 0
     n_isotopes_ = ((isotope_pmin_ > 0.0) ?
-                   10 : param_.getValue("extract:n_isotopes"));
+                   10 : (int)param_.getValue("extract:n_isotopes"));
 
     iso_gen_.setMaxIsotope(n_isotopes_);
 
@@ -304,7 +304,7 @@ namespace OpenMS
   }
 
   /// Calculate mass-to-charge ratio from mass and charge
-  double FeatureFinderAlgorithmMetaboIdent::calculateMZ_(double mass, Int charge)
+  double FeatureFinderAlgorithmMetaboIdent::calculateMZ_(double mass, Int charge) const
   {
     return (mass + charge * Constants::PROTON_MASS_U) / fabs(charge);
   }
@@ -740,7 +740,7 @@ namespace OpenMS
   }
 
   /// Create hulls for mass traces of a feature, if not already present
-  void FeatureFinderAlgorithmMetaboIdent::ensureConvexHulls_(Feature& feature)
+  void FeatureFinderAlgorithmMetaboIdent::ensureConvexHulls_(Feature& feature) const
   {
     if (feature.getConvexHulls().empty())
     {
