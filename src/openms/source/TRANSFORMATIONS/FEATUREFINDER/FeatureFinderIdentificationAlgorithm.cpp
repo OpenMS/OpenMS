@@ -54,7 +54,6 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
-#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -495,7 +494,6 @@ namespace OpenMS
     OPENMS_LOG_INFO << seeds_added << " seeds without RT and m/z overlap with existing IDs added" << endl;
   }
 
-
   pair<String, Int> FeatureFinderIdentificationAlgorithm::extractTargetID_(
     const Feature& feature, bool extract_charge)
   {
@@ -554,6 +552,19 @@ namespace OpenMS
       feature.setMetaValue("label", target_id);
 
       // TODO: Why is the dummy data set here?
+      // TODO: This will introduce empty peptide information for a feature
+      // TOOD: Fails in MzTab
+      // ProteomicsLFQ
+      // OpenMS::MzTab::peptideSectionRowFromConsensusFeature_(OpenMS::ConsensusFeature const&, OpenMS::ConsensusMap const&, std::__1::vector<OpenMS::String, std::__1::allocator<OpenMS::String> > const&, unsigned long, std::__1::set<OpenMS::String, std::__1::less<OpenMS::String>, std::__1::allocator<OpenMS::String> > const&, std::__1::set<OpenMS::String, std::__1::less<OpenMS::String>, std::__1::allocator<OpenMS::String> > const&, std::__1::map<OpenMS::String, unsigned long, std::__1::less<OpenMS::String>, std::__1::allocator<std::__1::pair<OpenMS::String const, unsigned long> > > const&, std::__1::map<std::__1::pair<unsigned long, unsigned long>, unsigned long, std::__1::less<std::__1::pair<unsigned long, unsigned long> >, std::__1::allocator<std::__1::pair<std::__1::pair<unsigned long, unsigned long> const, unsigned long> > > const&, std::__1::map<std::__1::pair<OpenMS::String, unsigned int>, unsigned int, std::__1::less<std::__1::pair<OpenMS::String, unsigned int> >, std::__1::allocator<std::__1::pair<std::__1::pair<OpenMS::String, unsigned int> const, unsigned int> > > const&, std::__1::vector<OpenMS::String, std::__1::allocator<OpenMS::String> > const&, bool) MzTab.cpp:1843
+      // OpenMS::MzTab::CMMzTabStream::nextPEPRow(OpenMS::MzTabPeptideSectionRow&) MzTab.cpp:3747
+      // OpenMS::MzTab::exportConsensusMapToMzTab(OpenMS::ConsensusMap const&, OpenMS::String const&, bool, bool, bool, bool, bool, OpenMS::String const&) MzTab.cpp:3822
+      // ProteomicsLFQ::main_(int, char const**) ProteomicsLFQ.cpp:1942
+      // OpenMS::TOPPBase::main(int, char const**) TOPPBase.cpp:444
+      // main ProteomicsLFQ.cpp:1999
+      //
+      // ConsensusFeature::HandleSetType fs = c.getFeatures();
+      // Feature with empty Peptideidentification!
+      /*
       if (feature.getPeptideIdentifications().empty())
       {
         // add "dummy" identification:
@@ -586,7 +597,7 @@ namespace OpenMS
         }
         pep_id.insertHit(hit);
         feature.getPeptideIdentifications().push_back(pep_id);
-      }
+      } */
     }
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
