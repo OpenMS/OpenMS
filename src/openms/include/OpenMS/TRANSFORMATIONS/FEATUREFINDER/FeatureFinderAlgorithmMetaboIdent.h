@@ -83,14 +83,54 @@ public:
 
 protected:
 
-  void extractTransformations_(const FeatureMap& features) const;
+  /// Boundaries for a mass trace in a feature
+  struct MassTraceBounds
+  {
+    Size sub_index;
+    double rt_min, rt_max, mz_min, mz_max;
+  };
+
+  /// Boundaries for all mass traces per feature
+  typedef std::map<UInt64, std::vector<MassTraceBounds> > FeatureBoundsMap;
+
+  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
+  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
+
+  typedef std::vector<Feature*> FeatureGroup; ///< group of (overlapping) features
+
+  /// Predicate for filtering features by overall quality
+  struct FeatureFilterQuality
+  {
+    bool operator()(const Feature& feature)
+    {
+      return feature.metaValueExists("FFMetId_remove");
+    }
+  } feature_filter_;
+
+  /// Comparison functor for features
+  struct FeatureCompare
+  {
+    bool operator()(const Feature& f1, const Feature& f2)
+    {
+      const String& ref1 = f1.getMetaValue("PeptideRef");
+      const String& ref2 = f2.getMetaValue("PeptideRef");
+      if (ref1 == ref2)
+      {
+        return f1.getRT() < f2.getRT();
+      }
+      return ref1 < ref2;
+    }
+  } feature_compare_;
+
+
+  void extractTransformations_(const FeatureMap& features);
 
   /// Add a target (from the input file) to the assay library
   void addTargetToLibrary_(const String& name, const String& formula,
-                           double mass, const vector<Int>& charges,
-                           const vector<double>& rts,
-                           vector<double> rt_ranges,
-                           const vector<double>& iso_distrib);
+                           double mass, const std::vector<Int>& charges,
+                           const std::vector<double>& rts,
+                           std::vector<double> rt_ranges,
+                           const std::vector<double>& iso_distrib);
 
   /// Add "peptide" identifications with information about targets to features
   Size addTargetAnnotations_(FeatureMap& features);
@@ -104,15 +144,19 @@ protected:
                             const IsotopeDistribution& iso_dist);
 
   /// Check if two sets of mass trace boundaries overlap
-  bool hasOverlappingBounds_(const vector<MassTraceBounds>& mtb1,
-                             const vector<MassTraceBounds>& mtb2);
+  bool hasOverlappingBounds_(const std::vector<MassTraceBounds>& mtb1,
+                             const std::vector<MassTraceBounds>& mtb2) const;
 
   void getFeatureBounds_(const FeatureMap& features,
                          FeatureBoundsMap& feature_bounds);
 
+
+  bool hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group, 
+                              const FeatureBoundsMap& feature_bounds) const;
+
   void findOverlappingFeatures_(FeatureMap& features,
                                 const FeatureBoundsMap& feature_bounds,
-                                vector<FeatureGroup>& overlap_groups);
+                                std::vector<FeatureGroup>& overlap_groups);
 
   void resolveOverlappingFeatures_(FeatureGroup& group,
                                    const FeatureBoundsMap& feature_bounds);
@@ -158,44 +202,6 @@ protected:
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
   std::map<String, double> target_rts_; ///< RTs of targets (assays)
   
-  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
-  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
-
-  typedef std::vector<Feature*> FeatureGroup; ///< group of (overlapping) features
-
-  /// Boundaries for a mass trace in a feature
-  struct MassTraceBounds
-  {
-    Size sub_index;
-    double rt_min, rt_max, mz_min, mz_max;
-  };
-
-  /// Boundaries for all mass traces per feature
-  typedef std::map<UInt64, std::vector<MassTraceBounds> > FeatureBoundsMap;
-
-  /// Predicate for filtering features by overall quality
-  struct FeatureFilterQuality
-  {
-    bool operator()(const Feature& feature)
-    {
-      return feature.metaValueExists("FFMetId_remove");
-    }
-  } feature_filter_;
-
-  /// Comparison functor for features
-  struct FeatureCompare
-  {
-    bool operator()(const Feature& f1, const Feature& f2)
-    {
-      const String& ref1 = f1.getMetaValue("PeptideRef");
-      const String& ref2 = f2.getMetaValue("PeptideRef");
-      if (ref1 == ref2)
-      {
-        return f1.getRT() < f2.getRT();
-      }
-      return ref1 < ref2;
-    }
-  } feature_compare_;
 };
 
 } // namespace OpenMS

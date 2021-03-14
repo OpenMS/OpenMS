@@ -229,15 +229,14 @@ namespace OpenMS
     // write auxiliary output:
     // features.setProteinIdentifications(proteins);
     features.ensureUniqueId();
-    addDataProcessing_(features,
-                       getProcessingInfo_(DataProcessing::QUANTITATION));
+    addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION)); // TODO
 
     // sort features:
     sort(features.begin(), features.end(), feature_compare_);
 
-    if (!candidates_out.empty()) // store feature candidates
+    if (!candidates_out_.empty()) // store feature candidates
     {
-      FeatureXMLFile().store(candidates_out, features);
+      FeatureXMLFile().store(candidates_out_, features);
     }
 
     selectFeaturesFromCandidates_(features);
@@ -274,19 +273,19 @@ namespace OpenMS
                << n_overlap_features << " features in " << n_overlap_groups
                << " groups)." << endl;
     }
-    Size n_shared = addTargetAnnotations_(features);
+    Size n_shared = addTargetAnnotations_(features); // TODO: check why unused
 
-    if (elution_model != "none")
+    if (elution_model_ != "none")
     {
       ElutionModelFitter emf;
       Param emf_params = getParam_().copy("model:", true);
       emf_params.remove("type");
       emf_params.setValue("asymmetric",
-                          (elution_model == "asymmetric") ? "true" : "false");
+                          (elution_model_ == "asymmetric") ? "true" : "false");
       emf.setParameters(emf_params);
       emf.fitElutionModels(features);
     }
-    else if (!candidates_out.empty()) // hulls not needed, remove them
+    else if (!candidates_out_.empty()) // hulls not needed, remove them
     {
       for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
@@ -466,7 +465,7 @@ namespace OpenMS
 
   /// Check if two sets of mass trace boundaries overlap
   bool FeatureFinderAlgorithmMetaboIdent::hasOverlappingBounds_(const vector<MassTraceBounds>& mtb1,
-                             const vector<MassTraceBounds>& mtb2)
+                             const vector<MassTraceBounds>& mtb2) const
   {
     for (vector<MassTraceBounds>::const_iterator mtb1_it = mtb1.begin();
          mtb1_it != mtb1.end(); ++mtb1_it)
@@ -488,7 +487,7 @@ namespace OpenMS
 
   /// Check if a feature overlaps with a group of other features
   bool FeatureFinderAlgorithmMetaboIdent::hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group,
-                              const FeatureBoundsMap& feature_bounds)
+                              const FeatureBoundsMap& feature_bounds) const
   {
     FeatureBoundsMap::const_iterator fbm_it1 =
       feature_bounds.find(feature.getUniqueId());
@@ -874,7 +873,7 @@ namespace OpenMS
     return n_shared; // for summary statistics
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::extractTransformations_(const FeatureMap& features) const
+  void FeatureFinderAlgorithmMetaboIdent::extractTransformations_(const FeatureMap& features)
   {
     TransformationDescription::DataPoints points;
     for (const auto& f : features)
