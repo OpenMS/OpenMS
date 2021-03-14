@@ -152,7 +152,7 @@ namespace OpenMS
 
     // extract up to 10 isotopes if minimum probability is larger than 0
     n_isotopes_ = ((isotope_pmin_ > 0.0) ?
-                   10 : getIntOption_("extract:n_isotopes"));
+                   10 : param_.getValue("extract:n_isotopes"));
 
     iso_gen_.setMaxIsotope(n_isotopes_);
 
@@ -163,9 +163,9 @@ namespace OpenMS
     candidates_out_ = param_.getValue("candidates_out");
   }
 
-  void run(const metaboIdentTable& metaboIdentTable, FeatureMap& features)
+  void FeatureFinderAlgorithmMetaboIdent::run(const FeatureFinderAlgorithmMetaboIdent::MetaboIdentTable& metaboIdentTable, FeatureMap& features)
   {
-    for (const Row& r : metaboIdentTable)
+    for (const FeatureFinderAlgorithmMetaboIdent::Row& r : metaboIdentTable)
     {
       addTargetToLibrary_(r.name, r.formula, r.mass, r.charges, r.rts, r.rt_ranges,
                       r.iso_distrib);
