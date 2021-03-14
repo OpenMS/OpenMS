@@ -34,8 +34,8 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
 
         MzMLFile() nogil except +
 
-        void load(const String& filename, MSExperiment &) nogil except+ #wrap-doc: Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
-        void store(const String& filename, MSExperiment &) nogil except+ #wrap-doc: Stores a map in an MzML file.
+        void load(const String& filename, MSExperiment &) nogil except+ #wrap-doc:Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
+        void store(const String& filename, MSExperiment &) nogil except+ #wrap-doc:Stores a map in an MzML file.
 
         # COMMENT: store/load XML structure to/from a string
         void storeBuffer(String & output, MSExperiment exp) nogil except +
@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
                        bool skip_full_count, bool skip_first_pass) nogil except + # wrap-ignore
 
         PeakFileOptions getOptions() nogil except +
-        void setOptions(PeakFileOptions) nogil except + #wrap-doc: set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only.
+        void setOptions(PeakFileOptions) nogil except + #wrap-doc:Set PeakFileOptions to perform filtering during loading. E.g., to load only MS1 spectra or meta data only.
 
         bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings) nogil except +
 
