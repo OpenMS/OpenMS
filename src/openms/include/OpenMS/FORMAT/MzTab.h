@@ -611,7 +611,7 @@ public:
   struct OPENMS_DLLAPI MzTabPSMSectionRow
   {
     MzTabString sequence; ///< The peptide’s sequence.
-    MzTabInteger PSM_ID;
+    MzTabInteger PSM_ID; //TODO TODO
     MzTabString accession; ///< The protein’s accession.
     MzTabBoolean unique; ///< 0=false, 1=true, null else: Peptide is unique for the protein.
     MzTabString database; ///< Name of the sequence database.
@@ -907,6 +907,7 @@ public:
         const String& filename,
         bool first_run_inference_only,
         bool export_empty_pep_ids = false,
+        bool export_all_psms = false,
         const String& title = "ID export from OpenMS");
 
 
@@ -946,6 +947,7 @@ public:
           const String& filename,
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
+          bool export_all_psms = false,
           const String& title = "ID export from OpenMS");
 
          const MzTabMetaData& getMetaData() const;
@@ -981,7 +983,8 @@ public:
          /* currently unused
          bool export_unidentified_features_; 
          bool export_subfeatures_; */
-         bool export_empty_pep_ids_; 
+         bool export_empty_pep_ids_;
+         bool export_all_psms_;
          size_t quant_study_variables_ = 0;
          // size_t n_study_variables_ = 0; //currently unused
          size_t PRT_STATE_ = 0;
@@ -989,8 +992,9 @@ public:
          size_t prt_hit_id_ = 0; // current protein in (protein) identification run
          size_t prt_group_id_ = 0;
          size_t prt_indistgroup_id_ = 0;
-         // size_t pep_id_ = 0; // currently unused
+         size_t pep_id_ = 0;
          size_t psm_id_ = 0;
+         size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;
 
          std::vector<String> prt_optional_column_names_;
@@ -1072,15 +1076,17 @@ public:
     static std::map<String, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
 
     static boost::optional<MzTabPSMSectionRow> PSMSectionRowFromPeptideID_(
-     const PeptideIdentification& pid,
-     const std::vector<const ProteinIdentification*>& prot_id,
-     std::map<String, size_t>& idrun_2_run_index,
-     std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-     std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
-     const int psm_id,
-     const MzTabString& db,
-     const MzTabString& db_version,
-     const bool export_empty_pep_ids);
+      PeptideIdentification const& pid,
+      std::vector<ProteinIdentification const*> const& prot_id,
+      std::map<String, size_t>& idrun_2_run_index,
+      std::map<std::pair<size_t, size_t>, size_t>& map_run_fileidx_2_msfileidx,
+      std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
+      Size const current_psm_idx,
+      Size const psm_id,
+      MzTabString const& db,
+      MzTabString const& db_version,
+      bool const export_empty_pep_ids,
+      bool const export_all_psms);
 
     static MzTabPeptideSectionRow peptideSectionRowFromConsensusFeature_(
       const ConsensusFeature& c, 

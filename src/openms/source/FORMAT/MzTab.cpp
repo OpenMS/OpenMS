@@ -321,7 +321,7 @@ namespace OpenMS
 
           if (spos == std::string::npos) // only position information and no parameter
           {
-            pos_param_pairs_.push_back(std::make_pair(position_fields[i].toInt(), MzTabParameter()));
+            pos_param_pairs_.emplace_back(position_fields[i].toInt(), MzTabParameter());
           }
           else
           {
@@ -331,7 +331,7 @@ namespace OpenMS
             // extract [,,,] part
             MzTabParameter param;
             param.fromCellString(position_fields[i].substr(spos));
-            pos_param_pairs_.push_back(std::make_pair(pos, param));
+            pos_param_pairs_.emplace_back(pos, param);
           }
         }
       }
@@ -1965,10 +1965,12 @@ namespace OpenMS
      map<String, size_t>& idrun_2_run_index,
      map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
      map<Size, vector<pair<String, String>>>& run_to_search_engines,
-     const int psm_id,
+     const Size current_psm_idx,
+     const Size psm_id,
      const MzTabString& db,
      const MzTabString& db_version,
-     const bool export_empty_pep_ids) 
+     const bool export_empty_pep_ids,
+     const bool export_all_psms)
   {
     // skip empty peptide identification objects, if they are not wanted
     if (pid.getHits().empty() && !export_empty_pep_ids)
@@ -1978,7 +1980,7 @@ namespace OpenMS
 
     /////// Information that doesn't require a peptide hit ///////
     MzTabPSMSectionRow row;
-    row.PSM_ID = MzTabInteger(psm_id);
+    row.PSM_ID = MzTabInteger(int(psm_id));
     row.database = db;
     row.database_version = db_version;
     
@@ -2045,20 +2047,26 @@ namespace OpenMS
     if (phs.empty()) { return row; }
 
     /////// Information that does require a peptide hit ///////
-    
-    // only consider best peptide hit for export
-    PeptideHit best_ph;
-    vector<PeptideIdentification> dummy;
-    dummy.push_back(pid);
-    IDFilter::getBestHit<PeptideIdentification>(dummy, false, best_ph); // TODO: add getBestHit for PeptideHits so no copying to dummy is needed
-    
-    const AASequence& aas = best_ph.getSequence();
+    PeptideHit current_ph;
+    if (export_all_psms)
+    {
+      // only consider best peptide hit for export
+      vector<PeptideIdentification> dummy;
+      dummy.push_back(pid);
+      IDFilter::getBestHit<PeptideIdentification>(dummy, false, current_ph); // TODO: add getBestHit for PeptideHits so no copying to dummy is needed
+    }
+    else
+    {
+      current_ph = phs[current_psm_idx];
+    }
+
+    const AASequence& aas = current_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
     // extract all modifications in the current sequence for reporting.
     // In contrast to peptide and protein section where fixed modifications are not reported we now report all modifications.
     // If localization mods are specified we add localization scores
-    row.modifications = extractModificationList(best_ph, vector<String>(), localization_mods);
+    row.modifications = extractModificationList(current_ph, vector<String>(), localization_mods);
     
     MzTabParameterList search_engines;
 
@@ -2067,10 +2075,10 @@ namespace OpenMS
     search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
     row.search_engine = search_engines;
 
-    row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
+    row.search_engine_score[1] = MzTabDouble(current_ph.getScore());
     
-    row.charge = MzTabInteger(best_ph.getCharge());
-    row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMZ(best_ph.getCharge())) : MzTabDouble();
+    row.charge = MzTabInteger(current_ph.getCharge());
+    row.calc_mass_to_charge = current_ph.getCharge() != 0 ? MzTabDouble(aas.getMZ(current_ph.getCharge())) : MzTabDouble();
 
     // add opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
     MzTabOptionalColumnEntry opt_entry;
@@ -2080,18 +2088,19 @@ namespace OpenMS
 
     // meta data on PSMs
     vector<String> ph_keys;
-    best_ph.getKeys(ph_keys);
+    current_ph.getKeys(ph_keys);
 
     set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
-    addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
+    addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), current_ph);
 
     // TODO Think about if the uniqueness can be determined by # of peptide evidences
-    // b/c this would only differ when evidences come from different DBs
-    const set<String>& accessions = best_ph.extractProteinAccessionsSet();
+    //  b/c this would only differ when evidences come from different DBs
+    // TODO This also does not consider protein groups but this might be fine here
+    const set<String>& accessions = current_ph.extractProteinAccessionsSet();
     row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
 
     // create row for every PeptideEvidence entry (mapping to a protein)
-    const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
+    const vector<PeptideEvidence>& peptide_evidences = current_ph.getPeptideEvidences();
 
     // add peptide evidences to Rows
     row.addPepEvidenceToRows(peptide_evidences);
@@ -2820,11 +2829,13 @@ Not sure how to handle these:
     const String& filename,
     bool first_run_inference_only,
     bool export_empty_pep_ids,
+    bool export_all_psms,
     const String& title):
       prot_ids_(prot_ids),
       peptide_ids_(peptide_ids),
       filename_(filename),
-      export_empty_pep_ids_(export_empty_pep_ids)
+      export_empty_pep_ids_(export_empty_pep_ids),
+      export_all_psms_(export_all_psms)
   {
     ////////////////////////////////////////////////
     // create some lookup structures and precalculate some values
@@ -3085,20 +3096,32 @@ state0:
 
   bool MzTab::IDMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
-    if (psm_id_ >= peptide_ids_.size()) return false;
-    const PeptideIdentification* pid = peptide_ids_[psm_id_];
-    auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
-      *pid, 
-      prot_ids_, 
-      idrunid_2_idrunindex_,
-      map_id_run_fileidx_2_msfileidx_,
-      run_to_search_engines_,
-      psm_id_, 
-      db_, 
-      db_version_,
-      export_empty_pep_ids_);
+    if (pep_id_ >= peptide_ids_.size()) return false;
+    const PeptideIdentification* pid = peptide_ids_[pep_id_];
 
-    ++psm_id_;
+    auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
+        *pid,
+        prot_ids_,
+        idrunid_2_idrunindex_,
+        map_id_run_fileidx_2_msfileidx_,
+        run_to_search_engines_,
+        current_psm_idx_,
+        psm_id_,
+        db_,
+        db_version_,
+        export_empty_pep_ids_,
+        export_all_psms_);
+
+    if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
+    {
+      ++pep_id_;
+      current_psm_idx_ = 0;
+    }
+    else
+    {
+      ++current_psm_idx_;
+    }
+    ++psm_id_; //global psm id "counter"
 
     if (psm_row) // valid row?
     {
@@ -3114,6 +3137,7 @@ state0:
     const String& filename,
     bool first_run_inference_only,
     bool export_empty_pep_ids,
+    bool export_all_psms,
     const String& title)
   {
     vector<const PeptideIdentification*> pep_ids_ptr;
@@ -3122,7 +3146,7 @@ state0:
     vector<const ProteinIdentification*> prot_ids_ptr;
     for (const ProteinIdentification& pi : prot_ids) { prot_ids_ptr.push_back(&pi); }
 
-    IDMzTabStream s(prot_ids_ptr, pep_ids_ptr, filename, first_run_inference_only, export_empty_pep_ids, title);
+    IDMzTabStream s(prot_ids_ptr, pep_ids_ptr, filename, first_run_inference_only, export_empty_pep_ids, export_all_psms, title);
 
     MzTab m;
     m.setMetaData(s.getMetaData());
@@ -3768,15 +3792,16 @@ state0:
     if (psm_id_ >= peptide_ids_.size()) return false;
     const PeptideIdentification* pid = peptide_ids_[psm_id_];
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
-      *pid, 
-      prot_ids_, 
-      idrunid_2_idrunindex_,
-      map_id_run_fileidx_2_msfileidx_,
-      run_to_search_engines_,
-      psm_id_, 
-      db_, 
-      db_version_,
-      export_empty_pep_ids_);
+        *pid,
+        prot_ids_,
+        idrunid_2_idrunindex_,
+        map_id_run_fileidx_2_msfileidx_,
+        run_to_search_engines_,
+        psm_id_,
+        0u,
+        db_,
+        db_version_,
+        export_empty_pep_ids_, false);
 
     ++psm_id_;
 

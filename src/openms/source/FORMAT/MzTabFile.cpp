@@ -2902,6 +2902,7 @@ namespace OpenMS
         const std::vector<PeptideIdentification>& peptide_identifications,
         bool first_run_inference_only,
         bool export_empty_pep_ids,
+        bool export_all_psms,
         const String& title)
   {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
@@ -2925,6 +2926,7 @@ namespace OpenMS
       filename,
       first_run_inference_only,
       export_empty_pep_ids,
+      export_all_psms,
       title);      
 
     // generate full meta data section and write to file
