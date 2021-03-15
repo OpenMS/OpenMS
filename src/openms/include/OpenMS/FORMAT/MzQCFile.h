@@ -28,15 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -45,8 +43,6 @@
 
 #include <vector>
 #include <map>
-#include <set>
-#include <algorithm>
 #include <QFileInfo>
 #include <iostream>
 #include <fstream>

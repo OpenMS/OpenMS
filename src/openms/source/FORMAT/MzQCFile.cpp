@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Axel Walter $
-// $Authors: Mathias Walzer $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzQCFile.h>
@@ -218,7 +218,6 @@ namespace OpenMS
     qm["value"] = tuple<int,int>{exp.getMinMZ(), exp.getMaxMZ()};
     out["MzQC"]["runQualities"]["qualityMetrics"] += qm; 
 
-    cout << out.dump(2) << endl;
     //open stream
     ofstream os(outputFileName.c_str());
     if (!os)
