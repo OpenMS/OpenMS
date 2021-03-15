@@ -529,6 +529,7 @@ set(analysis_executables_list
   OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
+  PeptideProteinResolution_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test

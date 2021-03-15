@@ -32,11 +32,10 @@
 
     <b>Pre-Requisites (Software)</b>
     <ul>
-      <li><b>Visual Studio</b>: VS2015 and above are supported, but we thoroughly recommend <b>VS2019</b> (faster compilation, faster executables and it fixes a bug in OpenMP multithreading - see <a href="https://github.com/OpenMS/OpenMS/issues/4389" target="_new">issue #4389</a>).
-             The C++ Express editions should work as well, we tested VSE2015 Update 3.
-        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier, due to missing C11 support). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
+      <li><b>Visual Studio</b>: Microsoft Visual Studio (Community) 2019 or above
+        <br><b>Not supported are MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li><b>CMake</b>: Have at least CMake 3.1 or greater installed (see http://www.cmake.org). For building with our contrib package please use 3.14+. <br>
+      <li><b>CMake</b>: Have at least CMake 3.14+ or greater installed (see http://www.cmake.org). <br>
 	      CMake's Generator (-G flag) also must support your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
@@ -51,7 +50,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, SeqAn, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -65,6 +64,7 @@
     If you plan to use the development version of %OpenMS, clone %OpenMS and checkout the optional contrib submodule with
     \code
     git clone https://github.com/OpenMS/OpenMS
+    cd OpenMS
     git submodule update --init contrib
     \endcode
     to obtain the latest potentially unstable version.
@@ -285,6 +285,11 @@
   as arguments to <tt>MSBuild.exe</tt>, e.g.
   \code
   MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
+  \endcode
+  
+  Example:
+  \code
+  MSBuild.exe OpenMS_host.sln
   \endcode
 
   @note Since the call can be a bit lengthy, there is a batch file in
