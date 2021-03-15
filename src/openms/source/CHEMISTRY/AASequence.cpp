@@ -971,6 +971,7 @@ namespace OpenMS
       }
     }
 
+    // get one letter code of unmodified version
     const String& res = aas.peptide_.back()->getOneLetterCode();
     if (specificity == ResidueModification::PROTEIN_C_TERM)
     {
@@ -1045,6 +1046,7 @@ namespace OpenMS
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     const Residue* residue = nullptr;
+    const ResidueModification* residue_mod = nullptr;
 
     // handle N-term modification
     if (specificity == ResidueModification::N_TERM) 
@@ -1055,20 +1057,41 @@ namespace OpenMS
       ++next_aa;
       if (*next_aa == '.') ++next_aa;
       std::vector<String> term_mods;
-      if (delta_mass) // N-terminal mod specified by delta mass [+123.4]
+      if (!integer_mass) // for non-integer mass we just pick the closest inside the tolerance
       {
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
+        if (delta_mass) // N-terminal mod specified by delta mass [+123.4]
+        {
+          residue_mod = mod_db->getBestModificationByDiffMonoMass(mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
+        }
+        else // N-terminal mod specified by absolute mass [123.4]
+        {
+          double mod_mass = mass - Residue::getInternalToNTerm().getMonoWeight(); // here we need to subtract the N-Term mass
+          residue_mod = mod_db->getBestModificationByDiffMonoMass(mod_mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
+        }
+        if (residue_mod != nullptr)
+        {
+          aas.n_term_mod_ = residue_mod;
+          return mod_end;
+        }
       }
-      else // N-terminal mod specified by absolute mass [123.4]
+      else // for integer mass we report on the modification in the tolerance and report which we picked.
       {
-        double mod_mass = mass - Residue::getInternalToNTerm().getMonoWeight(); // here we need to subtract the N-Term mass
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
+        if (delta_mass) // N-terminal mod specified by delta mass [+123.4]
+        {
+          mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
+        }
+        else // N-terminal mod specified by absolute mass [123.4]
+        {
+          double mod_mass = mass - Residue::getInternalToNTerm().getMonoWeight(); // here we need to subtract the N-Term mass
+          mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
+        }
+        if (!term_mods.empty())
+        {
+          aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
+          return mod_end;
+        }
       }
-      if (!term_mods.empty())
-      {
-        aas.n_term_mod_ = mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM);
-        return mod_end;
-      }
+
       OPENMS_LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
     }
     else if (specificity == ResidueModification::ANYWHERE) // internal (not exclusively terminal) modification
@@ -1161,22 +1184,42 @@ namespace OpenMS
     {
       residue = aas.peptide_.back();
       std::vector<String> term_mods;
-      if (delta_mass) // C-terminal mod specified by delta mass [+123.4]
+
+      if (!integer_mass) // for non-integer mass we just pick the closest inside the tolerance
       {
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, residue->getOneLetterCode(),
-                                                  ResidueModification::C_TERM);
+        if (delta_mass) // C-terminal mod specified by delta mass [+123.4]
+        {
+          residue_mod = mod_db->getBestModificationByDiffMonoMass(mass, tolerance, residue->getOneLetterCode(), ResidueModification::C_TERM);
+        }
+        else // C-terminal mod specified by absolute mass [123.4]
+        {
+          double mod_mass = mass - Residue::getInternalToCTerm().getMonoWeight(); // here we need to subtract the N-Term mass
+          residue_mod = mod_db->getBestModificationByDiffMonoMass(mod_mass, tolerance, residue->getOneLetterCode(), ResidueModification::C_TERM);
+        }
+        if (residue_mod != nullptr)
+        {
+          aas.c_term_mod_ = residue_mod;
+          return mod_end;
+        }
       }
-      else // C-terminal mod specified by absolute mass [123.4]
+      else // for integer mass we report on the modification in the tolerance and report which we picked.
       {
-        double mod_mass = mass - Residue::getInternalToCTerm().getMonoWeight(); // here we need to subtract the C-Term mass
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, residue->getOneLetterCode(),
-                                                  ResidueModification::C_TERM);
+        if (delta_mass) // C-terminal mod specified by delta mass [+123]
+        {
+          mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, residue->getOneLetterCode(), ResidueModification::C_TERM);
+        }
+        else // C-terminal mod specified by absolute mass [123]
+        {
+          double mod_mass = mass - Residue::getInternalToCTerm().getMonoWeight(); // here we need to subtract the N-Term mass
+          mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, residue->getOneLetterCode(), ResidueModification::C_TERM);
+        }
+        if (!term_mods.empty())
+        {
+          aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
+          return mod_end;
+        }
       }
-      if (!term_mods.empty())
-      {
-        aas.c_term_mod_ = mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM);
-        return mod_end;
-      }
+
       OPENMS_LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
     }
 

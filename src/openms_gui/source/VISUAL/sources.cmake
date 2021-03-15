@@ -8,6 +8,7 @@ AxisTickCalculator.cpp
 AxisWidget.cpp
 ColorSelector.cpp
 DataSelectionTabs.cpp
+DIATreeTab.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
@@ -40,8 +41,8 @@ Plot3DWidget.cpp
 PlotCanvas.cpp
 PlotWidget.cpp
 RecentFilesMenu.cpp
-SpectraIdentificationViewWidget.cpp
-SpectraViewWidget.cpp
+SpectraIDViewTab.cpp
+SpectraTreeTab.cpp
 SwathLibraryStats.cpp
 SwathLibraryStats.ui
 TableView.cpp
@@ -58,7 +59,8 @@ TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
 TOPPViewMenu.cpp
-#TOPPViewPreferences.cpp
+TreeView.cpp
+TVDIATreeTabController.cpp
 TVIdentificationViewController.cpp
 TVSpectraViewController.cpp
 TVControllerBase.cpp

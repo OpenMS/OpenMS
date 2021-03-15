@@ -451,9 +451,10 @@ protected:
     debug_string = String(training_labels.size()) + " positive sequences read";
     writeDebug_(debug_string, 1);
 
+    Math::RandomShuffler r{0};
     if (training_peptides.size() > max_positive_count)
     {
-      random_shuffle(training_peptides.begin(), training_peptides.end());
+      r.portable_random_shuffle(training_peptides.begin(), training_peptides.end());
       training_peptides.resize(max_positive_count, "");
       training_labels.resize(max_positive_count, 1.);
     }
@@ -500,7 +501,7 @@ protected:
     writeDebug_(debug_string, 1);
     if (temp_training_peptides.size() > max_negative_count)
     {
-      random_shuffle(temp_training_peptides.begin(), temp_training_peptides.end());
+      r.portable_random_shuffle(temp_training_peptides.begin(), temp_training_peptides.end());
       temp_training_peptides.resize(max_negative_count, "");
       training_labels.resize(training_peptides.size() + max_negative_count, -1.);
     }

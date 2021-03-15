@@ -127,6 +127,19 @@ namespace OpenMS
     /// Consider peptide identifications for grouping?
     bool use_IDs_;
 
+    //TODO we could also bin by equal sized RT bins, or by a fixed RT size
+    //TODO could be made dependent on nr. of maps (e.g. with 5 maps you get [around] 4 diffs per ID already)
+    /// Min. nr. of differences from matched IDs requested to calculate a linking tolerance per RT bin
+    Size min_nr_diffs_per_bin_;
+
+    /// Min. score for an ID to be considered for tolerance estimation
+    double min_score_;
+
+    /// Distance penalty for unidentified features when finding best neighbor per map and for cluster quality calculation
+    /// and therefore the order in which they are popped from the heap.
+    /// Since distances are normalized, a penalty of 1.0 will always prefer IDed features.
+    double noID_penalty_;
+
     /// Maximum RT difference
     double max_diff_rt_;
 
@@ -141,6 +154,10 @@ namespace OpenMS
 
     /// Set of features already used
     std::unordered_set<const OpenMS::GridFeature*> already_used_;
+
+    /// Map of median RTs to allowed linking tolerances (on the same RT scale) for unIDed features.
+    /// This should be interpreted as bins from the current median RT to the next.
+    std::map<double, double> bin_tolerances_;
 
     /**
        @brief Calculates the distance between two grid features.
@@ -245,6 +262,11 @@ namespace OpenMS
      * @param cluster cluster to which the new elements are added
      */ 
     void addClusterElements_(const Grid& grid, QTCluster& cluster);
+
+    /**
+     * @brief Looks up the matching bin for @p rt in bin_tolerances_ and checks if @p dist is in the allowed range.
+     */
+    bool distIsOutlier_(double dist, double rt);
 
 protected:
 

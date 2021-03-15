@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
@@ -253,30 +254,46 @@ namespace OpenMS
     consumer->setExperimentalSettings(experimental_settings);
   }
 
-  std::map<UInt,std::pair<Size,Size>> MzMLFile::getCentroidInfo(const String& filename)
+  std::map<UInt, MzMLFile::SpecInfo> MzMLFile::getCentroidInfo(const String& filename, const Size first_n_spectra_only)
   {
     bool oldoption = options_.getFillData();
-    options_.setFillData(false);
-    MSDataTransformingConsumer c{};
-    std::map<UInt,std::pair<Size,Size>> ret;
-    auto f = [&ret](const MSSpectrum& s)
+    options_.setFillData(true); // we want the data as well (to allow estimation from data if metadata is missing)
+    std::map<UInt, SpecInfo> ret;
+    Size first_n_spectra_only_remaining = first_n_spectra_only;
+    auto f = [&ret, &first_n_spectra_only_remaining](const MSSpectrum& s)
     {
         UInt lvl = s.getMSLevel();
-        bool centroided = s.getType() == MSSpectrum::SpectrumType::CENTROID;
-        auto success_mapiter = ret.emplace(lvl,
-                                           std::make_pair(0u,0u));
-        if (centroided)
+        switch (s.getType(true))
         {
-            success_mapiter.first->second.first++;
+          case (MSSpectrum::SpectrumType::CENTROID):
+            ++ret[lvl].count_centroided;
+            --first_n_spectra_only_remaining;
+            break;
+          case (MSSpectrum::SpectrumType::PROFILE):
+            ++ret[lvl].count_profile;
+            --first_n_spectra_only_remaining;
+            break;
+          case (MSSpectrum::SpectrumType::UNKNOWN):  // this can only happen for spectra with very few peaks (or completely empty spectra)
+            ++ret[lvl].count_unknown;
+            break;
+          default:
+            // make sure we did not forget a case
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
-        else
+
+        // stop parsing after 10 or so spectra
+        if (first_n_spectra_only_remaining == 0)
         {
-            success_mapiter.first->second.second++;
+          throw Internal::XMLHandler::EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
     };
+    MSDataTransformingConsumer c;
     c.setSpectraProcessingFunc(f);
-    transform(filename, &c);
+    transform(filename, &c, true, true); // no first pass
+
+    // restore old state
     options_.setFillData(oldoption);
+
     return ret;
   }
 

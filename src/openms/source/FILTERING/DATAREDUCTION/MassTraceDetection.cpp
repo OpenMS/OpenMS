@@ -68,9 +68,13 @@ namespace OpenMS
       this->setLogType(CMD);
     }
 
-    MassTraceDetection::~MassTraceDetection()
-    {
-    }
+    MassTraceDetection::~MassTraceDetection() = default;
+
+    MassTraceDetection::Apex::Apex(double intensity, Size scan_idx, Size peak_idx):
+      intensity(intensity),
+      scan_idx(scan_idx),
+      peak_idx(peak_idx)
+    {}
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
                                                            const double& added_int, double& centroid_mz, double& prev_counter,
@@ -134,7 +138,7 @@ namespace OpenMS
       // std::cerr << "func:  " << tmp << " " << i << std::endl;
     }
 
-    void updateWeightedSDEstimate(PeakType p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
       double weights_sum = last_weights_sum + p.getIntensity();
@@ -149,7 +153,7 @@ namespace OpenMS
       last_weights_sum = weights_sum;
     }
 
-    void updateWeightedSDEstimateRobust(PeakType p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
       double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
@@ -197,7 +201,7 @@ namespace OpenMS
       //   - use work_exp for actual work (remove peaks below noise threshold)
       //   - store potential apices in chrom_apices
       PeakMap work_exp;
-      MapIdxSortedByInt chrom_apices;
+      std::vector<Apex> chrom_apices;
 
       Size total_peak_count(0);
       std::vector<Size> spec_offsets;
@@ -224,7 +228,7 @@ namespace OpenMS
             // --> add this peak as possible chromatographic apex
             if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
             {
-              chrom_apices.insert(std::make_pair(tmp_peak_int, std::make_pair(spectra_count, indices_passing.size())));
+              chrom_apices.emplace_back(tmp_peak_int, spectra_count, indices_passing.size());
             }
             indices_passing.push_back(peak_idx);
             ++total_peak_count;
@@ -246,6 +250,13 @@ namespace OpenMS
       // discard last spectrum's offset
       spec_offsets.pop_back();
 
+      std::sort(chrom_apices.begin(), chrom_apices.end(),
+                [](const Apex & a,
+                    const Apex & b) -> bool
+      {
+        return a.intensity < b.intensity;
+      });
+
       // *********************************************************************
       // Step 2: start extending mass traces beginning with the apex peak (go
       // through all peaks in order of decreasing intensity)
@@ -255,7 +266,7 @@ namespace OpenMS
       return;
     } // end of MassTraceDetection::run
 
-    void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apices,
+    void MassTraceDetection::run_(const std::vector<Apex>& chrom_apices,
                                   const Size total_peak_count,
                                   const PeakMap& work_exp,
                                   const std::vector<Size>& spec_offsets,
@@ -291,10 +302,10 @@ namespace OpenMS
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
-      for (MapIdxSortedByInt::const_reverse_iterator m_it = chrom_apices.rbegin(); m_it != chrom_apices.rend(); ++m_it)
+      for (auto m_it = chrom_apices.crbegin(); m_it != chrom_apices.crend(); ++m_it)
       {
-        Size apex_scan_idx(m_it->second.first);
-        Size apex_peak_idx(m_it->second.second);
+        Size apex_scan_idx(m_it->scan_idx);
+        Size apex_peak_idx(m_it->peak_idx);
 
         if (peak_visited[spec_offsets[apex_scan_idx] + apex_peak_idx])
         {
@@ -321,7 +332,7 @@ namespace OpenMS
         updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
 
         std::vector<std::pair<Size, Size> > gathered_idx;
-        gathered_idx.push_back(std::make_pair(apex_scan_idx, apex_peak_idx));
+        gathered_idx.emplace_back(apex_scan_idx, apex_peak_idx);
         if (fwhm_meta_idx != -1)
         {
           fwhms_mz.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[fwhm_meta_idx][apex_peak_idx]);
@@ -384,7 +395,7 @@ namespace OpenMS
                 }
                 // Update the m/z mean of the current trace as we added a new peak
                 updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
-                gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
+                gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
 
                 // Update the m/z variance dynamically
                 if (reestimate_mt_sd_)           //  && (down_hitting_peak+1 > min_flank_scans))
@@ -460,7 +471,7 @@ namespace OpenMS
                 }
                 // Update the m/z mean of the current trace as we added a new peak
                 updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
-                gathered_idx.push_back(std::make_pair(trace_up_idx + 1, next_up_peak_idx));
+                gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
                 if (reestimate_mt_sd_)           //  && (up_hitting_peak+1 > min_flank_scans))

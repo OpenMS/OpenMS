@@ -213,8 +213,8 @@ namespace OpenMS
 
     bool pep_scores =
         (overall_score_type == "Posterior Error Probability" // from IDPEP
-        || overall_score_type != "pep" // from Percolator
-        || overall_score_type != "MS:1001493"); // from Percolator
+        || overall_score_type == "pep" // from Percolator
+        || overall_score_type == "MS:1001493"); // from Percolator
 
     for (auto &pep : pep_ids)
     {
@@ -265,22 +265,20 @@ namespace OpenMS
 
       auto current_best_pep_it = best_pep.find(lookup_seq);
       if (current_best_pep_it == best_pep.end())
-      {
-        auto &new_entry = best_pep[lookup_seq];
-        new_entry = std::map<Int, PeptideHit *>();
-        new_entry[lookup_charge] = &hit;
+      { // no entry exist for sequence? initialize seq->charge->&hit
+        best_pep[lookup_seq][lookup_charge] = &hit;        
       }
       else
-      {
+      { // a peptide hit for the current sequence exists
         auto current_best_pep_charge_it = current_best_pep_it->second.find(lookup_charge);
         if (current_best_pep_charge_it == current_best_pep_it->second.end())
-        {
+        { // no entry for charge? add hit
           current_best_pep_it->second[lookup_charge] = &hit;
         }
         else if (
             (higher_better && (hit.getScore() > current_best_pep_charge_it->second->getScore())) ||
             (!higher_better && (hit.getScore() < current_best_pep_charge_it->second->getScore())))
-        {
+        { // seq with charge already exists? replace if new value has better score
           current_best_pep_charge_it->second = &hit;
         }
       }
@@ -288,19 +286,22 @@ namespace OpenMS
     }
 
     // update protein scores
-    for (const auto &charge_to_pep_hit_map : best_pep)
+    for (const auto &seq_to_map_from_charge_to_pep_hit : best_pep)
     {
       // The next line assumes that PeptideHits of different charge states necessarily share the same
       // protein accessions
       // TODO this could be done for mods, too (first hashing AASeq, then the mods)
-      for (const auto &acc : charge_to_pep_hit_map.second.begin()->second->extractProteinAccessionsSet())
+      const std::map<Int, PeptideHit*>& charge_to_peptide_hit = seq_to_map_from_charge_to_pep_hit.second;
+      const PeptideHit& first_peptide_hit = *charge_to_peptide_hit.begin()->second;
+      for (const auto &acc : first_peptide_hit.extractProteinAccessionsSet())
       {
-        for (const auto &pep_hit : charge_to_pep_hit_map.second)
+        for (const auto &charge_pep_hit_pair : charge_to_peptide_hit)
         {
           auto prot_count_pair_it = acc_to_protein_hitP_and_count.find(std::string(acc));
           if (prot_count_pair_it == acc_to_protein_hitP_and_count.end())
           {
-            std::cout << "Warning, skipping pep that maps to a non existent protein accession. " << pep_hit.second->getSequence().toUnmodifiedString() << std::endl;
+            OPENMS_LOG_WARN << "Warning, skipping pep that maps to a non existent protein accession. " 
+              << first_peptide_hit.getSequence().toUnmodifiedString() << std::endl;
             continue; // very weird, has an accession that was not in the proteins loaded in the beginning
             //TODO error? Suppress log?
           }
@@ -308,7 +309,8 @@ namespace OpenMS
           ProteinHit *protein = prot_count_pair_it->second.first;
           prot_count_pair_it->second.second++;
 
-          double new_score = pep_hit.second->getScore();
+          const PeptideHit& pep_hit = *charge_pep_hit_pair.second;
+          double new_score = pep_hit.getScore();
 
           if (!higher_better && pep_scores) // convert PEP to PP
             new_score = 1. - new_score;
@@ -353,7 +355,7 @@ namespace OpenMS
     if (min_peptides_per_protein > 0)
     {
       IDFilter::removeMatchingItems<std::vector<ProteinHit>>(prot_run.getHits(),
-          IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", min_peptides_per_protein));
+          IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", static_cast<int>(min_peptides_per_protein) - 1));
     }
     //TODO Allow count as aggregation method -> i.e. set as protein score?
   }

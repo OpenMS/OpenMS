@@ -280,14 +280,27 @@ public:
    */
     //@{
     /// Comparator by Product ion MZ
-    struct ProductMZLess :
-      std::binary_function<ReactionMonitoringTransition, ReactionMonitoringTransition, bool>
+    struct ProductMZLess
     {
       inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
       {
         return left.getProductMZ() < right.getProductMZ();
       }
+    };
+    //@}
 
+    /**  @name  Comparator classes.
+    These classes implement binary predicates that can be used
+    to compare two transitions with respect to their name.
+    */
+    //@{
+    /// Comparator by name
+    struct NameLess
+    {
+      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
+      {
+        return left.getName() < right.getName();
+      }
     };
     //@}
 

@@ -70,10 +70,6 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# SEQAN
-find_package(SEQAN 1.4.0 REQUIRED)
-
-#------------------------------------------------------------------------------
 # libsvm
 find_package(LIBSVM 2.91 REQUIRED) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)

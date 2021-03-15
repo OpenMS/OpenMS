@@ -100,24 +100,6 @@ START_SECTION((DateTime(const DateTime&& date)))
 }
 END_SECTION
 
-START_SECTION((DateTime(const QDateTime& date)))
-{
-  QDateTime date3;
-  DateTime date2;
-  QTime time;
-  QDate date(2006, 12, 12);  
-  time.setHMS(11, 59, 59);
-
-  date3.setTime(time);
-  date3.setDate(date);
-
-  date2.set("2006-12-12 11:59:59");
-  DateTime date1(date3);
-
-  TEST_EQUAL(date1 == date2, true)
-}
-END_SECTION
-
 START_SECTION((DateTime& operator= (const DateTime& source)))
 {
   DateTime date, date2;
@@ -145,6 +127,7 @@ START_SECTION((void clear()))
   date1.set("2006-12-12 11:59:59");
   date1.clear();
   TEST_EQUAL(date1 == date2, true)
+  TEST_EQUAL(date1.isNull(), true)
 }
 END_SECTION
 

@@ -14,34 +14,35 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         SiriusAdapterAlgorithm() nogil except +
         SiriusAdapterAlgorithm(SiriusAdapterAlgorithm) nogil except +
 
-        String getFeatureOnly() nogil except +
-        String getNoMasstraceInfoIsotopePattern() nogil except +
+        String isFeatureOnly() nogil except +
+        Int getFilterByNumMassTraces() nogil except +
+        double getPrecursorMzTolerance() nogil except +
+        double getPrecursorRtTolerance() nogil except +
+        bool precursorMzToleranceUnitIsPPM() nogil except +
+        bool isNoMasstraceInfoIsotopePattern() nogil except +
         Int getIsotopePatternIterations() nogil except +
-        Int getCandidates() nogil except +
-        Int getTopNHits() nogil except +
+        Int getNumberOfSiriusCandidates() nogil except +
+        Int getNumberOfCSIFingerIDCandidates() nogil except +
+
+        String determineSiriusExecutable(String& executable) nogil except +
+
+        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) nogil except +
 
         void preprocessingSirius(String featureinfo,
-                                 MSExperiment& spectra,                
+                                 MSExperiment& spectra,
                                  libcpp_vector[FeatureMap]& v_fp,
                                  KDTreeFeatureMaps& fp_map_kd,
-                                 SiriusAdapterAlgorithm sirius_algo,
                                  FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
 
-        void checkFeatureSpectraNumber(String featureinfo,
-                                       FeatureMapping_FeatureToMs2Indices feature_mapping,
-                                       MSExperiment spectra, 
-                                       SiriusAdapterAlgorithm sirius_algo) nogil except +
+        void logFeatureSpectraNumber(String& featureinfo,
+                                     FeatureMapping_FeatureToMs2Indices& feature_mapping,
+                                     MSExperiment& spectra) nogil except +
 
         libcpp_vector[String] callSiriusQProcess(String tmp_ms_file,
                                                  String tmp_out_dir,
                                                  String executable,
                                                  String out_csifingerid,
-                                                 SiriusAdapterAlgorithm sirius_algo) nogil except +
-                                        
-        void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[String]& subdirs)
-        
-        # rvalue references (std::move) are not yet supported by autowrap
-        # libcpp_vector[String] sortSiriusWorkspacePathsByScanIndex(libcpp_vector[String]&& subdirs) nogil except +
+                                                 bool decoy_generation) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
  

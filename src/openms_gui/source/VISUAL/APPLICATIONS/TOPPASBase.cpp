@@ -156,12 +156,18 @@ namespace OpenMS
     file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL + Qt::Key_O);
     file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
     file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL + Qt::Key_I);
-    file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
+    //file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
     file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL + Qt::Key_S);
     file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL + Qt::SHIFT + Qt::Key_S);
     file->addAction("E&xport as image", this, SLOT(exportAsImage()));
     file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL + Qt::SHIFT + Qt::Key_P);
     file->addAction("&Close pipeline", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
+
+    file->addSeparator();
+    // Recent files
+    file->addMenu(recent_files_menu_.getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
+    connect(&recent_files_menu_, &RecentFilesMenu::recentFileClicked, [this](const String& filename) { addTOPPASFile(filename, true);});
+
     file->addSeparator();
     file->addAction("&Load TOPPAS resource file", this, SLOT(loadPipelineResourceFile()));
     file->addAction("Sa&ve TOPPAS resource file", this, SLOT(savePipelineResourceFile()));
@@ -207,7 +213,7 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
-
+    subsections_.push_back("preferences:RecentFiles");
     defaultsToParam_();
 
     //load param file
@@ -549,6 +555,8 @@ namespace OpenMS
       return;
     }
     
+    recent_files_menu_.add(file_name);
+
     TOPPASWidget* asw = activeSubWindow_();
     TOPPASScene* scene = nullptr;
     if (in_new_window)
@@ -1049,10 +1057,17 @@ namespace OpenMS
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
     param_.setValue("PreferencesFile", filename);
+
+    // set the recent files
+    recent_files_menu_.setFromParam(param_.copy("preferences:RecentFiles"));
   }
 
   void TOPPASBase::savePreferences()
   {
+    // replace recent files
+    param_.removeAll("preferences:RecentFiles");
+    param_.insert("preferences:RecentFiles:", recent_files_menu_.getAsParam());
+
     //set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
 

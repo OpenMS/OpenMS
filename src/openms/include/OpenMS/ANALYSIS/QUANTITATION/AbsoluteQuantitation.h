@@ -258,7 +258,7 @@ public:
       @param unknowns A FeatureMap to quantify.
 
     */ 
-    void quantifyComponents(FeatureMap& unknowns);    
+    void quantifyComponents(FeatureMap& unknowns);
 
 protected:
     /**

@@ -14,10 +14,11 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="2">
-			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///Users/alka/Documents/work/software/openms_dev/OpenMS/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///home/sachsenb/OMS/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a262023f28d63389e25eac6007d172b040fde24f" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
+				<userParam name="name" type="xsd:string" value="sourcefile1"/>
 			</sourceFile>
 			<sourceFile id="sf_sp_1" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
@@ -518,16 +519,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">13971</offset>
-		<offset idRef="index=1">18058</offset>
-		<offset idRef="index=2">26944</offset>
-		<offset idRef="index=3">31754</offset>
+		<offset idRef="index=0">14009</offset>
+		<offset idRef="index=1">18096</offset>
+		<offset idRef="index=2">26982</offset>
+		<offset idRef="index=3">31792</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">33092</offset>
-		<offset idRef="sic native">34471</offset>
+		<offset idRef="tic native">33130</offset>
+		<offset idRef="sic native">34509</offset>
 	</index>
 </indexList>
-<indexListOffset>36052</indexListOffset>
+<indexListOffset>36090</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

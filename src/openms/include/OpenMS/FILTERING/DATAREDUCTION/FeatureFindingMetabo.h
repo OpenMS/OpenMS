@@ -315,7 +315,8 @@ e conditions are fulfilled. Mainly the
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
 
-    double total_intensity_;
+    //unused
+    //double total_intensity_;
 
     /// parameter stuff
     double local_rt_range_;

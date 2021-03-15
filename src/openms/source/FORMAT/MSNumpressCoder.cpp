@@ -260,7 +260,7 @@ namespace OpenMS
       if (n >= 0)
       {
         //Comment: throw?
-        std::cerr << "Error occured at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
+        std::cerr << "Error occurred at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
       }
       else
       {

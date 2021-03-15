@@ -1666,7 +1666,7 @@ PyOpenMSChecker:
     - OpenMS::EnhancedWorkspace
     - OpenMS::TOPPASOutputFileListVertex
     - OpenMS::TOPPASResources
-    - OpenMS::SpectraIdentificationViewWidget
+    - OpenMS::SpectraIDViewTab
     - OpenMS::Plot1DWidget
     - OpenMS::Plot2DWidget
     - OpenMS::AxisPainter
@@ -1703,7 +1703,7 @@ PyOpenMSChecker:
     - OpenMS::TOPPASScene
     - OpenMS::TOPPASToolVertex
     - OpenMS::TOPPASInputFileListVertex
-    - OpenMS::SpectraViewWidget
+    - OpenMS::SpectraTreeTab
     - OpenMS::DocumentIdentifierVisualizer
     - OpenMS::MassAnalyzerVisualizer
     - OpenMS::MetaInfoDescriptionVisualizer

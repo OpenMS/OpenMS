@@ -250,12 +250,13 @@ protected:
    * @param exp_meta meta data about experiment
    * @param transition_exp The spectral library 
    * @param out_chrom The output file for the chromatograms
-   *
+   * @param run_id Unique identifier which links the sqMass and OSW file
    */
   void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer, 
                           const boost::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
-                          const String& out_chrom)
+                          const String& out_chrom,
+                          const UInt64 run_id)
   {
     if (!out_chrom.empty())
     {
@@ -264,7 +265,7 @@ protected:
       {
         bool full_meta = false; // can lead to very large files in memory
         bool lossy_compression = true;
-        *chromatogramConsumer = new MSDataSqlConsumer(out_chrom, 500, full_meta, lossy_compression);
+        *chromatogramConsumer = new MSDataSqlConsumer(out_chrom, run_id, 500, full_meta, lossy_compression);
       }
       else
       {

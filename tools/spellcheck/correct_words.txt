@@ -621,7 +621,7 @@ LocalClustering
 MovingAverage
 HierarchicalClustering
 LocalClustering
-SpectraIdentificationViewWidget
+SpectraIDViewTab
 MetaValueInterface
 ProteinIdentificationVisualizer
 

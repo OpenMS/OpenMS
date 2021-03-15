@@ -69,8 +69,7 @@ class TOPPFLASHDeconv :
 {
 public:
   TOPPFLASHDeconv() :
-      TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
-               false)
+      TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data")
   {
   }
 
