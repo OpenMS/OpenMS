@@ -134,7 +134,7 @@ namespace OpenMS
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
-                                                  FileTypes::DTA, FileTypes::DTA2D,
+                                                  FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2
                                                   FileTypes::BZ2, FileTypes::GZ });
 
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
@@ -711,6 +711,16 @@ namespace OpenMS
         {
           data_type = LayerData::DT_PEAK;
         }
+      }
+      else if (file_type == FileTypes::MGF || file_type == FileTypes::MZXML ||
+        file_type ==  FileTypes::DTA || file_type ==  FileTypes::DTA2D ||
+        file_type ==  FileTypes::MZDATA || file_type ==  FileTypes::MS2
+        )
+      {
+        // Load all data into memory
+        fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
+        OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
+        data_type = LayerData::DT_PEAK;
       }
     }
     catch (Exception::BaseException& e)
