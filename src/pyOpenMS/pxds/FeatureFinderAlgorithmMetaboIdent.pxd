@@ -34,11 +34,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
 
         void run(const libcpp_vector[FeatureFinderAlgorithmMetaboIdent_Row] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
 
-        PeakMap& getChromatograms() nogil except + #wrap-doc:Retrieve chromatograms (empty if run was not executed)
+        MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieve chromatograms (empty if run was not executed)
 
         const TargetedExperiment& getLibrary() nogil except + #wrap-doc:Retrieve the assay library (e.g., to store as TraML, empty if run was not executed)
         
-        const TransformationDescription& getTransformations()  nogil except + #wrap-doc:Retrieve deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
+        const TransformationDescription& getTransformations() nogil except + #wrap-doc:Retrieve deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
 
         size_t getNShared() nogil except + #wrap-doc:Retrieve number of features with shared identifications
 
