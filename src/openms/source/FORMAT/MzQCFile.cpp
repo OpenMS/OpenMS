@@ -122,30 +122,101 @@ namespace OpenMS
     out["MzQC"]["controlledVocabularies"] = {
         {
           {"name", "Proteomics Standards Initiative Quality Control Ontology"},
-          {"uri", "https://github.com/HUPO-PSI/qcML-development/blob/master/cv/v0_1_0/qc-cv.obo"},
-          {"version", "0.1.0"},
+          {"uri", "https://github.com/HUPO-PSI/mzQC/blob/master/cv/qc-cv.obo"},
+          {"version", "0.1.2"},
         },
         {
           {"name", "Proteomics Standards Initiative Mass Spectrometry Ontology"},
           {"uri", "https://github.com/HUPO-PSI/psi-ms-CV/blob/master/psi-ms.obo"},
-          {"version", "4.1.28"}
+          {"version", "4.1.49"}
         }
     };
 
-    //---base MS aquisition qp
+    // precursors QC:0000044 not in cv any more
+
+    map<Size, UInt> counts;
+    for (const auto& spectrum : exp)
+      {
+        const Size level = spectrum.getMSLevel();
+        ++counts[level];  // count MS level
+      }
+
+    exp.updateRanges();
+
+    // number of MS1 spectra
     json qm;
-    qm["accession"] = "QC:0000004";
+    qm["accession"] = "QC:4000059";
     try
     {
-      const ControlledVocabulary::CVTerm& term = cv.getTerm(qm["accession"]);
-      qm["name"] = term.name;
+      qm["name"] = cv.getTerm(qm["accession"]).name;
     }
     catch (...)
     {
-      qm["name"] = "mzML file";
+      qm["name"] = "Number of MS1 spectra";
+      cout << qm["accession"] << " not found in CV." << endl;
     }
+    qm["value"] = counts[1];
     out["MzQC"]["runQualities"]["qualityMetrics"] += qm;
 
+    // number of MS2 spectra
+    qm.clear();
+    qm["accession"] = "QC:4000060";
+    try
+    {
+      qm["name"] = cv.getTerm(qm["accession"]).name;
+    }
+    catch (...)
+    {
+      qm["name"] = "Number of MS2 spectra";
+      cout << qm["accession"] << " not found in CV." << endl;
+    }
+    qm["value"] = counts[2];
+    out["MzQC"]["runQualities"]["qualityMetrics"] += qm;
+
+    // number of chromatograms
+    qm.clear();
+    qm["accession"] = "QC:4000135";
+    try
+    {
+      qm["name"] = cv.getTerm(qm["accession"]).name;
+    }
+    catch (...)
+    {
+      qm["name"] = "Number of chromatograms";
+      cout << qm["accession"] << " not found in CV." << endl;
+    }
+    qm["value"] = String(exp.getChromatograms().size());
+    out["MzQC"]["runQualities"]["qualityMetrics"] += qm;    
+
+    // run time (RT duration)
+    qm.clear();
+    qm["accession"] = "QC:4000053";
+    try
+    {
+      qm["name"] = cv.getTerm(qm["accession"]).name;
+    }
+    catch (...)
+    {
+      qm["name"] = "RT duration";
+      cout << qm["accession"] << " not found in CV." << endl;
+    }
+    qm["value"] = UInt(exp.getMaxRT() - exp.getMinRT());
+    out["MzQC"]["runQualities"]["qualityMetrics"] += qm; 
+
+    // MZ acquisition range
+    qm.clear();
+    qm["accession"] = "QC:4000138";
+    try
+    {
+      qm["name"] = cv.getTerm(qm["accession"]).name;
+    }
+    catch (...)
+    {
+      qm["name"] = "MZ acquisition range";
+      cout << qm["accession"] << " not found in CV." << endl;
+    }
+    qm["value"] = tuple<int,int>{exp.getMinMZ(), exp.getMaxMZ()};
+    out["MzQC"]["runQualities"]["qualityMetrics"] += qm; 
 
     cout << out.dump(2) << endl;
     //open stream
