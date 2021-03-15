@@ -6,6 +6,8 @@ from Peak1D cimport *
 from ChromatogramPeak cimport *
 from FeatureFinder cimport *
 from DefaultParamHandler cimport *
+from TargetedExperiment cimport *
+from TransformationDescription cimport *
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS":
 
@@ -28,7 +30,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         FeatureFinderAlgorithmMetaboIdent() nogil except +
 
         void setMSData(MSExperiment & input) nogil except + #wrap-doc:Set spectra
-        const PeakMap& getMSData() nogil except + #wrap-doc:Get spectra
+        const MSExperiment& getMSData() nogil except + #wrap-doc:Get spectra
 
         void run(const libcpp_vector[FeatureFinderAlgorithmMetaboIdent_Row] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
 
