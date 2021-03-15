@@ -75,6 +75,7 @@ namespace OpenMS
           const std::vector<PeptideIdentification>& peptide_identifications,
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
+          bool export_all_psms = false,
           const String& title = "ID export from OpenMS");
 
     // stream ConsensusMap to file
