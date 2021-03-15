@@ -61,7 +61,7 @@ if (NOT VC_REDIST_PATH)
 	  endif()
 	endif()
 	if (NOT VC_REDIST_PATH) ## if still not found, try to use older methods
-		if("${OPENMS_MSVC_VERSION_STRING}" GREATER "14")
+		if("${OPENMS_MSVC_VERSION_STRING}" GREATER "14" AND DEFINED ENV{VCToolsRedistDir})
 		  ## An alternative solution to find redists
 		  #execute_process(COMMAND "$ENV{PROGRAMFILES}/Microsoft Visual Studio/Installer/vswhere" -latest -version "${OPENMS_MSVC_VERSION_STRING}" -property installationPath
 		  #                OUTPUT_VARIABLE VC_ROOT_PATH
