@@ -28,90 +28,76 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Xiao Liang  $
-// $Authors: Xiao Liang, Chris Bielow $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-//
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <fstream>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+
+using namespace OpenMS;
 using namespace std;
 
-namespace OpenMS
+//-------------------------------------------------------------
+// Doxygen docu
+//-------------------------------------------------------------
+
+/**
+    @page UTILS_OpenMSDatabasesInfo OpenMSDatabasesInfo
+
+    @brief Information about OpenMS' internal databases
+
+    This util prints the content of OpenMS' enzyme and modification databases to CSV.
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_OpenMSDatabasesInfo.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_OpenMSDatabasesInfo.html
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class OpenMSDatabasesInfo final :
+    public TOPPBase
 {
-  ProteaseDB::ProteaseDB():
-    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>("CHEMISTRY/Enzymes.xml")
+public:
+  OpenMSDatabasesInfo() :
+      TOPPBase("OpenMSDatabasesInfo", "Prints the content of OpenMS' enzyme and modification databases to CSV", false)
   {
   }
 
-  void ProteaseDB::getAllXTandemNames(vector<String>& all_names) const
+protected:
+  // this function will be used to register the tool parameters
+  // it gets automatically called on tool execution
+  void registerOptionsAndFlags_() override
   {
-    all_names.clear();
-    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
-    {
-      if ((*it)->getXTandemID() != "")
-      {
-        all_names.push_back((*it)->getName());
-      }
-    }
+    // Output CSV file
+    registerOutputFile_("enzymes_out", "<out>", "", "Enzymes as CSV", true, false);
+    setValidFormats_("enzymes_out", ListUtils::create<String>("tsv"));
+    registerOutputFile_("mods_out", "<out>", "", "Modifications as CSV", true, false);
+    setValidFormats_("mods_out", ListUtils::create<String>("tsv"));
   }
 
-  void ProteaseDB::getAllCruxNames(vector<String>& all_names) const
+  // the main_ function is called after all parameters are read
+  ExitCodes main_(int, const char**) final override
   {
-    all_names.clear();
-    all_names.push_back("custom-enzyme");
-    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
-    {
-      if ((*it)->getCruxID() != "")
-      {
-        all_names.push_back((*it)->getCruxID());
-      }
-    }
-  }
+    auto* enz_db = ProteaseDB::getInstance();
+    enz_db->writeCSV(getStringOption_("enzymes_out"));
 
-  void ProteaseDB::getAllCometNames(vector<String>& all_names) const
-  {
-    all_names.clear();
-    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
-    {
-      if ((*it)->getCometID() != -1)
-      {
-        all_names.push_back((*it)->getName());
-      }
-    }
+    auto* mod_db = ModificationsDB::getInstance();
+    mod_db->writeCSV(getStringOption_("mods_out"));
   }
+};
 
-  void ProteaseDB::getAllOMSSANames(vector<String>& all_names) const
-  {
-    all_names.clear();
-    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
-    {
-      if ((*it)->getOMSSAID() != -1)
-      {
-        all_names.push_back((*it)->getName());
-      }
-    }
-  }
+// the actual main function needed to create an executable
+int main(int argc, const char **argv)
+{
+  OpenMSDatabasesInfo tool;
+  return tool.main(argc, argv);
+}
 
-  void ProteaseDB::getAllMSGFNames(vector<String>& all_names) const
-  {
-    all_names.clear();
-    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
-    {
-      if ((*it)->getMSGFID() != -1) // MS-GF+ starts enzyme numbering at 0
-      {
-        all_names.push_back((*it)->getName());
-      }
-    }
-  }
 
-  void ProteaseDB::writeCSV(String const& filename)
-  {
-    std::ofstream ofs(filename, std::ofstream::out);
-    ofs << "OpenMS_AllowedEnzymes" << "\n";
-    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
-    {
-      ofs << (*it)->getName() << "\n";
-    }
-  }
-} // namespace OpenMS
+/// @endcond

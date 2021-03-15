@@ -209,7 +209,9 @@ public:
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
 
-protected:
+    void writeCSV(const String& filename);
+
+  protected:
 
     /// Stores whether ModificationsDB was instantiated before
     static bool is_instantiated_;
@@ -272,6 +274,5 @@ private:
 
     /// Adds modifications from a given file in Unimod XML format
     void readFromUnimodXMLFile(const String& filename);
-    
   };
 }
