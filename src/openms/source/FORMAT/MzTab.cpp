@@ -2057,7 +2057,7 @@ namespace OpenMS
     }
     else
     {
-      current_ph = phs[current_psm_idx];
+      current_ph = phs.at(current_psm_idx);
     }
 
     const AASequence& aas = current_ph.getSequence();
@@ -3797,8 +3797,8 @@ state0:
         idrunid_2_idrunindex_,
         map_id_run_fileidx_2_msfileidx_,
         run_to_search_engines_,
-        psm_id_,
         0u,
+        psm_id_,
         db_,
         db_version_,
         export_empty_pep_ids_, false);
