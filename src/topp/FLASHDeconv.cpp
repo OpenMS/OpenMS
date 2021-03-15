@@ -323,98 +323,106 @@ protected:
     if (!in_log_file.empty())
     {
       std::ifstream instream(in_log_file);
-      String line;
-      int scan;
-      double mass, charge, w1, w2, qscore, pint, mint, color;
-      while (std::getline(instream, line))
+      if (instream.good())
       {
-        if (line.find("0 targets") != line.npos)
+        String line;
+        int scan;
+        double mass, charge, w1, w2, qscore, pint, mint, color;
+        while (std::getline(instream, line))
         {
-          continue;
+          if (line.find("0 targets") != line.npos)
+          {
+            continue;
+          }
+          if (line.hasPrefix("MS1"))
+          {
+            Size st = line.find("Aceess ID ") + 10;
+            Size ed = line.find(')');
+            String n = line.substr(st, ed);
+            scan = atoi(n.c_str());
+            precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+          }
+          if (line.hasPrefix("Mass"))
+          {
+            Size st = 5;
+            Size ed = line.find('\t');
+            String n = line.substr(st, ed);
+            mass = atof(n.c_str());
+
+            st = line.find("Z=") + 2;
+            ed = line.find('\t', st);
+            n = line.substr(st, ed);
+            charge = atof(n.c_str());
+
+            st = line.find("Score=") + 6;
+            ed = line.find('\t', st);
+            n = line.substr(st, ed);
+            qscore = atof(n.c_str());
+
+            st = line.find("[") + 1;
+            ed = line.find('-', st);
+            n = line.substr(st, ed);
+            w1 = atof(n.c_str());
+
+            st = line.find('-', ed) + 1;
+            ed = line.find(']', st);
+            n = line.substr(st, ed);
+            w2 = atof(n.c_str());
+
+            st = line.find("PrecursorIntensity=", ed) + 19;
+            ed = line.find('\t', st);
+            n = line.substr(st, ed);
+            pint = atof(n.c_str());
+
+            st = line.find("PrecursorMassIntensity=", ed) + 23;
+            ed = line.find('\t', st);
+            n = line.substr(st, ed);
+            mint = atof(n.c_str());
+
+            st = line.find("Color=", ed) + 6;
+            //ed = line.find(' ', st);
+            n = line.substr(st, st + 1);
+            if (n.hasPrefix("B"))
+            {
+              color = 1.0;
+            }
+            else if (n.hasPrefix("R"))
+            {
+              color = 2.0;
+            }
+            else if (n.hasPrefix("b"))
+            {
+              color = 3.0;
+            }
+            else if (n.hasPrefix("r"))
+            {
+              color = 4.0;
+            }
+            else
+            {
+              color = 5.0;
+            }
+
+            std::vector<double> e(8);
+            e[0] = mass;
+            e[1] = charge;
+            e[2] = qscore;
+            e[3] = w1;
+            e[4] = w2;
+            e[5] = pint;
+            e[6] = mint;
+            e[7] = color;
+
+            precursor_map_for_real_time_acquisition[scan].push_back(e);
+          }
         }
-        if (line.hasPrefix("MS1"))
-        {
-          Size st = line.find("Aceess ID ") + 10;
-          Size ed = line.find(')');
-          String n = line.substr(st, ed);
-          scan = atoi(n.c_str());
-          precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-        }
-        if (line.hasPrefix("Mass"))
-        {
-          Size st = 5;
-          Size ed = line.find('\t');
-          String n = line.substr(st, ed);
-          mass = atof(n.c_str());
 
-          st = line.find("Z=") + 2;
-          ed = line.find('\t', st);
-          n = line.substr(st, ed);
-          charge = atof(n.c_str());
-
-          st = line.find("Score=") + 6;
-          ed = line.find('\t', st);
-          n = line.substr(st, ed);
-          qscore = atof(n.c_str());
-
-          st = line.find("[") + 1;
-          ed = line.find('-', st);
-          n = line.substr(st, ed);
-          w1 = atof(n.c_str());
-
-          st = line.find('-', ed) + 1;
-          ed = line.find(']', st);
-          n = line.substr(st, ed);
-          w2 = atof(n.c_str());
-
-          st = line.find("PrecursorIntensity=", ed) + 19;
-          ed = line.find('\t', st);
-          n = line.substr(st, ed);
-          pint = atof(n.c_str());
-
-          st = line.find("PrecursorMassIntensity=", ed) + 23;
-          ed = line.find('\t', st);
-          n = line.substr(st, ed);
-          mint = atof(n.c_str());
-
-          st = line.find("Color=", ed) + 6;
-          //ed = line.find(' ', st);
-          n = line.substr(st, st + 1);
-          if (n.hasPrefix("B"))
-          {
-            color = 1.0;
-          }
-          else if (n.hasPrefix("R"))
-          {
-            color = 2.0;
-          }
-          else if (n.hasPrefix("b"))
-          {
-            color = 3.0;
-          }
-          else if (n.hasPrefix("r"))
-          {
-            color = 4.0;
-          }
-          else
-          {
-            color = 5.0;
-          }
-
-          std::vector<double> e(8);
-          e[0] = mass;
-          e[1] = charge;
-          e[2] = qscore;
-          e[3] = w1;
-          e[4] = w2;
-          e[5] = pint;
-          e[6] = mint;
-          e[7] = color;
-
-          precursor_map_for_real_time_acquisition[scan].push_back(e);
-        }
+        instream.close();
       }
-      instream.close();
+      else
+      {
+        std::cout << in_log_file << " not found\n";
+      }
     }
     int current_max_ms_level = 0;
 
