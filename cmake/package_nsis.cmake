@@ -50,7 +50,7 @@ set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
 ## Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)
 	string(REGEX REPLACE ".*Visual Studio ([1-9][1-9]) .*" "\\1" OPENMS_MSVC_VERSION_STRING "${CMAKE_GENERATOR}")
-	if("${OPENMS_MSVC_VERSION_STRING}" GREATER "19")
+	if("${OPENMS_MSVC_VERSION_STRING}" GREATER "17")
 	  ## according to https://docs.microsoft.com/de-de/cpp/windows/redistributing-visual-cpp-files?view=msvc-160
 	  get_filename_component(VC_ROOT_PATH "$ENV{VCINSTALLDIR}Redist/MSVC/v142" ABSOLUTE)
 	  file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
