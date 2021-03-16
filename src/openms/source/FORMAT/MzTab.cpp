@@ -2048,7 +2048,7 @@ namespace OpenMS
 
     /////// Information that does require a peptide hit ///////
     PeptideHit current_ph;
-    if (export_all_psms)
+    if (!export_all_psms)
     {
       // only consider best peptide hit for export
       vector<PeptideIdentification> dummy;
