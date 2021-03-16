@@ -1,14 +1,9 @@
 {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
-    "cmake.configureArgs": [
-      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-      "-DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local'",
-      "-DBOOST_USE_STATIC=OFF"
-    ],
     "cmake.parallelJobs": 0,
     "cmake.clearOutputBeforeBuild": false,
-    "cmake.skipConfigureIfCachePresent": true,
+    //"cmake.skipConfigureIfCachePresent": true, //omit since in general we want configurations to happen. Only at first startup it should use the cache.
     "clangd.arguments": [
       "--background-index"
     ]
