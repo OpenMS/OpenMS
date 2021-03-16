@@ -52,7 +52,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -699,8 +699,11 @@ namespace OpenMS
         }
         else if (file_type == FileTypes::MSP)
         {
-          // load spectra annotations into peptides
-          MSPFile().load(abs_filename, peptides, *peak_map_sptr);
+          MSPGenericFile().load(abs_filename, *peak_map_sptr);
+          for (size_t i = 0; i != peak_map_sptr->size(); ++i)
+          {
+            if ((*peak_map_sptr)[i].getRT() < 0) (*peak_map_sptr)[i].setRT(i); // set RT to spectrum index
+          }
         }
 
         // Load all data into memory if e.g. no mzML file
@@ -754,12 +757,6 @@ namespace OpenMS
       caption, 
       window_id, 
       spectrum_id);
-
-    if (file_type == FileTypes::MSP)
-    {
-      // annotate spectra annotations read from MSP file
-      getCurrentLayer()->annotate(peptides, std::vector<ProteinIdentification>());
-    }
 
     // add to recent file
     if (add_to_recent)
