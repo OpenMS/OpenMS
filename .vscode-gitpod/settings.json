@@ -9,6 +9,8 @@
     "cmake.parallelJobs": 0,
     "cmake.clearOutputBeforeBuild": false,
     "cmake.skipConfigureIfCachePresent": true,
+    "cmake.ignoreKitEnv": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build",
     "clangd.arguments": [
       "--background-index"
     ]
