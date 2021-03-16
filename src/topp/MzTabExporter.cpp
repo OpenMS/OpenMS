@@ -204,7 +204,9 @@ protected:
         MzTabFile().store(out,
 	        prot_ids,
           pep_ids,
-          getFlag_("first_run_inference_only"));
+          getFlag_("first_run_inference_only"),
+          false,
+          getFlag_("export_all_psms"));
         return EXECUTION_OK;
       }
 
@@ -219,7 +221,8 @@ protected:
            getFlag_("first_run_inference_only"), 
            true, 
            true, 
-           export_subfeatures); // direct stream to disc
+           export_subfeatures,
+           getFlag_("export_all_psms")); // direct stream to disc
         return EXECUTION_OK;
       }
 
