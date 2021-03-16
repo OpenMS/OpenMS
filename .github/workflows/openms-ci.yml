@@ -96,6 +96,8 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
+          BUILD_FLAGS: ""
+
 
   build-macos:
     runs-on: macos-latest
@@ -198,6 +200,7 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j5"
 
   build-lnx:
     runs-on: ubuntu-latest
@@ -287,3 +290,4 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j5"
