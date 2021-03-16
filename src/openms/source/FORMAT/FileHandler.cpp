@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 
@@ -661,6 +662,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       exp.resize(1);
       XMassFile().load(filename, exp[0]);
       XMassFile().importExperimentalSettings(filename, exp);
+
+      break;
+
+    case FileTypes::MSP:
+      MSPFile().load(filename, exp);
 
       break;
 

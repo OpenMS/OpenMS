@@ -135,7 +135,7 @@ namespace OpenMS
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
                                                   FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
-                                                  FileTypes::BZ2, FileTypes::GZ });
+                                                  FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
