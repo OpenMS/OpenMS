@@ -96,7 +96,7 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
-          BUILD_FLAGS: "-p:CL_MPCount=5"
+          BUILD_FLAGS: "//p:CL_MPCount=5"
 
 
   build-macos:
