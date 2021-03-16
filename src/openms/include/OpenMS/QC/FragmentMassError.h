@@ -79,6 +79,7 @@ namespace OpenMS
      * Each FME (in ppm) is stored at the first PeptideHit of the corresponding PeptideIdentification as metavalue Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM
      * and contains the FME for each peak in the corresponding spectrum.
      * Same is done for the FME in Da - as metavalue Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM.
+     * For both tolerance units the variance of FMEs over the spectrum is also stored as a metavalue with the extension "_variance" to the metavalue name.
      * Note: If the metavalues already exist, they will be overwritten.
      *
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
