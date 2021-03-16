@@ -66,7 +66,7 @@ jobs:
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
-      run: echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
       
     - name: Tests windows
@@ -168,7 +168,7 @@ jobs:
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
-      run: echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
     - name: Build and test osx
       run: |
@@ -234,7 +234,7 @@ jobs:
       run: |
         yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         yum -y install jq
-        echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+        echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
       
       #  open step log to get ssh access
