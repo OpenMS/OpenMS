@@ -3,7 +3,6 @@
     "editor.insertSpaces": true,
     "cmake.parallelJobs": 0,
     "cmake.clearOutputBeforeBuild": false,
-    //"cmake.skipConfigureIfCachePresent": true, //omit since in general we want configurations to happen. Only at first startup it should use the cache.
     "cmake.ignoreKitEnv": true,
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "clangd.arguments": [
