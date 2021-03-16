@@ -34,12 +34,11 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -79,7 +78,11 @@ using namespace std;
     - @p consensus produces quality parameter values for the consensus file;
     some quality parameter calculation are only available if both feature and ids are given.
     - @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
-
+    - @p name only for mzQC: name of the person creating the mzQC file
+    - @p address only for mzQC: contact address (mail/e-mail or phone) of the person creating the mzQC file
+    - @p label only for mzQC: RECOMMENDED unique and informative label for the run, so that it can be used as a figure label
+    - @p description only for mzQC: description and comments about the mzQC file contents
+    
     Output is in mzQC with JSON formatting or qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
     The output file specified by the user determines which output file format will be used.
     
@@ -146,11 +149,6 @@ protected:
     String description = getStringOption_("description");
     String label = getStringOption_("label");
     bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
-    
-    // fetch vocabularies
-    ControlledVocabulary cv;
-    cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
 
     // prepare input
     cout << "Reading mzML file..." << endl;
@@ -158,21 +156,19 @@ protected:
     MzMLFile().load(inputfile_raw, exp);
 
     exp.sortSpectra();
+    exp.updateRanges();
     
     // collect QC data and store according to output file extension
     if (FileHandler::hasValidExtension (outputfile_name, FileTypes::QCML)) 
     {
       QcMLFile qcmlfile;
       qcmlfile.collectQCData(inputfile_id, inputfile_feature,
-                    inputfile_consensus, inputfile_raw, remove_duplicate_features, cv, exp);
+                    inputfile_consensus, inputfile_raw, remove_duplicate_features, exp);
       qcmlfile.store(outputfile_name);
     } else if (FileHandler::hasValidExtension (outputfile_name, FileTypes::MZQC))
     {
       MzQCFile mzqcfile;
-      mzqcfile.store(inputfile_raw, outputfile_name, exp, cv, contactName, contactAddress, description, label);
-    } else 
-    {
-      cout << "Please use a valid file extension for the output file (mzQC or qcML)." << endl;
+      mzqcfile.store(inputfile_raw, outputfile_name, exp, contactName, contactAddress, description, label);
     }
 
     return EXECUTION_OK;

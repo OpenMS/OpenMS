@@ -33,19 +33,7 @@
 // --------------------------------------------------------------------------
 
 #pragma once
-
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-
-#include <vector>
-#include <map>
-#include <QFileInfo>
-#include <iostream>
-#include <fstream>
 
 namespace OpenMS
 {
@@ -53,8 +41,6 @@ namespace OpenMS
       @brief File adapter for mzQC files used to load and store mzQC files
 
       This Class is supposed to internally collect the data for the mzQC File
-
-      A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
       @ingroup FileIO
   */
@@ -64,11 +50,20 @@ namespace OpenMS
     // Default constructor
     MzQCFile() = default;
 
-    // Store the QCFile
+    // Store the mzQC file
+    /**
+      @brief Stores QC data in mzQC file with JSON format
+      @param inputFileName mzML input file name
+      @param outputFileName mzQC output file name
+      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param contactName name of the person creating the mzQC file
+      @param contactAddress contact address (mail/e-mail or phone) of the person creating the mzQC file
+      @param description description and comments about the mzQC file contents
+      @param label unique and informative label for the run
+    */
     void store(const String & inputFileName,
                const String & outputFileName,
-               MSExperiment exp,
-               ControlledVocabulary cv,
+               const MSExperiment & exp,
                const String & contactName,
                const String & contactAddress,
                const String & description,

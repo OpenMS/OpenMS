@@ -33,10 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzQCFile.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
-#include <boost/range/adaptor/map.hpp>
-#include <boost/range/algorithm/copy.hpp>
 #include <nlohmann/json.hpp>
+
+#include <vector>
+#include <map>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -46,10 +55,10 @@ using namespace std;
 
 namespace OpenMS
 { 
+
   void MzQCFile::store(const String & inputFileName,
                        const String & outputFileName,
-                       MSExperiment exp,
-                       ControlledVocabulary cv,
+                       const MSExperiment & exp,
                        const String & contactName,
                        const String & contactAddress,
                        const String & description,
@@ -79,8 +88,8 @@ namespace OpenMS
     out["MzQC"]["runQualities"]["metadata"]["label"] = label;
     out["MzQC"]["runQualities"]["metadata"]["inputFiles"] = {
         {
-          {"location", String(QFileInfo(QString::fromStdString(inputFileName)).absoluteFilePath())},
-          {"name", String(QFileInfo(QString::fromStdString(inputFileName)).baseName())},
+          {"location", File::absolutePath(inputFileName)},
+          {"name", File::basename(inputFileName)},
           {"fileFormat",
           {
             {"accession", "MS:10000584"},
@@ -93,7 +102,7 @@ namespace OpenMS
             {
               {"accession", "MS:1000747"},
               {"name", "completion time"},
-              {"value", String(exp.getDateTime().getDate() + " " + exp.getDateTime().getTime())}
+              {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime())}
             },
             {
               {"accession", "MS:1000569"},
@@ -108,11 +117,12 @@ namespace OpenMS
           }
     };
 
+    VersionInfo::VersionDetails version = VersionInfo::getVersionStruct();
     out["MzQC"]["runQualities"]["metadata"]["analysisSoftware"] = { // todo
         {
           {"accession", "MS:1009001" }, // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
           {"name", "QCCalculator"},
-          {"version", "2.6.0"},
+          {"version", String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)},
           {"uri", "https://www.openms.de"}
         }
     };
@@ -141,83 +151,37 @@ namespace OpenMS
         ++counts[level];  // count MS level
       }
 
-    exp.updateRanges();
+    // create qualityMetric in json format
+    auto addValue = [](const String& accession, const String& name, const auto& value) -> json
+      {
+        ControlledVocabulary cv;
+        cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+        cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+        json qm;
+        qm["accession"] = accession;
+        if (cv.exists(accession)) 
+        {
+          qm["name"] = cv.getTerm(accession).name;
+        } else
+        {
+          qm["name"] = name;
+          cout << accession << " not found in CV." << endl;
+        }
+        qm["value"] = value;
+        return qm;
+      };
 
-    // number of MS1 spectra
-    json qm;
-    qm["accession"] = "QC:4000059";
-    try
-    {
-      qm["name"] = cv.getTerm(qm["accession"]).name;
-    }
-    catch (...)
-    {
-      qm["name"] = "Number of MS1 spectra";
-      cout << qm["accession"] << " not found in CV." << endl;
-    }
-    qm["value"] = counts[1];
-    out["MzQC"]["runQualities"]["qualityMetrics"] += qm;
-
-    // number of MS2 spectra
-    qm.clear();
-    qm["accession"] = "QC:4000060";
-    try
-    {
-      qm["name"] = cv.getTerm(qm["accession"]).name;
-    }
-    catch (...)
-    {
-      qm["name"] = "Number of MS2 spectra";
-      cout << qm["accession"] << " not found in CV." << endl;
-    }
-    qm["value"] = counts[2];
-    out["MzQC"]["runQualities"]["qualityMetrics"] += qm;
-
-    // number of chromatograms
-    qm.clear();
-    qm["accession"] = "QC:4000135";
-    try
-    {
-      qm["name"] = cv.getTerm(qm["accession"]).name;
-    }
-    catch (...)
-    {
-      qm["name"] = "Number of chromatograms";
-      cout << qm["accession"] << " not found in CV." << endl;
-    }
-    qm["value"] = String(exp.getChromatograms().size());
-    out["MzQC"]["runQualities"]["qualityMetrics"] += qm;    
-
-    // run time (RT duration)
-    qm.clear();
-    qm["accession"] = "QC:4000053";
-    try
-    {
-      qm["name"] = cv.getTerm(qm["accession"]).name;
-    }
-    catch (...)
-    {
-      qm["name"] = "RT duration";
-      cout << qm["accession"] << " not found in CV." << endl;
-    }
-    qm["value"] = UInt(exp.getMaxRT() - exp.getMinRT());
-    out["MzQC"]["runQualities"]["qualityMetrics"] += qm; 
-
+    // Number of MS1 spectra
+    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000059", "Number of MS1 spectra", counts[0]);
+    // Number of MS2 spectra
+    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000060", "Number of MS2 spectra", counts[1]);
+    // Number of chromatograms"
+    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000135", "Number of chromatograms", exp.getChromatograms().size());
+    // Run time (RT duration)
+    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000053", "RT duration", UInt(exp.getMaxRT() - exp.getMinRT()));
     // MZ acquisition range
-    qm.clear();
-    qm["accession"] = "QC:4000138";
-    try
-    {
-      qm["name"] = cv.getTerm(qm["accession"]).name;
-    }
-    catch (...)
-    {
-      qm["name"] = "MZ acquisition range";
-      cout << qm["accession"] << " not found in CV." << endl;
-    }
-    qm["value"] = tuple<int,int>{exp.getMinMZ(), exp.getMaxMZ()};
-    out["MzQC"]["runQualities"]["qualityMetrics"] += qm; 
-
+    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000138", "MZ acquisition range", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
+    
     //open stream
     ofstream os(outputFileName.c_str());
     if (!os)
@@ -226,6 +190,7 @@ namespace OpenMS
     }
 
     os.precision(writtenDigits<double>(0.0));
+    // write out the json object in proper format with indentation level of 2
     os << out.dump(2);
   }
 

@@ -35,6 +35,16 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <QFileInfo>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
 #include <fstream>
 #include <map>
 #include <boost/range/adaptor/map.hpp>
@@ -1050,7 +1060,7 @@ namespace OpenMS
     return error;
   }
 
-  float calculateSNmedian(MSSpectrum& spec, bool norm = true)
+  float calculateSNmedian(MSSpectrum spec, bool norm = true)
   {
     if (spec.size() == 0) return 0;
     float median = 0;
@@ -1096,9 +1106,12 @@ namespace OpenMS
 
   void QcMLFile::collectQCData(const String& inputfile_id, const String& inputfile_feature,
                        const String& inputfile_consensus, const String& inputfile_raw, 
-                       const bool remove_duplicate_features, ControlledVocabulary cv, MSExperiment exp)
+                       const bool remove_duplicate_features, const MSExperiment& exp)
   {
-
+      // fetch vocabularies
+      ControlledVocabulary cv;
+      cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+      cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------

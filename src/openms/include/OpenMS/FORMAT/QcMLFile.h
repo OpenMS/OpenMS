@@ -39,15 +39,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <QFileInfo>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
 
 #include <vector>
 #include <map>
@@ -178,10 +170,23 @@ public:
     ///Returns the ids of the parameter name given if found in given set, empty else
     void existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
     ///Calculation and collection of QC data
+    /**
+      @brief Collects QC data in qualityParameters and qualityAttachments
+      @param inputfile_id identification file
+      @param inputfile_feature feature file
+      @param inputfile_consensus consensus file
+      @param inputfile_raw mzML input file name
+      @param remove_duplicate_features removes duplicates in a set of merged features
+      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+    */
     void collectQCData(const String& inputfile_id, const String& inputfile_feature,
                        const String& inputfile_consensus, const String& inputfile_raw,
-                       const bool remove_duplicate_features, ControlledVocabulary cv, MSExperiment exp);
+                       const bool remove_duplicate_features, const MSExperiment& exp);
     ///Store the QCFile
+    /**
+      @brief Store the qcML file
+      @param filename qcML output file name
+    */
     void store(const String& filename) const;
 
     ///Load a QCFile
