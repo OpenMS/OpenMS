@@ -665,11 +665,6 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
       break;
 
-    case FileTypes::MSP:
-      MSPFile().load(filename, exp);
-
-      break;
-
     default:
       return false;
     }

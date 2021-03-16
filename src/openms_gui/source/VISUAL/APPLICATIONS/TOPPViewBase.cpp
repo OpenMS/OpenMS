@@ -696,6 +696,11 @@ namespace OpenMS
             if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
+        else if (file_type == FileTypes::MSP)
+        {
+          // load spectra annotations into peptides
+          MSPFile().load(abs_filename, peptides, *peak_map_sptr);
+        }
 
         // Load all data into memory if e.g. no mzML file
         if (!parsing_success)
@@ -748,6 +753,12 @@ namespace OpenMS
       caption, 
       window_id, 
       spectrum_id);
+
+    if (file_type == FileTypes::MSP)
+    {
+      // annotate spectra annotations read from MSP file
+      getCurrentLayer()->annotate(peptides, std::vector<ProteinIdentification>());
+    }
 
     // add to recent file
     if (add_to_recent)
