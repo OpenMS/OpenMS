@@ -3357,13 +3357,15 @@ state0:
     const bool export_unassigned_ids,
     const bool export_subfeatures,
     const bool export_empty_pep_ids,
+    const bool export_all_psms,
     const String& title) 
   :
     consensus_map_(consensus_map),
     filename_(filename), 
     export_unidentified_features_(export_unidentified_features),
     export_subfeatures_(export_subfeatures),
-    export_empty_pep_ids_(export_empty_pep_ids)
+    export_empty_pep_ids_(export_empty_pep_ids),
+    export_all_psms_(export_all_psms)
   {
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
@@ -3550,9 +3552,14 @@ state0:
 
     meta_data_.quantification_method = quantification_method;
     MzTabParameter protein_quantification_unit;
-    protein_quantification_unit.fromCellString("[,,Abundance,]"); // TODO: add better term to obo
+    // TODO: add better term to obo: Would need to be a combination of settings:
+    //  "sum/mean/max/..fancy", "top3,all,..", "shared,unique,razor+unique", potentially make clear that it is usually
+    //  on group level here (even if singleton group).
+    protein_quantification_unit.fromCellString("[,,Abundance,]");
+
     meta_data_.protein_quantification_unit = protein_quantification_unit;
     MzTabParameter peptide_quantification_unit;
+    // TODO: I think we could use MS1 feature area or feature height or spectral count here.
     peptide_quantification_unit.fromCellString("[,,Abundance,]");
     meta_data_.peptide_quantification_unit = peptide_quantification_unit;
 
@@ -3789,7 +3796,7 @@ state0:
   
   bool MzTab::CMMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
-    if (psm_id_ >= peptide_ids_.size()) return false;
+    if (pep_id_ >= peptide_ids_.size()) return false;
     const PeptideIdentification* pid = peptide_ids_[psm_id_];
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
         *pid,
@@ -3797,13 +3804,23 @@ state0:
         idrunid_2_idrunindex_,
         map_id_run_fileidx_2_msfileidx_,
         run_to_search_engines_,
-        0u,
+        current_psm_idx_,
         psm_id_,
         db_,
         db_version_,
-        export_empty_pep_ids_, false);
+        export_empty_pep_ids_,
+        export_all_psms_);
 
-    ++psm_id_;
+    if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
+    {
+      ++pep_id_;
+      current_psm_idx_ = 0;
+    }
+    else
+    {
+      ++current_psm_idx_;
+    }
+    ++psm_id_; //global psm id "counter"
 
     if (psm_row) // valid row?
     {
@@ -3821,6 +3838,7 @@ state0:
     const bool export_unassigned_ids,
     const bool export_subfeatures,
     const bool export_empty_pep_ids,
+    const bool export_all_psms,
     const String& title)
   {  
     OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
@@ -3832,6 +3850,7 @@ state0:
       export_unassigned_ids,
       export_subfeatures,
       export_empty_pep_ids,
+      export_all_psms,
       title);
 
     MzTab m;

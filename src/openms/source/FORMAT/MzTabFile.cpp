@@ -2997,7 +2997,8 @@ namespace OpenMS
       const bool export_unidentified_features,
       const bool export_unassigned_ids,
       const bool export_subfeatures,
-      const bool export_empty_pep_ids) const
+      const bool export_empty_pep_ids,
+      const bool export_all_psms) const
   {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
     {
@@ -3016,6 +3017,7 @@ namespace OpenMS
       export_unassigned_ids,
       export_subfeatures,
       export_empty_pep_ids,
+      export_all_psms,
       "ConsensusMap export from OpenMS");      
 
     // generate full meta data section and write to file
