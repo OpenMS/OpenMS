@@ -376,6 +376,9 @@ namespace OpenMS
       }
     }
     if(ms_level_ == 1) { // TODO fix later
+
+        std::cout<<target_mass_bins_.size()<<"*"<<std::endl;
+
         for (Size &index : target_mass_bins_) {
             long j = (long) index - shift;
             if (j < 0) {
@@ -2251,7 +2254,6 @@ namespace OpenMS
             target_mass_bins_.push_back(pg_bin);
         }
         std::sort(target_mass_bins_.begin(), target_mass_bins_.end());
-        std::cout<<target_mass_bins_.size()<<"*"<<std::endl;
     }
 
 
