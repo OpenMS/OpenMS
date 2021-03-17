@@ -421,7 +421,7 @@ namespace OpenMS
         precursor_peak_.setMZ(precursor_spectrum.spec_[index].getMZ());
       }
 
-      for (auto map = precursor_map_for_real_time_acquisition.upper_bound(scan_number_);
+      for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
            map != precursor_map_for_real_time_acquisition.begin();
            map--)
       {
@@ -450,7 +450,7 @@ namespace OpenMS
           }
         }
       }
-
+/*
       for (auto map = precursor_map_for_real_time_acquisition.upper_bound(scan_number_);
            map != precursor_map_for_real_time_acquisition.end();
            map++)
@@ -481,7 +481,7 @@ namespace OpenMS
         }
       }
 
-
+*/
       //std::cout<<scan_number_ << " " << precursor_peak_.getMZ() <<std::endl;
       return false;
     }

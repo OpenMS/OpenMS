@@ -336,8 +336,8 @@ protected:
           }
           if (line.hasPrefix("MS1"))
           {
-            Size st = line.find("Aceess ID ") + 10;
-            Size ed = line.find(')');
+            Size st = line.find("MS1 Scan# ") + 10;
+            Size ed = line.find(' ', st);
             String n = line.substr(st, ed);
             scan = atoi(n.c_str());
             precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color

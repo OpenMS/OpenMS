@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <sstream>
 //#define DEBUG_COLOR
 
 namespace OpenMS {
@@ -141,8 +142,8 @@ namespace OpenMS {
                     {
                         results.push_back(str);
                     }
-
-                    target_masses_.insert(atof(results[5].c_str()));
+                    mass = atof(results[5].c_str());
+                    target_masses_.insert(mass);
                     int nmass = FLASHDeconvAlgorithm::getNominalMass(mass);
                     if(target_nominal_masses_.find(nmass) == target_nominal_masses_.end()){
                         target_nominal_masses_[nmass] = std::vector<double>();
