@@ -92,6 +92,9 @@ namespace OpenMS
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();
 
+
+    void setTargetMasses(const std::set<double>& masses, int ms_level);
+
     /** @brief precalculate averagine (for predifined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calcualted
      */
@@ -164,6 +167,7 @@ namespace OpenMS
     /// The data structures for spectra overlapping.
     std::vector<std::vector<Size>> prev_mass_bin_vector_;
     std::vector<double> prev_rt_vector_;
+    std::vector<Size> target_mass_bins_;
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
     const std::vector<int> harmonic_charges_{2, 3, 5};

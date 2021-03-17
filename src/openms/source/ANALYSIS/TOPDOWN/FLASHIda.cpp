@@ -105,66 +105,11 @@ namespace OpenMS {
                         Size ed = line.find('\t');
                         String n = line.substr(st, ed);
                         mass = atof(n.c_str());
-
-                        st = line.find("Z=") + 2;
-                        ed = line.find('\t', st);
-                        n = line.substr(st, ed);
-                        charge = atof(n.c_str());
-
-                        st = line.find("Score=") + 6;
-                        ed = line.find('\t', st);
-                        n = line.substr(st, ed);
-                        qscore = atof(n.c_str());
-
-                        st = line.find("[") + 1;
-                        ed = line.find('-', st);
-                        n = line.substr(st, ed);
-                        w1 = atof(n.c_str());
-
-                        st = line.find('-', ed) + 1;
-                        ed = line.find(']', st);
-                        n = line.substr(st, ed);
-                        w2 = atof(n.c_str());
-
-                        st = line.find("PrecursorIntensity=", ed) + 19;
-                        ed = line.find('\t', st);
-                        n = line.substr(st, ed);
-                        pint = atof(n.c_str());
-
-                        st = line.find("PrecursorMassIntensity=", ed) + 23;
-                        ed = line.find('\t', st);
-                        n = line.substr(st, ed);
-                        mint = atof(n.c_str());
-
-                        st = line.find("Color=", ed) + 6;
-                        //ed = line.find(' ', st);
-                        n = line.substr(st, st + 1);
-                        if (n.hasPrefix("B")) {
-                            color = 1.0;
-                        } else if (n.hasPrefix("R")) {
-                            color = 2.0;
-                        } else if (n.hasPrefix("b")) {
-                            color = 3.0;
-                        } else if (n.hasPrefix("r")) {
-                            color = 4.0;
-                        } else {
-                            color = 5.0;
-                        }
-
-                        std::vector<double> e(8);
-                        e[0] = mass;
-                        e[1] = charge;
-                        e[2] = qscore;
-                        e[3] = w1;
-                        e[4] = w2;
-                        e[5] = pint;
-                        e[6] = mint;
-                        e[7] = color;
+                        target_masses_.insert(mass);
                         target_nominal_masses_.insert(FLASHDeconvAlgorithm::getNominalMass(mass));
                         //precursor_map_for_real_time_acquisition[scan].push_back(e);
                     }
                 }
-
                 instream.close();
             }
 
@@ -175,6 +120,7 @@ namespace OpenMS {
 
         fd_.setParameters(fd_defaults);
         fd_.calculateAveragine(false);
+        fd_.setTargetMasses(target_masses_ , 1);
 
         averagine_ = fd_.getAveragine();
         std::cout << "QScore threshold: " << qscore_threshold_ << std::endl;
@@ -332,14 +278,21 @@ namespace OpenMS {
                     if (filtered_peakgroups.size() >= mass_count) {
                         break;
                     }
-                    int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
 
-                    if (i == 0 && target_nominal_masses_.find(nominal_mass) != target_nominal_masses_.end()) {
-                        continue;
-                    }
-                    if (pg.getQScore() < qscore_threshold_) {
+                    if (pg.getQScore() < qscore_threshold_)
+                    {
                         break;
                     }
+
+                    int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+
+                    if (i == 0 && target_nominal_masses_.find(nominal_mass) == target_nominal_masses_.end()) {
+                        continue;
+                    }
+                    if (i == 0 && (c == 'b' || c == 'r')) {
+                        continue;
+                    }
+
                     //if (i == 0 && c == 'G' && pg.getQScore() < 0.5)
                     // {
                     //  break;

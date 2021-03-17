@@ -350,6 +350,8 @@ namespace OpenMS
     {
       return;
     }
+    long shift = (long) (round((mass_bin_min_value_) * bin_width_[ms_level_ - 1]));
+
     for (Size i = 0; i < prev_mass_bin_vector_.size(); i++)
     {
       auto &pmb = prev_mass_bin_vector_[i];
@@ -358,7 +360,6 @@ namespace OpenMS
       {
         continue;
       }
-      long shift = (long) (round((mass_bin_min_value_) * bin_width_[ms_level_ - 1]));
 
       for (Size &index : pmb)
       {
@@ -374,6 +375,20 @@ namespace OpenMS
         mass_bins_[j] = true;
       }
     }
+
+      for (Size &index : target_mass_bins_)
+      {
+          long j = (long) index - shift;
+          if (j < 0)
+          {
+              continue;
+          }
+          if ((Size) j >= mass_bins_.size())
+          {
+              break;
+          }
+          mass_bins_[j] = true;
+      }
   }
 
   //Find candidate mass bins from the current spectrum. The runtime of FLASHDeconv is deteremined by this function..
@@ -2229,6 +2244,18 @@ namespace OpenMS
     return n == 0 ? .0 : sqrt(accumulate(diffs.begin(), diffs.end(), 0.0) / n);
 
   }
+
+    void FLASHDeconvAlgorithm::setTargetMasses(const std::set<double> &masses, int ms_level) {
+        target_mass_bins_;
+        for(auto &m : masses){
+            double mass_delta = avg_.getAverageMassDelta(m);
+            Size pg_bin = getBinNumber_(m + mass_delta, 0, bin_width_[ms_level-1]);
+            target_mass_bins_.push_back(pg_bin);
+        }
+
+
+
+    }
 
 
 }
