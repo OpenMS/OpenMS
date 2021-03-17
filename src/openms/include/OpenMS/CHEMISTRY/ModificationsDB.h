@@ -209,7 +209,7 @@ public:
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
 
-    /// Writes the contents to a TSV file
+    /// Writes tab separated entries: FullId,FullName,Origin,AA,TerminusSpecificity,DiffMonoMass (including header) to TSV file
     void writeTSV(const String& filename);
 
   protected:
