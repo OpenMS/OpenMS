@@ -362,8 +362,8 @@ namespace OpenMS
     std::set<int> current_selected_masses; // current selected masses
     std::set<int> current_selected_mzs; // current selected mzs
 
-    for (int i = 0; i < 1; i++)
-    {
+    //for (int i = 0; i < 1; i++)
+    //{
       for (auto &c: color_order)
       {
         for (auto &pg : deconvoluted_spectrum_)
@@ -377,7 +377,9 @@ namespace OpenMS
           {
             break;
           }
-          if (i == 0 && pg.getQScore() < qscore_threshold_)
+
+          int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+          if (target_nominal_masses_.find(nominal_mass) != target_nominal_masses_.end() && pg.getQScore() < qscore_threshold_)
           {
             break;
           }
@@ -391,7 +393,7 @@ namespace OpenMS
             continue;
           }
 
-          int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+
           if (current_selected_masses.find(nominal_mass) != current_selected_masses.end())
           {
             continue;
@@ -402,9 +404,7 @@ namespace OpenMS
             continue;
           }
 
-          if(target_nominal_masses_.find(nominal_mass) != target_nominal_masses_.end()){
-
-          }else if(mass_color_map_[nominal_mass] != c){
+          if(mass_color_map_[nominal_mass] != c){
               continue;
           }
 
@@ -435,11 +435,11 @@ namespace OpenMS
           break;
         }
       }
-      if (filtered_peakgroups.size() >= mass_count)
-      {
-        break;
-      }
-    }
+     // if (filtered_peakgroups.size() >= mass_count)
+     // {
+    //    break;
+     // }
+   // }
 
     deconvoluted_spectrum_.swap(filtered_peakgroups);
     std::vector<PeakGroup>().swap(filtered_peakgroups);
