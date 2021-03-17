@@ -70,9 +70,15 @@ jobs:
       id: extract_pr
       
     - name: Tests windows
-    - uses: docker://lpenz/ghaction-cmake:v3.18
       shell: bash
       run: |
+          #install chocolotey
+          @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+          #downgrade/upgrade cmake to v.3.18
+          choco install cmake --version 3.18
+
+          #run openms tests
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
 
