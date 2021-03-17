@@ -69,11 +69,14 @@ jobs:
       run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
       
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.8
+      with:
+        cmake-version: '3.20.x'
+        
     - name: Tests windows
       shell: bash
       run: |
-          #downgrade/upgrade cmake to v.3.18
-          choco install --no-progress cmake --version 3.18 --installargs 'ADD_CMAKE_TO_PATH=System'
           cmake --version
           
           #run openms tests
