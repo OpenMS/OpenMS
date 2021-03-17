@@ -599,8 +599,55 @@ namespace OpenMS
       std::set< std::tuple< std::string, unsigned > > path_label_set;
       std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
 
+      if (msfile_section_[0].fraction != 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION, "Fractions do not start with 1.", String(msfile_section_[0].fraction));
+      }
+      if (msfile_section_[0].fraction_group != 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION, "Fraction groups do not start with 1.", String(msfile_section_[0].fraction_group));
+      }
+
+      Size last_fraction = 1;
+      Size last_fraction_group = 0;
       for (const MSFileSectionEntry& row : msfile_section_)
       {
+        if (row.fraction_group != last_fraction_group)
+        {
+          ++last_fraction_group;
+          last_fraction = 1;
+          if (row.fraction_group != last_fraction_group)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION, "Fraction groups not consecutive. Expected: " + String(last_fraction_group), String(row.fraction_group));
+          }
+          if (row.fraction != last_fraction)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION, "Fractions inside fraction_group " + String(row.fraction_group) + " not starting with 1.", String(row.fraction));
+          }
+        }
+        else
+        {
+          ++last_fraction;
+          if (row.fraction != last_fraction)
+          {
+            throw Exception::InvalidValue(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION, "Fractions not consecutive. Expected: " + String(last_fraction), String(row.fraction));
+          }
+        }
         // FRACTIONGROUP_FRACTION_LABEL TUPLE
         std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
         errorIfAlreadyExists(

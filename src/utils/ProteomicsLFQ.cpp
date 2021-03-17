@@ -1709,7 +1709,7 @@ protected:
 
         if (e != EXECUTION_OK) { return e; }
         
-        if (getStringOption_("transfer_ids") != "false")
+        if (getStringOption_("transfer_ids") != "false" && ms_files.size() > 1)
         {  
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
           // needs to occur in >= 50% of all runs for transfer
