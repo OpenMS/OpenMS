@@ -53,6 +53,7 @@ namespace OpenMS
 
       if(token_string.hasSuffix(".log")){
           log_files.push_back(token_string);
+          std::cout<<token_string << " is used for global targeting\n";
       }else {
           double num = atof(token_string.c_str());
 
