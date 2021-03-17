@@ -89,6 +89,8 @@ protected:
 
     auto* mod_db = ModificationsDB::getInstance();
     mod_db->writeTSV(getStringOption_("mods_out"));
+    
+    return EXECUTION_OK;
   }
 };
 
