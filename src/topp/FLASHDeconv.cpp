@@ -259,13 +259,14 @@ protected:
     #ifdef DEBUG_EXTRA_PARAMTER
     in_train_file = getStringOption_("in_train");
     out_train_file = getStringOption_("out_train");
+    fstream fi_out;
+    fi_out.open(in_file + ".txt", fstream::out); //
     #endif
 
     fstream out_stream, out_train_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
 
-    //fstream fi_out;
-    //fi_out.open(in_file + ".txt", fstream::out); //
+    //
 
     out_stream.open(out_file, fstream::out);
     MassFeatureTrace::writeHeader(out_stream);
@@ -599,8 +600,8 @@ protected:
       {
         continue;
       }
-
-      /*if(ms_level == 1){
+#ifdef DEBUG_EXTRA_PARAMTER
+      if(ms_level == 1){
         fi_out << "Spec\t" << it->getRT() << "\n";
         for(auto &p : *it){
           if(p.getIntensity() <= 0){
@@ -608,8 +609,8 @@ protected:
           }
           fi_out << p.getMZ() << "\t" << p.getIntensity() << "\n";
         }
-      }*/
-
+      }
+#endif
       spec_cntr[ms_level - 1]++;
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
@@ -653,7 +654,6 @@ protected:
           && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           )
       {
-
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
         double pmass =
             top_pic_map[scan_number].unexp_mod_ < 0 ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
@@ -796,8 +796,9 @@ protected:
                       << endl;
     }
 
-    //fi_out.close(); //
-
+#ifdef DEBUG_EXTRA_PARAMTER
+    fi_out.close(); //
+#endif
     out_stream.close();
 
     if (!out_promex_file.empty())

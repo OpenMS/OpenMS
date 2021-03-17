@@ -98,7 +98,8 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
+        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
+           "MassIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -142,6 +143,7 @@ namespace OpenMS
       double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
       f << acc << "," << proID << "," << rt << "," << monomass << "," << mass << "," << pmz << ","
         << precursor_intensity << ","
+        << pg.getIntensity()<< ","
         << charge << ","
         << (proID ? num_ptm : -1) << ",";
       for (auto &item : fv)

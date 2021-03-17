@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
 //#define DEBUG_COLOR
 
 namespace OpenMS
@@ -45,21 +44,24 @@ namespace OpenMS
   {
 
     std::unordered_map<std::string, std::vector<double>> inputs;
+    std::vector<String> log_files;
     char *token = std::strtok(arg, " ");
     std::string key;
     while (token != nullptr)
     {
       String token_string = std::string(token);
-      double num = atof(token_string.c_str());
 
-      if (num == 0 && !isdigit(token_string[token_string.size() - 1]))
-      {
-        key = token_string;
-        inputs[key] = DoubleList();
-      }
-      else
-      {
-        inputs[key].push_back(num);
+      if(token_string.hasSuffix(".log")){
+          log_files.push_back(token_string);
+      }else {
+          double num = atof(token_string.c_str());
+
+          if (num == 0 && !isdigit(token_string[token_string.size() - 1])) {
+              key = token_string;
+              inputs[key] = DoubleList();
+          } else {
+              inputs[key].push_back(num);
+          }
       }
       token = std::strtok(nullptr, " ");
     }
@@ -82,6 +84,110 @@ namespace OpenMS
     for (double j : mass_count_double)
     {
       mass_count_.push_back((int) j);
+    }
+
+    for (auto &log_file: log_files) {
+        std::ifstream instream(log_file);
+        if (instream.good())
+        {
+            String line;
+            int scan;
+            double mass, charge, w1, w2, qscore, pint, mint, color;
+            while (std::getline(instream, line))
+            {
+                if (line.find("0 targets") != line.npos)
+                {
+                    continue;
+                }
+                if (line.hasPrefix("MS1"))
+                {
+                    Size st = line.find("Aceess ID ") + 10;
+                    Size ed = line.find(')');
+                    String n = line.substr(st, ed);
+                    scan = atoi(n.c_str());
+                    //precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+                }
+                if (line.hasPrefix("Mass"))
+                {
+                    Size st = 5;
+                    Size ed = line.find('\t');
+                    String n = line.substr(st, ed);
+                    mass = atof(n.c_str());
+
+                    st = line.find("Z=") + 2;
+                    ed = line.find('\t', st);
+                    n = line.substr(st, ed);
+                    charge = atof(n.c_str());
+
+                    st = line.find("Score=") + 6;
+                    ed = line.find('\t', st);
+                    n = line.substr(st, ed);
+                    qscore = atof(n.c_str());
+
+                    st = line.find("[") + 1;
+                    ed = line.find('-', st);
+                    n = line.substr(st, ed);
+                    w1 = atof(n.c_str());
+
+                    st = line.find('-', ed) + 1;
+                    ed = line.find(']', st);
+                    n = line.substr(st, ed);
+                    w2 = atof(n.c_str());
+
+                    st = line.find("PrecursorIntensity=", ed) + 19;
+                    ed = line.find('\t', st);
+                    n = line.substr(st, ed);
+                    pint = atof(n.c_str());
+
+                    st = line.find("PrecursorMassIntensity=", ed) + 23;
+                    ed = line.find('\t', st);
+                    n = line.substr(st, ed);
+                    mint = atof(n.c_str());
+
+                    st = line.find("Color=", ed) + 6;
+                    //ed = line.find(' ', st);
+                    n = line.substr(st, st + 1);
+                    if (n.hasPrefix("B"))
+                    {
+                        color = 1.0;
+                    }
+                    else if (n.hasPrefix("R"))
+                    {
+                        color = 2.0;
+                    }
+                    else if (n.hasPrefix("b"))
+                    {
+                        color = 3.0;
+                    }
+                    else if (n.hasPrefix("r"))
+                    {
+                        color = 4.0;
+                    }
+                    else
+                    {
+                        color = 5.0;
+                    }
+
+                    std::vector<double> e(8);
+                    e[0] = mass;
+                    e[1] = charge;
+                    e[2] = qscore;
+                    e[3] = w1;
+                    e[4] = w2;
+                    e[5] = pint;
+                    e[6] = mint;
+                    e[7] = color;
+                    target_nominal_masses_.insert(FLASHDeconvAlgorithm::getNominalMass(mass));
+                    //precursor_map_for_real_time_acquisition[scan].push_back(e);
+                }
+            }
+
+            instream.close();
+        }
+
+
+
+
     }
 
     //fd_defaults.setValue("min_mass_count", mass_count_);
@@ -289,9 +395,16 @@ namespace OpenMS
           {
             continue;
           }
-          if (mass_color_map_.find(nominal_mass) == mass_color_map_.end() || mass_color_map_[nominal_mass] != c)
+
+          if (mass_color_map_.find(nominal_mass) == mass_color_map_.end())
           {
             continue;
+          }
+
+          if(target_nominal_masses_.find(nominal_mass) != target_nominal_masses_.end()){
+
+          }else if(mass_color_map_[nominal_mass] != c){
+              continue;
           }
 
           char prev_color = mass_color_map_[nominal_mass];
