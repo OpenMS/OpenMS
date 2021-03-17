@@ -2251,6 +2251,7 @@ namespace OpenMS
             target_mass_bins_.push_back(pg_bin);
         }
         std::sort(target_mass_bins_.begin(), target_mass_bins_.end());
+        std::cout<<target_mass_bins_.size()<<"*"<<std::endl;
     }
 
 
