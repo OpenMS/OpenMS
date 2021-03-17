@@ -101,10 +101,10 @@ jobs:
           ENABLE_CLASS_TESTING: "ON"
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
-          BUILD_TYPE: "Release"
+          BUILD_TYPE: "Debug"
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
-          BUILD_FLAGS: "//ds //m:2 //p:CL_MPCount=2"
+          BUILD_FLAGS: "-ds -m:2 -p:CL_MPCount=2"
 
 
   build-macos:
