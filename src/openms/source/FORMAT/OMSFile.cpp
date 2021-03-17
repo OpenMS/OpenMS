@@ -1158,6 +1158,9 @@ namespace OpenMS
         return Key(&(*molecule_var.getIdentifiedCompoundRef()));
       case ID::MoleculeType::RNA:
         return Key(&(*molecule_var.getIdentifiedOligoRef()));
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION);
     }
   }
 

@@ -500,7 +500,7 @@ namespace OpenMS
     String target_id = feature.getMetaValue("PeptideRef");
 
     vector<String> split;
-    bool result = target_id.split('/',split); // PEP:XXXXX/3#1 or PEP:XXXXX/2
+    result = target_id.split('/',split); // PEP:XXXXX/3#1 or PEP:XXXXX/2
     Int charge = 0;
     if (extract_charge)
     {

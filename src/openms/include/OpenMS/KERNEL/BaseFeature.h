@@ -90,8 +90,21 @@ public:
     /// Copy constructor
     BaseFeature(const BaseFeature& feature) = default;
 
-    /// Move constructor
-    BaseFeature(BaseFeature&& feature) = default;
+    /// Move constructor 
+    /// Note: can't be "noexcept = default" because of missing noexcept on some standard containers
+    /// so we need to explicitly define it noexcept and provide an implementation.
+    BaseFeature(BaseFeature&& feature) noexcept
+      : RichPeak2D(std::move(feature)) 
+    {
+      quality_ = feature.quality_;
+      charge_ = feature.charge_;
+      width_ = feature.width_;
+      // Note: will terminate program if move assignment throws because of noexcept
+      // but we can't recover in that case anyways and we need to mark it noexcept for the move.
+      peptides_ = std::move(feature.peptides_);
+      primary_id_ = std::move(feature.primary_id_);
+      id_matches_ = std::move(feature.id_matches_);
+    }
 
     /// Copy constructor with a new map_index
     BaseFeature(const BaseFeature& rhs, UInt64 map_index);
