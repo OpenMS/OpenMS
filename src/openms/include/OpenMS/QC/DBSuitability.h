@@ -156,6 +156,9 @@ namespace OpenMS
     /// Destructor
     ~DBSuitability() = default;
 
+    /// To test private member functions
+    friend class DBSuitability_friend;
+
     /**
     * @brief Computes suitability of a database used to search a mzML
     *
@@ -402,6 +405,42 @@ namespace OpenMS
     * @returns               correction factor
     */
     double calculateCorrectionFactor_(const SuitabilityData& data, const SuitabilityData& data_sampled, double sampling_rate) const;
+  };
+
+  class DBSuitability_friend
+  {
+  public:
+    DBSuitability_friend() = default;
+
+    ~DBSuitability_friend() = default;
+
+    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double subsampling_rate)
+    {
+      return suit_.getSubsampledFasta_(fasta_data, subsampling_rate);
+    }
+
+    void appendDecoys(std::vector<FASTAFile::FASTAEntry>& fasta)
+    {
+      suit_.appendDecoys_(fasta);
+    }
+
+    double calculateCorrectionFactor(const DBSuitability::SuitabilityData& data, const DBSuitability::SuitabilityData& data_sampled, double sampling_rate)
+    {
+      return suit_.calculateCorrectionFactor_(data, data_sampled, sampling_rate);
+    }
+
+    /* Not tested:
+      getDecoyDiff_, getDecoyCutOff_, isNovoHit_, passesFDR_
+      Reason: These functions are essential to the normal suitability calculation and if something would not work, the test for 'compute' would fail.
+
+      extractSearchAdapterInfoFromMetaValues_, writeIniFile_, extractScore_
+      Reason: These functions are very straightforeward.
+
+      runIdentificationSearch_
+      Reason: This function simulates a whole workflow and testing it would be to complicated.
+    */
+
+    DBSuitability suit_;
   };
 }
 

@@ -58,6 +58,18 @@ using namespace std;
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/regex.hpp>
 
+int countAS(const vector<FASTAFile::FASTAEntry>& fasta)
+{
+  int counter = 0;
+
+  for (const auto& entry : fasta)
+  {
+    counter += entry.sequence.size();
+  }
+
+  return counter;
+}
+
 START_TEST(Suitability, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -252,39 +264,86 @@ START_SECTION(void compute(std::vector<PeptideIdentification>&& pep_ids, const M
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(move(few_decoys), empty_exp, empty_fasta, empty_fasta, empty_params), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score.");
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(move(no_xcorr_ids), empty_exp, empty_fasta, empty_fasta, empty_params), "No cross correlation score found at peptide hit. Only Comet search engine is supported for re-ranking. Set 'force' flag to use the default score for this. This may result in undefined behaviour and is not advised.");
 
-  // Test corrected suitability
-  /*MSExperiment exp;
-  MzMLFile m;
-  m.load(File::find("./examples/BSA/BSA1.mzML"), exp);
-
-  vector<FASTAFile::FASTAEntry> fasta_data;
-  FASTAFile::load(File::find("./data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.FASTA"), fasta_data);
-
-  vector<PeptideIdentification> pep_ids;
-  vector<ProteinIdentification> prot_ids;
-  IdXMLFile i;
-  i.load("C:\\Development\\TOPPAS_Outputs\\Corrected_Suitability_test_files\\TOPPAS_out\\014-PeptideIndexer-out\\BSA1.idXML", prot_ids, pep_ids);
-
-  vector<FASTAFile::FASTAEntry> novo_fasta;
-  FASTAFile::load("C:\\Development\\TOPPAS_Outputs\\TOPPAS_out\\006-DecoyDatabase-out\\BSA1.FASTA", novo_fasta);
-
-  DBSuitability s;
-  Param p;
-  p.setValue("FDR", 0.8);
-  s.setParameters(p);
-  s.compute(pep_ids, exp, fasta_data, novo_fasta, prot_ids[0].getSearchParameters());
-
-  DBSuitability::SuitabilityData data = s.getResults()[0];
-  cout << "top db:" << data.num_top_db << endl;
-  cout << data.num_top_novo << " " << data.num_top_novo_corr << endl;
-  cout << data.suitability << " " << data.suitability_corr << endl;
-  cout << data.corr_factor << endl;*/
+  // Corrected Suitability is to complicated to be tested here.
+  // The tests for the DatabaseSuitability TOPP tool have to suffice.
 }
 END_SECTION
 
 START_SECTION(getResults())
 {
   NOT_TESTABLE;
+}
+END_SECTION
+
+DBSuitability_friend private_suit;
+
+START_SECTION(std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double subsampling_rate))
+{
+  vector<FASTAFile::FASTAEntry> fasta;
+  FASTAFile::FASTAEntry entry;
+  entry.sequence = "AAAAAAA";// 7
+  fasta.push_back(entry);
+  entry.sequence = "PP";// 2
+  fasta.push_back(entry);
+  entry.sequence = "EEE";// 3
+  fasta.push_back(entry);
+  entry.sequence = "I";// 1
+  fasta.push_back(entry);
+  entry.sequence = "KKKKKK";// 6
+  fasta.push_back(entry);
+  entry.sequence = "LLLLL";// 5
+  fasta.push_back(entry);
+  entry.sequence = "QQQQ";//4
+  fasta.push_back(entry);
+  entry.sequence = "YYY";// 3
+  fasta.push_back(entry);
+  entry.sequence = "GGGG";// 4
+  fasta.push_back(entry);
+  // 35 AS in fasta
+
+  vector<FASTAFile::FASTAEntry> subsampled_fasta = private_suit.getSubsampledFasta(fasta, 0.3); // 35 * 0.3 = 10.5 --> at least 11 AS should be written (& at max. 17)
+
+  TEST_EQUAL((countAS(subsampled_fasta) >= 11 && countAS(subsampled_fasta) < 17), 1);
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getSubsampledFasta(fasta, 2));
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getSubsampledFasta(fasta, -1));
+}
+END_SECTION
+
+START_SECTION(void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta))
+{
+  vector<FASTAFile::FASTAEntry> fasta;
+  FASTAFile::FASTAEntry entry;
+  entry.sequence = "LIEQKPABIM";
+  entry.identifier = "PROTEIN";
+  fasta.push_back(entry);
+
+  private_suit.appendDecoys(fasta);
+
+  TEST_STRING_EQUAL(fasta[1].sequence, "LIBAPKQEIM");
+  TEST_STRING_EQUAL(fasta[1].identifier, "DECOY_PROTEIN");
+}
+END_SECTION
+
+START_SECTION(double calculateCorrectionFactor_(const DBSuitability::SuitabilityData& data, const DBSuitability::SuitabilityData& data_sampled, double sampling_rate))
+{
+  DBSuitability::SuitabilityData full_data;
+  DBSuitability::SuitabilityData subsampled_data;
+
+  full_data.num_top_db = 100;
+  subsampled_data.num_top_db = 50;
+  // delta 50
+
+  full_data.num_top_novo = 10;
+  subsampled_data.num_top_novo = 30;
+  // delta 20
+
+  double factor = private_suit.calculateCorrectionFactor(full_data, subsampled_data, 0.6);
+  // rate 0.6 --> db_slope = -50 / -0.4 = 125, novo_slope = 20 / -0.4 = -50
+  // factor = - (125) / (-50) = 2.5
+
+  TEST_EQUAL(factor, 2.5);
+  TEST_EXCEPTION(Exception::Precondition, private_suit.calculateCorrectionFactor(full_data, subsampled_data, 2));
+  TEST_EXCEPTION(Exception::Precondition, private_suit.calculateCorrectionFactor(full_data, subsampled_data, -1));
 }
 END_SECTION
 
