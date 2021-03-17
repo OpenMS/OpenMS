@@ -43,6 +43,7 @@ namespace OpenMS {
 
         std::unordered_map<std::string, std::vector<double>> inputs;
         std::vector<String> log_files;
+        std::vector<String> out_files;
         char *token = std::strtok(arg, " ");
         std::string key;
         while (token != nullptr) {
@@ -50,6 +51,9 @@ namespace OpenMS {
 
             if (token_string.hasSuffix(".log")) {
                 log_files.push_back(token_string);
+                std::cout << token_string << " is used for global targeting\n";
+            }else if (token_string.hasSuffix(".out")) {
+                out_files.push_back(token_string);
                 std::cout << token_string << " is used for global targeting\n";
             } else {
                 double num = atof(token_string.c_str());
@@ -117,8 +121,36 @@ namespace OpenMS {
                 }
                 instream.close();
             }
+        }
 
+        for (auto &log_file: out_files) {
+            std::ifstream instream(log_file);
 
+            if (instream.good()) {
+                String line;
+                int scan;
+                double mass, rt;
+                while (std::getline(instream, line)) {
+                    if (line.hasPrefix("rt")) {
+                        continue;
+                    }
+                    std::stringstream tmp_stream(line);
+                    String str;
+                    std::vector<String> results;
+                    while (getline(tmp_stream, str, '\t'))
+                    {
+                        results.push_back(str);
+                    }
+
+                    target_masses_.insert(atof(results[5].c_str()));
+                    int nmass = FLASHDeconvAlgorithm::getNominalMass(mass);
+                    if(target_nominal_masses_.find(nmass) == target_nominal_masses_.end()){
+                        target_nominal_masses_[nmass] = std::vector<double>();
+                    }
+                    target_nominal_masses_[nmass].push_back(60.0 * atof(results[0].c_str()) );
+                }
+                instream.close();
+            }
         }
 
         //fd_defaults.setValue("min_mass_count", mass_count_);
