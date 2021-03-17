@@ -2246,15 +2246,12 @@ namespace OpenMS
   }
 
     void FLASHDeconvAlgorithm::setTargetMasses(const std::set<double> &masses, int ms_level) {
-        target_mass_bins_;
         for(auto &m : masses){
             double mass_delta = avg_.getAverageMassDelta(m);
             Size pg_bin = getBinNumber_(m + mass_delta, 0, bin_width_[ms_level-1]);
             target_mass_bins_.push_back(pg_bin);
         }
-
-
-
+        std::sort(target_mass_bins_.begin(), target_mass_bins_.end());
     }
 
 
