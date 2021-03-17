@@ -830,7 +830,7 @@ namespace OpenMS
     });
   }
 
-  void ModificationsDB::writeCSV(String const& filename)
+  void ModificationsDB::writeTSV(String const& filename)
   {
     std::ofstream ofs(filename, std::ofstream::out);
     ofs << "FullId\tFullName\tOrigin/AA\tTerminusSpecificity\tDiffMonoMass\n";

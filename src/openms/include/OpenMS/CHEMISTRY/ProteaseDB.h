@@ -74,7 +74,8 @@ namespace OpenMS
     /// returns all the enzyme names available for MSGFPlus
     void getAllMSGFNames(std::vector<String>& all_names) const;
 
-    void writeCSV(const String& filename);
+    /// writes the full names to a TSV file
+    void writeTSV(const String& filename);
   };
 }
 

@@ -50,7 +50,7 @@ using namespace std;
 
     @brief Information about OpenMS' internal databases
 
-    This util prints the content of OpenMS' enzyme and modification databases to CSV.
+    This util prints the content of OpenMS' enzyme and modification databases to a TSV file.
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_OpenMSDatabasesInfo.cli
     <B>INI file documentation of this tool:</B>
@@ -65,7 +65,7 @@ class OpenMSDatabasesInfo final :
 {
 public:
   OpenMSDatabasesInfo() :
-      TOPPBase("OpenMSDatabasesInfo", "Prints the content of OpenMS' enzyme and modification databases to CSV", false)
+      TOPPBase("OpenMSDatabasesInfo", "Prints the content of OpenMS' enzyme and modification databases to TSV", false)
   {
   }
 
@@ -75,9 +75,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     // Output CSV file
-    registerOutputFile_("enzymes_out", "<out>", "", "Enzymes as CSV", true, false);
+    registerOutputFile_("enzymes_out", "<out>", "", "Currently supported enzymes as TSV", true, false);
     setValidFormats_("enzymes_out", ListUtils::create<String>("tsv"));
-    registerOutputFile_("mods_out", "<out>", "", "Modifications as CSV", true, false);
+    registerOutputFile_("mods_out", "<out>", "", "Currently supported modifications as TSV", true, false);
     setValidFormats_("mods_out", ListUtils::create<String>("tsv"));
   }
 
@@ -85,10 +85,10 @@ protected:
   ExitCodes main_(int, const char**) final override
   {
     auto* enz_db = ProteaseDB::getInstance();
-    enz_db->writeCSV(getStringOption_("enzymes_out"));
+    enz_db->writeTSV(getStringOption_("enzymes_out"));
 
     auto* mod_db = ModificationsDB::getInstance();
-    mod_db->writeCSV(getStringOption_("mods_out"));
+    mod_db->writeTSV(getStringOption_("mods_out"));
   }
 };
 

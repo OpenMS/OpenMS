@@ -209,7 +209,8 @@ public:
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
 
-    void writeCSV(const String& filename);
+    /// Writes the contents to a TSV file
+    void writeTSV(const String& filename);
 
   protected:
 

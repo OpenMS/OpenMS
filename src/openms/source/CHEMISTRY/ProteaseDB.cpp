@@ -105,7 +105,7 @@ namespace OpenMS
     }
   }
 
-  void ProteaseDB::writeCSV(String const& filename)
+  void ProteaseDB::writeTSV(String const& filename)
   {
     std::ofstream ofs(filename, std::ofstream::out);
     ofs << "OpenMS_AllowedEnzymes" << "\n";
