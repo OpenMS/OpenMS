@@ -73,6 +73,7 @@ namespace OpenMS {
         fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
         fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
+        fd_defaults.setValue("min_qscore", .0);
         fd_defaults.setValue("tol", inputs["tol"]);
         fd_defaults.setValue("rt_window", rt_window_);
         fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
@@ -106,7 +107,11 @@ namespace OpenMS {
                         String n = line.substr(st, ed);
                         mass = atof(n.c_str());
                         target_masses_.insert(mass);
-                        target_nominal_masses_.insert(FLASHDeconvAlgorithm::getNominalMass(mass));
+                        int nmass = FLASHDeconvAlgorithm::getNominalMass(mass);
+                        if(target_nominal_masses_.find(nmass) == target_nominal_masses_.end()){
+                            target_nominal_masses_[nmass] = std::vector<double>();
+                        }
+                        target_nominal_masses_[nmass].push_back((double)(scan*5400.0/25000.0) );
                         //precursor_map_for_real_time_acquisition[scan].push_back(e);
                     }
                 }
@@ -279,20 +284,31 @@ namespace OpenMS {
                         break;
                     }
 
-                    if (pg.getQScore() < qscore_threshold_)
+                    if (i == 1 && pg.getQScore() < qscore_threshold_)
                     {
                         break;
                     }
 
                     int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+                    if (i == 0) {
+                        if (target_nominal_masses_.find(nominal_mass) == target_nominal_masses_.end()) {
+                            continue;
+                        }
+                        bool in = false;
+                        for(auto prt : target_nominal_masses_[nominal_mass]){ // second?
+                            if(abs(rt-prt) < 300.0){
+                                in = true;
+                                break;
+                            }
+                        }
+                        if(!in){
+                            continue;
+                        }
 
-                    if (i == 0 && target_nominal_masses_.find(nominal_mass) == target_nominal_masses_.end()) {
-                        continue;
+                        if (c == 'b' || c == 'r') {
+                            //continue;
+                        }
                     }
-                    if (i == 0 && (c == 'b' || c == 'r')) {
-                        continue;
-                    }
-
                     //if (i == 0 && c == 'G' && pg.getQScore() < 0.5)
                     // {
                     //  break;
