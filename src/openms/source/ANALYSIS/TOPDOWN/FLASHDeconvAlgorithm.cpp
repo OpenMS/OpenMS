@@ -386,7 +386,7 @@ namespace OpenMS
             if ((Size) j >= mass_bins_.size()) {
                 break;
             }
-            std::cout<<1<<std::endl;
+            //std::cout<<1<<std::endl;
             mass_bins_[j] = true;
         }
     }
