@@ -368,6 +368,7 @@ namespace OpenMS
         {
           continue;
         }
+        //std::cout << index << " " << shift << " " << j << " " << mass_bins_.size() << std::endl;
         if ((Size) j >= mass_bins_.size())
         {
           break;
@@ -376,8 +377,6 @@ namespace OpenMS
       }
     }
     if(ms_level_ == 1) { // TODO fix later
-
-        std::cout<<target_mass_bins_.size()<<"*"<<std::endl;
 
         for (Size &index : target_mass_bins_) {
             long j = (long) index - shift;
@@ -1167,7 +1166,8 @@ namespace OpenMS
         //if (massBinsForThisSpectrum[pg.massBinIndex])
         //{
         double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
-        Size pg_bin = getBinNumber_(pg.getMonoMass() + mass_delta, 0, bin_width);
+        Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);
+        //std::cout<<pg.getMonoMass() + mass_delta<<" **" << std::endl;
         curr_mass_bin.push_back(pg_bin);
         //  }
       }
@@ -2251,9 +2251,9 @@ namespace OpenMS
         for(auto &m : masses){
 
             double mass_delta = avg_.getAverageMassDelta(m);
-            Size pg_bin = getBinNumber_(m + mass_delta, 0, bin_width_[ms_level-1]);
+            Size pg_bin = getBinNumber_(log(m + mass_delta), 0, bin_width_[ms_level-1]);
             target_mass_bins_.push_back(pg_bin);
-            std::cout<< m << " " << pg_bin<<std::endl;
+            //std::cout<< m << " " << pg_bin<<std::endl;
         }
         std::sort(target_mass_bins_.begin(), target_mass_bins_.end());
     }
