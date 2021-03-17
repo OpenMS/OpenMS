@@ -80,7 +80,7 @@ jobs:
 
           #run openms tests
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
+          C:/Program Files/CMake/ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
 
           FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
           if [ "$FAILED_TEST" -gt "0" ] ; then
