@@ -70,6 +70,7 @@ jobs:
       id: extract_pr
       
     - name: Tests windows
+    - uses: docker://lpenz/ghaction-cmake:v3.18
       shell: bash
       run: |
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
