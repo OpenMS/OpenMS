@@ -364,30 +364,33 @@ namespace OpenMS
       for (Size &index : pmb)
       {
         long j = (long) index - shift;
-        if (j < 0)
+        if (j < 1)
         {
           continue;
         }
         //std::cout << index << " " << shift << " " << j << " " << mass_bins_.size() << std::endl;
-        if ((Size) j >= mass_bins_.size())
+        if ((Size) j >= mass_bins_.size()-1)
         {
           break;
         }
-        mass_bins_[j] = true;
+        mass_bins_[j-1] = true;
+          mass_bins_[j] = true;
+          mass_bins_[j+1] = true;
       }
     }
     if(ms_level_ == 1) { // TODO fix later
 
         for (Size &index : target_mass_bins_) {
             long j = (long) index - shift;
-            if (j < 0) {
+            if (j < 1) {
                 continue;
             }
-            if ((Size) j >= mass_bins_.size()) {
+            if ((Size) j >= mass_bins_.size()-1) {
                 break;
             }
-            //std::cout<<1<<std::endl;
+            mass_bins_[j-1] = true;
             mass_bins_[j] = true;
+            mass_bins_[j+1] = true;
         }
     }
   }
@@ -1163,8 +1166,7 @@ namespace OpenMS
       for (auto &pg : deconvoluted_spectrum_)//filteredPeakGroups
       {
         pg.shrink_to_fit();
-        //if (massBinsForThisSpectrum[pg.massBinIndex])
-        //{
+
         double mass_delta = avg_.getAverageMassDelta(pg.getMonoMass());
         Size pg_bin = getBinNumber_(log(pg.getMonoMass() + mass_delta), 0, bin_width);
         //std::cout<<pg.getMonoMass() + mass_delta<<" **" << std::endl;
