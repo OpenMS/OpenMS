@@ -375,20 +375,19 @@ namespace OpenMS
         mass_bins_[j] = true;
       }
     }
-
-      for (Size &index : target_mass_bins_)
-      {
-          long j = (long) index - shift;
-          if (j < 0)
-          {
-              continue;
-          }
-          if ((Size) j >= mass_bins_.size())
-          {
-              break;
-          }
-          mass_bins_[j] = true;
-      }
+    if(ms_level_ == 1) { // TODO fix later
+        for (Size &index : target_mass_bins_) {
+            long j = (long) index - shift;
+            if (j < 0) {
+                continue;
+            }
+            if ((Size) j >= mass_bins_.size()) {
+                break;
+            }
+            std::cout<<1<<std::endl;
+            mass_bins_[j] = true;
+        }
+    }
   }
 
   //Find candidate mass bins from the current spectrum. The runtime of FLASHDeconv is deteremined by this function..
