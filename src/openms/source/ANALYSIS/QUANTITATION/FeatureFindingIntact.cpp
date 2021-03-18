@@ -151,6 +151,34 @@ namespace OpenMS
 
   }
 
+  void getFeatureMassDistributions(std::map<double, FeatureFindingIntact::DeconvMassStruct>& deconv_masses,
+                                   vector<FeatureFindingIntact::FeatureHypothesis>& hypotheses)
+  {
+    // header
+    OPENMS_LOG_INFO << "feature_mass\t#features\t#charges\tcharges\tmasses\trts" << endl;
+
+    for (auto& node : deconv_masses)
+    {
+      std::string charges_str = "";
+      std::string masses_str = "";
+      std::string rts_str = "";
+
+      for (auto& f : node.second.feature_idx)
+      {
+        auto& tmp_f = hypotheses[f];
+        charges_str += to_string(tmp_f.getCharge()) + ", ";
+        masses_str += to_string(tmp_f.getFeatureMass()) + ", ";
+        rts_str += "[" + to_string(tmp_f.getRTRange().first) + ", " + to_string(tmp_f.getRTRange().second) + "], ";
+      }
+      charges_str.erase(charges_str.length()-2);
+      masses_str.erase(masses_str.length()-2);
+      rts_str.erase(rts_str.length()-2);
+
+      OPENMS_LOG_INFO << to_string(node.first) << "\t" << node.second.feature_masses.size() << "\t" << node.second.charges.size() << "\t"
+                      << charges_str << "\t" << masses_str << "\t" << rts_str << "\n";
+    }
+  }
+
   void FeatureFindingIntact::run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap)
   {
     // *********************************************************** //
@@ -165,6 +193,10 @@ namespace OpenMS
 
     // prepare isotope model for scoring method
     setAveragineModel_();
+    if (Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge_lower_bound_ < local_mz_range_ )
+    {
+      local_mz_range_ = Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge_lower_bound_;
+    }
 
     buildFeatureHypotheses_(input_mtraces, feat_hypos, shared_m_traces_indices);
 //    drawSharedMasstracesBetweenFeatures(feat_hypos, shared_m_traces_indices);
@@ -205,15 +237,16 @@ namespace OpenMS
 
     // temporary vector
     std::vector<FeatureHypothesis> candidate_hypotheses;
-    std::map<double, DeconvMassStruct> deconv_masses; // mass is from the feature with highest intensity (not mean)
+    candidate_hypotheses.reserve( input_mtraces.size() * (charge_upper_bound_-charge_lower_bound_+1) );
+
+    // vector to connect related features together
+    std::map<double, DeconvMassStruct> deconv_masses; // key is the calculated median mass from the features
 
     // *********************************************************** //
     // Step 2 Iterate through all mass traces to find likely matches
     // and generate isotopic / charge hypotheses
     // *********************************************************** //
     Size progress(0);
-//    Size m_trace_size = input_mtraces.size();
-//    Size progress_chunk = std::floor(m_trace_size/100);
     for (SignedSize i = 0; i < (SignedSize)input_mtraces.size(); ++i)
     {
         this->setProgress(progress);
@@ -242,26 +275,55 @@ namespace OpenMS
       findLocalFeatures_(local_traces, total_intensity, candidate_hypotheses, deconv_masses);
     }
     this->endProgress();
+    candidate_hypotheses.shrink_to_fit();
 
     // *********************************************************** //
     // Step 3 filter out mass artifacts
     // *********************************************************** //
-//    OPENMS_LOG_INFO << "feature hypotheses size (before removal): " << candidate_hypotheses.size() << std::endl;
-//    std::sort(candidate_hypotheses.begin(), candidate_hypotheses.end(), greater<FeatureHypothesis>()); // sorting in descending order
-//    removeMassArtifacts_(candidate_hypotheses);
+    // set sorted vector of deconv_masses for mass artifact removal
+//    std::vector<std::pair<double, DeconvMassStruct>> deconv_mass_vec(deconv_masses.begin(), deconv_masses.end());
+//    std::sort(deconv_mass_vec.begin(), deconv_mass_vec.end(), greater_equal<DeconvMassStruct>());
+
     OPENMS_LOG_INFO << "feature hypotheses size:" << candidate_hypotheses.size() << std::endl;
     OPENMS_LOG_INFO << "feature masses size : " << deconv_masses.size() << std::endl;
 
-    // *********************************************************** //
-    // Step 4 add charge score
-    // *********************************************************** //
+    // reduce deconv_mass
+    for( auto curr_it = deconv_masses.begin(); curr_it != deconv_masses.end();  )
+    {
+      filterDeconvMassStruct(deconv_masses, candidate_hypotheses, curr_it);
+    }
+    OPENMS_LOG_INFO << "feature masses size : " << deconv_masses.size() << std::endl;
+    removeMassArtifacts_(candidate_hypotheses, deconv_masses);
+    OPENMS_LOG_INFO << "mass artifacts removed!" << std::endl;
 
+    OPENMS_LOG_INFO << "feature masses size : " << deconv_masses.size() << std::endl;
+
+    for (auto& m : deconv_masses)
+    {
+      if (m.second.charges.size()<2) continue;
+
+      OPENMS_LOG_INFO << to_string(m.first) << "\t" << m.second.feature_idx.size() << "\t" << to_string(m.second.combined_score);
+
+      std::string charges= "";
+      for (auto& c : m.second.charges)
+      {
+        charges += to_string(c) + ",";
+      }
+      charges.pop_back();
+
+      OPENMS_LOG_INFO << "\t" << charges << "\t" << to_string(m.second.fwhm_border.first) << "\t" << to_string(m.second.fwhm_border.second) << "\n";
+    }
+
+    return;
+
+//    getFeatureMassDistributions(deconv_masses, candidate_hypotheses);
+
+    // *********************************************************** //
+    // Step 4 connect hypothesis and corresponding mass traces - for clustering afterwards
+    // *********************************************************** //
+    // TODO : move this section to clustering?
     // 1. set shared_m_traces_indices based on filtered hypothesis (for later, in clustering)
-    // 2. collect candidate masses for charge scoring
     const Size candi_size = candidate_hypotheses.size();
-//    std::vector<std::pair<double, Size>> feat_and_charges; // first : feature mass, second : charge states
-//    feat_and_charges.reserve(candi_size);
-
     for (Size h_index=0; h_index< candi_size; ++h_index)
     {
       const auto& current_hypo = candidate_hypotheses[h_index];
@@ -269,12 +331,7 @@ namespace OpenMS
       {
         shared_m_traces_indices[mt_index.second].push_back(h_index);
       }
-//      feat_and_charges.push_back(std::make_pair(current_hypo.getFeatureMass(), current_hypo.getCharge()));
     }
-//    std::sort(feat_and_charges.begin(), feat_and_charges.end());
-//
-//    // add charge score to each candidate hypothesis
-//    setChargeScoreForFeatureHypothesis(candidate_hypotheses, feat_and_charges);
 
     output_hypotheses = candidate_hypotheses;
   }
@@ -286,43 +343,24 @@ namespace OpenMS
   {
     // not storing hypothesis with only one mass trace (with only mono), while FeatureFindingMetabo does
 
-    // tolerance for deconvoluted masses
-    double tolerance_deconv = 1; // Dalton for now
-
     // pre-save all features using multiple charge states
-    std::vector<FeatureHypothesis> hypo_for_cur_candi;
+//    std::vector<FeatureHypothesis> hypo_for_cur_candi;
 
-    std::vector<double> std_masses;
-    std_masses.push_back(18786.695010);
-    std_masses.push_back(18770.733455);
-    std_masses.push_back(18791.004196);
-    std_masses.push_back(18807.390220);
-    std_masses.push_back(18742.971604);
-    std_masses.push_back(18729.009231);
-    std_masses.push_back(18713.201199);
-
-    for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
+    for (int charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
     {
       FeatureHypothesis fh_tmp;
       fh_tmp.addMassTrace(*candidates[0].first); // ref_mtrace (which is mono here)
       double mono_mt_score = (candidates[0].first->getIntensity(use_smoothed_intensities_)) / total_intensity;
       fh_tmp.setScore(mono_mt_score);
+      fh_tmp.setRTScore(0.0);
+      fh_tmp.setMZScore(0.0);
+      fh_tmp.setIntyScore(0.0);
       fh_tmp.addMassTraceScore(mono_mt_score);
       fh_tmp.setCharge(charge);
       double mol_weight = (candidates[0].first->getCentroidMZ()-Constants::PROTON_MASS_U) * charge;
       if (mol_weight > mass_upper_bound_)
         break;
       fh_tmp.setFeatureMass(mol_weight);
-
-      // pre-save all features out of current charge state
-      std::vector<FeatureHypothesis> hypo_for_curr_charge;
-
-      // for shared mass traces tracker
-      std::vector<std::pair<Size, Size>> used_mass_trace_indices; // first: iso index of current feature, second: mt index
-      used_mass_trace_indices.push_back(std::make_pair(0, candidates[0].second));
-
-      std::vector<double> feature_iso_intensities; // collection of selected isos (if nothing's in such iso index, intensity of it is 0)
-      feature_iso_intensities.push_back(candidates[0].first->getIntensity(use_smoothed_intensities_));
 
       // calculate averagine isotope distribution here (based on mono trace)
       auto iso_dist = iso_model_.get(mol_weight);
@@ -332,6 +370,19 @@ namespace OpenMS
 
       // expected m/z window for iso_pos -> 13C isotope peak position
       double mz_window = Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge;
+
+      // pre-save all features out of current charge state
+      std::vector<FeatureHypothesis> hypo_for_curr_charge;
+      hypo_for_curr_charge.reserve(iso_size);
+
+      // for shared mass traces tracker
+      std::vector<std::pair<Size, Size>> used_mass_trace_indices; // first: iso index of current feature, second: mt index
+      used_mass_trace_indices.reserve(iso_size);
+      used_mass_trace_indices.push_back(std::make_pair(0, candidates[0].second));
+
+      std::vector<double> feature_iso_intensities; // collection of selected isos (if nothing's in such iso index, intensity of it is 0)
+      feature_iso_intensities.reserve(iso_size);
+      feature_iso_intensities.push_back(candidates[0].first->getIntensity(use_smoothed_intensities_));
 
       Size last_iso_idx(0); // largest index of found iso index
       for (Size iso_pos = 1; iso_pos < iso_size; ++iso_pos)
@@ -370,7 +421,7 @@ namespace OpenMS
           }
           if (total_pair_score > best_so_far)
           {
-            iso_index_in_avg_model = -offset;
+//            iso_index_in_avg_model = -offset;
             best_so_far = total_pair_score;
             best_idx = mt_idx;
             best_rt_score = rt_score;
@@ -386,9 +437,9 @@ namespace OpenMS
           fh_tmp.setScore(fh_tmp.getScore() + weighted_score);
           fh_tmp.addMassTraceScore(weighted_score);
           fh_tmp.addMassTrace(*candidates[best_idx].first);
-          fh_tmp.setMZScore(best_mz_score);
-          fh_tmp.setRTScore(best_rt_score);
-          fh_tmp.setIntyScore(best_inty_score);
+          fh_tmp.setMZScore(fh_tmp.getMZScore() + best_mz_score);
+          fh_tmp.setRTScore(fh_tmp.getRTScore() + best_rt_score);
+          fh_tmp.setIntyScore(fh_tmp.getIntyScore() + best_inty_score);
 
           // save up information for trackers
           used_mass_trace_indices.push_back(std::make_pair(iso_pos, candidates[best_idx].second));
@@ -405,6 +456,7 @@ namespace OpenMS
           // set rt and mz range of current hypothesis
           fh_tmp.setRTRange();
           fh_tmp.setMZRange(mz_window);
+          fh_tmp.setFwhmRange();
 
           // update feature mass with modified isotope index
           if (iso_index_in_avg_model != 0)
@@ -443,52 +495,40 @@ namespace OpenMS
         }
       }
 
-      hypo_for_cur_candi.push_back(hypo_for_curr_charge[max_score_index]);
+//      hypo_for_cur_candi.push_back(hypo_for_curr_charge[max_score_index]);
+      output_hypotheses.push_back(hypo_for_curr_charge[max_score_index]);
+      addFeature2DeconvMassStruct(output_hypotheses.back(), output_hypotheses.size()-1, deconv_masses);
+
       hypo_for_curr_charge.empty();
     } // end of charge
 
-    if (hypo_for_cur_candi.empty()) return;
-
-//    bool found = false;
-//    for (Size i = 0; i < hypo_for_cur_candi.size() ; i++){
-//      for (auto& stdmass : std_masses)
-//      {
-//        if (std::fabs(hypo_for_cur_candi[i].getFeatureMass()-stdmass) < 1)
-//        {
-//          found = true;
-//          OPENMS_LOG_INFO << to_string(stdmass) << "\t[" << hypo_for_cur_candi[i].getCharge() << "]\t" << hypo_for_cur_candi[i].getScore() << "\n";
-//        }
-//      }
+//    if (hypo_for_cur_candi.empty()) return;
+    // to output the hypothesis with the highest score
+//    std::sort(hypo_for_cur_candi.begin(), hypo_for_cur_candi.end(), greater<FeatureHypothesis>());
+//    for (auto& h : hypo_for_cur_candi){
+//      output_hypotheses.push_back(h);
+//      addFeature2DeconvMassStruct(output_hypotheses.back(), output_hypotheses.size()-1, deconv_masses);
 //    }
 
-    std::sort(hypo_for_cur_candi.begin(), hypo_for_cur_candi.end(), greater<FeatureHypothesis>());
+  }  // end of findLocalFeatures_(...)
 
-//    if (found)
-//    {
-//      OPENMS_LOG_INFO << "------ max score ------[" << hypo_for_cur_candi[0].getCharge() << "]\t" << hypo_for_cur_candi[0].getScore() << "\n";
-//    }
+  void FeatureFindingIntact::addFeature2DeconvMassStruct(FeatureHypothesis &in_feature,
+                                                         Size feature_idx,
+                                                         std::map<double, DeconvMassStruct> &deconv_masses) const
+  {// add to deconv_mass_map
+    map<double, DeconvMassStruct>::const_iterator low_it;
+    map<double, DeconvMassStruct>::const_iterator up_it;
 
-    // TODO : allow more charge scenarios? for now, allowing only one charge state put current mass trace
-    output_hypotheses.push_back(hypo_for_cur_candi[0]);
-
-    // add to deconv_mass_map
-    std::map<double, DeconvMassStruct>::const_iterator low_it;
-    std::map<double, DeconvMassStruct>::const_iterator up_it;
-
-    const double &current_mass = output_hypotheses.back().getFeatureMass();
-//    const double &tol = current_mass * mass_tolerance_ * 1e-6;
-    low_it = deconv_masses.lower_bound( current_mass-mass_tolerance_ ); // less than or equal to
-    up_it = deconv_masses.upper_bound( current_mass+mass_tolerance_ ); // greater than
+    const double &current_mass = in_feature.getFeatureMass();
+    //    const double &tol = current_mass * mass_tolerance_ * 1e-6;
+    low_it = deconv_masses.lower_bound(current_mass - mass_tolerance_); // less than or equal to
+    up_it = deconv_masses.upper_bound(current_mass + mass_tolerance_); // greater than
 
     // no matching in deconv_masses map
     if (low_it == up_it)
     {
       DeconvMassStruct dms;
-      dms.deconv_mass = current_mass;
-//      dms.intensity = output_hypotheses.back().computeQuant();
-      dms.charges.insert(output_hypotheses.back().getCharge());
-      dms.features.push_back(&output_hypotheses.back());
-      dms.feature_masses.push_back(current_mass);
+      dms.initialize(current_mass, in_feature.getCharge(), feature_idx, in_feature.getFwhmRange(), in_feature.getScore());
       deconv_masses.insert(make_pair(current_mass, dms));
       return;
     }
@@ -496,134 +536,84 @@ namespace OpenMS
     // find nearest deconv mass
     double smallest_diff(mass_tolerance_);
     auto selected_it = low_it;
+    bool not_selected = true;
     for (; low_it != up_it; ++low_it)
     {
-      double diff = std::abs(low_it->first-current_mass);
-      if (diff < smallest_diff)
+      double diff = abs(low_it->first-current_mass);
+      if ( diff < smallest_diff && doFWHMbordersOverlap(in_feature.getFwhmRange(), low_it->second.fwhm_border) )
       {
         selected_it = low_it;
         smallest_diff = diff;
+        not_selected=false;
       }
     }
+
+    // if no deconv_mass is within tolerance and overlapping FWHM border
+    if(not_selected)
+    {
+      DeconvMassStruct dms;
+      dms.initialize(current_mass, in_feature.getCharge(), feature_idx, in_feature.getFwhmRange(), in_feature.getScore());
+      deconv_masses.insert(make_pair(current_mass, dms));
+      return;
+    }
+
     // add current feature to deconv_massses map
     double key_mass = selected_it->first;
-    deconv_masses[key_mass].charges.insert(output_hypotheses.back().getCharge());
-    deconv_masses[key_mass].features.push_back(&output_hypotheses.back());
-    deconv_masses[key_mass].feature_masses.push_back(current_mass);
+    deconv_masses[key_mass].addFeatureHypothesis(current_mass, in_feature.getCharge(), feature_idx,
+                                                 in_feature.getFwhmRange(), in_feature.getScore());
 
     // update key of map if needed
     if (deconv_masses[key_mass].updateDeconvMass())
     {
       auto curr_node = deconv_masses.extract(key_mass);
       curr_node.key() = curr_node.mapped().deconv_mass;
-      deconv_masses.insert(std::move(curr_node));
+      deconv_masses.insert(move(curr_node));
     }
-
-//    /// remove charge artifacts
-//    for (Size x=0; x<hypo_for_cur_candi.size(); x++)
-//    {
-//      auto& cur_candi = hypo_for_cur_candi[x];
-//      bool is_artifact = false;
-//      for (Size y=x+1; y<hypo_for_cur_candi.size(); y++)
-//      {
-//        double m_tol = 1e-5 * cur_candi.getFeatureMass(); // 10ppm
-//        auto& comp_candi = hypo_for_cur_candi[y];
-//
-//        // 1. check if harmonic artifacts
-//        for (const Size& cs : harmonic_charges_)
-//        {
-//          for (int i = -10; i <= 10; ++i) // up to 10 isotope error
-//          {
-//            double l_mass = (i*Constants::C13C12_MASSDIFF_U + cur_candi.getFeatureMass()) * cs; // low harmonic
-//            double h_mass = (i*Constants::C13C12_MASSDIFF_U + cur_candi.getFeatureMass()) / cs; // high harmonic
-//            if (std::fabs(l_mass-comp_candi.getFeatureMass()) < m_tol ||
-//                std::fabs(h_mass-comp_candi.getFeatureMass()) < m_tol )
-//            {
-//              is_artifact = true;
-//              break;
-//            }
-//          }
-//          if (is_artifact) break;
-//        }
-//        if (is_artifact) break;
-//
-//        // 2. check if charge-off-by-n artifacts
-//        Size curr_charge = cur_fh.getCharge();
-//        if (std::abs(int(curr_charge)-int(overlap_iter->getCharge())) != 1) continue;
-//        // if this artifact is possible (distance between peaks of two consecutive charges are smaller than 4 Th)
-//        if ((cur_fh.getFeatureMass()/curr_charge)-(cur_fh.getFeatureMass()/(curr_charge+1)) > 4 ) continue;
-//        for (int i = -10; i <= 10; ++i) // up to 10 isotope error
-//        {
-//          double mass_cs_up = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass())/curr_charge * (curr_charge+1);
-//          double mass_cs_down = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass())/curr_charge * (curr_charge-1);
-//          if (std::fabs(mass_cs_up-overlap_iter->getFeatureMass()) < m_tol ||
-//              std::fabs(mass_cs_down-overlap_iter->getFeatureMass()) < m_tol )
-//          {
-//            is_artifact = true;
-//            break;
-//          }
-//        }
-//        if (is_artifact) break;
-//      }
-//
-//      // if not artifacts, add it to output hypothesis
-//      if (!is_artifact)
-//      {
-//        output_hypotheses.push_back(cur_candi);
-//      }
-//    }
-
-  } // end of findLocalFeatures_(...)
+  }
 
   double FeatureFindingIntact::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
   {
-    std::map<double, std::vector<double> > coinciding_rts;
+    std::map<double, std::pair<double, double> > coinciding_rts;
 
     std::pair<Size, Size> tr1_fwhm_idx(tr1.getFWHMborders());
     std::pair<Size, Size> tr2_fwhm_idx(tr2.getFWHMborders());
 
-    double tr1_length(tr1.getFWHM());
-    double tr2_length(tr2.getFWHM());
-    double max_length = (tr1_length > tr2_length) ? tr1_length : tr2_length;
+    int coinciding_counter = 0;
 
     // Extract peak shape between FWHM borders for both peaks
     for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
     {
-      coinciding_rts[tr1[i].getRT()].push_back(tr1[i].getIntensity());
+      coinciding_rts[tr1[i].getRT()] = std::make_pair(tr1[i].getIntensity(), 0.0);
     }
     for (Size i = tr2_fwhm_idx.first; i <= tr2_fwhm_idx.second; ++i)
     {
-      coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
-    }
-
-    // Look at peaks at the same RT
-    std::vector<double> x, y, overlap_rts;
-    for (std::map<double, std::vector<double> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
-    {
-      if (m_it->second.size() == 2)
+      auto it = coinciding_rts.find(tr2[i].getRT());
+      if (it != coinciding_rts.end())
       {
-        x.push_back(m_it->second[0]);
-        y.push_back(m_it->second[1]);
-        overlap_rts.push_back(m_it->first);
+        it->second.second = tr2[i].getIntensity();
+        coinciding_counter++;
+      }
+      else
+      {
+        coinciding_rts[tr2[i].getRT()] = std::make_pair(0.0, tr2[i].getIntensity());
       }
     }
 
-    double overlap(0.0);
-    if (overlap_rts.size() > 0)
+    if (coinciding_counter==0)
     {
-      double start_rt(*(overlap_rts.begin())), end_rt(*(overlap_rts.rbegin()));
-      overlap = std::fabs(end_rt - start_rt);
+      return 0;
     }
 
-    double proportion(overlap / max_length);
-    if (proportion < 0.7)
+    std::vector<double> x, y;
+    for (auto& rts : coinciding_rts)
     {
-      return 0.0;
+      x.push_back(rts.second.first);
+      y.push_back(rts.second.second);
     }
     return computeCosineSim_(x, y);
   }
 
-  double FeatureFindingIntact::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
+  double FeatureFindingIntact::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, int charge) const
   {
     double diff_mz(std::fabs(tr2.getCentroidMZ() - tr1.getCentroidMZ()));
 
@@ -648,6 +638,19 @@ namespace OpenMS
     }
 
     return mz_score;
+  }
+
+  bool FeatureFindingIntact::doFWHMbordersOverlap(const std::pair<double, double>& border1,
+                                                  const std::pair<double, double>& border2) const
+  {
+    if ( (border1.first > border2.second) || (border2.first > border1.second))
+      return false;
+
+    const double overlap_length = std::min(border1.second, border2.second)-std::max(border1.first, border2.first);
+    if ( (overlap_length/(border1.second-border1.first) < 0.7) &&
+         (overlap_length/(border2.second-border2.first) < 0.7) ) return false;
+
+    return true;
   }
 
   // from FLASHDeconvAlgorithm::getCosine
@@ -774,115 +777,208 @@ namespace OpenMS
     max_nr_traces_ = iso_model_.getMaxIsotopeIndex();
   }
 
-  void FeatureFindingIntact::removeMassArtifacts_(std::vector<FeatureHypothesis>& feat_hypotheses) const
+  void FeatureFindingIntact::removeMassArtifacts_(const std::vector<FeatureHypothesis>& feat_hypotheses,
+                                                  std::map<double, DeconvMassStruct>& deconv_masses) const
   {
-//    std::vector<FeatureHypothesis>::iterator fh_iterator = feat_hypotheses.begin();
-    auto end_of_iter = feat_hypotheses.end();
-    std::vector<FeatureHypothesis> saved_hypos;
-
-    this->startProgress(0, feat_hypotheses.size(), "filtering candidate features");
+    this->startProgress(0, deconv_masses.size(), "detecting mass artifacts");
     Size progress(0);
-//    while( fh_iterator != end_of_iter )
-    for( const auto& cur_fh : feat_hypotheses )
+
+    double m_tol = mass_tolerance_;
+    for( auto curr_it = deconv_masses.begin(); curr_it != deconv_masses.end();  )
     {
       this->setProgress(progress);
       progress++;
-      /// recruit overlapping features with higher scores
-      std::vector<FeatureHypothesis> overlapped_features;
-//      for (auto tmp_iter = feat_hypotheses.begin(); tmp_iter != end_of_iter; ++tmp_iter)
-      for (const auto& tmp_fh : saved_hypos)
-      {
-//        if (fh_iterator==tmp_iter) break;
-        // 1. check if score is higher than current feature
-//        if (fh_iterator->getScore() > tmp_iter->getScore()) continue; // no more higher scored hypothesis from here
-
-        // 2. check if RT range overlaps (more than 80%)
-        const std::pair<double, double> curr_feat_rt_range = cur_fh.getRTRange();
-        const std::pair<double, double> comp_feat_rt_range = tmp_fh.getRTRange();
-        if (curr_feat_rt_range.first >= comp_feat_rt_range.second) continue;
-        if (curr_feat_rt_range.second <= comp_feat_rt_range.first) continue;
-        const double overlap_start = std::max(curr_feat_rt_range.first, comp_feat_rt_range.first);
-        const double overlap_end = std::min(curr_feat_rt_range.second, comp_feat_rt_range.second);
-        const double overlap_length = (overlap_end-overlap_start);
-        if ( (overlap_length/(curr_feat_rt_range.second-curr_feat_rt_range.first) < 0.8) &&
-         (overlap_length/(comp_feat_rt_range.second-comp_feat_rt_range.first) < 0.8) ) continue;
-
-        // TODO : 3. check if mz overlap?
-        std::pair<double, double> curr_feat_mz_range = cur_fh.getMZRange();
-        std::pair<double, double> comp_feat_mz_range = tmp_fh.getMZRange();
-        if (curr_feat_mz_range.first >= comp_feat_mz_range.second) continue;
-        if (curr_feat_mz_range.second <= comp_feat_mz_range.first) continue;
-
-        overlapped_features.push_back(tmp_fh);
-      }
 
       bool is_artifact = false;
-      for (auto overlap_iter = overlapped_features.begin(); overlap_iter!=overlapped_features.end(); ++overlap_iter)
-      {
-        double m_tol = 1e-5 * cur_fh.getFeatureMass(); // 10ppm
+      bool is_current_struct_changed = false;
+      // TODO : try 20 ppm tolerance?
+//      double m_tol = 1e-5 * cur_fh.getFeatureMass(); // 10ppm
 
-        // 1. check if harmonic artifacts
-        for (const Size& cs : harmonic_charges_)
+      // 1. check if harmonic artifacts
+      for (int iso_off = -2; iso_off <= 2 && !is_artifact; ++iso_off) // up to 2 isotope error
+      {
+        double curr_mass =  curr_it->first + iso_off*Constants::C13C12_MASSDIFF_U;
+        for (int harmonic = 2; harmonic <= 6 && !is_artifact; ++harmonic) // harmonics : 2, 4, 5, 6
         {
-          for (int i = -10; i <= 10; ++i) // up to 10 isotope error
+          const std::vector<double> h_masses = {curr_mass / harmonic, curr_mass * harmonic}; // low harmonic, high harmonic
+
+          for (auto& h_mass : h_masses)
           {
-            double l_mass = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass()) * cs; // low harmonic
-            double h_mass = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass()) / cs; // high harmonic
-            if (std::fabs(l_mass-overlap_iter->getFeatureMass()) < m_tol ||
-                std::fabs(h_mass-overlap_iter->getFeatureMass()) < m_tol )
+            std::map<double, DeconvMassStruct>::const_iterator low_it;
+            std::map<double, DeconvMassStruct>::const_iterator up_it;
+
+            low_it = deconv_masses.lower_bound(h_mass - m_tol); // less than or equal to
+            up_it = deconv_masses.upper_bound(h_mass + m_tol); // greater than
+
+            // harmonic mass is found. check if score is higher & fwhms overlap
+            for (; low_it != up_it; ++low_it)
             {
-              is_artifact = true;
-              break;
+              if ( (low_it->second.combined_score > curr_it->second.combined_score) &&
+                  doFWHMbordersOverlap(low_it->second.fwhm_border, curr_it->second.fwhm_border) )
+              {
+                is_artifact = true;
+                break;
+              }
             }
           }
-          if (is_artifact) break;
         }
-        if (is_artifact) break;
+      }
 
-        // 2. check if charge-off-by-one artifacts
-        Size curr_charge = cur_fh.getCharge();
-        if (std::abs(int(curr_charge)-int(overlap_iter->getCharge())) != 1) continue;
-        // if this artifact is possible (distance between peaks of two consecutive charges are smaller than 4 Th)
-        if ((cur_fh.getFeatureMass()/curr_charge)-(cur_fh.getFeatureMass()/(curr_charge+1)) > 4 ) continue;
-        for (int i = -10; i <= 10; ++i) // up to 10 isotope error
+      // 2. check if charge-off-by-n artifacts
+      double current_mass = curr_it->first;
+      for (auto cs_itr = curr_it->second.charges.begin(); cs_itr != curr_it->second.charges.end() && !is_artifact; )
+      {
+        int curr_cs = *cs_itr;
+        bool is_curr_cs_removed = false;
+
+        for ( int coff = 1; coff <= 4 && !is_artifact && !is_curr_cs_removed; ++coff)
         {
-          double mass_cs_up = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass())/curr_charge * (curr_charge+1);
-          double mass_cs_down = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass())/curr_charge * (curr_charge-1);
-          if (std::fabs(mass_cs_up-overlap_iter->getFeatureMass()) < m_tol ||
-              std::fabs(mass_cs_down-overlap_iter->getFeatureMass()) < m_tol )
+          for (int f = -1; f <= 1 && !is_artifact && !is_curr_cs_removed; f += 2) // for converting minus / plus
           {
-            is_artifact = true;
-            break;
+            int tmp_cs = curr_cs + f * coff;
+            if (tmp_cs <= 1)
+            {
+              continue;
+            }
+
+            // if this artifact is possible (distance between peaks of two consecutive charges are smaller than 4 Th)
+//            if (std::fabs((current_mass/curr_cs)-(current_mass/tmp_cs)) > 4 ) continue;
+
+            // check if harmonic mass exist in the map
+            double h_mass = current_mass / curr_cs * tmp_cs;
+
+            std::map<double, DeconvMassStruct>::const_iterator low_it;
+            std::map<double, DeconvMassStruct>::const_iterator up_it;
+
+            low_it = deconv_masses.lower_bound(h_mass - m_tol); // less than or equal to
+            up_it = deconv_masses.upper_bound(h_mass + m_tol); // greater than
+
+            // harmonic mass is found. check if score is higher & fwhms overlap
+            for (; low_it != up_it; ++low_it)
+            {
+              if ( (low_it->second.combined_score > curr_it->second.combined_score) &&
+                   doFWHMbordersOverlap(low_it->second.fwhm_border, curr_it->second.fwhm_border) )
+              {
+                // if current deconv_mass contains only one feature, remove it from deconv_mass
+                if (curr_it->second.feature_idx.size()==1)
+                {
+                  is_artifact=true;
+                  break;
+                }
+
+                // remove current feature hypothesis from deconv_mass map
+                for (auto& f_index : curr_it->second.feature_idx)
+                {
+                  // all features having current charge should be removed. (all of them are harmonics)
+                  if (feat_hypotheses[f_index].getCharge() == curr_cs)
+                  {
+                    curr_it->second.removeFeatureHypothesis(feat_hypotheses[f_index].getFeatureMass(),
+                                                            feat_hypotheses[f_index].getScore(), f_index);
+                  }
+                }
+                // remove current charge from deconv_mass map
+                is_curr_cs_removed = true;
+                is_current_struct_changed = true;
+
+                // if most of features in current mass struct are removed, remove mass struct from map.
+                if (curr_it->second.feature_idx.size() < 2)
+                {
+                  is_artifact=true;
+                  break;
+                }
+              }
+            }
           }
         }
-        if (is_artifact) break;
+        if (is_curr_cs_removed)
+        {
+          cs_itr = curr_it->second.charges.erase(cs_itr);
+        }
+        else
+        {
+          ++cs_itr;
+        }
       }
+      // if most of features in current deconv_mass are removed, it's artifact.
 
-      // if artifact, remove it from feature candidates
-      if (!is_artifact)
+      // if artifact, remove it from the map
+      if (is_artifact)
       {
-        saved_hypos.push_back(cur_fh);
+        curr_it = deconv_masses.erase(curr_it);
       }
-//      if (is_artifact)
-//      {
-//        fh_iterator = feat_hypotheses.erase(fh_iterator);
-//        end_of_iter = feat_hypotheses.end();
-//      }
-//      else{
-//        ++fh_iterator;
-//      }
+      else
+      {
+        // TODO; update current mass (if needed - should this have flag too?)
+        filterDeconvMassStruct(deconv_masses, feat_hypotheses, curr_it, is_current_struct_changed);
+      }
     }
     this->endProgress();
 
+
+    //    /// remove charge artifacts
+    //    for (Size x=0; x<hypo_for_cur_candi.size(); x++)
+    //    {
+    //      auto& cur_candi = hypo_for_cur_candi[x];
+    //      bool is_artifact = false;
+    //      for (Size y=x+1; y<hypo_for_cur_candi.size(); y++)
+    //      {
+    //        double m_tol = 1e-5 * cur_candi.getFeatureMass(); // 10ppm
+    //        auto& comp_candi = hypo_for_cur_candi[y];
+    //
+    //        // 1. check if harmonic artifacts
+    //        for (const Size& cs : harmonic_charges_)
+    //        {
+    //          for (int i = -10; i <= 10; ++i) // up to 10 isotope error
+    //          {
+    //            double l_mass = (i*Constants::C13C12_MASSDIFF_U + cur_candi.getFeatureMass()) * cs; // low harmonic
+    //            double h_mass = (i*Constants::C13C12_MASSDIFF_U + cur_candi.getFeatureMass()) / cs; // high harmonic
+    //            if (std::fabs(l_mass-comp_candi.getFeatureMass()) < m_tol ||
+    //                std::fabs(h_mass-comp_candi.getFeatureMass()) < m_tol )
+    //            {
+    //              is_artifact = true;
+    //              break;
+    //            }
+    //          }
+    //          if (is_artifact) break;
+    //        }
+    //        if (is_artifact) break;
+    //
+    //        // 2. check if charge-off-by-n artifacts
+    //        Size curr_charge = cur_fh.getCharge();
+    //        if (std::abs(int(curr_charge)-int(overlap_iter->getCharge())) != 1) continue;
+    //        // if this artifact is possible (distance between peaks of two consecutive charges are smaller than 4 Th)
+    //        if ((cur_fh.getFeatureMass()/curr_charge)-(cur_fh.getFeatureMass()/(curr_charge+1)) > 4 ) continue;
+    //        for (int i = -10; i <= 10; ++i) // up to 10 isotope error
+    //        {
+    //          double mass_cs_up = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass())/curr_charge * (curr_charge+1);
+    //          double mass_cs_down = (i*Constants::C13C12_MASSDIFF_U + cur_fh.getFeatureMass())/curr_charge * (curr_charge-1);
+    //          if (std::fabs(mass_cs_up-overlap_iter->getFeatureMass()) < m_tol ||
+    //              std::fabs(mass_cs_down-overlap_iter->getFeatureMass()) < m_tol )
+    //          {
+    //            is_artifact = true;
+    //            break;
+    //          }
+    //        }
+    //        if (is_artifact) break;
+    //      }
+    //
+    //      // if not artifacts, add it to output hypothesis
+    //      if (!is_artifact)
+    //      {
+    //        output_hypotheses.push_back(cur_candi);
+    //      }
+    //    }
+
+
   }
 
-  void FeatureFindingIntact::setChargeScoreForFeatureHypothesis(std::vector<FeatureHypothesis> candidate_hypotheses,
-                                            std::vector<std::pair<double, Size>> feat_and_charges) const
+  void FeatureFindingIntact::setChargeScoreForFeatureHypothesis(std::vector<FeatureHypothesis>& candidate_hypotheses,
+                                                          std::vector<std::pair<double, int>>& feat_and_charges) const
   {
     Size candi_size = candidate_hypotheses.size();
 
     // calculate mean_masses within tolerance
-    std::vector<std::pair<double, std::set<Size>>> collected_masses; // first : average of feature masses, second : vector of charges
+    std::vector<std::pair<double, std::set<int>>> collected_masses; // first : average of feature masses, second : vector of charges
     collected_masses.reserve(candi_size);
     const double tolerance = 1.5; // Da
     Size max_nr_charges = 0; // save the maximum size of charge set
@@ -890,7 +986,7 @@ namespace OpenMS
 
     this->startProgress(0, feat_and_charges.size(), "charge scoring");
     Size progress = 0;
-    std::vector<std::pair<double, Size>>::iterator f_iter=feat_and_charges.begin();
+    std::vector<std::pair<double, int>>::iterator f_iter=feat_and_charges.begin();
     while( f_iter != end_of_feature )
     {
       setProgress(progress);
@@ -917,7 +1013,7 @@ namespace OpenMS
       }
 
       // save found charge states
-      std::set<Size> tmp_charges;
+      std::set<int> tmp_charges;
       f_iter_end++; // starting position of next f_iter
       for(auto it=f_iter; it!=f_iter_end; ++it)
       {
@@ -1195,6 +1291,80 @@ namespace OpenMS
     }
 
     getCoordinatesOfClusterForPython(output_feats, out, cluster_name);
+  }
+
+  void FeatureFindingIntact::filterDeconvMassStruct(std::map<double, DeconvMassStruct> &deconv_masses,
+                                                    const vector<FeatureHypothesis> &feat_hypotheses,
+                                                    std::map<double, DeconvMassStruct>::iterator &curr_it,
+                                                    const bool struct_needs_update) const
+  {// if struct contains only one feature or only one charge state, remove it.
+    if (curr_it->second.feature_idx.size() == 1 || curr_it->second.charges.size() == 1)
+    {
+      // check if similar mass exist in the map within tolerance
+      auto new_it = curr_it; // reference for new location to save current mass
+      auto prev_it = std::prev(curr_it);
+      if( curr_it != deconv_masses.begin() && (curr_it->first - prev_it->first) <= mass_tolerance_
+          && doFWHMbordersOverlap(curr_it->second.fwhm_border, prev_it->second.fwhm_border))
+      {
+        new_it = prev_it;
+      }
+
+      auto next_it = std::next(curr_it);
+      if ( next_it != deconv_masses.end() && (next_it->first - curr_it->first) <= mass_tolerance_
+           && doFWHMbordersOverlap(curr_it->second.fwhm_border, next_it->second.fwhm_border) )
+      {
+        if (new_it!=curr_it) // if both prev and next have similar mass to curr_it
+        {
+          // the new location is up to which one is closer to curr_it
+          new_it = ( (curr_it->first-new_it->first) < (next_it->first-curr_it->first) ) ? new_it : next_it;
+        }
+        else
+        {
+          new_it = next_it;
+        }
+      }
+
+      // add features in current mass to new location
+      if (new_it != curr_it)
+      {
+        for (auto& fidx : curr_it->second.feature_idx)
+        {
+          auto& feature = feat_hypotheses[fidx];
+          new_it->second.addFeatureHypothesis(feature.getFeatureMass(), feature.getCharge(), fidx,
+                                              feature.getFwhmRange(), feature.getScore());
+        }
+        // update key of map if needed
+        if (new_it->second.updateDeconvMass())
+        {
+          auto curr_node = deconv_masses.extract(new_it->first);
+          curr_node.key() = curr_node.mapped().deconv_mass;
+          deconv_masses.insert(move(curr_node));
+        }
+      }
+
+      curr_it = deconv_masses.erase(curr_it);
+      return;
+    }
+    // if DeconvMassStruct needs update
+    if (struct_needs_update)
+    {
+      // update fwhm_border
+      curr_it->second.fwhm_border = feat_hypotheses[curr_it->second.feature_idx[0]].getFwhmRange();
+      for (Size i=1; i<curr_it->second.feature_idx.size(); i++)
+      {
+        curr_it->second.updateFwhmBorder(feat_hypotheses[curr_it->second.feature_idx[i]].getFwhmRange());
+      }
+
+      // update key of map if needed
+      if (curr_it->second.updateDeconvMass())
+      {
+        auto curr_node = deconv_masses.extract(curr_it->first);
+        curr_node.key() = curr_node.mapped().deconv_mass;
+        deconv_masses.insert(move(curr_node));
+      }
+    }
+
+    ++curr_it;
   }
 
 }

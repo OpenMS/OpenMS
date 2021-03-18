@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <algorithm>
 
 using namespace std;
 namespace OpenMS
@@ -75,6 +76,7 @@ namespace OpenMS
         charge_score_(),
         rt_start_(),
         rt_end_(),
+        fwhm_range_(),
         mz_start_(),
         mz_end_(),
         mz_score_(),
@@ -101,6 +103,7 @@ namespace OpenMS
           charge_score_(fh.charge_score_),
           rt_start_(fh.rt_start_),
           rt_end_(fh.rt_end_),
+          fwhm_range_(fh.fwhm_range_),
           mz_start_(fh.mz_start_),
           mz_end_(fh.mz_end_),
           mz_score_(fh.mz_score_),
@@ -118,13 +121,14 @@ namespace OpenMS
           return *this;
 
         charge_ = fh.charge_;
-        iso_pattern_traces_ = fh.iso_pattern_traces_;
         feat_score_ = fh.feat_score_;
         feature_mass_ = fh.feature_mass_;
+        iso_pattern_traces_ = fh.iso_pattern_traces_;
         iso_mt_index_pairs_ = fh.iso_mt_index_pairs_;
         charge_score_ = fh.charge_score_;
         rt_start_ = fh.rt_start_;
         rt_end_ = fh.rt_end_;
+        fwhm_range_ = fh.fwhm_range_;
         mz_start_ = fh.mz_start_;
         mz_end_ = fh.mz_end_;
         mz_score_ = fh.mz_score_;
@@ -148,7 +152,7 @@ namespace OpenMS
       }
 
       /// getter & setter
-      SignedSize getCharge() const
+      int getCharge() const
       {
         return charge_;
       }
@@ -208,7 +212,12 @@ namespace OpenMS
         return std::make_pair(mz_start_, mz_end_);
       }
 
-      void setCharge(const SignedSize& ch)
+      std::pair<double, double> getFwhmRange() const
+      {
+        return fwhm_range_;
+      }
+
+      void setCharge(const int& ch)
       {
         charge_ = ch;
       }
@@ -246,6 +255,23 @@ namespace OpenMS
       void setIntyScore(const double score)
       {
         inty_score_ = score;
+      }
+
+      void setFwhmRange()
+      {
+        double min_fwhm(numeric_limits<double>::max());
+        double max_fwhm(0.0);
+        for (auto& iso : iso_pattern_traces_)
+        {
+          std::pair<Size, Size> fwhm_idx(iso->getFWHMborders());
+          std::pair<double, double> tmp_fwhm( (*iso)[fwhm_idx.first].getRT(), (*iso)[fwhm_idx.second].getRT());
+
+          if (tmp_fwhm.first < min_fwhm)
+            min_fwhm = tmp_fwhm.first;
+          if (tmp_fwhm.second > max_fwhm)
+            max_fwhm = tmp_fwhm.second;
+        }
+        fwhm_range_ = std::make_pair(min_fwhm, max_fwhm);
       }
 
       vector<double> getAllIntensities(bool smoothed = false) const
@@ -341,23 +367,24 @@ namespace OpenMS
       }
 
     private:
-      SignedSize charge_;
+      int charge_;
       double feat_score_;
-      double mz_score_;
-      double rt_score_;
-      double inty_score_;
       double feature_mass_;
-      double quant_value_;
       std::vector<const MassTrace*> iso_pattern_traces_;
-      std::vector<double> scores_per_mt_;
       // first: iso index of current feature, second : masstrace index of final masstraces
       std::vector<std::pair<Size, Size>> iso_mt_index_pairs_;
       double charge_score_;
       // calculated based on iso_pattern_traces
       double rt_start_;
       double rt_end_;
+      std::pair<double, double> fwhm_range_;
       double mz_start_;
       double mz_end_;
+      double mz_score_;
+      double rt_score_;
+      double inty_score_;
+      std::vector<double> scores_per_mt_;
+      double quant_value_;
     };
 
     class OPENMS_DLLAPI CmpMassTraceByMZ
@@ -540,17 +567,56 @@ namespace OpenMS
       use_smoothed_intensities_ = true; // for intensity of a mass trace
     }
 
-  private:
     struct DeconvMassStruct
     {
-      double deconv_mass; // median mass of current
-      std::vector<const FeatureHypothesis*> features;
-      std::vector<double> feature_masses;
-      std::set<const Size> charges;
+      double deconv_mass = 0.0; // median mass of current
+      std::vector<Size> feature_idx;
+      std::vector<double> feature_masses; // sorted
+      std::set<int> charges;
+      std::pair<double, double> fwhm_border;
+      double combined_score = 0.0;
 
-      DeconvMassStruct():
-          deconv_mass(0.0)
-      {}
+      void initialize(double mass, int cs, Size f_idx, std::pair<double, double> fwhm, double score)
+      {
+        deconv_mass = mass;
+        charges.insert(cs);
+        feature_idx.push_back(f_idx);
+        feature_masses.push_back(mass);
+        fwhm_border = fwhm;
+        combined_score = score;
+      }
+
+      bool operator<(const DeconvMassStruct& other) const
+      {
+        return combined_score < other.combined_score;
+      }
+
+      bool operator==(const DeconvMassStruct& other) const
+      {
+        return combined_score == other.combined_score;
+      }
+
+      void addFeatureHypothesis(double mass, int cs, int f_idx, std::pair<double, double> fwhm, double s)
+      {
+        feature_masses.push_back(mass);
+        charges.insert(cs);
+        feature_idx.push_back(f_idx);
+        updateFwhmBorder(fwhm);
+        combined_score+=s;
+      }
+
+      void removeFeatureHypothesis(double mass, double score, int f_idx)
+      {
+        auto iter = std::find(feature_masses.begin(), feature_masses.end(), mass);
+        if (iter != feature_masses.end())
+        {
+          feature_masses.erase(iter);
+        }
+        feature_idx.erase(std::remove(feature_idx.begin(), feature_idx.end(), f_idx), feature_idx.end());
+        combined_score -= score;
+
+        // TODO: reset mass & fwhm?
+      }
 
       // update deconv_mass from calculating median of masses
       // return true if deconv_mass is changed - this step is needed to reduce unnecessary step in DeconvMassStruct set update
@@ -583,8 +649,21 @@ namespace OpenMS
         return false;
       }
 
+      void updateFwhmBorder(std::pair<double, double> new_fwhm)
+      {
+        // it is guaranteed new_fwhm overlaps with current fwhm_border;
+        if (new_fwhm.first < fwhm_border.first)
+        {
+          fwhm_border.first = new_fwhm.first;
+        }
+        if (new_fwhm.second > fwhm_border.second)
+        {
+          fwhm_border.second = new_fwhm.second;
+        }
+      }
     };
 
+  private:
     /// method for builiding Feature Hypotheses
     void buildFeatureHypotheses_(std::vector<MassTrace>& input_mtraces,
                                  std::vector<FeatureHypothesis>& output_hypotheses,
@@ -597,7 +676,9 @@ namespace OpenMS
 
     double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const;
 
-    double scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const;
+    double scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, int charge) const;
+
+    bool doFWHMbordersOverlap(const std::pair<double, double>& border1, const std::pair<double, double>& border2) const;
 
     // TODO: based on getCosine from FLASHDeconvAlgorithm
     double computeCosineSimOfDiffSizedVector_(const std::vector<double>& a,
@@ -616,10 +697,11 @@ namespace OpenMS
 
     void setAveragineModel_();
 
-    void removeMassArtifacts_(std::vector<FeatureHypothesis>& feat_hypotheses) const;
+    void removeMassArtifacts_(const std::vector<FeatureHypothesis>& feat_hypotheses,
+                              std::map<double, DeconvMassStruct>& deconv_masses) const;
 
-    void setChargeScoreForFeatureHypothesis(std::vector<FeatureHypothesis> candidate_hypotheses,
-                                              std::vector<std::pair<double, Size>> feat_and_charges) const;
+    void setChargeScoreForFeatureHypothesis(std::vector<FeatureHypothesis>& candidate_hypotheses,
+                                              std::vector<std::pair<double, int>>& feat_and_charges) const;
 
     void clusterFeatureHypotheses_(std::vector<FeatureHypothesis>& output_hypotheses,
                                   const std::vector<std::vector<Size>>& shared_m_traces_indices) const;
@@ -632,19 +714,28 @@ namespace OpenMS
                                    String& cluster_name
                                    ) const;
 
+    void addFeature2DeconvMassStruct(FeatureHypothesis &in_feature,
+                                     Size feature_idx,
+                                     std::map<double, DeconvMassStruct> &deconv_masses) const;
+
+    void filterDeconvMassStruct(std::map<double, DeconvMassStruct> &deconv_masses,
+                                const vector<FeatureHypothesis> &feat_hypotheses,
+                                std::map<double, DeconvMassStruct>::iterator &curr_it,
+                                const bool struct_needs_update = false ) const;
+
     /// parameters
     double local_rt_range_;
     double local_mz_range_;
-    Size charge_lower_bound_;
-    Size charge_upper_bound_;
+    int charge_lower_bound_;
+    int charge_upper_bound_;
     double mass_lower_bound_;
     double mass_upper_bound_;
     Size max_nr_traces_; // calculated from iso_model_ (FeatureFindingIntact::setAveragineModel())
     bool use_smoothed_intensities_;
     const double mass_tolerance_ = 1.5; // Da, for feature mass collection
 
-    const std::vector<Size> harmonic_charges_{2, 3, 5};
-
     PrecalculatedAveragine iso_model_;
+
+
   };
 }

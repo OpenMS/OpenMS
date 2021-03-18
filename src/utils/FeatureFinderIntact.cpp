@@ -44,6 +44,8 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/FeatureFindingIntact.h>
 
+// for testing
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -112,7 +114,7 @@ public:
     std::vector<Int> ms_level(1, 1);
     mz_data_file.getOptions().setMSLevels(ms_level);
     /// for test purpose : reduce in_ex
-//    mz_data_file.getOptions().setMZRange(DRange<1>(DPosition<1>(1230.0), DPosition<1>(1455)));
+//    mz_data_file.getOptions().setMZRange(DRange<1>(DPosition<1>(1164.0), DPosition<1>(1455)));
 //    mz_data_file.getOptions().setRTRange(DRange<1>(DPosition<1>(130.0), DPosition<1>(410)));
     mz_data_file.load(in, ms_peakmap);
 
@@ -157,6 +159,11 @@ public:
     m_traces_final = splitted_mtraces;
     OPENMS_LOG_INFO << "# input mass traces : " << m_traces_final.size() << endl;
 
+    // for test output TODO: remove
+    Size last_index = in.find_last_of(".");
+    String out = in.substr(0, last_index) + ".mt.FeatureXML";
+//    write_mtraces(in, m_traces_final, out);
+
     //-------------------------------------------------------------
     // Feature finding
     //-------------------------------------------------------------
@@ -172,6 +179,61 @@ public:
     //-------------------------------------------------------------
 
     return EXECUTION_OK;
+  }
+
+  // copied from MassTraceExtractor
+  void write_mtraces(String in, std::vector<MassTrace> m_traces_final, String out)
+  {
+    std::vector<double> stats_sd;
+    FeatureMap ms_feat_map;
+    ms_feat_map.setPrimaryMSRunPath({in});
+
+    for (Size i = 0; i < m_traces_final.size(); ++i)
+    {
+      if (m_traces_final[i].getSize() == 0) continue;
+
+      m_traces_final[i].updateMeanMZ();
+      m_traces_final[i].updateWeightedMZsd();
+
+      Feature f;
+      f.setMetaValue(3, m_traces_final[i].getLabel());
+      f.setCharge(0);
+      f.setMZ(m_traces_final[i].getCentroidMZ());
+      f.setIntensity(m_traces_final[i].getIntensity(false));
+      f.setRT(m_traces_final[i].getCentroidRT());
+      f.setWidth(m_traces_final[i].estimateFWHM(true));
+      f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
+      f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
+      double sd = m_traces_final[i].getCentroidSD();
+      f.setMetaValue("SD", sd);
+      f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
+      if (m_traces_final[i].fwhm_mz_avg > 0) f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+      stats_sd.push_back(m_traces_final[i].getCentroidSD());
+      ms_feat_map.push_back(f);
+    }
+
+    // print some stats about standard deviation of mass traces
+    if (stats_sd.size() > 0)
+    {
+      std::sort(stats_sd.begin(), stats_sd.end());
+      OPENMS_LOG_INFO << "Mass trace m/z s.d.\n"
+                      << "    low quartile: " << stats_sd[stats_sd.size() * 1 / 4] << "\n"
+                      << "          median: " << stats_sd[stats_sd.size() * 1 / 2] << "\n"
+                      << "    upp quartile: " << stats_sd[stats_sd.size() * 3 / 4] << std::endl;
+    }
+
+
+    ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+
+    // annotate output with data processing info TODO
+    addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+    //ms_feat_map.setUniqueId();
+
+    FeatureXMLFile().store(out, ms_feat_map);
   }
 
 };
