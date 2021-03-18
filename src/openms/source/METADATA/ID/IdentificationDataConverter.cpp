@@ -491,6 +491,7 @@ namespace OpenMS
       }
     }
 
+
     for (const auto& step_ref_opt : steps)
     {
       ProteinIdentification protein;
@@ -1057,15 +1058,16 @@ namespace OpenMS
         vector<String> meta_keys;
         hit.getKeys(meta_keys);
         for (const String& key : meta_keys)
-        {
-          if (key.hasPrefix("IDConverter_trace_")) // TODO: What is happening here (comment)
+        { // ID-data stores a trace (path through the feature-subfeature hierarchy) which is used
+          // for a lookup to attach the converted IDs back to the specific feature.
+          if (key.hasPrefix("IDConverter_trace_"))
           {
             IntList indexes = hit.getMetaValue(key);
             hit.removeMetaValue(key);
             Feature* feat_ptr = &features.at(indexes[0]);
             for (Size i = 1; i < indexes.size(); ++i)
             {
-              feat_ptr = &feat_ptr->getSubordinates()[indexes[i]]; // TODO: What is happening here (comment)
+              feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
             }
             features_to_hits[feat_ptr].insert(j);
             assigned_hits[j] = true;

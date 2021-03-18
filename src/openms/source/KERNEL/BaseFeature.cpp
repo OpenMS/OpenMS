@@ -259,7 +259,7 @@ namespace OpenMS
     }
     set<IdentificationData::ObservationMatchRef> matches;
     matches.swap(id_matches_);
-    for (const auto& item : matches)
+    for (auto item : matches)
     {
       id_matches_.insert(trans.translate(item));
     }

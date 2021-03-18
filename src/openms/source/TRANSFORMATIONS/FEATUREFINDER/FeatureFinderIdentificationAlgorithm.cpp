@@ -500,7 +500,7 @@ namespace OpenMS
     String target_id = feature.getMetaValue("PeptideRef");
 
     vector<String> split;
-    result = target_id.split('/',split); // PEP:XXXXX/3#1 or PEP:XXXXX/2
+    target_id.split('/', split); // PEP:XXXXX/3#1 or PEP:XXXXX/2
     Int charge = 0;
     if (extract_charge)
     {
@@ -550,59 +550,11 @@ namespace OpenMS
       String target_id = extractTargetID_(feature).first;
       target_id = target_id.substr(target_id.find(':') + 1); // remove type prefix
       feature.setMetaValue("label", target_id);
-
-      // TODO: Why is the dummy data set here?
-      // TODO: This will introduce empty peptide information for a feature
-      // TOOD: Fails in MzTab
-      // ProteomicsLFQ
-      // OpenMS::MzTab::peptideSectionRowFromConsensusFeature_(OpenMS::ConsensusFeature const&, OpenMS::ConsensusMap const&, std::__1::vector<OpenMS::String, std::__1::allocator<OpenMS::String> > const&, unsigned long, std::__1::set<OpenMS::String, std::__1::less<OpenMS::String>, std::__1::allocator<OpenMS::String> > const&, std::__1::set<OpenMS::String, std::__1::less<OpenMS::String>, std::__1::allocator<OpenMS::String> > const&, std::__1::map<OpenMS::String, unsigned long, std::__1::less<OpenMS::String>, std::__1::allocator<std::__1::pair<OpenMS::String const, unsigned long> > > const&, std::__1::map<std::__1::pair<unsigned long, unsigned long>, unsigned long, std::__1::less<std::__1::pair<unsigned long, unsigned long> >, std::__1::allocator<std::__1::pair<std::__1::pair<unsigned long, unsigned long> const, unsigned long> > > const&, std::__1::map<std::__1::pair<OpenMS::String, unsigned int>, unsigned int, std::__1::less<std::__1::pair<OpenMS::String, unsigned int> >, std::__1::allocator<std::__1::pair<std::__1::pair<OpenMS::String, unsigned int> const, unsigned int> > > const&, std::__1::vector<OpenMS::String, std::__1::allocator<OpenMS::String> > const&, bool) MzTab.cpp:1843
-      // OpenMS::MzTab::CMMzTabStream::nextPEPRow(OpenMS::MzTabPeptideSectionRow&) MzTab.cpp:3747
-      // OpenMS::MzTab::exportConsensusMapToMzTab(OpenMS::ConsensusMap const&, OpenMS::String const&, bool, bool, bool, bool, bool, OpenMS::String const&) MzTab.cpp:3822
-      // ProteomicsLFQ::main_(int, char const**) ProteomicsLFQ.cpp:1942
-      // OpenMS::TOPPBase::main(int, char const**) TOPPBase.cpp:444
-      // main ProteomicsLFQ.cpp:1999
-      //
-      // ConsensusFeature::HandleSetType fs = c.getFeatures();
-      // Feature with empty Peptideidentification!
-      /*
-      if (feature.getPeptideIdentifications().empty())
-      {
-        // add "dummy" identification:
-        PeptideIdentification pep_id;
-        pep_id.setMetaValue("FFId_category", "inferred");
-        pep_id.setRT(feature.getRT());
-        pep_id.setMZ(feature.getMZ());
-        PeptideHit hit;
-        hit.setCharge(feature.getCharge());
-        String target_id = extractTargetID_(feature).first;
-        const TargetData& target_data = target_map_.at(target_id);
-        if (target_id.hasPrefix("PEP:")) // actual peptide
-        {
-          ID::IdentifiedPeptideRef ref = target_data.molecule.getIdentifiedPeptideRef();
-          hit.setSequence(ref->sequence);
-          IdentificationDataConverter::exportParentMatches(ref->parent_matches, hit);
-        }
-        else
-        {
-          hit.setMetaValue("label", target_data.molecule.toString());
-          if (target_id.hasPrefix("RNA:"))
-          {
-            ID::IdentifiedOligoRef ref = target_data.molecule.getIdentifiedOligoRef();
-            IdentificationDataConverter::exportParentMatches(ref->parent_matches, hit);
-          }
-        }
-        if (target_data.adduct) // adduct
-        {
-          hit.setMetaValue("adduct", (*target_data.adduct)->getName());
-        }
-        pep_id.insertHit(hit);
-        feature.getPeptideIdentifications().push_back(pep_id);
-      } */
     }
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
 
-    //TODO MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
+    // TODO: MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
     // Would be nice if we could only do the fitting once, since it is one of the bottlenecks.
     // What is the intention of this post-processing here anyway? Does it filter anything?
     // If so, why not filter based on the corresponding Swath/MRM score?

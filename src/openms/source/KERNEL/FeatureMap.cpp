@@ -126,14 +126,14 @@ namespace OpenMS
     unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
     data_processing_(source.data_processing_),
     id_data_() // updated below
+  {
+    // copy ID data and update references in features:
+    IdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
+    for (Feature& feature : *this)
     {
-      // copy ID data and update references in features:
-      IdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
-      for (Feature& feature : *this)
-      {
-        feature.updateAllIDReferences(trans);
-      }
+      feature.updateAllIDReferences(trans);
     }
+  }
 
   FeatureMap::FeatureMap(FeatureMap&& source) = default;
 
