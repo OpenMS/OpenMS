@@ -101,8 +101,8 @@ jobs:
           ENABLE_CLASS_TESTING: "ON"
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
-          BUILD_TYPE: "Debug"
-          OPENMP: "On"
+          BUILD_TYPE: "Release"
+          OPENMP: "Off"
           USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-m:2 -p:CL_MPCount=2"
 
