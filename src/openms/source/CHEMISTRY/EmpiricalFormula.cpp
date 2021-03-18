@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Chris Bielow, Ahmed Khalil $
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
@@ -40,6 +40,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -426,6 +427,7 @@ namespace OpenMS
   {
     Int charge = 0;
     String formula(input_formula);
+    sanitizeIfNotValidFormula(formula);
 
     // we start with the charge part, read until the begin of the formula or a element symbol occurs
     String suffix;
@@ -634,6 +636,14 @@ namespace OpenMS
         ++it;
       }
     }
+  }
+
+  void EmpiricalFormula::sanitizeIfNotValidFormula(String& input_formula) const
+  {
+    input_formula.erase(std::remove_if(input_formula.begin(), input_formula.end(), [](unsigned char c){
+      if (std::isspace(c)) OpenMS_Log_warn << "Warning: Formula contains illegal characters, please consider supplying a formula without spaces or tabs! " << std::endl;
+      return std::isspace(c);
+    }), input_formula.end());
   }
 
   bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const

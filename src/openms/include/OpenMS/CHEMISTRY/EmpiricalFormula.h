@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Chris Bielow, Ahmed Khalil $
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
@@ -282,6 +282,8 @@ protected:
 
     /// remove elements with count 0
     void removeZeroedElements_();
+    
+    void sanitizeIfNotValidFormula(String& input_formula) const;
 
     MapType_ formula_;
 
