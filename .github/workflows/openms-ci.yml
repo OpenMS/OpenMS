@@ -104,7 +104,7 @@ jobs:
           BUILD_TYPE: "Debug"
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
-          BUILD_FLAGS: "-ds -m:2 -p:CL_MPCount=2"
+          BUILD_FLAGS: "-m:2 -p:CL_MPCount=2"
 
 
   build-macos:
