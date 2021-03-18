@@ -9,6 +9,7 @@ set(CTEST_SITE "$ENV{CI_PROVIDER}")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/bld")
 set(CTEST_CONFIGURATION_TYPE "$ENV{BUILD_TYPE}")
+set(CTEST_BUILD_CONFIGURATION "$ENV{BUILD_TYPE}")
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
 message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
@@ -39,12 +40,13 @@ ADDRESS_SANITIZER=$ENV{ADDRESS_SANITIZER}
 WITH_THERMORAWFILEPARSER_TEST=Off"
 )
 
+set(OWN_OPTIONS "")
 if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
   set(INITIAL_CACHE 
 "${INITIAL_CACHE}
 CMAKE_GENERATOR_PLATFORM=x64"
   )
-  add_compile_options(/Od)
+  set(OWN_OPTIONS "-DCMAKE_CXX_FLAGS /Od")
 endif()
 
 # create cache
@@ -79,7 +81,7 @@ set(CTEST_CMAKE_GENERATOR "$ENV{CMAKE_GENERATOR}")
 # run the classical CTest suite without update
 # travis-ci handles this for us
 ctest_start     (Continuous)
-ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
+ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
@@ -89,7 +91,7 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
   endif()
 else()
-	set(_build_errors 0)
+  set(_build_errors 0)
 endif()
 
 ## build lib&executables, run tests
