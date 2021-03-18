@@ -497,24 +497,16 @@ namespace OpenMS
   pair<String, Int> FeatureFinderIdentificationAlgorithm::extractTargetID_(
     const Feature& feature, bool extract_charge)
   {
-    String target_id = feature.getMetaValue("PeptideRef");
-
-    vector<String> split;
-    target_id.split('/', split); // PEP:XXXXX/3#1 or PEP:XXXXX/2
+    String target_id = feature.getMetaValue("PeptideRef"); // e.g. "PEP:XXXXX/2#1"
+    Size pos_slash = target_id.rfind('/');
     Int charge = 0;
     if (extract_charge)
     {
-      auto hash_pos = split[1].find("#");
-      if (hash_pos != std::string::npos)
-      {
-        charge = split[1].substr(0, hash_pos).toInt();
-      }
-      else
-      {
-        charge = split[1].toInt();
-      }
+      Size pos_hash = target_id.find('#', pos_slash + 2);
+      // second arg. to "substr" is "count", not "end_pos"!
+      charge = target_id.substr(pos_slash + 1, pos_hash - pos_slash - 1).toInt();
     }
-    return make_pair(split[0], charge);
+    return make_pair(target_id.substr(0, pos_slash), charge);
   }
 
 
