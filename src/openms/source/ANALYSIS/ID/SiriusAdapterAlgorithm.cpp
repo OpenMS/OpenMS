@@ -74,7 +74,6 @@ namespace OpenMS
       fingerid.parameters();
       passatutto.parameters();
 
-
       defaultsToParam_();
     }
 
@@ -89,7 +88,7 @@ namespace OpenMS
 
       parameter(
                   OpenMSName("precursor_mz_tolerance"),
-                  DefaultValue(10),
+                  DefaultValue(10.0),
                   Description("Tolerance window for precursor selection (Feature selection in regard to the precursor)")
                 );
 
@@ -101,7 +100,7 @@ namespace OpenMS
 
       parameter(
                   OpenMSName("precursor_rt_tolerance"),
-                  DefaultValue(5),
+                  DefaultValue(5.0),
                   Description("Tolerance window (left and right) for precursor selection [seconds]")
                );
 
@@ -157,13 +156,13 @@ namespace OpenMS
     {
       parameter(
                  SiriusName("ppm-max"),
-                 DefaultValue(10),
+                 DefaultValue(10.0),
                  Description("Maximum allowed mass deviation in ppm for decomposing masses [ppm].")
                );
 
       parameter(
                  SiriusName("ppm-max-ms2"),
-                 DefaultValue(10),
+                 DefaultValue(10.0),
                  Description("Maximum allowed mass deviation in ppm for decomposing masses in MS2 [ppm]."
                              "If not specified, the same value as for the MS1 is used. ")
                 );

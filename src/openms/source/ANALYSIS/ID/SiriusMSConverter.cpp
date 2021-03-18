@@ -565,8 +565,8 @@ namespace OpenMS
         }
         else
         {
-          OPENMS_LOG_WARN << "The featureXML input misses the MetaValues for 'masstrace_centroid_mz' and 'masstrace_intensity'."
-                             "Please validate your featureXML, or use a newer version of FeatureFinderMetabo for its generation."  << endl;
+          OPENMS_LOG_WARN << "The feature " << feature->getUniqueId() << " misses the MetaValues for 'masstrace_centroid_mz' and 'masstrace_intensity'."
+                             "If this happens more often, please validate your featureXML."  << endl;
         }
 
         // prefer adducts from AccurateMassSearch if MetaboliteAdductDecharger and AccurateMassSearch were performed
