@@ -1030,6 +1030,12 @@ protected:
         if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
       }
       
+      int cv_threads = getIntOption_("threads"); // pass-through of OpenMS thread parameter
+      if (cv_threads > 3) // default in percolator is 3
+      {
+        arguments << "--num-threads" << String(cv_threads).toQString();
+      }
+      
       double cpos = getDoubleOption_("cpos");
       double cneg = getDoubleOption_("cneg");
       if (cpos != 0.0) arguments << "-p" << String(cpos).toQString();
