@@ -1243,7 +1243,7 @@ protected:
         // it is not a real search engine but we set it so that we know that
         // scores were postprocessed
         it->setSearchEngine("Percolator");
-        it->setSearchEngineVersion("3.02");
+        it->setSearchEngineVersion("3.05"); // TODO: read from percolator
         if (protein_level_fdrs)
         {
           //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
@@ -1268,7 +1268,7 @@ protected:
           if (protein_level_fdrs)
           {
             it->setInferenceEngine("Percolator");
-            it->setInferenceEngineVersion("3.02");
+            it->setInferenceEngineVersion("3.05");
           }
           it->setScoreType("q-value");
           it->setHigherScoreBetter(false);
