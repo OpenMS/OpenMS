@@ -262,7 +262,7 @@ protected:
     registerFlag_("protein_level_fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy_pattern to set the Fasta file and decoy pattern.");
     
     registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: the data level selected for scoring.", !is_required);
-    setValidStrings_("osw_level", StringList(&OSWFile::names_of_oswlevel[0], &OSWFile::names_of_oswlevel[(int)OSWFile::OSWLevel::SIZE_OF_OSWLEVEL]));
+    setValidStrings_("osw_level", StringList(&OSWFile::names_of_oswlevel[0], &OSWFile::names_of_oswlevel[(int)OSWFile::OSWLevel::SIZE_OF_OSWLEVEL - 1]));
     
     registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
     setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
