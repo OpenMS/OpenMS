@@ -505,7 +505,8 @@ namespace OpenMS
     if (extract_charge)
     {
       Size pos_hash = target_id.find('#', pos_slash + 2);
-      charge = target_id.substr(pos_slash + 1, pos_hash).toInt();
+      // second arg. to "substr" is "count", not "end_pos"!
+      charge = target_id.substr(pos_slash + 1, pos_hash - pos_slash - 1).toInt();
     }
     return make_pair(target_id.substr(0, pos_slash), charge);
   }
