@@ -46,7 +46,7 @@ if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
 "${INITIAL_CACHE}
 CMAKE_GENERATOR_PLATFORM=x64"
   )
-  set(OWN_OPTIONS "-DCMAKE_CXX_FLAGS /Od")
+  set(OWN_OPTIONS "-DCMAKE_CXX_FLAGS=/Od")
 endif()
 
 # create cache
