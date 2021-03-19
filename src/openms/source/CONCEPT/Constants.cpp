@@ -173,7 +173,7 @@ namespace OpenMS
       const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
 
       // User parameter name for explained ion current of a psm
-      const std::string PSM_EXPLAINED_ION_CURRENT_USERPARAM = "PSM_exlpained_ion_current";
+      const std::string PSM_EXPLAINED_ION_CURRENT_USERPARAM = "PSM_explained_ion_current";
 
       // User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
       const std::string SPECTRUM_REFERENCE = "spectrum_reference";
