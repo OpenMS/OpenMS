@@ -166,14 +166,14 @@ namespace OpenMS
       // User parameter name for precursor mz error in ppm
       const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
-      // User parameter name for fragment mz error in ppm
+      // User parameter name for median of fragment mz error in ppm
       const std::string FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
 
       // User metavalue name for fragment mz error in ppm
-      const std::string FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM = "fragment_mass_error_ppm";
+      const std::string FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
 
       // User metavalue name for fragment mz error in da
-      const std::string FRAGMENT_ERROR_DA_METAVALUE_USERPARAM = "fragment_mass_error_da";
+      const std::string FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
 
       // User parameter name for precursor mz error in ppm
       const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";

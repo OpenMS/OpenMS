@@ -197,15 +197,15 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     // WRITE PPM ERROR IN PEPTIDEHIT
     //-----------------------------------------------------------------------
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM, ppms);
-    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM, dalton);
+    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_USERPARAM, ppms);
+    pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_USERPARAM, dalton);
     if (ppms.size() > 1)
     {
-      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_METAVALUE_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end()));
+      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_PPM_USERPARAM + "_variance", Math::variance(ppms.begin(), ppms.end()));
     }
     if (dalton.size() > 1)
     {
-      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_METAVALUE_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end()));
+      pep_id.getHits()[0].setMetaValue(Constants::UserParam::FRAGMENT_ERROR_DA_USERPARAM + "_variance", Math::variance(dalton.begin(), dalton.end()));
     }
   }
 
