@@ -222,7 +222,7 @@ START_TEST(FragmentMassError, "$Id$")
     exp.setSpectra({createMSSpectrum(1, 5, "XTandem::3")});
     spectra_map.calculateMap(exp);
 
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp, spectra_map), "The matching spectrum of the mzML is not an MS2 Spectrum.")
+    TEST_EXCEPTION(Exception::IllegalArgument, frag_ma_err.compute(fmap, exp, spectra_map))
 
     //--------------------------------------------------------------------
     // test with fragmentation method SORI, which is not supported
@@ -237,7 +237,7 @@ START_TEST(FragmentMassError, "$Id$")
     exp.setSpectra({createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI)});
     spectra_map.calculateMap(exp);
 
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, frag_ma_err.compute(fmap_sori, exp, spectra_map), "Fragmentation method is not supported.")
+    TEST_EXCEPTION(Exception::InvalidParameter, frag_ma_err.compute(fmap_sori, exp, spectra_map))
 
     //--------------------------------------------------------------------
     // test if spectrum has no peaks
@@ -375,7 +375,7 @@ START_TEST(FragmentMassError, "$Id$")
     exp.setSpectra({ createMSSpectrum(1, 5, "XTandem::3") });
     spectra_map.calculateMap(exp);
 
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, frag_ma_err.compute(ms1_id, param, exp, spectra_map), "The matching spectrum of the mzML is not an MS2 Spectrum.")
+    TEST_EXCEPTION(Exception::IllegalArgument, frag_ma_err.compute(ms1_id, param, exp, spectra_map))
 
     //--------------------------------------------------------------------
     // test with fragmentation method SORI, which is not supported
@@ -388,7 +388,7 @@ START_TEST(FragmentMassError, "$Id$")
     exp.setSpectra({ createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI) });
     spectra_map.calculateMap(exp);
 
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, frag_ma_err.compute(sori_id, param, exp, spectra_map), "Fragmentation method is not supported.")
+    TEST_EXCEPTION(Exception::InvalidParameter, frag_ma_err.compute(sori_id, param, exp, spectra_map))
 
     //--------------------------------------------------------------------
     // test if spectrum has no peaks
