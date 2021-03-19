@@ -139,7 +139,7 @@ namespace OpenMS
 
     if (exp_spectrum.getMSLevel() != 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum with wrong MS level provided. MS2 expected.");
     }
     Precursor::ActivationMethod act_method;
     if (exp_spectrum.getPrecursors().empty())
