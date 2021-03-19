@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<!--To add new enzymes you must define a regex for where they cut, as well a regex
+(or a comma separated list of regexes for specificity for multiple successive sites) for what the enzyme cuts after
+and what it cuts before. Also be sure to add gains before and after the cut. -->
+
 <PARAMETERS>
   <NODE name="Enzymes">
     <NODE name="RNase_T1">
