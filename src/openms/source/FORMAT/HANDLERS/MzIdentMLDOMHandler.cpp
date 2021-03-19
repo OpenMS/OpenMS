@@ -187,10 +187,21 @@ namespace OpenMS
       try
       {
         mzid_parser_.parse(mzid_file.c_str());
+      }
+      catch (xercesc::XMLException& e)
+      {
+        char* message = xercesc::XMLString::transcode(e.getMessage());
+        //          ostringstream errBuf;
+        //          errBuf << "Error parsing file: " << message << flush;
+        OPENMS_LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
+        XMLString::release(&message);
+      }
 
-        // no need to free this pointer - owned by the parent parser object
-        xercesc::DOMDocument* xmlDoc = mzid_parser_.getDocument();
+      // we adopt/own the document so we can free it in case this DOMHandler is reused on another file.
+      xercesc::DOMDocument* xmlDoc = mzid_parser_.adoptDocument();
 
+      try
+      {
         // Catch special case: Cross-Linking MS
         DOMNodeList* additionalSearchParams = xmlDoc->getElementsByTagName(XMLString::transcode("AdditionalSearchParams"));
         const  XMLSize_t as_node_count = additionalSearchParams->getLength();
@@ -282,9 +293,10 @@ namespace OpenMS
         char* message = xercesc::XMLString::transcode(e.getMessage());
 //          ostringstream errBuf;
 //          errBuf << "Error parsing file: " << message << flush;
-        OPENMS_LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
+        OPENMS_LOG_ERROR << "XERCES error traversing DOM: " << message << flush << endl;
         XMLString::release(&message);
       }
+      xmlDoc->release();
       if (xl_ms_search_)
       {
         OPXLHelper::addProteinPositionMetaValues(*this->pep_id_);
