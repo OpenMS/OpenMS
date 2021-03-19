@@ -88,10 +88,8 @@ namespace OpenMS
       }
 
       /// default destructor
-      virtual ~FeatureHypothesis()
-      {
-
-      }
+      ~FeatureHypothesis()
+      {}
 
       /// copy constructor
       FeatureHypothesis(const FeatureHypothesis& fh):
@@ -567,14 +565,19 @@ namespace OpenMS
       use_smoothed_intensities_ = true; // for intensity of a mass trace
     }
 
-    struct DeconvMassStruct
+    struct OPENMS_DLLAPI DeconvMassStruct
     {
+    public:
+      /// default constructor
+      DeconvMassStruct() = default;
+
       double deconv_mass = 0.0; // median mass of current
       std::vector<Size> feature_idx;
       std::vector<double> feature_masses; // sorted
       std::set<int> charges;
       std::pair<double, double> fwhm_border;
       double combined_score = 0.0;
+      double quant_values = 0.0;
 
       void initialize(double mass, int cs, Size f_idx, std::pair<double, double> fwhm, double score)
       {
@@ -602,20 +605,18 @@ namespace OpenMS
         charges.insert(cs);
         feature_idx.push_back(f_idx);
         updateFwhmBorder(fwhm);
-        combined_score+=s;
+        combined_score += s;
       }
 
-      void removeFeatureHypothesis(double mass, double score, int f_idx)
+      void removeFeatureHypothesis(double mass, double score)
       {
+        combined_score -= score;
+
         auto iter = std::find(feature_masses.begin(), feature_masses.end(), mass);
         if (iter != feature_masses.end())
         {
           feature_masses.erase(iter);
         }
-        feature_idx.erase(std::remove(feature_idx.begin(), feature_idx.end(), f_idx), feature_idx.end());
-        combined_score -= score;
-
-        // TODO: reset mass & fwhm?
       }
 
       // update deconv_mass from calculating median of masses
@@ -649,6 +650,25 @@ namespace OpenMS
         return false;
       }
 
+      bool hasContinuousCharges() const
+      {
+        // at least three charges should be continuously appearing
+        for (auto c_itr = charges.cbegin(); c_itr != charges.cend(); ++c_itr)
+        {
+          auto next_itr = std::next(c_itr);
+          auto next_itr2 = std::next(c_itr, 2);
+          if (next_itr == charges.cend() || next_itr2 == charges.cend())
+          {
+            break;
+          }
+          if ( (*next_itr2)-(*c_itr)==2 )
+          {
+            return true;
+          }
+        }
+        return false;
+      }
+
       void updateFwhmBorder(std::pair<double, double> new_fwhm)
       {
         // it is guaranteed new_fwhm overlaps with current fwhm_border;
@@ -667,10 +687,11 @@ namespace OpenMS
     /// method for builiding Feature Hypotheses
     void buildFeatureHypotheses_(std::vector<MassTrace>& input_mtraces,
                                  std::vector<FeatureHypothesis>& output_hypotheses,
-                                 std::vector<std::vector<Size>>& shared_m_traces_indices) const;
+                                 std::vector<std::vector<Size>>& shared_m_traces_indices,
+                                 std::map<double, DeconvMassStruct>& deconv_masses) const;
 
     void findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
-                            const double total_intensity,
+                            const double& total_intensity,
                             std::vector<FeatureHypothesis>& output_hypotheses,
                             std::map<double, DeconvMassStruct>& deconv_masses) const;
 
@@ -701,18 +722,19 @@ namespace OpenMS
                               std::map<double, DeconvMassStruct>& deconv_masses) const;
 
     void setChargeScoreForFeatureHypothesis(std::vector<FeatureHypothesis>& candidate_hypotheses,
-                                              std::vector<std::pair<double, int>>& feat_and_charges) const;
+                                            std::vector<std::pair<double, int>>& feat_and_charges) const;
 
     void clusterFeatureHypotheses_(std::vector<FeatureHypothesis>& output_hypotheses,
-                                  const std::vector<std::vector<Size>>& shared_m_traces_indices) const;
+                                   const std::vector<std::vector<Size>>& shared_m_traces_indices,
+                                   std::map<double, DeconvMassStruct>& deconv_masses) const;
 
     void resolveConflictInCluster_(const std::vector<FeatureHypothesis>& feat_hypo,
                                    const std::vector<std::vector<Size> >& shared_m_traces_indices,
                                    const std::set<Size>& hypo_indices,
                                    std::vector<FeatureHypothesis>& out_features,
+                                   std::vector<Size>& out_feature_idx,
                                    ofstream& outs,
-                                   String& cluster_name
-                                   ) const;
+                                   String& cluster_name) const;
 
     void addFeature2DeconvMassStruct(FeatureHypothesis &in_feature,
                                      Size feature_idx,

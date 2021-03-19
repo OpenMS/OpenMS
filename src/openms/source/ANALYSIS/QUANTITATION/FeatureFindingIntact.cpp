@@ -191,6 +191,9 @@ namespace OpenMS
     // link masstrace_index -> hypothesis index
     std::vector<std::vector<Size>> shared_m_traces_indices(input_mtraces.size(), std::vector<Size>());
 
+    // vector to connect related features together
+    std::map<double, DeconvMassStruct> deconv_masses; // key is the calculated median mass from the features
+
     // prepare isotope model for scoring method
     setAveragineModel_();
     if (Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge_lower_bound_ < local_mz_range_ )
@@ -198,14 +201,14 @@ namespace OpenMS
       local_mz_range_ = Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge_lower_bound_;
     }
 
-    buildFeatureHypotheses_(input_mtraces, feat_hypos, shared_m_traces_indices);
+    buildFeatureHypotheses_(input_mtraces, feat_hypos, shared_m_traces_indices, deconv_masses);
 //    drawSharedMasstracesBetweenFeatures(feat_hypos, shared_m_traces_indices);
 
     // *********************************************************** //
     // Step 2 clustering FeatureHypotheses
     // *********************************************************** //
 //    getCoordinatesOfFeaturesForPython(feat_hypos);
-    clusterFeatureHypotheses_(feat_hypos, shared_m_traces_indices);
+    clusterFeatureHypotheses_(feat_hypos, shared_m_traces_indices, deconv_masses);
 
     // *********************************************************** //
     // Step 3 resolving conflicts
@@ -214,7 +217,8 @@ namespace OpenMS
 
   void FeatureFindingIntact::buildFeatureHypotheses_(std::vector<MassTrace>& input_mtraces,
                                                      std::vector<FeatureHypothesis>& output_hypotheses,
-                                                     std::vector<std::vector<Size>>& shared_m_traces_indices) const
+                                                     std::vector<std::vector<Size>>& shared_m_traces_indices,
+                                                     std::map<double, DeconvMassStruct>& deconv_masses) const
   {
     if (input_mtraces.empty())
     {
@@ -238,9 +242,6 @@ namespace OpenMS
     // temporary vector
     std::vector<FeatureHypothesis> candidate_hypotheses;
     candidate_hypotheses.reserve( input_mtraces.size() * (charge_upper_bound_-charge_lower_bound_+1) );
-
-    // vector to connect related features together
-    std::map<double, DeconvMassStruct> deconv_masses; // key is the calculated median mass from the features
 
     // *********************************************************** //
     // Step 2 Iterate through all mass traces to find likely matches
@@ -281,8 +282,6 @@ namespace OpenMS
     // Step 3 filter out mass artifacts
     // *********************************************************** //
     // set sorted vector of deconv_masses for mass artifact removal
-//    std::vector<std::pair<double, DeconvMassStruct>> deconv_mass_vec(deconv_masses.begin(), deconv_masses.end());
-//    std::sort(deconv_mass_vec.begin(), deconv_mass_vec.end(), greater_equal<DeconvMassStruct>());
 
     OPENMS_LOG_INFO << "feature hypotheses size:" << candidate_hypotheses.size() << std::endl;
     OPENMS_LOG_INFO << "feature masses size : " << deconv_masses.size() << std::endl;
@@ -296,31 +295,62 @@ namespace OpenMS
     removeMassArtifacts_(candidate_hypotheses, deconv_masses);
     OPENMS_LOG_INFO << "mass artifacts removed!" << std::endl;
 
-    OPENMS_LOG_INFO << "feature masses size : " << deconv_masses.size() << std::endl;
 
-    for (auto& m : deconv_masses)
-    {
-      if (m.second.charges.size()<2) continue;
-
-      OPENMS_LOG_INFO << to_string(m.first) << "\t" << m.second.feature_idx.size() << "\t" << to_string(m.second.combined_score);
-
-      std::string charges= "";
-      for (auto& c : m.second.charges)
-      {
-        charges += to_string(c) + ",";
-      }
-      charges.pop_back();
-
-      OPENMS_LOG_INFO << "\t" << charges << "\t" << to_string(m.second.fwhm_border.first) << "\t" << to_string(m.second.fwhm_border.second) << "\n";
-    }
-
-    return;
+//    for (auto& m : deconv_masses)
+//    {
+//      if (m.second.charges.size()<2) continue;
+//
+//      OPENMS_LOG_INFO << to_string(m.first) << "\t" << m.second.feature_idx.size() << "\t" << to_string(m.second.combined_score);
+//
+//      std::string charges= "";
+//      for (auto& c : m.second.charges)
+//      {
+//        charges += to_string(c) + ",";
+//      }
+//      charges.pop_back();
+//
+//      OPENMS_LOG_INFO << "\t" << charges << "\t" << to_string(m.second.fwhm_border.first) << "\t" << to_string(m.second.fwhm_border.second) << "\n";
+//    }
 
 //    getFeatureMassDistributions(deconv_masses, candidate_hypotheses);
 
     // *********************************************************** //
     // Step 4 connect hypothesis and corresponding mass traces - for clustering afterwards
     // *********************************************************** //
+    // collect feature indices to filter out features that are not selected for masses
+    std::vector<Size> selected_feature_idx;
+    selected_feature_idx.reserve(candidate_hypotheses.size());
+    for (auto& mass : deconv_masses)
+    {
+      for (auto idx : mass.second.feature_idx)
+      {
+        selected_feature_idx.push_back(idx);
+      }
+    }
+    selected_feature_idx.shrink_to_fit();
+    std::sort(selected_feature_idx.begin(), selected_feature_idx.end());
+
+    // remove un-selected features
+    Size selected_feature_size = selected_feature_idx.size();
+    std::vector<FeatureHypothesis> recollected_fh;
+    recollected_fh.reserve(selected_feature_size);
+    for(Size& s_idx : selected_feature_idx)
+    {
+      recollected_fh.push_back(candidate_hypotheses[s_idx]);
+    }
+    std::swap(candidate_hypotheses, recollected_fh);
+
+    // re-assign feature index
+    for (auto& mass : deconv_masses)
+    {
+      std::vector<Size> new_idx;
+      for (auto idx : mass.second.feature_idx)
+      {
+        new_idx.push_back(find(selected_feature_idx.begin(), selected_feature_idx.end(), idx)-selected_feature_idx.begin());
+      }
+      mass.second.feature_idx = new_idx;
+    }
+
     // TODO : move this section to clustering?
     // 1. set shared_m_traces_indices based on filtered hypothesis (for later, in clustering)
     const Size candi_size = candidate_hypotheses.size();
@@ -337,7 +367,7 @@ namespace OpenMS
   }
 
   void FeatureFindingIntact::findLocalFeatures_(const std::vector<std::pair<const MassTrace*, Size>>& candidates,
-                                                const double total_intensity,
+                                                const double& total_intensity,
                                                 std::vector<FeatureHypothesis>& output_hypotheses,
                                                 std::map<double, DeconvMassStruct>& deconv_masses) const
   {
@@ -345,6 +375,7 @@ namespace OpenMS
 
     // pre-save all features using multiple charge states
 //    std::vector<FeatureHypothesis> hypo_for_cur_candi;
+    Size candi_size = candidates.size();
 
     for (int charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
     {
@@ -393,7 +424,7 @@ namespace OpenMS
         double best_mz_score(0.0);
         double best_rt_score(0.0);
         double best_inty_score(0.0);
-        for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
+        for (Size mt_idx = last_iso_idx + 1; mt_idx < candi_size; ++mt_idx)
         {
           // if out of mz_window, pass this mass trace
           if(std::fabs(candidates[0].first->getCentroidMZ() - candidates[mt_idx].first->getCentroidMZ()) >= mz_window)
@@ -499,16 +530,7 @@ namespace OpenMS
       output_hypotheses.push_back(hypo_for_curr_charge[max_score_index]);
       addFeature2DeconvMassStruct(output_hypotheses.back(), output_hypotheses.size()-1, deconv_masses);
 
-      hypo_for_curr_charge.empty();
     } // end of charge
-
-//    if (hypo_for_cur_candi.empty()) return;
-    // to output the hypothesis with the highest score
-//    std::sort(hypo_for_cur_candi.begin(), hypo_for_cur_candi.end(), greater<FeatureHypothesis>());
-//    for (auto& h : hypo_for_cur_candi){
-//      output_hypotheses.push_back(h);
-//      addFeature2DeconvMassStruct(output_hypotheses.back(), output_hypotheses.size()-1, deconv_masses);
-//    }
 
   }  // end of findLocalFeatures_(...)
 
@@ -867,13 +889,17 @@ namespace OpenMS
                 }
 
                 // remove current feature hypothesis from deconv_mass map
-                for (auto& f_index : curr_it->second.feature_idx)
+                auto& f_idx_vec = curr_it->second.feature_idx;
+                for (auto f_idx_itr = f_idx_vec.begin(); f_idx_itr != f_idx_vec.end(); )
                 {
                   // all features having current charge should be removed. (all of them are harmonics)
-                  if (feat_hypotheses[f_index].getCharge() == curr_cs)
+                  if (feat_hypotheses[*f_idx_itr].getCharge() == curr_cs)
                   {
-                    curr_it->second.removeFeatureHypothesis(feat_hypotheses[f_index].getFeatureMass(),
-                                                            feat_hypotheses[f_index].getScore(), f_index);
+                    curr_it->second.removeFeatureHypothesis(feat_hypotheses[*f_idx_itr].getFeatureMass(),
+                                                            feat_hypotheses[*f_idx_itr].getScore());
+                    f_idx_itr = f_idx_vec.erase(f_idx_itr);
+                  }else{
+                    ++f_idx_itr;
                   }
                 }
                 // remove current charge from deconv_mass map
@@ -908,7 +934,6 @@ namespace OpenMS
       }
       else
       {
-        // TODO; update current mass (if needed - should this have flag too?)
         filterDeconvMassStruct(deconv_masses, feat_hypotheses, curr_it, is_current_struct_changed);
       }
     }
@@ -1047,7 +1072,8 @@ namespace OpenMS
   }
 
   void FeatureFindingIntact::clusterFeatureHypotheses_(vector<FeatureHypothesis>& hypotheses,
-                                                       const std::vector<std::vector<Size>>& shared_m_traces_indices) const
+                                                       const std::vector<std::vector<Size>>& shared_m_traces_indices,
+                                                       std::map<double, DeconvMassStruct>& deconv_masses) const
   {
 
     // test writing
@@ -1071,6 +1097,9 @@ namespace OpenMS
     Size search_pos = 0; // keeping track of mass trace index to look for seed
 
     std::vector<FeatureHypothesis> out_features;
+    out_features.reserve(hypotheses.size());
+    std::vector<Size> out_feature_idx;
+    out_feature_idx.reserve(hypotheses.size());
 
     // BFS
     // TODO : progress logger
@@ -1129,15 +1158,69 @@ namespace OpenMS
       if (hypo_indices_in_current_cluster.size() == 1){
 //         no conflict, but cannot happen.
         out_features.push_back(hypotheses[*(hypo_indices_in_current_cluster.begin())]);
+        out_feature_idx.push_back(*(hypo_indices_in_current_cluster.begin()));
         continue;
       }
       String cluster_name = "cluster " + to_string(progress);
-      resolveConflictInCluster_(hypotheses, shared_m_traces_indices, hypo_indices_in_current_cluster, out_features, out, cluster_name);
+      resolveConflictInCluster_(hypotheses, shared_m_traces_indices, hypo_indices_in_current_cluster, out_features, out_feature_idx,
+                                out, cluster_name);
     }
     this->endProgress();
 
+    out_features.shrink_to_fit();
+    out_feature_idx.shrink_to_fit();
     out.close();
     OPENMS_LOG_INFO << "#cluster :" << cluster_counter << endl;
+
+    // calculating quants with returned out_features
+    for( auto curr_it = deconv_masses.begin(); curr_it != deconv_masses.end();  )
+    {
+      bool does_update_needed = false;
+      std::set<int> new_cs_set;
+      auto& f_idx_vec = curr_it->second.feature_idx;
+      for (auto f_idx_itr = f_idx_vec.begin(); f_idx_itr != f_idx_vec.end(); )
+      {
+        auto iter = std::find(out_feature_idx.begin(), out_feature_idx.end(), *f_idx_itr);
+        if (iter != out_feature_idx.end())
+        {
+          FeatureHypothesis& fh = out_features[iter-out_feature_idx.begin()];
+          curr_it->second.quant_values += fh.computeQuant();
+          new_cs_set.insert(fh.getCharge());
+          ++f_idx_itr;
+        }
+        else
+        {
+          curr_it->second.removeFeatureHypothesis(hypotheses[*f_idx_itr].getFeatureMass(), hypotheses[*f_idx_itr].getScore());
+          f_idx_itr = f_idx_vec.erase(f_idx_itr);
+          does_update_needed = true;
+        }
+      }
+      if (does_update_needed)
+      {
+        curr_it->second.charges = new_cs_set;
+      }
+      filterDeconvMassStruct(deconv_masses, hypotheses, curr_it, does_update_needed);
+    }
+
+    OPENMS_LOG_INFO << "#final masses :" << deconv_masses.size() << endl;
+
+    for (auto& m : deconv_masses)
+    {
+      if (m.second.charges.size()<2) continue;
+
+      OPENMS_LOG_INFO << to_string(m.first) << "\t" << m.second.feature_idx.size() << "\t" << to_string(m.second.combined_score)
+                      << "\t" << to_string(m.second.quant_values);
+
+      std::string charges= "";
+      for (auto& c : m.second.charges)
+      {
+        charges += to_string(c) + ",";
+      }
+      charges.pop_back();
+
+      OPENMS_LOG_INFO << "\t" << charges << "\t" << to_string(m.second.fwhm_border.first) << "\t" << to_string(m.second.fwhm_border.second) << "\n";
+    }
+
   }
 
   void getCoordinatesOfClusterForPython(std::vector<FeatureFindingIntact::FeatureHypothesis> hypo, ofstream& out, String& cluster_name)
@@ -1195,22 +1278,22 @@ namespace OpenMS
                                  const std::vector<std::vector<Size> >& shared_m_traces_indices,
                                  const std::set<Size>& hypo_indices,
                                  std::vector<FeatureHypothesis>& out_features,
+                                 std::vector<Size>& out_feature_idx,
                                  ofstream& out,
                                  String& cluster_name) const
   {
-    // compute scores for each features
-//    vector<double> feat_scores(hypo_indices.size());
-    std::vector<FeatureHypothesis> tmp_cluster;
+    std::vector<std::pair<FeatureHypothesis, Size>> tmp_cluster;
+    tmp_cluster.reserve(hypo_indices.size());
     for (const auto& h_index : hypo_indices)
     {
 //      feat_scores.push_back( feat_hypo[h_index].getScore() );
-      tmp_cluster.push_back(feat_hypo[h_index]);
+      tmp_cluster.push_back(std::make_pair(feat_hypo[h_index], h_index));
 
     }
-    std::sort(tmp_cluster.begin(), tmp_cluster.end(), greater<FeatureHypothesis>());
+    std::sort(tmp_cluster.rbegin(), tmp_cluster.rend());
 
     // remove until no mass traces are left
-    std::vector<FeatureHypothesis> output_feats;
+    std::vector<FeatureHypothesis> collected_feats;
 //    for (Size i=0; i<tmp_cluster.size(); i++)
 //    {
 //      Size mt_size = 0;
@@ -1244,23 +1327,24 @@ namespace OpenMS
 
     while (tmp_cluster.size() > 0)
     {
-      output_feats.push_back(tmp_cluster[0]);
+      collected_feats.push_back(tmp_cluster[0].first);
+      out_feature_idx.push_back(tmp_cluster[0].second);
 
       std::vector<Size> removed_mt_indices;
-      for(auto& tmp_pair : tmp_cluster[0].getIndicesOfMassTraces())
+      for(auto& tmp_pair : tmp_cluster[0].first.getIndicesOfMassTraces())
       {
         removed_mt_indices.push_back(tmp_pair.second);
       }
       tmp_cluster.erase(tmp_cluster.begin());
 
-      auto feature = std::begin(tmp_cluster);
-      while(feature != std::end(tmp_cluster))
+      auto feat_iter = std::begin(tmp_cluster);
+      while(feat_iter != std::end(tmp_cluster))
       {
-        Size feat_mt_size = feature->getIndicesOfMassTraces().size();
+        Size feat_mt_size = feat_iter->first.getIndicesOfMassTraces().size();
         std::vector<Size> indices_to_remove;
         for (Size index = 0; index < feat_mt_size; index++)
         {
-          Size curr_mt_index = feature->getIndicesOfMassTraces()[index].second;
+          Size curr_mt_index = feat_iter->first.getIndicesOfMassTraces()[index].second;
           for (auto& removed : removed_mt_indices)
           {
             if (removed==curr_mt_index)
@@ -1274,23 +1358,24 @@ namespace OpenMS
         // removing mass traces, with indices. so backward
         for (auto it=indices_to_remove.rbegin(); it!=indices_to_remove.rend(); ++it)
         {
-          feature->removeMassTrace(*it);
+          feat_iter->first.removeMassTrace(*it);
         }
 
-        if (feature->getIndicesOfMassTraces().size() < 3)
+        if (feat_iter->first.getIndicesOfMassTraces().size() < 3)
         {
-          feature = tmp_cluster.erase(feature);
+          feat_iter = tmp_cluster.erase(feat_iter);
         }
         else
         {
-          feature->reset_feature_score();
-          ++feature;
+          feat_iter->first.reset_feature_score();
+          ++feat_iter;
         }
       }
-      std::sort(tmp_cluster.begin(), tmp_cluster.end(), greater<FeatureHypothesis>());
+      std::sort(tmp_cluster.rbegin(), tmp_cluster.rend());
     }
 
-    getCoordinatesOfClusterForPython(output_feats, out, cluster_name);
+    getCoordinatesOfClusterForPython(collected_feats, out, cluster_name);
+    out_features.insert(out_features.end(), collected_feats.begin(), collected_feats.end());
   }
 
   void FeatureFindingIntact::filterDeconvMassStruct(std::map<double, DeconvMassStruct> &deconv_masses,
@@ -1298,9 +1383,11 @@ namespace OpenMS
                                                     std::map<double, DeconvMassStruct>::iterator &curr_it,
                                                     const bool struct_needs_update) const
   {// if struct contains only one feature or only one charge state, remove it.
-    if (curr_it->second.feature_idx.size() == 1 || curr_it->second.charges.size() == 1)
+    if (curr_it->second.charges.size() < 3 || curr_it->second.feature_idx.size() < 3 || !(curr_it->second.hasContinuousCharges()) )
     {
       // check if similar mass exist in the map within tolerance
+      // TODO : WITH map iter!!!! with similar mass, but different border is possible (not adjacent ones)
+
       auto new_it = curr_it; // reference for new location to save current mass
       auto prev_it = std::prev(curr_it);
       if( curr_it != deconv_masses.begin() && (curr_it->first - prev_it->first) <= mass_tolerance_
@@ -1345,6 +1432,7 @@ namespace OpenMS
       curr_it = deconv_masses.erase(curr_it);
       return;
     }
+
     // if DeconvMassStruct needs update
     if (struct_needs_update)
     {
@@ -1358,9 +1446,18 @@ namespace OpenMS
       // update key of map if needed
       if (curr_it->second.updateDeconvMass())
       {
-        auto curr_node = deconv_masses.extract(curr_it->first);
-        curr_node.key() = curr_node.mapped().deconv_mass;
-        deconv_masses.insert(move(curr_node));
+        // check where the new key will be located
+        auto copy_curr_it = curr_it;
+        double new_mass = curr_it->second.deconv_mass;
+        if(new_mass > std::next(curr_it)->first)  // new key will be located back of current iter, so remember prev one
+        {
+          --curr_it;
+        }
+
+        // updating the key
+        auto curr_node = deconv_masses.extract(copy_curr_it);
+        curr_node.key() = new_mass;
+        deconv_masses.insert(std::move(curr_node));
       }
     }
 
