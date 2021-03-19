@@ -50,8 +50,9 @@
 
 namespace OpenMS
 {
+  // Using matched iterator for aligned spectra calculate mz errors
   template <typename MIV>
-  void twoSpecErrors (MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
+  void twoSpecErrors(MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
   {
     while (mi != mi.end())
     {

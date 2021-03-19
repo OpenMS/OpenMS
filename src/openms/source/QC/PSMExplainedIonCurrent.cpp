@@ -58,7 +58,7 @@ namespace OpenMS
     return sum;
   }
 
-  double annotatePSMExplainedIonCurrent(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter, PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance)
+  double PSMExplainedIonCurrent::annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter, PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance)
   {
     if (pep_id.getHits().empty())
     {
@@ -196,7 +196,7 @@ namespace OpenMS
     std::function<void(PeptideIdentification&)> fCorrectness =
       [&exp, &map_to_spectrum, &correctnesses, &wm_filter, tolerance, tolerance_unit](PeptideIdentification& pep_id)
     {
-      double correctness = annotatePSMExplainedIonCurrent(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
+      double correctness = annotatePSMExplainedIonCurrent_(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
       if (correctness != DBL_MAX)
       {
         correctnesses.push_back(correctness);
@@ -254,7 +254,7 @@ namespace OpenMS
 
     for (auto& pep_id : pep_ids)
     {
-      double correctness = annotatePSMExplainedIonCurrent(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
+      double correctness = annotatePSMExplainedIonCurrent_(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
       if (correctness != DBL_MAX)
       {
         correctnesses.push_back(correctness);

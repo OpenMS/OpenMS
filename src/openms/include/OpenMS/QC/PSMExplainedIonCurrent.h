@@ -43,6 +43,7 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   class PeptideIdentification;
+  class WindowMower;
   
   class OPENMS_DLLAPI PSMExplainedIonCurrent : public QCBase
   {
@@ -119,6 +120,8 @@ namespace OpenMS
   private:
     /// container that stores results
     std::vector<Statistics> results_{};
+
+    static double annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter, PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance);
   };
 
 } //namespace OpenMS
