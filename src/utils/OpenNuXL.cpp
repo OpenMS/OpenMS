@@ -4444,7 +4444,25 @@ static void scoreXLIons_(
   {
     size_t most_XLs{0};
     double best_p{1}, best_q{1};
-    
+  
+    double max_rt = 0.01;  
+    double max_pl_modds = 0.01;
+    double max_modds = 0.01;
+    double max_mass_error_p = 0.01;
+
+    vector<PeptideIdentification> pids{peptide_ids};
+    for (auto& pid : pids)
+    {
+      if (pid.getRT() > max_rt) max_rt = pid.getRT(); 
+      auto hits = pid.getHits();
+      for (auto& h : hits)
+      {
+        if (h.getMetaValue("NuXL:pl_modds") > max_pl_modds) max_pl_modds = h.getMetaValue("NuXL:pl_modds");
+        if (h.getMetaValue("NuXL:modds") > max_modds) max_modds = h.getMetaValue("NuXL:modds");
+        if (h.getMetaValue("NuXL:mass_error_p") > max_mass_error_p) max_mass_error_p = h.getMetaValue("NuXL:mass_error_p");
+      }
+    }
+
     for (double q = 0.0; q < 1.01; q = q + 0.1)
     for (double p = 0.0; p < 1.01; p = p + 0.1)
     {
@@ -4454,9 +4472,9 @@ static void scoreXLIons_(
         auto hits = pid.getHits();
         for (auto& h : hits)
         {
-          const double pl_modds = h.getMetaValue("NuXL:pl_modds");
-          const double modds = h.getMetaValue("NuXL:modds");
-          const double pc_err = h.getMetaValue("NuXL:mass_error_p");
+          const double pl_modds = h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
+          const double modds = h.getMetaValue("NuXL:modds") / max_modds;
+          const double pc_err = h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
           const double w1 = (1.0 - p) * modds + p * pl_modds;
           const double w2 = (1.0 - q) * w1 + q * pc_err;
           h.setScore(w2);
@@ -4486,9 +4504,9 @@ static void scoreXLIons_(
       auto hits = pid.getHits();
       for (auto& h : hits)
       {
-        const double pl_modds = h.getMetaValue("NuXL:pl_modds");
-        const double modds = h.getMetaValue("NuXL:modds");
-        const double pc_err = h.getMetaValue("NuXL:mass_error_p");
+        const double pl_modds = h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
+        const double modds = h.getMetaValue("NuXL:modds") / max_modds;
+        const double pc_err = h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
         const double w1 = (1.0 - best_p) * modds + best_p * pl_modds;
         const double w2 = (1.0 - best_q) * w1 + best_q * pc_err;
         h.setScore(w2);
@@ -6121,7 +6139,7 @@ static void scoreXLIons_(
       {
         OPENMS_LOG_INFO << "Parameter optimization." << endl;
         optimizeFDR(peptide_ids);
-        OPENMS_LOG_INFO << "done." << endl;
+        OPENMS_LOG_DEBUG << "done." << endl;
       }
      
 /* 
