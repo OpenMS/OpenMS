@@ -39,6 +39,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 #include <QtCore/QStringList>
 #include <QtWidgets/QPushButton>
@@ -96,17 +97,19 @@ namespace OpenMS
             {FileTypes::Type::CONSENSUSXML, LayerData::DataType::DT_CONSENSUS},
             {FileTypes::Type::IDXML, LayerData::DataType::DT_IDENT}
     };
-    // Get a map of all tools
-    const auto& tools = OpenMS::ToolHandler::getTOPPToolList();
-    for (const auto& tool : tools)
+    std::vector<Param> params = TVToolDiscovery::getToolParams();
+    for (auto& p : params)
     {
-      const String& tool_name = tool.first;
-      Param p = getParamFromIni_(tool_name);
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
-      // Check if tool is compatible with the layer type
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
+      if (!p.empty())
       {
-        list << tool_name.toQString();
+        // Check whether tool/util is compatible with the current layer
+        std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
+        if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
+        {
+          // Extract tool/util name
+          String name = p.begin().getName().substr(0, p.begin().getName().rfind(":"));
+          list << name.toQString();
+        }
       }
     }
 

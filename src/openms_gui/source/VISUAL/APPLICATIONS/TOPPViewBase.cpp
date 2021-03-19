@@ -90,6 +90,7 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 //Qt
 #include <QtCore/QSettings>
@@ -461,6 +462,8 @@ namespace OpenMS
     //######################### File System Watcher ###########################################
     watcher_ = new FileWatcher(this);
     connect(watcher_, &FileWatcher::fileChanged, this, &TOPPViewBase::fileChanged_);
+
+    TVToolDiscovery::findTools();
   }
 
   void TOPPViewBase::initializeDefaultParameters_()
@@ -1636,6 +1639,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
+    //TVToolDiscovery::getToolParams();
     ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
