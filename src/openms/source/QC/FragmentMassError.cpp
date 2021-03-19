@@ -109,7 +109,7 @@ namespace OpenMS
     return theo_spectrum;
   }
 
-  void calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter)
+  void FragmentMassError::calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter)
   {
     if (pep_id.getHits().empty())
     {
@@ -142,7 +142,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
     }
     Precursor::ActivationMethod act_method;
-    if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
+    if (exp_spectrum.getPrecursors().empty())
     {
       if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
       print_warning = false; // only print it once
@@ -150,6 +150,12 @@ namespace OpenMS
     }
     else
     {
+      if (exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
+      {
+        if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+        print_warning = false;// only print it once
+        act_method = Precursor::ActivationMethod::CID;
+      }
       act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
     }
 
@@ -203,7 +209,7 @@ namespace OpenMS
     }
   }
 
-  void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm)
+  void FragmentMassError::calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm)
   {
     if (pep_id.getHits().empty())
     {

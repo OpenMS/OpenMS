@@ -43,6 +43,7 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   class PeptideIdentification;
+  class WindowMower;
   
   class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
@@ -137,6 +138,10 @@ namespace OpenMS
   private:
     /// container that stores results
     std::vector<Statistics> results_;
+
+    static void calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter);
+
+    static void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm);
   };
 
 } //namespace OpenMS
