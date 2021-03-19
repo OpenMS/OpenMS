@@ -245,8 +245,8 @@ namespace OpenMS
   {
     if (precursor_charge == 0)
     {
-      OPENMS_LOG_WARN << "Precursor charge can't be 0. Using 1 instead." << endl;
-      precursor_charge = 1;
+      OPENMS_LOG_WARN << "Precursor charge can't be 0. Using 2 instead." << endl;
+      precursor_charge = 2;
     }
 
     // initialize a TheoreticalSpectrumGenerator
