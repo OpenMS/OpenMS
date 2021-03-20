@@ -36,15 +36,6 @@
 # This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
-# set which library extensions are preferred (we prefer shared libraries)
-if(NOT MSVC)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
-endif()
-if (APPLE)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.a")
-endif()
-
 
 #------------------------------------------------------------------------------
 # find libs (for linking)

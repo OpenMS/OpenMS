@@ -234,6 +234,8 @@ namespace OpenMS
       SiriusAdapterAlgorithm *enclose;
 
     public:
+      virtual ~ParameterSection() = default;
+
       DataValue getValue(const String &param_name) const
       {
         return enclose->param_.getValue(toFullParameter(param_name));
