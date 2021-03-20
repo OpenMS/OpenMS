@@ -97,18 +97,18 @@ namespace OpenMS
             {FileTypes::Type::CONSENSUSXML, LayerData::DataType::DT_CONSENSUS},
             {FileTypes::Type::IDXML, LayerData::DataType::DT_IDENT}
     };
-    std::vector<Param> params = TVToolDiscovery::getToolParams();
-    for (auto& p : params)
+
+    auto& tools = TVToolDiscovery::getToolParams();
+    for (auto& pair : tools)
     {
+      Param p = pair.second;
       if (!p.empty())
       {
         // Check whether tool/util is compatible with the current layer
         std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
         if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
         {
-          // Extract tool/util name
-          String name = p.begin().getName().substr(0, p.begin().getName().rfind(":"));
-          list << name.toQString();
+          list << QString::fromStdString(pair.first);
         }
       }
     }
@@ -171,7 +171,7 @@ namespace OpenMS
   {
 
   }
-
+  /*
   Param ToolsDialog::getParamFromIni_(const String& tool_name)
   {
     QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
@@ -195,6 +195,7 @@ namespace OpenMS
 
     return tool_param;
   }
+   */
 
   std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
   {
@@ -279,7 +280,7 @@ namespace OpenMS
        editor_->clear();
        arg_map_.clear();
     }
-    arg_param_ = getParamFromIni_(getTool());
+    arg_param_ = TVToolDiscovery::getToolParams()[getTool()];
 
     tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);

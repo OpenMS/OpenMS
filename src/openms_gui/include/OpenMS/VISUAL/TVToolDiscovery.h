@@ -8,6 +8,7 @@
 
 #include <future>
 #include <vector>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -19,11 +20,15 @@ namespace OpenMS
     private:
       static Param getParamFromIni_(const String& tool_name);
 
-    public:
-      static std::vector<std::future<Param>> results_;
+      static std::unordered_map<std::string, std::future<Param>> future_results_;
 
+      static bool ready_;
+
+      static std::unordered_map<std::string, Param> params_;
+
+    public:
       static void findTools();
 
-      static std::vector<Param> getToolParams();
+      static std::unordered_map<std::string, Param>& getToolParams();
     };
 }

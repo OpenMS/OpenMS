@@ -14,7 +14,9 @@
 
 namespace OpenMS {
 
-    std::vector<std::future<Param>> TVToolDiscovery::results_;
+    std::unordered_map<std::string, std::future<Param>> TVToolDiscovery::future_results_;
+    std::unordered_map<std::string, Param> TVToolDiscovery::params_;
+    bool TVToolDiscovery::ready_ = false;
 
     void TVToolDiscovery::findTools() {
       // Get a map of all tools
@@ -23,27 +25,34 @@ namespace OpenMS {
       // Get param for each tool/util
       for (const auto& pair : tools)
       {
-        if (!pair.first.empty())
-        results_.push_back(std::move(std::async(std::launch::async, [&]() { return TVToolDiscovery::getParamFromIni_(pair.first); })));
+        std::string tool_name = pair.first;
+        future_results_.insert(
+                std::make_pair(tool_name, std::async(std::launch::async, TVToolDiscovery::getParamFromIni_, tool_name))
+                );
       }
       for (const auto& pair : utils)
       {
-        if (!pair.first.empty())
-        results_.push_back(std::move(std::async(std::launch::async, [&]() { return TVToolDiscovery::getParamFromIni_(pair.first); })));
+        std::string util_name = pair.first;
+        future_results_.insert(
+                std::make_pair(util_name, std::async(std::launch::async, TVToolDiscovery::getParamFromIni_, pair.first))
+                );
       }
     }
 
-    std::vector<Param> TVToolDiscovery::getToolParams() {
-      std::vector<Param> res;
-      for (auto& r : results_)
+      std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams() {
+      if (!ready_)
       {
-        while(r.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+        for (auto &pair : future_results_)
         {
-          QCoreApplication::processEvents();
+          while (pair.second.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+          {
+            QCoreApplication::processEvents();
+          }
+          params_.insert(std::make_pair(pair.first, pair.second.get()));
         }
-        res.push_back(r.get());
+        ready_ = true;
       }
-      return res;
+      return params_;
     }
 
     Param TVToolDiscovery::getParamFromIni_(const String &tool_name) {
@@ -52,7 +61,6 @@ namespace OpenMS {
       QProcess qp;
       Param tool_param;
       String executable = File::findSiblingTOPPExecutable(tool_name);
-      std::cout << executable << "\t" << tool_name << std::endl;
       qp.start(executable.toQString(), args);
       const bool success = qp.waitForFinished(-1); // wait till job is finished
       if (qp.error() == QProcess::FailedToStart || !success || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
@@ -60,6 +68,7 @@ namespace OpenMS {
         std::remove(path.c_str());
         return tool_param;
       }
+      std::cout << path << "\t" << tool_name << std::endl;
       ParamXMLFile paramFile;
       paramFile.load((path).c_str(), tool_param);
       std::remove(path.c_str());

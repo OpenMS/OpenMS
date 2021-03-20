@@ -48,6 +48,8 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QHostInfo>
 
+#include <mutex>
+
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
@@ -447,7 +449,7 @@ namespace OpenMS
 #else
     pid = (String)getpid();
 #endif
-    static int number = 0;
+    static std::atomic_int number = 0;
     return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + (include_hostname ? String(QHostInfo::localHostName()) + "_" : "")  + pid + "_" + (++number);
   }
 
