@@ -43,11 +43,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  CrossLinksDB::CrossLinksDB()
+  CrossLinksDB::CrossLinksDB():
+      ModificationsDB("","","") // if you clear the mods you dont need to read them in the first place! Also avoids easy memory leaks.
   {
     mods_.clear();
     modification_names_.clear();
-    readFromOBOFile("CHEMISTRY/XLMOD.obo");
+    readFromOBOFile("CHEMISTRY/XLMOD.obo"); //TODO please comment why this is needed! Why not use the one from ModificationsDB
   }
 
 

@@ -231,7 +231,7 @@ namespace OpenMS
     {
       correlation = -1.0;
     }
-
+    delete model;
     return correlation;
   }
 

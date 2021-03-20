@@ -209,7 +209,7 @@ namespace OpenMS
           }
           // new section
           std::vector<DPosition<2> > section;
-          section.push_back(DPosition<2>(this_rt, sit->getIntensity()));
+          section.emplace_back(this_rt, sit->getIntensity());
           sections.push_back(section);
         }
         else
@@ -374,7 +374,7 @@ namespace OpenMS
               std::cerr << "An error occurred during the gnuplot execution" << std::endl;
             }
           }
-
+          delete model_rt;
           features_->push_back(f);
         }
       }

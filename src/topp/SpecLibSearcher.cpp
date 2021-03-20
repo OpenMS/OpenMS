@@ -358,7 +358,7 @@ protected:
     OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
-    PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
+    PeakSpectrumCompareFunctor* comparator = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
  
    //-------------------------------------------------------------
     // calculations
@@ -512,7 +512,7 @@ protected:
             // Special treatment for SpectraST score as it computes a score based on the whole library
             if (compare_function == "SpectraSTSimilarityScore")
             {
-              SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
+              SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparator);
               BinnedSpectrum quer_bin_spec = sp->transform(filtered_query);
               BinnedSpectrum lib_bin_spec = sp->transform(lib_spec);
               score = (*sp)(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
@@ -521,7 +521,7 @@ protected:
             }
             else
             {
-              score = (*comparor)(filtered_query, lib_spec);
+              score = (*comparator)(filtered_query, lib_spec);
             }
 
             DataValue RT(lib_spec.getRT());
@@ -546,7 +546,7 @@ protected:
           {
             vector<PeptideHit> final_hits;
             final_hits.resize(pid.getHits().size());
-            SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
+            SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparator);
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
@@ -589,6 +589,7 @@ protected:
     }
     time_t end_time = time(nullptr);
     OPENMS_LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
+    delete comparator;
     return EXECUTION_OK;
   }
 

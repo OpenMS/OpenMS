@@ -329,7 +329,7 @@ namespace OpenMS
 
   FeatureFindingMetabo::~FeatureFindingMetabo()
   {
-
+    delete isotope_filt_svm_;
   }
 
   void FeatureFindingMetabo::updateMembers_()

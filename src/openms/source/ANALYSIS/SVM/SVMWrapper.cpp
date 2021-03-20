@@ -160,6 +160,15 @@ namespace OpenMS
 
   SVMWrapper::~SVMWrapper()
   {
+    if (param_->kernel_type == PRECOMPUTED)
+    {
+      if (training_problem_ != nullptr) // with OLIGO kernel, the kernel matrix was freshly allocated on the heap.
+        // It is destroyed when you use crossValidation, but not when do a train
+        // TODO actually make sure it is destroyed first everywhere it is reset
+      {
+        LibSVMEncoder::destroyProblem(training_problem_);
+      }
+    }
     if (param_ != nullptr)
     {
       svm_destroy_param(param_);
