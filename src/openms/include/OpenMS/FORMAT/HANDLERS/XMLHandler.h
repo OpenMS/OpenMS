@@ -70,7 +70,7 @@ namespace OpenMS
     //Under BSD license
     //========================================================================================================
     template<typename T>
-    class shared_xerces_ptr
+    class OPENMS_DLLAPI shared_xerces_ptr
     {
       // Function to release Xerces data type with a release member function
       template<typename U>
@@ -126,7 +126,7 @@ namespace OpenMS
     };
 
     template <typename T>
-    class unique_xerces_ptr
+    class OPENMS_DLLAPI unique_xerces_ptr
     {
     private:
 
