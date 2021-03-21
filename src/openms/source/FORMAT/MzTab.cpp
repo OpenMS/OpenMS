@@ -3797,7 +3797,7 @@ state0:
   bool MzTab::CMMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
     if (pep_id_ >= peptide_ids_.size()) return false;
-    const PeptideIdentification* pid = peptide_ids_[psm_id_];
+    const PeptideIdentification* pid = peptide_ids_[pep_id_];
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
         *pid,
         prot_ids_,
