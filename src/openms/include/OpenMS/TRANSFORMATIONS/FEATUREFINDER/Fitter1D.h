@@ -83,15 +83,13 @@ public:
     Fitter1D(const Fitter1D& source);
 
     /// destructor
-    ~Fitter1D() override
-    {
-    }
+    ~Fitter1D() override;
 
     /// assignment operator
     virtual Fitter1D& operator=(const Fitter1D& source);
 
     /// return interpolation model
-    virtual QualityType fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */);
+    virtual QualityType fit1d(const RawDataArrayType& /* range */, std::unique_ptr<InterpolationModel>& /* model */);
 
     /// register all derived classes here
     static void registerChildren();

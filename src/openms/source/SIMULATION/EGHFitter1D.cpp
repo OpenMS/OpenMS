@@ -153,9 +153,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  EGHFitter1D::~EGHFitter1D()
-  {
-  }
+  EGHFitter1D::~EGHFitter1D() = default;
 
   EGHFitter1D& EGHFitter1D::operator=(const EGHFitter1D& source)
   {
@@ -169,7 +167,7 @@ namespace OpenMS
     return *this;
   }
 
-  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -221,7 +219,8 @@ namespace OpenMS
 #endif
 
     // build model
-    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EGHModel"));
+
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("EGHModel")));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

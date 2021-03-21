@@ -311,7 +311,7 @@ e conditions are fulfilled. Mainly the
     void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM parameters
-    svm_model* isotope_filt_svm_;
+    svm_model* isotope_filt_svm_ = nullptr;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
 

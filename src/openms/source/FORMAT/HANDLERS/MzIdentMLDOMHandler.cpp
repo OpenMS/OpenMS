@@ -323,11 +323,11 @@ namespace OpenMS
 
           DOMElement* rootElem = xmlDoc->getDocumentElement();
           rootElem->setAttribute(CONST_XMLCH("version"),
-                                 StringManager::convertPtr(schema_version_));
+                                 StringManager::convertPtr(schema_version_).get());
           rootElem->setAttribute(CONST_XMLCH("xsi:schemaLocation"),
                                  CONST_XMLCH("http://psidev.info/psi/pi/mzIdentML/1.1 ../../schema/mzIdentML1.1.0.xsd"));
           rootElem->setAttribute(CONST_XMLCH("creationDate"),
-                                 StringManager::convertPtr(String(DateTime::now().getDate() + "T" + DateTime::now().getTime())));
+                                 StringManager::convertPtr(String(DateTime::now().getDate() + "T" + DateTime::now().getTime())).get());
 
           // * cvList *
           DOMElement* cvl_p = xmlDoc->createElement(CONST_XMLCH("cvList")); // TODO add generically
@@ -2401,7 +2401,7 @@ namespace OpenMS
                 else
                 {
                   CVTerm cv = parseCvParam_(cvp);
-                  const String cvname = cv.getName();
+                  const String& cvname = cv.getName();
                   if (cvname.hasPrefix("Xlink") || cv.getAccession().hasPrefix("XLMOD"))
                   {
                     xlink_mod_found = true;
@@ -2749,7 +2749,7 @@ namespace OpenMS
     void MzIdentMLDOMHandler::buildAnalysisSoftwareList_(DOMElement* analysisSoftwareElements)
     {
       DOMElement* current_as = analysisSoftwareElements->getOwnerDocument()->createElement(CONST_XMLCH("AnalysisSoftware"));
-      current_as->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr((String("OpenMS") + UniqueIdGenerator::getUniqueId())));
+      current_as->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr((String("OpenMS") + UniqueIdGenerator::getUniqueId())).get());
       current_as->setAttribute(CONST_XMLCH("version"), CONST_XMLCH("search_engine_version_"));
       current_as->setAttribute(CONST_XMLCH("name"), CONST_XMLCH("search_engine_"));
       analysisSoftwareElements->appendChild(current_as);
@@ -2761,7 +2761,7 @@ namespace OpenMS
       current_cv->setAttribute(CONST_XMLCH("cvRef"), CONST_XMLCH("PSI-MS"));
 
       //TODO this needs error handling
-      current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(cv_.getTermByName("search_engine_").id));
+      current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(cv_.getTermByName("search_engine_").id).get());
       current_sw->appendChild(current_cv);
       analysisSoftwareElements->appendChild(current_sw);
     }
@@ -2771,12 +2771,12 @@ namespace OpenMS
       for (map<String, DBSequence>::iterator dbs = db_sq_map_.begin(); dbs != db_sq_map_.end(); ++dbs)
       {
         DOMElement* current_dbs = sequenceCollectionElements->getOwnerDocument()->createElement(CONST_XMLCH("DBSequence"));
-        current_dbs->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(dbs->second.accession));
-        current_dbs->setAttribute(CONST_XMLCH("length"), StringManager::convertPtr(String(dbs->second.sequence.length())));
-        current_dbs->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(dbs->second.accession));
-        current_dbs->setAttribute(CONST_XMLCH("searchDatabase_ref"), StringManager::convertPtr(dbs->second.database_ref)); // This is going to be wrong
+        current_dbs->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(dbs->second.accession).get());
+        current_dbs->setAttribute(CONST_XMLCH("length"), StringManager::convertPtr(String(dbs->second.sequence.length())).get());
+        current_dbs->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(dbs->second.accession).get());
+        current_dbs->setAttribute(CONST_XMLCH("searchDatabase_ref"), StringManager::convertPtr(dbs->second.database_ref).get()); // This is going to be wrong
         DOMElement* current_seq = current_dbs->getOwnerDocument()->createElement(CONST_XMLCH("Seq"));
-        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(dbs->second.sequence));
+        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(dbs->second.sequence).get());
         current_seq->appendChild(current_seqnot);
         current_dbs->appendChild(current_seq);
         sequenceCollectionElements->appendChild(current_dbs);
@@ -2785,9 +2785,9 @@ namespace OpenMS
       for (map<String, AASequence>::iterator peps = pep_map_.begin(); peps != pep_map_.end(); ++peps)
       {
         DOMElement* current_pep = sequenceCollectionElements->getOwnerDocument()->createElement(CONST_XMLCH("Peptide"));
-        current_pep->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(peps->first));
+        current_pep->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(peps->first).get());
         DOMElement* current_seq = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("PeptideSequence"));
-        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(peps->second.toUnmodifiedString()));
+        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(peps->second.toUnmodifiedString()).get());
         current_seq->appendChild(current_seqnot);
         current_pep->appendChild(current_seq);
         if (peps->second.hasNTerminalModification())
@@ -2796,13 +2796,13 @@ namespace OpenMS
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
           current_mod->setAttribute(CONST_XMLCH("location"), CONST_XMLCH("0"));
-          current_mod->setAttribute(CONST_XMLCH("monoisotopicMassDelta"), StringManager::convertPtr(String(mod->getDiffMonoMass())));
+          current_mod->setAttribute(CONST_XMLCH("monoisotopicMassDelta"), StringManager::convertPtr(String(mod->getDiffMonoMass())).get());
           String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
-          current_mod->setAttribute(CONST_XMLCH("residues"), StringManager::convertPtr(origin));
-          current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(mod->getName()));
+          current_mod->setAttribute(CONST_XMLCH("residues"), StringManager::convertPtr(origin).get());
+          current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(mod->getName()).get());
           current_cv->setAttribute(CONST_XMLCH("cvRef"), CONST_XMLCH("UNIMOD"));
-          current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(mod->getUniModAccession()));
+          current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(mod->getUniModAccession()).get());
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
@@ -2812,14 +2812,14 @@ namespace OpenMS
           const ResidueModification* mod = peps->second.getCTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
-          current_mod->setAttribute(CONST_XMLCH("location"), StringManager::convertPtr(String(peps->second.size() + 1)));
-          current_mod->setAttribute(CONST_XMLCH("monoisotopicMassDelta"), StringManager::convertPtr(String(mod->getDiffMonoMass())));
+          current_mod->setAttribute(CONST_XMLCH("location"), StringManager::convertPtr(String(peps->second.size() + 1)).get());
+          current_mod->setAttribute(CONST_XMLCH("monoisotopicMassDelta"), StringManager::convertPtr(String(mod->getDiffMonoMass())).get());
           String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
-          current_mod->setAttribute(CONST_XMLCH("residues"), StringManager::convertPtr(origin));
-          current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(mod->getName()));
+          current_mod->setAttribute(CONST_XMLCH("residues"), StringManager::convertPtr(origin).get());
+          current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(mod->getName()).get());
           current_cv->setAttribute(CONST_XMLCH("cvRef"), CONST_XMLCH("UNIMOD"));
-          current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(mod->getUniModAccession()));
+          current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(mod->getUniModAccession()).get());
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
@@ -2833,12 +2833,12 @@ namespace OpenMS
             if (mod == nullptr) continue;
             DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("Modification"));
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
-            current_mod->setAttribute(CONST_XMLCH("location"), StringManager::convertPtr(String(i)));
-            current_mod->setAttribute(CONST_XMLCH("monoisotopicMassDelta"), StringManager::convertPtr(String(mod->getDiffMonoMass())));
-            current_mod->setAttribute(CONST_XMLCH("residues"), StringManager::convertPtr(String(mod->getOrigin())));
-            current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(mod->getName()));
+            current_mod->setAttribute(CONST_XMLCH("location"), StringManager::convertPtr(String(i)).get());
+            current_mod->setAttribute(CONST_XMLCH("monoisotopicMassDelta"), StringManager::convertPtr(String(mod->getDiffMonoMass())).get());
+            current_mod->setAttribute(CONST_XMLCH("residues"), StringManager::convertPtr(String(mod->getOrigin())).get());
+            current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(mod->getName()).get());
             current_cv->setAttribute(CONST_XMLCH("cvRef"), CONST_XMLCH("UNIMOD"));
-            current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(mod->getUniModAccession()));
+            current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(mod->getUniModAccession()).get());
 
             current_mod->appendChild(current_cv);
             current_pep->appendChild(current_mod);
@@ -2851,11 +2851,11 @@ namespace OpenMS
       {
         DOMElement* current_pev = sequenceCollectionElements->getOwnerDocument()->createElement(CONST_XMLCH("PeptideEvidence"));
         current_pev->setAttribute(CONST_XMLCH("peptide_ref"), CONST_XMLCH("TBA"));
-        current_pev->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(pevs->first));
-        current_pev->setAttribute(CONST_XMLCH("start"), StringManager::convertPtr(String(pevs->second.start)));
-        current_pev->setAttribute(CONST_XMLCH("end"), StringManager::convertPtr(String(pevs->second.stop)));
-        current_pev->setAttribute(CONST_XMLCH("pre"), StringManager::convertPtr(String(pevs->second.pre)));
-        current_pev->setAttribute(CONST_XMLCH("post"), StringManager::convertPtr(String(pevs->second.post)));
+        current_pev->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(pevs->first).get());
+        current_pev->setAttribute(CONST_XMLCH("start"), StringManager::convertPtr(String(pevs->second.start)).get());
+        current_pev->setAttribute(CONST_XMLCH("end"), StringManager::convertPtr(String(pevs->second.stop)).get());
+        current_pev->setAttribute(CONST_XMLCH("pre"), StringManager::convertPtr(String(pevs->second.pre)).get());
+        current_pev->setAttribute(CONST_XMLCH("post"), StringManager::convertPtr(String(pevs->second.post)).get());
         // do not forget to annotate the decoy
         current_pev->setAttribute(CONST_XMLCH("isDecoy"), CONST_XMLCH("false"));
         sequenceCollectionElements->appendChild(current_pev);
@@ -2944,13 +2944,13 @@ namespace OpenMS
       inputElements->appendChild(current_spd);
     }
 
-    void MzIdentMLDOMHandler::buildEnclosedCV_(DOMElement* parentElement, String encel, String acc, String name, String cvref)
+    void MzIdentMLDOMHandler::buildEnclosedCV_(DOMElement* parentElement, const String& encel, const String& acc, const String& name, const String& cvref)
     {
-      DOMElement* current_ff = parentElement->getOwnerDocument()->createElement(StringManager::convertPtr(encel));
+      DOMElement* current_ff = parentElement->getOwnerDocument()->createElement(StringManager::convertPtr(encel).get());
       DOMElement* current_cv = current_ff->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
-      current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(acc));
-      current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(name));
-      current_cv->setAttribute(CONST_XMLCH("cvRef"), StringManager::convertPtr(cvref));
+      current_cv->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(acc).get());
+      current_cv->setAttribute(CONST_XMLCH("name"), StringManager::convertPtr(name).get());
+      current_cv->setAttribute(CONST_XMLCH("cvRef"), StringManager::convertPtr(cvref).get());
       current_ff->appendChild(current_cv);
       parentElement->appendChild(current_ff);
     }
@@ -2965,18 +2965,18 @@ namespace OpenMS
       for (vector<PeptideIdentification>::iterator pi = pep_id_->begin(); pi != pep_id_->end(); ++pi)
       {
         DOMElement* current_sr = current_sil->getOwnerDocument()->createElement(CONST_XMLCH("SpectrumIdentificationResult"));
-        current_sr->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())));
-        current_sr->setAttribute(CONST_XMLCH("spectrumID"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())));
+        current_sr->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
+        current_sr->setAttribute(CONST_XMLCH("spectrumID"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
         current_sr->setAttribute(CONST_XMLCH("spectraData_ref"), CONST_XMLCH("SD1"));
         for (vector<PeptideHit>::iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
         {
           DOMElement* current_si = current_sr->getOwnerDocument()->createElement(CONST_XMLCH("SpectrumIdentificationItem"));
-          current_si->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())));
-          current_si->setAttribute(CONST_XMLCH("calculatedMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge())))); //TODO @mths : this is not correct!1elf - these interfaces are BS!
-          current_si->setAttribute(CONST_XMLCH("chargeState"), StringManager::convertPtr(String(ph->getCharge())));
-          current_si->setAttribute(CONST_XMLCH("experimentalMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge())))); //TODO @mths : this is not correct!1elf - these interfaces are BS!
+          current_si->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
+          current_si->setAttribute(CONST_XMLCH("calculatedMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
+          current_si->setAttribute(CONST_XMLCH("chargeState"), StringManager::convertPtr(String(ph->getCharge())).get());
+          current_si->setAttribute(CONST_XMLCH("experimentalMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
           current_si->setAttribute(CONST_XMLCH("peptide_ref"), CONST_XMLCH("TBA"));
-          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank())));
+          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank())).get());
           current_si->setAttribute(CONST_XMLCH("passThreshold"), CONST_XMLCH("TBA"));
           current_si->setAttribute(CONST_XMLCH("sample_ref"), CONST_XMLCH("TBA"));
           // TODO cvs for score!
@@ -2984,7 +2984,7 @@ namespace OpenMS
           for (list<String>::iterator pepevref = hit_pev_.front().begin(); pepevref != hit_pev_.front().end(); ++pepevref)
           {
             DOMElement* current_per = current_si->getOwnerDocument()->createElement(CONST_XMLCH("PeptideEvidenceRef"));
-            current_per->setAttribute(CONST_XMLCH("peptideEvidence_ref"), StringManager::convertPtr(*pepevref));
+            current_per->setAttribute(CONST_XMLCH("peptideEvidence_ref"), StringManager::convertPtr(*pepevref).get());
             current_si->appendChild(current_per);
           }
           hit_pev_.pop_front();

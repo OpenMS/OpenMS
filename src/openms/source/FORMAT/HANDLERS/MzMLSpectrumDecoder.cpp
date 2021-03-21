@@ -451,6 +451,8 @@ namespace OpenMS
     // access result through data.back()
     data.emplace_back();
 
+    // using CONST_XMLCH since writing a u16 char array each time is ugly. disadvantage = no constexpr.
+    // Uses only reinterpret_cast, so usually no runtime cost though.
     static const XMLCh* TAG_CV = CONST_XMLCH("cvParam");
     static const XMLCh* TAG_binary = CONST_XMLCH("binary");
     static const XMLCh* TAG_userParam = CONST_XMLCH("userParam");

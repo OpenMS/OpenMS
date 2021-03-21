@@ -48,26 +48,11 @@
 
 namespace OpenMS
 {
-  FeatureHypothesis::FeatureHypothesis() :
-    iso_pattern_(),
-    feat_score_(),
-    charge_()
-  {
+  FeatureHypothesis::FeatureHypothesis() = default;
 
-  }
+  FeatureHypothesis::~FeatureHypothesis() = default;
 
-  FeatureHypothesis::~FeatureHypothesis()
-  {
-
-  }
-
-  FeatureHypothesis::FeatureHypothesis(const FeatureHypothesis& fh) :
-    iso_pattern_(fh.iso_pattern_),
-    feat_score_(fh.feat_score_),
-    charge_(fh.charge_)
-  {
-
-  }
+  FeatureHypothesis::FeatureHypothesis(const FeatureHypothesis& fh) = default;
 
   FeatureHypothesis& FeatureHypothesis::operator=(const FeatureHypothesis& rhs)
   {
@@ -329,7 +314,10 @@ namespace OpenMS
 
   FeatureFindingMetabo::~FeatureFindingMetabo()
   {
-    delete isotope_filt_svm_;
+    if(isotope_filt_svm_ != nullptr)
+    {
+      svm_free_and_destroy_model(&isotope_filt_svm_);
+    }
   }
 
   void FeatureFindingMetabo::updateMembers_()
@@ -492,6 +480,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Loading " + model_filename + " failed", model_filename);
     }
+
 
     std::ifstream ifs(scale_filename.c_str());
 
