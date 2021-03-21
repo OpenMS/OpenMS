@@ -78,7 +78,7 @@ namespace OpenMS {
         fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
         fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
-        fd_defaults.setValue("min_qscore", .0);
+        fd_defaults.setValue("min_qscore", qscore_threshold_);
         fd_defaults.setValue("tol", inputs["tol"]);
         fd_defaults.setValue("rt_window", rt_window_);
         fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
@@ -306,6 +306,9 @@ namespace OpenMS {
         std::set<int> current_selected_mzs; // current selected mzs
 
         for (int i = 0; i < 2; i++) {
+            if(i==0 && target_nominal_masses_.empty()){
+                continue;
+            }
             for (auto &c: color_order) {
                 for (auto &pg : deconvoluted_spectrum_) {
                     //if (pg.getSNR() < snr_threshold || pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold ||
@@ -338,9 +341,9 @@ namespace OpenMS {
                             continue;
                         }
 
-                        if (c == 'b' || c == 'r') {
+                        //if (c == 'b' || c == 'r') {
                             //continue;
-                        }
+                       // }
                     }
                     //if (i == 0 && c == 'G' && pg.getQScore() < 0.5)
                     // {
