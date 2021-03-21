@@ -72,9 +72,6 @@ namespace OpenMS
     template<typename T>
     class shared_xerces_ptr
     {
-      // The actual data we're holding
-      std::shared_ptr<T> item_;
-
       // Function to release Xerces data type with a release member function
       template<typename U>
       static void doRelease_(U* item)
@@ -83,17 +80,12 @@ namespace OpenMS
         if (nullptr == item->getOwnerDocument())
           item->release();
       }
-      // Specializations for character types, released by XMLString::release
-      template<>
-      static void doRelease_(char* item)
-      {
-        xercesc::XMLString::release(&item);
-      }
-      template<>
-      static void doRelease_(XMLCh* item)
-      {
-        xercesc::XMLString::release(&item);
-      }
+
+      static void doRelease_(char* item);
+      static void doRelease_(XMLCh* item);
+
+      // The actual data we're holding
+      std::shared_ptr<T> item_;
     public:
       // Default constructor
       shared_xerces_ptr() = default;
@@ -137,8 +129,8 @@ namespace OpenMS
     class unique_xerces_ptr
     {
     private:
-      // Function to release Xerces data type
-      template <typename U>
+
+      template<typename U>
       static void doRelease_(U*& item)
       {
         // Only release this if it has no parent (otherwise
@@ -147,20 +139,9 @@ namespace OpenMS
           item->release();
       }
 
-      // Specializations for character types, which needs to be
-      // released by XMLString::release
-      template <>
-      static void doRelease_(char*& item)
-      {
-        xercesc::XMLString::release(&item);
-      }
+      static void doRelease_(char*& item);
+      static void doRelease_(XMLCh*& item);
 
-      template <>
-      static void doRelease_(XMLCh*& item)
-      {
-        xercesc::XMLString::release(&item);
-      }
-      // The actual data we're holding
       T* item_;
 
     public:
@@ -226,6 +207,7 @@ namespace OpenMS
         return (nullptr == item_);
       }
     };
+
     //========================================================================================================
 
     /*
