@@ -54,17 +54,7 @@ namespace OpenMS
 
   FeatureHypothesis::FeatureHypothesis(const FeatureHypothesis& fh) = default;
 
-  FeatureHypothesis& FeatureHypothesis::operator=(const FeatureHypothesis& rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    iso_pattern_ = rhs.iso_pattern_;
-    feat_score_ = rhs.feat_score_;
-    charge_ = rhs.charge_;
-
-    return *this;
-  }
+  FeatureHypothesis& FeatureHypothesis::operator=(const FeatureHypothesis& rhs) = default;
 
   void FeatureHypothesis::addMassTrace(const MassTrace& mt_ptr)
   {

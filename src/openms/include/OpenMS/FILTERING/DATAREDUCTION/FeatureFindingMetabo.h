@@ -113,9 +113,9 @@ private:
     // pointers of MassTraces contained in isotopic pattern
     std::vector<const MassTrace*> iso_pattern_;
 
-    double feat_score_;
+    double feat_score_{};
 
-    SignedSize charge_;
+    SignedSize charge_{};
   };
 
   class OPENMS_DLLAPI CmpMassTraceByMZ
