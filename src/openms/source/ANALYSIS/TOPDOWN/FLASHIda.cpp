@@ -78,7 +78,7 @@ namespace OpenMS {
         fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
         fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
 
-        fd_defaults.setValue("min_qscore", qscore_threshold_);
+        fd_defaults.setValue("min_qscore", .0);
         fd_defaults.setValue("tol", inputs["tol"]);
         fd_defaults.setValue("rt_window", rt_window_);
         fd_defaults.setValue("min_peaks", IntList{2, 1}); // more sensitive
