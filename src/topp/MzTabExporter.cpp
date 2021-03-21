@@ -222,6 +222,7 @@ protected:
            true, 
            true, 
            export_subfeatures,
+           false,
            getFlag_("export_all_psms")); // direct stream to disc
         return EXECUTION_OK;
       }

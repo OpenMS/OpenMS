@@ -1031,6 +1031,7 @@ public:
          bool nextPRTRow(MzTabProteinSectionRow& row);
          bool nextPEPRow(MzTabPeptideSectionRow& row);
          bool nextPSMRow(MzTabPSMSectionRow& row);
+
        private:
          const ConsensusMap& consensus_map_;
          std::set<String> protein_hit_user_value_keys_;
@@ -1065,6 +1066,7 @@ public:
          size_t prt_group_id_ = 0;
          size_t prt_indistgroup_id_ = 0;
          size_t pep_id_ = 0;
+         size_t pep_counter_ = 0;
          size_t psm_id_ = 0;
          size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;

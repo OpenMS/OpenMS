@@ -3141,9 +3141,11 @@ state0:
     const String& title)
   {
     vector<const PeptideIdentification*> pep_ids_ptr;
+    pep_ids_ptr.reserve(peptide_ids.size());
     for (const PeptideIdentification& pi : peptide_ids) { pep_ids_ptr.push_back(&pi); }
 
     vector<const ProteinIdentification*> prot_ids_ptr;
+    prot_ids_ptr.reserve(prot_ids.size());
     for (const ProteinIdentification& pi : prot_ids) { prot_ids_ptr.push_back(&pi); }
 
     IDMzTabStream s(prot_ids_ptr, pep_ids_ptr, filename, first_run_inference_only, export_empty_pep_ids, export_all_psms, title);
@@ -3369,6 +3371,7 @@ state0:
   {
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
+    prot_ids_.reserve(prot_id.size());
     for (Size i = 0; i < prot_id.size(); ++i)
     {
       prot_ids_.push_back(&(prot_id[i]));
@@ -3379,6 +3382,7 @@ state0:
     {
       const ConsensusFeature& c = consensus_map[i];
       const vector<PeptideIdentification>& p = c.getPeptideIdentifications();
+      peptide_ids_.reserve(peptide_ids_.size() + p.size());
       for (const PeptideIdentification& pi : p) { peptide_ids_.push_back(&pi); }
     }
 
@@ -3386,6 +3390,7 @@ state0:
     if (export_unassigned_ids)
     {
       const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
+      peptide_ids_.reserve(peptide_ids_.size() + up.size());
       for (const PeptideIdentification& pi : up) { peptide_ids_.push_back(&pi); }
     }
 
@@ -3796,8 +3801,8 @@ state0:
   
   bool MzTab::CMMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
-    if (pep_id_ >= peptide_ids_.size()) return false;
-    const PeptideIdentification* pid = peptide_ids_[pep_id_];
+    if (pep_counter_ >= peptide_ids_.size()) return false;
+    const PeptideIdentification* pid = peptide_ids_[pep_counter_];
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
         *pid,
         prot_ids_,
@@ -3813,7 +3818,7 @@ state0:
 
     if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
     {
-      ++pep_id_;
+      ++pep_counter_;
       current_psm_idx_ = 0;
     }
     else
