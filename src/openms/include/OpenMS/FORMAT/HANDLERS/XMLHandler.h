@@ -50,6 +50,7 @@
 #include <algorithm>
 #include <iosfwd>
 #include <string>
+#include <memory>
 
 namespace OpenMS
 {
