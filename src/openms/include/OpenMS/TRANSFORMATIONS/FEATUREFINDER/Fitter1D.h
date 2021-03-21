@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
+#include <memory>
 
 namespace OpenMS
 {

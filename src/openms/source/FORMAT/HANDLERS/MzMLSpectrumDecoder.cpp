@@ -553,8 +553,6 @@ namespace OpenMS
     static constexpr XMLCh id_tag[] = {'i','d', 0};
     static constexpr XMLCh default_array_length_tag[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h', 0};
     static constexpr XMLCh binary_data_array_tag[] = { 'b','i','n','a','r','y','D','a','t','a','A','r','r','a','y', 0};
-    static constexpr XMLCh spectrum_tag[] = { 's','p','e','c','t','r','u','m', 0};
-    static constexpr XMLCh chromatogram_tag[] = { 'c','h','r','o','m','a','t','o','g','r','a','m', 0};
 
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
@@ -581,7 +579,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in, "No root element");
     }
 
-    OPENMS_PRECONDITION(xercesc::XMLString::equals(elementRoot->getTagName(), spectrum_tag) || xercesc::XMLString::equals(elementRoot->getTagName(), chromatogram_tag),
+    OPENMS_PRECONDITION(xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("spectrum")) || xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("chromatogram")),
           (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
           String(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + String("'.")).c_str())
 
