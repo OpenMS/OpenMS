@@ -549,6 +549,7 @@ namespace OpenMS
   std::string MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data)
   {
     // PRECONDITON is below (since we first need to do XML parsing before validating)
+    // initializer list of XMLCh (= usually some type that fits utf16) from ASCII chars
     static constexpr XMLCh id_tag[] = {'i','d', 0};
     static constexpr XMLCh default_array_length_tag[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h', 0};
     static constexpr XMLCh binary_data_array_tag[] = { 'b','i','n','a','r','y','D','a','t','a','A','r','r','a','y', 0};
