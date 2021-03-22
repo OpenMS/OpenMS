@@ -463,7 +463,7 @@ namespace OpenMS
     watcher_ = new FileWatcher(this);
     connect(watcher_, &FileWatcher::fileChanged, this, &TOPPViewBase::fileChanged_);
 
-    TVToolDiscovery::findTools();
+    TVToolDiscovery::loadParams();
   }
 
   void TOPPViewBase::initializeDefaultParameters_()
@@ -1639,7 +1639,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    TVToolDiscovery::getToolParams();
+    TVToolDiscovery::waitForParams();
     ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)

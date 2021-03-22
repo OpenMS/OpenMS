@@ -45,7 +45,6 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QRadioButton>
@@ -53,10 +52,6 @@
 #include <QtWidgets/QCheckBox>
 #include <QProcess>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -171,31 +166,6 @@ namespace OpenMS
   {
 
   }
-  /*
-  Param ToolsDialog::getParamFromIni_(const String& tool_name)
-  {
-    QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
-    QProcess qp;
-    String executable = File::findSiblingTOPPExecutable(tool_name);
-    qp.start(executable.toQString(), args);
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-        QMessageBox::critical(this, "Error", (String("Could not execute '") + executable + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
-        // TODO handle error
-    }
-    else if (!File::exists(ini_file_))
-    {
-        QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
-        // TODO handle error
-    }
-    Param tool_param;
-    ParamXMLFile paramFile;
-    paramFile.load((ini_file_).c_str(), tool_param);
-
-    return tool_param;
-  }
-   */
 
   std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
   {
@@ -280,7 +250,7 @@ namespace OpenMS
        editor_->clear();
        arg_map_.clear();
     }
-    arg_param_ = TVToolDiscovery::getToolParams()[getTool()];
+    arg_param_ = TVToolDiscovery::getToolParams().at(getTool());
 
     tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);

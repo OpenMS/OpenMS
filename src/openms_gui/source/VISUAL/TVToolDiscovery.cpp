@@ -16,9 +16,9 @@ namespace OpenMS {
 
     std::unordered_map<std::string, std::future<Param>> TVToolDiscovery::future_results_;
     std::unordered_map<std::string, Param> TVToolDiscovery::params_;
-    bool TVToolDiscovery::ready_ = false;
+    bool TVToolDiscovery::params_ready_ = false;
 
-    void TVToolDiscovery::findTools() {
+    void TVToolDiscovery::loadParams() {
       // Get a map of all tools
       const auto& tools = ToolHandler::getTOPPToolList();
       const auto& utils = ToolHandler::getUtilList();
@@ -39,9 +39,11 @@ namespace OpenMS {
       }
     }
 
-      std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams() {
-      if (!ready_)
+    void TVToolDiscovery::waitForParams()
+    {
+      if (!params_ready_)
       {
+        params_ready_ = true;
         for (auto &pair : future_results_)
         {
           while (pair.second.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
@@ -50,9 +52,15 @@ namespace OpenMS {
           }
           params_.insert(std::make_pair(pair.first, pair.second.get()));
         }
-        ready_ = true;
       }
-      return params_;
+    }
+
+    const std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams() {
+    if (!params_ready_)
+    {
+      TVToolDiscovery::waitForParams();
+    }
+    return params_;
     }
 
     Param TVToolDiscovery::getParamFromIni_(const String &tool_name) {
@@ -68,7 +76,6 @@ namespace OpenMS {
         std::remove(path.c_str());
         return tool_param;
       }
-      std::cout << path << "\t" << tool_name << std::endl;
       ParamXMLFile paramFile;
       paramFile.load((path).c_str(), tool_param);
       std::remove(path.c_str());
