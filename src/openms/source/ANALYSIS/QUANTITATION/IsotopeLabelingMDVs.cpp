@@ -107,13 +107,6 @@ namespace OpenMS
     }
     
     // 1- inversion of correction matrix
-    if (correction_matrix_eigen.cols() != 4 || correction_matrix_eigen.rows() != 4)
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("isotopicCorrections: Expected correction matrix of size 4x4 but got")
-                                        + correction_matrix_eigen.rows() + "x" + correction_matrix_eigen.cols());
-    }
-    
     Eigen::MatrixXd correction_matrix_eigen_inversed = correction_matrix_eigen.inverse();
     
     // 2- element-wise expansion with MDV_observed
@@ -131,39 +124,25 @@ namespace OpenMS
       size_t resize_diff = correction_matrix_eigen_inversed.cols() - MDV_observed.size();
       for (size_t i = 0; i < resize_diff; ++i)
       {
-        MDV_observed.push_back(0.0);
+        //MDV_observed.push_back(0.0);
       }
     }
-    
-    // Update corrected_feature with dummy subordinate(s) to match with MDV_observed size
-//    if (corrected_feature.getSubordinates().size() < MDV_observed.size())
-//    {
-//      OPENMS_LOG_INFO << "isotopicCorrection: resizing feature subordinates from "
-//                      << corrected_feature.getSubordinates().size() << " to "
-//                      << MDV_observed.size() << std::endl;
-//      
-//      std::vector<OpenMS::Feature> new_subordinates;
-//      OpenMS::Feature feature_tmp, empty_feature;
-//      empty_feature.setMetaValue("peak_apex_int", 0.0);
-//
-//      feature_tmp.setSubordinates(corrected_feature.getSubordinates());
-//
-//      size_t resize_diff = MDV_observed.size() - corrected_feature.getSubordinates().size();
-//
-//      for (OpenMS::Feature& subordinate_copy : feature_tmp.getSubordinates())
-//      {
-//        new_subordinates.insert(new_subordinates.begin(), subordinate_copy);
-//      }
-//
-//       for (size_t i = 0; i < resize_diff; ++i)
-//       {
-//         new_subordinates.insert(new_subordinates.end(), empty_feature);
-//       }
-//
-//      corrected_feature.setSubordinates(new_subordinates);
-//      OPENMS_LOG_INFO << "isotopicCorrection: resized feature subordinates to : "
-//                      << corrected_feature.getSubordinates().size() << std::endl;
-//    }
+    // Expand the inversed correction_matrix to be of an equivalent size to MDV_observed
+    else if (MDV_observed.size() > static_cast<unsigned long>(correction_matrix_eigen_inversed.cols()))
+    {
+      size_t resize_diff = MDV_observed.size() - correction_matrix_eigen_inversed.cols();
+      
+      correction_matrix_eigen_inversed.conservativeResize(correction_matrix_eigen_inversed.rows() + resize_diff,
+                                                          correction_matrix_eigen_inversed.cols() + resize_diff);
+      
+      for (int i = correction_matrix_eigen_inversed.rows() - resize_diff; i < correction_matrix_eigen_inversed.rows(); ++i)
+      {
+        for (int j = correction_matrix_eigen_inversed.cols() - resize_diff; j < correction_matrix_eigen_inversed.cols(); ++j)
+        {
+          correction_matrix_eigen_inversed(i,j) = 0.0;
+        }
+      }
+    }
 
     for (int i = 0; i < correction_matrix_eigen_inversed.rows(); ++i)
     {
@@ -172,8 +151,7 @@ namespace OpenMS
       {
         corrected_value += correction_matrix_eigen_inversed(i,j) * MDV_observed[j];
       }
-      corrected_feature.getSubordinates().at(i).setIntensity(corrected_value);
-      //corrected_feature.getSubordinates().at(i).setMetaValue("peak_apex_int", corrected_value);
+      corrected_feature.getSubordinates().at(i).setMetaValue("peak_apex_int", std::isnan(corrected_value) ? 0.0 : corrected_value);
     }
   }
 
@@ -239,6 +217,7 @@ namespace OpenMS
       }
       else if (feature_name != "intensity" && it->metaValueExists(feature_name))
       {
+        //if((double)it->getMetaValue(feature_name) != 0.0)
         fragment_isotopomer_measured.push_back(it->getMetaValue(feature_name));
       }
     }
