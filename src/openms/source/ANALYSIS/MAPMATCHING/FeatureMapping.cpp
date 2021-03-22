@@ -46,7 +46,7 @@ namespace OpenMS
                                                                               const double& precursor_rt_tolerance,
                                                                               bool ppm)
   {
-    Map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
+    std::map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
     vector<size_t> unassigned_ms2;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)
@@ -90,6 +90,12 @@ namespace OpenMS
           }
         }
         const BaseFeature* min_distance_feature = fp_map_kd.feature(min_distance_feature_index);
+
+        // TODO: remove debug
+        if (min_distance_feature->metaValueExists("masstrace_centroid_mz") && min_distance_feature->metaValueExists("masstrace_intensity"))
+        {
+          std::cout << "assignMS2IndexToFeature: The metavalues do exists and can be called!" << std::endl;
+        }
 
         assigned_ms2[min_distance_feature].push_back(index);
       }

@@ -155,7 +155,7 @@ namespace OpenMS
   {
     int transition_group_counter = 0;
     vector <MetaboTargetedAssay> v_mta;
-    const Map<BaseFeature const *, vector < size_t>>& feature_ms2_spectra_map = feature_ms2_index.assignedMS2;
+    const std::map<BaseFeature const *, vector < size_t>>& feature_ms2_spectra_map = feature_ms2_index.assignedMS2;
 
     for (const auto& it : feature_ms2_spectra_map)
       {

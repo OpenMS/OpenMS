@@ -396,8 +396,8 @@ protected:
                                                   feature_mapping);
     
       // filter known_unkowns based on description (UNKNOWN) (AMS)
-      Map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
-      Map<const BaseFeature*, std::vector<size_t>> known_features;
+      std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
+      std::map<const BaseFeature*, std::vector<size_t>> known_features;
       if (!use_known_unknowns)
       {
         for (auto it = feature_ms2_spectra_map.begin(); it != feature_ms2_spectra_map.end(); ++it)

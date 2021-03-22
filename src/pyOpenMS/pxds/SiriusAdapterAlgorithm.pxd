@@ -28,22 +28,22 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         int getNumberOfSiriusCandidates() nogil except +
         int getNumberOfCSIFingerIDCandidates() nogil except +
 
-        String determineSiriusExecutable(String& executable) nogil except +
+        String determineSiriusExecutable(String & executable) nogil except +
 
-        void preprocessingSirius(String featureinfo,
-                                 MSExperiment& spectra,
-                                 libcpp_vector[FeatureMap]& v_fp,
-                                 KDTreeFeatureMaps& fp_map_kd,
-                                 FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
+        void preprocessingSirius(const String & featureinfo,
+                                 const MSExperiment & spectra,
+                                 libcpp_vector[FeatureMap] & v_fp,
+                                 KDTreeFeatureMaps & fp_map_kd,
+                                 FeatureMapping_FeatureToMs2Indices & feature_mapping) nogil except +
 
-        void logFeatureSpectraNumber(String featureinfo,
-                                     FeatureMapping_FeatureToMs2Indices& feature_mapping,
-                                     MSExperiment& spectra) nogil except +
+        void logFeatureSpectraNumber(const String & featureinfo,
+                                     const FeatureMapping_FeatureToMs2Indices & feature_mapping,
+                                     const MSExperiment & spectra) nogil except +
 
-        libcpp_vector[String] callSiriusQProcess(String tmp_ms_file,
-                                                 String tmp_out_dir,
-                                                 String executable,
-                                                 String out_csifingerid,
+        libcpp_vector[String] callSiriusQProcess(const String & tmp_ms_file,
+                                                 const String & tmp_out_dir,
+                                                 String & executable,
+                                                 const String & out_csifingerid,
                                                  bool decoy_generation) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":

@@ -435,7 +435,7 @@ namespace OpenMS
                            const bool no_masstrace_info_isotope_pattern,
                            std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
-    const Map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
+    const std::map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
 
     bool use_feature_information = false;

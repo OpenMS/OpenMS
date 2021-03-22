@@ -535,6 +535,18 @@ namespace OpenMS
       if (isFeatureOnly() && !featureinfo.empty())
       {
         OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        //TODO: Remove debug
+        const std::map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
+        for (auto it = assigned_ms2.begin(); it != assigned_ms2.end(); ++it)
+        {
+          const BaseFeature* feature = it->first;
+          if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
+          {
+            std::cout << "logFeatureSpectraNumber: The metavalues do exists and can be called!" << std::endl;
+            vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
+            vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
+          }
+        }
       }
       else if (!featureinfo.empty())
       {
