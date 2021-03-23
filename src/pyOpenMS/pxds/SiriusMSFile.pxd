@@ -20,10 +20,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS::SiriusMSFile":
 
         # wrap static method:
-        void store(const MSExperiment & spectra,
-                   const String & msfile,
-                   const FeatureMapping_FeatureToMs2Indices & feature_mapping,
+        void store(MSExperiment& spectra,
+                   const String& msfile,
+                   FeatureMapping_FeatureToMs2Indices& feature_mapping,
                    bool feature_only,
                    int isotope_pattern_iterations,
                    bool no_mt_info,
-                   libcpp_vector[ SiriusMSFile_CompoundInfo ] & v_cmpinfo) nogil except + # wrap-attach:SiriusMSFile
+                   libcpp_vector[ SiriusMSFile_CompoundInfo ]& v_cmpinfo) nogil except + # wrap-attach:SiriusMSFile

@@ -72,10 +72,10 @@ String SiriusMzTabWriter::extractFeatureId(const String& path)
   return feature_id;
 }
 
-std::map< String, Size > SiriusMzTabWriter::extract_columnname_to_columnindex(CsvFile& csvfile)
+std::map< std::string, Size > SiriusMzTabWriter::extract_columnname_to_columnindex(CsvFile& csvfile)
 {
   StringList header_row;
-  std::map< String, Size > columnname_to_columnindex;
+  std::map< std::string, Size > columnname_to_columnindex;
   csvfile.getRow(0, header_row);
 
   for (size_t i = 0; i < header_row.size(); i++)
@@ -163,7 +163,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         // extract feature_id from string
         String feature_id = SiriusMzTabWriter::extractFeatureId(str);
 
-        std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
+        std::map< std::string, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
 
         // formula	adduct	precursorFormula	rank	rankingScore	IsotopeScore	TreeScore	siriusScore	explainedPeaks	explainedIntensity
         // j = 1 because of .csv file format (header)
