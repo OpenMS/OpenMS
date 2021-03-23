@@ -58,7 +58,7 @@ public:
     ProgressLogger();
 
     /// Destructor
-    ~ProgressLogger();
+    virtual ~ProgressLogger();
 
     /// Copy constructor
     ProgressLogger(const ProgressLogger& other);
