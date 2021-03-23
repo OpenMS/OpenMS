@@ -49,10 +49,6 @@
 
 using namespace std;
 
-// TODO fix all the shadowed "const_iterator qpsit"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
-
 namespace OpenMS
 { 
 
@@ -141,22 +137,13 @@ namespace OpenMS
           {"version", "4.1.49"}
         }
     };
-
-    // precursors QC:0000044 not in cv any more
-
-    map<Size, UInt> counts;
-    for (const auto& spectrum : exp)
-      {
-        const Size level = spectrum.getMSLevel();
-        ++counts[level];  // count MS level
-      }
+    ControlledVocabulary cv;
+    cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+    cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
 
     // create qualityMetric in json format
-    auto addValue = [](const String& accession, const String& name, const auto& value) -> json
+    auto addValue = [&cv](const String& accession, const String& name, const auto& value) -> json
       {
-        ControlledVocabulary cv;
-        cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-        cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
         json qm;
         qm["accession"] = accession;
         if (cv.exists(accession)) 
@@ -171,17 +158,23 @@ namespace OpenMS
         return qm;
       };
 
-    // Number of MS1 spectra
+    map<Size, UInt> counts;
+    for (const auto& spectrum : exp)
+      {
+        const Size level = spectrum.getMSLevel();
+        ++counts[level];  // count MS level
+      }
+    // QC:4000059 Number of MS1 spectra
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000059", "Number of MS1 spectra", counts[1]);
-    // Number of MS2 spectra
+    // QC:4000060 Number of MS2 spectra
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000060", "Number of MS2 spectra", counts[2]);
-    // Number of chromatograms"
+    // QC:4000135 Number of chromatograms"
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000135", "Number of chromatograms", exp.getChromatograms().size());
-    // Run time (RT duration)
+    // QC:4000053 Run time (RT duration)
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000053", "RT duration", UInt(exp.getMaxRT() - exp.getMinRT()));
-    // MZ acquisition range
+    // QC:4000138 MZ acquisition range
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000138", "MZ acquisition range", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
-    
+
     //open stream
     ofstream os(outputFileName.c_str());
     if (!os)
@@ -189,11 +182,10 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outputFileName);
     }
 
-    os.precision(writtenDigits<double>(0.0));
     // write out the json object in proper format with indentation level of 2
     os << out.dump(2);
   }
 
 }
 
-#pragma clang diagnostic pop
+

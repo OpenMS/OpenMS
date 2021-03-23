@@ -52,10 +52,6 @@
 
 using namespace std;
 
-// TODO fix all the shadowed "const_iterator qpsit"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
-
 namespace OpenMS
 {
 
@@ -316,7 +312,7 @@ namespace OpenMS
 
   }
 
-  void QcMLFile::addRunQualityParameter (String run_id, QualityParameter qp)
+  void QcMLFile::addRunQualityParameter(String run_id, QualityParameter qp)
   {
     // TODO warn that run has to be registered!
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
@@ -1049,33 +1045,17 @@ namespace OpenMS
     }
   }
 
-  double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
-  {
-    double error(exp_mz - theo_mz);
-    if (use_ppm)
-    {
-      error = error / (theo_mz * (double)1e-6);
-      //~ error = (1-exp_mz/theo_mz) * (double)1e6;
-    }
-    return error;
-  }
-
-  float calculateSNmedian(MSSpectrum spec, bool norm = true)
+  float calculateSNmedian(const MSSpectrum& spec, bool norm = true)
   {
     if (spec.size() == 0) return 0;
-    float median = 0;
-    float maxi = 0;
-    spec.sortByIntensity();
+    vector<UInt> intensities;
+    for (auto pt = spec.begin(); pt != spec.end(); ++pt)
+    {
+      intensities.push_back(pt->getIntensity());
+    }
+    float median = Math::median(intensities.begin(), intensities.end());
     
-    if (spec.size() % 2 == 0)
-    {
-      median = (spec[spec.size() / 2 - 1].getIntensity() + spec[spec.size() / 2].getIntensity()) / 2;
-    }
-    else
-    {
-      median = spec[spec.size() / 2].getIntensity();
-    }
-    maxi = spec.back().getIntensity();
+    float maxi = spec.back().getIntensity();
     if (!norm)
     {
       float sn_by_max2median = maxi / median;
@@ -1779,7 +1759,7 @@ namespace OpenMS
             row.push_back(tmp.getCharge());
             double mz = tmp.getSequence().getMZ(tmp.getCharge());
             row.push_back(String(mz));
-            double dppm = getMassDifference(mz, it->getMZ(), true);
+            double dppm = (it->getMZ()-mz)/(mz*(double)1e-6);
             row.push_back(String(dppm));
   //          row.push_back(String(calculateSNident(tmp)));
             deltas.push_back(dppm);
@@ -2229,6 +2209,4 @@ namespace OpenMS
   }
 
 }
-
-#pragma clang diagnostic pop
 
