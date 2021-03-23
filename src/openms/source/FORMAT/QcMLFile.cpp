@@ -47,8 +47,6 @@
 
 #include <fstream>
 #include <map>
-#include <boost/range/adaptor/map.hpp>
-#include <boost/range/algorithm/copy.hpp>
 
 using namespace std;
 
@@ -363,13 +361,13 @@ namespace OpenMS
   void QcMLFile::getRunNames(std::vector<String>& ids) const
   {
     ids.clear();
-    boost::copy(run_Name_ID_map_ | boost::adaptors::map_keys, std::back_inserter(ids));
+    for (const auto& m : run_Name_ID_map_) ids.push_back(m.first);
   }
 
   void QcMLFile::getRunIDs(std::vector<String>& ids) const
   {
     ids.clear();
-    boost::copy(runQualityQPs_ | boost::adaptors::map_keys, std::back_inserter(ids));
+    for (const auto& m : runQualityQPs_) ids.push_back(m.first);
   }
 
   bool QcMLFile::existsRun(const String filename, bool checkname) const
