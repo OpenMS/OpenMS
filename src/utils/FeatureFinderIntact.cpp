@@ -73,21 +73,32 @@ public:
     this->setLogType(CMD);
   }
 
-private:
-  double local_rt_range_;
-  double local_mz_range_;
-  double charge_lower_bound_;
-  double charge_upper_bound_;
-  bool use_smoothed_intensities_;
-
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file");
+    registerInputFile_("in", "<file>", "", "input file", true);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
 //    registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
 //    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+
+    addEmptyLine_();
+    registerSubsection_("algorithm", "Algorithm parameters section");
+  }
+
+  Param getSubsectionDefaults_(const String& /*section*/) const override
+  {
+    Param combined;
+
+    // TODO: add mtd, epd param
+
+    Param p_ffi = FeatureFindingIntact().getDefaults();
+//    p_ffm.remove("chrom_fwhm");
+//    p_ffm.remove("report_chromatograms");
+    combined.insert("ffi:", p_ffi);
+    combined.setSectionDescription("ffi", "FeatureFinder parameters (assembling mass traces to charged features)");
+
+    return combined;
   }
 
 public:
@@ -97,11 +108,7 @@ public:
     // parameter handling
     //-------------------------------------------------------------
     // TODO: need to update this value (came from FeatureFindingMetabo)
-    local_mz_range_ = 6.5 ; // MZ range where to look for isotopic mass traces (-> decides size of isotopes =(local_mz_range_ * charge))
-    local_rt_range_ = 15.0 ; // RT range where to look for coeluting mass traces
-    charge_lower_bound_ = 7;
-    charge_upper_bound_ = 30;
-    use_smoothed_intensities_ = true; // for intensity of a mass trace
+    Param ffi_param = getParam_().copy("algorithm:ffi:", true);
 
     //-------------------------------------------------------------
     // loading input
@@ -170,9 +177,9 @@ public:
 //    std::vector<FeatureHypothesis> feat_hypos;
 //    build_feature_hypotheses_(m_traces_final, feat_hypos);
     FeatureFindingIntact ffi;
-    ffi.updateMembers_(); // TODO: change this with param handler
+    ffi.setParameters(ffi_param);
     FeatureMap out_map;
-    ffi.run(m_traces_final, out_map);
+    ffi.run(m_traces_final, out_map, in);
 
     //-------------------------------------------------------------
     // writing output
@@ -221,7 +228,6 @@ public:
                       << "          median: " << stats_sd[stats_sd.size() * 1 / 2] << "\n"
                       << "    upp quartile: " << stats_sd[stats_sd.size() * 3 / 4] << std::endl;
     }
-
 
     ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 

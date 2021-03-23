@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <algorithm>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 using namespace std;
 namespace OpenMS
@@ -47,7 +48,8 @@ namespace OpenMS
    * FeatureFindingIntact: quantification algorithm for intact proteins
    * */
   class OPENMS_DLLAPI FeatureFindingIntact :
-      public ProgressLogger
+      public ProgressLogger,
+      public DefaultParamHandler
   {
 
   public:
@@ -551,19 +553,7 @@ namespace OpenMS
     };
 
     // main method of FeatureFindingIntact
-    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap);
-
-    // TODO : change this according to the defaultHandler;
-    void updateMembers_()
-    {
-      local_mz_range_ = 6.5 ; // MZ range where to look for isotopic mass traces (-> decides size of isotopes =(local_mz_range_ * lowest_charge))
-      local_rt_range_ = 15.0 ; // RT range where to look for coeluting mass traces
-      charge_lower_bound_ = 7;
-      charge_upper_bound_ = 30;
-      mass_lower_bound_ = 1000;
-      mass_upper_bound_ = 20000;
-      use_smoothed_intensities_ = true; // for intensity of a mass trace
-    }
+    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, String in_file_path);
 
     struct OPENMS_DLLAPI DeconvMassStruct
     {
@@ -683,6 +673,9 @@ namespace OpenMS
       }
     };
 
+  protected:
+    void updateMembers_() override;
+
   private:
     /// method for builiding Feature Hypotheses
     void buildFeatureHypotheses_(std::vector<MassTrace>& input_mtraces,
@@ -750,14 +743,12 @@ namespace OpenMS
     double local_mz_range_;
     int charge_lower_bound_;
     int charge_upper_bound_;
-    double mass_lower_bound_;
-    double mass_upper_bound_;
-    Size max_nr_traces_; // calculated from iso_model_ (FeatureFindingIntact::setAveragineModel())
+    double min_mass_;
+    double max_mass_;
     bool use_smoothed_intensities_;
     const double mass_tolerance_ = 1.5; // Da, for feature mass collection
 
+    Size max_nr_traces_; // calculated from iso_model_ (FeatureFindingIntact::setAveragineModel())
     PrecalculatedAveragine iso_model_;
-
-
   };
 }

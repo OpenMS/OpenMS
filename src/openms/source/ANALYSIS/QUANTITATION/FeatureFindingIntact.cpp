@@ -45,12 +45,39 @@
 namespace OpenMS
 {
   FeatureFindingIntact::FeatureFindingIntact():
-      ProgressLogger()
+      ProgressLogger(),
+      DefaultParamHandler("FeatureFindingIntact")
   {
+    defaults_.setValue("local_rt_range", 15.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced"));
+    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // (-> decides size of isotopes =(local_mz_range_ * lowest_charge))
+    defaults_.setValue("charge_lower_bound", 5, "Lowest charge state to consider");
+    defaults_.setValue("charge_upper_bound", 50, "Highest charge state to consider");
+    defaults_.setValue("min_mass", 10000, "minimim mass");
+    defaults_.setValue("max_mass", 70000, "maximum mass");
+
+    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("use_smoothed_intensities", ListUtils::create<String>("false,true"));
+
+    defaultsToParam_();
+
     this->setLogType(CMD);
   }
 
   FeatureFindingIntact::~FeatureFindingIntact(){}
+
+  void FeatureFindingIntact::updateMembers_()
+  {
+    local_rt_range_ = (double)param_.getValue("local_rt_range");
+    local_mz_range_ = (double)param_.getValue("local_mz_range");
+
+    charge_lower_bound_ = (Size)param_.getValue("charge_lower_bound");
+    charge_upper_bound_ = (Size)param_.getValue("charge_upper_bound");
+
+    min_mass_ = (double)param_.getValue("min_mass");
+    max_mass_ = (double)param_.getValue("max_mass");
+
+    use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
+  }
 
   void getCoordinatesOfFeaturesForPython(std::vector<FeatureFindingIntact::FeatureHypothesis> hypo)
   {
@@ -108,6 +135,57 @@ namespace OpenMS
     out.close();
   }
 
+  void getCoordinatesOfClusterForPython(std::vector<FeatureFindingIntact::FeatureHypothesis> hypo, ofstream& out, String& cluster_name)
+  {
+    for (const auto& feat : hypo)
+    {
+      double mz_upper_limit = 0.0;
+      double rt_upper_limit  = 0.0;
+      double mz_lower_limit = std::numeric_limits<double>::max();
+      double rt_lower_limit = std::numeric_limits<double>::max();
+      stringstream rts;
+      stringstream mzs;
+      double quant(0.0);
+      for (const auto& mt : feat.getMassTraces())
+      {
+        const auto& boundingbox = mt->getConvexhull().getBoundingBox();
+
+        if (boundingbox.minX() < rt_lower_limit)
+          rt_lower_limit = boundingbox.minX();
+        if (boundingbox.maxX() > rt_upper_limit)
+          rt_upper_limit = boundingbox.maxX();
+        if (boundingbox.minY() < mz_lower_limit)
+          mz_lower_limit = boundingbox.minY();
+        if (boundingbox.maxY() > mz_upper_limit)
+          mz_upper_limit = boundingbox.maxY();
+
+        mzs << mt->getCentroidMZ() << ",";
+        rts << mt->getCentroidRT() << ",";
+
+        quant += mt->computePeakArea();
+      }
+      std::string centroids = rts.str();
+      centroids.pop_back();
+      centroids = centroids + "\t" + mzs.str();
+      centroids.pop_back();
+
+      stringstream isos;
+      for (const auto& pair : feat.getIndicesOfMassTraces())
+      {
+        isos << pair.first << ",";
+      }
+      std::string iso_str = isos.str();
+      iso_str.pop_back();
+
+      String label = std::to_string(feat.getFeatureMass()) + "\t" + std::to_string(feat.getCharge());
+      out << label << "\t" << to_string(feat.getScore()) << "\t" << std::to_string(quant) << "\t"
+          << to_string(rt_lower_limit) << "," << to_string(mz_lower_limit) << "\t"
+          << to_string((rt_upper_limit-rt_lower_limit)) << "\t" << to_string((mz_upper_limit-mz_lower_limit)) << "\t"
+          << iso_str << "\t" << centroids
+          << "\t" << cluster_name << "\n";
+    }
+  }
+
   void drawSharedMasstracesBetweenFeatures(vector<FeatureFindingIntact::FeatureHypothesis>& hypotheses,
                                            const std::vector<std::vector<Size>>& shared_m_traces_indices)
   {
@@ -151,35 +229,44 @@ namespace OpenMS
 
   }
 
-  void getFeatureMassDistributions(std::map<double, FeatureFindingIntact::DeconvMassStruct>& deconv_masses,
-                                   vector<FeatureFindingIntact::FeatureHypothesis>& hypotheses)
+  void writeDeconvMassStructsInFile(std::map<double, FeatureFindingIntact::DeconvMassStruct>& deconv_masses,
+                                    vector<FeatureFindingIntact::FeatureHypothesis>& hypotheses,
+                                    std::string out_path)
   {
+    ofstream out;
+    out.open(out_path, ios::out);
+
     // header
-    OPENMS_LOG_INFO << "feature_mass\t#features\t#charges\tcharges\tmasses\trts" << endl;
+    out << "mono_mass\t#features\tscore\tquant_value\tcharges\tfwhm_start\tfwhm_end\n";
 
-    for (auto& node : deconv_masses)
+    for (auto& m : deconv_masses)
     {
-      std::string charges_str = "";
-      std::string masses_str = "";
-      std::string rts_str = "";
-
-      for (auto& f : node.second.feature_idx)
+      double q = m.second.quant_values;
+      if (q==0.0)
       {
-        auto& tmp_f = hypotheses[f];
-        charges_str += to_string(tmp_f.getCharge()) + ", ";
-        masses_str += to_string(tmp_f.getFeatureMass()) + ", ";
-        rts_str += "[" + to_string(tmp_f.getRTRange().first) + ", " + to_string(tmp_f.getRTRange().second) + "], ";
+        for(auto& idx : m.second.feature_idx)
+        {
+          q += hypotheses[idx].computeQuant();
+        }
       }
-      charges_str.erase(charges_str.length()-2);
-      masses_str.erase(masses_str.length()-2);
-      rts_str.erase(rts_str.length()-2);
 
-      OPENMS_LOG_INFO << to_string(node.first) << "\t" << node.second.feature_masses.size() << "\t" << node.second.charges.size() << "\t"
-                      << charges_str << "\t" << masses_str << "\t" << rts_str << "\n";
+      out << to_string(m.first) << "\t" << m.second.feature_idx.size() << "\t" << to_string(m.second.combined_score)
+          << "\t" << to_string(q)<< "\t";
+
+      std::string charges= "";
+      for (auto& c : m.second.charges)
+      {
+        charges += to_string(c) + ",";
+      }
+      charges.pop_back();
+
+      out << charges << "\t" << to_string(m.second.fwhm_border.first) << "\t" << to_string(m.second.fwhm_border.second) << "\n";
     }
+
+    out.close();
   }
 
-  void FeatureFindingIntact::run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap)
+  void FeatureFindingIntact::run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap, String in_file_path)
   {
     // *********************************************************** //
     // Step 1 building FeatureHypotheses
@@ -202,7 +289,10 @@ namespace OpenMS
     }
 
     buildFeatureHypotheses_(input_mtraces, feat_hypos, shared_m_traces_indices, deconv_masses);
-//    drawSharedMasstracesBetweenFeatures(feat_hypos, shared_m_traces_indices);
+
+    Size last_index = in_file_path.find_last_of(".");
+    String d_file_path = in_file_path.substr(0, last_index) + ".FMafterBuilding.tsv";
+    writeDeconvMassStructsInFile(deconv_masses, feat_hypos, d_file_path);
 
     // *********************************************************** //
     // Step 2 clustering FeatureHypotheses
@@ -210,6 +300,8 @@ namespace OpenMS
 //    getCoordinatesOfFeaturesForPython(feat_hypos);
     clusterFeatureHypotheses_(feat_hypos, shared_m_traces_indices, deconv_masses);
 
+    d_file_path = in_file_path.substr(0, last_index) + ".FMafterClustering.tsv";
+    writeDeconvMassStructsInFile(deconv_masses, feat_hypos, d_file_path);
     // *********************************************************** //
     // Step 3 resolving conflicts
     // *********************************************************** //
@@ -295,25 +387,6 @@ namespace OpenMS
     removeMassArtifacts_(candidate_hypotheses, deconv_masses);
     OPENMS_LOG_INFO << "mass artifacts removed!" << std::endl;
 
-
-//    for (auto& m : deconv_masses)
-//    {
-//      if (m.second.charges.size()<2) continue;
-//
-//      OPENMS_LOG_INFO << to_string(m.first) << "\t" << m.second.feature_idx.size() << "\t" << to_string(m.second.combined_score);
-//
-//      std::string charges= "";
-//      for (auto& c : m.second.charges)
-//      {
-//        charges += to_string(c) + ",";
-//      }
-//      charges.pop_back();
-//
-//      OPENMS_LOG_INFO << "\t" << charges << "\t" << to_string(m.second.fwhm_border.first) << "\t" << to_string(m.second.fwhm_border.second) << "\n";
-//    }
-
-//    getFeatureMassDistributions(deconv_masses, candidate_hypotheses);
-
     // *********************************************************** //
     // Step 4 connect hypothesis and corresponding mass traces - for clustering afterwards
     // *********************************************************** //
@@ -389,7 +462,7 @@ namespace OpenMS
       fh_tmp.addMassTraceScore(mono_mt_score);
       fh_tmp.setCharge(charge);
       double mol_weight = (candidates[0].first->getCentroidMZ()-Constants::PROTON_MASS_U) * charge;
-      if (mol_weight > mass_upper_bound_)
+      if (mol_weight > max_mass_)
         break;
       fh_tmp.setFeatureMass(mol_weight);
 
@@ -789,11 +862,11 @@ namespace OpenMS
   void FeatureFindingIntact::setAveragineModel_()
   {
     auto generator = new CoarseIsotopePatternGenerator();
-    auto maxIso = generator->estimateFromPeptideWeight(mass_upper_bound_);
+    auto maxIso = generator->estimateFromPeptideWeight(max_mass_);
     maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
 
     generator->setMaxIsotope(maxIso.size());
-    iso_model_ = PrecalculatedAveragine(50, mass_upper_bound_, 25, generator);
+    iso_model_ = PrecalculatedAveragine(50, max_mass_, 25, generator);
     iso_model_.setMaxIsotopeIndex(maxIso.size() - 1);
 
     max_nr_traces_ = iso_model_.getMaxIsotopeIndex();
@@ -1203,75 +1276,6 @@ namespace OpenMS
     }
 
     OPENMS_LOG_INFO << "#final masses :" << deconv_masses.size() << endl;
-
-    for (auto& m : deconv_masses)
-    {
-      if (m.second.charges.size()<2) continue;
-
-      OPENMS_LOG_INFO << to_string(m.first) << "\t" << m.second.feature_idx.size() << "\t" << to_string(m.second.combined_score)
-                      << "\t" << to_string(m.second.quant_values);
-
-      std::string charges= "";
-      for (auto& c : m.second.charges)
-      {
-        charges += to_string(c) + ",";
-      }
-      charges.pop_back();
-
-      OPENMS_LOG_INFO << "\t" << charges << "\t" << to_string(m.second.fwhm_border.first) << "\t" << to_string(m.second.fwhm_border.second) << "\n";
-    }
-
-  }
-
-  void getCoordinatesOfClusterForPython(std::vector<FeatureFindingIntact::FeatureHypothesis> hypo, ofstream& out, String& cluster_name)
-  {
-    for (const auto& feat : hypo)
-    {
-      double mz_upper_limit = 0.0;
-      double rt_upper_limit  = 0.0;
-      double mz_lower_limit = std::numeric_limits<double>::max();
-      double rt_lower_limit = std::numeric_limits<double>::max();
-      stringstream rts;
-      stringstream mzs;
-      double quant(0.0);
-      for (const auto& mt : feat.getMassTraces())
-      {
-        const auto& boundingbox = mt->getConvexhull().getBoundingBox();
-
-        if (boundingbox.minX() < rt_lower_limit)
-          rt_lower_limit = boundingbox.minX();
-        if (boundingbox.maxX() > rt_upper_limit)
-          rt_upper_limit = boundingbox.maxX();
-        if (boundingbox.minY() < mz_lower_limit)
-          mz_lower_limit = boundingbox.minY();
-        if (boundingbox.maxY() > mz_upper_limit)
-          mz_upper_limit = boundingbox.maxY();
-
-        mzs << mt->getCentroidMZ() << ",";
-        rts << mt->getCentroidRT() << ",";
-
-        quant += mt->computePeakArea();
-      }
-      std::string centroids = rts.str();
-      centroids.pop_back();
-      centroids = centroids + "\t" + mzs.str();
-      centroids.pop_back();
-
-      stringstream isos;
-      for (const auto& pair : feat.getIndicesOfMassTraces())
-      {
-        isos << pair.first << ",";
-      }
-      std::string iso_str = isos.str();
-      iso_str.pop_back();
-
-      String label = std::to_string(feat.getFeatureMass()) + "\t" + std::to_string(feat.getCharge());
-      out << label << "\t" << to_string(feat.getScore()) << "\t" << std::to_string(quant) << "\t"
-          << to_string(rt_lower_limit) << "," << to_string(mz_lower_limit) << "\t"
-          << to_string((rt_upper_limit-rt_lower_limit)) << "\t" << to_string((mz_upper_limit-mz_lower_limit)) << "\t"
-          << iso_str << "\t" << centroids
-          << "\t" << cluster_name << "\n";
-    }
   }
 
   void FeatureFindingIntact::resolveConflictInCluster_(const std::vector<FeatureHypothesis>& feat_hypo,
@@ -1286,9 +1290,7 @@ namespace OpenMS
     tmp_cluster.reserve(hypo_indices.size());
     for (const auto& h_index : hypo_indices)
     {
-//      feat_scores.push_back( feat_hypo[h_index].getScore() );
       tmp_cluster.push_back(std::make_pair(feat_hypo[h_index], h_index));
-
     }
     std::sort(tmp_cluster.rbegin(), tmp_cluster.rend());
 
@@ -1374,7 +1376,7 @@ namespace OpenMS
       std::sort(tmp_cluster.rbegin(), tmp_cluster.rend());
     }
 
-    getCoordinatesOfClusterForPython(collected_feats, out, cluster_name);
+//    getCoordinatesOfClusterForPython(collected_feats, out, cluster_name);
     out_features.insert(out_features.end(), collected_feats.begin(), collected_feats.end());
   }
 
@@ -1386,44 +1388,50 @@ namespace OpenMS
     if (curr_it->second.charges.size() < 3 || curr_it->second.feature_idx.size() < 3 || !(curr_it->second.hasContinuousCharges()) )
     {
       // check if similar mass exist in the map within tolerance
-      // TODO : WITH map iter!!!! with similar mass, but different border is possible (not adjacent ones)
+      map<double, DeconvMassStruct>::iterator low_it;
+      map<double, DeconvMassStruct>::iterator up_it;
 
-      auto new_it = curr_it; // reference for new location to save current mass
-      auto prev_it = std::prev(curr_it);
-      if( curr_it != deconv_masses.begin() && (curr_it->first - prev_it->first) <= mass_tolerance_
-          && doFWHMbordersOverlap(curr_it->second.fwhm_border, prev_it->second.fwhm_border))
+      low_it = deconv_masses.lower_bound(curr_it->first - mass_tolerance_); // less than or equal to
+      up_it = deconv_masses.upper_bound(curr_it->first + mass_tolerance_); // greater than
+
+      // no matching in deconv_masses map
+      if (low_it == up_it)
       {
-        new_it = prev_it;
+        curr_it = deconv_masses.erase(curr_it);
+        return;
       }
 
-      auto next_it = std::next(curr_it);
-      if ( next_it != deconv_masses.end() && (next_it->first - curr_it->first) <= mass_tolerance_
-           && doFWHMbordersOverlap(curr_it->second.fwhm_border, next_it->second.fwhm_border) )
+      double smallest_diff(mass_tolerance_);
+      auto selected_it = curr_it;
+      for (; low_it != up_it; ++low_it)
       {
-        if (new_it!=curr_it) // if both prev and next have similar mass to curr_it
+        // if curr_it itself or out of wanted RT range, ignore.
+        if(curr_it->first == low_it->first || !doFWHMbordersOverlap(curr_it->second.fwhm_border, low_it->second.fwhm_border))
         {
-          // the new location is up to which one is closer to curr_it
-          new_it = ( (curr_it->first-new_it->first) < (next_it->first-curr_it->first) ) ? new_it : next_it;
+          continue;
         }
-        else
+
+        double diff = std::fabs(low_it->first - curr_it->first);
+        if ( diff < smallest_diff )
         {
-          new_it = next_it;
+          selected_it = low_it;
+          smallest_diff = diff;
         }
       }
 
       // add features in current mass to new location
-      if (new_it != curr_it)
+      if (selected_it != curr_it)
       {
         for (auto& fidx : curr_it->second.feature_idx)
         {
           auto& feature = feat_hypotheses[fidx];
-          new_it->second.addFeatureHypothesis(feature.getFeatureMass(), feature.getCharge(), fidx,
+          selected_it->second.addFeatureHypothesis(feature.getFeatureMass(), feature.getCharge(), fidx,
                                               feature.getFwhmRange(), feature.getScore());
         }
         // update key of map if needed
-        if (new_it->second.updateDeconvMass())
+        if (selected_it->second.updateDeconvMass())
         {
-          auto curr_node = deconv_masses.extract(new_it->first);
+          auto curr_node = deconv_masses.extract(selected_it->first);
           curr_node.key() = curr_node.mapped().deconv_mass;
           deconv_masses.insert(move(curr_node));
         }
