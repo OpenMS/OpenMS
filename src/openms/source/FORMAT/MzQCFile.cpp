@@ -172,9 +172,9 @@ namespace OpenMS
       };
 
     // Number of MS1 spectra
-    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000059", "Number of MS1 spectra", counts[0]);
+    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000059", "Number of MS1 spectra", counts[1]);
     // Number of MS2 spectra
-    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000060", "Number of MS2 spectra", counts[1]);
+    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000060", "Number of MS2 spectra", counts[2]);
     // Number of chromatograms"
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000135", "Number of chromatograms", exp.getChromatograms().size());
     // Run time (RT duration)
