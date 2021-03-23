@@ -82,13 +82,12 @@ END_SECTION
 
 START_SECTION((void configure(const Param &param)))
 {
-  std::vector<std::string> settings;
-  settings.push_back("INFO add testing_info_warn_stream STRING");
-  settings.push_back("WARNING add testing_info_warn_stream STRING");
-  settings.push_back("ERROR add only_error_string_stream STRING");
-  settings.push_back("INFO remove cout FILE");
-  settings.push_back("WARNING remove cout");
-  settings.push_back("ERROR remove cerr FILE");
+  std::vector<std::string> settings = {"INFO add testing_info_warn_stream STRING",
+                                      "WARNING add testing_info_warn_stream STRING",
+                                      "ERROR add only_error_string_stream STRING",
+                                      "INFO remove cout FILE",
+                                      "WARNING remove cout",
+                                      "ERROR remove cerr FILE"};
 
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");

@@ -76,7 +76,7 @@ p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
-p.addTags("test:float", ListUtils::create<std::string>("a,b,c"));
+p.addTags("test:float", {"a","b","c"});
 
 START_SECTION((void store(const String& filename, const Param& param) const))
   ParamXMLFile paramFile;
@@ -86,7 +86,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p2.setValue("test:b:b1", 47.1);
 	p2.setSectionDescription("test:b","bdesc\"<>\nnewline");
 	p2.setValue("test2:a:a1", 47.1);
-	p2.setValue("test2:b:b1", 47.1,"",ListUtils::create<std::string>("advanced"));
+	p2.setValue("test2:b:b1", 47.1,"",{"advanced"});
 	p2.setSectionDescription("test2:a","adesc");
 
 	//exception
@@ -119,7 +119,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	//advanced
 	NEW_TMP_FILE(filename);
 	Param p7;
-	p7.setValue("true",5,"",ListUtils::create<std::string>("advanced"));
+	p7.setValue("true",5,"",{"advanced"});
 	p7.setValue("false",5,"");
 
 	paramFile.store(filename,p7);
@@ -159,11 +159,9 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p5.setValidStrings("string_2",strings);
 
 		//list restrictions
-	vector<std::string> strings2;
-	strings2.push_back("xml");
-	strings2.push_back("txt");
-	p5.setValue("stringlist2",ListUtils::create<std::string>("a.txt,b.xml,c.pdf"));
-	p5.setValue("stringlist",ListUtils::create<std::string>("aa.C,bb.h,c.doxygen"));
+	vector<std::string> strings2 = {"xml", "txt"};
+	p5.setValue("stringlist2",std::vector<std::string>{"a.txt","b.xml","c.pdf"});
+	p5.setValue("stringlist",std::vector<std::string>{"aa.C","bb.h","c.doxygen"});
 	p5.setValidStrings("stringlist2",strings2);
 
 	p5.setValue("intlist",ListUtils::create<Int>("2,5,10"));
@@ -249,21 +247,21 @@ END_SECTION
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))
 {
 	Param p;
-	p.setValue("stringlist", ListUtils::create<std::string>("a,bb,ccc"), "StringList Description");
+	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"}, "StringList Description");
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
-	p.setValue("stringlist2", ListUtils::create<std::string>(""));
+	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
-	p.setValue("stringlist3", ListUtils::create<std::string>("1"));
+	p.setValue("stringlist3", std::vector<std::string>{"1"});
 	p.setValue("item3", 7.6);
 	p.setValue("doublelist", ListUtils::create<double>("1.22,2.33,4.55"));
 	p.setValue("doublelist3", ListUtils::create<double>("1.4"));
   p.setValue("file_parameter", "", "This is a file parameter.");
   p.addTag("file_parameter", "input file");
-  p.setValidStrings("file_parameter", ListUtils::create<std::string>("*.mzML,*.mzXML"));
-  p.setValue("advanced_parameter", "", "This is an advanced parameter.", ListUtils::create<std::string>("advanced"));
+  p.setValidStrings("file_parameter", std::vector<std::string>{"*.mzML","*.mzXML"});
+  p.setValue("advanced_parameter", "", "This is an advanced parameter.", {"advanced"});
   p.setValue("flag", "false", "This is a flag i.e. in a command line input it does not need a value.");
   p.setValidStrings("flag",{"true","false"});
   p.setValue("noflagJustTrueFalse", "true", "This is not a flag but has a boolean meaning.");
@@ -282,14 +280,14 @@ START_SECTION([EXTRA] loading and storing of lists)
   ParamXMLFile paramFile;
 
 	Param p;
-	p.setValue("stringlist", ListUtils::create<std::string>("a,bb,ccc"));
+	p.setValue("stringlist", std::vector<std::string>{"a","bb","ccc"});
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
-	p.setValue("stringlist2", ListUtils::create<std::string>(""));
+	p.setValue("stringlist2", std::vector<std::string>());
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
-	p.setValue("stringlist3", ListUtils::create<std::string>("1"));
+	p.setValue("stringlist3", std::vector<std::string>{"1"});
 	p.setValue("item3", 7.6);
 	p.setValue("doublelist", ListUtils::create<double>("1.22,2.33,4.55"));
 	p.setValue("doublelist2", ListUtils::create<double>(""));

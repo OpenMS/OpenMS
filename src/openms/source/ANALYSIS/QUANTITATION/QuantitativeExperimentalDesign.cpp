@@ -58,7 +58,7 @@ namespace OpenMS
     defaults_.setValue("designer:file", "File", "Identifier for the file name.");
 
     defaults_.setValue("designer:separator", "tab", "Separator, which should be used to split a row into columns");
-    defaults_.setValidStrings("designer:separator", ListUtils::create<std::string>("tab,semi-colon,comma,whitespace"));
+    defaults_.setValidStrings("designer:separator", {"tab","semi-colon","comma","whitespace"});
 
     defaults_.setSectionDescription("designer", "Additional options for quantitative experimental design");
 

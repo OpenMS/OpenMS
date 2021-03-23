@@ -101,17 +101,17 @@ void TMTElevenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C).");
     defaults_.setValidStrings("reference_channel", TMTElevenPlexQuantitationMethod::channel_names_);
 
-    defaults_.setValue("correction_matrix", ListUtils::create<std::string>("0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0,"
-                                                                      "0.0/0.0/0.0/0.0"),
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0",
+                                                                              "0.0/0.0/0.0/0.0"},
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();

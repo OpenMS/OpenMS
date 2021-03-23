@@ -46,7 +46,7 @@ SimpleSVM::SimpleSVM():
   DefaultParamHandler("SimpleSVM"), data_(), model_(nullptr)
 {
   defaults_.setValue("kernel", "RBF", "SVM kernel");
-  defaults_.setValidStrings("kernel", ListUtils::create<std::string>("RBF,linear"));
+  defaults_.setValidStrings("kernel", {"RBF","linear"});
 
   defaults_.setValue("xval", 5, "Number of partitions for cross-validation (parameter optimization)");
   defaults_.setMinInt("xval", 1);
@@ -68,7 +68,7 @@ SimpleSVM::SimpleSVM():
   defaults_.setValue("no_shrinking", "false",
                      "Disable the shrinking heuristics", advanced);
   defaults_.setValidStrings("no_shrinking",
-                            ListUtils::create<std::string>("true,false"));
+                            {"true","false"});
 
   defaultsToParam_();
 

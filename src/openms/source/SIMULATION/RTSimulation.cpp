@@ -87,11 +87,11 @@ namespace OpenMS
   void RTSimulation::setDefaultParams_()
   {
     defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
-    defaults_.setValidStrings("rt_column", ListUtils::create<std::string>("none,HPLC,CE"));
+    defaults_.setValidStrings("rt_column", {"none","HPLC","CE"});
 
     // scaling
     defaults_.setValue("auto_scale", "true", "Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
-    defaults_.setValidStrings("auto_scale", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("auto_scale", {"true","false"});
 
     // column settings
     defaults_.setValue("total_gradient_time", 2500.0, "The duration [s] of the gradient.");

@@ -52,7 +52,7 @@ namespace OpenMS
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
 
     defaults_.setValue("fragment_mass_unit", "Da", "Unit of fragment mass tolerance");
-    defaults_.setValidStrings("fragment_mass_unit", ListUtils::create<std::string>("Da,ppm"));
+    defaults_.setValidStrings("fragment_mass_unit", {"Da","ppm"});
 
     vector<std::string> advanced(1, "advanced"); // tag for advanced parameters
 

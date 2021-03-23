@@ -42,7 +42,7 @@ namespace OpenMS
     DefaultParamHandler("Normalizer")
   {
     defaults_.setValue("method", "to_one", "Normalize via dividing by TIC ('to_TIC') per spectrum or normalize to max. intensity of one ('to_one') per spectrum.");
-    defaults_.setValidStrings("method", ListUtils::create<std::string>("to_one,to_TIC"));
+    defaults_.setValidStrings("method", {"to_one","to_TIC"});
     defaultsToParam_();
   }
 

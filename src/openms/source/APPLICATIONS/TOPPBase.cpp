@@ -2078,7 +2078,7 @@ namespace OpenMS
     }
 
     // set tool version
-    tmp.setValue(tool_name_ + ":version", version_, "Version of the tool that generated this parameters file.", ListUtils::create<std::string>("advanced"));
+    tmp.setValue(tool_name_ + ":version", version_, "Version of the tool that generated this parameters file.", {"advanced"});
 
     // Descriptions
     tmp.setSectionDescription(tool_name_, tool_description_);

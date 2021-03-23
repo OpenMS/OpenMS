@@ -60,8 +60,8 @@ namespace OpenMS
     ProgressLogger(), DefaultParamHandler("MascotGenericFile"), mod_group_map_()
   {
     defaults_.setValue("database", "MSDB", "Name of the sequence database");
-    defaults_.setValue("search_type", "MIS", "Name of the search type for the query", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("search_type", ListUtils::create<std::string>("MIS,SQ,PMF"));
+    defaults_.setValue("search_type", "MIS", "Name of the search type for the query", {"advanced"});
+    defaults_.setValidStrings("search_type", {"MIS","SQ","PMF"});
     defaults_.setValue("enzyme", "Trypsin", "The enzyme descriptor to the enzyme used for digestion. (Trypsin is default, None would be best for peptide input or unspecific digestion, for more please refer to your mascot server).");
     defaults_.setValue("instrument", "Default", "Instrument definition which specifies the fragmentation rules");
     defaults_.setValue("missed_cleavages", 1, "Number of missed cleavages allowed for the enzyme");
@@ -69,48 +69,48 @@ namespace OpenMS
     defaults_.setValue("precursor_mass_tolerance", 3.0, "Tolerance of the precursor peaks");
     defaults_.setMinFloat("precursor_mass_tolerance", 0.0);
     defaults_.setValue("precursor_error_units", "Da", "Units of the precursor mass tolerance");
-    defaults_.setValidStrings("precursor_error_units", ListUtils::create<std::string>("%,ppm,mmu,Da"));
+    defaults_.setValidStrings("precursor_error_units", {"%","ppm","mmu","Da"});
     defaults_.setValue("fragment_mass_tolerance", 0.3, "Tolerance of the peaks in the fragment spectrum");
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
     defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance");
-    defaults_.setValidStrings("fragment_error_units", ListUtils::create<std::string>("mmu,Da"));
+    defaults_.setValidStrings("fragment_error_units", {"mmu","Da"});
     defaults_.setValue("charges", "1,2,3", "Charge states to consider, given as a comma separated list of integers (only used for spectra without precursor charge information)");
     defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
-    defaults_.setValue("fixed_modifications", ListUtils::create<std::string>(""), "List of fixed modifications, according to UniMod definitions.");
+    defaults_.setValue("fixed_modifications", std::vector<std::string>(), "List of fixed modifications, according to UniMod definitions.");
     defaults_.setValidStrings("fixed_modifications", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("variable_modifications", ListUtils::create<std::string>(""), "Variable modifications given as UniMod definitions.");
+    defaults_.setValue("variable_modifications", std::vector<std::string>(), "Variable modifications given as UniMod definitions.");
     defaults_.setValidStrings("variable_modifications", ListUtils::create<std::string>(all_mods));
 
     // special modifications, see "updateMembers_" method below:
-    defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", {"advanced"});
     // list from Mascot 2.4; there's also "Phospho (STY)", but that can be
     // represented using "Phospho (ST)" and "Phospho (Y)"
 
     defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
-    defaults_.setValidStrings("mass_type", ListUtils::create<std::string>("monoisotopic,average"));
+    defaults_.setValidStrings("mass_type", {"monoisotopic","average"});
     defaults_.setValue("number_of_hits", 0, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
     defaults_.setMinInt("number_of_hits", 0);
     defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
-    defaults_.setValidStrings("skip_spectrum_charges", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("skip_spectrum_charges", {"true","false"});
     defaults_.setValue("decoy", "false", "Set to true if mascot should generate the decoy database.");
-    defaults_.setValidStrings("decoy", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("decoy", {"true","false"});
 
-    defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", {"advanced"});
+    defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", {"advanced"});
     defaults_.setValue("email", "", "Sets the email which is mentioned in the results file. Note: Some server require that a proper email is provided.");
 
     // the next section should not be shown to TOPP users
     Param p;
-    p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", ListUtils::create<std::string>("advanced"));
-    p.setValidStrings("format", ListUtils::create<std::string>("Mascot generic,mzData (.XML),mzML (.mzML)")); // Mascot's HTTP interface supports more, but we don't :)
-    p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", ListUtils::create<std::string>("advanced"));
-    p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", ListUtils::create<std::string>("advanced"));
-    p.setValidStrings("HTTP_format", ListUtils::create<std::string>("true,false"));
-    p.setValue("content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", ListUtils::create<std::string>("advanced"));
-    p.setValidStrings("content", ListUtils::create<std::string>("all,peaklist_only,header_only"));
+    p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", {"advanced"});
+    p.setValidStrings("format", {"Mascot generic","mzData (.XML)","mzML (.mzML)"}); // Mascot's HTTP interface supports more, but we don't :)
+    p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", {"advanced"});
+    p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", {"advanced"});
+    p.setValidStrings("HTTP_format", {"true","false"});
+    p.setValue("content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", {"advanced"});
+    p.setValidStrings("content", {"all","peaklist_only","header_only"});
     defaults_.insert("internal:", p);
 
     defaultsToParam_();

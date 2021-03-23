@@ -177,13 +177,13 @@ namespace OpenMS
     defaults_.setMinFloat("min_precursor_intensity", 0.0);
 
     defaults_.setValue("keep_unannotated_precursor", "true", "Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.");
-    defaults_.setValidStrings("keep_unannotated_precursor", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("keep_unannotated_precursor", {"true","false"});
 
     defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intensity of the individual reporter ions to be extracted.");
     defaults_.setMinFloat("min_reporter_intensity", 0.0);
 
     defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in 'min_reporter_intensity'.");
-    defaults_.setValidStrings("discard_low_intensity_quantifications", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("discard_low_intensity_quantifications", {"true","false"});
 
     defaults_.setValue("min_precursor_purity", 0.0, "Minimum fraction of the total intensity in the isolation window of the precursor spectrum attributable to the selected precursor.");
     defaults_.setMinFloat("min_precursor_purity", 0.0);
@@ -194,7 +194,7 @@ namespace OpenMS
     defaults_.addTag("precursor_isotope_deviation", "advanced");
 
     defaults_.setValue("purity_interpolation", "true", "If set to true the algorithm will try to compute the purity as a time weighted linear combination of the precursor scan and the following scan. If set to false, only the precursor scan will be used.");
-    defaults_.setValidStrings("purity_interpolation", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("purity_interpolation", {"true","false"});
     defaults_.addTag("purity_interpolation", "advanced");
 
     defaultsToParam_();

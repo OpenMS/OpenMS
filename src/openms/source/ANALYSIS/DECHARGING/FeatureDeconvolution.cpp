@@ -115,14 +115,14 @@ namespace OpenMS
     defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
 
     defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
-    defaults_.setValidStrings("q_try", ListUtils::create<std::string>("feature,heuristic,all"));
+    defaults_.setValidStrings("q_try", {"feature","heuristic","all"});
 
     defaults_.setValue("retention_max_diff", 1.0, "Maximum allowed RT difference between any two features if their relation shall be determined");
     defaults_.setValue("retention_max_diff_local", 1.0, "Maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
 
     defaults_.setValue("mass_max_diff", 0.5, "Maximum allowed mass difference [in Th] for a single feature.");
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
-    defaults_.setValue("potential_adducts", ListUtils::create<std::string>("K:+:0.1"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge, e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
+    defaults_.setValue("potential_adducts", std::vector<std::string>{"K:+:0.1"}, "Adducts used to explain mass differences in format: 'Element:Charge(+/-):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge, e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 0, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("max_minority_bound", 2, "Maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant. E.g. setting this to 2 will not allow an adduct composition of '1(H+),3(Na+)' if Na+ is the least probable adduct");
@@ -133,13 +133,13 @@ namespace OpenMS
     defaults_.setMaxFloat("min_rt_overlap", 1);
 
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
-    defaults_.setValidStrings("intensity_filter", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("intensity_filter", {"true","false"});
 
     defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");    
 
-    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", {"advanced"});
 
-    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", {"advanced"});
     defaults_.setMinInt("verbose_level", 0);
     defaults_.setMaxInt("verbose_level", 3);
 

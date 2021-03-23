@@ -48,16 +48,16 @@ namespace OpenMS
     alphabet_(nullptr),
     decomposer_(nullptr)
   {
-    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", {"advanced"});
     defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("fixed_modifications", ListUtils::create<std::string>(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValue("fixed_modifications", std::vector<std::string>(), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
     defaults_.setValidStrings("fixed_modifications", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("variable_modifications", ListUtils::create<std::string>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValue("variable_modifications", std::vector<std::string>(), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
     defaults_.setValidStrings("variable_modifications", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", {"advanced"});
     set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
     vector<std::string> valid_strings;
     for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)

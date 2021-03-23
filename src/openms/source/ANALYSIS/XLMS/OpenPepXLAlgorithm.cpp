@@ -66,12 +66,12 @@ using namespace OpenMS;
     : DefaultParamHandler("OpenPepXLAlgorithm")
   {
     defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
-    std::vector<std::string> bool_strings = ListUtils::create<std::string>("true,false");
+    std::vector<std::string> bool_strings = {"true","false"};
     defaults_.setValue("decoy_prefix", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
     defaults_.setValidStrings("decoy_prefix", bool_strings);
 
     defaults_.setValue("precursor:mass_tolerance", 10.0, "Width of precursor mass tolerance window");
-    std::vector<std::string> mass_tolerance_unit_valid_strings = ListUtils::create<std::string>("ppm,Da");
+    std::vector<std::string> mass_tolerance_unit_valid_strings = {"ppm","Da"};
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", mass_tolerance_unit_valid_strings);
     defaults_.setValue("precursor:min_charge", 2, "Minimum precursor charge to be considered.");
@@ -88,9 +88,9 @@ using namespace OpenMS;
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
-    defaults_.setValue("modifications:fixed", ListUtils::create<std::string>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
-    defaults_.setValue("modifications:variable", ListUtils::create<std::string>("Oxidation (M)", ','), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 3, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Peptide modification settings");
@@ -104,8 +104,8 @@ using namespace OpenMS;
     defaults_.setValidStrings("peptide:enzyme", ListUtils::create<std::string>(all_enzymes));
     defaults_.setSectionDescription("peptide", "Settings for digesting proteins into peptides");
 
-    defaults_.setValue("cross_linker:residue1", ListUtils::create<std::string>("K,N-term"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to");
-    defaults_.setValue("cross_linker:residue2", ListUtils::create<std::string>("K,N-term"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to");
+    defaults_.setValue("cross_linker:residue1", std::vector<std::string>{"K","N-term"}, "Comma separated residues, that the first side of a bifunctional cross-linker can attach to");
+    defaults_.setValue("cross_linker:residue2", std::vector<std::string>{"K","N-term"}, "Comma separated residues, that the second side of a bifunctional cross-linker can attach to");
     defaults_.setValue("cross_linker:mass_light", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides");
     defaults_.setValue("cross_linker:mass_iso_shift", 12.075321, "Mass of the isotopic shift between the light and heavy linkers");
     defaults_.setValue("cross_linker:mass_mono_link", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide");
@@ -113,18 +113,18 @@ using namespace OpenMS;
     defaults_.setSectionDescription("cross_linker", "Description of the cross-linker reagent");
 
     defaults_.setValue("algorithm:number_top_hits", 1, "Number of top hits reported for each spectrum pair");
-    std::vector<std::string> deisotope_strings = ListUtils::create<std::string>("true,false,auto");
-    defaults_.setValue("algorithm:deisotope", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", ListUtils::create<std::string>("advanced"));
+    std::vector<std::string> deisotope_strings = {"true","false","auto"};
+    defaults_.setValue("algorithm:deisotope", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", {"advanced"});
     defaults_.setValidStrings("algorithm:deisotope", deisotope_strings);
     defaults_.setSectionDescription("algorithm", "Additional algorithm settings");
 
-    defaults_.setValue("ions:b_ions", "true", "Search for peaks of b-ions.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ions:y_ions", "true", "Search for peaks of y-ions.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ions:a_ions", "false", "Search for peaks of a-ions.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ions:x_ions", "false", "Search for peaks of x-ions.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ions:c_ions", "false", "Search for peaks of c-ions.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ions:z_ions", "false", "Search for peaks of z-ions.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ions:neutral_losses", "true", "Search for neutral losses of H2O and H3N.", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("ions:b_ions", "true", "Search for peaks of b-ions.", {"advanced"});
+    defaults_.setValue("ions:y_ions", "true", "Search for peaks of y-ions.", {"advanced"});
+    defaults_.setValue("ions:a_ions", "false", "Search for peaks of a-ions.", {"advanced"});
+    defaults_.setValue("ions:x_ions", "false", "Search for peaks of x-ions.", {"advanced"});
+    defaults_.setValue("ions:c_ions", "false", "Search for peaks of c-ions.", {"advanced"});
+    defaults_.setValue("ions:z_ions", "false", "Search for peaks of z-ions.", {"advanced"});
+    defaults_.setValue("ions:neutral_losses", "true", "Search for neutral losses of H2O and H3N.", {"advanced"});
     defaults_.setValidStrings("ions:b_ions", bool_strings);
     defaults_.setValidStrings("ions:y_ions", bool_strings);
     defaults_.setValidStrings("ions:a_ions", bool_strings);

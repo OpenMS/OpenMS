@@ -75,10 +75,10 @@ namespace OpenMS
 //    {0.0, 2.0, 5.6, 0.1},
 //    {0.0, 3.0, 4.5, 0.1},
 //    {0.1, 4.0, 3.5, 0.1}    //117
-    defaults_.setValue("correction_matrix", ListUtils::create<std::string>("0.0/1.0/5.9/0.2,"
-                                                               "0.0/2.0/5.6/0.1,"
-                                                               "0.0/3.0/4.5/0.1,"
-                                                               "0.1/4.0/3.5/0.1"),
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/1.0/5.9/0.2",
+                                                                               "0.0/2.0/5.6/0.1",
+                                                                               "0.0/3.0/4.5/0.1",
+                                                                               "0.1/4.0/3.5/0.1"},
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();

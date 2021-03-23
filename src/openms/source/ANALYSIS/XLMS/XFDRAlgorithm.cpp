@@ -52,7 +52,7 @@ using namespace OpenMS;
     defaults_.setValue(param_minionsmatched_, 0, "Filter for minimum matched ions per peptide.");
     defaults_.setMinInt(param_minionsmatched_, 0);
 
-    std::vector<std::string> bool_strings = ListUtils::create<std::string>("true,false");
+    std::vector<std::string> bool_strings = {"true","false"};
 
     defaults_.setValue(param_uniquexl_, "false", "Calculate statistics based only on unique IDs. For a set of IDs from equal candidates (same pair of peptides, modifications and cross-linked positions), only the highest scoring hit will be considered. By default the score distribution will be estimated using all 1st ranked candidates.");
     defaults_.setValidStrings(param_uniquexl_, bool_strings);

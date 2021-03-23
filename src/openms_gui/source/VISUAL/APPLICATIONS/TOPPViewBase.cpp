@@ -467,20 +467,20 @@ namespace OpenMS
   {
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-    defaults_.setValidStrings("preferences:default_map_view", ListUtils::create<std::string>("2d,3d"));
+    defaults_.setValidStrings("preferences:default_map_view", {"2d","3d"});
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
-    defaults_.setValidStrings("preferences:intensity_cutoff", ListUtils::create<std::string>("on,off"));
+    defaults_.setValidStrings("preferences:intensity_cutoff", {"on","off"});
     defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-    defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<std::string>("none,ask,update automatically"));
+    defaults_.setValidStrings("preferences:on_file_change", {"none","ask","update automatically"});
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("preferences:topp_cleanup", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms2", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms2", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms1", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms1", {"true","false"});
     // 1d view
     defaults_.insert("preferences:1d:", Plot1DCanvas(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:1d", "Settings for single spectrum view.");

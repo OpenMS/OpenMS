@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (features without ID's always match; only the best hit per peptide identification is considered).");
-    defaults_.setValidStrings("use_identifications", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("use_identifications", {"true","false"});
 
     defaults_.insert("", FeatureDistance().getDefaults());
 

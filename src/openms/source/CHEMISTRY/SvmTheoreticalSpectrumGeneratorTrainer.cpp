@@ -49,7 +49,7 @@ namespace OpenMS
     DefaultParamHandler("SvmTheoreticalSpectrumGeneratorTrainer")
   {
     defaults_.setValue("write_training_files", "false", "If set to true no models are trained but files (<Filename>_<ion_type>_training.dat) are produced for the selected primary ion types. They can be used as input for LibSVM command line tools");
-    defaults_.setValidStrings("write_training_files", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("write_training_files", {"true","false"});
 
     defaults_.setValue("number_intensity_levels", 7, "The number of intensity bins (for secondary type models)");
     defaults_.setValue("number_regions", 3, "The number of regions each spectrum is split to (for secondary type models)");
@@ -57,24 +57,24 @@ namespace OpenMS
     defaults_.setValue("peak_tolerance", 0.5, "The maximum mass error for a peak to the expected mass of some ion type");
 
     defaults_.setValue("add_b_ions", "true", "Train simulator for b-ions");
-    defaults_.setValidStrings("add_b_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_b_ions", {"true","false"});
     defaults_.setValue("add_y_ions", "true", "Train simulator for y-ions");
-    defaults_.setValidStrings("add_y_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_y_ions", {"true","false"});
     defaults_.setValue("add_a_ions", "false", "Train simulator for a-ions");
-    defaults_.setValidStrings("add_a_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_a_ions", {"true","false"});
     defaults_.setValue("add_c_ions", "false", "Train simulator for c-ions");
-    defaults_.setValidStrings("add_c_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_c_ions", {"true","false"});
     defaults_.setValue("add_x_ions", "false", "Train simulator for x-ions");
-    defaults_.setValidStrings("add_x_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_x_ions", {"true","false"});
     defaults_.setValue("add_z_ions", "false", "Train simulator for z-ions");
-    defaults_.setValidStrings("add_z_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_z_ions", {"true","false"});
 
     defaults_.setValue("add_losses", "false", "Train simulator for neutral losses of H2O and NH3 for b-ions and y-ions");
-    defaults_.setValidStrings("add_losses", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_losses", {"true","false"});
     defaults_.setValue("add_b2_ions", "false", "Train simulator for doubly charged b-ions");
-    defaults_.setValidStrings("add_b2_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_b2_ions", {"true","false"});
     defaults_.setValue("add_y2_ions", "false", "Train simulator for double charged y-ions");
-    defaults_.setValidStrings("add_y2_ions", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("add_y2_ions", {"true","false"});
 
     defaults_.setValue("svm:svc_type", 0, "Type of the SVC: 0=C_SVC 1=NU_SVC");
     defaults_.setMinInt("svm:svc_type", 0);
@@ -126,16 +126,16 @@ namespace OpenMS
     //defaults_.setMinInt("svm:cache_size",1);
 
     //defaults_.setValue("svm:shrinking", "true", "Perform shrinking");
-    //defaults_.setValidStrings("svm:shrinking", ListUtils::create<std::string>("true,false"));
+    //defaults_.setValidStrings("svm:shrinking", {"true","false"});
 
     defaults_.setValue("svm:scaling", "true", "Apply scaling of feature values");
-    defaults_.setValidStrings("svm:scaling", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("svm:scaling", {"true","false"});
 
     defaults_.setValue("svm:scaling_lower", 0.0, "Lower bound for scaling");
     defaults_.setValue("svm:scaling_upper", 1.0, "Upper bound for scaling");
 
     defaults_.setValue("svm:svc:balancing", "true", "Use class balanced SVC training");
-    defaults_.setValidStrings("svm:svc:balancing", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("svm:svc:balancing", {"true","false"});
 
     defaults_.setSectionDescription("svm", "Parameters controlling SVM trainig behaviour. All parameter names are chosen as in the libSVM library. Please refer to libSVM documentation for explanation");
     defaults_.setSectionDescription("svm:svc", "Parameters for svm - classification of missing/abundant");
@@ -145,10 +145,10 @@ namespace OpenMS
     defaults_.setMinInt("svm:n_fold", 1);
 
     defaults_.setValue("svm:grid", "false", "Perform grid search");
-    defaults_.setValidStrings("svm:grid", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("svm:grid", {"true","false"});
 
     defaults_.setValue("svm:additive_cv", "false", "Additive step size (if false multiplicative)");
-    defaults_.setValidStrings("svm:additive_cv", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("svm:additive_cv", {"true","false"});
 
     defaults_.setValue("svm:svc:degree_start", 1, "starting point of degree");
     defaults_.setMinInt("svm:svc:degree_start", 1);

@@ -54,7 +54,7 @@ namespace OpenMS
     setName(getProductName());
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
-    defaults_.setValidStrings("use_identifications", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("use_identifications", {"true","false"});
     defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
     defaults_.setMinInt("nr_partitions", 1);
 

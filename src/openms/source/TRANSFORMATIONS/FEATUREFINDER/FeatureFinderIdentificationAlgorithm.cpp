@@ -69,7 +69,7 @@ namespace OpenMS
 
     defaults_.setValue("candidates_out", "", "Optional output file with feature candidates.", output_file_tags);
 
-    defaults_.setValue("debug", 0, "Debug level for feature detection.", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("debug", 0, "Debug level for feature detection.", {"advanced"});
     defaults_.setMinInt("debug", 0);
 
     defaults_.setValue("extract:batch_size", 5000, "Nr of peptides used in each batch of chromatogram extraction."
@@ -83,14 +83,14 @@ namespace OpenMS
       "extract:isotope_pmin",
       0.0, 
       "Minimum probability for an isotope to be included in the assay for a peptide. If set, this parameter takes precedence over 'extract:n_isotopes'.",
-      ListUtils::create<std::string>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("extract:isotope_pmin", 0.0);
     defaults_.setMaxFloat("extract:isotope_pmin", 1.0);
     defaults_.setValue(
       "extract:rt_quantile", 
       0.95, 
       "Quantile of the RT deviations between aligned internal and external IDs to use for scaling the RT extraction window",
-      ListUtils::create<std::string>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("extract:rt_quantile", 0.0);
     defaults_.setMaxFloat("extract:rt_quantile", 1.0);
 
@@ -98,7 +98,7 @@ namespace OpenMS
       "extract:rt_window", 
       0.0, 
       "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
-      ListUtils::create<std::string>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
@@ -109,14 +109,14 @@ namespace OpenMS
       "detect:min_peak_width", 
       0.2, 
       "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.",
-      ListUtils::create<std::string>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("detect:min_peak_width", 0.0);
 
     defaults_.setValue(
       "detect:signal_to_noise", 
       0.8, 
       "Signal-to-noise threshold for OpenSWATH feature detection",
-       ListUtils::create<std::string>("advanced"));
+       {"advanced"});
     defaults_.setMinFloat("detect:signal_to_noise", 0.1);
     defaults_.setValue("detect:mapping_tolerance", 0.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.");
     defaults_.setMinFloat("detect:mapping_tolerance", 0.0);
@@ -127,13 +127,13 @@ namespace OpenMS
     defaults_.setValue("svm:samples", 0, "Number of observations to use for training ('0' for all)");
     defaults_.setMinInt("svm:samples", 0);
     defaults_.setValue("svm:no_selection", "false", "By default, roughly the same number of positive and negative observations, with the same intensity distribution, are selected for training. This aims to reduce biases, but also reduces the amount of training data. Set this flag to skip this procedure and consider all available observations (subject to 'svm:samples').");
-    defaults_.setValidStrings("svm:no_selection", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("svm:no_selection", {"true","false"});
     defaults_.setValue("svm:xval_out", "", "Output file: SVM cross-validation (parameter optimization) results", output_file_tags);
-    defaults_.setValidStrings("svm:xval_out", ListUtils::create<std::string>("csv"));
+    defaults_.setValidStrings("svm:xval_out", {"csv"});
     defaults_.insert("svm:", SimpleSVM().getParameters());
 
     defaults_.setValue("quantify_decoys", "false", "Whether decoy peptides should be quantified (true) or skipped (false).");
-    defaults_.setValidStrings("quantify_decoys", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("quantify_decoys", {"true","false"});
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
@@ -145,20 +145,20 @@ namespace OpenMS
       "svm:predictors", 
       score_metavalues, 
       "Names of OpenSWATH scores to use as predictors for the SVM (comma-separated list)",
-      ListUtils::create<std::string>("advanced"));
+      {"advanced"});
 
     defaults_.setValue(
       "svm:min_prob", 
       0.0, 
       "Minimum probability of correctness, as predicted by the SVM, required to retain a feature candidate",
-      ListUtils::create<std::string>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("svm:min_prob", 0.0);
     defaults_.setMaxFloat("svm:min_prob", 1.0);
 
     defaults_.setSectionDescription("svm", "Parameters for scoring features using a support vector machine (SVM)");
 
     // parameters for model fitting (via ElutionModelFitter):
-    std::vector<std::string> models = ListUtils::create<std::string>("symmetric,asymmetric,none");
+    std::vector<std::string> models = {"symmetric","asymmetric","none"};
     defaults_.setValue("model:type", models[0], "Type of elution model to fit to features");
     defaults_.setValidStrings("model:type", models);
     defaults_.insert("model:", ElutionModelFitter().getParameters()); // copy parameters

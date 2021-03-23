@@ -527,10 +527,10 @@ namespace OpenMS
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
     defaults_.setValidStrings("isotopic_similarity", {"false", "true"});
 
-    defaults_.setValue("db:mapping", ListUtils::create<std::string>("CHEMISTRY/HMDBMappingFile.tsv"), "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
+    defaults_.setValue("db:mapping", std::vector<std::string>{"CHEMISTRY/HMDBMappingFile.tsv"}, "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
                                                                       "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
-    defaults_.setValue("db:struct", ListUtils::create<std::string>("CHEMISTRY/HMDB2StructMapping.tsv"), "Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
+    defaults_.setValue("db:struct", std::vector<std::string>{"CHEMISTRY/HMDB2StructMapping.tsv"}, "Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
                                                                         "The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise. "
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("positive_adducts", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "

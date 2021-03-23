@@ -334,7 +334,6 @@ namespace OpenMS
 
         if (list_.type == "string")
         {
-
           param_.setValue(list_.name, list_.stringlist, list_.description, list_.tags);
           if (list_.restrictions_index != -1)
           {

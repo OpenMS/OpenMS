@@ -34,7 +34,6 @@
 
 
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -60,12 +59,12 @@ namespace OpenMS
     E_c_term_(0),
     E_n_term_(0)
   {
-    defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("sigma", 0.5, "Width of the gaussian which distributes the mobile protons over the charge states, only for z > 3.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("temperature", 500.0, "Temperature term ", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", {"advanced"});
+    defaults_.setValue("sigma", 0.5, "Width of the gaussian which distributes the mobile protons over the charge states, only for z > 3.", {"advanced"});
+    defaults_.setValue("temperature", 500.0, "Temperature term ", {"advanced"});
 
     defaultsToParam_();
   }

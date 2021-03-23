@@ -49,7 +49,7 @@ namespace OpenMS
     defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
     defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
     defaults_.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
-    defaults_.setValidStrings("use_gauss", ListUtils::create<std::string>("false,true"));
+    defaults_.setValidStrings("use_gauss", {"false","true"});
 
     defaults_.setValue("peak_width", -1.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
     defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
@@ -58,13 +58,13 @@ namespace OpenMS
     defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
     defaults_.setValue("write_sn_log_messages", "false", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
-    defaults_.setValidStrings("write_sn_log_messages", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("write_sn_log_messages", {"true","false"});
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
-    defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<std::string>("false,true"));
+    defaults_.setValidStrings("remove_overlapping_peaks", {"false","true"});
 
     defaults_.setValue("method", "corrected", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed chromatogram or Crawdad on smoothed chromatogram).");
-    defaults_.setValidStrings("method", ListUtils::create<std::string>("legacy,corrected,crawdad"));
+    defaults_.setValidStrings("method", {"legacy","corrected","crawdad"});
 
     // write defaults into Param object param_
     defaultsToParam_();

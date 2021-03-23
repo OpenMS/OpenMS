@@ -84,7 +84,7 @@ public:
     Param params;
     params.setValue("type", default_model, "Type of model");
     // TODO: avoid referring to each TransformationModel subclass explicitly
-    std::vector<std::string> model_types = ListUtils::create<std::string>("linear,b_spline,lowess,interpolated");
+    std::vector<std::string> model_types = {"linear","b_spline","lowess","interpolated"};
     if (!ListUtils::contains(model_types, default_model))
     {
       model_types.insert(model_types.begin(), default_model);

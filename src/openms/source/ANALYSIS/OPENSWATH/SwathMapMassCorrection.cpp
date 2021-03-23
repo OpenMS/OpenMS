@@ -85,15 +85,15 @@ namespace OpenMS
     DefaultParamHandler("SwathMapMassCorrection")
   {
     defaults_.setValue("mz_extraction_window", -1.0, "M/z extraction window width");
-    defaults_.setValue("mz_extraction_window_ppm", "false", "Whether m/z extraction is in ppm", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("mz_extraction_window_ppm", ListUtils::create<std::string>("true,false"));
-    defaults_.setValue("ms1_im_calibration", "false", "Whether to use MS1 precursor data for the ion mobility calibration (default = false, uses MS2 / fragment ions for calibration)", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("ms1_im_calibration", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("mz_extraction_window_ppm", "false", "Whether m/z extraction is in ppm", {"advanced"});
+    defaults_.setValidStrings("mz_extraction_window_ppm", {"true","false"});
+    defaults_.setValue("ms1_im_calibration", "false", "Whether to use MS1 precursor data for the ion mobility calibration (default = false, uses MS2 / fragment ions for calibration)", {"advanced"});
+    defaults_.setValidStrings("ms1_im_calibration", {"true","false"});
     defaults_.setValue("im_extraction_window", -1.0, "Ion mobility extraction window width");
     defaults_.setValue("mz_correction_function", "none", "Type of normalization function for m/z calibration.");
-    defaults_.setValidStrings("mz_correction_function", ListUtils::create<std::string>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
+    defaults_.setValidStrings("mz_correction_function", {"none","regression_delta_ppm","unweighted_regression","weighted_regression","quadratic_regression","weighted_quadratic_regression","weighted_quadratic_regression_delta_ppm","quadratic_regression_delta_ppm"});
     defaults_.setValue("im_correction_function", "linear", "Type of normalization function for IM calibration.");
-    defaults_.setValidStrings("im_correction_function", ListUtils::create<std::string>("none,linear"));
+    defaults_.setValidStrings("im_correction_function", {"none","linear"});
 
     defaults_.setValue("debug_im_file", "", "Debug file for Ion Mobility calibration.");
     defaults_.setValue("debug_mz_file", "", "Debug file for m/z calibration.");

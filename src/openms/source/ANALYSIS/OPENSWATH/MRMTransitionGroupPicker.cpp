@@ -52,40 +52,40 @@ namespace OpenMS
   {
     defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
-    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", {"advanced"});
 
-    defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("peak_integration", ListUtils::create<std::string>("original,smoothed"));
+    defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", {"advanced"});
+    defaults_.setValidStrings("peak_integration", {"original","smoothed"});
 
-    defaults_.setValue("background_subtraction", "none", "Remove background from peak signal using estimated noise levels. The 'original' method is only provided for historical purposes, please use the 'exact' method and set parameters using the PeakIntegrator: settings. The same original or smoothed chromatogram specified by peak_integration will be used for background estimation.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("background_subtraction", ListUtils::create<std::string>("none,original,exact"));
+    defaults_.setValue("background_subtraction", "none", "Remove background from peak signal using estimated noise levels. The 'original' method is only provided for historical purposes, please use the 'exact' method and set parameters using the PeakIntegrator: settings. The same original or smoothed chromatogram specified by peak_integration will be used for background estimation.", {"advanced"});
+    defaults_.setValidStrings("background_subtraction", {"none","original","exact"});
 
-    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if the variation within the picked peaks is too large.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("recalculate_peaks", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if the variation within the picked peaks is too large.", {"advanced"});
+    defaults_.setValidStrings("recalculate_peaks", {"true","false"});
 
-    defaults_.setValue("use_precursors", "false", "Use precursor chromatogram for peak picking (note that this may lead to precursor signal driving the peak picking)", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("use_precursors", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("use_precursors", "false", "Use precursor chromatogram for peak picking (note that this may lead to precursor signal driving the peak picking)", {"advanced"});
+    defaults_.setValidStrings("use_precursors", {"true","false"});
 
-    defaults_.setValue("use_consensus", "true", "Use consensus peak boundaries when computing transition group picking (if false, compute independent peak boundaries for each transition)", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("use_consensus", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("use_consensus", "true", "Use consensus peak boundaries when computing transition group picking (if false, compute independent peak boundaries for each transition)", {"advanced"});
+    defaults_.setValidStrings("use_consensus", {"true","false"});
 
-    defaults_.setValue("recalculate_peaks_max_z", 1.0, "Determines the maximal Z-Score (difference measured in standard deviations) that is considered too large for peak boundaries. If the Z-Score is above this value, the median is used for peak boundaries (default value 1.0).", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("recalculate_peaks_max_z", 1.0, "Determines the maximal Z-Score (difference measured in standard deviations) that is considered too large for peak boundaries. If the Z-Score is above this value, the median is used for peak boundaries (default value 1.0).", {"advanced"});
 
-    defaults_.setValue("minimal_quality", -10000.0, "Only if compute_peak_quality is set, this parameter will not consider peaks below this quality threshold", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("minimal_quality", -10000.0, "Only if compute_peak_quality is set, this parameter will not consider peaks below this quality threshold", {"advanced"});
 
-    defaults_.setValue("resample_boundary", 15.0, "For computing peak quality, how many extra seconds should be sample left and right of the actual peak", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("resample_boundary", 15.0, "For computing peak quality, how many extra seconds should be sample left and right of the actual peak", {"advanced"});
 
-    defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("compute_peak_quality", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", {"advanced"});
+    defaults_.setValidStrings("compute_peak_quality", {"true","false"});
     
-    defaults_.setValue("compute_peak_shape_metrics", "false", "Calculates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("compute_peak_shape_metrics", "false", "Calculates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", {"advanced"});
+    defaults_.setValidStrings("compute_peak_shape_metrics", {"true","false"});
 
-    defaults_.setValue("compute_total_mi", "false", "Compute mutual information metrics for individual transitions that can be used for OpenSWATH/IPF scoring.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("compute_total_mi", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("compute_total_mi", "false", "Compute mutual information metrics for individual transitions that can be used for OpenSWATH/IPF scoring.", {"advanced"});
+    defaults_.setValidStrings("compute_total_mi", {"true","false"});
 
-    defaults_.setValue("boundary_selection_method", "largest", "Method to use when selecting the best boundaries for peaks.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("boundary_selection_method", ListUtils::create<std::string>("largest,widest"));
+    defaults_.setValue("boundary_selection_method", "largest", "Method to use when selecting the best boundaries for peaks.", {"advanced"});
+    defaults_.setValidStrings("boundary_selection_method", {"largest","widest"});
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
     defaults_.insert("PeakIntegrator:", PeakIntegrator().getDefaults());

@@ -80,13 +80,13 @@ namespace OpenMS
     defaults_.setValue("max_iters", 100, "The maximum number of iterations to find an optimal set of calibration curve points and parameters.");
 
     defaults_.setValue("outlier_detection_method", "iter_jackknife", "Outlier detection method to find and remove bad calibration points.");
-    defaults_.setValidStrings("outlier_detection_method", ListUtils::create<std::string>("iter_jackknife,iter_residual"));
+    defaults_.setValidStrings("outlier_detection_method", {"iter_jackknife","iter_residual"});
 
     defaults_.setValue("use_chauvenet", "true", "Whether to only remove outliers that fulfill Chauvenet's criterion for outliers (otherwise it will remove any outlier candidate regardless of the criterion).");
-    defaults_.setValidStrings("use_chauvenet", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("use_chauvenet", {"true","false"});
 
     defaults_.setValue("optimization_method", "iterative", "Calibrator optimization method to find the best set of calibration points for each method.");
-    defaults_.setValidStrings("optimization_method", ListUtils::create<std::string>("iterative"));
+    defaults_.setValidStrings("optimization_method", {"iterative"});
 
     // write defaults into Param object param_
     defaultsToParam_();

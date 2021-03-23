@@ -205,7 +205,7 @@ namespace OpenMS
     //general
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
 
     defaultsToParam_();

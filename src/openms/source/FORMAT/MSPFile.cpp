@@ -48,14 +48,11 @@ namespace OpenMS
     DefaultParamHandler("MSPFile")
   {
     defaults_.setValue("parse_headers", "false", "Flag whether header information should be parsed an stored for each spectrum");
-    vector<std::string> parse_strings;
-    parse_strings.push_back("true");
-    parse_strings.push_back("false");
-    defaults_.setValidStrings("parse_headers", parse_strings);
+    defaults_.setValidStrings("parse_headers", {"true", "false"});
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
-    defaults_.setValidStrings("parse_peakinfo", parse_strings);
+    defaults_.setValidStrings("parse_peakinfo", {"true", "false"});
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
-    defaults_.setValidStrings("instrument", ListUtils::create<std::string>(",it,qtof,toftof"));
+    defaults_.setValidStrings("instrument", {"","it","qtof","toftof"});
 
     defaultsToParam_();
   }

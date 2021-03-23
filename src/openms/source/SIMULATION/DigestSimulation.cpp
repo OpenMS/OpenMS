@@ -70,13 +70,12 @@ namespace OpenMS
     // supported enzymes
     StringList enzymes;
     ProteaseDB::getInstance()->getAllNames(enzymes);
-
     defaults_.setValue("enzyme", "Trypsin", "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(enzymes));
 
     // cleavages
     defaults_.setValue("model", "naive", "The cleavage model to use for digestion. 'Trained' is based on a log likelihood model (see DOI:10.1021/pr060507u).");
-    defaults_.setValidStrings("model", ListUtils::create<std::string>("trained,naive"));
+    defaults_.setValidStrings("model", {"trained","naive"});
 
     defaults_.setValue("model_trained:threshold", 0.50, "Model threshold for calling a cleavage. Higher values increase the number of cleavages. -2 will give no cleavages, +4 almost full cleavage.");
     defaults_.setMinFloat("model_trained:threshold", -2);

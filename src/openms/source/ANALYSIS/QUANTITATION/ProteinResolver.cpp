@@ -57,7 +57,7 @@ namespace OpenMS
     defaults_.setValue("resolver:min_length", 6, "Minimum length of peptide");
     defaults_.setMinInt("resolver:min_length", 1);
     defaults_.setValue("resolver:enzyme", "Trypsin", "Digestion enzyme");
-    defaults_.setValidStrings("resolver:enzyme", ListUtils::create<std::string>("Trypsin"));
+    defaults_.setValidStrings("resolver:enzyme", {"Trypsin"});
 
     defaults_.setSectionDescription("resolver", "Additional options for algorithm");
 

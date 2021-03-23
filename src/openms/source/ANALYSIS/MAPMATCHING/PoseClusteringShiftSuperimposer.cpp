@@ -70,14 +70,14 @@ namespace OpenMS
     defaults_.setMinFloat("shift_bucket_size", 0.);
 
     defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming.  "
-                                            "This applies for both directions.", ListUtils::create<std::string>("advanced"));
+                                            "This applies for both directions.", {"advanced"});
     defaults_.setMinFloat("max_shift", 0.);
 
     defaults_.setValue("dump_buckets", "", "[DEBUG] If non-empty, base filename where hash table buckets will be dumped to.  "
-                                           "A serial number for each invocation will be appended automatically.", ListUtils::create<std::string>("advanced"));
+                                           "A serial number for each invocation will be appended automatically.", {"advanced"});
 
     defaults_.setValue("dump_pairs", "", "[DEBUG] If non-empty, base filename where the individual hashed pairs will be dumped to (large!).  "
-                                         "A serial number for each invocation will be appended automatically.", ListUtils::create<std::string>("advanced"));
+                                         "A serial number for each invocation will be appended automatically.", {"advanced"});
 
     defaultsToParam_();
     return;

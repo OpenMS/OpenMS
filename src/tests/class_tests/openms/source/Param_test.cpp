@@ -39,10 +39,6 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-/*
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
- */
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
 
@@ -73,7 +69,7 @@ START_SECTION(([Param::ParamEntry] ~ParamEntry()))
 END_SECTION
 
 START_SECTION(([Param::ParamEntry] ParamEntry(const std::string &n, const DataValue &v, const std::string &d, const std::vector<std::string> &t=std::vector<std::string>())))
-	Param::ParamEntry pe("n","v","d",ListUtils::create<std::string>("advanced"));
+	Param::ParamEntry pe("n","v","d",{"advanced"});
 	TEST_EQUAL(pe.name,"n")
 	TEST_EQUAL(pe.description,"d")
 	TEST_EQUAL(pe.value,"v")
@@ -134,8 +130,8 @@ START_SECTION(([Param::ParamEntry] bool isValid(std::string& message) const))
 END_SECTION
 
 START_SECTION(([Param::ParamEntry] bool operator==(const ParamEntry& rhs) const))
-	Param::ParamEntry n1("n","d","v",ListUtils::create<std::string>("advanced"));
-	Param::ParamEntry n2("n","d","v",ListUtils::create<std::string>("advanced"));
+	Param::ParamEntry n1("n","d","v",{"advanced"});
+	Param::ParamEntry n2("n","d","v",{"advanced"});
 
 	TEST_EQUAL(n1==n2,true)
 
@@ -311,7 +307,7 @@ END_SECTION
 
 START_SECTION(([Param::ParamNode] void insert(const ParamNode& node, const std::string& prefix = "")))
 	Param::ParamNode node("","");
-	node.entries.push_back(Param::ParamEntry("H",5,"",ListUtils::create<std::string>("advanced")));
+	node.entries.push_back(Param::ParamEntry("H",5,"",{"advanced"}));
 	pn.insert(node,"F");
   TEST_NOT_EQUAL(pn.findEntryRecursive("F:H"),pe_nullPointer)
 
@@ -333,7 +329,7 @@ START_SECTION(([Param::ParamNode] void insert(const ParamNode& node, const std::
 END_SECTION
 
 START_SECTION(([Param::ParamNode] void insert(const ParamEntry& entry, const std::string& prefix = "")))
-	Param::ParamEntry entry("H","","5",ListUtils::create<std::string>("advanced"));
+	Param::ParamEntry entry("H","","5",{"advanced"});
 
 	pn.insert(entry);
   TEST_NOT_EQUAL(pn.findEntryRecursive("H"),pe_nullPointer)
@@ -372,7 +368,7 @@ END_SECTION
 
 START_SECTION(([Param::ParamIterator] const Param::ParamEntry& operator*()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<std::string>("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",{"advanced"}));
 	Param::ParamIterator it(node);
 	TEST_EQUAL((*it).name,"name")
 	TEST_EQUAL((*it).value,"value");
@@ -382,7 +378,7 @@ END_SECTION
 
 START_SECTION(([Param::ParamIterator] const Param::ParamEntry* operator->()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<std::string>("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",{"advanced"}));
 	Param::ParamIterator it(node);
 	TEST_EQUAL(it->name,"name");
 	TEST_EQUAL(it->value,"value");
@@ -416,9 +412,9 @@ root.nodes.push_back(t);
 
 START_SECTION(([Param::ParamIterator] ParamIterator& operator++()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<std::string>("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",{"advanced"}));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
-	node.entries.push_back(Param::ParamEntry("name3","value3","description3",ListUtils::create<std::string>("advanced")));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",{"advanced"}));
 
 	//linear list
 	Param::ParamIterator it(node);
@@ -504,9 +500,9 @@ END_SECTION
 
 START_SECTION(([Param::ParamIterator] ParamIterator operator++(int)))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<std::string>("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",{"advanced"}));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
-	node.entries.push_back(Param::ParamEntry("name3","value3","description3",ListUtils::create<std::string>("advanced")));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",{"advanced"}));
 
 	//linear list
 	Param::ParamIterator it(node), it2(node);
@@ -693,7 +689,7 @@ START_SECTION((void setValue(const std::string &key, const DataValue& value, con
 	TEST_EQUAL(p.getDescription("key"), "")
 	TEST_EQUAL(p.hasTag("key","advanced"), false)
 
-	p.setValue("key","value","description",ListUtils::create<std::string>("advanced"));
+	p.setValue("key","value","description",{"advanced"});
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "description")
@@ -760,7 +756,7 @@ START_SECTION((void addTags(const std::string& key, const std::vector<std::strin
 	p.setValue("key","value");
 	TEST_EQUAL(p.hasTag("key","advanced"),false)
 	TEST_EQUAL(p.hasTag("key","advanced2"),false)
-	p.addTags("key",ListUtils::create<std::string>("advanced,advanced2"));
+	p.addTags("key",{"advanced","advanced2"});
 	TEST_EQUAL(p.hasTag("key","advanced"),true)
 	TEST_EQUAL(p.hasTag("key","advanced2"),true)
 END_SECTION
@@ -1121,8 +1117,8 @@ START_SECTION((void setDefaults(const Param& defaults, const std::string& prefix
 	defaults.setValue("string2","default string2","string2");
 	defaults.setValue("PATH:onlyfordescription",45.2);
 
-	defaults.setValue("stringlist",ListUtils::create<std::string>("a,b,c"),"stringlist");
-	defaults.setValue("stringlist2",ListUtils::create<std::string>("d,e,f"),"stringlist2");
+	defaults.setValue("stringlist",std::vector<std::string>{"a","b","c"},"stringlist");
+	defaults.setValue("stringlist2",std::vector<std::string>{"d","e","f"},"stringlist2");
 	defaults.setValue("intlist",ListUtils::create<Int>("1,2,3"),"intlist");
 	defaults.setValue("intlist2",ListUtils::create<Int>("11,22,33"),"intlist2");
 	defaults.setValue("doublelist",ListUtils::create<double>("1.2,2.3"),"doublelist");
@@ -1134,8 +1130,8 @@ START_SECTION((void setDefaults(const Param& defaults, const std::string& prefix
 	p2.setValue("float",-2.0f,"float");
 	p2.setValue("string","other string","string");
 
-	p2.setValue("PATH:stringlist",ListUtils::create<std::string>("d,a,v,i,d"),"PATH:stringlist");
-	p2.setValue("stringlist",ListUtils::create<std::string>("r,o,c,k,s"),"stringlist");
+	p2.setValue("PATH:stringlist",std::vector<std::string>{"d","a","v","i","d"},"PATH:stringlist");
+	p2.setValue("stringlist",std::vector<std::string>{"r","o","c","k","s"},"stringlist");
 	p2.setValue("PATH:intlist2",ListUtils::create<Int>("14,9"),"PATH:intlist2");
 	p2.setValue("intlist", ListUtils::create<Int>("16,9"),"intlist");
 	p2.setValue("PATH:doublelist2",ListUtils::create<double>("6.66,6.16"),"PATH:doublelist2");
@@ -1240,7 +1236,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const st
 	p3.setValue("test4:-a","av");
 	p3.setValue("test4:-b","bv");
 	p3.setValue("test4:-c","cv");
-	p3.setValue("test4:misc",ListUtils::create<std::string>("rv1,rv2"));
+	p3.setValue("test4:misc",std::vector<std::string>{"rv1","rv2"});
 	TEST_EQUAL(p2==p3,true)
 
 	Param p20,p30;
@@ -1255,7 +1251,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const st
 	p300.setValue("test4:-a","-1.0");
 	p300.setValue("test4:-b","bv");
 	p300.setValue("test4:-c","cv");
-	p300.setValue("test4:misc",ListUtils::create<std::string>("rv1,rv2,-1.0"));
+	p300.setValue("test4:misc",std::vector<std::string>{"rv1","rv2","-1.0"});
 	TEST_EQUAL(p200==p300,true)
 
 END_SECTION
@@ -1298,7 +1294,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const st
 	p3.setValue("a","-1.0");
 	p3.setValue("b","bv");
 	p3.setValue("c","cv");
-	p3.setValue("misc_",ListUtils::create<std::string>("rv1,rv2,-1.0"));
+	p3.setValue("misc_",std::vector<std::string>{"rv1","rv2","-1.0"});
 	TEST_EQUAL(p2==p3,true)
 
 	Param p4,p5;
@@ -1306,7 +1302,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const st
 	p5.setValue("a","av");
 	p5.setValue("b","bv");
 	p5.setValue("c","cv");
-	p5.setValue("misc_",ListUtils::create<std::string>("rv1,rv2"));
+	p5.setValue("misc_",std::vector<std::string>{"rv1","rv2"});
 	TEST_EQUAL(p4==p5,true)
 
 	with_one.clear();
@@ -1317,8 +1313,8 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const st
 	p40.parseCommandLine(9,command_line,with_one,without,with_multiple,"misc__","unknown__");
 	p50.setValue("a","av");
 	p50.setValue("b","true");
-	p50.setValue("misc__",ListUtils::create<std::string>("bv,cv,rv1,rv2"));
-	p50.setValue("unknown__",ListUtils::create<std::string>("-c"));
+	p50.setValue("misc__",std::vector<std::string>{"bv","cv","rv1","rv2"});
+	p50.setValue("unknown__",std::vector<std::string>{"-c"});
 	TEST_EQUAL(p40==p50,true)
 	TEST_EQUAL(p40,p50)
 	//"executable -a av -b -c cv"
@@ -1326,8 +1322,8 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const st
 	p400.parseCommandLine(6,command_line2,with_one,without,with_multiple,"misc__","unknown__");
 	p500.setValue("a","av");
 	p500.setValue("b","true");
-	p500.setValue("misc__",ListUtils::create<std::string>("cv"));
-	p500.setValue("unknown__",ListUtils::create<std::string>("-c"));
+	p500.setValue("misc__",std::vector<std::string>{"cv"});
+	p500.setValue("unknown__",std::vector<std::string>{"-c"});
 	TEST_EQUAL(p400==p500,true)
 
 	//"executable -a -b -c cv rv1"
@@ -1335,22 +1331,22 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const st
 	p4000.parseCommandLine(6,command_line3,with_one,without,with_multiple,"misc__","unknown__");
 	p5000.setValue("a","");
 	p5000.setValue("b","true");
-	p5000.setValue("misc__",ListUtils::create<std::string>("cv,rv1"));
-	p5000.setValue("unknown__",ListUtils::create<std::string>("-c"));
+	p5000.setValue("misc__",std::vector<std::string>{"cv","rv1"});
+	p5000.setValue("unknown__",std::vector<std::string>{"-c"});
 	TEST_EQUAL(p4000==p5000,true)
 
 	// list options:
 	Param p6,p7;
 	p6.parseCommandLine(9,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
-	p7.setValue("d",ListUtils::create<std::string>("1.333,2.23,3"));
-	p7.setValue("e",ListUtils::create<std::string>("4"));
+	p7.setValue("d",std::vector<std::string>{"1.333","2.23","3"});
+	p7.setValue("e",std::vector<std::string>{"4"});
 	p7.setValue("f",std::vector<std::string>());
 	p7.setValue("g",std::vector<std::string>());
 	TEST_EQUAL(p6,p7);
 
 	Param p8,p9;
 	p9.parseCommandLine(4,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
-	p8.setValue("d", ListUtils::create<std::string>("1.333,2.23"));
+	p8.setValue("d", std::vector<std::string>{"1.333","2.23"});
 	TEST_EQUAL(p9,p8);
 
 END_SECTION
@@ -1363,8 +1359,8 @@ START_SECTION((void update(const Param& old_version, const bool add_unknown, Log
 	common.setValue("string2","default string2","string2");
 	common.setValue("PATH:onlyfordescription",45.2);
 
-	common.setValue("stringlist",ListUtils::create<std::string>("a,b,c"),"stringlist");
-	common.setValue("stringlist2",ListUtils::create<std::string>("d,e,f"),"stringlist2");
+	common.setValue("stringlist",std::vector<std::string>{"a","b","c"},"stringlist");
+	common.setValue("stringlist2",std::vector<std::string>{"d","e","f"},"stringlist2");
 	common.setValue("intlist",ListUtils::create<Int>("1,2,3"),"intlist");
 
   // copy and alter
@@ -1374,7 +1370,7 @@ START_SECTION((void update(const Param& old_version, const bool add_unknown, Log
   old.setValue("some:version","1.2","old version");
   old.setValue("some:1:type","unlabeled","type");
   old.setValue("some:type","unlabeled","type");
-	old.setValue("stringlist2",ListUtils::create<std::string>("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
+	old.setValue("stringlist2",std::vector<std::string>{"d","e","f","altered"},"stringlist2"); // change some values, we expect them to show up after update()
 	old.setValue("intlist",ListUtils::create<Int>("3"),"intlist");
 
   Param defaults = common;
@@ -1385,7 +1381,7 @@ START_SECTION((void update(const Param& old_version, const bool add_unknown, Log
   defaults.setValue("new_value",3,"new param not present in old");
 
   Param expected = defaults;
-	expected.setValue("stringlist2",ListUtils::create<std::string>("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
+	expected.setValue("stringlist2",std::vector<std::string>{"d","e","f","altered"},"stringlist2"); // change some values, we expect them to show up after update()
 	expected.setValue("intlist",ListUtils::create<Int>("3"),"intlist");
   expected.setValue("some:type","unlabeled","type");
 
@@ -1629,10 +1625,7 @@ START_SECTION((void checkDefaults(const std::string &name, const Param &defaults
     TEST_EQUAL(os.str()=="",false)
 
     //check string restrictions
-    vector<std::string> s_rest;
-    s_rest.push_back("a");
-    s_rest.push_back("b");
-    s_rest.push_back("c");
+    vector<std::string> s_rest = {"a","b","c"};
     d.setValue("stringv","bla","desc");
     d.setValidStrings("stringv", s_rest);
     p.clear();
@@ -1686,16 +1679,13 @@ START_SECTION((void checkDefaults(const std::string &name, const Param &defaults
     TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
     //check list restrictions
-    vector<std::string> s_rest1;
-    s_rest1.push_back("a");
-    s_rest1.push_back("b");
-    s_rest1.push_back("c");
-    d.setValue("stringlist",ListUtils::create<std::string>("aaa,abc,cab"),"desc");
+    vector<std::string> s_rest1 = {"a","b","c"};
+    d.setValue("stringlist",std::vector<std::string>{"aaa","abc","cab"},"desc");
     d.setValidStrings("stringlist", s_rest);
     p.clear();
-    p.setValue("stringlist",ListUtils::create<std::string>("a,c"));
+    p.setValue("stringlist",std::vector<std::string>{"a","c"});
     p.checkDefaults("Param_test",d,"");
-    p.setValue("stringlist",ListUtils::create<std::string>("aa,dd,cc"));
+    p.setValue("stringlist",std::vector<std::string>{"aa","dd","cc"});
     TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 

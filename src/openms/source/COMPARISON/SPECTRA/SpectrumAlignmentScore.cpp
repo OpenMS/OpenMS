@@ -44,11 +44,11 @@ namespace OpenMS
     setName(SpectrumAlignmentScore::getProductName());
     defaults_.setValue("tolerance", 0.3, "Defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "if true, the tolerance value is interpreted as ppm");
-    defaults_.setValidStrings("is_relative_tolerance", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("is_relative_tolerance", {"true","false"});
     defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");
-    defaults_.setValidStrings("use_linear_factor", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("use_linear_factor", {"true","false"});
     defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian");
-    defaults_.setValidStrings("use_gaussian_factor", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("use_gaussian_factor", {"true","false"});
     defaultsToParam_();
   }
 

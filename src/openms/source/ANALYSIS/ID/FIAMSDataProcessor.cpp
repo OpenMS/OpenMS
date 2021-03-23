@@ -59,18 +59,18 @@ namespace OpenMS {
 
     defaults_.setValue("bin_step", 20, "The size of the step to recalculated the bin size used for adding up spectra along the time axis");
 
-    defaults_.setValue("db:mapping", ListUtils::create<std::string>("CHEMISTRY/HMDBMappingFile.tsv"), "For the accurate mass search. Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
+    defaults_.setValue("db:mapping", std::vector<std::string>{"CHEMISTRY/HMDBMappingFile.tsv"}, "For the accurate mass search. Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
                                                                       "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
-    defaults_.setValue("db:struct", ListUtils::create<std::string>("CHEMISTRY/HMDB2StructMapping.tsv"), "For the accurate mass search. Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
+    defaults_.setValue("db:struct", std::vector<std::string>{"CHEMISTRY/HMDB2StructMapping.tsv"}, "For the accurate mass search. Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
                                                                         "The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise. "
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("positive_adducts", "CHEMISTRY/PositiveAdducts.tsv", "For the accurate mass search. This file contains the list of potential positive adducts that will be looked for in the database. "
                                                                                   "Edit the list if you wish to exclude/include adducts. "
-                                                                                  "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<std::string>("advanced"));
+                                                                                  "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", {"advanced"});
     defaults_.setValue("negative_adducts", "CHEMISTRY/NegativeAdducts.tsv", "For the accurate mass search. This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                   "Edit the list if you wish to exclude/include adducts. "
-                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<std::string>("advanced"));
+                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", {"advanced"});
 
     defaults_.setValue("store_progress", "true", "If the intermediate files should be stored in the output directory");
     

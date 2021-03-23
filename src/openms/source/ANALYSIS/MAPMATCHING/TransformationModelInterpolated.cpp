@@ -426,11 +426,9 @@ private:
   {
     params.clear();
     params.setValue("interpolation_type", "cspline", "Type of interpolation to apply.");
-    std::vector<std::string> types = ListUtils::create<std::string>("linear,cspline,akima");
-    params.setValidStrings("interpolation_type", types);
+    params.setValidStrings("interpolation_type", {"linear","cspline","akima"});
     params.setValue("extrapolation_type", "two-point-linear", "Type of extrapolation to apply: two-point-linear: use the first and last data point to build a single linear model, four-point-linear: build two linear models on both ends using the first two / last two points, global-linear: use all points to build a single linear model. Note that global-linear may not be continuous at the border.");
-    std::vector<std::string> etypes = ListUtils::create<std::string>("two-point-linear,four-point-linear,global-linear");
-    params.setValidStrings("extrapolation_type", etypes);
+    params.setValidStrings("extrapolation_type", {"two-point-linear","four-point-linear","global-linear"});
   }
 
 } // namespace

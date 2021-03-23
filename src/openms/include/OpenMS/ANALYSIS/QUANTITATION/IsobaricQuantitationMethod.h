@@ -147,7 +147,7 @@ protected:
       @param stringlist The StringList to convert.
       @return An isotope correction matrix as Matrix<double>.
     */
-    Matrix<double> stringListToIsotopCorrectionMatrix_(const StringList& stringlist) const;
+    Matrix<double> stringListToIsotopCorrectionMatrix_(const std::vector<String>& stringlist) const;
   };
 } // namespace
 

@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <unsupported/Eigen/NonLinearOptimization>
 
@@ -62,9 +61,9 @@ namespace OpenMS
   TraceFitter::TraceFitter() :
     DefaultParamHandler("TraceFitter")
   {
-    defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("weighted", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", {"advanced"});
+    defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", {"advanced"});
+    defaults_.setValidStrings("weighted", {"true","false"});
     defaultsToParam_();
   }
 

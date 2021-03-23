@@ -45,7 +45,7 @@ namespace OpenMS
     defaults_.setValue("windowsize", 50.0, "The size of the sliding window along the m/z axis.");
     defaults_.setValue("peakcount", 2, "The number of peaks that should be kept.");
     defaults_.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    defaults_.setValidStrings("movetype", ListUtils::create<std::string>("slide,jump"));
+    defaults_.setValidStrings("movetype", {"slide","jump"});
     defaultsToParam_();
   }
 

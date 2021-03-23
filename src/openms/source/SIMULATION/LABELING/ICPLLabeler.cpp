@@ -53,12 +53,12 @@ namespace OpenMS
     defaults_.setValue("ICPL_fixed_rtshift", 0.0, "Fixed retention time shift between labeled pairs. If set to 0.0 only the retention times, computed by the RT model step are used.");
     //defaults for protein-labeling
     defaults_.setValue("label_proteins", "true", "Enables protein-labeling. (select 'false' if you only need peptide-labeling)");
-    defaults_.setValidStrings("label_proteins", ListUtils::create<std::string>("true,false"));
+    defaults_.setValidStrings("label_proteins", {"true","false"});
 
     // labels
-    defaults_.setValue("ICPL_light_channel_label", "UniMod:365", "UniMod Id of the light channel ICPL label.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ICPL_medium_channel_label", "UniMod:687", "UniMod Id of the medium channel ICPL label.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("ICPL_heavy_channel_label", "UniMod:364", "UniMod Id of the heavy channel ICPL label.", ListUtils::create<std::string>("advanced"));
+    defaults_.setValue("ICPL_light_channel_label", "UniMod:365", "UniMod Id of the light channel ICPL label.", {"advanced"});
+    defaults_.setValue("ICPL_medium_channel_label", "UniMod:687", "UniMod Id of the medium channel ICPL label.", {"advanced"});
+    defaults_.setValue("ICPL_heavy_channel_label", "UniMod:364", "UniMod Id of the heavy channel ICPL label.", {"advanced"});
 
     defaultsToParam_();
   }

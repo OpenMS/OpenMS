@@ -47,11 +47,11 @@ namespace OpenMS
   {
     defaults_.setValue("non_shuffle_pattern", "KRP", "Residues to not shuffle (keep at a constant position when shuffling). Default is 'KPR' to not shuffle lysine, arginine and proline.");
 
-    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("keepPeptideNTerm", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideNTerm", {"true","false"});
 
-    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("keepPeptideCTerm", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", {"advanced"});
+    defaults_.setValidStrings("keepPeptideCTerm", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();

@@ -58,12 +58,12 @@ namespace OpenMS
     // like to use the "auto" setting, you will have to call filterByPeakWidth
     // yourself
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
-    defaults_.setValidStrings("width_filtering", ListUtils::create<std::string>("off,fixed,auto"));
-    defaults_.setValue("min_fwhm", 1.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<std::string>("advanced"));
+    defaults_.setValidStrings("width_filtering", {"off","fixed","auto"});
+    defaults_.setValue("min_fwhm", 1.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", {"advanced"});
+    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", {"advanced"});
 
-    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<std::string>("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<std::string>("true,false"));
+    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
+    defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
 
     defaultsToParam_();
     this->setLogType(CMD);
