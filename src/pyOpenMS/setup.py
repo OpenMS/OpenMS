@@ -192,8 +192,6 @@ elif sys.platform == "darwin":
     extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
-if isosx and IS_DEBUG:
-    extra_link_args.extend("-Wl","object_path_lto","lto.o") # keep '/tmp/lto.o'
 
 # Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 if not iswin:
@@ -218,8 +216,8 @@ if not iswin:
     extra_compile_args.append("-Wno-unused-function")
     extra_compile_args.append("-Wno-deprecated-declarations")
     extra_compile_args.append("-Wno-missing-declarations")
-    #extra_compile_args.append("-Wno-int-in-bool-context")
-    #extra_compile_args.append("-Wno-deprecated-copy")
+    extra_compile_args.append("-Wno-int-in-bool-context")
+    extra_compile_args.append("-Wno-deprecated-copy")
     if no_optimization:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
