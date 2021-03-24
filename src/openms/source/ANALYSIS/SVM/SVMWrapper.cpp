@@ -1644,8 +1644,6 @@ namespace OpenMS
 
   svm_problem* SVMWrapper::computeKernelMatrix(const SVMData& problem1, const SVMData& problem2)
   {
-    double temp = 0;
-    svm_problem* kernel_matrix;
 
     if (problem1.labels.empty() || problem2.labels.empty())
     {
@@ -1657,6 +1655,9 @@ namespace OpenMS
     {
       return nullptr;
     }
+
+    double temp = 0;
+    svm_problem* kernel_matrix;
 
     Size number_of_sequences = problem1.labels.size();
     kernel_matrix = new svm_problem;

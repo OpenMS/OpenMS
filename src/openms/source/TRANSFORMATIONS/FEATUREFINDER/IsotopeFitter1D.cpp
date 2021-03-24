@@ -75,7 +75,7 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -97,7 +97,7 @@ namespace OpenMS
     // build model
     if (charge_ == 0)
     {
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -109,7 +109,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("IsotopeModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("IsotopeModel")));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");
@@ -123,7 +123,7 @@ namespace OpenMS
       tmp.setValue("isotope:maximum", max_isotope_);
 
       model->setParameters(tmp);
-      (static_cast<IsotopeModel*>(model))->setSamples((static_cast<IsotopeModel*>(model))->getFormula());
+      (dynamic_cast<IsotopeModel*>(model.get()))->setSamples((dynamic_cast<IsotopeModel*>(model.get()))->getFormula());
     }
 
     // fit offset
