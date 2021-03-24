@@ -416,6 +416,8 @@ protected:
             precursor_map_for_real_time_acquisition[scan].push_back(e);
           }
         }
+//precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+
 
         instream.close();
       }
@@ -656,7 +658,7 @@ protected:
       {
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
         double pmass =
-            top_pic_map[scan_number].unexp_mod_ < 0 ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
+                isnan(top_pic_map[scan_number].unexp_mod_) ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
         double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
         auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
         QScore::writeAttTsv(top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
@@ -664,7 +666,7 @@ protected:
                             pg,
                             deconvoluted_spectrum.getPrecursorCharge(),
                             precursor_intensity, top_pic_map[scan_number].unexp_mod_,
-                            top_pic_map[scan_number].unexp_mod_ >= 0,
+                            !isnan(top_pic_map[scan_number].unexp_mod_),
                             top_pic_map[scan_number].e_value_,
                             avg, out_train_stream, write_detail_qscore_att);
 

@@ -262,7 +262,23 @@ namespace OpenMS
     protein_acc_ = acc.substr(first + 1, second - first - 1);
     first_residue_ = stoi(results[15]);
     last_residue_ = stoi(results[16]);
-    unexp_mod_ = stoi(results[18]);
+      if (stoi(results[18]) == 0){
+          unexp_mod_ = .0;
+      }else{
+          String seq =  results[17];
+          int loc = 0;
+          while (true) {
+              String sub = seq.substr(seq.find("[", loc) + 1, seq.find("]", loc) - 1 - seq.find("[", loc));
+              if (!isdigit(sub[0])){
+                  loc = seq.find("]", loc);
+                  continue;
+              }
+              unexp_mod_ = stod(sub);
+              break;
+          }
+      }
+
+
     matched_peaks_ = stoi(results[21]);
     matched_frags_ = stoi(results[22]);
     e_value_ = stod(results[23]);

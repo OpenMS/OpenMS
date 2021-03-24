@@ -133,7 +133,7 @@ namespace OpenMS
       String protein_acc_ = "";
       int first_residue_;
       int last_residue_;
-      int unexp_mod_ = -1;
+      double unexp_mod_ = NAN;
       int matched_peaks_;
       int matched_frags_;
       double e_value_;

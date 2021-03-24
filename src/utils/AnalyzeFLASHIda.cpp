@@ -104,10 +104,11 @@ protected:
       precursor_mass_ = stod(results[4]);
       precursor_mz_ = stod(results[5]);
       precursor_intensity = stod(results[6]);
-      charge_ = stoi(results[7]);
-      unexp_mod_ = stoi(results[8]);
-      q_value_ = stod(results[14]);
-      e_value_ = stod(results[15]);
+        mass_intensity_ = stod(results[7]);
+      charge_ = stoi(results[8]);
+      unexp_mod_ = stoi(results[9]);
+      q_value_ = stod(results[15]);
+      e_value_ = stod(results[16]);
     }
 
     //const String header="Findex,";// = "Findex,ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,Qscore,Evalue,Class";
@@ -116,6 +117,7 @@ protected:
     double rt_;
     int charge_;
     double precursor_intensity;
+    double mass_intensity_;
     double precursor_mass_;
     double precursor_mz_;
     int proteform_id_;

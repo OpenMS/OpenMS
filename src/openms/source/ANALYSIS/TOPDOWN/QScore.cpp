@@ -99,7 +99,7 @@ namespace OpenMS
   {
     f
         << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
-           "MassIntensity,PrecursorCharge,PTM,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
+           "MassIntensity,PrecursorCharge,PTM,PTMMass,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -115,7 +115,7 @@ namespace OpenMS
                            PeakGroup &pg,
                            const int charge,
                            const double precursor_intensity,
-                           const int num_ptm,
+                           const double ptm_mass,
                            const bool is_identified,
                            const double e_value,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
@@ -129,7 +129,7 @@ namespace OpenMS
       f << acc << "," << proID << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass)
         << "," << pmz
         << "," << precursor_intensity << ","
-        << ",0," << (proID ? num_ptm : -1);
+        << ",0," << (proID ? (ptm_mass !=.0 ? 1 : 0) : -1);
       f << ",0,0,0,0,0,-5,";
       f << (is_identified ? "T" : "F") << "\n";
     }
@@ -145,7 +145,7 @@ namespace OpenMS
         << precursor_intensity << ","
         << pg.getIntensity()<< ","
         << charge << ","
-        << (proID ? num_ptm : -1) << ",";
+        << (proID ? (ptm_mass !=.0 ? 1 : 0) : -1) << "," <<ptm_mass<<",";
       for (auto &item : fv)
       {
         f << item << ",";
