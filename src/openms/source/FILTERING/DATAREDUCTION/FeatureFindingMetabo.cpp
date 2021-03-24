@@ -304,7 +304,7 @@ namespace OpenMS
 
   FeatureFindingMetabo::~FeatureFindingMetabo()
   {
-    if(isotope_filt_svm_ != nullptr)
+    if (isotope_filt_svm_ != nullptr)
     {
       svm_free_and_destroy_model(&isotope_filt_svm_);
     }
