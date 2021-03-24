@@ -563,7 +563,7 @@ namespace OpenMS
       // name
       item->setText(0, String(it->name).toQString());
       // value
-      if (it->value.valueType() == DataValue::STRING_LIST)
+      if (it->value.valueType() == ParamValue::STRING_LIST)
       {
         item->setText(1, QString("[%1]").arg(GUIHelpers::convert(ListUtils::toStringList<std::string>(it->value.toStringVector())).join(",\n")));
       }

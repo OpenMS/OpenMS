@@ -220,7 +220,7 @@ protected:
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     p.setValue("enzyme", "Trypsin", "Enzym used to digest the fasta proteins");
-    p.setValidStrings("enzyme", all_enzymes);
+    p.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
     p.setValue("missed_cleavages", 0, "Number of allowed missed cleavages while digesting the fasta proteins");
     p.setValue("min_charge", 1, "Minimum charge");
     p.setValue("max_charge", 1, "Maximum charge");
@@ -604,7 +604,7 @@ protected:
 
         // extract parameters and remove non tsg params
         Param p = getParam_().copy("fasta_to_mzml:", true);
-        String enzyme = p.getValue("enzyme");
+        String enzyme = p.getValue("enzyme").toString();
         Int mc = p.getValue("missed_cleavages");
         Int min_charge = p.getValue("min_charge");
         Int max_charge = p.getValue("max_charge");
