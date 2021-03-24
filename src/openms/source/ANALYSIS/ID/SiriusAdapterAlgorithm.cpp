@@ -474,8 +474,7 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
-                                                     std::vector<FeatureMap>& v_fp,
-                                                     KDTreeFeatureMaps& fp_map_kd,
+                                                     FeautreMapping::FeatureMappingInfo& fm_info,
                                                      FeatureMapping::FeatureToMs2Indices& feature_mapping)
     {
       // if fileparameter is given and should be not empty
@@ -509,6 +508,9 @@ namespace OpenMS
   
           v_fp.push_back(feature_map);
           fp_map_kd.addMaps(v_fp);
+
+          fm_info.v_fp = v_fp;
+          fm_info.fp_map_kd = fp_map_kd;
   
           // mapping of MS2 spectra to features
           feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,

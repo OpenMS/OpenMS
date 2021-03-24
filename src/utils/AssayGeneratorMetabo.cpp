@@ -386,13 +386,13 @@ protected:
 
       // always use preprocessing: 
       // run masstrace filter and feature mapping
-      vector<FeatureMap> v_fp; // copy FeatureMap via push_back
-      KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
+      FeautreMapping::FeatureMappingInfo fm_info;
+      //vector<FeatureMap> v_fp; // copy FeatureMap via push_back
+      //KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
       FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
       algorithm.preprocessingSirius(id[file_counter],
                                                   spectra,
-                                                  v_fp,
-                                                  fp_map_kd,
+                                                  fm_info,
                                                   feature_mapping);
     
       // filter known_unkowns based on description (UNKNOWN) (AMS)

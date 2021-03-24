@@ -9,6 +9,10 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>" namespace "Ope
        FeatureMapping() nogil except +
        FeatureMapping(FeatureMapping) nogil except +
 
+    cdef cppclass FeatureMapping_FetureMappingInfo "OpenMS::FeatureMapping::FetureMappingInfo":
+       FeatureMapping_FetureMappingInfo() nogil except +
+       FeatureMapping_FetureMappingInfo(FeatureMapping_FetureMappingInfo) nogil except +
+
     cdef cppclass FeatureMapping_FeatureToMs2Indices "OpenMS::FeatureMapping::FeatureToMs2Indices":
         FeatureMapping_FeatureToMs2Indices() nogil except +
         FeatureMapping_FeatureToMs2Indices(FeatureMapping_FeatureToMs2Indices) nogil except +

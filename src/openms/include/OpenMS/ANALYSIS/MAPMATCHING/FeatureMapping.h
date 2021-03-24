@@ -45,6 +45,13 @@ namespace OpenMS
       {
           public:
 
+          class FetureMappingInfo
+          {
+          public:
+            vector<FeatureMap> v_fp;
+            KDTreeFeatureMaps fp_map_kd;
+          };
+
           class FeatureToMs2Indices
           {
           public:

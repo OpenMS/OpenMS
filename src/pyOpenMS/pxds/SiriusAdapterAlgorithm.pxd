@@ -30,12 +30,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         String determineSiriusExecutable(String & executable) nogil except +
 
-        # wrapped in SiriusAdapterAlgorithm.pyx (due to copy instead of reference)
-        #void preprocessingSirius(const String& featureinfo,
-        #                         MSExperiment& spectra,
-        #                         libcpp_vector[ FeatureMap ]& v_fp,
-        #                         KDTreeFeatureMaps& fp_map_kd,
-        #                         FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
+        void preprocessingSirius(const String& featureinfo,
+                                 MSExperiment& spectra,
+                                 FeautreMapping_FeatureMappingInfo& fm_info,
+                                 FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
 
         void logFeatureSpectraNumber(const String& featureinfo,
                                      FeatureMapping_FeatureToMs2Indices& feature_mapping,

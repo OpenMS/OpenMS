@@ -181,13 +181,13 @@ protected:
     SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
 
     // run masstrace filter and feature mapping
-    vector<FeatureMap> v_fp; // copy FeatureMap via push_back
-    KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
+    FeautreMapping::FeatureMappingInfo fm_info;
+    //vector<FeatureMap> v_fp; // copy FeatureMap via push_back
+    //KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
     FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
     algorithm.preprocessingSirius(featureinfo,
                                   spectra,
-                                  v_fp,
-                                  fp_map_kd,
+                                  fm_info,
                                   feature_mapping);
 
     // returns Log of feature and/or spectra number
