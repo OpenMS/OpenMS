@@ -120,6 +120,7 @@ protected:
       registerFlag_("first_run_inference_only", "Does the first IdentificationRun in the file "
                                                 "only represent (protein) inference results? If so, read peptide information only "
                                                 "from second to last runs.", true);
+      registerFlag_("export_all_psms", "Export all PSMs instead of only the best per spectrum", true);
       registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
       setValidStrings_("opt_columns", {"subfeatures"});
     }
@@ -186,7 +187,9 @@ protected:
         MzTabFile().store(out,
           prot_ids,
           pep_ids,
-          getFlag_("first_run_inference_only"));
+          getFlag_("first_run_inference_only"),
+          false,
+          getFlag_("export_all_psms"));
         return EXECUTION_OK;
       }
 
@@ -201,7 +204,9 @@ protected:
         MzTabFile().store(out,
 	        prot_ids,
           pep_ids,
-          getFlag_("first_run_inference_only"));
+          getFlag_("first_run_inference_only"),
+          false,
+          getFlag_("export_all_psms"));
         return EXECUTION_OK;
       }
 
@@ -216,7 +221,9 @@ protected:
            getFlag_("first_run_inference_only"), 
            true, 
            true, 
-           export_subfeatures); // direct stream to disc
+           export_subfeatures,
+           false,
+           getFlag_("export_all_psms")); // direct stream to disc
         return EXECUTION_OK;
       }
 

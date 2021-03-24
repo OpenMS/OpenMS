@@ -611,8 +611,8 @@ public:
   struct OPENMS_DLLAPI MzTabPSMSectionRow
   {
     MzTabString sequence; ///< The peptide’s sequence.
-    MzTabInteger PSM_ID;
-    MzTabString accession; ///< The protein’s accession.
+    MzTabInteger PSM_ID; ///< A unique ID of a PSM line
+    MzTabString accession; ///< List of potential parent protein accessions as in the fasta DB.
     MzTabBoolean unique; ///< 0=false, 1=true, null else: Peptide is unique for the protein.
     MzTabString database; ///< Name of the sequence database.
     MzTabString database_version; ///< Version (and optionally # of entries).
@@ -622,14 +622,14 @@ public:
     MzTabModificationList modifications; ///< Modifications identified in the peptide.
     MzTabDoubleList retention_time; ///< Time points in seconds. Semantics may vary.
     MzTabInteger charge; ///< The charge of the experimental precursor ion.
-    MzTabDouble exp_mass_to_charge; ///< The m/z ratio of the experimental precursor ion.
-    MzTabDouble calc_mass_to_charge;
+    MzTabDouble exp_mass_to_charge; ///< The observed m/z ratio of the experimental precursor ion (either directly from the raw data or corrected).
+    MzTabDouble calc_mass_to_charge; ///< The calculated m/z ratio of the experimental precursor ion.
     MzTabString uri; ///< Location of the PSM’s source entry.
-    MzTabSpectraRef spectra_ref; ///< Spectra identifying the peptide.
-    MzTabString pre;
-    MzTabString post;
-    MzTabString start;
-    MzTabString end;
+    MzTabSpectraRef spectra_ref; ///< Spectrum for this PSM
+    MzTabString pre; ///< (List of) Amino acid in parent protein(s) before the start of the current PSM
+    MzTabString post; ///< (List of) Amino acid in parent protein(s) after the start of the current PSM
+    MzTabString start; ///< (List of) Start positions in parent protein(s)
+    MzTabString end; ///< (List of) Start positions in parent protein(s)
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /**
@@ -897,7 +897,9 @@ public:
       * @param[in] prot_ids Data structure containing protein identifications
       * @param[in] peptide_ids Data structure containing peptide identifications
       * @param[in] filename Input idXML file name
-      * @param[in] first_run_inference_only Is all protein inference information stored in the first run?
+      * @param[in] first_run_inference_only Is all protein inference information (groups and scores) stored in the first run?
+      * @param[in] export_empty_pep_ids		Export spectra without PSMs as well?
+      * @param[in] export_all_psms		Instead of just the best PSM per spectrum, should other PSMs be exported as well?
       *
       * @return mzTab object
     */
@@ -907,6 +909,7 @@ public:
         const String& filename,
         bool first_run_inference_only,
         bool export_empty_pep_ids = false,
+        bool export_all_psms = false,
         const String& title = "ID export from OpenMS");
 
 
@@ -924,6 +927,7 @@ public:
 	 * @param export_unidentified_features		Should not identified peptide features be exported?
 	 * @param export_unassigned_ids		Should unassigned identifications be exported?
 	 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
+	 * @param export_all_psms		Instead of just the best PSM per spectrum, should other PSMs be exported as well?
 	 *
 	 * @return mzTab object
 	 */
@@ -935,6 +939,7 @@ public:
       const bool export_unassigned_ids,
       const bool export_subfeatures,
       const bool export_empty_pep_ids = false,
+      const bool export_all_psms = false,
       const String& title = "ConsensusMap export from OpenMS");
 
     class IDMzTabStream
@@ -946,6 +951,7 @@ public:
           const String& filename,
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
+          bool export_all_psms = false,
           const String& title = "ID export from OpenMS");
 
          const MzTabMetaData& getMetaData() const;
@@ -981,7 +987,8 @@ public:
          /* currently unused
          bool export_unidentified_features_; 
          bool export_subfeatures_; */
-         bool export_empty_pep_ids_; 
+         bool export_empty_pep_ids_;
+         bool export_all_psms_;
          size_t quant_study_variables_ = 0;
          // size_t n_study_variables_ = 0; //currently unused
          size_t PRT_STATE_ = 0;
@@ -989,8 +996,9 @@ public:
          size_t prt_hit_id_ = 0; // current protein in (protein) identification run
          size_t prt_group_id_ = 0;
          size_t prt_indistgroup_id_ = 0;
-         // size_t pep_id_ = 0; // currently unused
+         size_t pep_id_ = 0;
          size_t psm_id_ = 0;
+         size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;
 
          std::vector<String> prt_optional_column_names_;
@@ -1011,6 +1019,7 @@ public:
           const bool export_unassigned_ids,
           const bool export_subfeatures,
           const bool export_empty_pep_ids = false,
+          const bool export_all_psms = false,
           const String& title = "ConsensusMap export from OpenMS");
 
          const MzTabMetaData& getMetaData() const;
@@ -1022,6 +1031,7 @@ public:
          bool nextPRTRow(MzTabProteinSectionRow& row);
          bool nextPEPRow(MzTabPeptideSectionRow& row);
          bool nextPSMRow(MzTabPSMSectionRow& row);
+
        private:
          const ConsensusMap& consensus_map_;
          std::set<String> protein_hit_user_value_keys_;
@@ -1046,7 +1056,8 @@ public:
          StringList fixed_mods_;
          bool export_unidentified_features_; 
          bool export_subfeatures_;
-         bool export_empty_pep_ids_; 
+         bool export_empty_pep_ids_;
+         bool export_all_psms_;
          size_t quant_study_variables_ = 0;
          size_t n_study_variables_ = 0;
          size_t PRT_STATE_ = 0;
@@ -1055,7 +1066,9 @@ public:
          size_t prt_group_id_ = 0;
          size_t prt_indistgroup_id_ = 0;
          size_t pep_id_ = 0;
+         size_t pep_counter_ = 0;
          size_t psm_id_ = 0;
+         size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;
 
          std::vector<String> prt_optional_column_names_;
@@ -1072,15 +1085,17 @@ public:
     static std::map<String, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
 
     static boost::optional<MzTabPSMSectionRow> PSMSectionRowFromPeptideID_(
-     const PeptideIdentification& pid,
-     const std::vector<const ProteinIdentification*>& prot_id,
-     std::map<String, size_t>& idrun_2_run_index,
-     std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-     std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
-     const int psm_id,
-     const MzTabString& db,
-     const MzTabString& db_version,
-     const bool export_empty_pep_ids);
+      PeptideIdentification const& pid,
+      std::vector<ProteinIdentification const*> const& prot_id,
+      std::map<String, size_t>& idrun_2_run_index,
+      std::map<std::pair<size_t, size_t>, size_t>& map_run_fileidx_2_msfileidx,
+      std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
+      Size const current_psm_idx,
+      Size const psm_id,
+      MzTabString const& db,
+      MzTabString const& db_version,
+      bool const export_empty_pep_ids,
+      bool const export_all_psms);
 
     static MzTabPeptideSectionRow peptideSectionRowFromConsensusFeature_(
       const ConsensusFeature& c, 

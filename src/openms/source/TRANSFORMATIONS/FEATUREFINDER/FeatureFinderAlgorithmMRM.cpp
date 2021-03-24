@@ -209,7 +209,7 @@ namespace OpenMS
           }
           // new section
           std::vector<DPosition<2> > section;
-          section.push_back(DPosition<2>(this_rt, sit->getIntensity()));
+          section.emplace_back(this_rt, sit->getIntensity());
           sections.push_back(section);
         }
         else
@@ -300,7 +300,7 @@ namespace OpenMS
             p.setIntensity(filter_spec[j].getIntensity());
             data_to_fit.push_back(p);
           }
-          InterpolationModel* model_rt = nullptr;
+          std::unique_ptr<InterpolationModel> model_rt;
           double quality = fitRT_(data_to_fit, model_rt);
 
           Feature f;
@@ -374,7 +374,6 @@ namespace OpenMS
               std::cerr << "An error occurred during the gnuplot execution" << std::endl;
             }
           }
-
           features_->push_back(f);
         }
       }
@@ -393,7 +392,7 @@ namespace OpenMS
     return "mrm";
   }
 
-  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, InterpolationModel*& model) const
+  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
   {
     double quality;
     Param param;
