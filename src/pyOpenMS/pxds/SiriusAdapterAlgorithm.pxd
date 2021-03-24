@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         void preprocessingSirius(const String& featureinfo,
                                  MSExperiment& spectra,
-                                 FeautreMapping_FeatureMappingInfo& fm_info,
+                                 FeatureMapping_FeatureMappingInfo& fm_info,
                                  FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
 
         void logFeatureSpectraNumber(const String& featureinfo,
@@ -57,6 +57,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
 
 # wrap static method:
-#cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
+cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
 
         void  sortSiriusWorkspacePathsByScanIndex(libcpp_vector[ String ]& subdirs) nogil except + # wrap-attach:SiriusAdapterAlgorithm

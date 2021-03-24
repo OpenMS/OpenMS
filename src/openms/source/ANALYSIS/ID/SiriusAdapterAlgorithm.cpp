@@ -474,7 +474,7 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
-                                                     FeautreMapping::FeatureMappingInfo& fm_info,
+                                                     FeatureMapping::FeatureMappingInfo& fm_info,
                                                      FeatureMapping::FeatureToMs2Indices& feature_mapping)
     {
       // if fileparameter is given and should be not empty
@@ -506,15 +506,12 @@ namespace OpenMS
                                   });
           feature_map.erase(map_it, feature_map.end());
   
-          v_fp.push_back(feature_map);
-          fp_map_kd.addMaps(v_fp);
-
-          fm_info.v_fp = v_fp;
-          fm_info.fp_map_kd = fp_map_kd;
+          fm_info.v_fp.push_back(feature_map);
+          fm_info.fp_map_kd.addMaps(fm_info.v_fp);
   
           // mapping of MS2 spectra to features
           feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,
-                                                                    fp_map_kd,
+                                                                    fm_info,
                                                                     precursor_mz_tol,
                                                                     precursor_rt_tol,
                                                                     precursorMzToleranceUnitIsPPM());
@@ -537,18 +534,6 @@ namespace OpenMS
       if (isFeatureOnly() && !featureinfo.empty())
       {
         OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        //TODO: Remove debug
-        const std::map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
-        for (auto it = assigned_ms2.begin(); it != assigned_ms2.end(); ++it)
-        {
-          const BaseFeature* feature = it->first;
-          if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
-          {
-            std::cout << "logFeatureSpectraNumber: The metavalues do exists and can be called!" << std::endl;
-            vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
-            vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
-          }
-        }
       }
       else if (!featureinfo.empty())
       {

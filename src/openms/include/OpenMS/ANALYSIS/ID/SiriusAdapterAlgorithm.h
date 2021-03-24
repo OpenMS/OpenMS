@@ -151,7 +151,7 @@ namespace OpenMS
       */
       void preprocessingSirius(const String& featureinfo,
                                const MSExperiment& spectra,
-                               FeautreMapping::FeatureMappingInfo& fm_info,
+                               FeatureMapping::FeatureMappingInfo& fm_info,
                                FeatureMapping::FeatureToMs2Indices& feature_mapping);
 
       /**

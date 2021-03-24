@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -45,10 +46,10 @@ namespace OpenMS
       {
           public:
 
-          class FetureMappingInfo
+          class FeatureMappingInfo
           {
           public:
-            vector<FeatureMap> v_fp;
+            std::vector<FeatureMap> v_fp;
             KDTreeFeatureMaps fp_map_kd;
           };
 
@@ -72,7 +73,7 @@ namespace OpenMS
 
           */
           static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
-                                                             const KDTreeFeatureMaps& fp_map_kd,
+                                                             const FeatureMappingInfo& fm_info,
                                                              const double& precursor_mz_tolerance,
                                                              const double& precursor_rt_tolerance,
                                                              bool ppm);

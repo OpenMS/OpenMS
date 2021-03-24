@@ -181,7 +181,7 @@ protected:
     SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
 
     // run masstrace filter and feature mapping
-    FeautreMapping::FeatureMappingInfo fm_info;
+    FeatureMapping::FeatureMappingInfo fm_info;
     //vector<FeatureMap> v_fp; // copy FeatureMap via push_back
     //KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
     FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
@@ -226,6 +226,11 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+
+    if (subdirs.empty())
+    {
+        throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "Sirius was executed, but an empty output was generated");
+    }
 
     // sort vector path list
     SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
