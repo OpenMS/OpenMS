@@ -73,7 +73,7 @@ namespace OpenMS
     defaults_.setMinInt("mass_trace:min_spectra", 1);
     defaults_.setValue("mass_trace:max_missing", 1, "Number of consecutive spectra where a high mass deviation or missing peak is acceptable.\nThis parameter should be well below 'min_spectra'!");
     defaults_.setMinInt("mass_trace:max_missing", 0);
-    defaults_.setValue("mass_trace:slope_bound", 0.1, "The maximum slope of mass trace intensities when extending from the highest peak.\nThis parameter is important to seperate overlapping elution peaks.\nIt should be increased if feature elution profiles fluctuate a lot.");
+    defaults_.setValue("mass_trace:slope_bound", 0.1, "The maximum slope of mass trace intensities when extending from the highest peak.\nThis parameter is important to separate overlapping elution peaks.\nIt should be increased if feature elution profiles fluctuate a lot.");
     defaults_.setMinFloat("mass_trace:slope_bound", 0.0);
     defaults_.setSectionDescription("mass_trace", "Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
     //Isotopic pattern search parameters

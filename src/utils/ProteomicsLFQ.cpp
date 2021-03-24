@@ -192,8 +192,6 @@ protected:
     setMinFloat_("proteinFDR", 0.0);
     setMaxFloat_("proteinFDR", 1.0);
 
-    registerDoubleOption_("seedThreshold", "<threshold>", 1e4, "Peak intensity threshold applied in seed detection.", false, true);
-
     registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
                           " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);
     setMinFloat_("psmFDR", 0.0);
@@ -242,6 +240,11 @@ protected:
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
                                                                      " sequence as a candidate per feature in the same file.", false, true);
     setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
+
+    registerTOPPSubsection_("Seeding", "Parameters for seeding of untargeted features");
+    registerDoubleOption_("Seeding:intThreshold", "<threshold>", 1e4, "Peak intensity threshold applied in seed detection.", false, true);
+    registerStringOption_("Seeding:charge", "<minChg:maxChg>", "2:5", "Charge range considered for untargeted feature seeds.", false, true); //TODO infer from IDs?
+    registerDoubleOption_("Seeding:traceRTTolerance", "<tolerance(sec)>", 3.0, "Combines all spectra in the tolerance window to stabilize identification of isotope patterns. Controls sensitivity (low value) vs. specificity (high value) of feature seeds.", false, true); //TODO infer from average MS1 cycle time?
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -501,16 +504,16 @@ protected:
 
     ThresholdMower threshold_mower_filter;
     Param tm = threshold_mower_filter.getParameters();
-    tm.setValue("threshold", getDoubleOption_("seedThreshold"));  // TODO: derive from data
+    tm.setValue("threshold", getDoubleOption_("Seeding:intThreshold"));  // TODO: derive from data
     threshold_mower_filter.setParameters(tm);
     threshold_mower_filter.filterPeakMap(e);
 
     FeatureFinderMultiplexAlgorithm algorithm;
     Param p = algorithm.getParameters();
-    p.setValue("algorithm:labels", "");
-    p.setValue("algorithm:charge", "2:5");
+    p.setValue("algorithm:labels", ""); // unlabeled only
+    p.setValue("algorithm:charge", getStringOption_("Seeding:charge")); //TODO infer from IDs?
     p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-    p.setValue("algorithm:rt_band", 3.0); // max 3 seconds shifts between isotopic traces
+    p.setValue("algorithm:rt_band", getDoubleOption_("Seeding:traceRTTolerance")); // max 3 seconds shifts between isotopic traces
     p.setValue("algorithm:rt_min", median_fwhm * 0.5);
     p.setValue("algorithm:spectrum_type", "centroid");
     algorithm.setParameters(p);
@@ -1389,14 +1392,8 @@ protected:
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
     if (greedy_group_resolution)
     {
-      PeptideProteinResolution ppr{};
-      ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
-      ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
-      // TODO maybe move the removal as an option into the PPResolution class
+      PeptideProteinResolution::run(inferred_protein_ids, inferred_peptide_ids);
       // TODO add an option to calculate FDR including those "second best protein hits"?
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
       if (debug_level_ >= 666)
       {
         IdXMLFile().store("debug_mergedIDsGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
@@ -1712,7 +1709,7 @@ protected:
 
         if (e != EXECUTION_OK) { return e; }
         
-        if (getStringOption_("transfer_ids") != "false")
+        if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
         {  
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
           // needs to occur in >= 50% of all runs for transfer

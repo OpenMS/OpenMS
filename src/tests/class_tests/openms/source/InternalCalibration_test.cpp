@@ -124,6 +124,7 @@ START_SECTION(bool calibrate(PeakMap& exp, const IntList& target_mslvl, MZTrafoM
   ic.fillCalibrants(peps, 3.0);
   PeakMap exp;
   MzMLFile().load(File::find("./examples/BSA/BSA1.mzML"), exp);
+  MZTrafoModel::setRANSACSeed(0);
   MZTrafoModel::setRANSACParams(Math::RANSACParam(2, 1000, 1.0, 30, true));
   bool success = ic.calibrate(exp, std::vector<Int>(1, 1), MZTrafoModel::LINEAR, -1, true, 1.0, 1.0);
   TEST_EQUAL(success, true)

@@ -102,7 +102,7 @@ protected:
   {
     String formats = "mzML";
     // no support for a reference file yet:
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_NONE);
+    TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_(formats, REF_NONE);
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }

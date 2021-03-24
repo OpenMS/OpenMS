@@ -366,7 +366,7 @@ namespace OpenMS
         }
         else
         {
-                os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
         }
       }
       else
@@ -452,15 +452,23 @@ namespace OpenMS
 
 
     String native_id_type_accession;
-    vector<SourceFile> sourcefiles = experiment.getExperimentalSettings().getSourceFiles();
+    vector<SourceFile> sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {
+      OPENMS_LOG_WARN << "MascotGenericFile: no native ID accession." << endl;
       native_id_type_accession = "UNKNOWN";
     }
     else
     {
-      native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+      native_id_type_accession = experiment.getSourceFiles()[0].getNativeIDTypeAccession();
+      if (native_id_type_accession.empty())
+      {
+        OPENMS_LOG_WARN << "MascotGenericFile: empty native ID accession." << endl;
+        native_id_type_accession = "UNKNOWN";
+      }
     }
+
+
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {

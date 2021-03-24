@@ -1566,7 +1566,7 @@ namespace OpenMS
 
     const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
     if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
-    { // error occured: if not written already in callback, do it now
+    { // error occurred: if not written already in callback, do it now
       writeLog_("Standard output: " + proc_stdout);
       writeLog_("Standard error: " + proc_stderr);
     }

@@ -491,17 +491,16 @@ public:
     public:
 
     // create view on string
-    StringView() : begin_(), size_(0) 
-    {
-    }
+    StringView() = default;
+
+    // construct from other view
+    StringView(const StringView&) = default;
+
+    // copy assignment
+    StringView& operator=(const StringView&) = default;
 
     // create view on string
     StringView(const std::string& s) : begin_(s.data()), size_(s.size())
-    {
-    }
-
-    // construct from other view
-    StringView(const StringView& s) : begin_(s.begin_), size_(s.size_) 
     {
     }
 

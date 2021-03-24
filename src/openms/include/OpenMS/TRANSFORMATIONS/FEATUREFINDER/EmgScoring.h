@@ -92,7 +92,8 @@ namespace OpenMS
         Feature f = mrmfeature.getFeature(native_id);
         OPENMS_PRECONDITION(f.getConvexHulls().size() == 1, "Convex hulls need to have exactly one hull point structure");
 
-        // TODO what if score is -1 ?? e.g. if it is undefined
+        //TODO think about penalizing aborted fits even more. Currently -1 is just the "lowest" pearson correlation to
+        // a fit that you can have.
         double fscore = elutionModelFit(f.getConvexHulls()[0].getHullPoints(), smooth_data);
         avg_score += fscore;
       }
@@ -118,27 +119,22 @@ namespace OpenMS
       // -- cut line 301 of FeatureFinderAlgorithmMRM
       std::vector<LocalPeakType> data_to_fit;
       prepareFit_(current_section, data_to_fit, smooth_data);
-      InterpolationModel * model_rt = nullptr;
+      std::unique_ptr<InterpolationModel> model_rt;
       double quality = fitRT_(data_to_fit, model_rt);
       // cut line 354 of FeatureFinderAlgorithmMRM
-      delete model_rt;
 
       return quality;
     }
 
   protected:
     template<class LocalPeakType>
-    double fitRT_(std::vector<LocalPeakType> & rt_input_data, InterpolationModel * & model) const
+    double fitRT_(std::vector<LocalPeakType>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
     {
-      double quality;
       EmgFitter1D fitter_emg1D;
       fitter_emg1D.setParameters(fitter_emg1D_params_);
       // Construct model for rt
-      quality = fitter_emg1D.fit1d(rt_input_data, model);
-
-      // Check quality
-      if (boost::math::isnan(quality)) quality = -1.0;
-      return quality;
+      // NaN is checked in fit1d: if (boost::math::isnan(quality)) quality = -1.0;
+      return fitter_emg1D.fit1d(rt_input_data, model);
     }
 
     // Fxn from FeatureFinderAlgorithmMRM

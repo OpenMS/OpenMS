@@ -269,7 +269,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
           peak.setMZ(sub_it->getMZ());
           peak.setIntensity(intensity);
           peaks.push_back(peak);
-          trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
+          trace.peaks.emplace_back(point_it->getX(), &peaks.back());
         }
       }
       trace.updateMaximum();
@@ -311,8 +311,8 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       peak.setIntensity(0.0);
       peaks.push_back(peak);
       double offset = 0.2 * (region_start - region_end);
-      trace.peaks.push_back(make_pair(region_start - offset, &peaks.back()));
-      trace.peaks.push_back(make_pair(region_end + offset, &peaks.back()));
+      trace.peaks.emplace_back(region_start - offset, &peaks.back());
+      trace.peaks.emplace_back(region_end + offset, &peaks.back());
       traces.push_back(trace);
     }
 

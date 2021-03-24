@@ -133,7 +133,7 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge) const
   {
     if (peptide.empty())
     {
@@ -216,6 +216,29 @@ namespace OpenMS
     if (ion_names_dynamic) delete ion_names;
 
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
+
+    // set MS Level
+    spectrum.setMSLevel(2);
+
+    // set spectrum type
+    spectrum.setType(MSSpectrum::SpectrumSettings::CENTROID);
+
+    // set precursor
+    Precursor prec;
+
+    if (precursor_charge == 0)
+    {
+      precursor_charge = max_charge +1;
+    }
+    
+    if (precursor_charge < max_charge)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than or equal to 'max_charge'.");
+    }
+
+    prec.setCharge(precursor_charge);
+    prec.setMZ(peptide.getMZ(precursor_charge, Residue::Full));
+    spectrum.getPrecursors().push_back(prec);
   }
 
 

@@ -484,7 +484,7 @@ namespace OpenMS
                   right_charges = md_s->getPositiveCharges();                   
                 }
 
-                if ( // compomer fits charge assignment of left & right feature. doesnt consider charge sign switch over span!
+                if ( // compomer fits charge assignment of left & right feature. doesn't consider charge sign switch over span!
                   (abs(q1)  >= abs(left_charges)) && (abs(q2) >= abs(right_charges)))
                 {
                   // compomer has better probability

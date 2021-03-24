@@ -290,6 +290,10 @@ protected:
     idXML_file.store(outputfile_name,
                      protein_identifications,
                      identifications);
+    if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+    {
+      LibSVMEncoder::destroyProblem(training_samples);
+    }
     return EXECUTION_OK;
   }
 

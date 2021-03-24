@@ -138,9 +138,10 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 
 import numpy
 
+
 include_dirs = [
     "extra_includes",
-    j(numpy.core.__path__[0], "include"),
+    j(numpy.core.__path__[0], "include")
 ]
 
 # append all include and library dirs exported by CMake
@@ -194,11 +195,11 @@ if IS_DEBUG:
 
 # Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 if not iswin:
-    extra_link_args.append("-std=c++11")
+    extra_link_args.append("-std=c++17")
     if isosx: # MacOS c++11
         extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11 lib support.
         extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
-    extra_compile_args.append("-std=c++11")
+    extra_compile_args.append("-std=c++17")
     if isosx: # MacOS c++11
         extra_compile_args.append("-stdlib=libc++")
         extra_compile_args.append("-mmacosx-version-min=10.7")
@@ -206,7 +207,8 @@ if not iswin:
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
-    extra_compile_args.append("-Wno-deprecated-register")
+    extra_compile_args.append("-Wno-deprecated-register") # caused by seqan on gcc
+    extra_compile_args.append("-Wno-register") #caused by seqan on clang c17
     extra_compile_args.append("-Wdeprecated-declarations")
     extra_compile_args.append("-Wno-sign-compare")
     extra_compile_args.append("-Wno-unknown-pragmas")
@@ -214,6 +216,8 @@ if not iswin:
     extra_compile_args.append("-Wno-unused-function")
     extra_compile_args.append("-Wno-deprecated-declarations")
     extra_compile_args.append("-Wno-missing-declarations")
+    extra_compile_args.append("-Wno-int-in-bool-context")
+    extra_compile_args.append("-Wno-deprecated-copy")
     if no_optimization:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
@@ -268,6 +272,7 @@ setup(
         "Topic :: Scientific/Engineering :: Chemistry",
     ],
     long_description=open("README.rst").read(),
+    long_description_content_type="text/x-rst",
     zip_safe=False,
 
     url="http://open-ms.de",

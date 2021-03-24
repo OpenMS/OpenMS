@@ -208,8 +208,7 @@ protected:
     the contained strings
 
     */
-  struct StringSizeLess :
-    std::binary_function<String, String, bool>
+  struct StringSizeLess
   {
     bool operator()(String const & left, String const & right) const
     {

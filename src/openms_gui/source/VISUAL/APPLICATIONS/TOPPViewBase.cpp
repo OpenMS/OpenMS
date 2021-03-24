@@ -52,6 +52,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -134,8 +135,8 @@ namespace OpenMS
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
-                                                  FileTypes::DTA, FileTypes::DTA2D,
-                                                  FileTypes::BZ2, FileTypes::GZ });
+                                                  FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
+                                                  FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
@@ -696,8 +697,16 @@ namespace OpenMS
             if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
+        else if (file_type == FileTypes::MSP)
+        {
+          MSPGenericFile().load(abs_filename, *peak_map_sptr);
+          for (size_t i = 0; i != peak_map_sptr->size(); ++i)
+          {
+            if ((*peak_map_sptr)[i].getRT() < 0) (*peak_map_sptr)[i].setRT(i); // set RT to spectrum index
+          }
+        }
 
-        // Load all data into memory
+        // Load all data into memory if e.g. no mzML file
         if (!parsing_success)
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
@@ -1544,10 +1553,10 @@ namespace OpenMS
         error = true;
       }
 
-      //set parameters to defaults when something is fishy with the parameters file
+      // set parameters to defaults when something is fishy with the parameters file
       if (error)
       {
-        //reset parameters (they will be stored again when TOPPView quits)
+        // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
 
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
@@ -1559,27 +1568,15 @@ namespace OpenMS
     }
     param_.setValue("PreferencesFile", filename);
 
-    //set the recent files
-    Param p = param_.copy("preferences:RecentFiles");
-    QStringList rfiles;
-    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
-    {
-      QString filename = String(it->value.toString()).toQString();
-      if (File::exists(filename))
-        rfiles.append(filename);
-    }
-    recent_files_.set(rfiles);
+    // set the recent files
+    recent_files_.setFromParam(param_.copy("preferences:RecentFiles"));
   }
 
   void TOPPViewBase::savePreferences()
   {
     // replace recent files
     param_.removeAll("preferences:RecentFiles");
-    const QStringList& rfiles = recent_files_.get();
-    for (int i = 0; i < rfiles.size(); ++i)
-    {
-      param_.setValue("preferences:RecentFiles:" + String(i), rfiles[i].toStdString());
-    }
+    param_.insert("preferences:RecentFiles:", recent_files_.getAsParam());
 
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
@@ -2008,15 +2005,6 @@ namespace OpenMS
         return;
       }
 
-      // set precursor information
-      vector<Precursor> precursors;
-      Precursor precursor;
-      precursor.setMZ(aa_sequence.getMZ(charge));
-      precursor.setCharge(charge);
-      precursors.push_back(precursor);
-      spectrum.setPrecursors(precursors);
-      spectrum.setMSLevel(2);
-
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
@@ -2314,7 +2302,7 @@ namespace OpenMS
     if (getActive1DWidget()) // switch from 1D to 3D
     {
       //TODO:
-      //- doesnt make sense for fragment scan
+      //- doesn't make sense for fragment scan
       //- build new Area with mz range equal to 1D visible range
       //- rt range either overall MS1 data range or some convenient window
 

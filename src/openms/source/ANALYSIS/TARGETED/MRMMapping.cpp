@@ -140,7 +140,7 @@ namespace OpenMS
       }
 
       // Check whether we have mapped this chromatogram to at least one transition:
-      //  - warn if no mapping occured
+      //  - warn if no mapping occurred
       //  - else append all mapped chromatograms (if we allow multiple mappings)
       //  - else append the first mapped chromatograms (if we don't allow multiple mappings)
       if (mapped_chroms.empty())

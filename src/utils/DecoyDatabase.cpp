@@ -32,15 +32,14 @@
 // $Authors: Sven Nahnsen, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <boost/regex.hpp>
 
 using namespace OpenMS;
@@ -199,6 +198,7 @@ protected:
     MRMDecoy m;
     m.setParameters(decoy_param);
 
+    Math::RandomShuffler shuffler(seed);
     for (Size i = 0; i < in.size(); ++i)
     {
       f.readStart(in[i]);
@@ -238,16 +238,15 @@ protected:
           }
           vector<String> tokenized;
           boost::smatch m;
-          while (boost::regex_search(quick_seq, m, boost::regex("[^\\[]|(\\[[^\\[\\]]*\\])")))
+          while (boost::regex_search(quick_seq, m, boost::regex(R"([^\[]|(\[[^\[\]]*\]))")))
           {
-            tokenized.push_back(m.str(0));
+            tokenized.emplace_back(m.str(0));
             quick_seq = m.suffix();
           }
 
           if (shuffle)
           {
-            srand(seed);
-            random_shuffle(tokenized.begin(), tokenized.end());
+            shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
           }
           else  // reverse
           {
@@ -259,7 +258,7 @@ protected:
           }
           if (three_p) //add back 3'
           {
-            tokenized.push_back(String("p"));
+            tokenized.emplace_back("p");
           }
           entry.sequence = ListUtils::concatenate(tokenized, "");
         }
@@ -273,6 +272,8 @@ protected:
             String new_sequence = "";
             for (auto const& peptide : peptides)
             {
+              //TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
+              // No soul would look there.
               if (shuffle)
               {
                 OpenMS::TargetedExperiment::Peptide p;
@@ -295,16 +296,8 @@ protected:
             // sequence
             if (shuffle)
             {
-              String temp;
-              Size x = entry.sequence.size();
-              srand(seed); // identical proteins are shuffled the same way
-              while (x != 0)
-              {
-                Size y = rand() % x;
-                temp += entry.sequence[y];
-                --x;
-                entry.sequence[y] = entry.sequence[x]; // overwrite consumed position with last position (about to go out of scope for next dice roll)
-              }
+              shuffler.seed(seed); // identical proteins are shuffled the same way -> re-seed
+              shuffler.portable_random_shuffle(entry.sequence.begin(), entry.sequence.end());
             }
             else // reverse
             {

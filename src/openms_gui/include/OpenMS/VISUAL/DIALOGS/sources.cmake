@@ -7,6 +7,7 @@ DataFilterDialog.h
 FeatureEditDialog.h
 HistogramDialog.h
 LayerStatisticsDialog.h
+ListFilterDialog.h
 PythonModuleRequirement.h
 PythonSelector.h
 SaveImageDialog.h
