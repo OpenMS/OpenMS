@@ -174,6 +174,60 @@ namespace OpenMS
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000053", "RT duration", UInt(exp.getMaxRT() - exp.getMinRT()));
     // QC:4000138 MZ acquisition range
     out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000138", "MZ acquisition range", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
+    
+    const MSChromatogram& tic = exp.getTIC();
+    UInt jump = 0;
+    UInt fall = 0;
+    vector<float> retention_times;
+    vector<UInt> intensities;
+    
+    for (auto it = tic.begin(); it != tic.end(); ++it)
+    {
+      intensities.push_back(it->getIntensity());
+      retention_times.push_back(it->getRT());
+    }
+
+    UInt tic_area = intensities[0];
+
+    for (UInt i = 1; i < intensities.size(); ++i)
+    {
+      tic_area += intensities[i];
+      if (intensities[i] > intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
+      {
+        ++jump;
+      }
+      if (intensities[i] < intensities[i-1] / 10) // detect 10x falls between two subsequent scans
+      {
+        ++fall;
+      }
+    }
+    
+    json tic_values;
+    tic_values["Relative intensity"] = intensities;
+    tic_values["Retention time"] = retention_times;
+
+    if (!tic.empty())
+    {
+      // QC:4000067 Total ion current chromatogram
+      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000067", "Total ion current chromatogram", tic_values);
+      // QC:4000077 Area under TIC
+      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000077", "Area under TIC", tic_area);
+      // QC:4000172 MS1 signal jump (10x) count
+      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000172", "MS1 signal jump (10x) count", jump);
+      // QC:4000173 MS1 signal fall (10x) count
+      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000173", "MS1 signal fall (10x) count", fall);
+    }
+    
+    // QC:4000074 Median MS1 peak FWHM for peptides
+    // QC:4000257 Detected Compounds
+    // MS:1000005 sample volume
+    // MS:1000011 mass resolution
+    // MS:1000015 scan rate
+    // MS:1000026 detector type
+
+    // HPLC:
+    // QC:4000107 Column type
+    // QC:4000079 Pump pressure chromatogram
 
     //open stream
     ofstream os(outputFileName.c_str());
