@@ -1805,9 +1805,9 @@ PyOpenMSChecker:
     - OpenMS::OpenSwathWorkflow::ChromExtractParams
     - OpenMS::OpenSwathTSVWriter
     - ModificationMassesResult
-    - RNPxlReportRow
+    - NuXLReportRow
     - TOPPFuzzyDiff
     - TOPPRNPxlXICFilter
     - MarkerIonExtractor
-    - RNPxlReportRowHeader
+    - NuXLReportRowHeader
     - TOPPRNPxl

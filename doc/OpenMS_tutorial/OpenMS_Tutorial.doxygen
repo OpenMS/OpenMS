@@ -290,7 +290,7 @@ Within the ANALYSIS folder, you can find several important tools
  <tr><td>OPENSWATH</td><td>OpenSWATH algorithms for targeted, chromatogram-based analysis of MRM, SRM, PRM, DIA and SWATH-MS data</td></tr>
  <tr><td>PIP</td><td>Peak intensity predictor</td></tr>
  <tr><td>QUANTITATION</td><td>Algorithms for quantitative analysis including isobaric labelling</td></tr>
- <tr><td>RNPXL</td><td>Algorithms for RNA cross-linking</td></tr>
+ <tr><td>NUXL</td><td>Algorithms for NA cross-linking</td></tr>
  <tr><td>SVM</td><td>Algorithms for SVM</td></tr>
  <tr><td>TARGETED</td><td>Algorithms for targeted proteomics (MRM, SRM)</td></tr>
  <tr><td>XLMS</td><td>Algorithms for Cross-link mass spectrometry</td></tr>

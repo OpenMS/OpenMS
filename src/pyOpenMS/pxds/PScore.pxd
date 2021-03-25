@@ -2,7 +2,7 @@ from Types cimport *
 from MSSpectrum cimport *
 from MSExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/NUXL/PScore.h>" namespace "OpenMS":
     
     cdef cppclass PScore "OpenMS::PScore":
         PScore() nogil except + 
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
                              double mz_window) nogil except +
 
 ## wrap static methods
-# cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS::PScore":
+# cdef extern from "<OpenMS/ANALYSIS/NUXL/PScore.h>" namespace "OpenMS::PScore":
 # 
 #     double massCorrectionTerm(double mass) nogil except + #wrap-attach:PScore
 #     double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage) nogil except + #wrap-attach:PScore

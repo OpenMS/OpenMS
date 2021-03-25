@@ -54,18 +54,18 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
-#include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlAnnotatedHit.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlAnnotateAndLocate.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlConstants.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlFDR.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentAnnotationHelper.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentIonGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlParameterParsing.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
+#include <OpenMS/ANALYSIS/NUXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
+#include <OpenMS/ANALYSIS/NUXL/MorpheusScore.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFDR.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
+#include <OpenMS/ANALYSIS/NUXL/RNPxlFragmentAnnotationHelper.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -88,7 +88,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/NUXL/HyperScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -2098,7 +2098,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
 /*
 *  Combine subscores of all-ion scoring.
 */
-  static float calculateCombinedScore(const RNPxlAnnotatedHit& ah, 
+  static float calculateCombinedScore(const NuXLAnnotatedHit& ah, 
     const bool isXL, 
     const double nucleotide_mass_tags
     //, const double fraction_of_top50annotated
@@ -2275,7 +2275,7 @@ score += ah.mass_error_p     *   1.15386068
   }
 
 
-  static float calculateFastScore(const RNPxlAnnotatedHit& ah)
+  static float calculateFastScore(const NuXLAnnotatedHit& ah)
   {
     return ah.modds;
 /*               + 1.0 * ah.total_MIC         
@@ -2321,9 +2321,9 @@ static void scoreXLIons_(
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance * 2.0,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
-                                             exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                                             exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                                              marker_ions_sub_score_spectrum_z1,
-                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX]);
+                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
 
       // count marker ions
@@ -2340,7 +2340,7 @@ static void scoreXLIons_(
                       fragment_mass_tolerance, 
                       fragment_mass_tolerance_unit_ppm, 
                       exp_spectrum, 
-                      exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                      exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                       intensity_sum,
                       b_ions,
                       y_ions,
@@ -2562,7 +2562,7 @@ static void scoreXLIons_(
     for (size_t i = 0; i != peak_matched.size(); ++i)
     {
       if (!peak_matched[i]) { continue; }
-      matched_ranks.push_back(spectrum.getIntegerDataArrays()[RNPxlConstants::IA_RANK_INDEX][i]);
+      matched_ranks.push_back(spectrum.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX][i]);
     }
     std::sort(matched_ranks.begin(), matched_ranks.end());
 
@@ -2611,7 +2611,7 @@ static void scoreXLIons_(
       }
       else
       { 
-        const double rank = 1 + spectrum.getIntegerDataArrays()[RNPxlConstants::IA_RANK_INDEX][i]; // ranks start at 0 -> add 1
+        const double rank = 1 + spectrum.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX][i]; // ranks start at 0 -> add 1
         r.rp += 1.0/matched * log((double)rank);
         top7ranks.tryAdd(rank);         
       }
@@ -2639,7 +2639,7 @@ static void scoreXLIons_(
   void calculateNucleotideTags_(PeakMap& exp, 
     const double fragment_mass_tolerance, 
     const bool fragment_mass_tolerance_unit_ppm,
-    const RNPxlParameterParsing::NucleotideToFragmentAdductMap &  nucleotide_to_fragment_adducts)
+    const NuXLParameterParsing::NucleotideToFragmentAdductMap &  nucleotide_to_fragment_adducts)
   {
     // set of all possibly observable fragment adduct masses
     set<double> adduct_mass;
@@ -2868,7 +2868,7 @@ static void scoreXLIons_(
       vector<double> mzs;
       vector<double> charges;
       for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
-      for (auto const& p : spec.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX]) { charges.push_back(p); }
+      for (auto const& p : spec.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]) { charges.push_back(p); }
  
       size_t match(0);
       size_t in_mass_range(0);
@@ -2946,10 +2946,10 @@ static void scoreXLIons_(
       sort(idx.begin(), idx.end(),
         [&spec](size_t i1, size_t i2) { return spec[i1].getIntensity() > spec[i2].getIntensity(); });
 
-      spec.getIntegerDataArrays().resize(RNPxlConstants::IA_RANK_INDEX + 1);
-      spec.getIntegerDataArrays()[RNPxlConstants::IA_RANK_INDEX].clear();
-      for (int rank : idx) { spec.getIntegerDataArrays()[RNPxlConstants::IA_RANK_INDEX].push_back(rank); }
-      spec.getIntegerDataArrays()[RNPxlConstants::IA_RANK_INDEX].setName("intensity_rank");
+      spec.getIntegerDataArrays().resize(NuXLConstants::IA_RANK_INDEX + 1);
+      spec.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX].clear();
+      for (int rank : idx) { spec.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX].push_back(rank); }
+      spec.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX].setName("intensity_rank");
     }
     OPENMS_LOG_INFO << " done!" << endl;
 
@@ -2958,15 +2958,15 @@ static void scoreXLIons_(
     for (auto & spec : exp)
     {
       if (spec.getMSLevel() != 2) continue;
-      spec.getIntegerDataArrays().resize(RNPxlConstants::IA_DENOVO_TAG_INDEX + 1);
-      spec.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX].resize(1);
-      spec.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX][0] = 0;
+      spec.getIntegerDataArrays().resize(NuXLConstants::IA_DENOVO_TAG_INDEX + 1);
+      spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX].resize(1);
+      spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] = 0;
       #ifdef CALCULATE_LONGEST_TAG
       size_t longest_tag = tagger.getLongestTagLength(spec);
-      spec.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX][0] = longest_tag; 
-      //spec.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX][0] = tagger.getLongestTag(spec).size(); // slow
+      spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] = longest_tag; 
+      //spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] = tagger.getLongestTag(spec).size(); // slow
       #endif
-      spec.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX].setName("longest_tag");
+      spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
     OPENMS_LOG_INFO << " done!" << endl;
 
@@ -3207,7 +3207,7 @@ static void scoreXLIons_(
       { 
         // set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
         // to highly charged fragments in the low m/z region
-        DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX]; // charge array
+        DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]; // charge array
         for (int & z : ia) { if (z == 0) { z = 1; } }
       } 
     #ifdef DEBUG_OpenNuXL
@@ -3307,7 +3307,7 @@ static void scoreXLIons_(
     if (debug_level_ > 10) MzMLFile().store("debug_filtering.mzML", exp); 
   }
 
-  void filterTopNAnnotations_(vector<vector<RNPxlAnnotatedHit>>& ahs, const Size top_hits)
+  void filterTopNAnnotations_(vector<vector<NuXLAnnotatedHit>>& ahs, const Size top_hits)
   {
 #ifdef _OPENMP
 #pragma omp parallel for 
@@ -3316,7 +3316,7 @@ static void scoreXLIons_(
     {
       // sort and keeps n best elements according to score
       const Size topn = top_hits > ahs[scan_index].size() ? ahs[scan_index].size() : top_hits;
-      std::partial_sort(ahs[scan_index].begin(), ahs[scan_index].begin() + topn, ahs[scan_index].end(), RNPxlAnnotatedHit::hasBetterScore);
+      std::partial_sort(ahs[scan_index].begin(), ahs[scan_index].begin() + topn, ahs[scan_index].end(), NuXLAnnotatedHit::hasBetterScore);
       ahs[scan_index].resize(topn);
       ahs[scan_index].shrink_to_fit();
     }
@@ -3324,14 +3324,14 @@ static void scoreXLIons_(
 
   void rescoreFastHits_(
     const PeakMap& exp, 
-    vector<vector<RNPxlAnnotatedHit>>& annotated_hits,
+    vector<vector<NuXLAnnotatedHit>>& annotated_hits,
     const RNPxlModificationMassesResult& mm,
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide, 
     double fragment_mass_tolerance, 
     bool fragment_mass_tolerance_unit_ppm, 
-    const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
+    const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
   {
     TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
     auto param = partial_loss_spectrum_generator.getParameters();
@@ -3352,7 +3352,7 @@ static void scoreXLIons_(
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
-      vector<RNPxlAnnotatedHit> new_hits;
+      vector<NuXLAnnotatedHit> new_hits;
 
       // for each PSM of this spectrum
       for (Size i = 0; i != annotated_hits[scan_index].size(); ++i)
@@ -3377,7 +3377,7 @@ static void scoreXLIons_(
             // if we have a cross-link, copy PSM information for each cross-linkable nucleotides
             for (auto const & c : feasible_MS2_adducts)
             {
-              RNPxlAnnotatedHit a(annotated_hits[scan_index][i]);
+              NuXLAnnotatedHit a(annotated_hits[scan_index][i]);
               a.cross_linked_nucleotide = c.first; // nucleotide
               a.NA_adduct_amb_index = NA_adduct_amb_index;
               new_hits.push_back(a);
@@ -3395,7 +3395,7 @@ static void scoreXLIons_(
       // for each PSM of this spectrum
       for (Size i = 0; i != annotated_hits[scan_index].size(); ++i)
       {
-        RNPxlAnnotatedHit& ah = annotated_hits[scan_index][i];
+        NuXLAnnotatedHit& ah = annotated_hits[scan_index][i];
 
         // reconstruct fixed and variable modified peptide sequence (without NA)
         const String& unmodified_sequence = ah.sequence.getString();
@@ -3456,7 +3456,7 @@ static void scoreXLIons_(
           {
             // shifted b- / y- / a-ions
             // generate shifted_immonium_ions_sub_score_spectrum.empty
-            RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
+            NuXLFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                       current_peptide_mass_without_NA,
                                       precursor_na_adduct,
                                       precursor_na_mass,
@@ -3467,7 +3467,7 @@ static void scoreXLIons_(
                                       partial_loss_template_z3,
                                       partial_loss_spectrum_z1);
 
-            RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
+            NuXLFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                       current_peptide_mass_without_NA,
                                       precursor_na_adduct,
                                       precursor_na_mass,
@@ -3482,10 +3482,10 @@ static void scoreXLIons_(
           // add shifted marker ions
           marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
           marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation
-          RNPxlFragmentIonGenerator::addMS2MarkerIons(
+          NuXLFragmentIonGenerator::addMS2MarkerIons(
             marker_ions,
             marker_ions_sub_score_spectrum_z1,
-            marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+            marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
             marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
           const PeakSpectrum& exp_spectrum = exp[scan_index];
@@ -3539,15 +3539,15 @@ static void scoreXLIons_(
     3. Add additional meta information for PSM.
    */
   void postScoreHits_(const PeakMap& exp, 
-                      vector<vector<RNPxlAnnotatedHit> >& annotated_XL_hits, 
-                      vector<vector<RNPxlAnnotatedHit> >& annotated_peptide_hits, 
+                      vector<vector<NuXLAnnotatedHit> >& annotated_XL_hits, 
+                      vector<vector<NuXLAnnotatedHit> >& annotated_peptide_hits, 
                       const RNPxlModificationMassesResult& mm, 
                       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
                       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
                       Size max_variable_mods_per_peptide, 
                       double fragment_mass_tolerance, 
                       bool fragment_mass_tolerance_unit_ppm, 
-                      const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
+                      const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
   {
     assert(exp.size() == annotated_XL_hits.size());
     assert(exp.size() == annotated_peptide_hits.size());
@@ -3562,12 +3562,12 @@ static void scoreXLIons_(
       rescoreFastHits_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
     }
 
-    RNPxlAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts);
-    RNPxlAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
   }
 
   void fillSpectrumID_(
-    const vector<RNPxlAnnotatedHit>& ahs, 
+    const vector<NuXLAnnotatedHit>& ahs, 
     PeptideIdentification& pi, 
     const RNPxlModificationMassesResult& mm, 
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
@@ -3734,7 +3734,7 @@ static void scoreXLIons_(
       }
 
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[2][0]);
-      int maxtag = spec.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX][0];
+      int maxtag = spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0];
       ph.setMetaValue("NuXL:aminoacid_max_tag", maxtag);
       const double id2maxtag = maxtag == 0 ? 0 : (ah.ladder_score * s.size()) / (double)maxtag; 
       ph.setMetaValue("NuXL:aminoacid_id_to_max_tag_ratio", id2maxtag);
@@ -3768,8 +3768,8 @@ static void scoreXLIons_(
     2. Add additional meta information for PSM.
   */
   void postProcessHits_(const PeakMap& exp, 
-    vector<vector<RNPxlAnnotatedHit> >& annotated_XL_hits, 
-    vector<vector<RNPxlAnnotatedHit> >& annotated_peptide_hits, 
+    vector<vector<NuXLAnnotatedHit> >& annotated_XL_hits, 
+    vector<vector<NuXLAnnotatedHit> >& annotated_peptide_hits, 
     vector<ProteinIdentification>& protein_ids, 
     vector<PeptideIdentification>& peptide_ids, 
     const RNPxlModificationMassesResult& mm, 
@@ -3786,8 +3786,8 @@ static void scoreXLIons_(
     for (SignedSize scan_index = 0; scan_index < hit_count; ++scan_index)
     {
       const MSSpectrum& spec = exp[scan_index];
-      vector<RNPxlAnnotatedHit>& ahs_XL = annotated_XL_hits[scan_index];
-      vector<RNPxlAnnotatedHit>& ahs_peptide = annotated_peptide_hits[scan_index];
+      vector<NuXLAnnotatedHit>& ahs_XL = annotated_XL_hits[scan_index];
+      vector<NuXLAnnotatedHit>& ahs_peptide = annotated_peptide_hits[scan_index];
 
       if (ahs_XL.empty() && ahs_peptide.empty()) continue;
 
@@ -3957,7 +3957,7 @@ static void scoreXLIons_(
     const boost::math::normal & gaussian_mass_error,
     const double & fragment_mass_tolerance,
     const bool & fragment_mass_tolerance_unit_ppm,
-    vector<RNPxlAnnotatedHit> & annotated_hits,
+    vector<NuXLAnnotatedHit> & annotated_hits,
 #ifdef _OPENMP
     omp_lock_t & annotated_hits_lock,
 #endif
@@ -3982,7 +3982,7 @@ static void scoreXLIons_(
 
     scorePeptideIons_(
       exp_spectrum, 
-      exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+      exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
       total_loss_template_z1_b_ions,
       total_loss_template_z1_y_ions,
       current_peptide_mass_without_NA,
@@ -4013,7 +4013,7 @@ static void scoreXLIons_(
     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
 
     // add peptide hit
-    RNPxlAnnotatedHit ah;
+    NuXLAnnotatedHit ah;
     ah.mass_error_p = mass_error_score;
 
     ah.sequence = sequence; // copy StringView
@@ -4056,7 +4056,7 @@ static void scoreXLIons_(
       // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
       if (annotated_hits.size() >= 2 * report_top_hits)
       {
-        std::partial_sort(annotated_hits.begin(), annotated_hits.begin() + report_top_hits, annotated_hits.end(), RNPxlAnnotatedHit::hasBetterScore);
+        std::partial_sort(annotated_hits.begin(), annotated_hits.begin() + report_top_hits, annotated_hits.end(), NuXLAnnotatedHit::hasBetterScore);
         annotated_hits.resize(report_top_hits); 
       }
     }
@@ -4512,7 +4512,7 @@ i//    double max_wTop50 = 0;
         pid.setHits(hits);
         pid.assignRanks();
       }
-      RNPxlFDR fdr(1);
+      NuXLFDR fdr(1);
       vector<PeptideIdentification> pep_pi, xl_pi;
       fdr.calculatePeptideAndXLQValueAtPSMLevel(pids, pep_pi, xl_pi);
       IDFilter::keepNBestHits(xl_pi, 1);
@@ -5014,7 +5014,7 @@ i//    double max_wTop50 = 0;
     RNPxlModificationMassesResult mm;
     if (max_nucleotide_length != 0)
     {
-      mm = RNPxlModificationsGenerator::initModificationMassesNA(
+      mm = NuXLModificationsGenerator::initModificationMassesNA(
             target_nucleotides,
             nt_groups, 
             can_xl_,
@@ -5034,12 +5034,12 @@ i//    double max_wTop50 = 0;
     // parse tool parameter and generate all fragment adducts
 
     // first, we determine which fragments adducts can be generated from a single nucleotide (that has no losses)
-    RNPxlParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(fragment_adducts);
+    NuXLParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(fragment_adducts);
 
     // calculate all feasible fragment adducts from all possible precursor adducts
-    RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, add_default_marker_ions, isRNA);
+    NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, add_default_marker_ions, isRNA);
 
-    RNPxlFDR fdr(report_top_hits);
+    NuXLFDR fdr(report_top_hits);
 
     // load MS2 map
     PeakMap spectra;
@@ -5186,9 +5186,9 @@ i//    double max_wTop50 = 0;
 
     // preallocate storage for PSMs
     vector<size_t> nr_candidates(spectra.size(), 0);
-    vector<vector<RNPxlAnnotatedHit> > annotated_XLs(spectra.size(), vector<RNPxlAnnotatedHit>());
+    vector<vector<NuXLAnnotatedHit> > annotated_XLs(spectra.size(), vector<NuXLAnnotatedHit>());
     for (auto & a : annotated_XLs) { a.reserve(2 * report_top_hits); }
-    vector<vector<RNPxlAnnotatedHit> > annotated_peptides(spectra.size(), vector<RNPxlAnnotatedHit>());
+    vector<vector<NuXLAnnotatedHit> > annotated_peptides(spectra.size(), vector<NuXLAnnotatedHit>());
     for (auto & a : annotated_peptides) { a.reserve(2 * report_top_hits); }
 #ifdef _OPENMP     
     // locking is done at the spectrum level to ensure good parallelisation 
@@ -5423,7 +5423,7 @@ i//    double max_wTop50 = 0;
 
   #ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                     // require at least one mass tag
-                    if (exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
+                    if (exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
   #endif
 
                     // count candidate for spectrum
@@ -5454,7 +5454,7 @@ i//    double max_wTop50 = 0;
                     vector<bool> peak_matched(exp_spectrum.size(), false);
                     scorePeptideIons_(
                       exp_spectrum, 
-                      exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                      exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                       total_loss_template_z1_b_ions,
                       total_loss_template_z1_y_ions,
                       current_peptide_mass_without_NA,
@@ -5486,7 +5486,7 @@ i//    double max_wTop50 = 0;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
                     
                     // add peptide hit
-                    RNPxlAnnotatedHit ah;
+                    NuXLAnnotatedHit ah;
                     ah.NA_adduct_amb_index = NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
                     ah.mass_error_p = mass_error_score;
                     ah.sequence = *cit; // copy StringView
@@ -5553,7 +5553,7 @@ i//    double max_wTop50 = 0;
                       // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
                       if (annotated_peptides[scan_index].size() >= 2 * report_top_hits)
                       {
-                        std::partial_sort(annotated_peptides[scan_index].begin(), annotated_peptides[scan_index].begin() + report_top_hits, annotated_peptides[scan_index].end(), RNPxlAnnotatedHit::hasBetterScore);
+                        std::partial_sort(annotated_peptides[scan_index].begin(), annotated_peptides[scan_index].begin() + report_top_hits, annotated_peptides[scan_index].end(), NuXLAnnotatedHit::hasBetterScore);
                         annotated_peptides[scan_index].resize(report_top_hits); 
                       }
                     }
@@ -5598,10 +5598,10 @@ i//    double max_wTop50 = 0;
                     // add shifted marker ions of charge 1
                     marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
                     marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation                   
-                    RNPxlFragmentIonGenerator::addMS2MarkerIons(
+                    NuXLFragmentIonGenerator::addMS2MarkerIons(
                       marker_ions,
                       marker_ions_sub_score_spectrum_z1,
-                      marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                      marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                       marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
                     // nucleotide is associated with certain NA-related fragment losses?
@@ -5622,7 +5622,7 @@ i//    double max_wTop50 = 0;
   
 #ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                       // require at least one mass tag
-                      if (exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
+                      if (exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
   #endif
 
   #ifdef _OPENMP
@@ -5654,7 +5654,7 @@ i//    double max_wTop50 = 0;
 
                       scorePeptideIons_(
                         exp_spectrum, 
-                        exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                        exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                         total_loss_template_z1_b_ions,
                         total_loss_template_z1_y_ions,
                         current_peptide_mass_without_NA,
@@ -5728,7 +5728,7 @@ i//    double max_wTop50 = 0;
                       const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
                       
                       // add peptide hit
-                      RNPxlAnnotatedHit ah;
+                      NuXLAnnotatedHit ah;
                       ah.NA_adduct_amb_index = NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
                       ah.mass_error_p = mass_error_score;
 
@@ -5816,7 +5816,7 @@ i//    double max_wTop50 = 0;
                         // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
                         if (annotated_XLs[scan_index].size() >= 2 * report_top_hits)
                         {
-                          std::partial_sort(annotated_XLs[scan_index].begin(), annotated_XLs[scan_index].begin() + report_top_hits, annotated_XLs[scan_index].end(), RNPxlAnnotatedHit::hasBetterScore);
+                          std::partial_sort(annotated_XLs[scan_index].begin(), annotated_XLs[scan_index].begin() + report_top_hits, annotated_XLs[scan_index].end(), NuXLAnnotatedHit::hasBetterScore);
                           annotated_XLs[scan_index].resize(report_top_hits); 
                         }
                       }
@@ -5842,7 +5842,7 @@ i//    double max_wTop50 = 0;
 
 #ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                  // require at least one mass tag
-                 if (exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
+                 if (exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
 #endif
 #ifdef _OPENMP
                 omp_set_lock(&(annotated_peptides_lock[scan_index]));
@@ -6000,7 +6000,7 @@ i//    double max_wTop50 = 0;
     meta_values_to_export.push_back("isotope_error");  
 
     // annotate RNPxl related information to hits and create report
-    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
+    vector<NuXLReportRow> csv_rows = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
 #ifdef ANNOTATED_QUANTILES    
       for (Size scan_index = 0; scan_index != peptide_ids.size(); ++scan_index)
@@ -6299,14 +6299,14 @@ i//    double max_wTop50 = 0;
           IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
 	        // annotate RNPxl related information to hits and create report
-          vector<RNPxlReportRow> csv_rows_percolator = RNPxlReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
+          vector<NuXLReportRow> csv_rows_percolator = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
           // save report
           if (!out_tsv.empty())
           {
             TextFile csv_file;
-            csv_file.addLine(RNPxlReportRowHeader().getString("\t", meta_values_to_export));
-            for (const RNPxlReportRow r : csv_rows_percolator)
+            csv_file.addLine(NuXLReportRowHeader().getString("\t", meta_values_to_export));
+            for (const NuXLReportRow r : csv_rows_percolator)
             {
               csv_file.addLine(r.getString("\t"));
             }
@@ -6341,7 +6341,7 @@ i//    double max_wTop50 = 0;
     if (!out_tsv.empty())
     {
       TextFile csv_file;
-      csv_file.addLine(RNPxlReportRowHeader().getString("\t", meta_values_to_export));
+      csv_file.addLine(NuXLReportRowHeader().getString("\t", meta_values_to_export));
       for (Size i = 0; i != csv_rows.size(); ++i)
       {
         csv_file.addLine(csv_rows[i].getString("\t"));
@@ -6381,9 +6381,9 @@ i//    double max_wTop50 = 0;
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance * 2.0,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
-                                             exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                                             exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                                              marker_ions_sub_score_spectrum_z1,
-                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX]);
+                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
 
@@ -6398,17 +6398,17 @@ i//    double max_wTop50 = 0;
       partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, 
                                                     fragment_mass_tolerance_unit_ppm,
                                                     exp_spectrum, 
-                                                    exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                                                    exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                                                     *pl_spec,
-                                                    pl_spec->getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                                                    pl_spec->getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                                                     intensity_sum);
                                                     
       auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                           fragment_mass_tolerance_unit_ppm,
                                                           exp_spectrum,
-                                                          exp_spectrum.getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX],
+                                                          exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                                                           *pl_spec,
-                                                          pl_spec->getIntegerDataArrays()[RNPxlConstants::IA_CHARGE_INDEX]);      
+                                                          pl_spec->getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);      
       plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
       plss_Morph = pl_sub_scores.score;
       const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;

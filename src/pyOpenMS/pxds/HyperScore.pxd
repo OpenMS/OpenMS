@@ -3,7 +3,7 @@ from libcpp cimport bool
 from MSSpectrum cimport *
 from Peak1D cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/HyperScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/NUXL/HyperScore.h>" namespace "OpenMS":
     
     cdef cppclass HyperScore "OpenMS::HyperScore":
         HyperScore() nogil except + 

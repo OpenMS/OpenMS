@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
+#include <OpenMS/ANALYSIS/NUXL/MorpheusScore.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
