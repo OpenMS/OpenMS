@@ -550,7 +550,7 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
-  RNPxlModificationsGenerator_test
+  NuXLModificationsGenerator_test
   SVMWrapper_test
   SimpleSearchEngineAlgorithm_test
   SimplePairFinder_test

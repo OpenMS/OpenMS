@@ -84,7 +84,7 @@ include(include/OpenMS/ANALYSIS/SVM/sources.cmake)
 include(include/OpenMS/ANALYSIS/PIP/sources.cmake)
 include(include/OpenMS/ANALYSIS/MRM/sources.cmake)
 include(include/OpenMS/ANALYSIS/TARGETED/sources.cmake)
-include(include/OpenMS/ANALYSIS/RNPXL/sources.cmake)
+include(include/OpenMS/ANALYSIS/NUXL/sources.cmake)
 include(include/OpenMS/ANALYSIS/XLMS/sources.cmake)
 
 include(include/OpenMS/COMPARISON/CLUSTERING/sources.cmake)
