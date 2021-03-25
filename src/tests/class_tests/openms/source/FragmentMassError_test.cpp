@@ -173,7 +173,7 @@ START_TEST(FragmentMassError, "$Id$")
     //--------------------------------------------------------------------
 
     FragmentMassError frag_ma_err_ppm;
-    frag_ma_err_ppm.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::PPM, 6);
+    frag_ma_err_ppm.compute(fmap, exp, spectra_map, QCBase::ToleranceUnit::PPM, 6);
     std::vector<FragmentMassError::FMEStatistics> result_ppm = frag_ma_err_ppm.getResults();
 
     TEST_REAL_SIMILAR(result_ppm[0].average_ppm, 5.0)
@@ -183,7 +183,7 @@ START_TEST(FragmentMassError, "$Id$")
     // test with valid input and flags
     //--------------------------------------------------------------------
     FragmentMassError frag_ma_err_flag_da;
-    frag_ma_err_flag_da.compute(fmap, exp, spectra_map, FragmentMassError::ToleranceUnit::DA, 1);
+    frag_ma_err_flag_da.compute(fmap, exp, spectra_map, QCBase::ToleranceUnit::DA, 1);
     std::vector<FragmentMassError::FMEStatistics> result_flag_da = frag_ma_err_flag_da.getResults();
 
     TEST_REAL_SIMILAR(result_flag_da[0].average_ppm, 5.0)
@@ -197,7 +197,7 @@ START_TEST(FragmentMassError, "$Id$")
     {
       FeatureMap fmap_auto = fmap;
       fmap_auto.getProteinIdentifications().clear();
-      TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, FragmentMassError::ToleranceUnit::AUTO))
+      TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
     }
     
     //--------------------------------------------------------------------

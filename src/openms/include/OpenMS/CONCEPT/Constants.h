@@ -284,6 +284,11 @@ namespace OpenMS
       */
       extern OPENMS_DLLAPI const std::string   FRAGMENT_ANNOTATION_USERPARAM;
 
+      /** User parameter name for annotation of PSMExlpainedIonCurrent
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   PSM_EXPLAINED_ION_CURRENT_USERPARAM;
+
       /** User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
               String
       */

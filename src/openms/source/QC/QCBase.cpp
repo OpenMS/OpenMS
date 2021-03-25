@@ -41,6 +41,8 @@ namespace OpenMS
 {
   const std::string QCBase::names_of_requires[] = {"fail", "raw.mzML", "postFDR.featureXML", "preFDR.featureXML", "contaminants.fasta", "trafoAlign.trafoXML"};
 
+  const std::string QCBase::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
+
   QCBase::SpectraMap::SpectraMap(const MSExperiment& exp)
   {
     calculateMap(exp);
