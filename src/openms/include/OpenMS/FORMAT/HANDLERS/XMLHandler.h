@@ -163,7 +163,7 @@ namespace OpenMS
         xerces_release();
       }
 
-      unique_xerces_ptr(const unique_xerces_ptr<T>&& other) noexcept
+      unique_xerces_ptr(unique_xerces_ptr<T>&& other) noexcept
           : item_(nullptr)
       {
         this->swap(other);
