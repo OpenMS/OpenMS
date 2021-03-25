@@ -65,7 +65,7 @@ bool NuXLModificationsGenerator::notInSeq(String res_seq, String query)
 }
 
 //static
-RNPxlModificationMassesResult NuXLModificationsGenerator::initModificationMassesNA(StringList target_nucleotides,
+NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesNA(StringList target_nucleotides,
                                                                                      StringList nt_groups,
                                                                                      std::set<char> can_xl,
                                                                                      StringList mappings,
@@ -80,7 +80,7 @@ RNPxlModificationMassesResult NuXLModificationsGenerator::initModificationMasses
   const String cysteine_adduct_string("C4H8S2O2");//FIXME: why is this changed from ancestor?
   const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
 
-  RNPxlModificationMassesResult result;
+  NuXLModificationMassesResult result;
 
   // read nucleotides and empirical formula of monophosphate. 
   // create map target->formula e.g., U->C10H14N5O7P
@@ -347,7 +347,7 @@ RNPxlModificationMassesResult NuXLModificationsGenerator::initModificationMasses
   for (Map<String, double>::ConstIterator mit = result.formula2mass.begin(); mit != result.formula2mass.end(); ++mit)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
-    const RNPxlModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[mit->first];
+    const NuXLModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[mit->first];
     for (String const & s : ambiguities)
     {
       String nucleotide_style_formula(s);
@@ -469,7 +469,7 @@ RNPxlModificationMassesResult NuXLModificationsGenerator::initModificationMasses
 
     OPENMS_LOG_INFO << "Precursor adduct " << index++ << "\t:\t" << m.first << " " << m.second << " ( ";
 
-    const RNPxlModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[m.first];
+    const NuXLModificationMassesResult::NucleotideFormulas& ambiguities = result.mod_combinations[m.first];
     set<String> printed;
 
     // for all ambiguities (same empirical formula)

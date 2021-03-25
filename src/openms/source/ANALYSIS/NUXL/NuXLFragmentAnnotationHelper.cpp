@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/RNPxlFragmentAnnotationHelper.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -47,12 +47,12 @@ using namespace OpenMS;
 
 namespace OpenMS
 {
-  String RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
+  String NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
   {
     return String("i") + c + "+" + fragment_shift_name;
   }
 
-  std::vector<PeptideHit::PeakAnnotation> RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
+  std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
     std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
   {
@@ -80,7 +80,7 @@ namespace OpenMS
     return fas;
   }
 
-   std::vector<PeptideHit::PeakAnnotation> RNPxlFragmentAnnotationHelper::shiftedToPHFA(
+   std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::shiftedToPHFA(
     const std::map<String, 
     std::set<std::pair<String, double> > >& shifted_ions)
   {
@@ -102,7 +102,7 @@ namespace OpenMS
   }
 
 
-  String RNPxlFragmentAnnotationHelper::shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
+  String NuXLFragmentAnnotationHelper::shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
   {
     std::vector<PeptideHit::PeakAnnotation> sorted(as);
     stable_sort(sorted.begin(), sorted.end());
@@ -117,7 +117,7 @@ namespace OpenMS
     return fas;
   }
 
-  void RNPxlFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(
+  void NuXLFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(
                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_y_ions,
                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_a_ions,

@@ -61,7 +61,7 @@ START_SECTION(~NuXLModificationsGenerator())
 }
 END_SECTION
 
-START_SECTION((static RNPxlModificationMassesResult initModificationMassesNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length=4)))
+START_SECTION((static NuXLModificationMassesResult initModificationMassesNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length=4)))
 {
   // TODO
 }

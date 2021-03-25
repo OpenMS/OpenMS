@@ -63,7 +63,7 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFDR.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
-#include <OpenMS/ANALYSIS/NUXL/RNPxlFragmentAnnotationHelper.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
 
@@ -1545,7 +1545,7 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
   }
 
   static void scoreShiftedLadderIons_(
-                        const vector<RNPxlFragmentAdductDefinition>& partial_loss_modification,
+                        const vector<NuXLFragmentAdductDefinition>& partial_loss_modification,
                         const vector<double>& partial_loss_template_z1_b_ions,
                         const vector<double>& partial_loss_template_z1_y_ions,
                         const double peptide_mass_without_NA,
@@ -1637,7 +1637,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     // match b-ions
     for (Size z = 1; z <= max_z; ++z)
     {
-     for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
      {
        n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
 /////////// !!!!!!!!!!!!!!!!!!!!!!!!! skip dangerous adduct because there is a tag with same mass
@@ -1697,7 +1697,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     // match a-ions
     for (Size z = 1; z <= max_z; ++z)
     {
-      for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
       {
         n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
         // TODO move out?
@@ -1754,7 +1754,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     // match y-ions
     for (Size z = 1; z <= max_z; ++z)
     {
-      for (const RNPxlFragmentAdductDefinition  & fa : partial_loss_modification)
+      for (const NuXLFragmentAdductDefinition  & fa : partial_loss_modification)
       {
 
         n_theoretical_XL_peaks += partial_loss_template_z1_y_ions.size() - 1;
@@ -1813,7 +1813,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     { 
       for (Size z = 1; z <= max_z; ++z)
       {
-        for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+        for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
         {
           for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
           {
@@ -1842,7 +1842,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
   for (double diff2b : { -18.010565, -17.026549 } ) 
     for (Size z = 1; z <= max_z; ++z)
     {
-      for (const RNPxlFragmentAdductDefinition  & fa : partial_loss_modification)
+      for (const NuXLFragmentAdductDefinition  & fa : partial_loss_modification)
       {
         for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
         {
@@ -1933,7 +1933,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
       const double peptide_mass = peptide_mass_without_NA + pc_loss;
       for (Size z = 1; z <= pc_charge; ++z)
       {
-        for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+        for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
         {
           const double theo_mz = (peptide_mass + fa.mass + z * Constants::PROTON_MASS_U) / z;
 
@@ -2002,7 +2002,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     static const double imE = 102.0555;
     static const double imM = 104.0534;
 
-    for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+    for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
     {
       if (iip.Y) 
       {
@@ -2285,7 +2285,7 @@ score += ah.mass_error_p     *   1.15386068
 *  Score fragments carrying NA adducts 
 */
 static void scoreXLIons_(
-                         const vector<RNPxlFragmentAdductDefinition> &partial_loss_modification,
+                         const vector<NuXLFragmentAdductDefinition> &partial_loss_modification,
                          const ImmoniumIonsInPeptide& iip,
                          const PeakSpectrum &exp_spectrum,
                          const double peptide_mass_without_NA,
@@ -2316,6 +2316,7 @@ static void scoreXLIons_(
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
     //const double exp_pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
 
+    size_t matches{0};
     if (!marker_ions_sub_score_spectrum_z1.empty())
     {
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance * 2.0,
@@ -2328,6 +2329,7 @@ static void scoreXLIons_(
 
       // count marker ions
       n_theoretical_peaks += marker_ions_sub_score_spectrum_z1.size();
+      
     }
 
     scoreShiftedLadderIons_(
@@ -3325,7 +3327,7 @@ static void scoreXLIons_(
   void rescoreFastHits_(
     const PeakMap& exp, 
     vector<vector<NuXLAnnotatedHit>>& annotated_hits,
-    const RNPxlModificationMassesResult& mm,
+    const NuXLModificationMassesResult& mm,
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide, 
@@ -3416,7 +3418,7 @@ static void scoreXLIons_(
         { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
           const String& precursor_na_adduct = *NA_adduct_it;
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
-          const vector<RNPxlFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
+          const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
           const double precursor_na_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
 
           if (precursor_na_adduct == "none") 
@@ -3427,7 +3429,7 @@ static void scoreXLIons_(
           }
 
           // determine current nucleotide and associated partial losses
-          vector<RNPxlFragmentAdductDefinition> partial_loss_modification;
+          vector<NuXLFragmentAdductDefinition> partial_loss_modification;
           for (auto const & nuc_2_adducts : feasible_MS2_adducts)
           {
             if (nuc_2_adducts.first == ah.cross_linked_nucleotide)
@@ -3541,7 +3543,7 @@ static void scoreXLIons_(
   void postScoreHits_(const PeakMap& exp, 
                       vector<vector<NuXLAnnotatedHit> >& annotated_XL_hits, 
                       vector<vector<NuXLAnnotatedHit> >& annotated_peptide_hits, 
-                      const RNPxlModificationMassesResult& mm, 
+                      const NuXLModificationMassesResult& mm, 
                       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
                       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
                       Size max_variable_mods_per_peptide, 
@@ -3569,7 +3571,7 @@ static void scoreXLIons_(
   void fillSpectrumID_(
     const vector<NuXLAnnotatedHit>& ahs, 
     PeptideIdentification& pi, 
-    const RNPxlModificationMassesResult& mm, 
+    const NuXLModificationMassesResult& mm, 
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     const Size max_variable_mods_per_peptide,
@@ -3772,7 +3774,7 @@ static void scoreXLIons_(
     vector<vector<NuXLAnnotatedHit> >& annotated_peptide_hits, 
     vector<ProteinIdentification>& protein_ids, 
     vector<PeptideIdentification>& peptide_ids, 
-    const RNPxlModificationMassesResult& mm, 
+    const NuXLModificationMassesResult& mm, 
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
@@ -4470,7 +4472,7 @@ static void scoreXLIons_(
     double max_pl_modds = 0.01;
     double max_modds = 0.01;
     double max_mass_error_p = 0.01;
-i//    double max_wTop50 = 0;
+//    double max_wTop50 = 0;
 //    double max_length = 0;
 
     vector<PeptideIdentification> pids{peptide_ids};
@@ -4480,7 +4482,7 @@ i//    double max_wTop50 = 0;
       auto hits = pid.getHits();
       for (auto& h : hits)
       {
-        if (h.getSequence().size() > max_length) max_length = h.getSequence().size();
+//        if (h.getSequence().size() > max_length) max_length = h.getSequence().size();
 
         if ((double)h.getMetaValue("NuXL:pl_modds") > max_pl_modds) max_pl_modds = h.getMetaValue("NuXL:pl_modds");
         if ((double)h.getMetaValue("NuXL:modds") > max_modds) max_modds = h.getMetaValue("NuXL:modds");
@@ -5011,7 +5013,7 @@ i//    double max_wTop50 = 0;
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
 
     // generate mapping from empirical formula to mass and empirical formula to (one or more) precursor adducts
-    RNPxlModificationMassesResult mm;
+    NuXLModificationMassesResult mm;
     if (max_nucleotide_length != 0)
     {
       mm = NuXLModificationsGenerator::initModificationMassesNA(
@@ -5569,7 +5571,7 @@ i//    double max_wTop50 = 0;
                   auto const & all_NA_adducts = all_feasible_fragment_adducts.at(precursor_na_adduct);
                   const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_NA_adducts.feasible_adducts;
                   // get marker ions
-                  const vector<RNPxlFragmentAdductDefinition>& marker_ions = all_NA_adducts.marker_ions;
+                  const vector<NuXLFragmentAdductDefinition>& marker_ions = all_NA_adducts.marker_ions;
 
                   //cout << "'" << precursor_na_adduct << "'" << endl;
                   //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
@@ -5585,7 +5587,7 @@ i//    double max_wTop50 = 0;
                   {
                     // determine current nucleotide and associated partial losses
                     const char& cross_linked_nucleotide = nuc_2_adducts.first;
-                    const vector<RNPxlFragmentAdductDefinition>& partial_loss_modification = nuc_2_adducts.second;
+                    const vector<NuXLFragmentAdductDefinition>& partial_loss_modification = nuc_2_adducts.second;
 
                     // e.g., a precursor adduct of T-C4H5N3O1 is not feasible as it would lead to N(-1). T
                     // This should be filtered out during generation of feasible fragment adducts.

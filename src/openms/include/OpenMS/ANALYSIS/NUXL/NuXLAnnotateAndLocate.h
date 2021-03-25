@@ -54,7 +54,7 @@ class OPENMS_DLLAPI NuXLAnnotateAndLocate
   static void annotateAndLocate_(
     const PeakMap& exp, 
     std::vector<std::vector<NuXLAnnotatedHit>>& annotated_hits,
-    const NUXLModificationMassesResult& mm,
+    const NuXLModificationMassesResult& mm,
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide, 

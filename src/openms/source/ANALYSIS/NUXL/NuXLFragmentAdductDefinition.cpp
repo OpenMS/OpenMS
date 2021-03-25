@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/NUXL/RNPxlFragmentAdductDefinition.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
 
 using namespace std;
 

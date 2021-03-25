@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
-#include <OpenMS/ANALYSIS/NUXL/RNPxlFragmentAnnotationHelper.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
@@ -52,7 +52,7 @@ namespace OpenMS
   void NuXLAnnotateAndLocate::annotateAndLocate_(
     const PeakMap& exp, 
     vector<vector<NuXLAnnotatedHit>>& annotated_hits,
-    const RNPxlModificationMassesResult& mm,
+    const NuXLModificationMassesResult& mm,
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide, 
@@ -131,10 +131,10 @@ namespace OpenMS
 
         OPENMS_POSTCONDITION(nt_to_adducts != feasible_MS2_adducts.end(), "Nucleotide not found in mapping to feasible adducts.")
 
-        const vector<RNPxlFragmentAdductDefinition>& partial_loss_modification = nt_to_adducts->second;
+        const vector<NuXLFragmentAdductDefinition>& partial_loss_modification = nt_to_adducts->second;
 
         // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
-        const vector<RNPxlFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
+        const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
         OPENMS_LOG_DEBUG << "Marker ions used for this Precursor NA adduct: "  << endl;
         for (auto & fa : marker_ions)
         {
@@ -198,7 +198,7 @@ namespace OpenMS
         set<Size> peak_is_annotated;  // experimental peak index
 
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
-        using MapIonIndexToFragmentAnnotation = map<Size, vector<RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
+        using MapIonIndexToFragmentAnnotation = map<Size, vector<NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
         MapIonIndexToFragmentAnnotation unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
         vector<PeptideHit::PeakAnnotation> shifted_immonium_ions,
           unshifted_loss_ions,
@@ -261,7 +261,7 @@ namespace OpenMS
             {
               String ion_nr_string = ion_name.substr(1, charge_pos - 1);
               Size ion_number = (Size)ion_nr_string.toInt();
-              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+              NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_y_ions[ion_number].push_back(d);
               #ifdef DEBUG_OpenNuXL
                 const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
@@ -294,7 +294,7 @@ namespace OpenMS
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
-              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+              NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_b_ions[ion_number].push_back(d);
               peak_is_annotated.insert(aligned.second);
             }
@@ -323,7 +323,7 @@ namespace OpenMS
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
-              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+              NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_a_ions[ion_number].push_back(d);
               peak_is_annotated.insert(aligned.second);
             }
@@ -364,17 +364,17 @@ namespace OpenMS
         vector<PeptideHit::PeakAnnotation> fas;
         if (!unshifted_b_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
         if (!unshifted_y_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
         if (!unshifted_a_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
         if (!annotated_immonium_ions.empty())
@@ -468,7 +468,7 @@ namespace OpenMS
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+            NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
             shifted_y_ions[ion_number].push_back(d);
           }
           else if (fragment_ion_name.hasPrefix("b"))
@@ -478,7 +478,7 @@ namespace OpenMS
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+            NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
             shifted_b_ions[ion_number].push_back(d);
           }
           else if (fragment_ion_name.hasPrefix("a"))
@@ -488,7 +488,7 @@ namespace OpenMS
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+            NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
             shifted_a_ions[ion_number].push_back(d);
           }
           else if (ion_name.hasPrefix(NuXLFragmentIonGenerator::ANNOTATIONS_MARKER_ION_PREFIX))
@@ -694,7 +694,7 @@ namespace OpenMS
         #endif
 
         // create annotation strings for shifted fragment ions
-        RNPxlFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions,
+        NuXLFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions,
                                           shifted_y_ions,
                                           shifted_a_ions,
                                           shifted_immonium_ions,
@@ -712,23 +712,23 @@ namespace OpenMS
         #ifdef DEBUG_OpenNuXL
           OPENMS_LOG_DEBUG << "Ion centric annotation: " << endl;
           OPENMS_LOG_DEBUG << "unshifted b ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
           OPENMS_LOG_DEBUG << "unshifted y ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
           OPENMS_LOG_DEBUG << "unshifted a ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
           OPENMS_LOG_DEBUG << "shifted b ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
           OPENMS_LOG_DEBUG << "shifted y ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
           OPENMS_LOG_DEBUG << "shifted a ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
           OPENMS_LOG_DEBUG << "shifted immonium ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
           OPENMS_LOG_DEBUG << "shifted marker ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
           OPENMS_LOG_DEBUG << "shifted precursor ions: " << endl;
-          OPENMS_LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
+          OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
           OPENMS_LOG_DEBUG << "Localization scores: ";
           OPENMS_LOG_DEBUG << localization_scores << endl;
           OPENMS_LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";

@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/NUXL/NUXLFragmentAdductDefinition.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAdductDefinition.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

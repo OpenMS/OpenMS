@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
-#include <OpenMS/ANALYSIS/NUXL/RNPxlFragmentAnnotationHelper.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 void NuXLFragmentIonGenerator::addMS2MarkerIons(
-  const std::vector<RNPxlFragmentAdductDefinition> &marker_ions, 
+  const std::vector<NuXLFragmentAdductDefinition> &marker_ions, 
   PeakSpectrum &spectrum,
   PeakSpectrum::IntegerDataArray &spectrum_charge, 
   PeakSpectrum::StringDataArray &spectrum_annotation)
@@ -103,49 +103,49 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_s
     const double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("W"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("F"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("H"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("C"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("P"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("K"))
   {
@@ -153,7 +153,7 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_s
     const double immonium_ion_mz = EmpiricalFormula("C5H13N2").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
 
     // TODO: check if only DNA specific and if also other shifts are observed
     // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
@@ -173,7 +173,7 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_s
     const double immonium_ion_mz = 104.05285 + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
   }
 }
 
@@ -190,7 +190,7 @@ void NuXLFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodif
                                                                          const String &precursor_rna_adduct,
                                                                          const double &precursor_rna_mass,
                                                                          const int &precursor_charge,
-                                                                         const std::vector<RNPxlFragmentAdductDefinition> &partial_loss_modification,
+                                                                         const std::vector<NuXLFragmentAdductDefinition> &partial_loss_modification,
                                                                          const PeakSpectrum& partial_loss_template_z1,
                                                                          const PeakSpectrum& partial_loss_template_z2,
                                                                          const PeakSpectrum& partial_loss_template_z3,

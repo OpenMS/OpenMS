@@ -46,7 +46,7 @@ namespace OpenMS
 	
 NuXLParameterParsing::PrecursorsToMS2Adducts
 NuXLParameterParsing::getAllFeasibleFragmentAdducts(
-  const RNPxlModificationMassesResult & precursor_adducts,
+  const NuXLModificationMassesResult & precursor_adducts,
   const NuXLParameterParsing::NucleotideToFragmentAdductMap & nucleotide_to_fragment_adducts,
   const set<char> & can_xl, 
   const bool always_add_default_marker_ions,
@@ -191,7 +191,7 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
       return NucleotideToFragmentAdductMap();
     }
 
-    RNPxlFragmentAdductDefinition fad;
+    NuXLFragmentAdductDefinition fad;
     fad.name = name;
     fad.formula = formula;
     fad.mass = formula.getMonoWeight();
@@ -298,7 +298,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
     for (auto const & n2fa : nucleotide_to_fragment_adducts)
     {
       const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
-      const set<RNPxlFragmentAdductDefinition>& fragment_adducts = n2fa.second; // all potential fragment adducts that may arise from the unmodified nucleotide
+      const set<NuXLFragmentAdductDefinition>& fragment_adducts = n2fa.second; // all potential fragment adducts that may arise from the unmodified nucleotide
 
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
@@ -307,7 +307,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
         OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
 
         // store feasible adducts associated with a cross-link with character nucleotide
-        vector<RNPxlFragmentAdductDefinition> faa;
+        vector<NuXLFragmentAdductDefinition> faa;
         std::copy(fragment_adducts.begin(), fragment_adducts.end(), back_inserter(faa));
         ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
       }
@@ -315,7 +315,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
 
     // Create set of marker ions for all nucleotides contained in the precursor (including those that do not cross-link.)
     // Note: The non-cross-linked nt in the precursor adduct are more likely to produce the marker ions (=more fragile than the cross-linked nt).
-    set<RNPxlFragmentAdductDefinition> marker_ion_set;
+    set<NuXLFragmentAdductDefinition> marker_ion_set;
     for (auto const & n2fa : nucleotide_to_fragment_adducts)
     {
       const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
@@ -332,7 +332,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
     {
       const char & nucleotide = n2fa.first; // one letter code of the nt
 
-      set<RNPxlFragmentAdductDefinition> fas = n2fa.second; // all potential fragment adducts that may arise from NT assuming no loss on the precursor adduct
+      set<NuXLFragmentAdductDefinition> fas = n2fa.second; // all potential fragment adducts that may arise from NT assuming no loss on the precursor adduct
 
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
@@ -358,7 +358,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
         if (fas.empty()) continue; // no feasible fragment adducts left? continue
 
         // store feasible adducts associated with a cross-link with character nucleotide[0]
-        vector<RNPxlFragmentAdductDefinition> faa;
+        vector<NuXLFragmentAdductDefinition> faa;
         std::copy(fas.begin(), fas.end(), back_inserter(faa));
         ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
 
@@ -402,7 +402,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   // Because, e.g., ribose might be a feasible fragment of any nucleotide, we keep only one version
   // Note: sort by formula and (as tie breaker) the name
   std::sort(ret.marker_ions.begin(), ret.marker_ions.end(),
-    [](RNPxlFragmentAdductDefinition const & a, RNPxlFragmentAdductDefinition const & b)
+    [](NuXLFragmentAdductDefinition const & a, NuXLFragmentAdductDefinition const & b)
     {
       const String as = a.formula.toString();
       const String bs = b.formula.toString();
@@ -411,7 +411,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
   );
   // Note: for uniqueness, we only rely on the formula (in case of tie: keeping the first = shortest name)
   auto it = std::unique(ret.marker_ions.begin(), ret.marker_ions.end(),
-    [](RNPxlFragmentAdductDefinition const & a, RNPxlFragmentAdductDefinition const & b)
+    [](NuXLFragmentAdductDefinition const & a, NuXLFragmentAdductDefinition const & b)
     {
       return a.formula == b.formula;
     }
