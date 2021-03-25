@@ -4470,8 +4470,8 @@ static void scoreXLIons_(
     double max_pl_modds = 0.01;
     double max_modds = 0.01;
     double max_mass_error_p = 0.01;
-    double max_wTop50 = 0;
-    double max_length = 0;
+i//    double max_wTop50 = 0;
+//    double max_length = 0;
 
     vector<PeptideIdentification> pids{peptide_ids};
     for (auto& pid : pids)
@@ -4485,7 +4485,7 @@ static void scoreXLIons_(
         if ((double)h.getMetaValue("NuXL:pl_modds") > max_pl_modds) max_pl_modds = h.getMetaValue("NuXL:pl_modds");
         if ((double)h.getMetaValue("NuXL:modds") > max_modds) max_modds = h.getMetaValue("NuXL:modds");
         if ((double)h.getMetaValue("NuXL:mass_error_p") > max_mass_error_p) max_mass_error_p = h.getMetaValue("NuXL:mass_error_p");
-        if ((double)h.getMetaValue("NuXL:wTop50") > max_wTop50) max_wTop50 = h.getMetaValue("NuXL:wTop50");
+//        if ((double)h.getMetaValue("NuXL:wTop50") > max_wTop50) max_wTop50 = h.getMetaValue("NuXL:wTop50");
       }
     }
 
@@ -4502,10 +4502,10 @@ static void scoreXLIons_(
           const double modds = (double)h.getMetaValue("NuXL:modds") / max_modds;
           const double pc_err = (double)h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
 //          const double wTop50 = (double)h.getMetaValue("NuXL:wTop50") / max_wTop50;
-          const double length = (double)h.getSequence().size() / max_length;
+//          const double length = (double)h.getSequence().size() / max_length;
           const double w1 = (1.0 - p) * modds + p * pl_modds;
-//          const double w2 = (1.0 - q) * w1 + q * pc_err;
-          const double w2 = (1.0 - q) * w1 - q * length;
+          const double w2 = (1.0 - q) * w1 + q * pc_err;
+//          const double w2 = (1.0 - q) * w1 - q * length;
 //          const double w2 = (1.0 - q) * w1 - q * wTop50;
           h.setScore(w2);
         }
@@ -4539,11 +4539,11 @@ static void scoreXLIons_(
         const double pl_modds = (double)h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
         const double modds = (double)h.getMetaValue("NuXL:modds") / max_modds;
         const double pc_err = (double)h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
-        const double length = (double)h.getSequence().size() / max_length;
+//        const double length = (double)h.getSequence().size() / max_length;
 //        const double wTop50 = (double)h.getMetaValue("NuXL:wTop50") / max_wTop50;
         const double w1 = (1.0 - best_p) * modds + best_p * pl_modds;
-//        const double w2 = (1.0 - best_q) * w1 + best_q * pc_err;
-        const double w2 = (1.0 - best_q) * w1 + best_q * length;
+        const double w2 = (1.0 - best_q) * w1 + best_q * pc_err;
+//        const double w2 = (1.0 - best_q) * w1 + best_q * length;
 //        const double w2 = (1.0 - best_q) * w1 - best_q * wTop50;
         h.setScore(w2);
       }
