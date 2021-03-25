@@ -2519,9 +2519,9 @@ static void scoreXLIons_(
 
   struct RankScores
   {
-    double explained_peak_fraction = 0;
-    size_t explained_peaks;
-    double wTop50 = 0;
+    double explained_peak_fraction = 0.0;
+    size_t explained_peaks = 0;
+    double wTop50 = 0.0;
   };
 
   class SmallestElements
@@ -2552,9 +2552,12 @@ static void scoreXLIons_(
 
   RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
   {
-    RankScores r;
-    if (spectrum.empty()) return r;
+    if (spectrum.empty()) return {0.0, 0, 1e10};
+
     const double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
+    if (matched == 0) return {0.0, 0, 1e10};
+
+    RankScores r;
     vector<double> matched_ranks;
     for (size_t i = 0; i != peak_matched.size(); ++i)
     {
@@ -2570,8 +2573,26 @@ static void scoreXLIons_(
     {
       sum_rank_diff += matched_ranks[i] - matched_ranks[0] - 1;
     }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //r.wTop50 = log10(1.0 + sum_rank_diff);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    r.wTop50 = log10(1.0 + sum_rank_diff);
+    double avg_int{};
+    size_t n_unexplained_greater_avg{};
+    for (size_t i = 0; i != spectrum.size(); ++i)
+    {
+      if (peak_matched[i]) avg_int += spectrum[i].getIntensity() / matched;
+    }
+//    cout << "Matched.: " << matched << endl;
+//    cout << "Avg.: " << avg_int << endl;
+
+    for (size_t i = 0; i != spectrum.size(); ++i)
+    {
+      if (peak_matched[i] == false && spectrum[i].getIntensity() > avg_int) ++n_unexplained_greater_avg;
+    }
+    // number of unexplained peaks with intensity higher than the mean intensity of matche peaks
+    r.wTop50 = n_unexplained_greater_avg;
+
     r.explained_peaks = matched;
     r.explained_peak_fraction = matched / (double)spectrum.size();
     return r;
@@ -4449,6 +4470,8 @@ static void scoreXLIons_(
     double max_pl_modds = 0.01;
     double max_modds = 0.01;
     double max_mass_error_p = 0.01;
+    double max_wTop50 = 0;
+    double max_length = 0;
 
     vector<PeptideIdentification> pids{peptide_ids};
     for (auto& pid : pids)
@@ -4457,9 +4480,12 @@ static void scoreXLIons_(
       auto hits = pid.getHits();
       for (auto& h : hits)
       {
-        if (h.getMetaValue("NuXL:pl_modds") > max_pl_modds) max_pl_modds = h.getMetaValue("NuXL:pl_modds");
-        if (h.getMetaValue("NuXL:modds") > max_modds) max_modds = h.getMetaValue("NuXL:modds");
-        if (h.getMetaValue("NuXL:mass_error_p") > max_mass_error_p) max_mass_error_p = h.getMetaValue("NuXL:mass_error_p");
+        if (h.getSequence().size() > max_length) max_length = h.getSequence().size();
+
+        if ((double)h.getMetaValue("NuXL:pl_modds") > max_pl_modds) max_pl_modds = h.getMetaValue("NuXL:pl_modds");
+        if ((double)h.getMetaValue("NuXL:modds") > max_modds) max_modds = h.getMetaValue("NuXL:modds");
+        if ((double)h.getMetaValue("NuXL:mass_error_p") > max_mass_error_p) max_mass_error_p = h.getMetaValue("NuXL:mass_error_p");
+        if ((double)h.getMetaValue("NuXL:wTop50") > max_wTop50) max_wTop50 = h.getMetaValue("NuXL:wTop50");
       }
     }
 
@@ -4472,11 +4498,15 @@ static void scoreXLIons_(
         auto hits = pid.getHits();
         for (auto& h : hits)
         {
-          const double pl_modds = h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
-          const double modds = h.getMetaValue("NuXL:modds") / max_modds;
-          const double pc_err = h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
+          const double pl_modds = (double)h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
+          const double modds = (double)h.getMetaValue("NuXL:modds") / max_modds;
+          const double pc_err = (double)h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
+//          const double wTop50 = (double)h.getMetaValue("NuXL:wTop50") / max_wTop50;
+          const double length = (double)h.getSequence().size() / max_length;
           const double w1 = (1.0 - p) * modds + p * pl_modds;
-          const double w2 = (1.0 - q) * w1 + q * pc_err;
+//          const double w2 = (1.0 - q) * w1 + q * pc_err;
+          const double w2 = (1.0 - q) * w1 - q * length;
+//          const double w2 = (1.0 - q) * w1 - q * wTop50;
           h.setScore(w2);
         }
         pid.setHits(hits);
@@ -4486,15 +4516,17 @@ static void scoreXLIons_(
       vector<PeptideIdentification> pep_pi, xl_pi;
       fdr.calculatePeptideAndXLQValueAtPSMLevel(pids, pep_pi, xl_pi);
       IDFilter::keepNBestHits(xl_pi, 1);
-      IDFilter::filterHitsByScore(xl_pi, 0.1); // 10% FDR, TODO: pROC
+      IDFilter::filterHitsByScore(pep_pi, 0.01); // 1% peptide FDR, TODO: pROC
+      IDFilter::filterHitsByScore(xl_pi, 0.1); // 10% XL FDR, TODO: pROC
       IDFilter::removeEmptyIdentifications(xl_pi);
+      IDFilter::removeEmptyIdentifications(pep_pi);
       //cout << "p/q: " << p << "/" << q << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
-      if (xl_pi.size() > most_XLs)
+      if (xl_pi.size() + pep_pi.size() > most_XLs)
       {
-        most_XLs = xl_pi.size();
+        most_XLs = xl_pi.size() + pep_pi.size();
         best_p = p;
         best_q = q;
-        OPENMS_LOG_DEBUG << "found better p/q: " << p << "/" << q << " most XLs: " << most_XLs << " current: " << xl_pi.size() << endl;
+        OPENMS_LOG_DEBUG << "found better p/q: " << p << "/" << q << " most: " << most_XLs << " current: " << xl_pi.size() << endl;
       }
     }
 
@@ -4504,11 +4536,15 @@ static void scoreXLIons_(
       auto hits = pid.getHits();
       for (auto& h : hits)
       {
-        const double pl_modds = h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
-        const double modds = h.getMetaValue("NuXL:modds") / max_modds;
-        const double pc_err = h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
+        const double pl_modds = (double)h.getMetaValue("NuXL:pl_modds") / max_pl_modds;
+        const double modds = (double)h.getMetaValue("NuXL:modds") / max_modds;
+        const double pc_err = (double)h.getMetaValue("NuXL:mass_error_p") / max_mass_error_p;
+        const double length = (double)h.getSequence().size() / max_length;
+//        const double wTop50 = (double)h.getMetaValue("NuXL:wTop50") / max_wTop50;
         const double w1 = (1.0 - best_p) * modds + best_p * pl_modds;
-        const double w2 = (1.0 - best_q) * w1 + best_q * pc_err;
+//        const double w2 = (1.0 - best_q) * w1 + best_q * pc_err;
+        const double w2 = (1.0 - best_q) * w1 + best_q * length;
+//        const double w2 = (1.0 - best_q) * w1 - best_q * wTop50;
         h.setScore(w2);
       }
       pid.setHits(hits);
@@ -4939,6 +4975,35 @@ static void scoreXLIons_(
     }
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
 
+    bool add_default_marker_ions{false};
+    bool isRNA{false};
+    if (getStringOption_("RNPxl:presets").hasSubstring("RNA"))
+    {      
+      isRNA = true;
+      add_default_marker_ions = true;
+    }
+    else if (getStringOption_("RNPxl:presets").hasSubstring("DNA"))
+    {
+      isRNA = false;
+      add_default_marker_ions = true;
+    }
+    else if (getStringOption_("RNPxl:presets") == "none")
+    {
+      for (const auto& t : target_nucleotides)
+      {
+        if (t.hasPrefix("U"))
+        {
+          isRNA = true;
+          add_default_marker_ions = true;
+        } 
+        else if (t.hasPrefix("T"))
+        {
+          isRNA = false;
+          add_default_marker_ions = true;
+        }
+      }
+    }
+
     String sequence_restriction = getStringOption_("RNPxl:sequence");
 
     Int max_nucleotide_length = getIntOption_("RNPxl:length");
@@ -4972,7 +5037,7 @@ static void scoreXLIons_(
     RNPxlParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(fragment_adducts);
 
     // calculate all feasible fragment adducts from all possible precursor adducts
-    RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_);
+    RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, add_default_marker_ions, isRNA);
 
     RNPxlFDR fdr(report_top_hits);
 

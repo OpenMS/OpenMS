@@ -82,7 +82,9 @@ struct OPENMS_DLLAPI RNPxlParameterParsing
     const String& exp_pc_adduct,
     const String& exp_pc_formula,
     const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
-    const std::set<char>& can_xl
+    const std::set<char>& can_xl,
+    const bool always_add_default_marker_ions,
+    const bool default_marker_ions_RNA
   );
 
   // Maps a precursor adduct (e.g.: "UU-H2O") to all chemically feasible fragment adducts.
@@ -93,7 +95,10 @@ struct OPENMS_DLLAPI RNPxlParameterParsing
   static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(
     const RNPxlModificationMassesResult& precursor_adducts,
     const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
-    const std::set<char>& can_xl);
+    const std::set<char>& can_xl,
+    const bool always_add_default_marker_ions,
+    const bool default_marker_ions_RNA
+  );
 };
 
 }

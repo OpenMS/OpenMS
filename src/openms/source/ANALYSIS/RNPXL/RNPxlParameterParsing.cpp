@@ -48,7 +48,9 @@ RNPxlParameterParsing::PrecursorsToMS2Adducts
 RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
   const RNPxlModificationMassesResult & precursor_adducts,
   const RNPxlParameterParsing::NucleotideToFragmentAdductMap & nucleotide_to_fragment_adducts,
-  const set<char> & can_xl) 
+  const set<char> & can_xl, 
+  const bool always_add_default_marker_ions,
+  const bool default_marker_ions_RNA)
 {
   PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
 
@@ -77,7 +79,13 @@ RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
     for (const String & pc_adduct : ambiguities)
     {
       // calculate feasible fragment adducts and store them for lookup
-      const MS2AdductsOfSinglePrecursorAdduct& feasible_adducts = getFeasibleFragmentAdducts(pc_adduct, ef, nucleotide_to_fragment_adducts, can_xl);
+      const MS2AdductsOfSinglePrecursorAdduct& feasible_adducts = getFeasibleFragmentAdducts(pc_adduct, 
+        ef, 
+        nucleotide_to_fragment_adducts, 
+        can_xl,
+        always_add_default_marker_ions,
+        default_marker_ions_RNA);
+
       // TODO: check if needed anymore - std::sort(feasible_adducts.begin(), feasible_adducts.end());
        all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
        pc2mass[pc_adduct] = pc_mass;
@@ -229,9 +237,11 @@ RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_
 
 MS2AdductsOfSinglePrecursorAdduct
 RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
-  const String &exp_pc_formula,
-  const RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
-  const set<char> &can_xl)
+                                                  const String &exp_pc_formula,
+                                                  const RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
+                                                  const set<char> &can_xl,
+                                                  const bool always_add_default_marker_ions,
+                                                  const bool default_marker_ions_RNA)
 {
   OPENMS_LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
 
@@ -321,12 +331,13 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
     for (auto const & n2fa : nucleotide_to_fragment_adducts)
     {
       const char & nucleotide = n2fa.first; // one letter code of the nt
-      set<RNPxlFragmentAdductDefinition> fas = n2fa.second; // all potential fragment adducts that may arise from nt (if no losses are considered)
+
+      set<RNPxlFragmentAdductDefinition> fas = n2fa.second; // all potential fragment adducts that may arise from NT assuming no loss on the precursor adduct
 
       // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
       {
-        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor NA adduct." << endl;
         OPENMS_LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
 
         // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
@@ -357,6 +368,36 @@ RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
       }
     }
   }
+
+  // for chemical cross-linkers like DEB, fragments always carry DEB but marker ions might just be U or U' (and losses)
+  // In that case we need to ensure that the the default marker ions are added
+  if (always_add_default_marker_ions)
+  {
+    // Note: add the uncharged mass. Protons are added during spectrum generation.
+    if (default_marker_ions_RNA) // TODO: check if we can derive this from target nucleotides
+    {
+      ret.marker_ions.push_back({EmpiricalFormula("C9H13N2O9P1"), String("U"), EmpiricalFormula("C9H13N2O9P1").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C9H14N3O8P"), "C", EmpiricalFormula("C9H14N3O8P").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O8P"), "G", EmpiricalFormula("C10H14N5O8P").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O7P"), "A", EmpiricalFormula("C10H14N5O7P").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C4H4N2O2"), "U'", EmpiricalFormula("C4H4N2O2").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C4H5N3O"), "C'", EmpiricalFormula("C4H5N3O").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5O"), "G'",  EmpiricalFormula("C5H5N5O").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5"), "A'", EmpiricalFormula("C5H5N5").getMonoWeight()});
+    }
+    else // DNA
+    {
+      ret.marker_ions.push_back({EmpiricalFormula("C10H15N2O8P"), "T", EmpiricalFormula("C10H15N2O8P").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C9H14N3O7P"), "C", EmpiricalFormula("C9H14N3O7P").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O7P"), "G", EmpiricalFormula("C10H14N5O7P").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O6P"), "A", EmpiricalFormula("C10H14N5O6P").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C5H6N2O2"), "T'", EmpiricalFormula("C5H6N2O2").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C4H5N3O"), "C'", EmpiricalFormula("C4H5N3O").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5O"), "G'", EmpiricalFormula("C5H5N5O").getMonoWeight()});
+      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5"), "A'", EmpiricalFormula("C5H5N5").getMonoWeight()});
+    } 
+  }
+
 
   // Because, e.g., ribose might be a feasible fragment of any nucleotide, we keep only one version
   // Note: sort by formula and (as tie breaker) the name
