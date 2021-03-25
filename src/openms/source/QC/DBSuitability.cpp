@@ -518,7 +518,9 @@ namespace OpenMS
       }
 
       // re-ranking
-      if (extractScore_(top_hit) - extractScore_(second_hit) <= data.cut_off)
+      // score difference smaller than cut-off                              or       scores equal using floating point precision
+      //                                                                             ('getMonoWeight()' can sometimes have a float error, was unable to fix it (maybe the error happens while reading the input idXML))
+      if (extractScore_(top_hit) - extractScore_(second_hit) < data.cut_off || abs(extractScore_(top_hit) - extractScore_(second_hit)) < std::numeric_limits<float>::epsilon())
       {
         ++data.num_top_db;
         ++data.num_re_ranked;

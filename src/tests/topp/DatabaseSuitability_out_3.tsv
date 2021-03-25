@@ -1,10 +1,10 @@
 key	value
-#top_db_hits	2166
-#top_novo_hits	28
+#top_db_hits	2168
+#top_novo_hits	26
 correction_factor	1.02052785923754
-#corrected_novo_hits	28.574780058651
-db_suitability	0.987237921604376
-corrected_suitability	0.986979354580076
+#corrected_novo_hits	26.533724340176
+db_suitability	0.988149498632634
+corrected_suitability	0.987909174488465
 no_rerank_suitability	0.96763901549681
 corrected_no_rerank_suitability	0.966983184075124
 #total_novo_seqs	5131

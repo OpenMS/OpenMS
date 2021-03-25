@@ -240,7 +240,7 @@ protected:
     OPENMS_LOG_INFO << suit.num_top_db << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were found in the database." << endl;
     OPENMS_LOG_INFO << suit.num_top_novo << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
     OPENMS_LOG_INFO << suit.getCorrectedNovoHits() << " top deNovo hits after correction." << endl;
-    OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked." << endl;
+    OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of: " << suit.cut_off << "." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl;
     OPENMS_LOG_INFO << "database suitability after correction: " << suit.getCorrectedSuitability() << endl << endl;
     OPENMS_LOG_INFO << unique_novo.size() << " / " << spectral_quality.num_peptide_identification << " de novo sequences are unique" << endl;
