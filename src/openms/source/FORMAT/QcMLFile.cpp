@@ -1872,7 +1872,6 @@ namespace OpenMS
 
       if (inputfile_feature != "" && !remove_duplicate_features)
       {
-        
         QcMLFile::Attachment at;
         at = QcMLFile::Attachment();
         at.cvRef = "QC"; ///< cv reference
@@ -2207,4 +2206,3 @@ namespace OpenMS
   }
 
 }
-
