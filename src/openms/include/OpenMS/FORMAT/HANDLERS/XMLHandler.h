@@ -147,8 +147,8 @@ namespace OpenMS
     public:
 
       // Hide copy constructor and assignment operator
-      unique_xerces_ptr(const unique_xerces_ptr&) = delete;
-      unique_xerces_ptr& operator=(const unique_xerces_ptr&) = delete;
+      unique_xerces_ptr(const unique_xerces_ptr<T>&) = delete;
+      unique_xerces_ptr& operator=(const unique_xerces_ptr<T>&) = delete;
 
       unique_xerces_ptr()
           : item_(nullptr)
@@ -161,6 +161,17 @@ namespace OpenMS
       ~unique_xerces_ptr()
       {
         xerces_release();
+      }
+
+      unique_xerces_ptr(const unique_xerces_ptr<T>&& other) noexcept
+          : item_(nullptr)
+      {
+        this->swap(other);
+      }
+
+      void swap(unique_xerces_ptr<T>& other) noexcept
+      {
+        std::swap(item_, other.item_);
       }
 
       // Assignment of data to guard (not chainable)
@@ -227,7 +238,7 @@ namespace OpenMS
       // Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const char* str)
       {
-        return unique_xerces_ptr(xercesc::XMLString::transcode(str));
+        return unique_xerces_ptr<XMLCh>(xercesc::XMLString::transcode(str));
       }
 
       // Converts from a narrow-character string to a wide-character string.
@@ -239,7 +250,7 @@ namespace OpenMS
       // Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const XMLCh* str)
       {
-        return unique_xerces_ptr(xercesc::XMLString::transcode(str)).get();
+        return String(unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
       }
 
       // Converts from a wide-character string to a narrow-character string.
