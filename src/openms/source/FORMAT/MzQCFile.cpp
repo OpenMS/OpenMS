@@ -187,5 +187,3 @@ namespace OpenMS
   }
 
 }
-
-
