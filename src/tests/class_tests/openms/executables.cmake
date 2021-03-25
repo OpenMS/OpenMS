@@ -529,6 +529,7 @@ set(analysis_executables_list
   OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
+  PeptideProteinResolution_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
@@ -569,6 +570,7 @@ set(analysis_executables_list
 set(applications_executables_list
   INIUpdater_test
   #MapAlignerBase_test
+  SearchEngineBase_test
   TOPPBase_test
   ToolHandler_test
   ParameterInformation_test

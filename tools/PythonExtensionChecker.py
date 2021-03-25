@@ -600,7 +600,7 @@ class DoxygenCppFunction(object):
         """Parse a doxygen function definition and write it in Cython"""
         c_return_type = self.resolve_return_type()
 
-        # remove default arguments, Cython doesnt like them
+        # remove default arguments, Cython doesn't like them
         arguments = re.sub("\=[^,\)]*", "", self.get_argsstring())
         function_name = self.name
 

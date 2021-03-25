@@ -363,7 +363,7 @@ START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair 
 
 	// test exceptions
 	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< Size, Size > >(1, make_pair(0, 10))));
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_test_1.mzXML"," in: Not enought scans in file! (4 available, should be at least 10)"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_test_1.mzXML"," in: Not enough scans in file! (4 available, should be at least 10)"))
 
 	files_and_peptide_identification_with_scan_number.clear();
 	ids.clear();

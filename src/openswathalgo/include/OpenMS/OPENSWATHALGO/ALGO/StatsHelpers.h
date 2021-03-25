@@ -51,7 +51,7 @@ namespace OpenSwath
   OPENSWATHALGO_DLLAPI void normalize(const std::vector<double>& intensities, double normalization_factor, std::vector<double>& normalized_intensities);
 
   /**
-  @brief compute the norm of the vector
+  @brief compute the Euclidean norm of the vector
   */
   template <typename T>
   double norm(T beg, T end)
@@ -64,16 +64,6 @@ namespace OpenSwath
     }
     return sqrt(res);
   }
-
-  struct mySqrt :
-    std::unary_function<double, double>
-  {
-    double operator()(double x)
-    {
-      return sqrt(x);
-    }
-
-  };
 
   /**
   @brief compute dotprod of vectors

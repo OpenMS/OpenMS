@@ -68,7 +68,7 @@ using namespace std;
   @page TOPP_PercolatorAdapter PercolatorAdapter
 
   @brief PercolatorAdapter facilitates the input to, the call of and output integration of Percolator.
-  Percolator (http://per-colator.com/) is a tool to apply semi-supervised learning for peptide
+  Percolator (http://percolator.ms/) is a tool to apply semi-supervised learning for peptide
   identification from shotgun proteomics datasets.
 
   @experimental This tool is work in progress and usage and input requirements might change.

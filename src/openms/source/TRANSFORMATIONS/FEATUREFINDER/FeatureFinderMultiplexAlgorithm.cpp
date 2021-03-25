@@ -97,7 +97,7 @@ namespace OpenMS
     defaults_.setValue("algorithm:averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
     defaults_.setMinFloat("algorithm:averagine_similarity", -1.0);
     defaults_.setMaxFloat("algorithm:averagine_similarity", 1.0);
-    defaults_.setValue("algorithm:averagine_similarity_scaling", 0.95, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("algorithm:averagine_similarity_scaling", 0.95, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simultaneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("algorithm:averagine_similarity_scaling", 0.0);
     defaults_.setMaxFloat("algorithm:averagine_similarity_scaling", 1.0);
     defaults_.setValue("algorithm:missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
@@ -117,7 +117,7 @@ namespace OpenMS
     defaults_.setSectionDescription("labels", "mass shifts for all possible labels");
     
     MultiplexDeltaMassesGenerator generator;
-    Param p = generator.getParameters();
+    const Param& p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
       String label_name = "labels:";

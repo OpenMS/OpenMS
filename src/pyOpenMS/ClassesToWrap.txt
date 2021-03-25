@@ -75,7 +75,7 @@ ok   PeakPickerHiRes.cpp
 ok   PeakPickerWavelet.cpp
 x    PepNovoAdapter.cpp   # 300 lines
 x    PeptideIndexer.cpp   # 500 lines
-xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesnt work
+xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesn't work
 n    PrecursorIonSelector.cpp
 x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
 x    ProteinInference.cpp    # 200 lines

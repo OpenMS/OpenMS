@@ -1622,7 +1622,7 @@ namespace OpenMS
 
     mztab.setMetaData(meta_data);
 
-    // pre-analyze data for occuring meta values at feature and peptide hit level
+    // pre-analyze data for occurring meta values at feature and peptide hit level
     // these are used to build optional columns containing the meta values in internal data structures
     set<String> feature_user_value_keys;
     set<String> peptide_hit_user_value_keys;

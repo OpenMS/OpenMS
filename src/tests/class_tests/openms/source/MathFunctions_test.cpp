@@ -134,6 +134,18 @@ START_SECTION((pair<double, double> getTolWindow(double val, double tol, bool pp
   TEST_REAL_SIMILAR(getTolWindow(500, 5, true).second, 500.0025000125)
 END_SECTION
 
+START_SECTION((Math::RandomShuffle::portable_random_shuffle(BeginIT, EndIT)))
+  vector<Size> seq{1,2,3,4,5,6};
+  RandomShuffler r{0};
+  r.portable_random_shuffle(seq.begin(),seq.end());
+  TEST_EQUAL(seq[0],4)
+  TEST_EQUAL(seq[1],3)
+  TEST_EQUAL(seq[2],2)
+  TEST_EQUAL(seq[3],6)
+  TEST_EQUAL(seq[4],5)
+  TEST_EQUAL(seq[5],1)
+END_SECTION
+
 /////////////////////////////////////////////////////////////);
 /////////////////////////////////////////////////////////////
 END_TEST
