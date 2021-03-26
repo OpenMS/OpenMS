@@ -51,10 +51,9 @@
 
 namespace OpenMS
 {
-  const std::string FragmentMassError::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
-
+  // Using matched iterator for aligned spectra calculate mz errors
   template <typename MIV>
-  void twoSpecErrors (MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
+  void twoSpecErrors(MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
   {
     while (mi != mi.end())
     {
@@ -70,43 +69,6 @@ namespace OpenMS
       ++counter_ppm;
       ++mi;
     }
-  }
-
-
-  PeakSpectrum getTheoSpec_(const Precursor::ActivationMethod& fm, const AASequence& seq, const int charge)
-  {
-    // initialize a TheoreticalSpectrumGenerator
-    TheoreticalSpectrumGenerator theo_gen;
-
-    // get current parameters (default)
-    // default with b and y ions
-    Param theo_gen_settings = theo_gen.getParameters();
-
-    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
-    {
-      theo_gen_settings.setValue("add_b_ions", "true");
-      theo_gen_settings.setValue("add_y_ions", "true");
-    }
-    else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
-    {
-      theo_gen_settings.setValue("add_c_ions", "true");
-      theo_gen_settings.setValue("add_z_ions", "true");
-      theo_gen_settings.setValue("add_b_ions", "false");
-      theo_gen_settings.setValue("add_y_ions", "false");
-    }
-    else
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
-    }
-
-    // set changed parameters
-    theo_gen.setParameters(theo_gen_settings);
-
-    // generate b/y or c/z-ion spectrum of peptide seq
-    PeakSpectrum theo_spectrum;
-    theo_gen.getSpectrum(theo_spectrum, seq, 1, charge <= 2 ? 1 : 2);
-
-    return theo_spectrum;
   }
 
   void FragmentMassError::calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter)
@@ -162,7 +124,7 @@ namespace OpenMS
     //---------------------------------------------------------------------
     // CREATE THEORETICAL SPECTRUM
     //---------------------------------------------------------------------
-    PeakSpectrum theo_spectrum = getTheoSpec_(act_method, seq, charge);
+    PeakSpectrum theo_spectrum = TheoreticalSpectrumGenerator::generateSpectrum(act_method, seq, charge);
 
     //-----------------------------------------------------------------------
     // COMPARE THEORETICAL AND EXPERIMENTAL SPECTRUM
@@ -222,7 +184,6 @@ namespace OpenMS
       result.variance_ppm += (tmp * tmp / num_ppm);
     }
   }
-
 
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {

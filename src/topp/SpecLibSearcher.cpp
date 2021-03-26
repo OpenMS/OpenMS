@@ -358,7 +358,7 @@ protected:
     OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
-    PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
+    std::unique_ptr<PeakSpectrumCompareFunctor> comparator(Factory<PeakSpectrumCompareFunctor>::create(compare_function));
  
    //-------------------------------------------------------------
     // calculations
@@ -512,16 +512,16 @@ protected:
             // Special treatment for SpectraST score as it computes a score based on the whole library
             if (compare_function == "SpectraSTSimilarityScore")
             {
-              SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
-              BinnedSpectrum quer_bin_spec = sp->transform(filtered_query);
-              BinnedSpectrum lib_bin_spec = sp->transform(lib_spec);
-              score = (*sp)(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
-              double dot_bias = sp->dot_bias(quer_bin_spec, lib_bin_spec, score);
+              auto& sp = dynamic_cast<SpectraSTSimilarityScore&>(*comparator);
+              BinnedSpectrum quer_bin_spec = sp.transform(filtered_query);
+              BinnedSpectrum lib_bin_spec = sp.transform(lib_spec);
+              score = sp(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
+              double dot_bias = sp.dot_bias(quer_bin_spec, lib_bin_spec, score);
               hit.setMetaValue("DOTBIAS", dot_bias);
             }
             else
             {
-              score = (*comparor)(filtered_query, lib_spec);
+              score = (*comparator)(filtered_query, lib_spec);
             }
 
             DataValue RT(lib_spec.getRT());
@@ -546,7 +546,7 @@ protected:
           {
             vector<PeptideHit> final_hits;
             final_hits.resize(pid.getHits().size());
-            SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
+            auto& sp = dynamic_cast<SpectraSTSimilarityScore&>(*comparator);
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
@@ -556,13 +556,13 @@ protected:
                 break;
               }
             }
-            double delta_D = sp->delta_D(pid.getHits()[0].getScore(), pid.getHits()[runner_up].getScore());
+            double delta_D = sp.delta_D(pid.getHits()[0].getScore(), pid.getHits()[runner_up].getScore());
             for (Size s = 0; s < pid.getHits().size(); ++s)
             {
               final_hits[s] = pid.getHits()[s];
               final_hits[s].setMetaValue("delta D", delta_D);
               final_hits[s].setMetaValue("dot product", pid.getHits()[s].getScore());
-              final_hits[s].setScore(sp->compute_F(pid.getHits()[s].getScore(), delta_D, pid.getHits()[s].getMetaValue("DOTBIAS")));
+              final_hits[s].setScore(sp.compute_F(pid.getHits()[s].getScore(), delta_D, pid.getHits()[s].getMetaValue("DOTBIAS")));
             }
             pid.setHits(final_hits);
             pid.sort();

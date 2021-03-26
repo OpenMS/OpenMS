@@ -211,6 +211,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="382.972477955692966" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="172.955388574782" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
@@ -222,6 +223,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="382.972477955692966" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="144.959636504415" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.078345648944378"/>
@@ -233,6 +235,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="382.972477955692966" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="193.997014592663" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.051698412746191"/>
@@ -244,6 +247,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="289.124028104405397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="70.0400975364127" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
@@ -255,6 +259,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="289.124028104405397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="125.014307674051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.609987556934357"/>
@@ -266,6 +271,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="289.124028104405397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="151.029903267346" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.143196150660515"/>
@@ -277,6 +283,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="292.121077385470869" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="70.0398009093209" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
@@ -288,6 +295,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="292.121077385470869" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="125.014601911838" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.659789562225342"/>
@@ -365,6 +373,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="318.013460543863289" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="77.0387656196788" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
@@ -376,6 +385,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="318.013460543863289" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="132.04426880522" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.763268113136292"/>
@@ -387,6 +397,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="318.013460543863289" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="124.98206987935" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.586608111858368"/>
@@ -398,6 +409,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="326.094135509242165" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="326.090792568903" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
@@ -409,6 +421,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="339.995783079980754" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="132.044319218476" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
@@ -420,6 +433,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="339.995783079980754" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="77.0383640332675" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.670266568660736"/>
@@ -431,6 +445,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="339.995783079980754" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="104.048728147669" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.287847071886063"/>
