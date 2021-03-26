@@ -124,7 +124,7 @@ namespace OpenMS
       size_t resize_diff = correction_matrix_eigen_inversed.cols() - MDV_observed.size();
       for (size_t i = 0; i < resize_diff; ++i)
       {
-        //MDV_observed.push_back(0.0);
+        MDV_observed.push_back(0.0);
       }
     }
     // Expand the inversed correction_matrix to be of an equivalent size to MDV_observed
@@ -217,7 +217,6 @@ namespace OpenMS
       }
       else if (feature_name != "intensity" && it->metaValueExists(feature_name))
       {
-        //if((double)it->getMetaValue(feature_name) != 0.0)
         fragment_isotopomer_measured.push_back(it->getMetaValue(feature_name));
       }
     }
@@ -317,7 +316,6 @@ namespace OpenMS
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            // normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
             normalized_feature.getSubordinates().at(i).setMetaValue(feature_name, (OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
           }
         }
@@ -335,7 +333,6 @@ namespace OpenMS
         
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          //normalized_feature.setMetaValue((it - measured_feature_subordinates.begin()), (it->getIntensity() / feature_peak_apex_intensity_sum));
           normalized_feature.getSubordinates().at(it - measured_feature_subordinates.begin()).setIntensity((it->getIntensity() / feature_peak_apex_intensity_sum));
         }
       }
@@ -352,7 +349,6 @@ namespace OpenMS
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            // normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
             normalized_feature.getSubordinates().at(i).setMetaValue(feature_name, (OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
           }
         }
