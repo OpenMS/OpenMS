@@ -55,6 +55,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 using namespace std;
 
@@ -63,15 +64,18 @@ namespace OpenMS
 
   ToolsDialog::ToolsDialog(
           QWidget* parent,
+          Param params,
           String ini_file,
           String default_dir,
           LayerData::DataType layer_type,
           String layer_name
     ) :
     QDialog(parent),
+    params_(params),
     ini_file_(ini_file),
     default_dir_(default_dir)
   {
+
     auto main_grid = new QGridLayout(this);
 
     // Layer label
@@ -92,19 +96,22 @@ namespace OpenMS
             {FileTypes::Type::CONSENSUSXML, LayerData::DataType::DT_CONSENSUS},
             {FileTypes::Type::IDXML, LayerData::DataType::DT_IDENT}
     };
-
-    auto& tools = TVToolDiscovery::getToolParams();
+    const auto& tools = ToolHandler::getTOPPToolList();
+    const auto& utils = ToolHandler::getUtilList();
     for (auto& pair : tools)
     {
-      Param p = pair.second;
-      if (!p.empty())
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
-        // Check whether tool/util is compatible with the current layer
-        std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
-        if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
-        {
-          list << QString::fromStdString(pair.first);
-        }
+        list << pair.first.toQString();
+      }
+    }
+    for (auto& pair : utils)
+    {
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
+      {
+        list << pair.first.toQString();
       }
     }
 
@@ -250,7 +257,7 @@ namespace OpenMS
        editor_->clear();
        arg_map_.clear();
     }
-    arg_param_ = TVToolDiscovery::getToolParams().at(getTool());
+    arg_param_ = params_.copy(getTool() + ":");
 
     tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);
