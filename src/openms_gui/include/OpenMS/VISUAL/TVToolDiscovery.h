@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer:  $
-// $Authors:  $
+// $Authors: David Voigt $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -56,9 +56,6 @@ namespace OpenMS
       /// Contains a future param for each tool/util name
       static std::unordered_map<std::string, std::future<Param>> future_results_;
 
-      /// Indicates whether creating all params has finished yet
-      static bool params_ready_;
-
       /// Contains a mapping of each tool/util name to its param.
       static std::unordered_map<std::string, Param> params_;
 
@@ -67,8 +64,9 @@ namespace OpenMS
       static void loadParams();
 
       /**
-       * Returns a hash map (query is in O(1) on average) containing a param for each tool/util. Note that
-       * it is possible that not all param futures have been finished yet if this function is called before waitForParams().
+       * @brief Returns a hash map containing a param for each tool/util.
+       *
+       * Note that it is possible that not all param futures have been finished yet if this function is called before waitForParams().
        * Therefore it is possible that this function has to wait.
        */
       static const std::unordered_map<std::string, Param>& getToolParams();
