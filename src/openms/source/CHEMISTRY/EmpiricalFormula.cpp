@@ -427,7 +427,7 @@ namespace OpenMS
   {
     Int charge = 0;
     String formula(input_formula);
-    sanitizeIfNotValidFormula(formula);
+    formula.trim();
 
     // we start with the charge part, read until the begin of the formula or a element symbol occurs
     String suffix;
@@ -636,14 +636,6 @@ namespace OpenMS
         ++it;
       }
     }
-  }
-
-  void EmpiricalFormula::sanitizeIfNotValidFormula(String& input_formula) const
-  {
-    input_formula.erase(std::remove_if(input_formula.begin(), input_formula.end(), [](unsigned char c){
-      if (std::isspace(c)) OpenMS_Log_warn << "Warning: Formula contains illegal characters, please consider supplying a formula without spaces or tabs! " << std::endl;
-      return std::isspace(c);
-    }), input_formula.end());
   }
 
   bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const

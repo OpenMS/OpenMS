@@ -282,8 +282,6 @@ protected:
 
     /// remove elements with count 0
     void removeZeroedElements_();
-    
-    void sanitizeIfNotValidFormula(String& input_formula) const;
 
     MapType_ formula_;
 
