@@ -76,6 +76,7 @@ namespace OpenMS {
     void TVToolDiscovery::waitForParams()
     {
       static bool waited = false;
+      TVToolDiscovery::loadParams();
       if (!waited)
       {
         waited = true;
@@ -109,8 +110,10 @@ namespace OpenMS {
       if (qp.error() == QProcess::FailedToStart || !success || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
       {
         std::remove(path.c_str());
+        qp.close();
         return tool_param;
       }
+      qp.close();
       ParamXMLFile paramFile;
       paramFile.load((path).c_str(), tool_param);
       std::remove(path.c_str());
