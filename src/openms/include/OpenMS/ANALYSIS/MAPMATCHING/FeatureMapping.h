@@ -46,13 +46,15 @@ namespace OpenMS
       {
           public:
 
+          /// Stores information required for preprocessing
           class FeatureMappingInfo
           {
           public:
-            std::vector<FeatureMap> v_fp;
-            KDTreeFeatureMaps fp_map_kd;
+            std::vector<FeatureMap> feature_maps; // feature data
+            KDTreeFeatureMaps kd_tree; // KDTree references into feature_maps to provides fast spatial queries
           };
 
+          /// Stores preprocessed feature mapping information
           class FeatureToMs2Indices
           {
           public:

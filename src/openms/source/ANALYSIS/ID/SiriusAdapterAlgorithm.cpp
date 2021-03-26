@@ -506,8 +506,8 @@ namespace OpenMS
                                   });
           feature_map.erase(map_it, feature_map.end());
   
-          fm_info.v_fp.push_back(feature_map);
-          fm_info.fp_map_kd.addMaps(fm_info.v_fp);
+          fm_info.feature_maps.push_back(feature_map);
+          fm_info.kd_tree.addMaps(fm_info.feature_maps); // KDTree references into feature_map
   
           // mapping of MS2 spectra to features
           feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,

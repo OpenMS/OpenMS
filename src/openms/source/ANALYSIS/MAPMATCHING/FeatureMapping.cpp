@@ -67,7 +67,7 @@ namespace OpenMS
 
         // get mz tolerance window
         std::pair<double,double> mz_tolerance_window = Math::getTolWindow(mz, precursor_mz_tolerance, ppm);
-        fm_info.fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
+        fm_info.kd_tree.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
 
         // no precursor matches the feature information found
         if (matches.empty())
@@ -81,7 +81,7 @@ namespace OpenMS
         double min_distance(1e11);
         for (auto const & k_idx : matches)
         {
-          const double f_mz = fm_info.fp_map_kd.mz(k_idx);
+          const double f_mz = fm_info.kd_tree.mz(k_idx);
           const double distance = fabs(f_mz - mz);
           if (distance < min_distance)
           {
@@ -89,7 +89,7 @@ namespace OpenMS
             min_distance_feature_index = k_idx;
           }
         }
-        const BaseFeature* min_distance_feature = fm_info.fp_map_kd.feature(min_distance_feature_index);
+        const BaseFeature* min_distance_feature = fm_info.kd_tree.feature(min_distance_feature_index);
         assigned_ms2[min_distance_feature].push_back(index);
       }
     }

@@ -182,9 +182,7 @@ protected:
 
     // run masstrace filter and feature mapping
     FeatureMapping::FeatureMappingInfo fm_info;
-    //vector<FeatureMap> v_fp; // copy FeatureMap via push_back
-    //KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
-    FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
+    FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in Feature Maps stored in fm_info using a KDTree
     algorithm.preprocessingSirius(featureinfo,
                                   spectra,
                                   fm_info,
