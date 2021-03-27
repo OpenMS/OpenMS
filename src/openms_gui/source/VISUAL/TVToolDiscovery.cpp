@@ -67,7 +67,7 @@ namespace OpenMS {
           std::string util_name = pair.first;
           future_results_.insert(
                   std::make_pair(util_name,
-                                 std::async(std::launch::async, TVToolDiscovery::getParamFromIni_, pair.first))
+                                 std::async(std::launch::async, TVToolDiscovery::getParamFromIni_, util_name))
           );
         }
       }
@@ -99,13 +99,15 @@ namespace OpenMS {
       return params_;
     }
 
-    Param TVToolDiscovery::getParamFromIni_(const String &tool_name) {
+    Param TVToolDiscovery::getParamFromIni_(const std::string& tool_name) {
       String path = File::getUniqueName() + ".ini";
       QStringList args{ "-write_ini", path.toQString()};
+
       QProcess qp;
       Param tool_param;
       String executable = File::findSiblingTOPPExecutable(tool_name);
       qp.start(executable.toQString(), args);
+
       const bool success = qp.waitForFinished(-1); // wait till job is finished
       if (qp.error() == QProcess::FailedToStart || !success || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
       {
@@ -113,10 +115,11 @@ namespace OpenMS {
         qp.close();
         return tool_param;
       }
-      qp.close();
       ParamXMLFile paramFile;
       paramFile.load((path).c_str(), tool_param);
+
       std::remove(path.c_str());
+      qp.close();
       return tool_param;
     }
 

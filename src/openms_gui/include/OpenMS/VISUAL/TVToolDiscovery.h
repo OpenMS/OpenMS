@@ -48,10 +48,8 @@ namespace OpenMS
     class OPENMS_DLLAPI TVToolDiscovery
     {
     private:
-      TVToolDiscovery() {}
-
       /// Return param for a given tool/util
-      static Param getParamFromIni_(const String& tool_name);
+      static Param getParamFromIni_(const std::string& tool_name);
 
       /// Contains a future param for each tool/util name
       static std::unordered_map<std::string, std::future<Param>> future_results_;
@@ -60,7 +58,7 @@ namespace OpenMS
       static std::unordered_map<std::string, Param> params_;
 
     public:
-      /// Start creating params for each tool/util by starting asynchronous threads.
+      /// Start creating params for each tool/util asynchronously
       static void loadParams();
 
       /**
