@@ -522,6 +522,7 @@ protected:
     String current_path_;
 
 private:
+    void addToolParamsToIni();
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
   }; //class

@@ -462,8 +462,6 @@ namespace OpenMS
     //######################### File System Watcher ###########################################
     watcher_ = new FileWatcher(this);
     connect(watcher_, &FileWatcher::fileChanged, this, &TOPPViewBase::fileChanged_);
-
-    TVToolDiscovery::loadParams();
   }
 
   void TOPPViewBase::initializeDefaultParameters_()
@@ -1513,6 +1511,8 @@ namespace OpenMS
     // compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
 
+    bool tool_params_added = false;
+
     if (filename == "") { filename = default_ini_file; }
 
     // load preferences, if file exists
@@ -1528,14 +1528,17 @@ namespace OpenMS
       {
         error = true;
       }
-
+      std::cout << tmp.exists("tool_params:version");
       //apply preferences if they are of the current TOPPView version
-      if (!error && tmp.exists("preferences:version") &&
+      if (!error && tmp.exists("preferences:version") && tmp.exists("tool_params:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
         {
-          setParameters(tmp);
+          setParameters(tmp.copy("preferences:"));
+          param_.insert("tool_params:", tmp.copy("tool_params:", true));
+          param_.setValue("tool_params:version", VersionInfo::getVersion());
+          tool_params_added = true;
         }
         catch (Exception::InvalidParameter& /*e*/)
         {
@@ -1552,7 +1555,7 @@ namespace OpenMS
       {
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
-
+        TVToolDiscovery::loadParams();
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
       }
     }
@@ -1560,6 +1563,11 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
+    if (!tool_params_added)
+    {
+      TVToolDiscovery::loadParams();
+    }
+
     param_.setValue("PreferencesFile", filename);
 
     // set the recent files
@@ -1574,15 +1582,33 @@ namespace OpenMS
     
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
-
-    // save only the subsection that begins with "preferences:"
+    // Make sure TOPP tool/util params have been inserted
+    if (!param_.exists("tool_params:version"))
+    {
+      addToolParamsToIni();
+    }
+    // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
     {
-      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), param_.copy("preferences:"));
+      Param p;
+      p.insert("preferences:", param_.copy("preferences:", true));
+      p.insert("tool_params:", param_.copy("tool_params:", true));
+      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), p);
     }
     catch (Exception::UnableToCreateFile& /*e*/)
     {
       cerr << "Unable to create INI File: '" << string(param_.getValue("PreferencesFile")) << "'" << endl;
+    }
+  }
+
+  void TOPPViewBase::addToolParamsToIni()
+  {
+    std::cout << "adding params" << std::endl;
+    TVToolDiscovery::waitForParams();
+    param_.addSection("tool_params", "");
+    param_.setValue("tool_params:version", VersionInfo::getVersion());
+    for (auto &pair : TVToolDiscovery::getToolParams()) {
+      param_.insert("tool_params:", pair.second);
     }
   }
 
@@ -1639,8 +1665,11 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    TVToolDiscovery::waitForParams();
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
+    if (!param_.exists("tool_params:version"))
+    {
+      addToolParamsToIni();
+    }
+    ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
