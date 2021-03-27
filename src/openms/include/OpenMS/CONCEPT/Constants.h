@@ -274,10 +274,20 @@ namespace OpenMS
       */
       extern OPENMS_DLLAPI const std::string   PRECURSOR_ERROR_PPM_USERPARAM;
 
-      /** User parameter name for fragment mz error in ppm
+      /** User parameter name for median of fragment mz error in ppm
               String
       */
       extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM;
+
+      /** User parameter name for fragment mz error in ppm
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_PPM_USERPARAM;
+
+      /** User parameter name for fragment mz error in dalton
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_DA_USERPARAM;
 
       /** User parameter name for fragment annotations
               String
