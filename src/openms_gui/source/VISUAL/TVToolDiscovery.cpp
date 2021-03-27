@@ -47,7 +47,8 @@ namespace OpenMS {
     std::unordered_map<std::string, std::future<Param>> TVToolDiscovery::future_results_;
     std::unordered_map<std::string, Param> TVToolDiscovery::params_;
 
-    void TVToolDiscovery::loadParams() {
+    void TVToolDiscovery::loadParams()
+    {
       static bool loaded = false;
       if (!loaded)
       {
@@ -93,13 +94,15 @@ namespace OpenMS {
       }
     }
 
-    const std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams() {
+    const std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams()
+    {
       TVToolDiscovery::loadParams();
       TVToolDiscovery::waitForParams();
       return params_;
     }
 
-    Param TVToolDiscovery::getParamFromIni_(const std::string& tool_name) {
+    Param TVToolDiscovery::getParamFromIni_(const std::string& tool_name)
+    {
       String path = File::getUniqueName() + ".ini";
       QStringList args{ "-write_ini", path.toQString()};
 
@@ -122,5 +125,4 @@ namespace OpenMS {
       qp.close();
       return tool_param;
     }
-
 }
