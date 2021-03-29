@@ -141,9 +141,9 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
 
   rd.setEnzyme("mazF");
   rd.setMissedCleavages(0);
-  rd.digest(NASequence::fromString("GGACGACAAAG"), out);
+  rd.digest(NASequence::fromString("A[m6A]CA[m5C]AGGACGACAAAG"), out);
   TEST_EQUAL(out.size(), 2);
-  TEST_STRING_EQUAL(out[0].toString(), "GGACGp");
+  TEST_STRING_EQUAL(out[0].toString(), "A[m6A]CA[m5C]AGGACGp");
   TEST_STRING_EQUAL(out[1].toString(), "ACAAAG");
   out.clear();
 

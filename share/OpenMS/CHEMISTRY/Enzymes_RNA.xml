@@ -61,10 +61,10 @@ and what it cuts before. Also be sure to add gains before and after the cut. -->
     </NODE>
     <NODE name="mazF">
       <ITEM name="Name" value="mazF" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=A,C,A)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=(?&lt;!m6)A,(?&lt;!m5)C,A)" type="string" />
       <ITEM name="RegExDescription" value="mazF cuts before ACA." type="string" />
       <ITEM name="CutsAfter" value=".*" type="string" />
-      <ITEM name="CutsBefore" value="A,C,A" type="string" />
+      <ITEM name="CutsBefore" value="(?&lt;!m6)A,(?&lt;!m5)C,A" type="string" />
       <ITEM name="ThreePrimeGain" value="p" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
     </NODE>
