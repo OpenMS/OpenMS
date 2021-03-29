@@ -188,7 +188,7 @@ namespace OpenMS
                  SiriusName("profile"),
                  DefaultValue("qtof"),
                  Description("Name of the configuration profile")
-               ).withValidStrings({"qtof", "orbitrap", "fticr"});
+               ).withValidStrings({"default", "qtof", "orbitrap", "fticr"});
 
       parameter(
                  SiriusName("formula"),
@@ -260,35 +260,19 @@ namespace OpenMS
 
       parameter(
                  SiriusName("db"),
-                 DefaultValue("all"),
-                 Description("Search formulas in given database.")
-               ).withValidStrings({"all",
-                                   "pubchem",
-                                   "mesh",
-                                   "hmdb",
-                                   "knapsack",
-                                   "chebi",
-                                   "pubmed",
-                                   "bio",
-                                   "kegg",
-                                   "hsdb",
-                                   "maconda",
-                                   "metacyc",
-                                   "gnps",
-                                   "zincbio",
-                                   "train",
-                                   "undp",
-                                   "pantcyc",
-                                   "ymdb",
-                                   "keggmine",
-                                   "ecocycmine",
-                                   "ymdbmine",
-                                   "custom",
-                                   "custom_0",
-                                   "custom_1",
-                                   "custom_2",
-                                   "custom_3",
-                                   "custom_4"});
+                 DefaultValue(""),
+                 Description("Search formulas in the Union of the given "
+                              "databases db-name1,db-name2,db-name3. If no database is given all possible "
+                              "molecular formulas will be respected (no database "
+                              "is used). "
+                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB, "
+                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC, "
+                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL, "
+                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG, "
+                              "PUBCHEMANNOTATIONSAFETYANDTOXIC, "
+                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE, "
+                              "YMDBMINE")
+                );
 
       parameter(
                  SiriusName("ions-enforced"),
@@ -309,35 +293,19 @@ namespace OpenMS
 
       parameter(
                  FingeridName("db"),
-                 DefaultValue("all"),
-                 Description("Search structure in given database. To use a custom database, please rename your database to custom_n (e.g. custom_0)")
-                ).withValidStrings({"all",
-                                    "pubchem",
-                                    "mesh",
-                                    "hmdb",
-                                    "knapsack",
-                                    "chebi",
-                                    "pubmed",
-                                    "bio",
-                                    "kegg",
-                                    "hsdb",
-                                    "maconda",
-                                    "metacyc",
-                                    "gnps",
-                                    "zincbio",
-                                    "train",
-                                    "undp",
-                                    "pantcyc",
-                                    "ymdb",
-                                    "keggmine",
-                                    "ecocycmine",
-                                    "ymdbmine",
-                                    "custom",
-                                    "custom_0",
-                                    "custom_1",
-                                    "custom_2",
-                                    "custom_3",
-                                    "custom_4"});
+                 DefaultValue(""),
+                 Description("Search formulas in the Union of the given "
+                              "databases db-name1,db-name2,db-name3. If no database is given all possible "
+                              "molecular formulas will be respected (no database "
+                              "is used). "
+                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB, "
+                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC, "
+                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL, "
+                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG, "
+                              "PUBCHEMANNOTATIONSAFETYANDTOXIC, "
+                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE, "
+                              "YMDBMINE")
+                );
     }
 
     void SiriusAdapterAlgorithm::Passatutto::parameters()
