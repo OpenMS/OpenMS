@@ -193,7 +193,7 @@ protected:
 
   void updateMembers_() override;
 
-  MSExperiment ms_data_;
+  PeakMap ms_data_; ///< input LC-MS data
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
 
   MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
