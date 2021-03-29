@@ -352,19 +352,19 @@ public:
   /// note: decoy prefixes/suffices must be provided in lower case
   static std::vector<std::string> getAffixes()
   {
-    return { "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+    return { "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy__", "xxx", "shuffled", "shuffle", "pseudo", "random" };
   }
 
   /// returns a regex string to find decoy prefixes
   static std::string getPrefixRegex()
   {
-    return std::string("^(") + ListUtils::concatenate<std::string>(getAffixes(), "_|") + "_)";
+    return std::string("^(") + ListUtils::concatenate<std::string>(getAffixes(), "_|") + "_|" + ListUtils::concatenate<std::string>(getAffixes(), "|") + ")";
   }
 
   /// returns regex string to find decoy suffixes
   static std::string getSuffixRegex()
   {
-    return std::string("(_") + ListUtils::concatenate<std::string>(getAffixes(), "|_") + ")$";
+    return std::string("(_") + ListUtils::concatenate<std::string>(getAffixes(), "|_") + "|" + ListUtils::concatenate<std::string>(getAffixes(), "|") + ")$";
   }
 
   /**
