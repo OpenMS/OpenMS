@@ -165,7 +165,8 @@ protected:
       qcmlfile.collectQCData(inputfile_id, inputfile_feature,
                     inputfile_consensus, inputfile_raw, remove_duplicate_features, exp);
       qcmlfile.store(outputfile_name);
-    } else if (FileHandler::hasValidExtension (outputfile_name, FileTypes::MZQC))
+    } 
+    else if (FileHandler::hasValidExtension (outputfile_name, FileTypes::MZQC))
     {
       MzQCFile mzqcfile;
       mzqcfile.store(inputfile_raw, outputfile_name, exp, contactName, contactAddress, description, label);
