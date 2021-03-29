@@ -265,12 +265,12 @@ namespace OpenMS
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "
                               "is used). "
-                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB, "
-                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC, "
-                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL, "
-                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG, "
-                              "PUBCHEMANNOTATIONSAFETYANDTOXIC, "
-                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE, "
+                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB,"
+                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC,"
+                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL,"
+                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG,"
+                              "PUBCHEMANNOTATIONSAFETYANDTOXIC,"
+                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE,"
                               "YMDBMINE")
                 );
 
@@ -298,12 +298,12 @@ namespace OpenMS
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "
                               "is used). "
-                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB, "
-                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC, "
-                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL, "
-                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG, "
-                              "PUBCHEMANNOTATIONSAFETYANDTOXIC, "
-                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE, "
+                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB,"
+                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC,"
+                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL,"
+                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG,"
+                              "PUBCHEMANNOTATIONSAFETYANDTOXIC,"
+                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE,"
                               "YMDBMINE")
                 );
     }
