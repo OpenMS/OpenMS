@@ -449,16 +449,18 @@ namespace OpenMS
   void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data)
   {
     // access result through data.back()
-    data.push_back(BinaryData());
+    data.emplace_back();
 
-    static const XMLCh* TAG_CV = xercesc::XMLString::transcode("cvParam");
-    static const XMLCh* TAG_binary = xercesc::XMLString::transcode("binary");
-    static const XMLCh* TAG_userParam = xercesc::XMLString::transcode("userParam");
-    static const XMLCh* TAG_referenceableParamGroupRef = xercesc::XMLString::transcode("referenceableParamGroupRef");
-    static const XMLCh* TAG_accession = xercesc::XMLString::transcode("accession");
-    static const XMLCh* TAG_unit_accession = xercesc::XMLString::transcode("unitAccession");
-    static const XMLCh* TAG_value = xercesc::XMLString::transcode("value");
-    static const XMLCh* TAG_name = xercesc::XMLString::transcode("name");
+    // using CONST_XMLCH since writing a u16 char array each time is ugly. disadvantage = no constexpr.
+    // Uses only reinterpret_cast, so usually no runtime cost though.
+    static const XMLCh* TAG_CV = CONST_XMLCH("cvParam");
+    static const XMLCh* TAG_binary = CONST_XMLCH("binary");
+    static const XMLCh* TAG_userParam = CONST_XMLCH("userParam");
+    static const XMLCh* TAG_referenceableParamGroupRef = CONST_XMLCH("referenceableParamGroupRef");
+    static const XMLCh* TAG_accession = CONST_XMLCH("accession");
+    static const XMLCh* TAG_unit_accession = CONST_XMLCH("unitAccession");
+    static const XMLCh* TAG_value = CONST_XMLCH("value");
+    static const XMLCh* TAG_name = CONST_XMLCH("name");
 
     OpenMS::Internal::StringManager sm;
 
@@ -547,9 +549,10 @@ namespace OpenMS
   std::string MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data)
   {
     // PRECONDITON is below (since we first need to do XML parsing before validating)
-    static const XMLCh* default_array_length_tag = xercesc::XMLString::transcode("defaultArrayLength");
-    static const XMLCh* id_tag = xercesc::XMLString::transcode("id");
-    static const XMLCh* binary_data_array_tag = xercesc::XMLString::transcode("binaryDataArray");
+    // initializer list of XMLCh (= usually some type that fits utf16) from ASCII chars
+    static constexpr XMLCh id_tag[] = {'i','d', 0};
+    static constexpr XMLCh default_array_length_tag[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h', 0};
+    static constexpr XMLCh binary_data_array_tag[] = { 'b','i','n','a','r','y','D','a','t','a','A','r','r','a','y', 0};
 
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
@@ -576,11 +579,9 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in, "No root element");
     }
 
-    OPENMS_PRECONDITION(
-        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" ||
-        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "chromatogram",
+    OPENMS_PRECONDITION(xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("spectrum")) || xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("chromatogram")),
           (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
-          String(xercesc::XMLString::transcode(elementRoot->getTagName())) + String("'.")).c_str() )
+          String(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + String("'.")).c_str())
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).

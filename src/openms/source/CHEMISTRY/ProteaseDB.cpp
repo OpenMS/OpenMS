@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-
+#include <fstream>
 using namespace std;
 
 namespace OpenMS
@@ -105,4 +105,13 @@ namespace OpenMS
     }
   }
 
+  void ProteaseDB::writeTSV(String const& filename)
+  {
+    std::ofstream ofs(filename, std::ofstream::out);
+    ofs << "OpenMS_AllowedEnzymes" << "\n";
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      ofs << (*it)->getName() << "\n";
+    }
+  }
 } // namespace OpenMS
