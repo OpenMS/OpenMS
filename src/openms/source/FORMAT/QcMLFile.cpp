@@ -39,7 +39,6 @@
 #include <QFileInfo>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -1164,6 +1163,7 @@ namespace OpenMS
       at.colTypes.push_back("MS:1000041");  // charge
       at.colTypes.push_back("S/N");  // S/N
       at.colTypes.push_back("peak count");  // peak count
+      
       for (Size i = 0; i < exp.size(); ++i)
       {
         mslevelcounts[exp[i].getMSLevel()]++;

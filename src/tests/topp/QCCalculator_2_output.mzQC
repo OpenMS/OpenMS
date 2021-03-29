@@ -1,6 +1,6 @@
 {
-  "MzQC": {
-    "creationDate": "2021-03-22T15:03:48",
+  "mzQC": {
+    "creationDate": "2021-03-29T10:09:41",
     "version": "1.0.0",
     "contactName": "name",
     "contactAddress": "address",
@@ -73,6 +73,37 @@
             0,
             678
           ]
+        },
+        {
+          "accession": "QC:4000067",
+          "name": "Total ion current chromatogram",
+          "value": {
+            "Relative intensity": [
+              0,
+              120,
+              120
+            ],
+            "Retention time": [
+              -1.0,
+              42.04999923706055,
+              353.42999267578125
+            ]
+          }
+        },
+        {
+          "accession": "QC:4000077",
+          "name": "Area under TIC",
+          "value": 240
+        },
+        {
+          "accession": "QC:4000172",
+          "name": "MS1 signal jump (10x) count",
+          "value": 1
+        },
+        {
+          "accession": "QC:4000173",
+          "name": "MS1 signal fall (10x) count",
+          "value": 0
         }
       ]
     },

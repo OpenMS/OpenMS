@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <nlohmann/json.hpp>
 
@@ -64,25 +65,25 @@ namespace OpenMS
     json out;
     // required: creationDate, version
     DateTime currentTime = DateTime::now();
-    out["MzQC"]["creationDate"] = currentTime.toString();
-    out["MzQC"]["version"] = "1.0.0";
+    out["mzQC"]["creationDate"] = currentTime.toString();
+    out["mzQC"]["version"] = "1.0.0";
 
     // optional: contactName, contactAddress, description
     if (!contactName.empty()) 
     {
-      out["MzQC"]["contactName"] = contactName;
+      out["mzQC"]["contactName"] = contactName;
     }
     if (!contactAddress.empty()) 
     {
-      out["MzQC"]["contactAddress"] = contactAddress;
+      out["mzQC"]["contactAddress"] = contactAddress;
     }
     if (!description.empty()) 
     {
-      out["MzQC"]["description"] = description;
+      out["mzQC"]["description"] = description;
     }
 
-    out["MzQC"]["runQualities"]["metadata"]["label"] = label;
-    out["MzQC"]["runQualities"]["metadata"]["inputFiles"] = {
+    out["mzQC"]["runQualities"]["metadata"]["label"] = label;
+    out["mzQC"]["runQualities"]["metadata"]["inputFiles"] = {
         {
           {"location", File::absolutePath(inputFileName)},
           {"name", File::basename(inputFileName)},
@@ -114,7 +115,7 @@ namespace OpenMS
     };
 
     VersionInfo::VersionDetails version = VersionInfo::getVersionStruct();
-    out["MzQC"]["runQualities"]["metadata"]["analysisSoftware"] = { // todo
+    out["mzQC"]["runQualities"]["metadata"]["analysisSoftware"] = { // todo
         {
           {"accession", "MS:1009001" }, // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
           {"name", "QCCalculator"},
@@ -123,9 +124,9 @@ namespace OpenMS
         }
     };
 
-    out["MzQC"]["runQualities"]["qualityMetrics"] = {};
+    out["mzQC"]["runQualities"]["qualityMetrics"] = {};
     
-    out["MzQC"]["controlledVocabularies"] = {
+    out["mzQC"]["controlledVocabularies"] = {
         {
           {"name", "Proteomics Standards Initiative Quality Control Ontology"},
           {"uri", "https://github.com/HUPO-PSI/mzQC/blob/master/cv/qc-cv.obo"},
@@ -165,15 +166,15 @@ namespace OpenMS
         ++counts[level];  // count MS level
       }
     // QC:4000059 Number of MS1 spectra
-    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000059", "Number of MS1 spectra", counts[1]);
+    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000059", "Number of MS1 spectra", counts[1]);
     // QC:4000060 Number of MS2 spectra
-    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000060", "Number of MS2 spectra", counts[2]);
+    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000060", "Number of MS2 spectra", counts[2]);
     // QC:4000135 Number of chromatograms"
-    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000135", "Number of chromatograms", exp.getChromatograms().size());
+    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000135", "Number of chromatograms", exp.getChromatograms().size());
     // QC:4000053 Run time (RT duration)
-    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000053", "RT duration", UInt(exp.getMaxRT() - exp.getMinRT()));
+    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000053", "RT duration", UInt(exp.getMaxRT() - exp.getMinRT()));
     // QC:4000138 MZ acquisition range
-    out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000138", "MZ acquisition range", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
+    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000138", "MZ acquisition range", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
     
     const MSChromatogram& tic = exp.getTIC();
     UInt jump = 0;
@@ -181,10 +182,10 @@ namespace OpenMS
     vector<float> retention_times;
     vector<UInt> intensities;
     
-    for (auto it = tic.begin(); it != tic.end(); ++it)
+    for (const auto& p : tic)
     {
-      intensities.push_back(it->getIntensity());
-      retention_times.push_back(it->getRT());
+      intensities.push_back(p.getIntensity());
+      retention_times.push_back(p.getRT());
     }
 
     UInt tic_area = intensities[0];
@@ -209,15 +210,15 @@ namespace OpenMS
     if (!tic.empty())
     {
       // QC:4000067 Total ion current chromatogram
-      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000067", "Total ion current chromatogram", tic_values);
+      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000067", "Total ion current chromatogram", tic_values);
       // QC:4000077 Area under TIC
-      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000077", "Area under TIC", tic_area);
+      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000077", "Area under TIC", tic_area);
       // QC:4000172 MS1 signal jump (10x) count
-      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000172", "MS1 signal jump (10x) count", jump);
+      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000172", "MS1 signal jump (10x) count", jump);
       // QC:4000173 MS1 signal fall (10x) count
-      out["MzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000173", "MS1 signal fall (10x) count", fall);
+      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000173", "MS1 signal fall (10x) count", fall);
     }
-    
+
     // QC:4000074 Median MS1 peak FWHM for peptides
     // QC:4000257 Detected Compounds
     // MS:1000005 sample volume
