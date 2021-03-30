@@ -1,12 +1,12 @@
 key	value
 #top_db_hits	2168
 #top_novo_hits	26
-correction_factor	1.02052785923754
-#corrected_novo_hits	26.533724340176
+correction_factor	1.04170616113744
+#corrected_novo_hits	27.0843601895735
 db_suitability	0.988149498632634
-corrected_suitability	0.987909174488465
+corrected_suitability	0.987661357950164
 no_rerank_suitability	0.96763901549681
-corrected_no_rerank_suitability	0.966983184075124
+corrected_no_rerank_suitability	0.966309631762679
 #total_novo_seqs	5131
 #unique_novo_seqs	4376
 #ms2_spectra	5549

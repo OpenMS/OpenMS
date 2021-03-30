@@ -424,10 +424,11 @@ namespace OpenMS
     }
     double num_AS_written = num_AA * subsampling_rate;
 
-    mt19937 g(UniqueIdGenerator::getUniqueId());
+    Math::RandomShuffler shuffler;
+    shuffler.seed(UniqueIdGenerator::getUniqueId());
     std::vector<int> rnd_indices(fasta_data.size());
     std::iota(std::begin(rnd_indices), std::end(rnd_indices), 0);
-    shuffle(rnd_indices.begin(), rnd_indices.end(), g);
+    shuffler.portable_random_shuffle(rnd_indices.begin(), rnd_indices.end());
 
     Size curr_AA{};
     vector<FASTAFile::FASTAEntry> sampled_fasta;
