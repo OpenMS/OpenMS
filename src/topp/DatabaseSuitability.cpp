@@ -38,8 +38,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/DBSuitability.h>
+#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -121,19 +121,20 @@ Richard S. Johnson, Brian C. Searle, Brook L. Nunn, Jason M. Gilmore, Molly Phil
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-Citation c = { "Richard S. Johnson, Brian C. Searle, Brook L. Nunn, Jason M. Gilmore, Molly Phillips, Chris T. Amemiya, Michelle Heck, Michael J. MacCoss",
-                    "Assessing protein sequence database suitability using de novo sequencing",
-                    "Molecular & Cellular Proteomics. January 1, 2020; 19, 1: 198-208",
-                    "10.1074/mcp.TIR119.001752" };
+Citation c = {"Richard S. Johnson, Brian C. Searle, Brook L. Nunn, Jason M. Gilmore, Molly Phillips, Chris T. Amemiya, Michelle Heck, Michael J. MacCoss",
+              "Assessing protein sequence database suitability using de novo sequencing",
+              "Molecular & Cellular Proteomics. January 1, 2020; 19, 1: 198-208",
+              "10.1074/mcp.TIR119.001752"};
 
 class DatabaseSuitability :
-  public TOPPBase
+    public TOPPBase
 {
 public:
   DatabaseSuitability() :
-    TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra.", false, {c})
+      TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra.", false, {c})
   {
   }
+
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
@@ -147,7 +148,7 @@ protected:
     registerInputFile_("in_id", "<file>", "", "Input idXML file from a peptide identification search with a combined database. PeptideIndexer is needed, FDR is forbidden.");
     setValidFormats_("in_id", { "idXML" });
     registerInputFile_("in_spec", "<file>", "", "Input MzML file used for the peptide identification");
-    setValidFormats_("in_spec", { "mzML" });
+    setValidFormats_("in_spec", {"mzML"});
     registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides (unfiltered)");
     setValidFormats_("in_novo", { "idXML" });
     registerInputFile_("database", "<file>", "", "Input FASTA file of the database in question");
@@ -155,7 +156,7 @@ protected:
     registerInputFile_("novo_database", "<file>", "", "Input deNovo sequences derived from MzML given in 'in_spec' concatenated to one FASTA entry");
     setValidFormats_("novo_database", { "FASTA" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
-    setValidFormats_("out", { "tsv" });
+    setValidFormats_("out", {"tsv"});
 
     registerSubsection_("algorithm", "Parameter section for the suitability calculation algorithm");
   }
@@ -176,14 +177,14 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    
+
     MzMLFile m;
     PeakFileOptions op;
-    op.setMSLevels({ 2 }); // only ms2
+    op.setMSLevels({2});// only ms2
     m.setOptions(op);
     PeakMap exp;
     m.load(in_spec, exp);
-    
+
     IdXMLFile x;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
@@ -217,7 +218,8 @@ protected:
         OPENMS_LOG_ERROR << in_novo << " contains at least one identification without a novorscore! Make sure this file contains only deNovo sequences." << endl;
         return INPUT_FILE_CORRUPT;
       }
-      if (pep_id.getHits().empty()) continue;
+      if (pep_id.getHits().empty())
+        continue;
       unique_novo.insert(pep_id.getHits()[0].getSequence());
     }
 
@@ -245,11 +247,12 @@ protected:
     OPENMS_LOG_INFO << "database suitability after correction: " << suit.getCorrectedSuitability() << endl << endl;
     OPENMS_LOG_INFO << unique_novo.size() << " / " << spectral_quality.num_peptide_identification << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << spectral_quality.num_ms2_spectra << " ms2 spectra found" << endl;
-    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl << endl;
+    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl;
 
     if (!out.empty())
     {
-      OPENMS_LOG_INFO << "Writing output to: " << out << endl << endl;
+      OPENMS_LOG_INFO << "Writing output to: " << out << endl
+                      << endl;
 
       std::ofstream os(out);
       if (!os.is_open())
