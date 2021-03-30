@@ -207,7 +207,8 @@ namespace OpenMS
     * Result is appended to the result member. This allows for multiple usage.
     *
     * @param pep_ids            vector containing pepIDs with target/decoy annotation coming from a deNovo+database
-    *                           identification search (currently only Comet-support) without FDR
+    *                           identification search without FDR
+    *                           (Comet is recommended - to use other search engines either disable reranking or set the '-force' flag)
     *                           vector is modified internally, and is thus copied
     * @param exp                MSExperiment that was searched to produce the identifications
     *                           given in @p pep_ids
@@ -218,7 +219,7 @@ namespace OpenMS
     *                           that resulted in @p pep_ids
     * @throws                   MissingInformation if no target/decoy annotation is found on @p pep_ids
     * @throws                   MissingInformation if no xcorr is found,
-    *                           this happends when another adapter than CometAdapter was used
+    *                           this happens when another adapter than CometAdapter was used
     * @throws                   Precondition if a q-value is found in @p pep_ids
     */
     void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
@@ -304,7 +305,7 @@ namespace OpenMS
     *
     * @param meta_values   SearchParameters object, since the adapters write their parameters here
     * @retruns             a pair containing the name of the adapter and the parameters used to run it
-    * @throws              MissingInformation if non of the adapters above is found in the meta values
+    * @throws              MissingInformation if none of the adapters above is found in the meta values
     */
     std::pair<String, Param> extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& search_params) const;
 
@@ -318,10 +319,10 @@ namespace OpenMS
     void writeIniFile_(const Param& parameters, const String& filename) const;
 
     /**
-    * @brief Executes the workflow from search adapter, followed by PeptideIndexer and finished with FDR
+    * @brief Executes the workflow from search adapter, followed by PeptideIndexer and finishes with FDR
     *
     * Which adapter should run with which parameters can be controlled.
-    * Make sure the search adapter you wish to use is build on your system and the executable is on your PATH variable.
+    * Make sure the search adapter you wish to use is built on your system and the executable is on your PATH variable.
     *
     * Indexing and FDR are always done the same way.
     *
@@ -367,7 +368,7 @@ namespace OpenMS
     * @param data       SuitabilityData object where the result should be written into
     * @throws           MissingInformation if no target/decoy annotation is found on @p pep_ids
     * @throws           MissingInformation if no xcorr is found,
-    *                   this happends when another adapter than CometAdapter was used
+    *                   this happens when another adapter than CometAdapter was used
     */
     void calculateSuitability_(const std::vector<PeptideIdentification>& pep_ids, SuitabilityData& data) const;
 
