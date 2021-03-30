@@ -189,19 +189,22 @@ namespace OpenMS
 
   void ParamValue::clear_() noexcept
   {
-      switch(value_type_) {
-      case STRING_VALUE:
+      switch(value_type_) 
+      {
+        case STRING_VALUE:
           delete data_.str_;
-      break;
-      case STRING_LIST:
+        break;
+        case STRING_LIST:
           delete data_.str_list_;
-      break;
-      case INT_LIST:
+        break;
+        case INT_LIST:
           delete data_.int_list_;
-      break;
-      case DOUBLE_LIST:
+        break;
+        case DOUBLE_LIST:
           delete data_.dou_list_;
-      break;
+        break;
+        default:
+        break;
       }
 
     value_type_ = EMPTY_VALUE;

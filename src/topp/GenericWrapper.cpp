@@ -180,7 +180,7 @@ protected:
   String paramToString_(const Param::ParamEntry & p)
   {
 
-    if (p.value.valueType() == DataValue::STRING_LIST) // quote each element
+    if (p.value.valueType() == ParamValue::STRING_LIST) // quote each element
     {
       StringList val = ListUtils::toStringList<std::string>(p.value);
       if (p.tags.count("input file") || p.tags.count("output file"))

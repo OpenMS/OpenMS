@@ -758,7 +758,7 @@ namespace OpenMS
     String name = full_name.empty() ? entry.name : full_name;
     bool advanced = entry.tags.count("advanced");
     // special case for flags:
-    if ((entry.value.valueType() == DataValue::STRING_VALUE) &&
+    if ((entry.value.valueType() == ParamValue::STRING_VALUE) &&
         /*entry.tags.count("flag") && */ // This would avoid autoconversion from true/false String Params when they default to false
         (entry.value == "false") && // This is the current default
         (entry.valid_strings.size() == 2) &&
@@ -1765,21 +1765,21 @@ namespace OpenMS
         case ParameterInformation::INPUT_FILE:
         case ParameterInformation::OUTPUT_FILE:
         case ParameterInformation::FLAG:
-          if (it->value.valueType() != DataValue::STRING_VALUE)
+          if (it->value.valueType() != ParamValue::STRING_VALUE)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
           }
           break;
 
         case ParameterInformation::DOUBLE:
-          if (it->value.valueType() != DataValue::DOUBLE_VALUE)
+          if (it->value.valueType() != ParamValue::DOUBLE_VALUE)
           {
             writeLog_("Warning: Wrong  parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'double'!");
           }
           break;
 
         case ParameterInformation::INT:
-          if (it->value.valueType() != DataValue::INT_VALUE)
+          if (it->value.valueType() != ParamValue::INT_VALUE)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int'!");
           }
@@ -1788,21 +1788,21 @@ namespace OpenMS
         case ParameterInformation::STRINGLIST:
         case ParameterInformation::INPUT_FILE_LIST:
         case ParameterInformation::OUTPUT_FILE_LIST:
-          if (it->value.valueType() != DataValue::STRING_LIST)
+          if (it->value.valueType() != ParamValue::STRING_LIST)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string list'!");
           }
           break;
 
         case ParameterInformation::INTLIST:
-          if (it->value.valueType() != DataValue::INT_LIST)
+          if (it->value.valueType() != ParamValue::INT_LIST)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int list'!");
           }
           break;
 
         case ParameterInformation::DOUBLELIST:
-          if (it->value.valueType() != DataValue::DOUBLE_LIST)
+          if (it->value.valueType() != ParamValue::DOUBLE_LIST)
           {
             writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'double list'!");
           }
