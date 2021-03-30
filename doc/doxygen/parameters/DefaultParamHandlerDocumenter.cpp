@@ -289,7 +289,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
     }
 
     //replace # and @ in values
-    String value = it->value;
+    String value = (std::string)it->value;
     value.substitute("@", "XXnot_containedXX");
     value.substitute("XXnot_containedXX", "@@");
     value.substitute("#", "XXnot_containedXX");
