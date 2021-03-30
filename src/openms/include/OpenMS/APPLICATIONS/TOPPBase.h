@@ -364,7 +364,7 @@ private:
 
       where "some_key" == key in the examples.
     */
-    const DataValue getParam_(const String& key) const;
+    const ParamValue& getParam_(const String& key) const;
 
     /**
       @brief Get the part of a parameter name that makes up the subsection

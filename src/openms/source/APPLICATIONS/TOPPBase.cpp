@@ -171,7 +171,7 @@ namespace OpenMS
   TOPPBase::~TOPPBase()
   {
     // delete log file if empty
-    String topplog = getParam_("log");
+    const std::string& topplog = (std::string)getParam_("log");
     if (!topplog.empty() && File::empty(topplog))
     {
       File::remove(topplog);
@@ -776,7 +776,7 @@ namespace OpenMS
     enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
     {
-    case DataValue::STRING_VALUE:
+    case ParamValue::STRING_VALUE:
       if (input_file)
         type = ParameterInformation::INPUT_FILE;
       else if (output_file)
@@ -785,15 +785,15 @@ namespace OpenMS
         type = ParameterInformation::STRING;
       break;
 
-    case DataValue::INT_VALUE:
+    case ParamValue::INT_VALUE:
       type = ParameterInformation::INT;
       break;
 
-    case DataValue::DOUBLE_VALUE:
+    case ParamValue::DOUBLE_VALUE:
       type = ParameterInformation::DOUBLE;
       break;
 
-    case DataValue::STRING_LIST:
+    case ParamValue::STRING_LIST:
       if (input_file)
         type = ParameterInformation::INPUT_FILE_LIST;
       else if (output_file)
@@ -802,15 +802,15 @@ namespace OpenMS
         type = ParameterInformation::STRINGLIST;
       break;
 
-    case DataValue::INT_LIST:
+    case ParamValue::INT_LIST:
       type = ParameterInformation::INTLIST;
       break;
 
-    case DataValue::DOUBLE_LIST:
+    case ParamValue::DOUBLE_LIST:
       type = ParameterInformation::DOUBLELIST;
       break;
 
-    case DataValue::EMPTY_VALUE:
+    case ParamValue::EMPTY_VALUE:
       type = ParameterInformation::NONE;
       break;
     }
@@ -830,34 +830,34 @@ namespace OpenMS
     String argument = "";
     switch (entry.value.valueType())
     {
-    case DataValue::STRING_VALUE:
+    case ParamValue::STRING_VALUE:
       if (entry.valid_strings.empty())
         argument = "<text>"; // name?
       else
         argument = "<choice>";
       break;
 
-    case DataValue::INT_VALUE:
+    case ParamValue::INT_VALUE:
       argument = "<number>"; // integer?
       break;
 
-    case DataValue::DOUBLE_VALUE:
+    case ParamValue::DOUBLE_VALUE:
       argument = "<value>"; // float?
       break;
 
-    case DataValue::STRING_LIST:
+    case ParamValue::STRING_LIST:
       argument = "<list>";
       break;
 
-    case DataValue::INT_LIST:
+    case ParamValue::INT_LIST:
       argument = "<numbers>";
       break;
 
-    case DataValue::DOUBLE_LIST:
+    case ParamValue::DOUBLE_LIST:
       argument = "<values>";
       break;
 
-    case DataValue::EMPTY_VALUE:
+    case ParamValue::EMPTY_VALUE:
       argument = "";
       break;
     }
@@ -1580,7 +1580,7 @@ namespace OpenMS
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
       return tmp.toString();
@@ -1593,10 +1593,10 @@ namespace OpenMS
 
   Int TOPPBase::getParamAsInt_(const String& key, Int default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::INT_VALUE)
+      if (tmp.valueType() == ParamValue::INT_VALUE)
       {
         return (Int)tmp;
       }
@@ -1610,10 +1610,10 @@ namespace OpenMS
 
   double TOPPBase::getParamAsDouble_(const String& key, double default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::DOUBLE_VALUE)
+      if (tmp.valueType() == ParamValue::DOUBLE_VALUE)
       {
         return (double)tmp;
       }
@@ -1627,10 +1627,10 @@ namespace OpenMS
 
   StringList TOPPBase::getParamAsStringList_(const String& key, const StringList& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      return tmp;
+      return (StringList)tmp;
     }
     else
     {
@@ -1640,10 +1640,10 @@ namespace OpenMS
 
   IntList TOPPBase::getParamAsIntList_(const String& key, const IntList& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::INT_LIST)
+      if (tmp.valueType() == ParamValue::INT_LIST)
       {
         return tmp;
       }
@@ -1657,10 +1657,10 @@ namespace OpenMS
 
   DoubleList TOPPBase::getParamAsDoubleList_(const String& key, const DoubleList& default_value) const
   {
-    const DataValue& tmp = getParam_(key);
+    const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      if (tmp.valueType() == DataValue::DOUBLE_LIST)
+      if (tmp.valueType() == ParamValue::DOUBLE_LIST)
       {
         return tmp;
       }
@@ -1674,26 +1674,26 @@ namespace OpenMS
 
   bool TOPPBase::getParamAsBool_(const String& key) const
   {
-    DataValue tmp = getParam_(key);
-    if (tmp.valueType() == DataValue::EMPTY_VALUE)
+    ParamValue tmp = getParam_(key);
+    if (tmp.valueType() == ParamValue::EMPTY_VALUE)
     {
       return false;
     }
-    else if (tmp.valueType() == DataValue::STRING_VALUE)
+    else if (tmp.valueType() == ParamValue::STRING_VALUE)
     {
-      if ((String)tmp == "false")
+      if ((std::string)tmp == "false")
       {
         return false;
       }
-      else if ((String)tmp == "true")
+      else if ((std::string)tmp == "true")
       {
         return true;
       }
     }
-    throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp.toString() + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
+    throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Invalid value '") + (std::string)tmp + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
   }
 
-  DataValue const TOPPBase::getParam_(const String& key) const
+  ParamValue const& TOPPBase::getParam_(const String& key) const
   {
     if (param_.exists(key))
     {
@@ -1703,7 +1703,7 @@ namespace OpenMS
     {
       // if look up fails everywhere, return EMPTY
       writeDebug_(String("Parameter '") + key + String("' not found."), 1);
-      return DataValue::EMPTY;
+      return ParamValue::EMPTY;
     }
   }
 
