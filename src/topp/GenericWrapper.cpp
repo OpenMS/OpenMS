@@ -382,10 +382,10 @@ protected:
           StringList ifs;
           switch (it->value.valueType())
           {
-            case DataValue::STRING_VALUE:
+            case ParamValue::STRING_VALUE:
               ifs.push_back(it->value.toChar());
               break;
-            case DataValue::STRING_LIST:
+            case ParamValue::STRING_LIST:
               ifs = ListUtils::toStringList<std::string>(it->value);
               break;
             default:

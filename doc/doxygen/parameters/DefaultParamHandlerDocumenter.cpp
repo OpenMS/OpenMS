@@ -196,10 +196,10 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
   for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
   {
     restrictions = "";
-    if (it->value.valueType() == DataValue::INT_VALUE || it->value.valueType() == DataValue::INT_LIST)
+    if (it->value.valueType() == ParamValue::INT_VALUE || it->value.valueType() == ParamValue::INT_LIST)
     {
       type = "int";
-      if (it->value.valueType() == DataValue::INT_LIST)
+      if (it->value.valueType() == ParamValue::INT_LIST)
         type += " list";
 
       //restrictions
@@ -216,10 +216,10 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         restrictions += String("max: ") + it->max_int;
       }
     }
-    else if (it->value.valueType() == DataValue::DOUBLE_VALUE || it->value.valueType() == DataValue::DOUBLE_LIST)
+    else if (it->value.valueType() == ParamValue::DOUBLE_VALUE || it->value.valueType() == ParamValue::DOUBLE_LIST)
     {
       type = "float";
-      if (it->value.valueType() == DataValue::DOUBLE_LIST)
+      if (it->value.valueType() == ParamValue::DOUBLE_LIST)
         type += " list";
 
       //restrictions
@@ -236,10 +236,10 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         restrictions += String("max: ") + it->max_float;
       }
     }
-    else if (it->value.valueType() == DataValue::STRING_VALUE || it->value.valueType() == DataValue::STRING_LIST)
+    else if (it->value.valueType() == ParamValue::STRING_VALUE || it->value.valueType() == ParamValue::STRING_LIST)
     {
       type = "string";
-      if (it->value.valueType() == DataValue::STRING_LIST)
+      if (it->value.valueType() == ParamValue::STRING_LIST)
         type += " list";
 
       //restrictions

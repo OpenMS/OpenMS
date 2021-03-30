@@ -302,50 +302,50 @@ START_SECTION([EXTRA] loading and storing of lists)
 
 	TEST_EQUAL(p2.size(),12);
 
-	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
+	TEST_EQUAL(p2.getValue("stringlist").valueType(), ParamValue::STRING_LIST)
 	std::vector<std::string> list = p2.getValue("stringlist");
 	TEST_EQUAL(list.size(),3)
 	TEST_EQUAL(list[0],"a")
 	TEST_EQUAL(list[1],"bb")
 	TEST_EQUAL(list[2],"ccc")
 
-	TEST_EQUAL(p2.getValue("stringlist2").valueType(), DataValue::STRING_LIST)
+	TEST_EQUAL(p2.getValue("stringlist2").valueType(), ParamValue::STRING_LIST)
 	list = p2.getValue("stringlist2");
 	TEST_EQUAL(list.size(),0)
 
-	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
+	TEST_EQUAL(p2.getValue("stringlist").valueType(), ParamValue::STRING_LIST)
 	list = p2.getValue("stringlist3");
 	TEST_EQUAL(list.size(),1)
 	TEST_EQUAL(list[0],"1")
 
-	TEST_EQUAL(p2.getValue("intlist").valueType(), DataValue::INT_LIST)
+	TEST_EQUAL(p2.getValue("intlist").valueType(), ParamValue::INT_LIST)
 	IntList intlist = p2.getValue("intlist");
 	TEST_EQUAL(intlist.size(),3);
 	TEST_EQUAL(intlist[0], 1)
 	TEST_EQUAL(intlist[1], 22)
 	TEST_EQUAL(intlist[2], 333)
 
-	TEST_EQUAL(p2.getValue("intlist2").valueType(),DataValue::INT_LIST)
+	TEST_EQUAL(p2.getValue("intlist2").valueType(),ParamValue::INT_LIST)
 	intlist = p2.getValue("intlist2");
 	TEST_EQUAL(intlist.size(),0)
 
-	TEST_EQUAL(p2.getValue("intlist3").valueType(),DataValue::INT_LIST)
+	TEST_EQUAL(p2.getValue("intlist3").valueType(),ParamValue::INT_LIST)
 	intlist = p2.getValue("intlist3");
 	TEST_EQUAL(intlist.size(),1)
 	TEST_EQUAL(intlist[0],1)
 
-	TEST_EQUAL(p2.getValue("doublelist").valueType(), DataValue::DOUBLE_LIST)
+	TEST_EQUAL(p2.getValue("doublelist").valueType(), ParamValue::DOUBLE_LIST)
 	DoubleList doublelist = p2.getValue("doublelist");
 	TEST_EQUAL(doublelist.size(),3);
 	TEST_EQUAL(doublelist[0], 1.22)
 	TEST_EQUAL(doublelist[1], 2.33)
 	TEST_EQUAL(doublelist[2], 4.55)
 
-	TEST_EQUAL(p2.getValue("doublelist2").valueType(),DataValue::DOUBLE_LIST)
+	TEST_EQUAL(p2.getValue("doublelist2").valueType(),ParamValue::DOUBLE_LIST)
 	doublelist = p2.getValue("doublelist2");
 	TEST_EQUAL(doublelist.size(),0)
 
-	TEST_EQUAL(p2.getValue("doublelist3").valueType(),DataValue::DOUBLE_LIST)
+	TEST_EQUAL(p2.getValue("doublelist3").valueType(),ParamValue::DOUBLE_LIST)
 	doublelist = p2.getValue("doublelist3");
 	TEST_EQUAL(doublelist.size(),1)
 	TEST_EQUAL(doublelist[0],1.4)

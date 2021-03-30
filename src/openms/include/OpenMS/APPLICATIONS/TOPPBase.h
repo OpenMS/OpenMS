@@ -354,7 +354,7 @@ private:
     bool getParamAsBool_(const String& key) const;
 
     /**
-      @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
+      @brief Return the value @p key of parameters as DataValue. ParamValue::EMPTY indicates that a parameter was not found.
 
       Parameters are searched in this order:
       -# command line
