@@ -19,6 +19,7 @@ ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
+FilterTopPicResults
 FuzzyDiff
 IDDecoyProbability
 IDExtractor

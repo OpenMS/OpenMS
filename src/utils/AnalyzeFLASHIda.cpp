@@ -106,7 +106,7 @@ protected:
       precursor_intensity = stod(results[6]);
         mass_intensity_ = stod(results[7]);
       charge_ = stoi(results[8]);
-      unexp_mod_ = stoi(results[9]);
+      unexp_mod_ = stod(results[9]);
       q_value_ = stod(results[15]);
       e_value_ = stod(results[16]);
     }
@@ -122,7 +122,7 @@ protected:
     double precursor_mz_;
     int proteform_id_;
     String protein_acc_;
-    int unexp_mod_;
+    double unexp_mod_;
     double e_value_;
     double q_value_;
 
@@ -178,7 +178,7 @@ protected:
       auto r = results[i];
       for (auto &item : r)
       {
-        if (item.unexp_mod_ == 0)
+        if (item.unexp_mod_ == .0)
         { // TODO
           continue;
         }

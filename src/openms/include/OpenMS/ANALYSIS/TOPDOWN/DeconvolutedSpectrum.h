@@ -144,7 +144,7 @@ namespace OpenMS
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
 
-    const Peak1D getPrecursor() const;
+    const Precursor getPrecursor() const;
 
     /// get possible max mass of the deconvoluted masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass

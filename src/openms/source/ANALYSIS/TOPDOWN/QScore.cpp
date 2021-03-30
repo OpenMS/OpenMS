@@ -98,7 +98,7 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-        << "ACC,ProID,RT,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
+        << "ACC,FirstResidue,LastResidue,ProID,RT,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,Color,PrecursorMz,PrecursorIntensity,"
            "MassIntensity,PrecursorCharge,PTM,PTMMass,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
@@ -110,9 +110,13 @@ namespace OpenMS
   void QScore::writeAttTsv(const String &acc,
                            const int proID,
                            const double rt,
+                           const int pscan,
                            const double pmass,
                            const double pmz,
+                           const DataValue color,
                            PeakGroup &pg,
+                           const int fr,
+                           const int lr,
                            const int charge,
                            const double precursor_intensity,
                            const double ptm_mass,
@@ -126,7 +130,7 @@ namespace OpenMS
     if (pg.empty())
     {
       return;
-      f << acc << "," << proID << "," << rt << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass)
+      f << acc << "," << proID << "," << rt << "," << pscan << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass)
         << "," << pmz
         << "," << precursor_intensity << ","
         << ",0," << (proID ? (ptm_mass !=.0 ? 1 : 0) : -1);
@@ -138,10 +142,9 @@ namespace OpenMS
       auto fv = toFeatureVector_(&pg, charge);
       //if (pg.getChargeIsotopeCosine(charge) <= 0)
       //  return;
-
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << acc << "," << proID << "," << rt << "," << monomass << "," << mass << "," << pmz << ","
+      f << acc << "," << fr << "," << lr << ","<< proID << "," << rt << "," << pscan << "," << monomass << "," << mass << ","<< color <<"," << pmz << ","
         << precursor_intensity << ","
         << pg.getIntensity()<< ","
         << charge << ","

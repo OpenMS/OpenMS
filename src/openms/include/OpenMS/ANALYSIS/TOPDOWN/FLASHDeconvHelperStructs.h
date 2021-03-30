@@ -139,6 +139,14 @@ namespace OpenMS
       double e_value_;
       double spec_q_value_;
       double proteofrom_q_value_;
+
+
+    bool operator<(const TopPicItem& a) const;
+
+    bool operator>(const TopPicItem& a) const;
+
+    bool operator==(const TopPicItem& other) const;
+
     };
 
 

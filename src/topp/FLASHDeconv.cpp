@@ -552,6 +552,7 @@ protected:
     // Run FLASHDeconv here
 
     int scan_number = 0;
+    int prev_scan_number  = 0;
     float prev_progress = .0;
     int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
     auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
@@ -652,18 +653,25 @@ protected:
                                                               scan_number,
                                                               precursor_map_for_real_time_acquisition);
 
+
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
           && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           )
       {
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
+        auto color = deconvoluted_spectrum.getPrecursor().getMetaValue("color");
         double pmass =
                 isnan(top_pic_map[scan_number].unexp_mod_) ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
         double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
         auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
-        QScore::writeAttTsv(top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
-                            deconvoluted_spectrum.getOriginalSpectrum().getRT(), pmass, pmz,
-                            pg,
+        int fr = top_pic_map[scan_number].first_residue_;
+        int lr = top_pic_map[scan_number].last_residue_;
+
+          QScore::writeAttTsv(top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
+                            deconvoluted_spectrum.getOriginalSpectrum().getRT(),
+                            prev_scan_number,
+                            pmass, pmz, color,
+                            pg, fr,lr,
                             deconvoluted_spectrum.getPrecursorCharge(),
                             precursor_intensity, top_pic_map[scan_number].unexp_mod_,
                             !isnan(top_pic_map[scan_number].unexp_mod_),
@@ -671,6 +679,10 @@ protected:
                             avg, out_train_stream, write_detail_qscore_att);
 
       }
+        if(it->getMSLevel() == 1){
+            prev_scan_number = scan_number;
+        }
+
       if (!out_mzml_file.empty())
       {
         if (it->getMSLevel() == 1 || !deconvoluted_spectrum.getPrecursorPeakGroup().empty())

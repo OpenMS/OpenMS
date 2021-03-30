@@ -269,8 +269,9 @@ namespace OpenMS
           int loc = 0;
           while (true) {
               String sub = seq.substr(seq.find("[", loc) + 1, seq.find("]", loc) - 1 - seq.find("[", loc));
-              if (!isdigit(sub[0])){
-                  loc = seq.find("]", loc);
+              //std::cout<<sub<<std::endl;
+              if (!isdigit(sub[sub.length()-1])){
+                  loc = seq.find("]", loc) + 1;
                   continue;
               }
               unexp_mod_ = stod(sub);
@@ -288,4 +289,16 @@ namespace OpenMS
       proteofrom_q_value_ = stod(results[25]);
     }
   }
+
+    bool FLASHDeconvHelperStructs::TopPicItem::operator<(const FLASHDeconvHelperStructs::TopPicItem &a) const {
+        return this->scan_ < a.scan_;
+    }
+
+    bool FLASHDeconvHelperStructs::TopPicItem::operator>(const FLASHDeconvHelperStructs::TopPicItem &a) const {
+        return this->scan_ > a.scan_;
+    }
+
+    bool FLASHDeconvHelperStructs::TopPicItem::operator==(const FLASHDeconvHelperStructs::TopPicItem &other) const {
+        return this->scan_ == other.scan_;
+    }
 }

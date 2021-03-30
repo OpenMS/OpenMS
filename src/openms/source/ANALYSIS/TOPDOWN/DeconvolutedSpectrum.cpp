@@ -439,6 +439,7 @@ namespace OpenMS
               precursor_log_mz_peak.isotopeIndex = 0;
               precursor_log_mz_peak.mass = smap[0];
               precursor_log_mz_peak.intensity = smap[6];
+              precursor_peak_.setMetaValue("color", smap[7]);
               precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
               precursor_peak_.setIntensity(smap[5]);
               precursor_peak_group_.push_back(precursor_log_mz_peak);
@@ -604,7 +605,7 @@ namespace OpenMS
     return abs(precursor_peak_.getCharge());
   }
 
-  const Peak1D DeconvolutedSpectrum::getPrecursor() const
+  const Precursor DeconvolutedSpectrum::getPrecursor() const
   {
     return precursor_peak_;
   }
