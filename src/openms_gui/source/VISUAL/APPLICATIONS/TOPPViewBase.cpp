@@ -561,7 +561,8 @@ namespace OpenMS
 
     vector<PeptideIdentification> peptides;
     // not needed in data but for auto annotation
-    struct annotate_data_t {
+    struct annotate_data_t
+    {
       OpenMS::String path;
       vector<PeptideIdentification> peptide_id;
       vector<ProteinIdentification> protein_id;
@@ -626,12 +627,11 @@ namespace OpenMS
           StringList paths;
           proteins[0].getPrimaryMSRunPath(paths);
 
-          for (StringList::const_iterator it = paths.begin(); it != paths.end(); ++it)
+          for (const String &path : paths)
           {
-
-            if (File::exists(*it) && fh.getType(*it) == FileTypes::MZML)
+            if (File::exists(path) && fh.getType(path) == FileTypes::MZML)
             {
-              annotate_data.path = *it;
+              annotate_data.path = path;
             }
           }
           // annotation could not be found in file reference
@@ -639,7 +639,8 @@ namespace OpenMS
           {
             // try to find file with same path & name but with mzML extension
             auto target = fh.swapExtension(abs_filename, FileTypes::Type::MZML);
-            if (File::exists(target)) {
+            if (File::exists(target))
+            {
               annotate_data.path = target;
             }
           }
@@ -648,16 +649,18 @@ namespace OpenMS
           {
             // open dialog for annotation on load
             QMessageBox msg_box;
-            auto name = File::basename(annotate_data.path);
-            msg_box.setText("An associated Spectra file was found.");
-            msg_box.setInformativeText(String("Annotate spectra using " + name + "?").toQString());
+            auto spectra_file_name = File::basename(annotate_data.path);
+            msg_box.setText("Spectra data for identification data was found.");
+            msg_box.setInformativeText(String("Annotate spectra using " + spectra_file_name + "?").toQString());
             msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msg_box.setDefaultButton(QMessageBox::Yes);
             auto ret = msg_box.exec();
             if (ret == QMessageBox::No)
             { // no annotation performed
               annotate_data.path = "";
-            } else {
+            }
+            else
+            {
               annotate_data.peptide_id = peptides;
               annotate_data.protein_id = proteins;
             }
