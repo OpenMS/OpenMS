@@ -646,7 +646,7 @@ namespace OpenMS
             QMessageBox msg_box;
             auto spectra_file_name = File::basename(annotate_path);
             msg_box.setText("Spectra data for identification data was found.");
-            msg_box.setInformativeText(String("Annotate spectra using " + spectra_file_name + "?").toQString());
+            msg_box.setInformativeText(String("Annotate spectra in " + spectra_file_name + "?").toQString());
             msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msg_box.setDefaultButton(QMessageBox::Yes);
             auto ret = msg_box.exec();
