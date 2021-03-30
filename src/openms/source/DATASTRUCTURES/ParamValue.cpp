@@ -159,23 +159,24 @@ namespace OpenMS
   ParamValue::ParamValue(const ParamValue& p) :
     value_type_(p.value_type_)
   {
-      switch(value_type_) {
-      case STRING_VALUE:
-          data_.str_ = new std::string(*p.data_.str_);
-      break;
-      case STRING_LIST:
-          data_.str_list_ = new std::vector<std::string>(*p.data_.str_list_);
-      break;
-      case INT_LIST:
-          data_.int_list_ = new std::vector<int>(*p.data_.int_list_);
-      break;
-      case DOUBLE_LIST:
-          data_.dou_list_ = new std::vector<double>(*p.data_.dou_list_);
-      break;
-      default:
-          data_ = p.data_;
-      break;
-      }
+    switch (value_type_) 
+    {
+    case STRING_VALUE:
+        data_.str_ = new std::string(*p.data_.str_);
+    break;
+    case STRING_LIST:
+        data_.str_list_ = new std::vector<std::string>(*p.data_.str_list_);
+    break;
+    case INT_LIST:
+        data_.int_list_ = new std::vector<int>(*p.data_.int_list_);
+    break;
+    case DOUBLE_LIST:
+        data_.dou_list_ = new std::vector<double>(*p.data_.dou_list_);
+    break;
+    default:
+        data_ = p.data_;
+    break;
+    }
   }
 
   ParamValue::ParamValue(ParamValue&& rhs) noexcept :
@@ -189,24 +190,23 @@ namespace OpenMS
 
   void ParamValue::clear_() noexcept
   {
-      switch(value_type_) 
-      {
-        case STRING_VALUE:
-          delete data_.str_;
-        break;
-        case STRING_LIST:
-          delete data_.str_list_;
-        break;
-        case INT_LIST:
-          delete data_.int_list_;
-        break;
-        case DOUBLE_LIST:
-          delete data_.dou_list_;
-        break;
-        default:
-        break;
-      }
-
+    switch (value_type_) 
+    {
+      case STRING_VALUE:
+        delete data_.str_;
+      break;
+      case STRING_LIST:
+        delete data_.str_list_;
+      break;
+      case INT_LIST:
+        delete data_.int_list_;
+      break;
+      case DOUBLE_LIST:
+        delete data_.dou_list_;
+      break;
+      default:
+      break;
+    }
     value_type_ = EMPTY_VALUE;
   }
 
@@ -225,7 +225,8 @@ namespace OpenMS
     clear_();
 
     // assign
-    switch(p.value_type_) {
+    switch (p.value_type_) 
+    {
     case STRING_VALUE:
         data_.str_ = new std::string(*p.data_.str_);
         break;
@@ -594,10 +595,12 @@ namespace OpenMS
       break;
       case STRING_LIST:
           os << "[";
-          if(!data_.str_list_->empty()) {
+          if (!data_.str_list_->empty()) 
+          {
               for (std::vector<std::string>::const_iterator it = data_.str_list_->begin();
-                   it != data_.str_list_->end() - 1; ++it) {
-                  os << *it << ", ";
+                   it != data_.str_list_->end() - 1; ++it) 
+              {
+                os << *it << ", ";
               }
               os << data_.str_list_->back();
           }
@@ -606,7 +609,7 @@ namespace OpenMS
       break;
       case INT_LIST:
           os << "[";
-          if(!data_.int_list_->empty()) {
+          if (!data_.int_list_->empty()) {
               for (std::vector<int>::const_iterator it = data_.int_list_->begin();
                    it != data_.int_list_->end() - 1; ++it) {
                   os << *it << ", ";
@@ -617,10 +620,10 @@ namespace OpenMS
           return os.str();
       break;
       case DOUBLE_LIST:
-          if(full_precision) os.precision(15);
+          if (full_precision) os.precision(15);
           else os.precision(3);
           os << "[";
-          if(!data_.dou_list_->empty()) {
+          if (!data_.dou_list_->empty()) {
               for (std::vector<double>::const_iterator it = data_.dou_list_->begin();
                    it != data_.dou_list_->end(); ++it) {
                   os << *it << ", ";
@@ -791,33 +794,37 @@ namespace OpenMS
     break;
     case ParamValue::STRING_LIST:
         os << "[";
-        if(!p.data_.str_list_->empty())
+        if (!p.data_.str_list_->empty())
         {
-            for (auto it = p.data_.str_list_->begin(), end = p.data_.str_list_->end() - 1; it != end; ++it) {
-                os << *it << ", ";
-            }
-            os << p.data_.str_list_->back();
+          for (auto it = p.data_.str_list_->begin(), end = p.data_.str_list_->end() - 1; it != end; ++it) 
+          {
+            os << *it << ", ";
+          }
+          os << p.data_.str_list_->back();
         }
         os << "]";
     break;
     case ParamValue::INT_LIST:
         os << "[";
-        if(!p.data_.int_list_->empty())
+        if (!p.data_.int_list_->empty())
         {
-            for (auto it = p.data_.int_list_->begin(), end = p.data_.int_list_->end() - 1; it != end; ++it) {
-                os << *it << ", ";
-            }
-            os << p.data_.int_list_->back();
+          for (auto it = p.data_.int_list_->begin(), end = p.data_.int_list_->end() - 1; it != end; ++it) 
+          {
+            os << *it << ", ";
+          }
+          os << p.data_.int_list_->back();
         }
         os << "]";
     break;
     case ParamValue::DOUBLE_LIST:
         os << "[";
-        if(!p.data_.dou_list_->empty()) {
-            for (auto it = p.data_.dou_list_->begin(), end = p.data_.dou_list_->end() - 1; it != end; ++it) {
-                os << *it << ", ";
-            }
-            os << p.data_.dou_list_->back();
+        if (!p.data_.dou_list_->empty()) 
+        {
+          for (auto it = p.data_.dou_list_->begin(), end = p.data_.dou_list_->end() - 1; it != end; ++it) 
+          {
+            os << *it << ", ";
+          }
+          os << p.data_.dou_list_->back();
         }
         os << "]";
     break;

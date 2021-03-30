@@ -211,8 +211,9 @@ namespace OpenMS
     entries(),
     nodes()
   {
-      if(name.find(':') != std::string::npos) {
-            std::cerr << "Error ParamNode name must not contain ':' characters!" << std::endl;
+      if (name.find(':') != std::string::npos) 
+      {
+        std::cerr << "Error ParamNode name must not contain ':' characters!" << std::endl;
       }
   }
 
@@ -568,8 +569,9 @@ namespace OpenMS
     std::string prefix2 = prefix;
     if (prefix2 != "")
     {
-      if(prefix2.back() != ':') {
-          prefix2 += ':';
+      if(prefix2.back() != ':') 
+      {
+        prefix2 += ':';
       }
     }
 
@@ -1013,9 +1015,9 @@ namespace OpenMS
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
       os << '"';
-      if(it.getName().length() > it->name.length())
+      if (it.getName().length() > it->name.length())
       {
-          os << it.getName().substr(0, it.getName().length() - it->name.length() - 1) << "|";
+        os << it.getName().substr(0, it.getName().length() - it->name.length() - 1) << "|";
       }
       os  << it->name << "\" -> \"" << it->value << '"';
       if (it->description != "")
@@ -1188,13 +1190,14 @@ OPENMS_THREAD_CRITICAL(oms_log)
                 it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
           SignedSize first = it.getName().find(':');
-          if(it.getName().find(':', first+1) != std::string::npos) {
-              if (this->getValue(it.getName()) != it->value) {
-                  OPENMS_THREAD_CRITICAL(oms_log)
-                  stream
-                          << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
-              }
-              continue;
+          if (it.getName().find(':', first+1) != std::string::npos) 
+          {
+            if (this->getValue(it.getName()) != it->value) 
+            {
+                OPENMS_THREAD_CRITICAL(oms_log)
+                stream << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
+            }
+            continue;
           }
         }
 
