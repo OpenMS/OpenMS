@@ -123,7 +123,7 @@ void convertINI2HTML(const Param& p, ostream& os)
 
     //tags
     String list;
-    for (set<String>::const_iterator tag_it = it->tags.begin(); tag_it != it->tags.end(); ++tag_it)
+    for (const auto tag_it = it->tags.begin(); tag_it != it->tags.end(); ++tag_it)
     {
       if (*tag_it == "advanced")
         continue; // do not list "advanced" or "required" (this is done by color coding)
