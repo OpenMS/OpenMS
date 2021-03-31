@@ -1102,7 +1102,15 @@ namespace OpenMS
         ++i;
       }
     }
-    if (clear_original) features.getIdentificationData().clear();
+    if (clear_original)
+    {
+      features.getIdentificationData().clear();
+      for (auto& feat : features)
+      {
+        feat.clearPrimaryID();
+        feat.getIDMatches().clear();
+      }
+    }
   }
 
 
