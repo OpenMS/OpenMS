@@ -362,9 +362,8 @@ START_SECTION((IdentifiedCompoundRef registerIdentifiedCompound(const Identified
                  data.registerIdentifiedCompound(compound));
   TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
 
-  compound = ID::IdentifiedCompound("compound_1",
-                                                    EmpiricalFormula("C2H5OH"),
-                                                    "ethanol");
+  compound = ID::IdentifiedCompound("compound_1", EmpiricalFormula("C2H5OH"),
+                                    "ethanol");
   compound_ref = data.registerIdentifiedCompound(compound);
   TEST_EQUAL(data.getIdentifiedCompounds().size(), 1);
   TEST_EQUAL(*compound_ref == compound, true);
@@ -407,8 +406,7 @@ START_SECTION((ObservationMatchRef registerObservationMatch(const ObservationMat
   TEST_EQUAL(*match_ref1 == match, true);
 
   // match with an oligo (+ adduct):
-  match = ID::ObservationMatch(oligo_ref, obs_ref, 2,
-                                                 adduct_ref);
+  match = ID::ObservationMatch(oligo_ref, obs_ref, 2, adduct_ref);
   match_ref2 = data.registerObservationMatch(match);
   TEST_EQUAL(data.getObservationMatches().size(), 2);
   TEST_EQUAL(*match_ref2 == match, true);
@@ -491,14 +489,6 @@ START_SECTION((void clearCurrentProcessingStep()))
 }
 END_SECTION
 
-START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const))
-{
-  vector<ID::ObservationMatchRef> result = data.getBestMatchPerObservation(score_ref);
-  TEST_EQUAL(result.size(), 1);
-  TEST_EQUAL(result[0] == match_ref2, true);
-}
-END_SECTION
-
 START_SECTION((pair<ID::ObservationMatchRef, ID::ObservationMatchRef> getMatchesForObservation(ObservationRef obs_ref) const))
 {
   pair<ID::ObservationMatchRef, ID::ObservationMatchRef> result =
@@ -527,10 +517,8 @@ START_SECTION((void calculateCoverages(bool check_molecule_length = false)))
   data.calculateCoverages();
   TEST_REAL_SIMILAR(protein_ref->coverage, 0.5);
   // partially overlapping peptide:
-  ID::IdentifiedPeptide peptide(AASequence::
-                                                fromString("TESTPEP"));
-  peptide.parent_matches[protein_ref].insert(ID::
-                                             ParentMatch(0, 6));
+  ID::IdentifiedPeptide peptide(AASequence::fromString("TESTPEP"));
+  peptide.parent_matches[protein_ref].insert(ID::ParentMatch(0, 6));
   data.registerIdentifiedPeptide(peptide);
   data.calculateCoverages();
   TEST_REAL_SIMILAR(protein_ref->coverage, 11.0/14.0);
@@ -580,6 +568,33 @@ START_SECTION((IdentificationData(const IdentificationData& other)))
 }
 END_SECTION
 
+START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const))
+{
+  // add a second observation and match (without score):
+  ID::Observation obs("spectrum_2", file_ref, 200.0, 2000.0);
+  ID::ObservationRef obs_ref2 = data.registerObservation(obs);
+  ID::ObservationMatch match(oligo_ref, obs_ref2, 2);
+  ID::ObservationMatchRef match_ref4 = data.registerObservationMatch(match);
+  TEST_EQUAL(data.getObservationMatches().size(), 4);
+  // best matches, requiring score:
+  vector<ID::ObservationMatchRef> results = data.getBestMatchPerObservation(score_ref, true);
+  TEST_EQUAL(results.size(), 1);
+  TEST_EQUAL(results[0] == match_ref2, true);
+  // best matches, no score required:
+  results = data.getBestMatchPerObservation(score_ref, false);
+  TEST_EQUAL(results.size(), 2);
+  ABORT_IF(results.size() != 2);
+  if (results[0] == match_ref2) // can't be sure about the order
+  {
+    TEST_EQUAL(results[1] == match_ref4, true);
+  }
+  else
+  {
+    TEST_EQUAL(results[0] == match_ref4, true);
+    TEST_EQUAL(results[1] == match_ref2, true);
+  }
+}
+END_SECTION
 
 START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
 {
