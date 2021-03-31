@@ -358,13 +358,13 @@ public:
   /// returns a regex string to find decoy prefixes
   static std::string getPrefixRegex()
   {
-    return std::string("^(") + ListUtils::concatenate<std::string>(getAffixes(), "_|") + "_|" + ListUtils::concatenate<std::string>(getAffixes(), "|") + ")";
+    return std::string("^(") + ListUtils::concatenate<std::string>(getAffixes(), "|") +  ")_?";
   }
 
   /// returns regex string to find decoy suffixes
   static std::string getSuffixRegex()
   {
-    return std::string("(_") + ListUtils::concatenate<std::string>(getAffixes(), "|_") + "|" + ListUtils::concatenate<std::string>(getAffixes(), "|") + ")$";
+    return std::string("_?(") + ListUtils::concatenate<std::string>(getAffixes(), "|") + ")$";
   }
 
   /**
