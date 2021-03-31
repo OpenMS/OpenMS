@@ -173,7 +173,6 @@ namespace OpenMS
 
     for (const auto& hit : pep_id.getHits())
     {
-      if (curr_hit > 10) break;
       ++curr_hit;
 
       if (!hit.metaValueExists("target_decoy"))

@@ -245,8 +245,11 @@ namespace OpenMS
     /**
     * @brief Calculates the xcorr difference between the top two hits marked as decoy
     *
-    * Only searches the top ten hits for two decoys. If there aren't two decoys, DBL_MAX
-    * is returned.
+    * Searches for the top two decoys hits and returns their score difference.
+    * By default the xcorr from Comet is used. If no xcorr can be found and the 'force' flag is set
+    * the main score from the peptide hit is used, else an error is thrown.
+    *
+    * If there aren't two decoys, DBL_MAX is returned.
     *
     * @param pep_id     pepID from where the decoy difference will be calculated
     * @returns          xcorr difference
