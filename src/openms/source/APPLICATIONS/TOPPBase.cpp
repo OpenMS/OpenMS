@@ -171,7 +171,7 @@ namespace OpenMS
   TOPPBase::~TOPPBase()
   {
     // delete log file if empty
-    const std::string& topplog = (std::string)getParam_("log");
+    const std::string& topplog = getParam_("log").toString();
     if (!topplog.empty() && File::empty(topplog))
     {
       File::remove(topplog);
@@ -1630,7 +1630,7 @@ namespace OpenMS
     const ParamValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      return (StringList)tmp;
+      return ListUtils::toStringList<std::string>(tmp);
     }
     else
     {
