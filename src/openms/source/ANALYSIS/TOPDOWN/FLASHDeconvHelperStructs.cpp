@@ -277,6 +277,11 @@ namespace OpenMS
               unexp_mod_ = stod(sub);
               break;
           }
+
+          int off = seq.find(".", 0);
+          mod_first_ = seq.find("(", off) - off -1 ;
+          mod_last_ = seq.find(")", mod_first_) - off -3;
+          //std::cout<<seq<<" " <<  mod_first_<< " " << mod_last_<<std::endl;//
       }
 
 

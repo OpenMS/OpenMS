@@ -296,10 +296,11 @@ namespace OpenMS
        << "SCANS=" << scan_number_ << "\n"
        << "RETENTION_TIME=" << spec_.getRT() << "\n";
 
-    fs << "ACTIVATION=" << activation_method_ << "\n";
+
 
     if (ms_level > 1)
     {
+        fs << "ACTIVATION=" << activation_method_ << "\n";
       if (!precursor_peak_group_.empty())
       {
         fs << "MS_ONE_ID=" << precursor_scan_number_ << "\n"
@@ -609,4 +610,9 @@ namespace OpenMS
   {
     return precursor_peak_;
   }
+
+    int DeconvolutedSpectrum::getScanNumber() const
+    {
+        return scan_number_;
+    }
 }

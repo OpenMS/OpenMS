@@ -70,6 +70,8 @@ namespace OpenMS
                             const int charge,
                             const double precursor_intensity,
                             const double ptm_mass,
+                            const int ptm_start,
+                            const int ptm_end,
                             const bool is_identified,
                             const double e_value,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,

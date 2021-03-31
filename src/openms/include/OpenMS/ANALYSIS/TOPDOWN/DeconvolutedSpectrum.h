@@ -156,6 +156,8 @@ namespace OpenMS
     /// @param max_abs_charge the max charge specified by the user
     int getCurrentMaxAbsCharge(const int max_abs_charge) const;
 
+    int getScanNumber() const;
+
   private:
     /// the original spectrum (not deconvoluted)
     MSSpectrum spec_;

@@ -42,14 +42,14 @@ namespace OpenMS
       DefaultParamHandler("MassFeatureTrace")
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
-    mtd_defaults.setValue("min_trace_length", 10.0);
+    //mtd_defaults.setValue("min_trace_length", 10.0);
     mtd_defaults.setValue("min_sample_rate",
                           .2,
                           "Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.");
 
     mtd_defaults.setValue("mass_error_da",
                           1.5,
-                          "da tolerance for feature tracing. Due to frequent isotope errer, 1.5 Da is recommended.");
+                          "da tolerance for feature tracing. Due to frequent isotope error, 1.5 Da is recommended.");
     mtd_defaults.setValue("min_trace_length", 10.0);//
 
     mtd_defaults.setValue("chrom_peak_snr", .0);
@@ -81,11 +81,13 @@ namespace OpenMS
   }
 
 
-  void MassFeatureTrace::findFeatures(const String& file_name, const bool promex_out,
+  void MassFeatureTrace::findFeatures(const String& file_name, const bool promex_out, const bool topfd_feature_out,
+                                      const std::unordered_map<double, PeakGroup> &precursor_peak_groups,
                                       int& feature_cntr,
                                       int& feature_index,
                                       std::fstream& fsf,
                                       std::fstream& fsp,
+                                      std::fstream& fst,
                                       const PrecalculatedAveragine& averagine)
   {
     MSExperiment map;
@@ -93,6 +95,7 @@ namespace OpenMS
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;
     bool is_positive = true;
+    int topid = 1;
     for (auto &item : peak_group_map_)
     {
       double rt = item.first;
@@ -291,6 +294,12 @@ namespace OpenMS
 
       fsf << "\n";
 
+      if(topfd_feature_out){
+          fst<<"0\t"<<topid++<<"\t"<<mass<<"\t"<<sum_intensity<<"\t" <<mt.begin()->getRT()<<"\t"<<mt.end()->getRT()
+          <<"\t"<<(is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
+                << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge)<<"\t1\t1\n";
+      }
+
       if (promex_out)
       {
         double max_charge_intensity = 0;
@@ -332,6 +341,38 @@ namespace OpenMS
         fsp << std::setprecision(0);
       }
     }
+
+
+
+      if(topfd_feature_out){
+          for(auto& precursor: precursor_peak_groups){
+
+              auto rt = precursor.first;
+              bool selected = false;
+              for(auto& mt : m_traces){
+                if(abs(precursor.second.getMonoMass() - mt.getCentroidMZ()) > 1.5){
+                    continue;
+                }
+                if(rt < mt.begin()->getRT() || rt > mt.rbegin()->getRT()){
+                    continue;
+                }
+                selected = true;
+                break;
+              }
+              if(selected){
+                  continue;
+              }
+              auto crange = precursor.second.getAbsChargeRange();
+
+              fst<<"0\t"<<topid++<<"\t"<<precursor.second.getMonoMass()<<"\t"<<precursor.second.getIntensity()<<"\t" <<rt-1<<"\t"<<rt+1
+                 <<"\t"<<(is_positive ? std::get<0>(crange) : -std::get<1>(crange)) << "\t"
+                 << (is_positive ? std::get<1>(crange) : -std::get<0>(crange))<<"\t1\t1\n";
+
+          }
+
+
+      }
+
   }
 
   void MassFeatureTrace::storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum& deconvoluted_spectrum)
@@ -339,13 +380,14 @@ namespace OpenMS
     if (deconvoluted_spectrum.getOriginalSpectrum().getMSLevel() != 1)
     {
       return;
-    }
-    double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
-    peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
-    auto& sub_pg_map = peak_group_map_[rt];
-    for (auto& pg : deconvoluted_spectrum)
-    {
-      sub_pg_map[pg.getMonoMass()] = pg;
+    }else {
+        double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
+        peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
+        auto &sub_pg_map = peak_group_map_[rt];
+        for (auto &pg : deconvoluted_spectrum) {
+            sub_pg_map[pg.getMonoMass()] = pg;
+        }
+        //scan_rt_map[deconvoluted_spectrum.getScanNumber()] = rt;
     }
   }
 
@@ -365,6 +407,11 @@ namespace OpenMS
           "ElutionLength\tEnvelope\tLikelihoodRatio"
           "\n";
   }
+
+    void MassFeatureTrace::writeTopFDFeatureHeader(std::fstream& fs)
+    {
+        fs << "Sample_ID\tID\tMass\tIntensity\tTime_begin\tTime_end\tMinimum_charge_state\tMaximum_charge_state\tMinimum_fraction_id\tMaximum_fraction_id\n";
+    }
 
   void MassFeatureTrace::updateMembers_()
   {
