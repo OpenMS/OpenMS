@@ -178,5 +178,5 @@ wyosine	imG	34G	G	€	&euro;	C14H17N5O5	335.123	335.3202
 # Added basic deoxy nucleic acids so that we can work with unmodified DNA strands
 deoxyadenosine	dA	dA	A			C10O3N5H13	251.1018	251.2424
 deoxycytidine	dC	dC	C			C9O4N3H13	227.0906	227.2176
-deoxyguanine	dG	dG	G			C10O4N5H13	267.0968	267.2418
+deoxyguanosine	dG	dG	G			C10O4N5H13	267.0968	267.2418
 deoxyuridine	dU	dU	U			C9O5N2H12	228.0746	228.2024
