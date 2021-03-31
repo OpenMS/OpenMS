@@ -499,7 +499,7 @@ namespace OpenMS
   pair<String, Int> FeatureFinderIdentificationAlgorithm::extractTargetID_(
     const Feature& feature, bool extract_charge)
   {
-    String target_id = feature.getMetaValue("PeptideRef");
+    String target_id = feature.getMetaValue("PeptideRef"); // e.g. "PEP:XXXXX/2#1"
     Size pos_slash = target_id.rfind('/');
     Int charge = 0;
     if (extract_charge)
@@ -544,40 +544,6 @@ namespace OpenMS
       String target_id = extractTargetID_(feature).first;
       target_id = target_id.substr(target_id.find(':') + 1); // remove type prefix
       feature.setMetaValue("label", target_id);
-
-      if (feature.getPeptideIdentifications().empty())
-      {
-        // add "dummy" identification:
-        PeptideIdentification pep_id;
-        pep_id.setMetaValue("FFId_category", "inferred");
-        pep_id.setRT(feature.getRT());
-        pep_id.setMZ(feature.getMZ());
-        PeptideHit hit;
-        hit.setCharge(feature.getCharge());
-        String target_id = extractTargetID_(feature).first;
-        const TargetData& target_data = target_map_.at(target_id);
-        if (target_id.hasPrefix("PEP:")) // actual peptide
-        {
-          ID::IdentifiedPeptideRef ref = target_data.molecule.getIdentifiedPeptideRef();
-          hit.setSequence(ref->sequence);
-          IdentificationDataConverter::exportParentMatches(ref->parent_matches, hit);
-        }
-        else
-        {
-          hit.setMetaValue("label", target_data.molecule.toString());
-          if (target_id.hasPrefix("RNA:"))
-          {
-            ID::IdentifiedOligoRef ref = target_data.molecule.getIdentifiedOligoRef();
-            IdentificationDataConverter::exportParentMatches(ref->parent_matches, hit);
-          }
-        }
-        if (target_data.adduct) // adduct
-        {
-          hit.setMetaValue("adduct", (*target_data.adduct)->getName());
-        }
-        pep_id.insertHit(hit);
-        feature.getPeptideIdentifications().push_back(pep_id);
-      }
     }
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
