@@ -403,7 +403,7 @@ namespace OpenMS
                       }else{
 //"Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity
 // \tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity";
-                        fst[i]<<ms2_scan_number<<"\t0\t\t"<<ms2_scan_number<<"\t"<<ms1_scan_number
+                        fst[i]<<ms2_scan_number<<"\t0\t"<<file_name<<"\t"<<ms2_scan_number<<"\t"<<ms1_scan_number
                         <<"\t"<<ms1_scan_number<<"\t"<<precursor.second.getMonoMass()<<"\t"
                         <<precursor.second.getIntensity()<<"\t"<<topid<<"\t"<<sum_intensity<<"\t-1000\t"
                         <<topid<<"\t"<<sum_intensity<<"\n";
@@ -420,7 +420,7 @@ namespace OpenMS
                           << "\t" << (is_positive ? std::get<0>(crange) : -std::get<1>(crange)) << "\t"
                           << (is_positive ? std::get<1>(crange) : -std::get<0>(crange)) << "\t1\t1\n";
                   }else{
-                      fst[i]<<ms2_scan_number<<"\t0\t\t"<<ms2_scan_number<<"\t"<<ms1_scan_number
+                      fst[i]<<ms2_scan_number<<"\t0\t"<<file_name<< "\t"<<ms2_scan_number<<"\t"<<ms1_scan_number
                             <<"\t"<<ms1_scan_number<<"\t"<<precursor.second.getMonoMass()<<"\t"
                             <<precursor.second.getIntensity()<<"\t"<<topid<<"\t"<<precursor.second.getIntensity()<<"\t-1000\t"
                             <<topid<<"\t"<<precursor.second.getIntensity()<<"\n";
@@ -477,7 +477,7 @@ namespace OpenMS
             if (i==0){
                 fs[i] << "Sample_ID\tID\tMass\tIntensity\tTime_begin\tTime_end\tMinimum_charge_state\tMaximum_charge_state\tMinimum_fraction_id\tMaximum_fraction_id\n";
             }else{
-                fs[i] << "Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity";
+                fs[i] << "Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity\n";
             }
         }
 
