@@ -256,6 +256,11 @@ namespace OpenMS
     precursor_mass_ = stod(results[8]);
     adj_precursor_mass_ = stod(results[9]);
     proteform_id_ = stoi(results[10]);
+      if (results[11].hasPrefix("-")) {
+          intensity_ = 0;
+      }else{
+          intensity_ = stod(results[11]);
+      }
     String acc = results[13];
     int first = acc.find("|");
     int second = acc.find("|", first + 1);

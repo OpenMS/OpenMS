@@ -110,7 +110,6 @@ namespace OpenMS
       @param precursor_offset this value will be added to precursor mass. To generate decoy spectra
  */
     void writeTopFD(std::fstream &fs,
-                    const int index,
                     const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                     const double harmonic_factor = 1.0,
                     const double precursor_offset = .0);

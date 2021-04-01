@@ -141,7 +141,7 @@ namespace OpenMS
       double e_value_;
       double spec_q_value_;
       double proteofrom_q_value_;
-
+      double intensity_;
 
     bool operator<(const TopPicItem& a) const;
 

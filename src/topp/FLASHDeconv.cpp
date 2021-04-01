@@ -123,8 +123,8 @@ protected:
                             "For example, -out_topFD [name]_ms1.msalign [name]_ms2.msalign",
                             false);
 
-      registerOutputFile_("out_topFD_feature", "<file>", "",
-                          "topFD format output feature file (feature) format - only MS1 deconvoluted masses are recorded", false);
+      registerOutputFileList_("out_topFD_feature", "<file  for MS1, file for MS2, ...>", {""},
+                          "topFD format output feature file (feature) format per MS level", false);
       setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
@@ -252,7 +252,7 @@ protected:
     String out_mzml_file = getStringOption_("out_mzml");
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
-    auto out_topfd_feature_file = getStringOption_("out_topFD_feature");
+    auto out_topfd_feature_file = getStringList_("out_topFD_feature");
     //double topFD_qscore_threshold = getDoubleOption_("topFD_qscore_threshold");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
@@ -269,8 +269,8 @@ protected:
     fi_out.open(in_file + ".txt", fstream::out); //
     #endif
 
-    fstream out_stream, out_train_stream, out_promex_stream, out_topfd_feature_stream;
-    std::vector<fstream> out_spec_streams, out_topfd_streams;
+    fstream out_stream, out_train_stream, out_promex_stream;
+    std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     //
 
@@ -285,8 +285,12 @@ protected:
 
   if (!out_topfd_feature_file.empty())
   {
-      out_topfd_feature_stream.open(out_topfd_feature_file, fstream::out);
-      MassFeatureTrace::writeTopFDFeatureHeader(out_topfd_feature_stream);
+      out_topfd_feature_streams = std::vector<fstream>(out_topfd_feature_file.size());
+      for (int i = 0; i < out_topfd_feature_file.size(); i++)
+      {
+          out_topfd_feature_streams[i].open(out_topfd_feature_file[i], fstream::out);
+      }
+      MassFeatureTrace::writeTopFDFeatureHeader(out_topfd_feature_streams);
   }
 
     if (!out_topfd_file.empty())
@@ -599,8 +603,8 @@ protected:
       mf_param.setValue("min_isotope_cosine", isotope_cosines[0]);
     }
     mass_tracer.setParameters(mf_param);
-    //std::cout<<fd.getParameters()<<std::endl;
-    unordered_map<double, PeakGroup> precursor_peak_groups;
+
+    unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
 
     OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
@@ -668,7 +672,7 @@ protected:
                                                               precursor_map_for_real_time_acquisition);
 
       if(it->getMSLevel() > 1&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()){
-          precursor_peak_groups[it->getRT()] = deconvoluted_spectrum.getPrecursorPeakGroup();
+          precursor_peak_groups[scan_number] = deconvoluted_spectrum.getPrecursorPeakGroup();
       }
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
@@ -688,6 +692,7 @@ protected:
                             deconvoluted_spectrum.getOriginalSpectrum().getRT(),
                             prev_scan_number,
                             pmass, pmz, color,
+                            top_pic_map[scan_number].intensity_,
                             pg, fr,lr,
                             deconvoluted_spectrum.getPrecursorCharge(),
                             precursor_intensity, top_pic_map[scan_number].unexp_mod_,
@@ -726,10 +731,7 @@ protected:
         last_deconvoluted_spectra[ms_level].push_back(deconvoluted_spectrum);
       }
 
-      if (deconvoluted_spectrum.empty())
-      {
-        continue;
-      }
+
       //if (ms_level < current_max_ms_level)
       //{
       //  last_deconvoluted_spectra[ms_level] = deconvoluted_spectrum_; // to register precursor in the future..
@@ -740,6 +742,11 @@ protected:
         mass_tracer.storeInformationFromDeconvolutedSpectrum(deconvoluted_spectrum);// add deconvoluted mass in mass_tracer
       }
 
+        if (deconvoluted_spectrum.empty())
+        {
+            continue;
+        }
+
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvoluted_spectrum.size();
       if(out_spec_streams.size() > ms_level - 1)
@@ -749,7 +756,7 @@ protected:
       }
       if (out_topfd_streams.size() > ms_level - 1)
       {
-        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number, avg);
+        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg);
         //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 100000, avg, 2);
         //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 200000, avg, .5);
         //double precursor_offset = ((double) rand() / (RAND_MAX)) * 90 + 10; // 10 - 100
@@ -775,7 +782,7 @@ protected:
     {
       mass_tracer
           .findFeatures(in_file, !out_promex_file.empty(), !out_topfd_feature_file.empty(), precursor_peak_groups,
-                        feature_cntr, feature_index, out_stream, out_promex_stream, out_topfd_feature_stream, fd.getAveragine());
+                        feature_cntr, feature_index, out_stream, out_promex_stream, out_topfd_feature_streams, fd.getAveragine());
     }
     if (!out_mzml_file.empty())
     {
@@ -840,7 +847,10 @@ protected:
     }
       if (!out_topfd_feature_file.empty())
       {
-          out_topfd_feature_stream.close();
+          for (auto &out_topfd_feature_stream : out_topfd_feature_streams)
+          {
+              out_topfd_feature_stream.close();
+          }
       }
 
 

@@ -85,12 +85,12 @@ namespace OpenMS
        @param averagine precalculated averagine for cosine calculation
        */
     void findFeatures(const String& file_name, const bool promex_out, const bool topfd_feature_out,
-                      const std::unordered_map<double, PeakGroup> &precursor_peak_groups,
+                      const std::unordered_map<int, PeakGroup> &precursor_peak_groups,
                       int& feature_cntr,
                       int& feature_index,
                       std::fstream& fsf,
                       std::fstream& fsp,
-                      std::fstream& fst,
+                      std::vector<std::fstream>& fst,
                       const PrecalculatedAveragine& averagine);
 
     /// write header line for regular file output
@@ -100,7 +100,7 @@ namespace OpenMS
     static void writePromexHeader(std::fstream& fs);
 
     ///
-    static void writeTopFDFeatureHeader(std::fstream& fs);
+    static void writeTopFDFeatureHeader(std::vector<std::fstream>& fs);
   protected:
     void updateMembers_() override;
 
@@ -111,7 +111,7 @@ namespace OpenMS
     double min_isotope_cosine_;
     /// peak group information is stored in here for traicing
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
-    //std::unordered_map<int, double> scan_rt_map;
+    std::unordered_map<int, double> scan_rt_map;
 
   };
 }

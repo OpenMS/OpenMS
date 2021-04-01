@@ -99,7 +99,7 @@ namespace OpenMS
   {
     f
         << "ACC,FirstResidue,LastResidue,ProID,RT,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,Color,PrecursorMz,PrecursorIntensity,"
-           "MassIntensity,PrecursorCharge,PTM,PTMMass,PTMStart,PTMEnd,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
+           "MassIntensity,FeatureIntensity,PrecursorCharge,PTM,PTMMass,PTMStart,PTMEnd,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -114,6 +114,7 @@ namespace OpenMS
                            const double pmass,
                            const double pmz,
                            const DataValue color,
+                           const double fintensity,
                            PeakGroup &pg,
                            const int fr,
                            const int lr,
@@ -148,7 +149,7 @@ namespace OpenMS
       double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
       f << acc << "," << fr << "," << lr << ","<< proID << "," << rt << "," << pscan << "," << monomass << "," << mass << ","<< color <<"," << pmz << ","
         << precursor_intensity << ","
-        << pg.getIntensity()<< ","
+        << pg.getIntensity()<< "," << fintensity << ","
         << charge << ","
         << (proID ? (ptm_mass !=.0 ? 1 : 0) : -1) << "," <<ptm_mass<<","<<ptm_start<<","<<ptm_end<<",";
       for (auto &item : fv)

@@ -274,7 +274,6 @@ namespace OpenMS
   }
 
   void DeconvolutedSpectrum::writeTopFD(std::fstream &fs,
-                                        const int id,
                                         const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                         const double harmonic_factor,
                                         const double precursor_offset)//, fstream& fsm, fstream& fsp)
@@ -292,7 +291,7 @@ namespace OpenMS
 
     fs << std::fixed << std::setprecision(2);
     fs << "BEGIN IONS\n"
-       << "ID=" << id << "\n"
+       << "ID=" << scan_number_ << "\n"
        << "SCANS=" << scan_number_ << "\n"
        << "RETENTION_TIME=" << spec_.getRT() << "\n";
 
