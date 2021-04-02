@@ -81,7 +81,7 @@ using namespace std;
   For non-consensusXML or consensusXML merging with append_rows, the meta information that is valid for the whole experiment (e.g. MS instrument and sample)
   is taken from the first file only.
 
-  For spectrum containing formats (no feature/consensusXML), the retention times for the individual scans are taken from either:
+  For spectrum-containing formats (no feature/consensusXML), the retention times for the individual scans are taken from either:
   <ul>
   <li>the input file meta data (e.g. mzML)
   <li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
