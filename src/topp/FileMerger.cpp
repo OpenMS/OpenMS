@@ -77,7 +77,9 @@ using namespace std;
   </table>
   </center>
 
-  Special attention should be given to the append_method for consensusXMLs (see parameter description).
+  Special attention should be given to the append_method for consensusXMLs. One column corresponds to one channel/label + raw file. Rows are quantified and linked features.
+  More details on the use cases can be found at the parameter description.
+  
   For non-consensusXML or consensusXML merging with append_rows, the meta information that is valid for the whole experiment (e.g. MS instrument and sample)
   is taken from the first file only.
 
