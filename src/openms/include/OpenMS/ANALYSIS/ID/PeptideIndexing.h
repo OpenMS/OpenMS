@@ -258,8 +258,8 @@ public:
         String search_engine = prot_id.getOriginalSearchEngineName();
         StringUtils::toUpper(search_engine);
         OPENMS_LOG_INFO << "Peptide identification engine: " << search_engine << std::endl;
-        if (search_engine != "XTANDEM" && !prot_id.getSearchParameters().metaValueExists("SE:XTandem")) { xtandem_fix_parameters = true; }
-        if (!(search_engine == "MSGFPLUS" || search_engine == "MS-GF+") && !prot_id.getSearchParameters().metaValueExists("SE:MS-GF+")) { msgfplus_fix_parameters = true; }
+        if (search_engine == "XTANDEM" || prot_id.getSearchParameters().metaValueExists("SE:XTandem")) { xtandem_fix_parameters = true; }
+        if (search_engine == "MS-GF+" || search_engine == "MSGFPLUS" || prot_id.getSearchParameters().metaValueExists("SE:MS-GF+")) { msgfplus_fix_parameters = true; }
       }
 
       // including MSGFPlus -> Trypsin/P as enzyme
