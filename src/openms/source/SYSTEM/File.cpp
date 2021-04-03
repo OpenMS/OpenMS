@@ -48,8 +48,6 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QHostInfo>
 
-#include <mutex>
-
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
@@ -95,12 +93,8 @@ namespace OpenMS
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
     // Use immediately evaluated lambda to protect static variable from concurrent access.
-    static bool path_checked = false;
     static String spath = [&]() -> String {
         String rpath = "";
-
-        // short route. Only inquire the path once. The result will be the same every time.
-        if (path_checked) return spath;
 
         char path[1024];
 
@@ -129,7 +123,6 @@ namespace OpenMS
           std::cerr << "Cannot get Executable Path! Not using a path prefix!\n";
         }
 
-        path_checked = true; // enable short route for next run
         return rpath;
     }();
     return spath;
