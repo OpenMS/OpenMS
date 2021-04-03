@@ -1576,6 +1576,11 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return root_.findEntryRecursive(key);
   }
 
+  bool Param::hasSection(const String &key) const
+  {
+    return root_.findParentOf(key) != nullptr;
+  }
+
   Param::ParamEntry& Param::getEntry_(const String& key) const
   {
     ParamEntry* entry = root_.findEntryRecursive(key);
