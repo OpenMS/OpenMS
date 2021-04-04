@@ -49,49 +49,56 @@ namespace OpenMS {
 
     void TVToolDiscovery::loadParams()
     {
-      static bool loaded = false;
-      if (!loaded)
+      // tool params are only loaded once by using a immediately evaluated lambda
+      static bool _ [[maybe_unused]] = []() -> bool
       {
-        loaded = true;
         // Get a map of all tools
-        const auto &tools = ToolHandler::getTOPPToolList();
-        const auto &utils = ToolHandler::getUtilList();
+        const auto& tools = ToolHandler::getTOPPToolList();
+        const auto& utils = ToolHandler::getUtilList();
         // Get param for each tool/util
-        for (const auto &pair : tools) {
+        for (const auto& pair : tools)
+        {
           std::string tool_name = pair.first;
           future_results_.insert(
-                  std::make_pair(tool_name,
-                                 std::async(std::launch::async, TVToolDiscovery::getParamFromIni_, tool_name))
+                  std::make_pair(
+                          tool_name,
+                          std::async(TVToolDiscovery::getParamFromIni_, tool_name)
+                          )
           );
         }
-        for (const auto &pair : utils) {
+        for (const auto& pair : utils)
+        {
           std::string util_name = pair.first;
           future_results_.insert(
-                  std::make_pair(util_name,
-                                 std::async(std::launch::async, TVToolDiscovery::getParamFromIni_, util_name))
+                  std::make_pair(
+                          util_name,
+                          std::async(TVToolDiscovery::getParamFromIni_, util_name)
+                          )
           );
         }
-      }
+        return true;
+      }();
     }
 
     void TVToolDiscovery::waitForParams()
     {
-      static bool waited = false;
-      TVToolDiscovery::loadParams();
-      if (!waited)
+      // Make sure that future results are only waited for and inserted in params_ once
+      static bool _ [[maybe_unused]] = []() -> bool
       {
-        waited = true;
+        TVToolDiscovery::loadParams();
         // Wait for futures to finish
-        for (auto &pair : future_results_)
+        for (auto& pair : future_results_)
         {
           while (pair.second.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
           {
-            // Keep GUI responsive
+            // Keep GUI responsive while waiting
             QCoreApplication::processEvents();
           }
+          // Make future results available in params_
           params_.insert(std::make_pair(pair.first, pair.second.get()));
         }
-      }
+        return true;
+      }();
     }
 
     const std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams()
@@ -103,26 +110,26 @@ namespace OpenMS {
 
     Param TVToolDiscovery::getParamFromIni_(const std::string& tool_name)
     {
-      String path = File::getUniqueName() + ".ini";
+      String path = File::getTempDirectory() + "/" + File::getUniqueName() + ".ini";
       QStringList args{ "-write_ini", path.toQString()};
 
       QProcess qp;
       Param tool_param;
       String executable = File::findSiblingTOPPExecutable(tool_name);
-      qp.start(executable.toQString(), args);
+      qp.start(executable.toQString(), args, QProcess::NotOpen);
 
       const bool success = qp.waitForFinished(-1); // wait till job is finished
       if (qp.error() == QProcess::FailedToStart || !success || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
       {
-        std::remove(path.c_str());
         qp.close();
+        std::remove(path.c_str());
         return tool_param;
       }
       ParamXMLFile paramFile;
       paramFile.load((path).c_str(), tool_param);
 
-      std::remove(path.c_str());
       qp.close();
+      std::remove(path.c_str());
       return tool_param;
     }
 }
