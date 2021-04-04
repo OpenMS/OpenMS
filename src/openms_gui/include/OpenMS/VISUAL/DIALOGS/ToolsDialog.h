@@ -81,7 +81,7 @@ public:
         @param layer_type The type of data (determines the applicable tools)
         @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, Param params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
+    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name);
     ///Destructor
     ~ToolsDialog() override;
 

@@ -1528,16 +1528,14 @@ namespace OpenMS
       {
         error = true;
       }
-      std::cout << tmp.exists("tool_params:version");
       //apply preferences if they are of the current TOPPView version
-      if (!error && tmp.exists("preferences:version") && tmp.exists("tool_params:version") &&
+      if (!error && tmp.exists("preferences:version") && tmp.hasSection("tool_params:") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
         {
           setParameters(tmp.copy("preferences:"));
           param_.insert("tool_params:", tmp.copy("tool_params:", true));
-          param_.setValue("tool_params:version", VersionInfo::getVersion());
           tool_params_added = true;
         }
         catch (Exception::InvalidParameter& /*e*/)
@@ -1555,7 +1553,6 @@ namespace OpenMS
       {
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
-        TVToolDiscovery::loadParams();
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
       }
     }
@@ -1583,7 +1580,7 @@ namespace OpenMS
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
     // Make sure TOPP tool/util params have been inserted
-    if (!param_.exists("tool_params:version"))
+    if (!param_.hasSection("tool_params:"))
     {
       addToolParamsToIni();
     }
@@ -1603,10 +1600,8 @@ namespace OpenMS
 
   void TOPPViewBase::addToolParamsToIni()
   {
-    std::cout << "adding params" << std::endl;
     TVToolDiscovery::waitForParams();
     param_.addSection("tool_params", "");
-    param_.setValue("tool_params:version", VersionInfo::getVersion());
     for (auto &pair : TVToolDiscovery::getToolParams()) {
       param_.insert("tool_params:", pair.second);
     }
@@ -1665,7 +1660,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    if (!param_.exists("tool_params:version"))
+    if (!param_.hasSection("tool_params:"))
     {
       addToolParamsToIni();
     }

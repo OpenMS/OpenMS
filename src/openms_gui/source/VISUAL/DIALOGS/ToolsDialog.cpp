@@ -64,7 +64,7 @@ namespace OpenMS
 
   ToolsDialog::ToolsDialog(
           QWidget* parent,
-          Param params,
+          const Param& params,
           String ini_file,
           String default_dir,
           LayerData::DataType layer_type,
@@ -75,7 +75,6 @@ namespace OpenMS
     ini_file_(ini_file),
     default_dir_(default_dir)
   {
-
     auto main_grid = new QGridLayout(this);
 
     // Layer label
@@ -171,7 +170,6 @@ namespace OpenMS
 
   ToolsDialog::~ToolsDialog()
   {
-
   }
 
   std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
