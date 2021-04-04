@@ -249,23 +249,23 @@ public:
         enzyme.setEnzyme("Trypsin");
       } 
 
-      bool xtandem_fix_parameters = true;
-      bool msgfplus_fix_parameters = true;
+      bool xtandem_fix_parameters = false;
+      bool msgfplus_fix_parameters = false;
 
-      // determine if search engine is solely xtandem or MSGFPlus
+      // determine if at least one search engine was xtandem or MSGFPlus to enable special rules
       for (const auto& prot_id : prot_ids)
       {
         String search_engine = prot_id.getOriginalSearchEngineName();
         StringUtils::toUpper(search_engine);
         OPENMS_LOG_INFO << "Peptide identification engine: " << search_engine << std::endl;
-        if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
-        if (!(search_engine == "MSGFPLUS" || search_engine == "MS-GF+")) { msgfplus_fix_parameters = false; }
+        if (search_engine == "XTANDEM" || prot_id.getSearchParameters().metaValueExists("SE:XTandem")) { xtandem_fix_parameters = true; }
+        if (search_engine == "MS-GF+" || search_engine == "MSGFPLUS" || prot_id.getSearchParameters().metaValueExists("SE:MS-GF+")) { msgfplus_fix_parameters = true; }
       }
 
-      // solely MSGFPlus -> Trypsin/P as enzyme
+      // including MSGFPlus -> Trypsin/P as enzyme
       if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin")
       {
-        OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
+        OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to cope with special cutting rule in MSGFPlus." << std::endl;
         enzyme.setEnzyme("Trypsin/P");
       }
 
