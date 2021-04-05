@@ -575,7 +575,7 @@ namespace OpenMS
   }
 
   std::string ParamValue::toString(bool full_precision) const {
-      std::ostringstream os;
+      std::string str;
       switch (value_type_) {
       case EMPTY_VALUE:
           return "";
@@ -584,59 +584,54 @@ namespace OpenMS
           return *data_.str_;
       break;
       case INT_VALUE:
-          os << data_.ssize_;
-          return os.str();
+          return std::to_string(data_.ssize_);
       break;
       case DOUBLE_VALUE:
-          if (full_precision) os.precision(15);
-          else os.precision(3);
-          os << data_.dou_;
-          return os.str();
+      {
+          return doubleToString(data_.dou_, full_precision);
+      }
       break;
       case STRING_LIST:
-          os << "[";
+          str = "[";
           if (!data_.str_list_->empty()) 
           {
               for (std::vector<std::string>::const_iterator it = data_.str_list_->begin();
                    it != data_.str_list_->end() - 1; ++it) 
               {
-                os << *it << ", ";
+                str += *it + ", ";
               }
-              os << data_.str_list_->back();
+              str += data_.str_list_->back();
           }
-          os << "]";
-          return os.str();
+          str += "]";
       break;
       case INT_LIST:
-          os << "[";
+          str = "[";
           if (!data_.int_list_->empty()) {
               for (std::vector<int>::const_iterator it = data_.int_list_->begin();
-                   it != data_.int_list_->end() - 1; ++it) {
-                  os << *it << ", ";
+                   it != data_.int_list_->end() - 1; ++it)
+              {
+                  str += std::to_string(*it) + ", ";
               }
-              os << data_.int_list_->back();
+              str += std::to_string(data_.int_list_->back());
           }
-          os << "]";
-          return os.str();
+          str += "]";
       break;
       case DOUBLE_LIST:
-          if (full_precision) os.precision(15);
-          else os.precision(3);
-          os << "[";
+          str = "[";
           if (!data_.dou_list_->empty()) {
               for (std::vector<double>::const_iterator it = data_.dou_list_->begin();
-                   it != data_.dou_list_->end(); ++it) {
-                  os << *it << ", ";
+                   it != data_.dou_list_->end() - 1; ++it) {
+                  str += doubleToString(*it, full_precision) + ", ";
               }
-              os << data_.dou_list_->back();
+              str += doubleToString(data_.dou_list_->back(), full_precision);
           }
-          os << "]";
-          return os.str();
+          str +=  "]";
       break;
       default:
           throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue to String");
       break;
       }
+      return str;
   }
 
   std::vector<std::string> ParamValue::toStringVector() const {
@@ -839,5 +834,39 @@ namespace OpenMS
     }
     return os;
   }
+
+    std::string ParamValue::doubleToString(double value, bool full_precision) {
+        std::ostringstream os;
+        std::string s;
+        if(full_precision) os.precision(15);
+        else os.precision(3);
+        if(std::abs(value) >= 10000 ||
+           std::abs(value) < 0.001 ||
+           (full_precision && std::abs(value) < 0.01))
+        {
+            os << std::scientific << value;
+            s = os.str();
+            size_t cutoff_end = s.find_last_of('e');
+            size_t cutoff_start = s.substr(0, cutoff_end).find_last_not_of('0');
+            if(s.at(cutoff_end + 1) == '+') s.erase(cutoff_end + 1, 1);
+            if(cutoff_start != cutoff_end)
+            {
+                if(s.find_first_of('.') == cutoff_start) ++cutoff_start;
+                s.erase(cutoff_start + 1, cutoff_end - cutoff_start - 1);
+            }
+        }
+        else
+        {
+            os << std::fixed << value;
+            s = os.str();
+            size_t cutoff = s.find_last_not_of('0');
+            if (cutoff != std::string::npos)
+            {
+                if(s.find_first_of('.') == cutoff) ++cutoff;
+                s.erase(cutoff + 1);
+            }
+        }
+        return s;
+    }
 
 } //namespace

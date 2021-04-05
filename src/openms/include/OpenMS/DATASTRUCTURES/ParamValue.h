@@ -385,6 +385,12 @@ private:
 
     /// Clears the current state of the ParamValue and release every used memory.
     void clear_() noexcept;
+
+    /// Convert a double to std::string
+    /// with full precision 15 decimal places are given, otherwise 3
+    /// numbers above 10000 or below 0.0001 are given in scientific notation (i.e. 1.0e04)
+    static std::string doubleToString(double value, bool full_precision = true);
+
   };
 }
 
