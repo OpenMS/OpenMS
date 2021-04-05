@@ -569,7 +569,7 @@ namespace OpenMS
     std::string prefix2 = prefix;
     if (prefix2 != "")
     {
-      if(prefix2.back() != ':') 
+      if (prefix2.back() != ':')
       {
         prefix2 += ':';
       }
