@@ -1076,7 +1076,7 @@ namespace OpenMS
         sign_int += pt->getIntensity();
       }
     }
-    if (sign_cnt == 0 | noise_cnt == 0 | noise_int <= 0) return 0;
+    if (sign_cnt == 0 | nois_cnt == 0 | nois_int <= 0) return 0;
     return (sign_int / sign_cnt) / (nois_int / nois_cnt);
   }
 
@@ -1098,7 +1098,6 @@ namespace OpenMS
       std::map<Size, UInt> mslevelcounts;
       
       registerRun(base_name,base_name); //TODO use UIDs
-      
       //---base MS aquisition qp
       String msaq_ref = base_name + "_msaq";
       QcMLFile::QualityParameter qp;
@@ -1884,7 +1883,6 @@ namespace OpenMS
         {
           at.name = "features"; ///< Name
         }
-        
         at.colTypes.push_back("MZ");
         at.colTypes.push_back("RT");
         at.colTypes.push_back("Intensity");

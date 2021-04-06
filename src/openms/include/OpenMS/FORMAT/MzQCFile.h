@@ -70,6 +70,4 @@ namespace OpenMS
                const String & label) const;
 
   };
-
 }
-
