@@ -1076,9 +1076,8 @@ namespace OpenMS
         sign_int += pt->getIntensity();
       }
     }
-    float sn_by_max2median_norm = (sign_int / sign_cnt) / (nois_int / nois_cnt);
-
-    return sn_by_max2median_norm;
+    if (sign_cnt == 0 | noise_cnt == 0 | noise_int <= 0) return 0;
+    return (sign_int / sign_cnt) / (nois_int / nois_cnt);
   }
 
   void QcMLFile::collectQCData(const String& inputfile_id, const String& inputfile_feature,
