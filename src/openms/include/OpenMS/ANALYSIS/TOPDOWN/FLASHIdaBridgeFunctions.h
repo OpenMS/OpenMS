@@ -60,9 +60,14 @@ namespace OpenMS
                                                     double *qscores,
                                                     int *charges,
                                                     double *mono_masses,
-                                                    int *colors,
+                                                    double *charge_snrs,
+                                                    double *iso_cos,
+                                                    double *snrs, double * charge_scores,
+                                                    double *ppm_errors,
                                                     double *precursor_intensities,
                                                     double *peakgroup_intensities);
+
+
 
   static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
 }

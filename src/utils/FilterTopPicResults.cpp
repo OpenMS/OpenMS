@@ -39,6 +39,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -82,11 +83,16 @@ protected:
     {
         auto infile = getStringOption_("in");
         auto outfile = getStringOption_("out");
+        auto attfile = getStringOption_("out") + ".csv";
 
-        fstream outstream;
+        fstream outstream, attstream;
         outstream.open(outfile, fstream::out); //
+        attstream.open(attfile, fstream::out); //
+
         map<String, vector<FLASHDeconvHelperStructs::TopPicItem>> results;
         vector<FLASHDeconvHelperStructs::TopPicItem> to_out;
+
+        QScore::writeAttHeader(attstream, false);
 
         std::ifstream in_trainstream(infile);
         String line;
@@ -108,6 +114,11 @@ protected:
                 results[item.protein_acc_] = vector<FLASHDeconvHelperStructs::TopPicItem>();
             }
             results[item.protein_acc_].push_back(item);
+
+            attstream<<item.protein_acc_<<","<<item.first_residue_<<","<<item.last_residue_<<","<<item.proteform_id_
+            <<","<<item.rt_<<",0,0,"<<item.adj_precursor_mass_<<",0,0,0,0,"<<item.intensity_<<",0,"<<item.charge_<<","<<(item.unexp_mod_ !=.0 ? 1 : 0)
+            <<","<<item.unexp_mod_<<",0,0,0,0,0,0,0,0,0,"<<item.e_value_<<",T\n";
+
         }
         in_trainstream.close();
 
@@ -155,7 +166,7 @@ protected:
         for(auto &o : to_out){
             outstream<<o.str_<<"\n";
         }
-
+        attstream.close();
         outstream.close();
         return EXECUTION_OK;
     }

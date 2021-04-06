@@ -93,12 +93,15 @@ namespace OpenMS
            @param charges charges of windows
            @param avg_masses average masses of windows
       */
-    void getIsolationWindows(double *window_start,
-                             double *window_end,
+    void getIsolationWindows(double *wstart,
+                             double *wend,
                              double *qscores,
                              int *charges,
                              double *mono_masses,
-                             int *colors,
+                             double *charge_snrs,
+                             double *iso_cos,
+                             double *snrs, double * charge_scores,
+                             double *ppm_errors,
                              double *precursor_intensities,
                              double *peakgroup_intensities);
 
@@ -133,7 +136,7 @@ namespace OpenMS
     /// how many masses will be selected per ms level? - determined from C# side
     IntList mass_count_;
     /// minimum isolation window width divided by two
-    const double min_isolation_window_half_ = 1.2;
+    const double min_isolation_window_half_ = .6;
 
     std::map<int, std::vector<double>> target_nominal_masses_;
     std::set<double> target_masses_;

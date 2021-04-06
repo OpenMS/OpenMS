@@ -98,7 +98,7 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-        << "ACC,FirstResidue,LastResidue,ProID,RT,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,Color,PrecursorMz,PrecursorIntensity,"
+        << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,Color,PrecursorMz,PrecursorIntensity,"
            "MassIntensity,FeatureIntensity,PrecursorCharge,PTM,PTMMass,PTMStart,PTMEnd,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
@@ -147,7 +147,7 @@ namespace OpenMS
       //  return;
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << acc << "," << fr << "," << lr << ","<< proID << "," << rt << "," << pscan << "," << monomass << "," << mass << ","<< color <<"," << pmz << ","
+      f << acc << "," << fr << "," << lr << ","<< proID << "," << rt << "," << pg.getScanNumber()<< ","<< pscan << "," << monomass << "," << mass << ","<< color <<"," << pmz << ","
         << precursor_intensity << ","
         << pg.getIntensity()<< "," << fintensity << ","
         << charge << ","

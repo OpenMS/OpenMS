@@ -63,20 +63,27 @@ namespace OpenMS
   void GetIsolationWindows(FLASHIda *pObject,
                            double *wstart,
                            double *wend,
-                           double *qScores,
+                           double *qscores,
                            int *charges,
                            double *mono_masses,
-                           int *colors, double *precursor_intensities, double *peakgroup_intensities
+                           double *charge_snrs,
+                           double *iso_cos,
+                           double *snrs, double * charge_scores,
+                           double *ppm_errors,
+                           double *precursor_intensities,
+                           double *peakgroup_intensities
   )
   {
+
+
     if (pObject != nullptr)
     {
       pObject->getIsolationWindows(wstart,
                                    wend,
-                                   qScores,
+                                   qscores,
                                    charges,
                                    mono_masses,
-                                   colors,
+                                   charge_snrs, iso_cos, snrs, charge_scores, ppm_errors,
                                    precursor_intensities,
                                    peakgroup_intensities);
     }
