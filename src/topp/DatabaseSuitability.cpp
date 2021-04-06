@@ -264,6 +264,7 @@ protected:
       os << "key\tvalue\n";
       os << "#top_db_hits\t" << suit.num_top_db << "\n";
       os << "#top_novo_hits\t" << suit.num_top_novo << "\n";
+      os << "decoy_cut_off\t" << suit.cut_off << "\n";
       os << "correction_factor\t" << suit.getCorrectionFactor() << "\n";
       os << "#corrected_novo_hits\t" << suit.getCorrectedNovoHits() << "\n";
       os << "db_suitability\t" << suit.suitability << "\n";
