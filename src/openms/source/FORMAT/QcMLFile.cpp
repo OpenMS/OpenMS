@@ -1076,7 +1076,7 @@ namespace OpenMS
         sign_int += pt->getIntensity();
       }
     }
-    if (sign_cnt == 0 | nois_cnt == 0 | nois_int <= 0) return 0;
+    if (sign_cnt == 0 || nois_cnt == 0 || nois_int <= 0) return 0;
     return (sign_int / sign_cnt) / (nois_int / nois_cnt);
   }
 
