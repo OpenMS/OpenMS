@@ -5255,7 +5255,8 @@ static void scoreXLIons_(
       }
       // randomize order of targets and decoys to introduce no global 
       // bias in cases where a target has same score as decoy. (we always take the first best scoring one)
-      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      Math::RandomShuffler r{4711};
+      r.portable_random_shuffle(fasta_db.begin(),fasta_db.end());
       progresslogger.endProgress();
     }
 
