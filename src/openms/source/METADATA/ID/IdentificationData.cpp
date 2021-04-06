@@ -510,35 +510,45 @@ namespace OpenMS
 
 
   vector<IdentificationData::ObservationMatchRef>
-  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref) const
+  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
+                                                 bool require_score) const
   {
     vector<ObservationMatchRef> results;
     pair<double, bool> best_score = make_pair(0.0, false);
     ObservationMatchRef best_ref = observation_matches_.end();
+    Size n_matches = 1; // number of matches for current observation
+    // matches for same observation appear consecutively, so just iterate:
     for (ObservationMatchRef ref = observation_matches_.begin();
-         ref != observation_matches_.end(); ++ref)
+         ref != observation_matches_.end(); ++ref, ++n_matches)
     {
       pair<double, bool> current_score = ref->getScore(score_ref);
-      if ((best_ref != observation_matches_.end()) &&
-          (ref->observation_ref != best_ref->observation_ref))
+      if (current_score.second && (!best_score.second ||
+                                   score_ref->isBetterScore(current_score.first,
+                                                           best_score.first)))
       {
-        // finalize previous query:
-        if (best_score.second) results.push_back(best_ref);
+        // new best score for the current observation:
         best_score = current_score;
         best_ref = ref;
       }
-      else if (current_score.second &&
-               (!best_score.second ||
-                score_ref->isBetterScore(current_score.first,
-                                         best_score.first)))
+      // peek ahead:
+      ObservationMatchRef next = ref;
+      ++next;
+      if ((next == observation_matches_.end()) ||
+          (next->observation_ref != ref->observation_ref))
       {
-        // new best score for the current query:
-        best_score = current_score;
-        best_ref = ref;
+        // last match for this observation - finalize:
+        if (best_score.second)
+        {
+          results.push_back(best_ref);
+        }
+        else if (!require_score && (n_matches == 1))
+        {
+          results.push_back(ref); // only match for this observation
+        }
+        best_score.second = false;
+        n_matches = 0; // will be incremented by for-loop
       }
     }
-    // finalize last query:
-    if (best_score.second) results.push_back(best_ref);
 
     return results;
   }
