@@ -15,13 +15,12 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
          ParamValue(libcpp_vector[ double ]) nogil except +
 
          #conversion ops, different declarations as in c++ !
-         int operator()(int) nogil except + #wrap-cast:toInt
-         String operator()(ParamValue) nogil except + #wrap-cast:toString
+         int operator()(ParamValue) nogil except + #wrap-cast:toInt
+         libcpp_string operator()(ParamValue) nogil except + #wrap-cast:toString
          double operator()(ParamValue) nogil except + #wrap-cast:toDouble
          libcpp_vector[ libcpp_string ] toStringVector() nogil except +
          libcpp_vector[ double ] toDoubleVector() nogil except +
          libcpp_vector[ int ] toIntVector() nogil except +
-         libcpp_string toString() nogil except +
          bool toBool() nogil except +
 
          DataType valueType() nogil except +
