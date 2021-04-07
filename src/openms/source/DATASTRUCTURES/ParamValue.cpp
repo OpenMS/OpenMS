@@ -36,10 +36,10 @@
 //#include <ostream>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
+#include <cmath>
 
 namespace OpenMS
 {
-
   const ParamValue ParamValue::EMPTY;
 
   // default ctor
@@ -574,67 +574,70 @@ namespace OpenMS
     }
   }
 
-  std::string ParamValue::toString(bool full_precision) const {
-      std::string str;
-      switch (value_type_) {
-      case EMPTY_VALUE:
-          return "";
-      break;
-      case STRING_VALUE:
-          return *data_.str_;
-      break;
-      case INT_VALUE:
-          return std::to_string(data_.ssize_);
-      break;
-      case DOUBLE_VALUE:
-      {
-          return doubleToString(data_.dou_, full_precision);
-      }
-      break;
-      case STRING_LIST:
-          str = "[";
-          if (!data_.str_list_->empty()) 
-          {
-              for (std::vector<std::string>::const_iterator it = data_.str_list_->begin();
-                   it != data_.str_list_->end() - 1; ++it) 
-              {
-                str += *it + ", ";
-              }
-              str += data_.str_list_->back();
-          }
-          str += "]";
-      break;
-      case INT_LIST:
-          str = "[";
-          if (!data_.int_list_->empty()) {
-              for (std::vector<int>::const_iterator it = data_.int_list_->begin();
-                   it != data_.int_list_->end() - 1; ++it)
-              {
-                  str += std::to_string(*it) + ", ";
-              }
-              str += std::to_string(data_.int_list_->back());
-          }
-          str += "]";
-      break;
-      case DOUBLE_LIST:
-          str = "[";
-          if (!data_.dou_list_->empty()) {
-              for (std::vector<double>::const_iterator it = data_.dou_list_->begin();
-                   it != data_.dou_list_->end() - 1; ++it) {
-                  str += doubleToString(*it, full_precision) + ", ";
-              }
-              str += doubleToString(data_.dou_list_->back(), full_precision);
-          }
-          str +=  "]";
-      break;
-      default:
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue to String");
-      break;
-      }
-      return str;
+  std::string ParamValue::toString(bool full_precision) const 
+  {
+    std::string str;
+    switch (value_type_) 
+    {
+    case EMPTY_VALUE:
+        return "";
+    break;
+    case STRING_VALUE:
+        return *data_.str_;
+    break;
+    case INT_VALUE:
+        return std::to_string(data_.ssize_);
+    break;
+    case DOUBLE_VALUE:
+    {
+        return doubleToString(data_.dou_, full_precision);
+    }
+    break;
+    case STRING_LIST:
+        str = "[";
+        if (!data_.str_list_->empty()) 
+        {
+            for (std::vector<std::string>::const_iterator it = data_.str_list_->begin();
+                 it != data_.str_list_->end() - 1; ++it) 
+            {
+              str += *it + ", ";
+            }
+            str += data_.str_list_->back();
+        }
+        str += "]";
+    break;
+    case INT_LIST:
+        str = "[";
+        if (!data_.int_list_->empty()) {
+            for (std::vector<int>::const_iterator it = data_.int_list_->begin();
+                 it != data_.int_list_->end() - 1; ++it)
+            {
+                str += std::to_string(*it) + ", ";
+            }
+            str += std::to_string(data_.int_list_->back());
+        }
+        str += "]";
+    break;
+    case DOUBLE_LIST:
+        str = "[";
+        if (!data_.dou_list_->empty()) {
+            for (std::vector<double>::const_iterator it = data_.dou_list_->begin();
+                 it != data_.dou_list_->end() - 1; ++it) {
+                str += doubleToString(*it, full_precision) + ", ";
+            }
+            str += doubleToString(data_.dou_list_->back(), full_precision);
+        }
+        str +=  "]";
+    break;
+    default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue to String");
+    break;
+    }
+    return str;
   }
 
-  std::vector<std::string> ParamValue::toStringVector() const {
+  std::vector<std::string> ParamValue::toStringVector() const 
+  {
     if (value_type_ != STRING_LIST)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-std::vector<std::string> ParamValue to std::vector<std::string>");
@@ -835,12 +838,13 @@ namespace OpenMS
     return os;
   }
 
-    std::string ParamValue::doubleToString(double value, bool full_precision) {
+    std::string ParamValue::doubleToString(double value, bool full_precision) 
+    {
         std::ostringstream os;
         std::string s;
         if (full_precision) os.precision(15);
         else os.precision(3);
-        if (std::abs(value) >= 10000 ||
+        if (std::abs(value) >= 10000.0 ||
            std::abs(value) < 0.001 ||
            (full_precision && std::abs(value) < 0.01))
         {
@@ -857,14 +861,14 @@ namespace OpenMS
         }
         else
         {
-            os << std::fixed << value;
-            s = os.str();
-            size_t cutoff = s.find_last_not_of('0');
-            if (cutoff != std::string::npos)
-            {
-                if (s.find_first_of('.') == cutoff) ++cutoff;
-                s.erase(cutoff + 1);
-            }
+          os << std::fixed << value;
+          s = os.str();
+          size_t cutoff = s.find_last_not_of('0');
+          if (cutoff != std::string::npos)
+          {
+              if (s.find_first_of('.') == cutoff) ++cutoff;
+              s.erase(cutoff + 1);
+          }
         }
         return s;
     }
