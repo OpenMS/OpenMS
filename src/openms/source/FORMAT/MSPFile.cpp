@@ -188,6 +188,7 @@ namespace OpenMS
               Size sz = mod_split[0].toInt();
               std::smatch sm;
               std::string::const_iterator cit = mods.cbegin();
+              // go through all pairs of parentheses
               while (std::regex_search(cit, mods.cend(), sm, rex) && mod_split.size()-1 <= sz)
               {
                 if (sm.size() == 2) // 2 = match
