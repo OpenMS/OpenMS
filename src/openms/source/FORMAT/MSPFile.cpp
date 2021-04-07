@@ -302,9 +302,9 @@ namespace OpenMS
               //e.g. "b32-H2O^3/0.11,y19-H2O^2/0.26"
               String annot = iter->str();
               annot = annot.unquote();
-              if (annot.hasPrefix("?"))  //"? 2/2 0.6" or "?i 2/2 0.6"
+              if (annot.hasPrefix("?"))  //"? 2/2 0.6" or "?i 2/2 0.6" whatever i means, it will be lost here
               {
-                annots.emplace_back(annot, 0, mz, ity);
+                annots.emplace_back("?", 0, mz, ity);
               }
               else
               {
