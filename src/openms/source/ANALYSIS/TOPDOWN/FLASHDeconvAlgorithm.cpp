@@ -65,7 +65,7 @@ namespace OpenMS
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
     defaults_.setValue("min_qscore",
-                       .03,
+                       .05,
                        "minimum QScore threshold. QScore is the probability that a mass is identified, learned by a logistic regression.");
 
     defaults_.setValue("min_peaks",
@@ -1211,34 +1211,6 @@ namespace OpenMS
     return n / sqrt(d);
   }
 
-    double FLASHDeconvAlgorithm::getCosine_zero_ignore_(const std::vector<double> &a,
-                                            const int &a_start,
-                                            const int &a_end,
-                                            const IsotopeDistribution &b,
-                                            const int &b_size,
-                                            const int offset)
-    {
-        double n = .0, d1 = .0, d2 = .0;
-        //int c = 0;
-        for (int j = a_start; j <= a_end; j++)
-        {
-            d1 += a[j] * a[j];
-            int i = j - offset;
-            if (i < 0 || i >= b_size)
-            {
-                continue;
-            }
-            d2 += b[i].getIntensity() * b[i].getIntensity();
-            n += a[j] * b[i].getIntensity(); //
-        }
-        double d = (d1 * d2);
-        if (d <= 0)
-        {
-            return 0;
-        }
-        return n / sqrt(d);
-    }
-
   /*
   double FLASHDeconvAlgorithm::getCosine_(const double *a, double *b, Size size)
   {
@@ -1291,14 +1263,14 @@ namespace OpenMS
       }
     }
 
-    for (int tmp_offset = -iso_size - min_isotope_index; tmp_offset <= max_isotope_index; tmp_offset++)
+    for (int tmp_offset = -iso_size; tmp_offset <= iso_size; tmp_offset++)
     {
-      double tmp_cos = getCosine_zero_ignore_(per_isotope_intensities,
+      double tmp_cos = getCosine_(per_isotope_intensities,
                                   min_isotope_index,
                                   max_isotope_index,
                                   iso,
                                   iso_size,
-                                  //iso_norm,
+                                  iso_norm,
                                   tmp_offset);
 
       if (max_cosine <= tmp_cos)
@@ -1307,15 +1279,6 @@ namespace OpenMS
           offset = tmp_offset;
       }
     }
-
-
-      max_cosine =   getCosine_(per_isotope_intensities,
-                                min_isotope_index,
-                                max_isotope_index,
-                                iso,
-                                iso_size,
-                                iso_norm,
-                                offset);
 
     return max_cosine;
   }

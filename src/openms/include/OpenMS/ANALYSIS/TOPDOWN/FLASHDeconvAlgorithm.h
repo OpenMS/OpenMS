@@ -316,14 +316,5 @@ namespace OpenMS
                              const int& b_size,
                              const double& b_norm,
                              const int offset);
-
-
-
-      static double getCosine_zero_ignore_(const std::vector<double> &a,
-                              const int &a_start,
-                              const int &a_end,
-                              const IsotopeDistribution &b,
-                              const int &b_size,
-                              const int offset);
   };
 }
