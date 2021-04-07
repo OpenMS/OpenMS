@@ -268,24 +268,31 @@ namespace OpenMS
     first_residue_ = stoi(results[15]);
     last_residue_ = stoi(results[16]);
       if (stoi(results[18]) == 0){
-          unexp_mod_ = .0;
+          //unexp_mod_ = .0;
       }else{
           String seq =  results[17];
           int loc = 0;
-          while (seq.find("[", loc) != String::npos) {
-              String sub = seq.substr(seq.find("[", loc) + 1, seq.find("]", loc) - 1 - seq.find("[", loc));
-              if (!isdigit(sub[sub.length()-1])){
-                  loc = seq.find("]", loc) + 1;
-                  continue;
-              }
-              unexp_mod_ = stod(sub);
-              break;
-          }
-
           int off = seq.find(".", 0);
-          mod_first_ = seq.find("(", off) - off -1 ;
-          mod_last_ = seq.find(")", mod_first_) - off -3;
-          //std::cout<<seq<<" " <<  mod_first_<< " " << mod_last_<<std::endl;//
+          while (seq.find("[", loc) != String::npos) {
+             // mod_first_.push_back(seq.find("(", loc) - off -1);
+             // mod_last_.push_back(seq.find(")", loc) - off -3);
+              loc = seq.find("[", loc);
+              String sub = seq.substr(loc + 1, seq.find("]", loc) - 1 - loc);
+              double mmass = .0;
+              if (isdigit(sub[sub.length()-1])){
+                  mmass = stod(sub);
+              }else if (sub == "Acetyl"){
+                  mmass = 42.010565;
+              }else if (sub == "Phospho"){
+                  mmass = 79.966331;
+              }else if (sub == "Oxidation"){
+                  mmass = 15.994915;
+              }else if (sub == "Methyl"){
+                  mmass = 14.015650;
+              }
+              unexp_mod_.push_back(mmass);
+              loc++;
+          }
       }
 
 

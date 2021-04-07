@@ -129,13 +129,13 @@ namespace OpenMS
       int charge_;
       double precursor_mass_;
       double adj_precursor_mass_;
-      int proteform_id_ = 0;
+      int proteform_id_ = -1;
       String protein_acc_ = "";
       int first_residue_;
       int last_residue_;
-      int mod_first_;
-      int mod_last_;
-      double unexp_mod_ = NAN;
+      //std::vector<int> mod_first_;
+      //  std::vector<int> mod_last_;
+        std::vector<double> unexp_mod_;
       int matched_peaks_;
       int matched_frags_;
       double e_value_;

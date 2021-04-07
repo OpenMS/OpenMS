@@ -597,8 +597,6 @@ protected:
           }
       }
 
-
-
       for (auto & item: top_pic_map) {
           auto &acc = item.second.protein_acc_;
           auto proid = item.second.proteform_id_;
@@ -617,7 +615,7 @@ protected:
         freqv.push_back(item.second);
     }
     std::sort(freqv.begin(), freqv.end(), greater <>());
-    int threshold = freqv[4];
+    int threshold = freqv[6];
       for (auto & item: top_pic_map) {
           auto &acc = item.second.protein_acc_;
           auto proid = item.second.proteform_id_;
@@ -741,7 +739,7 @@ protected:
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
         auto color = deconvoluted_spectrum.getPrecursor().getMetaValue("color");
         double pmass =
-                isnan(top_pic_map[scan_number].unexp_mod_) ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
+                top_pic_map[scan_number].proteform_id_ < 0 ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
         double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
         auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
         int fr = top_pic_map[scan_number].first_residue_;
@@ -755,9 +753,7 @@ protected:
                             pg, fr,lr,
                             deconvoluted_spectrum.getPrecursorCharge(),
                             precursor_intensity, top_pic_map[scan_number].unexp_mod_,
-                              top_pic_map[scan_number].mod_first_,
-                              top_pic_map[scan_number].mod_last_,
-                            !isnan(top_pic_map[scan_number].unexp_mod_),
+                            top_pic_map[scan_number].proteform_id_ >= 0,
                             top_pic_map[scan_number].e_value_,
                             avg, out_train_stream, write_detail_qscore_att);
 
@@ -765,7 +761,6 @@ protected:
           if(m2_scans.find(scan_number) != m2_scans.end()) {
               m_scans.insert(prev_scan_number);
           }
-
 #endif
       }
         if(it->getMSLevel() == 1){

@@ -99,7 +99,7 @@ namespace OpenMS
   {
     f
         << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,Color,PrecursorMz,PrecursorIntensity,"
-           "MassIntensity,FeatureIntensity,PrecursorCharge,PTM,PTMMass,PTMStart,PTMEnd,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
+           "MassIntensity,FeatureIntensity,PrecursorCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -120,9 +120,9 @@ namespace OpenMS
                            const int lr,
                            const int charge,
                            const double precursor_intensity,
-                           const double ptm_mass,
-                           const int ptm_start,
-                           const int ptm_end,
+                           const std::vector<double> ptm_mass,
+                           //const std::vector<int> ptm_start,
+                           //const std::vector<int> ptm_end,
                            const bool is_identified,
                            const double e_value,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
@@ -133,12 +133,6 @@ namespace OpenMS
     if (pg.empty())
     {
       return;
-      f << acc << "," << proID << "," << rt << "," << pscan << "," << (pmass <= .0 ? 0 : pmass) << "," << (pmass <= .0 ? 0 : avgpmass)
-        << "," << pmz
-        << "," << precursor_intensity << ","
-        << ",0," << (proID ? (ptm_mass !=.0 ? 1 : 0) : -1);
-      f << ",0,0,0,0,0,-5,";
-      f << (is_identified ? "T" : "F") << "\n";
     }
     else
     {
@@ -151,7 +145,15 @@ namespace OpenMS
         << precursor_intensity << ","
         << pg.getIntensity()<< "," << fintensity << ","
         << charge << ","
-        << (proID ? (ptm_mass !=.0 ? 1 : 0) : -1) << "," <<ptm_mass<<","<<ptm_start<<","<<ptm_end<<",";
+        << (proID ? (ptm_mass.size()) : -1) << ",";
+        for(int k=0;k<3;k++){
+            if(k < ptm_mass.size()){
+                f<<ptm_mass[k]<<",";
+            }else{
+                f<<"nan,";
+            }
+        }
+
       for (auto &item : fv)
       {
         f << item << ",";

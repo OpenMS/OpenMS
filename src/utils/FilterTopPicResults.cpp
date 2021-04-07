@@ -116,8 +116,17 @@ protected:
             results[item.protein_acc_].push_back(item);
 
             attstream<<item.protein_acc_<<","<<item.first_residue_<<","<<item.last_residue_<<","<<item.proteform_id_
-            <<","<<item.rt_<<",0,0,"<<item.adj_precursor_mass_<<",0,0,0,0,"<<item.intensity_<<",0,"<<item.charge_<<","<<(item.unexp_mod_ !=.0 ? 1 : 0)
-            <<","<<item.unexp_mod_<<",0,0,0,0,0,0,0,0,0,"<<item.e_value_<<",T\n";
+            <<","<<item.rt_<<",0,0,"<<item.adj_precursor_mass_<<",0,0,0,0,"<<item.intensity_<<",0,"<<item.charge_<<","<<(item.unexp_mod_.size())
+            <<",";
+            for(int k=0;k<3;k++){
+                if(k < item.unexp_mod_.size()){
+                    attstream<<item.unexp_mod_[k]<<",";
+                }else{
+                    attstream<<"nan,";
+                }
+            }
+
+            attstream<<"0,0,0,0,0,0,0,"<<item.e_value_<<",T\n";
 
         }
         in_trainstream.close();
@@ -130,7 +139,7 @@ protected:
                 for(int i=0;i<ps.size();i++){
                     bool write = true;
                     double psm1 = ps[i].adj_precursor_mass_;
-                    if(ps[i].unexp_mod_ != .0) {
+                    if(!ps[i].unexp_mod_.empty()) {
                         for (int j = i + 1; j < ps.size(); j++) {
                             double psm2 = ps[j].adj_precursor_mass_;
                             for (int k = 2; k <= 5; k++) {
