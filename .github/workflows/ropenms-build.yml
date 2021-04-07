@@ -52,7 +52,7 @@ jobs:
 
     # R installation
     - uses: r-lib/actions/setup-r@v1
-      name: R Installation 
+      name: R Installation
       with:
         r-version: ${{ matrix.r-version }}
     - run : Rscript -e 'print("hello")'
@@ -196,17 +196,3 @@ jobs:
       with:
         name: ropenms_lnx
         path: OpenMS/src/ropenms*.tar.gz
-
-
-
-
-    
-
-    
-
-
-
-
-    
-
-
