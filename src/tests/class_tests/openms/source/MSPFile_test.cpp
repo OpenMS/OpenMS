@@ -88,8 +88,8 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	vector<PeptideIdentification> ids;
 	PeakMap exp;
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
-	TEST_EQUAL(exp.size(), 6)
-	TEST_EQUAL(ids.size(), 6)
+	TEST_EQUAL(exp.size(), 7)
+	TEST_EQUAL(ids.size(), 7)
 
 		//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"));
@@ -102,7 +102,9 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	TEST_STRING_EQUAL(exp[3].getNativeID(), "index=3")
 	TEST_STRING_EQUAL(exp[4].getNativeID(), "index=4")
   TEST_STRING_EQUAL(exp[5].getNativeID(), "index=5")
-  TEST_STRING_EQUAL(ids[5].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAAAAAGAAGGR")
+  TEST_STRING_EQUAL(exp[6].getNativeID(), "index=6")
+  TEST_STRING_EQUAL(ids[5].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAGAGPEM(Oxidation)VR")
+  TEST_STRING_EQUAL(ids[6].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAVGPGAGGAGSAVPGGAGPC(Carbamidomethyl)ATVSVFPGAR")
 
 	Param p(msp_file.getParameters());
 	p.setValue("instrument", "qtof");
@@ -121,8 +123,8 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	ids.clear();
 	exp.clear(true);
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
-	TEST_EQUAL(exp.size(), 4)
-	TEST_EQUAL(ids.size(), 4)
+	TEST_EQUAL(exp.size(), 5)
+	TEST_EQUAL(ids.size(), 5)
 
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=2")
 	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=3")
@@ -146,8 +148,8 @@ START_SECTION(void store(const String& filename, const PeakMap& exp) const)
 	exp.clear(true);
 	ids.clear();
 	msp_file.load(filename, ids, exp);
-	TEST_EQUAL(ids.size(), 6)
-	TEST_EQUAL(exp.size(), 6)
+	TEST_EQUAL(ids.size(), 7)
+	TEST_EQUAL(exp.size(), 7)
 
 	TEST_EQUAL(ids[0].getHits().size(), 1)
 	TEST_EQUAL(ids[1].getHits().size(), 1)

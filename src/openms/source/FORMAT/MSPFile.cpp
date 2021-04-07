@@ -83,7 +83,9 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    const std::regex rex(R"(\((.*)\))");
+    // groups everything inside the shortest pair of parentheses
+    const std::regex rex(R"(\((.*?)\))");
+    // matches whitespaces " ", "\t", "\n"
     const std::regex ws_rex("\\s+");
 
     exp.reset();
@@ -189,7 +191,9 @@ namespace OpenMS
               while (std::regex_search(cit, mods.cend(), sm, rex) && mod_split.size()-1 <= sz)
               {
                 if (sm.size() == 2) // 2 = match
+                {
                   mod_split.emplace_back(sm[1].str());
+                }
                 // set cit to after match
                 cit = sm[0].second;
               }
