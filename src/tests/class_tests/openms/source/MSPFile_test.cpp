@@ -104,7 +104,15 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
   TEST_STRING_EQUAL(exp[5].getNativeID(), "index=5")
   TEST_STRING_EQUAL(exp[6].getNativeID(), "index=6")
   TEST_STRING_EQUAL(ids[5].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAGAGPEM(Oxidation)VR")
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[0].annotation, "a3")
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[1].annotation, "b3")
+  TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[1].charge, 1)
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].annotation, "y2-H2O")
+  TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].charge, 1)
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].annotation, "y4")
+  TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].charge, 2)
   TEST_STRING_EQUAL(ids[6].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAVGPGAGGAGSAVPGGAGPC(Carbamidomethyl)ATVSVFPGAR")
+
 
 	Param p(msp_file.getParameters());
 	p.setValue("instrument", "qtof");

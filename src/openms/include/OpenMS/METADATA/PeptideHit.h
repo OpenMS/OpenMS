@@ -87,46 +87,18 @@ public:
     double mz = -1.;
     double intensity = 0.;
 
+    PeakAnnotation() = default;
+    PeakAnnotation(String annotation, int charge, double mz, double intensity):
+      annotation(std::move(annotation)),
+      charge(charge),
+      mz(mz),
+      intensity(intensity)
+    {}
+
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
       // sensible to sort first by m/z and charge
-      if (mz < other.mz)
-      {
-        return true;
-      }
-      else if (mz > other.mz)
-      {
-        return false;
-      }
-
-      if (charge < other.charge)
-      {
-        return true;
-      }
-      else if (charge > other.charge)
-      {
-        return false;
-      }
-
-      if (annotation < other.annotation)
-      {
-        return true;
-      }
-      else if (annotation > other.annotation)
-      {
-        return false;
-      }
-
-      if (intensity < other.intensity)
-      {
-        return true;
-      }
-      else if (intensity > other.intensity)
-      {
-        return false;
-      }
-
-      return false;
+      return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
     }
 
     bool operator==(const PeptideHit::PeakAnnotation& other) const

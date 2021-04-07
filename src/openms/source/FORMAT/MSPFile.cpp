@@ -85,8 +85,10 @@ namespace OpenMS
 
     // groups everything inside the shortest pair of parentheses
     const std::regex rex(R"(\((.*?)\))");
-    // matches whitespaces " ", "\t", "\n"
-    const std::regex ws_rex("\\s+");
+    // matches 2+ whitespaces or tabs "   ", "\t"
+    // Note: this is a hack because one of the encountered formats has single whitespaces in quotes.
+    // TODO choose a format during construction of the class. If we actually knew how to call and define them.
+    const std::regex ws_rex("\\s{2,}|\\t");
 
     exp.reset();
 
@@ -271,6 +273,8 @@ namespace OpenMS
         }
         else
         {
+          PeptideHit& hitToAnnotate = ids.back().getHits()[0];
+          vector<PeptideHit::PeakAnnotation> annots;
           while (getline(is, line) && ++line_number && !line.empty() && isdigit(line[0]))
           {
             std::sregex_token_iterator iter(line.begin(),
@@ -278,28 +282,65 @@ namespace OpenMS
                                             ws_rex,
                                             -1);
             std::sregex_token_iterator end;
+            if (iter == end)
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+            }
             Peak1D peak;
-            peak.setMZ(String(iter->str()).toFloat());
+            float mz = String(iter->str()).toFloat();
+            peak.setMZ(mz);
             ++iter;
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
             }
-            peak.setIntensity(String(iter->str()).toFloat());
+            float ity = String(iter->str()).toFloat();
+            peak.setIntensity(ity);
             ++iter;
             if (parse_peakinfo && iter != end)
             {
-              spec.getStringDataArrays()[0].push_back(iter->str());
+              //e.g. "b32-H2O^3/0.11,y19-H2O^2/0.26"
+              String annot = iter->str();
+              annot = annot.unquote();
+              if (annot == "?")
+              {
+                annots.emplace_back(annot, 0, mz, ity);
+              }
+              else
+              {
+                if (annot.has(' ')) annot = annot.prefix(' '); // in case of different format "b8/-0.07,y9-46/-0.01 2/2 32.4" we only need the first part
+                if (annot == "?") //"? 2/2 0.6"
+                {
+                  annots.emplace_back(annot, 0, mz, ity);
+                }
+                else
+                {
+                  StringList splitstr;
+                  annot.split(',',splitstr);
+                  for (auto& str : splitstr)
+                  {
+                    String splitstrprefix = str.prefix('/');
+                    int charge = 1;
+                    StringList splitstr2;
+                    splitstrprefix.split('^', splitstr2);
+                    if (splitstr2.size() > 1)
+                    {
+                      charge = splitstr2[1].toInt();
+                    }
+                    annots.emplace_back(splitstr2[0], charge, mz, ity);
+                  }
+                }
+              }
             }
             spec.push_back(peak);
           }
+          hitToAnnotate.setPeakAnnotations(annots);
           spec.setNativeID(String("index=") + spectrum_number);
           exp.addSpectrum(spec);
           // clear spectrum, create new DataArrays
           spec.clear(true);
-          spec.getStringDataArrays().resize(1);
-          spec.getStringDataArrays()[0].setName("MSPPeakInfo");
         }
         spectrum_number++;
       }
