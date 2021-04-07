@@ -1,4 +1,7 @@
-library(purrr)
+is_scalar_integer <- purrr::is_scalar_integer
+is_scalar_character <- purrr::is_scalar_character
+is_scalar_double <- purrr::is_scalar_double
+
 context("Running main test for pyopenms R bindings")
 
 # perform MetaInfoInterface tests for subclass ----------------------------
@@ -292,7 +295,6 @@ test_that("",{
 
   e = Element$new()
   e$setSymbol("blah")
-  e$setSymbol(c("blah"))
   oms_string <- String$new("blu")
   e$setSymbol(oms_string)
   expect_true(!is.null(oms_string))
@@ -512,8 +514,8 @@ test_that("test SpectrumIdentification",{
   f$addHit(hit)
   all_hits <- f$getHits()
   expect_length(all_hits,2)
-  expect_true(any(sapply(all_hits,function(h) h$getName()=="test1")))
-  expect_true(any(sapply(all_hits,function(h) h$getName()=="test2")))
+  expect_true(any(lapply(all_hits,function(h) h$getName()=="test1")))
+  expect_true(any(lapply(all_hits,function(h) h$getName()=="test2")))
 })
 
 
@@ -871,14 +873,14 @@ test_that("test DataValue",{
 
   a = DataValue$new(list(1L))
   expect_true(!a$isEmpty())
-  expect_equivalent(a$toIntList(), c(1L))
+  expect_equivalent(a$toIntList(), 1L)
   expect_equal(a$valueType(), DataType()$INT_LIST)
 
   # 1L is integer while 1 is double in R. It is important to add L to specify integer,
   # because reticulate converts 1L -> 1 (int) while 1 -> 1.0 (float) in python.
   a = DataValue$new(list(1.1))
   expect_true(!a$isEmpty())
-  expect_equivalent(a$toDoubleList(), c(1.1))
+  expect_equivalent(a$toDoubleList(), 1.1)
   expect_equal(a$valueType(), DataType()$DOUBLE_LIST)
 
   a = DataValue$new(list("1.0"))
@@ -1886,13 +1888,13 @@ test_that("test Instrument",{
   ion_sources = lapply(1:5, function(x) IonSource$new())
   ins$setIonSources(ion_sources)
   src <- ins$getIonSources()
-  expect_true(all(sapply(src, function(s) is.R6(s) && class(s)[1]=="IonSource")))
+  expect_true(all(lapply(src, function(s) is.R6(s) && class(s)[1]=="IonSource")))
   expect_length(src,5)
 
   mass_analyzers = lapply(1:5, function(x) MassAnalyzer$new())
   ins$setMassAnalyzers(mass_analyzers)
   ma <- ins$getMassAnalyzers()
-  expect_true(all(sapply(ma, function(s) is.R6(s) && class(s)[1]=="MassAnalyzer")))
+  expect_true(all(lapply(ma, function(s) is.R6(s) && class(s)[1]=="MassAnalyzer")))
 
   ion_detectors = lapply(1:5, function(x) IonDetector$new())
   ins$setIonDetectors(ion_detectors)
@@ -2692,7 +2694,7 @@ test_that("test MatrixDouble",{
 
   rows = n-1
   cols = n+2
-  test = c()
+  test = NULL
 
   for(i in 0:(rows-1)){
     for(j in 0:(cols-1)){
@@ -3434,8 +3436,8 @@ test_that("test Attachment",{
   inst$binary = "test"
   inst$qualityRef = "test"
   inst$colTypes = c("test","test2")
-  inst$tableRows = list(c("test", "test2"), c("otherTest") )
-  expect_equal(inst$tableRows, list(c("test","test2"), c("otherTest")))
+  inst$tableRows = list(c("test", "test2"), "otherTest")
+  expect_equal(inst$tableRows, list(c("test","test2"), "otherTest"))
 
   expect_true(inst$tableRows[[2]][[1]] == "otherTest")
 })
@@ -3978,7 +3980,7 @@ test_that("test RNaseDigestion",{
 # test NASequence ---------------------------------------------------------
 test_that("test NASequence",{
 
-  oligo = NASequence$fromString("pAUGUCGCAG");
+  oligo = NASequence$fromString("pAUGUCGCAG")
 
   expect_true(oligo$size() == 9)
   seq_formula = oligo$getFormula()
@@ -4069,7 +4071,7 @@ test_that("test String",{
   pystr = String$new(ustr)
   expect_true(pystr$toString() == "bläh")
   pystr = String$new(enc2utf8(ustr))
-  expect_true(pystr$toString() == c("bläh"))
+  expect_true(pystr$toString() == "bläh")
 
 
   Encoding(ustr) <- "iso8859-15"

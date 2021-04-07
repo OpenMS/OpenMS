@@ -7,7 +7,7 @@ from autowrap.ConversionProvider import (TypeConverterBase,
 class OpenMSDPosition2(TypeConverterBase):
 
     def get_base_types(self):
-        return "DPosition2",
+        return ("DPosition2",)
 
     def matches(self, cpp_type):
         return  not cpp_type.is_ptr
@@ -47,7 +47,7 @@ class OpenMSDPosition2(TypeConverterBase):
 class OpenMSDPosition2Vector(TypeConverterBase):
 
     def get_base_types(self):
-        return "libcpp_vector",
+        return ("libcpp_vector",)
 
     def matches(self, cpp_type):
         inner_t, = cpp_type.template_args
@@ -117,7 +117,7 @@ class OpenMSDPosition2Vector(TypeConverterBase):
 class OpenMSDataValue(TypeConverterBase):
 
     def get_base_types(self):
-        return "DataValue",
+        return ("DataValue",)
 
     def matches(self, cpp_type):
         return  not cpp_type.is_ptr and not cpp_type.is_ref
@@ -162,7 +162,7 @@ class OpenMSDataValue(TypeConverterBase):
 class OpenMSStringConverter(TypeConverterBase):
 
     def get_base_types(self):
-        return "String",
+        return ("String",)
 
     def matches(self, cpp_type):
         return  not cpp_type.is_ptr
@@ -207,7 +207,7 @@ class AbstractOpenMSListConverter(TypeConverterBase):
         raise NotImplementedError()
 
     def get_base_types(self):
-        return self.openms_type,
+        return (self.openms_type,)
 
     def matches(self, cpp_type):
         return not cpp_type.is_ptr
@@ -275,7 +275,7 @@ class OpenMSDoubleListConverter(AbstractOpenMSListConverter):
 class StdVectorStringConverter(TypeConverterBase):
 
     def get_base_types(self):
-        return "libcpp_vector",
+        return ("libcpp_vector",)
 
     def matches(self, cpp_type):
         inner_t, = cpp_type.template_args
@@ -347,7 +347,7 @@ class OpenMSStringListConverter(StdVectorStringConverter):
         pass
 
     def get_base_types(self):
-        return self.openms_type,
+        return (self.openms_type,)
 
     def matches(self, cpp_type):
         return not cpp_type.is_ptr
@@ -363,7 +363,7 @@ class OpenMSStringListConverter(StdVectorStringConverter):
 class StdSetStringConverter(TypeConverterBase):
 
     def get_base_types(self):
-        return "libcpp_set",
+        return ("libcpp_set",)
 
     def matches(self, cpp_type):
         inner_t, = cpp_type.template_args
@@ -426,7 +426,7 @@ class StdSetStringConverter(TypeConverterBase):
 class OpenMSMapConverter(StdMapConverter):
 
     def get_base_types(self):
-        return "Map",
+        return ("Map",)
 
     def matches(self, cpp_type):
         return True
@@ -542,8 +542,8 @@ class OpenMSMapConverter(StdMapConverter):
 
         if not cy_tt_key.is_enum and tt_key.base_type in self.converters.names_to_wrap:
             raise Exception("can not handle wrapped classes as keys in map")
-        else:
-            key_conv = "<%s>(deref(%s).first)" % (cy_tt_key, it)
+
+        key_conv = "<%s>(deref(%s).first)" % (cy_tt_key, it)
 
         if not cy_tt_value.is_enum and tt_value.base_type in self.converters.names_to_wrap:
             cy_tt = tt_value.base_type
@@ -559,16 +559,16 @@ class OpenMSMapConverter(StdMapConverter):
                 |   inc($it)
                 """, locals())
             return code
-        else:
-            value_conv = "<%s>(deref(%s).second)" % (cy_tt_value, it)
-            code = Code().add("""
-                |$output_py_var = dict()
-                |cdef _Map[$cy_tt_key, $cy_tt_value].iterator $it = $input_cpp_var.begin()
-                |while $it != $input_cpp_var.end():
-                |   $output_py_var[$key_conv] = $value_conv
-                |   inc($it)
-                """, locals())
-            return code
+
+        value_conv = "<%s>(deref(%s).second)" % (cy_tt_value, it)
+        code = Code().add("""
+            |$output_py_var = dict()
+            |cdef _Map[$cy_tt_key, $cy_tt_value].iterator $it = $input_cpp_var.begin()
+            |while $it != $input_cpp_var.end():
+            |   $output_py_var[$key_conv] = $value_conv
+            |   inc($it)
+            """, locals())
+        return code
 
 
 import time
@@ -576,7 +576,7 @@ import time
 class CVTermMapConverter(TypeConverterBase):
 
     def get_base_types(self):
-        return "Map",
+        return ("Map",)
 
     def matches(self, cpp_type):
         # print(str(cpp_type), "Map[String,libcpp_vector[CVTerm]]")
@@ -686,5 +686,4 @@ class CVTermMapConverter(TypeConverterBase):
             """, locals())
 
         return code
-
 
