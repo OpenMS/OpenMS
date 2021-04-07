@@ -206,34 +206,38 @@ namespace OpenMS
           String scheduler_type = param_.getValue(
               "loopy_belief_propagation:scheduling_type");
 
-          evergreen::Scheduler<IDBoostGraph::vertex_t>* scheduler;
+          std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>> scheduler;
           if (scheduler_type == "priority")
           {
-             scheduler =
-                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                     initConvergenceThreshold,
-                                                                     maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(
+                 initDampeningLambda,
+                 initConvergenceThreshold,
+                 maxMessages));
           }
           else if (scheduler_type == "subtree")
           {
-            scheduler =
-                new evergreen::RandomSubtreeScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                          initConvergenceThreshold,
-                                                                          maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::RandomSubtreeScheduler<IDBoostGraph::vertex_t>(
+                    initDampeningLambda,
+                    initConvergenceThreshold,
+                    maxMessages));
           }
           else if (scheduler_type == "fifo")
           {
-            scheduler =
-                new evergreen::FIFOScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                 initConvergenceThreshold,
-                                                                 maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::FIFOScheduler<IDBoostGraph::vertex_t>(
+                  initDampeningLambda,
+                  initConvergenceThreshold,
+                  maxMessages));
           }
           else
           {
-            scheduler =
-                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
-                                                                     initConvergenceThreshold,
-                                                                     maxMessages);
+            scheduler = std::unique_ptr<evergreen::Scheduler<IDBoostGraph::vertex_t>>(
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(
+                    initDampeningLambda,
+                    initConvergenceThreshold,
+                    maxMessages));
           }
           scheduler->add_ab_initio_edges(ig);
 
