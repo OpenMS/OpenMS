@@ -53,6 +53,8 @@ namespace OpenMS
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
+    defaults_.setValue("parse_firstpeakinfo_only", "false", "Flag whether only the first (default) or all peak annotation information should be parsed and stored for each peak");
+    defaults_.setValidStrings("parse_firstpeakinfo_only", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
     defaults_.setValidStrings("instrument", ListUtils::create<String>(",it,qtof,toftof"));
 
@@ -85,10 +87,10 @@ namespace OpenMS
 
     // groups everything inside the shortest pair of parentheses
     const std::regex rex(R"(\((.*?)\))");
-    // matches 2+ whitespaces or tabs "   ", "\t"
+    // matches 2+ whitespaces or tabs or returns "   ", "\t", "\r"
     // Note: this is a hack because one of the encountered formats has single whitespaces in quotes.
     // TODO choose a format during construction of the class. If we actually knew how to call and define them.
-    const std::regex ws_rex("\\s{2,}|\\t");
+    const std::regex ws_rex("\\s{2,}|\\t|\\r");
 
     exp.reset();
 
@@ -107,17 +109,13 @@ namespace OpenMS
 
     bool parse_headers(param_.getValue("parse_headers").toBool());
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
+    bool parse_firstpeakinfo_only(param_.getValue("parse_firstpeakinfo_only").toBool());
     String instrument((String)param_.getValue("instrument"));
     bool inst_type_correct(true);
     bool spectrast_format(false);
     Size spectrum_number = 0;
 
     PeakSpectrum spec;
-    if (parse_peakinfo)
-    {
-      spec.getStringDataArrays().resize(1);
-      spec.getStringDataArrays()[0].setName("MSPPeakInfo");
-    }
 
     // line number counter
     Size line_number = 0;
@@ -311,7 +309,7 @@ namespace OpenMS
               else
               {
                 if (annot.has(' ')) annot = annot.prefix(' '); // in case of different format "b8/-0.07,y9-46/-0.01 2/2 32.4" we only need the first part
-                if (annot == "?") //"? 2/2 0.6"
+                if (annot.hasPrefix("?")) //"? 2/2 0.6" or "?i 2/2 0.6"
                 {
                   annots.emplace_back(annot, 0, mz, ity);
                 }
@@ -330,25 +328,27 @@ namespace OpenMS
                       charge = splitstr2[1].toInt();
                     }
                     annots.emplace_back(splitstr2[0], charge, mz, ity);
+                    if (parse_firstpeakinfo_only) break;
                   }
                 }
               }
+            }
+            else if (parse_peakinfo)
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          line, "Requested reading peak info but no annotation found for line " + String(line_number));
             }
             spec.push_back(peak);
           }
           hitToAnnotate.setPeakAnnotations(annots);
           spec.setNativeID(String("index=") + spectrum_number);
           exp.addSpectrum(spec);
-          // clear spectrum, create new DataArrays
+          // clear spectrum
           spec.clear(true);
         }
         spectrum_number++;
       }
     }
-
-    // last spectrum, if available
-
-
   }
 
   void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)

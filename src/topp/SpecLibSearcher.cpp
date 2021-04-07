@@ -235,11 +235,12 @@ protected:
        lib_entry.setPrecursors(lib_spec.getPrecursors());
 
        // empty array would segfault
-       if (lib_spec.getStringDataArrays().empty())
+       if (id.getHits().empty() || id.getHits()[0].getPeakAnnotations().empty())
        {
          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
        }
- 
+
+       const vector<PeptideHit::PeakAnnotation>& pa = id.getHits()[0].getPeakAnnotations();
        // library entry transformation
        for (UInt l = 0; l < lib_spec.size(); ++l)
        {
@@ -247,7 +248,7 @@ protected:
          if (lib_spec[l].getIntensity() > remove_peaks_below_threshold)
          {
            // this is the "MSPPeakInfo" array, see MSPFile which creates a single StringDataArray
-           const String& sa = lib_spec.getStringDataArrays()[0][l];
+           const String& sa = pa[l].annotation;
 
            // TODO: check why this scaling is done for ? peaks (dubious peaks?)
            if (sa[0] == '?')
