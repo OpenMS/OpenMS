@@ -99,7 +99,7 @@ Comment: Spec=Consensus Pep=Tryptic Mods=2(0,A,Acetyl)(11,M,Oxidation) Fullname=
 Num peaks: 97
 200.0   39      "a3/-0.12"
 300.1   258     "b3/-0.02,y2-H2O/-0.08"
-400.3   566
+400.3   566     "?"
 500.3   94      "y4^2/-0.34"
 
 Name: AAAAAAVGPGAGGAGSAVPGGAGPCATVSVFPGAR/3_2(0,A,Acetyl)(24,C,CAM)
