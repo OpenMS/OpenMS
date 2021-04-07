@@ -53,7 +53,7 @@ namespace OpenMS
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
-    defaults_.setValue("parse_firstpeakinfo_only", "false", "Flag whether only the first (default) or all peak annotation information should be parsed and stored for each peak");
+    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first (default for 1:1 correspondence in SpecLibSearcher) or all peak annotation information should be parsed and stored for each peak.");
     defaults_.setValidStrings("parse_firstpeakinfo_only", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
     defaults_.setValidStrings("instrument", ListUtils::create<String>(",it,qtof,toftof"));
@@ -302,34 +302,27 @@ namespace OpenMS
               //e.g. "b32-H2O^3/0.11,y19-H2O^2/0.26"
               String annot = iter->str();
               annot = annot.unquote();
-              if (annot == "?")
+              if (annot.hasPrefix("?"))  //"? 2/2 0.6" or "?i 2/2 0.6"
               {
                 annots.emplace_back(annot, 0, mz, ity);
               }
               else
               {
                 if (annot.has(' ')) annot = annot.prefix(' '); // in case of different format "b8/-0.07,y9-46/-0.01 2/2 32.4" we only need the first part
-                if (annot.hasPrefix("?")) //"? 2/2 0.6" or "?i 2/2 0.6"
+                StringList splitstr;
+                annot.split(',',splitstr);
+                for (auto& str : splitstr)
                 {
-                  annots.emplace_back(annot, 0, mz, ity);
-                }
-                else
-                {
-                  StringList splitstr;
-                  annot.split(',',splitstr);
-                  for (auto& str : splitstr)
+                  String splitstrprefix = str.prefix('/');
+                  int charge = 1;
+                  StringList splitstr2;
+                  splitstrprefix.split('^', splitstr2);
+                  if (splitstr2.size() > 1)
                   {
-                    String splitstrprefix = str.prefix('/');
-                    int charge = 1;
-                    StringList splitstr2;
-                    splitstrprefix.split('^', splitstr2);
-                    if (splitstr2.size() > 1)
-                    {
-                      charge = splitstr2[1].toInt();
-                    }
-                    annots.emplace_back(splitstr2[0], charge, mz, ity);
-                    if (parse_firstpeakinfo_only) break;
+                    charge = splitstr2[1].toInt();
                   }
+                  annots.emplace_back(splitstr2[0], charge, mz, ity);
+                  if (parse_firstpeakinfo_only) break;
                 }
               }
             }

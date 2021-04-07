@@ -305,6 +305,11 @@ namespace OpenMS
     return fragment_annotations_;
   }
 
+  const std::vector<PeptideHit::PeakAnnotation>& PeptideHit::getPeakAnnotationsRef() const
+  {
+    return fragment_annotations_;
+  }
+
   void PeptideHit::setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations)
   {
     fragment_annotations_ = std::move(frag_annotations);

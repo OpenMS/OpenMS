@@ -110,6 +110,8 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
   // next only with parse_firstonly = false
   //TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].annotation, "y2-H2O")
   //TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].charge, 1)
+  TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].annotation, "?")
+  TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[2].charge, 0)
   TEST_STRING_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].annotation, "y4")
   TEST_EQUAL( ids[5].getHits()[0].getPeakAnnotations()[3].charge, 2)
   TEST_STRING_EQUAL(ids[6].getHits()[0].getSequence().toString(), ".(Acetyl)AAAAAAVGPGAGGAGSAVPGGAGPC(Carbamidomethyl)ATVSVFPGAR")

@@ -283,6 +283,8 @@ public:
 
     /// returns the fragment annotations
     std::vector<PeptideHit::PeakAnnotation> getPeakAnnotations() const;
+    const std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotationsRef() const;
+
 
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
