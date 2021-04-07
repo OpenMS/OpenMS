@@ -272,9 +272,8 @@ namespace OpenMS
       }else{
           String seq =  results[17];
           int loc = 0;
-          while (true) {
+          while (seq.find("[", loc) != String::npos) {
               String sub = seq.substr(seq.find("[", loc) + 1, seq.find("]", loc) - 1 - seq.find("[", loc));
-              //std::cout<<sub<<std::endl;
               if (!isdigit(sub[sub.length()-1])){
                   loc = seq.find("]", loc) + 1;
                   continue;
