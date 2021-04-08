@@ -305,35 +305,37 @@
 
   @section install_win_create_installer Creating an installer 
   
+    <ol>
+      <li> Download <a href="https://sourceforge.net/projects/nsis/" target="_blank">NSIS</a> (we tested nsis-3.06.1 successfully) and extract it somewhere
 
-    1) Download NSIS (we tested nsis-3.06.1 successfully)
-    https://sourceforge.net/projects/nsis/
+      <li> Install the <a href="https://nsis.sourceforge.io/Special_Builds" target="_blank">large-string-build NSIS installer</a> on top (just extract into the same directory as NSIS; and use a matching version!).
+           This is required for PATH manipulation of up to 8k length; the default NSIS handles up to 1k strings, which might be too short and potentially leads to a broken PATH environment variable.
+      
+      <li> Install the <a href="https://github.com/SuperPat45/UltraModernUI" target="_blank">UltraModernUI-plugin</a> on top (just extract into the same directory as NSIS). 
+           We tested <a href="https://github.com/SuperPat45/UltraModernUI/releases/tag/2.0b6" target="_blank">version 2.0b6</a> successfully.
 
-    and install large string build NSIS installer on top (just extract into the same directory as NSIS; and use a matching version!)
-    https://nsis.sourceforge.io/Special_Builds
-    (required for PATH manipulation of up to 8k length; the default NSIS handles up to 1k strings, which might be too short and potentially leads to a broken PATH environment variable)
-    and extract it somewhere
+      <li> Add the NSIS folder (which contains 'makensis.exe') to your PATH, so CMake can find it.
 
-    and install the UltraModernUI-plugin from (https://github.com/SuperPat45/UltraModernUI) on top (just extract into the same directory as NSIS) - we tested https://github.com/SuperPat45/UltraModernUI/releases/tag/2.0b6 successfully.
+      <li> Checkout the <a href="https://github.com/OpenMS/THIRDPARTY" target="_blank">THIRDPARTY GitHub Repository</a> and flatten the structure for the target platform, e.g. copy all subdirectories in <tt>./all/</tt> to <tt>./Windows/64bit/</tt>.
 
+      <li> Configure %OpenMS as usual with additional flags <tt>SEARCH_ENGINES_DIRECTORY</tt> (for the flattened THIRDPARTY directory) and <tt>PACKAGE_TYPE="nsis"</tt>, 
+      e.g.
+      \code
+      cd <build-tree>
+      cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
+      \endcode
+      
+      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <code>[OpenMS_build]\bin\Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
+      \code
+      cd <build-tree>
+      build.bat - r
+      \endcode
 
-    2) Make sure 'makensis.exe' from above is in your PATH, so CMake can find it.
-
-
-    3) Checkout the THIRDPARTY GitHub repo from https://github.com/OpenMS/THIRDPARTY and flatten the structure for the target platform, e.g. copy all subdirectories in './all/' to './Windows/64bit/'
-
-    4) Configure OpenMS as usual with additional flags 'SEARCH_ENGINES_DIRECTORY' (for the flattened THIRDPARTY directory) and 'PACKAGE_TYPE="nsis"', 
-    e.g.
-     $ cd <build-tree>
-     $ cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
-
-    5) Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <build-tree>\bin\release and <build-tree>\doc\doxygen\parameters\Release\ directories first)
-     $ cd <build-tree>
-     $ build.bat - r
-
-    6) Create the installer package
-    $ cd <build-tree>
-    $ cmake --build . --target dist
-
+      <li> Create the installer package
+      \code
+      cd <build-tree>
+      cmake --build . --target dist
+      \endcode
+    </ol>
   
 */
