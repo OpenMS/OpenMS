@@ -548,7 +548,7 @@ namespace OpenMS
     assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorPeptideID(nullptr)));
     assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorOSW(nullptr)));
 
-    return std::move(ptr);
+    return ptr; // Note: no std::move here needed because of copy elision
   }
 
   std::unique_ptr<LayerAnnotatorBase> LayerAnnotatorBase::getAnnotatorWhichSupports(const String& filename)

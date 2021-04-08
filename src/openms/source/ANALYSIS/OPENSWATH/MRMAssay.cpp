@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+#include <regex>
 
 using namespace std;
 
@@ -1005,7 +1006,7 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
+  void MRMAssay::filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     CompoundVectorType compounds;
     std::vector<String> compound_ids;
@@ -1029,9 +1030,9 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
     for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
-      // Ensure that all precursors have the minimum number of transitions
-      if (m->second.size() >= (Size)min_transitions)
-      {
+        // Ensure that all precursors have the minimum number of transitions or are a decoy transitions
+        if (m->second.size() >= (Size)min_transitions || m->second[0].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> LibraryIntensity;
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
@@ -1039,14 +1040,11 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
         }
 
-        // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
-        std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
-        std::reverse(LibraryIntensity.begin(), LibraryIntensity.end());
+        // Reverse-sort by intensity and delete all elements after max_transitions to find the best candidates
+        std::sort(LibraryIntensity.begin(), LibraryIntensity.end(), std::greater<>());
         if ((Size)max_transitions < LibraryIntensity.size())
         {
-          std::vector<double>::iterator start_delete = LibraryIntensity.begin();
-          std::advance(start_delete, max_transitions);
-          LibraryIntensity.erase(start_delete, LibraryIntensity.end());
+          LibraryIntensity.resize(max_transitions);
         }
 
         // Check if transitions are among the ones with maximum intensity
@@ -1055,8 +1053,7 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
-
-          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && j < (Size)max_transitions)
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);
@@ -1095,6 +1092,89 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
     }
     exp.setTransitions(transitions);
     exp.setCompounds(compounds);
+  }
+
+  void MRMAssay::filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp)
+  {
+    vector<TargetedExperiment::Compound> compounds = exp.getCompounds();
+    vector<std::string> descriptions_targets;
+    vector<std::string> descriptions_decoys;
+    vector<std::string> difference_target_decoys;
+    vector<std::pair<std::string, std::string>> reference_decoys;
+    vector<std::string> single_decoy_id;
+    String decoy_suffix = "_decoy";
+
+    for (const auto &it : compounds)
+    {
+      // extract potential target TransitionIds based on the decoy annotation '0_CompoundName_decoy_[M+H]+_448_0'
+      if (it.id.find("decoy") != std::string::npos)
+      {
+        String current_decoy = it.id;
+        String potential_target = current_decoy;
+        potential_target.erase(potential_target.find(decoy_suffix), decoy_suffix.size());
+        descriptions_decoys.emplace_back(potential_target);
+        reference_decoys.emplace_back(std::make_pair(current_decoy, potential_target));
+      }
+      else
+      {
+        descriptions_targets.emplace_back(it.id);
+      }
+    }
+
+    // compare the actual target TransitionsIds with the potential ones
+    difference_target_decoys.clear();
+    std::sort(descriptions_targets.begin(), descriptions_targets.end());
+    std::sort(descriptions_decoys.begin(), descriptions_decoys.end());
+    std::set_difference(descriptions_decoys.begin(),
+                        descriptions_decoys.end(),
+                        descriptions_targets.begin(),
+                        descriptions_targets.end(),
+                        std::inserter(difference_target_decoys, difference_target_decoys.begin()));
+
+    // translate the potential targets back to decoy annotations
+    for (const auto &it : difference_target_decoys)
+    {
+      auto iter = std::find_if(reference_decoys.begin(),
+                               reference_decoys.end(),
+                               [&it](const std::pair<String, String> &element) { return element.second == it; });
+      if (iter != reference_decoys.end())
+      {
+        single_decoy_id.emplace_back(iter->first);
+      }
+    }
+
+    // remove decoy compound due to missing target
+    vector<TargetedExperiment::Compound> filtered_compounds;
+    for (const auto& it : compounds)
+    {
+      // Check if decoy was filtered
+      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.id) != single_decoy_id.end())
+      {
+        OPENMS_LOG_DEBUG << "The decoy " << it.id << " was filtered due to missing a respective target." << std::endl;
+      }
+      else
+      {
+        filtered_compounds.push_back(it);
+      }
+    }
+
+    // remove decoy transitions due to missing target
+    vector<ReactionMonitoringTransition> filtered_transitions;
+    for (const auto& it : exp.getTransitions())
+    {
+      // Check if compound has any transitions left
+      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.getCompoundRef()) != single_decoy_id.end())
+      {
+        OPENMS_LOG_DEBUG << "The decoy " << it.getCompoundRef()
+                         << " was filtered due to missing a respective target." << std::endl;
+      }
+      else
+      {
+        filtered_transitions.push_back(it);
+      }
+    }
+    exp.setCompounds(filtered_compounds);
+    exp.setTransitions(filtered_transitions);
   }
 
 }

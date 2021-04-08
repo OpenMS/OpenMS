@@ -61,6 +61,13 @@ namespace OpenMS
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
+    if (matrixIsIdentityMatrix(correction_matrix) && !correction_matrix.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "IsotopeLabelingMDVs: The given isotope correction matrix is an identity matrix leading to no correction."
+                                        "Please provide a valid correction_matrix.");
+    }
+    
     /// Correction Matrices for various derivatization agents
     const std::map<DerivatizationAgent, std::vector<std::vector<double>> > correction_matrices =
     {
@@ -110,6 +117,33 @@ namespace OpenMS
     }
     
     corrected_feature = normalized_feature;
+
+    // Update MDV_observed to match the size of inversed correction_matrix
+    if (static_cast<unsigned long>(correction_matrix_eigen_inversed.cols()) > MDV_observed.size())
+    {
+      size_t resize_diff = correction_matrix_eigen_inversed.cols() - MDV_observed.size();
+      for (size_t i = 0; i < resize_diff; ++i)
+      {
+        MDV_observed.push_back(0.0);
+      }
+    }
+    // Expand the inversed correction_matrix to be of an equivalent size to MDV_observed
+    else if (MDV_observed.size() > static_cast<unsigned long>(correction_matrix_eigen_inversed.cols()))
+    {
+      size_t resize_diff = MDV_observed.size() - correction_matrix_eigen_inversed.cols();
+      
+      correction_matrix_eigen_inversed.conservativeResize(correction_matrix_eigen_inversed.rows() + resize_diff,
+                                                          correction_matrix_eigen_inversed.cols() + resize_diff);
+      
+      for (int i = correction_matrix_eigen_inversed.rows() - resize_diff; i < correction_matrix_eigen_inversed.rows(); ++i)
+      {
+        for (int j = correction_matrix_eigen_inversed.cols() - resize_diff; j < correction_matrix_eigen_inversed.cols(); ++j)
+        {
+          correction_matrix_eigen_inversed(i,j) = 0.0;
+        }
+      }
+    }
+
     for (int i = 0; i < correction_matrix_eigen_inversed.rows(); ++i)
     {
       double corrected_value = 0.0;
@@ -117,7 +151,7 @@ namespace OpenMS
       {
         corrected_value += correction_matrix_eigen_inversed(i,j) * MDV_observed[j];
       }
-      corrected_feature.getSubordinates().at(i).setIntensity(corrected_value);
+      corrected_feature.getSubordinates().at(i).setMetaValue("peak_apex_int", std::isnan(corrected_value) ? 0.0 : corrected_value);
     }
   }
 
@@ -226,15 +260,15 @@ namespace OpenMS
   {
     for (size_t feature_idx = 0; feature_idx < normalized_featureMap.size(); ++feature_idx)
     {
-      if (normalized_featureMap.at(feature_idx).metaValueExists("peptideRef"))
+      if (normalized_featureMap.at(feature_idx).metaValueExists("PeptideRef"))
       {
         calculateMDVAccuracy(normalized_featureMap.at(feature_idx),
                              feature_name,
-                             fragment_isotopomer_theoretical_formulas.find((std::string)normalized_featureMap.at(feature_idx).getMetaValue("peptideRef"))->second);
+                             fragment_isotopomer_theoretical_formulas.find((std::string)normalized_featureMap.at(feature_idx).getMetaValue("PeptideRef"))->second);
       }
       else
       {
-        OPENMS_LOG_ERROR << "No peptideRef in FeatureMap (MetaValue doesn't exist)!" << std::endl;
+        OPENMS_LOG_ERROR << "No PeptideRef in FeatureMap (MetaValue doesn't exist)!" << std::endl;
       }
     }
   }
@@ -282,7 +316,7 @@ namespace OpenMS
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
+            normalized_feature.getSubordinates().at(i).setMetaValue(feature_name, (OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
           }
         }
       }
@@ -299,7 +333,7 @@ namespace OpenMS
         
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          normalized_feature.setMetaValue((it - measured_feature_subordinates.begin()), (it->getIntensity() / feature_peak_apex_intensity_sum));
+          normalized_feature.getSubordinates().at(it - measured_feature_subordinates.begin()).setIntensity((it->getIntensity() / feature_peak_apex_intensity_sum));
         }
       }
       // for every other case where feature_name isn't 'intensity', i.e. 'peak_apex_int'
@@ -315,7 +349,7 @@ namespace OpenMS
         {
           for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
           {
-            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
+            normalized_feature.getSubordinates().at(i).setMetaValue(feature_name, (OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
           }
         }
       }

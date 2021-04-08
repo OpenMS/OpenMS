@@ -119,17 +119,16 @@ namespace OpenMS
       // -- cut line 301 of FeatureFinderAlgorithmMRM
       std::vector<LocalPeakType> data_to_fit;
       prepareFit_(current_section, data_to_fit, smooth_data);
-      InterpolationModel * model_rt = nullptr;
+      std::unique_ptr<InterpolationModel> model_rt;
       double quality = fitRT_(data_to_fit, model_rt);
       // cut line 354 of FeatureFinderAlgorithmMRM
-      delete model_rt;
 
       return quality;
     }
 
   protected:
     template<class LocalPeakType>
-    double fitRT_(std::vector<LocalPeakType> & rt_input_data, InterpolationModel * & model) const
+    double fitRT_(std::vector<LocalPeakType>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
     {
       EmgFitter1D fitter_emg1D;
       fitter_emg1D.setParameters(fitter_emg1D_params_);
