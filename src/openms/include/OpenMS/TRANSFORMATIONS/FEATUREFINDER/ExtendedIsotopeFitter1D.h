@@ -73,7 +73,7 @@ public:
     }
 
     /// return interpolation model
-    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model) override;
+    QualityType fit1d(const RawDataArrayType & range, std::unique_ptr<InterpolationModel>& model) override;
 
 protected:
 

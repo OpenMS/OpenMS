@@ -23,6 +23,12 @@ Adapters/Third-party support:
 Further fixes:
 - support for GLPK 5.x (#5127)
 
+File formats:
+- Exporter for MSP files
+
+Dependencies:
+- Promoted SeqAn v1 to C17. Moved from contrib to main source tree as it is not officially maintained anymore.
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.6                                        ----
 ------------------------------------------------------------------------------------------

@@ -66,13 +66,36 @@ namespace OpenMS
         const auto& lvl_info = centroid_info.find(ms_level);
         if (lvl_info == centroid_info.end())
         {
-          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
+          throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: No MS" + String(ms_level) + " spectra in input file.");
         }
 
-        if (lvl_info->second.count_profile_or_unknown > 0 && !getFlag_("force"))
+        if (lvl_info->second.count_profile > 0)
         {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
+          if (getFlag_("force"))
+          {
+            OPENMS_LOG_WARN << "Warning: Profile data found, but centroid MS spectra required. "
+                               "Since '-force' flag is in effect, we will continue, but results are likely bogus." << std::endl;
+          }
+          else
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Error: Profile data provided but centroided MS" + String(ms_level) + " spectra required. To enforce processing (unwise!) of the data enable the -force flag (results will be bogus!).");
+          }
         }
+        if (lvl_info->second.count_centroided == 0)
+        {
+          if (getFlag_("force"))
+          {
+            OPENMS_LOG_WARN << "Warning: No centroided MS" + String(ms_level) + " were found, but are required. "
+                               "Since '-force' flag is in effect, we will continue, but results might be bogus." << std::endl;
+          }
+          else
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Error: No centroided MS" + String(ms_level) + " spectra were found, but are required. To enforce processing of the data enable the -force flag (results will likely be bogus!).");
+          }
+        }
+        // do no check for UNKNOWN, since it does not really tell much (UNKNOWN can only occur if meta data is missing and our peak type estimation fails (which only happens for (almost) empty spectra))
       }
       case FileTypes::MGF:
         // no warning required. MGF files should be centroided by definition

@@ -72,7 +72,7 @@ namespace OpenMS
 public:
 
     /// Comparator for the retention time.
-    struct OPENMS_DLLAPI RTLess : public std::binary_function<MSSpectrum, MSSpectrum, bool>
+    struct OPENMS_DLLAPI RTLess
     {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
