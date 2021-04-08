@@ -64,11 +64,13 @@ if (NOT VC_REDIST_PATH)
 	  ## Unfortunately in my case the default version (latest) does not include the redist?!
 	  ## TODO Not sure if this environment variable always exists. In the VS command line it should! Fallback vswhere or VCINSTALLDIR/Redist/MSVC?
 	  get_filename_component(VC_ROOT_PATH "$ENV{VCToolsRedistDir}.." ABSOLUTE)
-	  file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
-	  ## TODO pick the latest of the found redists
-	  get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
-	elseif(OPENMS_MSVC_VERSION_STRING GREATER "10")
-	  set(VC_REDIST_PATH "$ENV{VCINSTALLDIR}redist/1033")  
+	  file(GLOB_RECURSE VC_REDIST_ABS_PATHS "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
+    message(STATUS "VC_REDIST_ABS_PATHS search found: '${VC_REDIST_ABS_PATHS}'")
+    ## pick the first item (TODO pick the latest of the found redists)
+    list(GET VC_REDIST_ABS_PATHS 1 VC_REDIST_ABS_PATH_FIRST)
+	  
+	  get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH_FIRST}" DIRECTORY)
+    message(STATUS "Setting VC_REDIST_PATH to: '${VC_REDIST_PATH}'")
 	else()
 	  message(FATAL_ERROR "Variable VC_REDIST_PATH missing."
 	  "Before Visual Studio 2012 you have to provide the path"
