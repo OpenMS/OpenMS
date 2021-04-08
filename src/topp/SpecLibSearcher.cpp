@@ -235,12 +235,12 @@ protected:
        lib_entry.setPrecursors(lib_spec.getPrecursors());
 
        // empty array would segfault
-       if (id.getHits().empty() || id.getHits()[0].getPeakAnnotationsRef().empty())
+       if (id.getHits().empty() || id.getHits()[0].getPeakAnnotations().empty())
        {
          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
        }
 
-       const vector<PeptideHit::PeakAnnotation>& pa = id.getHits()[0].getPeakAnnotationsRef();
+       const vector<PeptideHit::PeakAnnotation>& pa = id.getHits()[0].getPeakAnnotations();
        // library entry transformation
        for (UInt l = 0; l < lib_spec.size(); ++l)
        {

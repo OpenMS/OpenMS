@@ -87,14 +87,6 @@ public:
     double mz = -1.;
     double intensity = 0.;
 
-    PeakAnnotation() = default;
-    PeakAnnotation(String annotation, int charge, double mz, double intensity):
-      annotation(std::move(annotation)),
-      charge(charge),
-      mz(mz),
-      intensity(intensity)
-    {}
-
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
       // sensible to sort first by m/z and charge
@@ -282,8 +274,8 @@ public:
     void setRank(UInt newrank);
 
     /// returns the fragment annotations
-    std::vector<PeptideHit::PeakAnnotation> getPeakAnnotations() const;
-    const std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotationsRef() const;
+    std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotations();
+    const std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotations() const;
 
 
     /// sets the fragment annotations
