@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <simde/x86/sse2.h>
 
 namespace OpenMS
 {

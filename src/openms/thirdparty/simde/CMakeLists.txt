@@ -28,23 +28,16 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
+# $Maintainer: Chris Bielow, Felix Droop $
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-project("OpenMS-3rd-party-libs")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+project("OpenMS-simde")
+cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-## Note these libraries will not be compiled
-## but we only expose their sources
-
-# eol-bspline lib
-add_subdirectory(eol-bspline)
-
-# evergreen Bayesian inference library (0.9)
-add_subdirectory(evergreen/src)
-add_subdirectory(IsoSpec)
-add_subdirectory(seqan)
-add_subdirectory(json)
-add_subdirectory(simde)
-
+# export include directory
+set(SIMDE_INCLUDE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}
+  CACHE
+  INTERNAL "simde include directories" FORCE
+)

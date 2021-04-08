@@ -52,7 +52,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wno-long-long 
     -Wno-unknown-pragmas
     -Wno-unused-function
-    -Wno-variadic-macros)
+    -Wno-variadic-macros
+    -msse2)
 
   option(ENABLE_GCC_WERROR "Enable -WError on gcc compilers" OFF)
   if (ENABLE_GCC_WERROR)
@@ -148,6 +149,8 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-covered-switch-default
                   -Wno-date-time
                   -Wno-missing-noreturn
+                  # For SSE Implementations
+                  -msse2
                   )
 else()
   set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
