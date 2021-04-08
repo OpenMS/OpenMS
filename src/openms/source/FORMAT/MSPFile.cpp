@@ -304,7 +304,7 @@ namespace OpenMS
               annot = annot.unquote();
               if (annot.hasPrefix("?"))  //"? 2/2 0.6" or "?i 2/2 0.6" whatever i means, it will be lost here
               {
-                annots.emplace_back("?", 0, mz, ity);
+                annots.push_back(PeptideHit::PeakAnnotation{"?", 0, mz, ity});
               }
               else
               {
@@ -321,7 +321,7 @@ namespace OpenMS
                   {
                     charge = splitstr2[1].toInt();
                   }
-                  annots.emplace_back(splitstr2[0], charge, mz, ity);
+                  annots.push_back(PeptideHit::PeakAnnotation{splitstr2[0], charge, mz, ity});
                   if (parse_firstpeakinfo_only) break;
                 }
               }
