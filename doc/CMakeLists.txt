@@ -340,7 +340,6 @@ if(ENABLE_DOCS)
     #------------------------------------------------------------------------------
     # DOXYGEN_FOUND is true. Otherwise we would not list any doc targets at all.
     if (PDFLATEX_COMPILER)
-
       if (ENABLE_TUTORIALS)
         set(DOC_TUTORIALS_ACTIVE TRUE)
 
@@ -409,7 +408,7 @@ if(ENABLE_DOCS)
       else()
         message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
       endif()
-    else()
+      else()
       set(DOC_TUTORIALS_ACTIVE FALSE)
       message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
     endif()
