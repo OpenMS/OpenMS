@@ -837,7 +837,7 @@ namespace OpenMS
     ResidueModification tmp;
     for (const auto& mod : mods_)
     {
-      ofs << mod->getFullId() << "\t" << mod->getFullName() << "\t" << mod->getUnimodAccession() << "\t" << mod->getOrigin() << "\t"
+      ofs << mod->getFullId() << "\t" << mod->getFullName() << "\t" << mod->getUniModAccession() << "\t" << mod->getOrigin() << "\t"
       << tmp.getTermSpecificityName(mod->getTermSpecificity()) << "\t"
       << mod->getDiffMonoMass() << "\n";
     }
