@@ -157,6 +157,8 @@ namespace OpenMS
 
     int getScanNumber() const;
 
+    int getPrecursorScanNumber() const;
+
   private:
     /// the original spectrum (not deconvoluted)
     MSSpectrum spec_;

@@ -61,12 +61,12 @@ namespace OpenMS
       /// mass differences between average mass and monoisotopic mass
       std::vector<double> average_mono_mass_difference_;
       /// Isotope start indices: isotopes of the indices less than them have very low intensities
-      std::vector<Size> isotope_start_indices_;
+      std::vector<Size> isotope_left_index_from_apex_;
       /// Isotope end indices: isotopes of the indices larger than them have very low intensities
-      std::vector<Size> isotope_end_indices_;
+      std::vector<Size> isotope_right_index_from_apex_;
       /// max isotope index
-      int max_isotope_index_;
-
+      Size max_isotope_index_;
+      Size most_abundant_index_;
       /// mass interval for calculation
       double mass_interval_;
       /// min mass for calculation
@@ -102,10 +102,12 @@ namespace OpenMS
       double getNorm(const double mass) const;
 
       /// get isotope start index
-      Size getIsotopeStartIndex(const double mass) const;
+      Size getIsotopeLeftIndexFromApex(const double mass) const;
 
       /// get isotope end index
-      Size getIsotopeEndIndex(const double mass) const;
+      Size getIsotopeRightIndexFromApex(const double mass) const;
+
+      Size getMostAbundantIndex() const;
 
       /// get mass difference between avg and mono masses
       double getAverageMassDelta(const double mass) const;

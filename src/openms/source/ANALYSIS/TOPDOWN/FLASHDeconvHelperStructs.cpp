@@ -65,7 +65,7 @@ namespace OpenMS
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;
-      Size most_abundant_index = 0;
+      most_abundant_index_ = 0;
       double most_abundant_int = 0;
 
       for (Size k = 0; k < iso.size(); k++)
@@ -76,11 +76,11 @@ namespace OpenMS
           continue;
         }
         most_abundant_int = iso[k].getIntensity();
-        most_abundant_index = k;
+          most_abundant_index_ = k;
       }
 
-      Size left_index = most_abundant_index;
-      for (Size k = 0; k <= most_abundant_index; k++)
+      Size left_index = most_abundant_index_;
+      for (Size k = 0; k <= most_abundant_index_; k++)
       {
         if (iso[k].getIntensity() > most_abundant_int * factor)
         {
@@ -91,7 +91,7 @@ namespace OpenMS
         iso[k].setIntensity(0);
       }
 
-      Size right_index = iso.size() - 1 - most_abundant_index;
+      Size right_index = iso.size() - 1 - most_abundant_index_;
       /*for (Size k = iso.size() - 1; k >= most_abundant_index; k--)
       {
         if (iso[k].getIntensity() > most_abundant_int * factor)
@@ -103,8 +103,8 @@ namespace OpenMS
         iso[k].setIntensity(0);
       }*/
 
-      isotope_end_indices_.push_back(right_index);
-      isotope_start_indices_.push_back(left_index);
+      isotope_right_index_from_apex_.push_back(right_index);
+      isotope_left_index_from_apex_.push_back(left_index);
       average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
       norms_.push_back(norm);
       isotopes_.push_back(iso);
@@ -131,11 +131,11 @@ namespace OpenMS
     return norms_[i];
   }
 
-  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeStartIndex(const double mass) const
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeLeftIndexFromApex(const double mass) const
   {
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return isotope_start_indices_[i];
+    return isotope_left_index_from_apex_[i];
   }
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
@@ -145,16 +145,21 @@ namespace OpenMS
     return average_mono_mass_difference_[i];
   }
 
-  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeEndIndex(const double mass) const
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getIsotopeRightIndexFromApex(const double mass) const
   {
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return isotope_end_indices_[i];
+    return isotope_right_index_from_apex_[i];
   }
 
   void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(const int index)
   {
     max_isotope_index_ = index;
+  }
+
+  Size  FLASHDeconvHelperStructs::PrecalculatedAveragine::getMostAbundantIndex() const
+  {
+      return most_abundant_index_;
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :

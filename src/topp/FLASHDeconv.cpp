@@ -267,17 +267,16 @@ protected:
     out_train_file = getStringOption_("out_train");
     fstream fi_out;
     fi_out.open(in_file + ".txt", fstream::out); //
-    fstream fi_m;
+    fstream fi_m, fi_m2;
     auto fi_m_str(in_file);
     std::replace( fi_m_str.begin(), fi_m_str.end(), '_', 't');
       std::replace( fi_m_str.begin(), fi_m_str.end(), '.', 'd');
     fi_m.open(fi_m_str + ".m", fstream::out);
+    fi_m2.open(fi_m_str + "2.m", fstream::out);
     #endif
 
     fstream out_stream, out_train_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
-
-    //
 
     out_stream.open(out_file, fstream::out);
     MassFeatureTrace::writeHeader(out_stream);
@@ -585,49 +584,55 @@ protected:
 #ifdef DEBUG_EXTRA_PARAMTER
     std::set<int> m_scans;
       std::set<int> m2_scans;
-    std::map<String, int> freq;
 
-    std::map<int, double> eval;
-      for (auto & item: top_pic_map) {
-          auto &acc = item.second.protein_acc_;
-          auto proid = item.second.proteform_id_;
-          if (eval.find(proid) == eval.end() || eval[proid] > item.second.e_value_){
-              eval[proid] = item.second.e_value_;
-              continue;
+      if (!in_train_file.empty()) {
+          std::map<String, int> freq;
+
+          std::map<int, double> eval;
+          for (auto &item: top_pic_map) {
+              auto &acc = item.second.protein_acc_;
+              auto proid = item.second.proteform_id_;
+              if (eval.find(proid) == eval.end() || eval[proid] > item.second.e_value_) {
+                  eval[proid] = item.second.e_value_;
+                  continue;
+              }
+          }
+
+          for (auto &item: top_pic_map) {
+              auto &acc = item.second.protein_acc_;
+              auto proid = item.second.proteform_id_;
+              if (eval[proid] != item.second.e_value_) {
+                  continue;
+              }
+
+              if (freq.find(acc) == freq.end()) {
+                  freq[acc] = 1;
+                  continue;
+              }
+              freq[acc]++;
+          }
+          std::vector<int> freqv;
+          for (auto &item: freq) {
+              freqv.push_back(item.second);
+          }
+          std::sort(freqv.rbegin(), freqv.rend());
+          int threshold = freqv[5];
+          std::map<String, double> acc_eval;
+          for (auto &item: top_pic_map) {
+              auto &acc = item.second.protein_acc_;
+              auto proid = item.second.proteform_id_;
+
+              if (freq[acc] < threshold) {
+                  continue;
+              }
+
+              if (eval[proid] != item.second.e_value_) {
+                  continue;
+              }
+
+              m2_scans.insert(item.first);
           }
       }
-
-      for (auto & item: top_pic_map) {
-          auto &acc = item.second.protein_acc_;
-          auto proid = item.second.proteform_id_;
-          if(eval[proid] < item.second.e_value_){
-              continue;
-          }
-
-          if (freq.find(acc) == freq.end()){
-              freq[acc] = 1;
-              continue;
-          }
-          freq[acc] ++;
-      }
-      std::vector<int> freqv;
-    for(auto & item: freq){
-        freqv.push_back(item.second);
-    }
-    std::sort(freqv.begin(), freqv.end(), greater <>());
-    int threshold = freqv[6];
-      for (auto & item: top_pic_map) {
-          auto &acc = item.second.protein_acc_;
-          auto proid = item.second.proteform_id_;
-          if(eval[proid] < item.second.e_value_){
-              continue;
-          }
-          if(freq[acc] < threshold){
-              continue;
-          }
-          m2_scans.insert(item.first);
-      }
-
 #endif
     MSExperiment exp;
 
@@ -669,6 +674,13 @@ protected:
       {
         continue;
       }
+
+        float progress = (float) (it - map.begin()) / map.size();
+        if (progress > prev_progress + .01)
+        {
+            printProgress_(progress);
+            prev_progress = progress;
+        }
 
       int ms_level = it->getMSLevel();
       if (ms_level > current_max_ms_level)
@@ -739,7 +751,7 @@ protected:
         double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
         auto color = deconvoluted_spectrum.getPrecursor().getMetaValue("color");
         double pmass =
-                top_pic_map[scan_number].proteform_id_ < 0 ? .0 : top_pic_map[scan_number].adj_precursor_mass_;
+                top_pic_map[scan_number].proteform_id_ < 0 ? .0 : top_pic_map[scan_number].precursor_mass_;
         double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
         auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
         int fr = top_pic_map[scan_number].first_residue_;
@@ -747,7 +759,7 @@ protected:
 
           QScore::writeAttTsv(top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
                             deconvoluted_spectrum.getOriginalSpectrum().getRT(),
-                            prev_scan_number,
+                            deconvoluted_spectrum.getPrecursorScanNumber(),
                             pmass, pmz, color,
                             top_pic_map[scan_number].intensity_,
                             pg, fr,lr,
@@ -826,12 +838,7 @@ protected:
 
       //deconvoluted_spectrum_.clearPeakGroupsChargeInfo();
       //deconvoluted_spectrum_.getPrecursorPeakGroup().clearChargeInfo();
-      float progress = (float) (it - map.begin()) / map.size();
-      if (progress > prev_progress + .01)
-      {
-        printProgress_(progress);
-        prev_progress = progress;
-      }
+
     }
 
     printProgress_(1); //
@@ -897,22 +904,50 @@ protected:
     }
 
 #ifdef DEBUG_EXTRA_PARAMTER
+    int cntr = 0;
+
       for (auto it = map.begin(); it != map.end(); ++it) {
+
           scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
                                                           map.getSourceFiles()[0].getNativeIDTypeAccession());
 
           if(m_scans.find(scan_number) == m_scans.end()){
+              //continue;
+          }
+          if(cntr++ % 2 == 1){
               continue;
           }
           fi_m << "Spec{" << scan_number << "}=[";
           for (auto &p : *it) {
-              fi_m << p.getMZ() << "," << p.getIntensity() << ";";
+              fi_m << p.getMZ() << "," << std::setprecision(2)<< p.getIntensity() <<std::setprecision(-1)<< "\n";
           }
           fi_m << "];";
+
+      }
+      cntr = 0;
+      for (auto it = map.begin(); it != map.end(); ++it) {
+
+          scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
+                                                          map.getSourceFiles()[0].getNativeIDTypeAccession());
+
+          if(m_scans.find(scan_number) == m_scans.end()){
+              //continue;
+          }
+          if(cntr++ % 2 == 0){
+              continue;
+          }
+          fi_m2 << "Spec{" << scan_number << "}=[";
+          for (auto &p : *it) {
+              fi_m2 << p.getMZ() << "," << std::setprecision(2)<< p.getIntensity() <<std::setprecision(-1)<< "\n";
+          }
+          fi_m2 << "];";
       }
 
-    fi_out.close(); //
+
+
+      fi_out.close(); //
     fi_m.close();
+    fi_m2.close();
 #endif
     out_stream.close();
 

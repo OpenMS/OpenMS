@@ -446,44 +446,12 @@ namespace OpenMS
               precursor_peak_group_.setQScore(smap[2]);
               precursor_peak_group_.setRepAbsCharge((int) smap[1]);
               precursor_peak_group_.updateMassesAndIntensity();
+              //precursor_peak_group_.setScanNumber()
               return true;
             }
           }
         }
       }
-/*
-      for (auto map = precursor_map_for_real_time_acquisition.upper_bound(scan_number_);
-           map != precursor_map_for_real_time_acquisition.end();
-           map++)
-      {
-        precursor_scan_number_ = map->first;
-        //std::cout<<scan_number_ << " * " << precursor_scan_number_ <<std::endl;
-        if (map != precursor_map_for_real_time_acquisition.end())
-        {
-          for (auto &smap : map->second)
-          {
-            //
-            if (abs(start_mz - smap[3]) < .1 || abs(end_mz - smap[4]) < .1)
-            {
-              LogMzPeak precursor_log_mz_peak(precursor_peak_, is_positive);
-              precursor_log_mz_peak.abs_charge = (int) smap[1];
-              precursor_log_mz_peak.isotopeIndex = 0;
-              precursor_log_mz_peak.mass = smap[0];
-              precursor_log_mz_peak.intensity = smap[6];
-              precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
-              precursor_peak_.setIntensity(smap[5]);
-              precursor_peak_group_.push_back(precursor_log_mz_peak);
-              precursor_peak_group_.setQScore(smap[2]);
-              precursor_peak_group_.setRepAbsCharge((int) smap[1]);
-              precursor_peak_group_.updateMassesAndIntensity();
-              return true;
-            }
-          }
-        }
-      }
-
-*/
-      //std::cout<<scan_number_ << " " << precursor_peak_.getMZ() <<std::endl;
       return false;
     }
 
@@ -613,5 +581,9 @@ namespace OpenMS
     int DeconvolutedSpectrum::getScanNumber() const
     {
         return scan_number_;
+    }
+
+    int DeconvolutedSpectrum::getPrecursorScanNumber() const {
+        return precursor_scan_number_;
     }
 }

@@ -815,8 +815,8 @@ namespace OpenMS
                    is_positive_);
 
       pg.reserve(charge_range * 30);
-      Size right_index = avg_.getIsotopeEndIndex(mass);
-      Size left_index = avg_.getIsotopeStartIndex(mass);
+      Size right_index = avg_.getIsotopeRightIndexFromApex(mass);
+      Size left_index = avg_.getIsotopeLeftIndexFromApex(mass);
 
       for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index);
            j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
@@ -1087,7 +1087,7 @@ namespace OpenMS
     double mass_bin_max_value = std::min(
         log_mz_peaks_[log_mz_peaks_.size() - 1].logMz -
         filter_[tmp_peak_cntr],
-        log(current_max_mass_ + avg_.getIsotopeEndIndex(current_max_mass_) + 1));
+        log(current_max_mass_ + avg_.getIsotopeRightIndexFromApex(current_max_mass_) + 1));
 
     double bin_width = bin_width_[ms_level_ - 1];
     tmp_peak_cntr = min_peak_cntr - 1;
@@ -1195,12 +1195,13 @@ namespace OpenMS
     //int c = 0;
     for (int j = a_start; j <= a_end; j++)
     {
-      d1 += a[j] * a[j];
+        d1 += a[j] * a[j];
       int i = j - offset;
       if (i < 0 || i >= b_size)
       {
         continue;
       }
+
       n += a[j] * b[i].getIntensity(); //
     }
     double d = (d1 * b_norm);
@@ -1263,7 +1264,7 @@ namespace OpenMS
       }
     }
 
-    for (int tmp_offset = -iso_size; tmp_offset <= iso_size; tmp_offset++)
+      for (int tmp_offset = -iso_size; tmp_offset <= iso_size; tmp_offset++)
     {
       double tmp_cos = getCosine_(per_isotope_intensities,
                                   min_isotope_index,
