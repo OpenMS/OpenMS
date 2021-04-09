@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         void setMSData(MSExperiment & input) nogil except + #wrap-doc:Set spectra
         const MSExperiment& getMSData() nogil except + #wrap-doc:Get spectra
 
-        void run(const libcpp_vector[FeatureFinderAlgorithmMetaboIdent_Row] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
+        void run(const libcpp_vector[ FeatureFinderAlgorithmMetaboIdent_Row ] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
 
         MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieve chromatograms (empty if run was not executed)
 
@@ -47,6 +47,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         FeatureFinderAlgorithmMetaboIdent_Row() nogil except +
         FeatureFinderAlgorithmMetaboIdent_Row(FeatureFinderAlgorithmMetaboIdent_Row) nogil except + #wrap-ignore
 
-
-  
-
+        String name
+        String formula
+        double mass
+        libcpp_vector[ Int ] charges
+        libcpp_vector[ doubles ] rts
+        libcpp_vector[ doubles ] rt_ranges
+        libcpp_vector[ doubles ] iso_distrib
+        
