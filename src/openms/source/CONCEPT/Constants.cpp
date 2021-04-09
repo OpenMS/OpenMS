@@ -166,11 +166,20 @@ namespace OpenMS
       // User parameter name for precursor mz error in ppm
       const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
-      // User parameter name for fragment mz error in ppm
+      // User parameter name for median of fragment mz error in ppm
       const std::string FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
+
+      // User metavalue name for fragment mz error in ppm
+      const std::string FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
+
+      // User metavalue name for fragment mz error in da
+      const std::string FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
 
       // User parameter name for precursor mz error in ppm
       const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
+
+      // User parameter name for explained ion current of a psm
+      const std::string PSM_EXPLAINED_ION_CURRENT_USERPARAM = "PSM_explained_ion_current";
 
       // User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
       const std::string SPECTRUM_REFERENCE = "spectrum_reference";

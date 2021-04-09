@@ -560,6 +560,9 @@ namespace OpenMS
     ConsensusMapSharedPtrType consensus_map_sptr(consensus_map);
 
     vector<PeptideIdentification> peptides;
+    // not needed in data but for auto annotation
+    vector<ProteinIdentification> proteins;
+    String annotate_path;
 
     LayerData::DataType data_type;
 
@@ -585,7 +588,6 @@ namespace OpenMS
       }
       else if (file_type == FileTypes::IDXML)
       {
-        vector<ProteinIdentification> proteins; // not needed later
         IdXMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
@@ -614,6 +616,46 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
+
+        if (!proteins.empty())
+        {
+          StringList paths;
+          proteins[0].getPrimaryMSRunPath(paths);
+
+          for (const String &path : paths)
+          {
+            if (File::exists(path) && fh.getType(path) == FileTypes::MZML)
+            {
+              annotate_path = path;
+            }
+          }
+          // annotation could not be found in file reference
+          if (annotate_path.empty())
+          {
+            // try to find file with same path & name but with mzML extension
+            auto target = fh.swapExtension(abs_filename, FileTypes::Type::MZML);
+            if (File::exists(target))
+            {
+              annotate_path = target;
+            }
+          }
+
+          if (!annotate_path.empty())
+          {
+            // open dialog for annotation on load
+            QMessageBox msg_box;
+            auto spectra_file_name = File::basename(annotate_path);
+            msg_box.setText("Spectra data for identification data was found.");
+            msg_box.setInformativeText(String("Annotate spectra in " + spectra_file_name + "?").toQString());
+            msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            msg_box.setDefaultButton(QMessageBox::Yes);
+            auto ret = msg_box.exec();
+            if (ret == QMessageBox::No)
+            { // no annotation performed
+              annotate_path = "";
+            }
+          }
+        }
         data_type = LayerData::DT_IDENT;
       }
       else if (file_type == FileTypes::MZIDENTML)
@@ -743,6 +785,27 @@ namespace OpenMS
     }
 
     glock.unlock();
+
+    if (!annotate_path.empty())
+    {
+      auto load_res = addDataFile(annotate_path, false, false);
+      if (load_res == LOAD_RESULT::OK)
+      {
+        auto l = getCurrentLayer();
+        if (l)
+        {
+          bool success = l->annotate(peptides, proteins);
+          if (success)
+          {
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+          }
+          else
+          {
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", "Annotation failed.");
+          }
+        }
+      }
+    }
 
     addData(feature_map_sptr, 
       consensus_map_sptr, 
