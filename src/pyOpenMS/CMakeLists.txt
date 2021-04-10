@@ -505,18 +505,6 @@ ELSE()
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
-# Add R target
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
-  add_custom_target(pyopenms_create_r
-    COMMAND ${PYTHON_EXECUTABLE} create_r_extension.py 2> /dev/null
-    DEPENDS prepare_pyopenms_libs
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
-  add_custom_target(pyopenms_create_cpp
-    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-    DEPENDS prepare_pyopenms_libs
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ENDIF()
 
 set(PY_EXTRA_ARGS "")
 if(PY_SINGLE_THREADED)
