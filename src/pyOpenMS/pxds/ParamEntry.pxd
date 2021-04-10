@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         String name
         String description
         ParamValue value
-        libcpp_set[String] tags
-        libcpp_vector[String] valid_strings
+        libcpp_set[libcpp_string] tags
+        libcpp_vector[libcpp_string] valid_strings
         double  max_float
         double  min_float
         Int  max_int
@@ -23,9 +23,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
 
         ParamEntry() nogil except +
         ParamEntry(ParamEntry) nogil except +
-        ParamEntry(String n, ParamValue v, String d, StringList t) nogil except +
-        ParamEntry(String n, ParamValue v, String d) nogil except +
+        ParamEntry(String n, ParamValue v, libcpp_string d, StringList t) nogil except +
+        ParamEntry(String n, ParamValue v, libcpp_string d) nogil except +
 
-        bool isValid(String &message) nogil except +
+        bool isValid(libcpp_string &message) nogil except +
         bool operator==(ParamEntry) nogil except +
 
