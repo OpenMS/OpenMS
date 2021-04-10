@@ -655,6 +655,16 @@ START_SECTION((bool exists(const String& key) const))
 	TEST_EQUAL(p.exists("key:value"), false)
 END_SECTION
 
+START_SECTION((bool hasSection(const String& key) const))
+  Param p;
+	p.addSection("test", "");
+	p.addSection("test:test", "");
+	TEST_EQUAL(p.hasSection("test"), true)
+	TEST_EQUAL(p.hasSection("test:test"), true)
+	TEST_EQUAL(p.hasSection("sectionThatDoesNotExist"), false)
+	TEST_EQUAL(p.hasSection("AnotherSection"), false)
+END_SECTION
+
 START_SECTION((const DataValue& getValue(const String &key) const))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue(""))
