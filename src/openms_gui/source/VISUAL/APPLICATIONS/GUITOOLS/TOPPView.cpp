@@ -92,6 +92,7 @@ void print_usage()
        << "Options are:" << endl
        << "  --help           Shows this help" << endl
        << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
+       << "  --force          Forces scan for new tools" << endl
        << endl
        << "Hints:" << endl
        << " - To open several files in one window put a '+' in between the files." << endl
@@ -110,6 +111,7 @@ int main(int argc, const char** argv)
   //list of all the valid options
   Map<String, String> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
+  valid_flags["--force"] = "force";
   valid_options["-ini"] = "ini";
 
   Param param;
@@ -141,7 +143,10 @@ int main(int argc, const char** argv)
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
 
-    TOPPViewBase tb;
+    TOPPViewBase tb(
+            nullptr,
+            param.exists("force")? TOPPViewBase::TOOL_SCAN::FORCE_SCAN : TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION
+    );
     a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
     tb.show();
 

@@ -138,9 +138,10 @@ namespace OpenMS
                                                   FileTypes::DTA, FileTypes::DTA2D,
                                                   FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(QWidget* parent) :
+  TOPPViewBase::TOPPViewBase(QWidget* parent, TOOL_SCAN scan_mode) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
+    scan_mode_(scan_mode),
     ws_(this),
     tab_bar_(this),
     recent_files_(),
@@ -444,7 +445,7 @@ namespace OpenMS
     defaultsToParam_();
 
     // load param file
-    loadPreferences();
+    loadPreferences("");
 
     // set current path
     current_path_ = param_.getValue("preferences:default_path");
@@ -1535,8 +1536,11 @@ namespace OpenMS
         try
         {
           setParameters(tmp.copy("preferences:"));
-          param_.insert("tool_params:", tmp.copy("tool_params:", true));
-          tool_params_added = true;
+          if (scan_mode_ != TOOL_SCAN::FORCE_SCAN)
+          {
+            param_.insert("tool_params:", tmp.copy("tool_params:", true));
+            tool_params_added = true;
+          }
         }
         catch (Exception::InvalidParameter& /*e*/)
         {
@@ -1560,7 +1564,9 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
-    if (!tool_params_added)
+    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for
+    // whatever reason
+    if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
       TVToolDiscovery::loadParams();
     }
@@ -1580,7 +1586,7 @@ namespace OpenMS
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
     // Make sure TOPP tool/util params have been inserted
-    if (!param_.hasSection("tool_params:"))
+    if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
       addToolParamsToIni();
     }
@@ -1602,7 +1608,8 @@ namespace OpenMS
   {
     TVToolDiscovery::waitForParams();
     param_.addSection("tool_params", "");
-    for (auto &pair : TVToolDiscovery::getToolParams()) {
+    for (const auto& pair : TVToolDiscovery::getToolParams())
+    {
       param_.insert("tool_params:", pair.second);
     }
   }

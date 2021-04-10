@@ -151,11 +151,23 @@ public:
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
+    enum class TOOL_SCAN
+    {
+      /**
+         TVToolDiscovery does not generate params for each tool/util unless they are absolutely needed and could not be
+         extracted from TOPPView's ini file. This may be useful for testing.
+      */
+      SKIP_SCAN,
+      /// Only generate params for each tool/util if TOPPView's last ini file has an older version. (Default behaviour)
+      SCAN_IF_NEWER_VERSION,
+      /// Forces TVToolDiscovery to generate params and using them instead of the params in TOPPView's ini file
+      FORCE_SCAN
+    };
+
     ///Constructor
-    TOPPViewBase(QWidget* parent = nullptr);
+    explicit TOPPViewBase(QWidget* parent = nullptr, TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION);
     ///Destructor
     ~TOPPViewBase() override;
-
 
     enum class LOAD_RESULT
     {
@@ -426,6 +438,9 @@ protected:
     /// Log output window
     LogWindow* log_;
 
+    /// Determines TVToolDiscovery scans for tool/utils and generates new params.
+    TOOL_SCAN scan_mode_;
+
     /** @name Toolbar
     */
     //@{
@@ -522,6 +537,7 @@ protected:
     String current_path_;
 
 private:
+    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
     void addToolParamsToIni();
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
