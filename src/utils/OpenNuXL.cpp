@@ -999,7 +999,7 @@ protected:
 
 
   // bad score or less then two peaks matching and less than 1% explained signal
-  static bool badTotalLossScore(float hyperScore, float tlss_Morph, float tlss_modds, float tlss_total_MIC)
+  static bool badTotalLossScore(float hyperScore, float tlss_Morph, float tlss_total_MIC)
   {
     return (hyperScore < MIN_HYPERSCORE 
       || tlss_Morph < MIN_TOTAL_LOSS_IONS + 1.0
@@ -1052,11 +1052,12 @@ protected:
     return minusLog10p1pscore;
   }
 
-  /*
+
+/*  
      @param N number of theoretical peaks
      @param peak_in_spectrum number of experimental peaks
      @param matched_size number of matched theoretical peaks
-  */ 
+   
   static double matchOddsScore_(
     const Size& N,
     const float fragment_mass_tolerance_Da,
@@ -1075,6 +1076,7 @@ protected:
     const double minusLog10p1pscore = -log10(pscore);
     return minusLog10p1pscore;
   } 
+*/
 
   static void generateTheoreticalMZsZ1_(const AASequence& peptide, 
     const Residue::ResidueType& res_type, 
@@ -1514,9 +1516,9 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
     // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
     err = Morph > 2 ? err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
 
-    const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
 
 /*
+    const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
 #ifdef MODDS_ON_ABY_IONS_ONLY
     modds = matchOddsScore_(total_loss_template_z1_b_ions.size() + total_loss_template_z1_y_ions.size(),
      fragment_mass_tolerance_Da,
@@ -1566,8 +1568,8 @@ static std::vector<double> y_ = {0.2565006415119941,0.45945372412717844,0.511589
                         float& plss_modds,
                         float& plss_pc_MIC,
                         float& plss_im_MIC,
-                        size_t& n_theoretical_peaks,
-                        bool is_decoy)
+                        size_t& n_theoretical_peaks/*,
+                        bool is_decoy*/)
   {
 
 static std::vector<double> xl_a_ = {0.3659528914710744,0.47861728235068857,0.42071800758257055,0.5033640127522735,0.5895282639501609,0.49264930296695003,0.5324411204304591,0.48417463865923027,0.5511271154003025,0.5286803949442149,0.7173140531939944,0.336435471054921,0.4859101632376203,0.5024262214061576,0.46840208095976715,0.40809322953700483,0.3167094903810921,0.18129098288335982,0.4189105949805667,0.3330045922905184,0.3126071182614005,0.0650657360415093,0.40059551576627994,0.24183385621259657,0.17535844006882048,0.28364985698456463,0.433598827728014,0.27286545915347155,0.17535844006882048,0.24183385621259657,0.16767660150073574,0.32361968601164226,0.656809394243162,0.5729006723867871,0.4889919505304121,0.656809394243162,0.7021597756570445,0.7475101570709268,0.7928605384848093,0.7928605384848093,0.7928605384848093};
@@ -1997,7 +1999,7 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
     static const double imL = EmpiricalFormula("C5H12N").getMonoWeight();
     static const double imK1 = EmpiricalFormula("C5H13N2").getMonoWeight();
     static const double imK2 = EmpiricalFormula("C5H10N1").getMonoWeight();
-    static const double imK3 = EmpiricalFormula("C6H13N2O").getMonoWeight();
+//    static const double imK3 = EmpiricalFormula("C6H13N2O").getMonoWeight();
     static const double imQ = 101.0715;
     static const double imE = 102.0555;
     static const double imM = 104.0534;
@@ -2098,9 +2100,11 @@ static std::vector<double> xl_y_ = {0.2222310518617074,0.22733216758392177,0.350
 /*
 *  Combine subscores of all-ion scoring.
 */
-  static float calculateCombinedScore(const NuXLAnnotatedHit& ah, 
+  static float calculateCombinedScore(
+    const NuXLAnnotatedHit& ah/*, 
     const bool isXL, 
     const double nucleotide_mass_tags
+*/
     //, const double fraction_of_top50annotated
     )
   {
@@ -2306,8 +2310,8 @@ static void scoreXLIons_(
                          float &plss_modds,
                          float &plss_pc_MIC,
                          float &plss_im_MIC,
-                         size_t &n_theoretical_peaks,
-                         bool is_decoy)
+                         size_t &n_theoretical_peaks/*,
+                         bool is_decoy*/)
   {
     OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
@@ -2316,7 +2320,6 @@ static void scoreXLIons_(
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
     //const double exp_pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
 
-    size_t matches{0};
     if (!marker_ions_sub_score_spectrum_z1.empty())
     {
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance * 2.0,
@@ -2354,8 +2357,8 @@ static void scoreXLIons_(
                       plss_modds,
                       plss_pc_MIC,
                       plss_im_MIC,
-                      n_theoretical_peaks,
-                      is_decoy);
+                      n_theoretical_peaks/*,
+                      is_decoy*/);
 #ifdef DEBUG_OpenNuXL
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
@@ -2539,7 +2542,7 @@ static void scoreXLIons_(
 
     void tryAdd(size_t v)
     {
-       if (pq.size() < max_size_)
+       if ((int)pq.size() < max_size_)
        {
          pq.push(v);
          return;
@@ -3137,8 +3140,8 @@ static void scoreXLIons_(
      - Calculate TIC of filtered spectrum
    */
   void preprocessSpectra_(PeakMap& exp, 
-    double fragment_mass_tolerance, 
-    bool fragment_mass_tolerance_unit_ppm, 
+    double fragment_mass_tolerance,
+    bool fragment_mass_tolerance_unit_ppm,
     bool single_charge_spectra, 
     bool annotate_charge,
     double window_size,
@@ -3281,7 +3284,7 @@ static void scoreXLIons_(
       {
         const double mz = p.getMZ();
         if (mz > precursor_mass) break; // don't consider peaks after precursor mass
-        const double tol = fragment_mass_tolerance * 1e-6 * mz;
+        const double tol = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * mz : fragment_mass_tolerance;
         Interval_ a;
         a.start = mz - tol;
         a.end = mz + tol;
@@ -3423,8 +3426,8 @@ static void scoreXLIons_(
 
           if (precursor_na_adduct == "none") 
           {
-            const double tags = exp[scan_index].getFloatDataArrays()[1][0];
-            ah.score = OpenNuXL::calculateCombinedScore(ah, false, tags);
+//            const double tags = exp[scan_index].getFloatDataArrays()[1][0];
+            ah.score = OpenNuXL::calculateCombinedScore(ah/*, false, tags*/);
             continue;
           }
 
@@ -3509,7 +3512,7 @@ static void scoreXLIons_(
                                     partial_loss_sub_score,
                                     marker_ions_sub_score,
                                     plss_MIC, 
-                                    plss_err, 
+                 //                   plss_err, 
                                     plss_Morph,
                                     plss_modds);
 
@@ -3520,14 +3523,14 @@ static void scoreXLIons_(
           ah.pl_Morph = plss_Morph;
           ah.pl_modds = plss_modds;
         // add extra matched ion current
-// TODO: dieser Teil ist anders
+// TODO: this differs a bit
           ah.total_MIC += plss_MIC + marker_ions_sub_score; 
           // scores from shifted peaks
           ah.marker_ions_score = marker_ions_sub_score;
           ah.partial_loss_score = partial_loss_sub_score;
           // combined score
-          const double tags = exp[scan_index].getFloatDataArrays()[2][0];
-          ah.score = OpenNuXL::calculateCombinedScore(ah, true, tags);
+//          const double tags = exp[scan_index].getFloatDataArrays()[2][0];
+          ah.score = OpenNuXL::calculateCombinedScore(ah/*, true, tags*/);
 
         } 
       }
@@ -4009,7 +4012,7 @@ static void scoreXLIons_(
     const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
 
     // early-out if super bad score
-    if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { return; }
+    if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_total_MIC)) { return; }
 
     const double mass_error_ppm = (current_peptide_mass - exp_pc_mass) / exp_pc_mass * 1e6;
     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
@@ -4127,7 +4130,8 @@ static void scoreXLIons_(
       {
         return make_pair(best_start, best_start + max_l);
       }
-      unsigned int l = 0;
+
+      int l = 0;
       Iterator start(i);
       for (; i != e && *i > 0.0; ++i) { ++l; } // count sequence of non-zeros
       if (l > max_l) // longer sequence found?  
@@ -4135,6 +4139,7 @@ static void scoreXLIons_(
         best_start = start;
         max_l = l;
       }
+
       if (i == e) // end?
       {
         return make_pair(best_start, best_start + max_l);
@@ -4231,12 +4236,13 @@ static void scoreXLIons_(
 
     XLTags tags;
 
-    const size_t n = ab.size();
+    const int n = (int)ab.size();
 
     // calculate longest consecutive unshifted / shifted sequence and longest sequence spanning unshifted + shifted residues
     vector<int> runAB(n, 0);
     size_t run(0);
     size_t max_ab_run(0);
+
     for (int l = 0; l != n; ++l)
     {
       if (ab[l] == 0) { run = 0; continue; }
@@ -4284,7 +4290,7 @@ static void scoreXLIons_(
       vector<int> runY_XL(n_xl, 0);
       run = 0;
       size_t max_y_shifted(0);
-      for (int x = 0; x != n_xl; ++x)
+      for (int x = 0; x != (int)n_xl; ++x)
       {
         if (y_xl[x] == 0) { run = 0; continue; }
         ++run;
@@ -4326,7 +4332,7 @@ static void scoreXLIons_(
     XLTags tags;             
     vector<int> prefixRunL(intL.size(), 0);
     size_t run(0);
-    for (int l = 0; l != intL.size(); ++l)
+    for (int l = 0; l != (int)intL.size(); ++l)
     {
       if (intL[l] == 0) { run = 0; continue; }
       ++run;
@@ -5482,7 +5488,7 @@ static void scoreXLIons_(
       
   //                  total_loss_score = total_loss_score - 0.22 * (double)cit->size();
 
-                    if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
+                    if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_total_MIC)) { continue; }
 
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
@@ -5531,9 +5537,9 @@ static void scoreXLIons_(
                     ah.tag_shifted = longest_tags.tag_shifted;
 
                     // combined score
-                    const double tags = exp_spectrum.getFloatDataArrays()[2][0];
+                    //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                     ah.n_theoretical_peaks = n_theoretical_peaks;
-                    ah.score = OpenNuXL::calculateCombinedScore(ah, false, tags);
+                    ah.score = OpenNuXL::calculateCombinedScore(ah/*false, tags*/);
                     //ah.score = OpenNuXL::calculateFastScore(ah); does this work too
 
   #ifdef DEBUG_OpenNuXL
@@ -5680,7 +5686,7 @@ static void scoreXLIons_(
 
                       const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
 
-                      if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
+                      if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_total_MIC)) { continue; }
 
                       vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
 
@@ -5715,8 +5721,8 @@ static void scoreXLIons_(
                                   plss_modds,
                                   plss_pc_MIC,
                                   plss_im_MIC,
-                                  n_theoretical_peaks,
-                                  is_decoy);
+                                  n_theoretical_peaks/*,
+                                  is_decoy*/);
 
                       const double total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC)) + plss_MIC + (plss_pc_MIC - floor(plss_pc_MIC)) + plss_im_MIC + marker_ions_sub_score;
 
@@ -5795,9 +5801,9 @@ static void scoreXLIons_(
                       ah.tag_shifted = longest_tags.tag_shifted;
 
                       // combined score
-                      const double tags = exp_spectrum.getFloatDataArrays()[2][0];
+                      //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                       ah.n_theoretical_peaks = n_theoretical_peaks;
-                      ah.score = OpenNuXL::calculateCombinedScore(ah, true, tags);
+                      ah.score = OpenNuXL::calculateCombinedScore(ah/*, true,tags*/ );
 
   #ifdef DEBUG_OpenNuXL
                       OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -6151,6 +6157,7 @@ static void scoreXLIons_(
           return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
         };
      
+/*
         // all medians 
         auto metaMean = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
         {
@@ -6169,7 +6176,7 @@ static void scoreXLIons_(
           std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
           return Math::mean(decoy_XL_scores.begin(), decoy_XL_scores.end());
         };
-
+*/
         map<String, double> medians;
         for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
         {
@@ -6371,7 +6378,7 @@ static void scoreXLIons_(
                                   float &partial_loss_sub_score,
                                   float &marker_ions_sub_score,
                                   float &plss_MIC, 
-                                  float &plss_err, 
+                                  //float &plss_err, 
                                   float &plss_Morph,
                                   float &plss_modds) 
   {
@@ -6413,7 +6420,6 @@ static void scoreXLIons_(
                                                           pl_spec->getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);      
       plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
       plss_Morph = pl_sub_scores.score;
-      const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
 
       // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
 //      plss_err = plss_Morph > 2 ? pl_sub_scores.err_ppm : fragment_mass_tolerance;
@@ -6422,6 +6428,7 @@ static void scoreXLIons_(
       const double p_random_match = 1e-3;
       plss_modds = matchOddsScore_(pl_spec->size(), (int)plss_Morph, p_random_match);
 /*
+      const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
       plss_modds = matchOddsScore_(pl_spec->size(), 
         fragment_mass_tolerance_Da,
         exp_spectrum.size(),
