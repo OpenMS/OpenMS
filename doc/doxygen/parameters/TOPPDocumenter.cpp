@@ -100,7 +100,7 @@ void convertINI2HTML(const Param& p, ostream& os)
       s_attr += " item_advanced"; // optionally add advanced class
     if (it->tags.find("required") != it->tags.end())
       s_req += " item_required"; // optionally add required class
-    ParamValue::DataType value_type = it->value.valueType();
+    ParamValue::ValueType value_type = it->value.valueType();
     //write opening tag
     os << indentation
        << "<div class=\"item"

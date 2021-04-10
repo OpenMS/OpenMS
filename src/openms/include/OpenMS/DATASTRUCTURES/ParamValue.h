@@ -58,7 +58,7 @@ public:
     static const ParamValue EMPTY;
 
     /// Supported types for ParamValue
-    enum DataType : unsigned char
+    enum ValueType : unsigned char
     {
       STRING_VALUE, ///< string value
       INT_VALUE, ///< integer value
@@ -335,7 +335,7 @@ public:
     //@}
 
     /// returns the type of value stored
-    inline DataType valueType() const
+    inline ValueType valueType() const
     {
       return value_type_;
     }
@@ -368,7 +368,7 @@ public:
 protected:
 
     /// Type of the currently stored value
-    DataType value_type_;
+    ValueType value_type_;
 
     /// Space to store the data
     union

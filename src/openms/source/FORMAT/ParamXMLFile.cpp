@@ -121,7 +121,7 @@ namespace OpenMS
         // we create a temporary copy of the tag list, since we remove certain tags while writing,
         // that will be represented differently in the xml
         std::set<std::string> tag_list = it->tags;
-        ParamValue::DataType value_type = it->value.valueType();
+        ParamValue::ValueType value_type = it->value.valueType();
         bool stringParamIsFlag = false;
 
         //write opening tag

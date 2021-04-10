@@ -24,13 +24,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
          libcpp_vector[ int ] toIntVector() nogil except +
          bool toBool() nogil except +
 
-         DataType valueType() nogil except +
+         ValueType valueType() nogil except +
 
          int isEmpty() nogil except +
 
 cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS::ParamValue":
 
-    cdef enum DataType "OpenMS::ParamValue::DataType":
+    cdef enum ValueType "OpenMS::ParamValue::ValueType":
         STRING_VALUE # string value
         INT_VALUE # integer value
         DOUBLE_VALUE # double value
