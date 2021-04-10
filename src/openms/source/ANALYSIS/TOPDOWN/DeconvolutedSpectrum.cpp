@@ -391,48 +391,22 @@ namespace OpenMS
         precursor_peak_ = precursor;
       }
 
-      double start_mz = precursor_peak_.getIsolationWindowLowerOffset() > 100.0 ?
-                        precursor_peak_.getIsolationWindowLowerOffset() :
-                        -precursor_peak_.getIsolationWindowLowerOffset() + precursor_peak_.getMZ();
-      double end_mz = precursor_peak_.getIsolationWindowUpperOffset() > 100.0 ?
-                      precursor_peak_.getIsolationWindowUpperOffset() :
-                      precursor_peak_.getIsolationWindowUpperOffset() + precursor_peak_.getMZ();
-      // ms1 scan -> mass, charge ,score, mz range
-      double center_mz = (start_mz + end_mz) / 2.0;
-      double mz_tol = (end_mz - center_mz) + .1;
-
-      for (int i = survey_scans.size() - 1; i >= 0; i--)
-      {
-        auto precursor_spectrum = survey_scans[i];
-        if (precursor_spectrum.empty())
-        {
-          continue;
-        }
-        int index = precursor_spectrum.spec_.findNearest(center_mz, mz_tol);
-        if (index < 0)
-        {
-          continue;
-        }
-        if (precursor_peak_.getIntensity() > precursor_spectrum.spec_[index].getIntensity())
-        {
-          continue;
-        }
-        precursor_peak_.setIntensity(precursor_spectrum.spec_[index].getIntensity());
-        precursor_peak_.setMZ(precursor_spectrum.spec_[index].getMZ());
-      }
 
       for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
            map != precursor_map_for_real_time_acquisition.begin();
            map--)
       {
-        precursor_scan_number_ = map->first;
+        if(map->first >= scan_number_){
+            continue;
+        }
+          //std::cout<<scan_number_<<" "<<precursor_scan_number_<<"\n";
         // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
         if (map != precursor_map_for_real_time_acquisition.end())
         {
           for (auto &smap : map->second)
           {
             //
-            if (abs(start_mz - smap[3]) < .1 || abs(end_mz - smap[4]) < .1)
+            if (precursor_peak_.getMZ() >= smap[3] && precursor_peak_.getMZ() <= smap[4])
             {
               LogMzPeak precursor_log_mz_peak(precursor_peak_, is_positive);
               precursor_log_mz_peak.abs_charge = (int) smap[1];
@@ -447,6 +421,7 @@ namespace OpenMS
               precursor_peak_group_.setRepAbsCharge((int) smap[1]);
               precursor_peak_group_.updateMassesAndIntensity();
               //precursor_peak_group_.setScanNumber()
+              precursor_scan_number_ = map->first;
               return true;
             }
           }

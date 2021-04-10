@@ -576,7 +576,6 @@ protected:
     // Run FLASHDeconv here
 
     int scan_number = 0;
-    int prev_scan_number  = 0;
     float prev_progress = .0;
     int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
     auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
@@ -757,7 +756,7 @@ protected:
         int fr = top_pic_map[scan_number].first_residue_;
         int lr = top_pic_map[scan_number].last_residue_;
 
-          QScore::writeAttTsv(top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
+          QScore::writeAttTsv(scan_number, top_pic_map[scan_number].protein_acc_, top_pic_map[scan_number].proteform_id_,
                             deconvoluted_spectrum.getOriginalSpectrum().getRT(),
                             deconvoluted_spectrum.getPrecursorScanNumber(),
                             pmass, pmz, color,
@@ -771,13 +770,11 @@ protected:
 
 #ifdef DEBUG_EXTRA_PARAMTER
           if(m2_scans.find(scan_number) != m2_scans.end()) {
-              m_scans.insert(prev_scan_number);
+              m_scans.insert(deconvoluted_spectrum.getPrecursorScanNumber());
           }
 #endif
       }
-        if(it->getMSLevel() == 1){
-            prev_scan_number = scan_number;
-        }
+
 
       if (!out_mzml_file.empty())
       {
@@ -912,7 +909,7 @@ protected:
                                                           map.getSourceFiles()[0].getNativeIDTypeAccession());
 
           if(m_scans.find(scan_number) == m_scans.end()){
-              //continue;
+              continue;
           }
           if(cntr++ % 2 == 1){
               continue;
@@ -931,7 +928,7 @@ protected:
                                                           map.getSourceFiles()[0].getNativeIDTypeAccession());
 
           if(m_scans.find(scan_number) == m_scans.end()){
-              //continue;
+              continue;
           }
           if(cntr++ % 2 == 0){
               continue;
@@ -942,8 +939,6 @@ protected:
           }
           fi_m2 << "];";
       }
-
-
 
       fi_out.close(); //
     fi_m.close();

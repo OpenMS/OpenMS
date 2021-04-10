@@ -57,7 +57,8 @@ namespace OpenMS
     static double getQScore(const PeakGroup *pg, const int abs_charge);
 
     /// function to generate attribute tsv file for weka interface (for now)
-    static void writeAttTsv(const String &acc,
+    static void writeAttTsv(const int scan_number,
+                            const String &acc,
                             const int proID,
                             const double rt,
                             const int pscan,

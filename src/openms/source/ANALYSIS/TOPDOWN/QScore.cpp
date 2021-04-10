@@ -107,7 +107,8 @@ namespace OpenMS
     f << "Class\n";
   }
 
-  void QScore::writeAttTsv(const String &acc,
+  void QScore::writeAttTsv(const int scan_number,
+                           const String &acc,
                            const int proID,
                            const double rt,
                            const int pscan,
@@ -141,7 +142,7 @@ namespace OpenMS
       //  return;
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << acc << "," << fr << "," << lr << ","<< proID << "," << rt << "," << pg.getScanNumber()<< ","<< pscan << "," << monomass << "," << mass << ","<< color <<"," << pmz << ","
+      f << acc << "," << fr << "," << lr << ","<< proID << "," << rt << "," << scan_number<< ","<< pscan << "," << monomass << "," << mass << ","<< color <<"," << pmz << ","
         << precursor_intensity << ","
         << pg.getIntensity()<< "," << fintensity << ","
         << charge << ","
