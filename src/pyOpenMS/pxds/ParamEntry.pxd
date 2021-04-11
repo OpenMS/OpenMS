@@ -8,8 +8,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
 
     cdef cppclass ParamEntry:
 
-        String name
-        String description
+        libcpp_string name
+        libcpp_string description
         ParamValue value
         libcpp_set[libcpp_string] tags
         libcpp_vector[libcpp_string] valid_strings
@@ -20,8 +20,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
 
         ParamEntry() nogil except +
         ParamEntry(ParamEntry) nogil except +
-        ParamEntry(String n, ParamValue v, libcpp_string d, StringList t) nogil except +
-        ParamEntry(String n, ParamValue v, libcpp_string d) nogil except +
+        ParamEntry(libcpp_string n, ParamValue v, libcpp_string d, StringList t) nogil except +
+        ParamEntry(libcpp_string n, ParamValue v, libcpp_string d) nogil except +
 
         bool isValid(libcpp_string & message) nogil except +
         bool operator==(ParamEntry) nogil except +
