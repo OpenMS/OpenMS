@@ -70,7 +70,7 @@ namespace OpenMS {
         }
         rt_window_ = inputs["RT_window"][0];
         qscore_threshold_ = inputs["score_threshold"][0];
-        charge_snr_threshold_ = 1.0;
+        charge_snr_threshold_ = 0.0;
         Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
         // overwrite algorithm default so we export everything (important for copying back MSstats results)
         fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
@@ -184,7 +184,7 @@ namespace OpenMS {
         std::vector<DeconvolutedSpectrum> tmp;
         std::vector<Precursor> triggeredPeaks;
         std::map<int, std::vector<std::vector<double>>> empty;
-        deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, triggeredPeaks, tmp, 0, empty);
+        deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, triggeredPeaks, tmp, 0, 1, empty);
 
         // per spec deconvolution
         //    int specIndex = 0, massIndex = 0; // ..

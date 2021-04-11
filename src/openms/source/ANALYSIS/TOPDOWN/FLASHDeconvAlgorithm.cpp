@@ -65,7 +65,7 @@ namespace OpenMS
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
     defaults_.setValue("min_qscore",
-                       .05,
+                       .03,
                        "minimum QScore threshold. QScore is the probability that a mass is identified, learned by a logistic regression.");
 
     defaults_.setValue("min_peaks",
@@ -129,6 +129,7 @@ namespace OpenMS
                                                                       const std::vector<Precursor> &triggeredPeaks,
                                                                       const std::vector<DeconvolutedSpectrum> &survey_scans,
                                                                       const int scan_number,
+                                                                      const int max_survey_cntr,
                                                                       const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
 
@@ -138,7 +139,9 @@ namespace OpenMS
 
     if (ms_level_ > 1 && (!survey_scans.empty() || !precursor_map_for_real_time_acquisition.empty()))
     {
-      bool registered = deconvoluted_spectrum_.registerPrecursor(survey_scans, precursor_map_for_real_time_acquisition);
+        bool registered = deconvoluted_spectrum_.registerPrecursor(survey_scans,
+                                                                   precursor_map_for_real_time_acquisition,
+                                                                   max_survey_cntr);
 
     }
     if (min_rt_ > 0 && spec.getRT() < min_rt_)

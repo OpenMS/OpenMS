@@ -87,6 +87,7 @@ namespace OpenMS
                                                   const std::vector<Precursor> &triggeredPeaks,
                                                   const std::vector<DeconvolutedSpectrum> &survey_scans,
                                                   const int scan_number,
+                                                  const int max_survey_cntr,
                                                   const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
 
     /// get calculated averagine

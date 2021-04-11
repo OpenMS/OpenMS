@@ -140,9 +140,9 @@ protected:
 
     registerIntOption_("preceding_MS1_count",
                        "<number>",
-                       10,
+                       1,
                        "Specifies the number of preceding MS1 spectra for MS2 precursor determination. In TDP, some precursor peaks in MS2 are not part of "
-                       "the deconvoluted masses in MS1 immediatly preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
+                       "the deconvoluted masses in MS1 immediately preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
                        "MS1 spectra and helps determine exact precursor masses.",
                        false,
                        false);
@@ -577,8 +577,9 @@ protected:
 
     int scan_number = 0;
     float prev_progress = .0;
-    int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
-    auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
+      int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
+      const int max_num_last_deconvoluted_spectra = std::max(50, num_last_deconvoluted_spectra * 2);
+      auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
     //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 #ifdef DEBUG_EXTRA_PARAMTER
     std::set<int> m_scans;
@@ -737,6 +738,7 @@ protected:
                                                               triggeredPeaks,
                                                               precursor_specs,
                                                               scan_number,
+                                                              num_last_deconvoluted_spectra,
                                                               precursor_map_for_real_time_acquisition);
 
       if(it->getMSLevel() > 1&& !deconvoluted_spectrum.getPrecursorPeakGroup().empty()){
@@ -794,9 +796,9 @@ protected:
         //  lastlast_deconvoluted_spectra[ms_level] = last_deconvoluted_spectra[ms_level];
         //}
 
-        if(last_deconvoluted_spectra[ms_level].size() >= num_last_deconvoluted_spectra){
-          last_deconvoluted_spectra.erase(last_deconvoluted_spectra.begin());
-        }
+          if (last_deconvoluted_spectra[ms_level].size() >= max_num_last_deconvoluted_spectra) {
+              last_deconvoluted_spectra.erase(last_deconvoluted_spectra.begin());
+          }
         last_deconvoluted_spectra[ms_level].push_back(deconvoluted_spectrum);
       }
 

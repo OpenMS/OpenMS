@@ -132,7 +132,8 @@ namespace OpenMS
      @param precursor_map_for_real_time_acquisition
      */
     bool registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
-                           const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
+                           const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition,
+                           const int max_survey_cntr);
 
     /// original spectrum setter
     const MSSpectrum &getOriginalSpectrum() const;
