@@ -23,6 +23,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         ParamEntry(libcpp_string n, ParamValue v, libcpp_string d, StringList t) nogil except +
         ParamEntry(libcpp_string n, ParamValue v, libcpp_string d) nogil except +
 
-        bool isValid(libcpp_string & message) nogil except +
+        # TODO: wrap bool isValid(libcpp_string & message) maybe as libcpp_pair[bool, libcpp_str] isValid() if possible
         bool operator==(ParamEntry) nogil except +
 
