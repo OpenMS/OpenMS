@@ -23,6 +23,7 @@ set(qc_executables_list
   MissedCleavages_test
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
+  MQEvidenceExporter_test
   MzCalibration_test
   PeptideMass_test
   PSMExplainedIonCurrent_test
