@@ -272,7 +272,7 @@ public:
     std::string toString(bool full_precision = true) const;
 
     /**
-      @brief Explicitly convert ParamValue to StringList
+      @brief Explicitly convert ParamValue to string vector
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
