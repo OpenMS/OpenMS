@@ -385,7 +385,7 @@ namespace OpenMS
 
         // retrieve protein the evidence points to
         ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
-        if (xl_pos_in_protein < protein->getSequence().size())
+        if (xl_pos_in_protein < (int)protein->getSequence().size())
         {
           auto mods = protein->getModifications();  // TODO: add mutable reference access
           mods.AALevelSummary[xl_pos_in_protein][xl].count++;
