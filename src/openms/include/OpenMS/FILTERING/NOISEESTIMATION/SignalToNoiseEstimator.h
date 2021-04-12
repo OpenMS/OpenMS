@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -41,10 +41,11 @@
 
 #include <vector>
 #include <cmath>
-#include <map>
 
 namespace OpenMS
 {
+  class MSExperiment;
+
   /**
     @brief This class represents the abstract base class of a signal to noise estimator.
 
@@ -70,10 +71,7 @@ public:
     /// Constructor
     inline SignalToNoiseEstimator() :
       DefaultParamHandler("SignalToNoiseEstimator"),
-      ProgressLogger(),
-      first_(),
-      last_(),
-      is_result_valid_(false)
+      ProgressLogger()
     {
     }
 
@@ -81,10 +79,7 @@ public:
     inline SignalToNoiseEstimator(const SignalToNoiseEstimator & source) :
       DefaultParamHandler(source),
       ProgressLogger(source),
-      stn_estimates_(source.stn_estimates_),
-      first_(source.first_),
-      last_(source.last_),
-      is_result_valid_(source.is_result_valid_)
+      stn_estimates_(source.stn_estimates_)
     {}
 
     /// Assignment operator
@@ -95,8 +90,6 @@ public:
       DefaultParamHandler::operator=(source);
       ProgressLogger::operator=(source);
       stn_estimates_ = source.stn_estimates_;
-      first_ = source.first_;
-      last_  = source.last_;
       return *this;
     }
 
@@ -104,47 +97,19 @@ public:
     ~SignalToNoiseEstimator() override
     {}
 
-
     /// Set the start and endpoint of the raw data interval, for which signal to noise ratios will be estimated immediately
-    virtual void init(const PeakIterator & it_begin, const PeakIterator & it_end)
+    virtual void init(const Container& c)
     {
-      first_ = it_begin;
-      last_ = it_end;
-      computeSTN_(first_, last_);
-      is_result_valid_ = true;
+      computeSTN_(c);
     }
 
-    /// Set the start and endpoint of the raw data interval, for which signal to noise ratios will be estimated immediately
-    virtual void init(const Container & c)
+    ///Return to signal/noise estimate for date point @p index
+    ///@note you will get a warning to stderr if more than 20% of the
+    ///      noise estimates used sparse windows
+    virtual double getSignalToNoise(const Size index) const
     {
-      init(c.begin(), c.end());
-    }
-
-    /// Return to signal/noise estimate for data point @p data_point
-    /// @note the first query to this function will take longer, as
-    ///       all SignalToNoise values are calculated
-    /// @note you will get a warning to stderr if more than 20% of the
-    ///       noise estimates used sparse windows
-    virtual double getSignalToNoise(const PeakIterator & data_point)
-    {
-      if (!is_result_valid_)
-      {
-        // recompute ...
-        init(first_, last_);
-      }
-
-      return stn_estimates_[*data_point];
-    }
-
-    virtual double getSignalToNoise(const PeakType & data_point)
-    {
-      if (!is_result_valid_)
-      {
-        // recompute ...
-        init(first_, last_);
-      }
-
-      return stn_estimates_[data_point];
+      OPENMS_POSTCONDITION(index < stn_estimates_.size(),"SignalToNoiseEstimator estimates beyond container size was requested.");
+      return stn_estimates_[index];
     }
 
 protected:
@@ -154,7 +119,7 @@ protected:
          *
          * @exception Throws Exception::InvalidValue
          */
-    virtual void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_) = 0;
+    virtual void computeSTN_(const Container& c) = 0;
 
 
 
@@ -204,15 +169,12 @@ protected:
     //MEMBERS:
 
     /// stores the noise estimate for each peak
-    std::map<PeakType, double, typename PeakType::PositionLess> stn_estimates_;
-
-    /// points to the first raw data point in the interval
-    PeakIterator first_;
-    /// points to the right position next to the last raw data point in the interval
-    PeakIterator last_;
-    /// flag: set to true if SignalToNoise estimates are calculated and none of the params were changed. otherwise false.
-    mutable bool is_result_valid_;
+    std::vector<double> stn_estimates_;
   };
+
+  /// Picks @p n_scans from the given @p ms_level randomly and returns either average intensity at a certain @p percentile.
+  /// If no scans with the required level are present, 0.0 is returned
+  OPENMS_DLLAPI float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans = 10, const double percentile = 80);
 
 } // namespace OpenMS
 

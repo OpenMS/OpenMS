@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,27 +112,24 @@ protected:
     registerInputFileList_("id_in", "<file list>", StringList(), "Input idXML file list, containing the identifications.");
     setValidFormats_("id_in", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("precursor_out", "<file>", "", "Output file which contains the deviations from the precursors", false, false);
-    setValidFormats_("precursor_out", ListUtils::create<String>("csv"));
-
-    registerStringList_("precursor_columns", "<columns>", ListUtils::create<String>("MassDifference"), "Columns which will be written to the output file", false);
-    setValidStrings_("precursor_columns", ListUtils::create<String>("MassDifference"));
+    registerOutputFile_("out_precursor", "<file>", "", "Output file which contains the deviations from the precursors", false, false);
+    setValidFormats_("out_precursor", ListUtils::create<String>("tsv"));
     registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
 
-    registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
-    setValidFormats_("fragment_out", ListUtils::create<String>("csv"));
-    registerStringList_("fragment_columns", "<columns>", ListUtils::create<String>("MassDifference"), "Columns which will be written to the output file", false);
-    setValidStrings_("fragment_columns", ListUtils::create<String>("MassDifference"));
+    registerOutputFile_("out_fragment", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
+    setValidFormats_("out_fragment", ListUtils::create<String>("tsv"));
     registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");
 
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Maximal fragment mass tolerance which is allowed for MS/MS spectra, used for the calculation of matching ions.", false, false);
-    registerStringOption_("separator", "<character>", " ", "character which should be used to separate the columns in the output files", false);
 
     registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
     setMinInt_("number_of_bins", 10);
 
-    registerStringOption_("generate_gnuplot_scripts", "<false>", "false", "If this option is set to true, the distributions and the fits are used to generate a gnuplot script, that can be used to generate plots. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
-    setValidStrings_("generate_gnuplot_scripts", ListUtils::create<String>("true,false"));
+    registerOutputFile_("out_precursor_fit", "<file>", "", "Gaussian fit to the histogram of mass deviations from the precursors.", false, true);
+    setValidFormats_("out_precursor_fit", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("out_fragment_fit", "<file>", "", "Gaussian fit to the histogram of mass deviations from the fragments.", false, true);
+    setValidFormats_("out_fragment_fit", ListUtils::create<String>("tsv"));
   }
 
   double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
@@ -156,7 +153,6 @@ protected:
     Size number_of_bins((UInt)getIntOption_("number_of_bins"));
     bool precursor_error_ppm(getFlag_("precursor_error_ppm"));
     bool fragment_error_ppm(getFlag_("fragment_error_ppm"));
-    bool generate_gnuplot_scripts(DataValue(getStringOption_("generate_gnuplot_scripts")).toBool());
 
     if (in_raw.size() != id_in.size())
     {
@@ -213,7 +209,7 @@ protected:
 
     // generate precursor statistics
     vector<MassDifference> precursor_diffs;
-    if (getStringOption_("precursor_out") != "")
+    if (getStringOption_("out_precursor") != "" || getStringOption_("out_precursor_fit") != "")
     {
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
@@ -235,7 +231,7 @@ protected:
                 charge = 1;
               }
               md.exp_mz = it->getMZ();
-              md.theo_mz = (hit.getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
+              md.theo_mz = hit.getSequence().getMonoWeight(Residue::Full, charge);
               md.charge = charge;
               precursor_diffs.push_back(md);
             }
@@ -253,7 +249,7 @@ protected:
     sa_param.setValue("tolerance", fragment_mass_tolerance);
     sa.setParameters(sa_param);
 
-    if (getStringOption_("fragment_out") != "")
+    if (getStringOption_("out_fragment") != "" || getStringOption_("out_fragment_fit") != "")
     {
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
@@ -296,16 +292,15 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    String precursor_out_file(getStringOption_("precursor_out"));
-    if (precursor_out_file != "")
+    String precursor_out_file(getStringOption_("out_precursor"));
+    if (precursor_out_file != "" || getStringOption_("out_precursor_fit") != "")
     {
       vector<double> errors;
-      ofstream precursor_out(precursor_out_file.c_str());
+      
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
       for (Size i = 0; i != precursor_diffs.size(); ++i)
       {
-        double diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm);
-        precursor_out << diff << "\n";
+        double diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm); 
         errors.push_back(diff);
 
         if (diff > max_diff)
@@ -317,7 +312,15 @@ protected:
           min_diff = diff;
         }
       }
-      precursor_out.close();
+      if (precursor_out_file != "")
+      {
+        ofstream precursor_out(precursor_out_file.c_str());
+        for (Size i = 0; i != errors.size(); ++i)
+        {
+          precursor_out << errors[i] << "\n";
+        }
+        precursor_out.close();
+      }
 
       // fill histogram with the collected values
       double bin_size = (max_diff - min_diff) / (double)number_of_bins;
@@ -360,30 +363,26 @@ protected:
       {
         gf.fit(values);
 
-        // write gnuplot scripts
-        if (generate_gnuplot_scripts)
+        // write fit data
+        String fit_out_file(getStringOption_("out_precursor_fit"));
+        if (fit_out_file != "")
         {
-          ofstream out(String(precursor_out_file + "_gnuplot.dat").c_str());
-          for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
-          {
-            out << it->getX() << " " << it->getY() << endl;
-          }
-          out.close();
-
-          ofstream gpl_out(String(precursor_out_file + "_gnuplot.gpl").c_str());
-          gpl_out << "set terminal png" << endl;
-          gpl_out << "set output \"" << precursor_out_file  << "_gnuplot.png\"" << endl;
+          ofstream fit_out(fit_out_file.c_str());
           if (precursor_error_ppm)
           {
-            gpl_out << "set xlabel \"error in ppm\"" << endl;
+            fit_out << "error in ppm";
           }
           else
           {
-            gpl_out << "set xlabel \"error in Da\"" << endl;
+            fit_out << "error in Da";
           }
-          gpl_out << "set ylabel \"frequency\"" << endl;
-          gpl_out << "plot '" << precursor_out_file << "_gnuplot.dat' title 'Precursor mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
-          gpl_out.close();
+          fit_out << "\tfrequency\n";
+
+	        for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          {
+            fit_out << it->getX() << "\t" << it->getY() << "\n";
+          }
+          fit_out.close();
         }
 
       }
@@ -393,16 +392,14 @@ protected:
       }
     }
 
-    String fragment_out_file(getStringOption_("fragment_out"));
-    if (fragment_out_file != "")
+    String fragment_out_file(getStringOption_("out_fragment"));
+    if (fragment_out_file != "" || getStringOption_("out_fragment_fit") != "")
     {
       vector<double> errors;
-      ofstream fragment_out(fragment_out_file.c_str());
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
       for (Size i = 0; i != fragment_diffs.size(); ++i)
       {
         double diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
-        fragment_out << diff << endl;
         errors.push_back(diff);
 
         if (diff > max_diff)
@@ -414,8 +411,15 @@ protected:
           min_diff = diff;
         }
       }
-      fragment_out.close();
-
+      if (fragment_out_file != "")
+      {
+        ofstream fragment_out(fragment_out_file.c_str());
+        for (Size i = 0; i != errors.size(); ++i)
+        {
+          fragment_out << errors[i] << "\n";
+        }
+        fragment_out.close();
+      }
       // fill histogram with the collected values
       // here we use the intensities to scale the error
       // low intensity peaks are likely to be random matches
@@ -459,31 +463,26 @@ protected:
       {
         gf.fit(values);
 
-
-        // write gnuplot script
-        if (generate_gnuplot_scripts)
+        // write fit data
+        String fit_out_file(getStringOption_("out_fragment_fit"));
+        if (fit_out_file != "")
         {
-          ofstream out(String(fragment_out_file + "_gnuplot.dat").c_str());
-          for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          ofstream fit_out(fit_out_file.c_str());
+          if (precursor_error_ppm)
           {
-            out << it->getX() << " " << it->getY() << endl;
-          }
-          out.close();
-
-          ofstream gpl_out(String(fragment_out_file + "_gnuplot.gpl").c_str());
-          gpl_out << "set terminal png" << endl;
-          gpl_out << "set output \"" << fragment_out_file  << "_gnuplot.png\"" << endl;
-          if (fragment_error_ppm)
-          {
-            gpl_out << "set xlabel \"error in ppm\"" << endl;
+            fit_out << "error in ppm";
           }
           else
           {
-            gpl_out << "set xlabel \"error in Da\"" << endl;
+            fit_out << "error in Da";
           }
-          gpl_out << "set ylabel \"frequency\"" << endl;
-          gpl_out << "plot '" << fragment_out_file << "_gnuplot.dat' title 'Fragment mass error distribution' w boxes, f(x) w lp title 'Gaussian fit of the error distribution'" << endl;
-          gpl_out.close();
+          fit_out << "\tfrequency\n";
+
+	        for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+          {
+            fit_out << it->getX() << "\t" << it->getY() << "\n";
+          }
+          fit_out.close();
         }
       }
       catch (Exception::UnableToFit&)

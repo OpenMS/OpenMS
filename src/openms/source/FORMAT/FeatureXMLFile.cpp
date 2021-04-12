@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -257,7 +257,7 @@ namespace OpenMS
         //Add MetaInfo, when modifications has it (Andreas)
       }
 
-      writeUserParam_("UserParam", os, search_param, 4);
+      writeUserParam_("UserParam", os, search_param, 3);
 
       os << "\t\t</SearchParameters>\n";
 
@@ -525,7 +525,7 @@ namespace OpenMS
     {
       prot_id_.setSearchEngine(attributeAsString_(attributes, "search_engine"));
       prot_id_.setSearchEngineVersion(attributeAsString_(attributes, "search_engine_version"));
-      prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
+      prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
       // set identifier
       // always generate a unique id to link a ProteinIdentification and the corresponding PeptideIdentifications
       // , since any FeatureLinker might just carelessly concatenate PepIDs from different FeatureMaps.

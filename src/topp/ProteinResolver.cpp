@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,7 +125,7 @@ using namespace OpenMS;
          <dd>For each MSD group, the ISD group, the protein indices, the peptide indices, the number of peptides in MSD group, the number
               of proteins in ISD and the number of proteins in ISD are written to the output file</dd>
         <dt>Protein table</dt>
-        <dd>The resulting text file contains one protein per line<dd>
+        <dd>The resulting text file contains one protein per line</dd>
         <dt>Peptide table</dt>
         <dd>The output file will contain one peptide per line and all proteins which contain that specific peptide</dd>
         <dt>Statistics:</dt>

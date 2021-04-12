@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,37 +53,39 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_MassTraceExtractor MassTraceExtractor
+  @page TOPP_MassTraceExtractor MassTraceExtractor
 
-        @brief MassTraceExtractor extracts mass traces from a @ref MSExperiment map and stores them into a @ref FeatureXMLFile.
+  @brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MassTraceExtractor \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
-        </tr>
-        </table>
-        </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MassTraceExtractor \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
+  </tr>
+  </table>
+  </CENTER>
 
 
-        This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
-        a @ref FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
-        be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
-        the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
-        For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
+  This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
+  a FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
+  be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
+  the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
+  For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_MassTraceExtractor.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_MassTraceExtractor.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MassTraceExtractor.html
 */
 
 // We do not want this class to show up in the docu:

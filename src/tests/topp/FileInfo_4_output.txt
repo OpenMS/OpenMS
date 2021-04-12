@@ -1,25 +1,34 @@
 
 -- General information --
 
-File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_4_input.mzXML
+File name: C:/dev/openms_test/src/tests/topp/FileInfo_4_input.mzXML
 File type: mzXML
+
+Instrument: 
+  Mass Analyzer: Quadrupole ion trap (resolution: 0)
 
 MS levels: 1, 2
 Total number of peaks: 6864
 Number of spectra: 20
 
+Ranges:
+  retention time: 0.26 .. 37.64 sec (0.6 min)
+  mass-to-charge: 207.51 .. 1496.08
+  intensity:      12.15 .. 25903.89
+
 Number of spectra per MS level:
   level 1: 14
   level 2: 6
 
-Ranges:
-  retention time: 0.26 .. 37.64
-  mass-to-charge: 207.51 .. 1496.08
-  intensity:      12.15 .. 25903.89
-
-Peak type metadata (estimated)
+Peak type from metadata (or estimated from data)
   level 1: Centroid (Centroid)
   level 2: Centroid (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 0: 6x
+
 
 -- Meta information --
 

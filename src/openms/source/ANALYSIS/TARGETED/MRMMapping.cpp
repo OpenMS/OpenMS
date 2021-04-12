@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -140,7 +140,7 @@ namespace OpenMS
       }
 
       // Check whether we have mapped this chromatogram to at least one transition:
-      //  - warn if no mapping occured
+      //  - warn if no mapping occurred
       //  - else append all mapped chromatograms (if we allow multiple mappings)
       //  - else append the first mapped chromatograms (if we don't allow multiple mappings)
       if (mapped_chroms.empty())

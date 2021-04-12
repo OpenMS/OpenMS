@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
-#include <OpenMS/METADATA/SpectrumLookup.h> 
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
@@ -94,6 +94,8 @@ namespace OpenMS
     defaults_.setMinInt("number_of_hits", 0);
     defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
     defaults_.setValidStrings("skip_spectrum_charges", ListUtils::create<String>("true,false"));
+    defaults_.setValue("decoy", "false", "Set to true if mascot should generate the decoy database.");
+    defaults_.setValidStrings("decoy", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", ListUtils::create<String>("advanced"));
     defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", ListUtils::create<String>("advanced"));
@@ -248,6 +250,13 @@ namespace OpenMS
     writeParameterHeader_("DB", os);
     os << param_.getValue("database") << "\n";
 
+    // decoys
+    if (param_.getValue("decoy").toBool() == true)
+    {
+      writeParameterHeader_("DECOY", os);
+      os << 1 << "\n";
+    }
+
     // search type
     writeParameterHeader_("SEARCH", os);
     os << param_.getValue("search_type") << "\n";
@@ -305,7 +314,7 @@ namespace OpenMS
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
+  void MascotGenericFile::writeSpectrum(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
   {
     Precursor precursor;
     if (spec.getPrecursors().size() > 0)
@@ -337,34 +346,52 @@ namespace OpenMS
       os << "BEGIN IONS\n";
       if (!store_compact_)
       {
-        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
-           << "_" << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
+             << "_" << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-  if (native_id_type_accession == "UNKNOWN")
-  {
-    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-  }
-  else
-  {
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
           os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-  }
+        }
       }
       else
       {
-        os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
-           << setprecision(LOW_PRECISION) << rt << "_"
-           << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
+             << setprecision(LOW_PRECISION) << rt << "_"
+             << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-  if (native_id_type_accession == "UNKNOWN")
-  {
-    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-  }
-  else
-  {
-    os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-  }
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+        }
       }
 
       int charge(precursor.getCharge());
@@ -424,22 +451,30 @@ namespace OpenMS
 
 
     String native_id_type_accession;
-    vector<SourceFile> sourcefiles = experiment.getExperimentalSettings().getSourceFiles();
+    vector<SourceFile> sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {
+      OPENMS_LOG_WARN << "MascotGenericFile: no native ID accession." << endl;
       native_id_type_accession = "UNKNOWN";
     }
     else
     {
-      native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+      native_id_type_accession = experiment.getSourceFiles()[0].getNativeIDTypeAccession();
+      if (native_id_type_accession.empty())
+      {
+        OPENMS_LOG_WARN << "MascotGenericFile: empty native ID accession." << endl;
+        native_id_type_accession = "UNKNOWN";
+      }
     }
+
+
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {
       this->setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
-        writeSpectrum_(os, experiment[i], filtered_filename, native_id_type_accession);
+        writeSpectrum(os, experiment[i], filtered_filename, native_id_type_accession);
       }
       else if (experiment[i].getMSLevel() == 0)
       {

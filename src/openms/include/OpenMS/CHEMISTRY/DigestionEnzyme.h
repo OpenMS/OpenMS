@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,6 +65,14 @@ namespace OpenMS
     /// Detailed constructor
     explicit DigestionEnzyme(const String& name,
                              const String& cleavage_regex,
+                             const std::set<String>& synonyms = std::set<String>(),
+                             String regex_description = "");
+
+    /// Detailed constructor 2
+    explicit DigestionEnzyme(const String& name,
+                             String cut_before,
+                             const String& nocut_after = "",
+                             String sense = "C",
                              const std::set<String>& synonyms = std::set<String>(),
                              String regex_description = "");
 

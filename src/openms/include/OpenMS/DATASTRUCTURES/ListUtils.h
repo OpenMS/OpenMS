@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,7 +125,7 @@ public:
 
     /**
       @brief Converts a vector of strings to a vector of the target type T.
-      @note The strings are not trimmed.
+      @note The strings are trimmed before conversion.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
       @param s The vector of strings that should be converted.
@@ -133,6 +133,22 @@ public:
     */
     template <typename T>
     static std::vector<T> create(const std::vector<String>& s);
+
+
+    /**
+  @brief Converts a vector of T's to a vector of Strings.
+
+  @param s The vector of T's that should be converted.
+  @return A vector containing the elements of input vector converted into Strings.
+*/
+    template <typename T>
+    static std::vector<String> toStringList(const std::vector<T>& s)
+    {
+      StringList out;
+      out.reserve(s.size());
+      for (const auto& elem : s) out.push_back(elem);
+      return out;
+    }
 
     /**
       @brief Checks whether the element @p elem is contained in the given container.

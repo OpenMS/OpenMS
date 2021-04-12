@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 using namespace std;
 
@@ -59,6 +60,15 @@ namespace OpenMS
 
   BaseFeature::BaseFeature(const RichPeak2D& point) :
     RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
+  {
+  }
+
+  BaseFeature::BaseFeature(const FeatureHandle& fh) :
+    RichPeak2D(fh),
+    quality_(0.0),
+    charge_(fh.getCharge()),
+    width_(fh.getWidth()),
+    peptides_()
   {
   }
 
@@ -134,6 +144,25 @@ namespace OpenMS
     const vector<PeptideIdentification>& peptides)
   {
     peptides_ = peptides;
+  }
+
+  void BaseFeature::sortPeptideIdentifications()
+  {
+    std::sort(peptides_.rbegin(),peptides_.rend(),
+              [](PeptideIdentification& p1, PeptideIdentification& p2)
+              {p1.sort();p2.sort();
+              if (p1.empty())
+                return true;
+              if (p2.empty())
+                return false;
+              if (p1.isHigherScoreBetter())
+              {
+                return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
+              }
+              else
+              {
+                return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
+              }});
   }
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const

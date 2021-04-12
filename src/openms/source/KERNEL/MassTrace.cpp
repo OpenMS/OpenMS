@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -311,12 +311,12 @@ namespace OpenMS
 
     double MassTrace::linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const
     {
-      OPENMS_PRECONDITION(yA < y_eval && y_eval < yB, "y_eval is not between yA and yB")
+      OPENMS_PRECONDITION(yA <= y_eval && y_eval <= yB, "y_eval is not between yA and yB")
       // no solution -> return an estimate
       if (std::fabs(xA - xB) == 0 || std::fabs(yA - yB) == 0)  { return xA; }
 
       double xC = (xA + ((y_eval - yA) * (xB - xA) / (yB - yA)));
-      OPENMS_POSTCONDITION(xA < xC && xC < xB, "xC is not between xA and xB");
+      OPENMS_POSTCONDITION(xA <= xC && xC <= xB, "xC is not between xA and xB");
 
       return xC;
     }

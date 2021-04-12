@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -425,6 +425,13 @@ public:
 
     ///@}
 
+    /// If the file is loaded from an sqMass file, this run-ID allows to connect to the corresponding OSW identification file
+    /// If the run-ID was not stored (older version) or this MSExperiment was not loaded from sqMass, then 0 is returned.
+    UInt64 getSqlRunID() const;
+
+    /// sets the run-ID which is used when storing an sqMass file
+    void setSqlRunID(UInt64 id);
+
     ///@name Sorting spectra and peaks
     ///@{
     /**
@@ -485,6 +492,7 @@ public:
     /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum& spectrum);
 
+
     void addSpectrum(MSSpectrum&& spectrum)
     {
       spectra_.push_back(std::forward<MSSpectrum>(spectrum));
@@ -544,6 +552,15 @@ public:
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
+
+    /// returns true if at least one of the spectra has the specified level
+    bool containsScanOfLevel(size_t ms_level) const;
+
+    /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
+    bool hasZeroIntensities(size_t ms_level) const;
+
+    /// do any of the spectra have a peptideID?
+    bool hasPeptideIdentifications() const;
 
 protected:
 

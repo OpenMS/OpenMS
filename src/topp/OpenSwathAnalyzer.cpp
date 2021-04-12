@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,8 +87,7 @@ using namespace std;
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
-
- <B>The algorithm parameters for the Analyzer filter are:</B>
+ <B>INI file documentation of this tool:</B>
  @htmlinclude TOPP_OpenSwathAnalyzer.html
 
  */
@@ -131,7 +130,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("traML"));
 
     registerInputFile_("rt_norm", "<file>", "",
                        "RT normalization file (how to map the RTs of this run to the ones stored in the library)",

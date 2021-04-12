@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QMouseEvent>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
-
-#include <iostream>
 
 using namespace std;
 
@@ -60,6 +60,11 @@ namespace OpenMS
 
   }
 
+  void EnhancedTabBar::setTabText(const QString& text)
+  {
+    QTabBar::setTabText(currentIndex(),  text);
+  }
+
   void EnhancedTabBar::dragEnterEvent(QDragEnterEvent * e)
   {
     e->acceptProposedAction();
@@ -73,7 +78,7 @@ namespace OpenMS
       emit dropOnTab(e->mimeData(), dynamic_cast<QWidget*>(e->source()), tabData(tab).toInt());
     }
     else
-    {
+    { // did not hit a tab, but the void area on the right of tabs --> create new tab
       emit dropOnWidget(e->mimeData(), dynamic_cast<QWidget*>(e->source()));
     }
 
@@ -89,8 +94,7 @@ namespace OpenMS
       menu.addAction("Close");
       if (menu.exec(e->globalPos()))
       {
-        emit aboutToCloseId(tabData(tab).toInt());
-        removeTab(tab);
+        emit closeRequested(tabData(tab).toInt());
       }
     }
   }
@@ -105,13 +109,21 @@ namespace OpenMS
     int tab = tabAt_(e->pos());
     if (tab != -1)
     {
-      emit aboutToCloseId(tabData(tab).toInt());
-      removeTab(tab);
+      // will close the window and remove it from the tabbar
+      emit closeRequested(tabData(tab).toInt());
     }
   }
 
-  int EnhancedTabBar::addTab(const String & text, int id)
+  int EnhancedTabBar::addTab(const String& text, int id)
   {
+    // make sure this ID does not exist yet
+    for (int i = 0; i < this->count(); ++i)
+    {
+      if (tabData(i).toInt() == id)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Widget with the same ID was added before!");
+      }
+    }
     int tab_index = QTabBar::addTab(text.c_str());
     setTabData(tab_index, id);
 
@@ -125,12 +137,13 @@ namespace OpenMS
       if (tabData(i).toInt() == id)
       {
         removeTab(i);
-        break;
+        return;
       }
     }
+   throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Tab with ID ") + id + " is already gone!");
   }
 
-  void EnhancedTabBar::setCurrentId(int id)
+  void EnhancedTabBar::show(int id)
   {
     for (int i = 0; i < this->count(); ++i)
     {
@@ -142,25 +155,21 @@ namespace OpenMS
     }
   }
 
-  void EnhancedTabBar::currentChanged_(int id)
+  void EnhancedTabBar::currentChanged_(int index)
   {
-    emit currentIdChanged(tabData(id).toInt());
+    emit currentIdChanged(tabData(index).toInt());
   }
 
   int EnhancedTabBar::tabAt_(const QPoint & pos)
   {
-    int tab = -1;
-
     for (int i = 0; i < this->count(); ++i)
     {
       if (tabRect(i).contains(pos))
       {
-        tab = i;
-        break;
+        return i;
       }
     }
-
-    return tab;
+    return -1;
   }
 
 } //namespace OpenMS

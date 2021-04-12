@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -600,7 +600,7 @@ class DoxygenCppFunction(object):
         """Parse a doxygen function definition and write it in Cython"""
         c_return_type = self.resolve_return_type()
 
-        # remove default arguments, Cython doesnt like them
+        # remove default arguments, Cython doesn't like them
         arguments = re.sub("\=[^,\)]*", "", self.get_argsstring())
         function_name = self.name
 

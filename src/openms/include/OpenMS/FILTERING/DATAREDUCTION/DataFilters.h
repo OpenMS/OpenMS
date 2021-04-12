@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,39 +55,45 @@ public:
     ///Information to filter
     enum FilterType
     {
-      INTENSITY,                ///< Filter the intensity value
-      QUALITY,                    ///< Filter the overall quality value
-      CHARGE,                       ///< Filter the charge value
-      SIZE,                   ///< Filter the number of subordinates/elements
-      META_DATA                     ///< Filter meta data
+      INTENSITY,      ///< Filter the intensity value
+      QUALITY,        ///< Filter the overall quality value
+      CHARGE,         ///< Filter the charge value
+      SIZE,           ///< Filter the number of subordinates/elements
+      META_DATA       ///< Filter meta data
     };
     ///Filter operation
     enum FilterOperation
     {
-      GREATER_EQUAL,          ///< Greater than the value or equal to the value
-      EQUAL,                    ///< Equal to the value
-      LESS_EQUAL,               ///< Less than the value or equal to the value
-      EXISTS                        ///< Only for META_DATA filter type, tests if meta data exists
+      GREATER_EQUAL,  ///< Greater than the value or equal to the value
+      EQUAL,          ///< Equal to the value
+      LESS_EQUAL,     ///< Less than the value or equal to the value
+      EXISTS          ///< Only for META_DATA filter type, tests if meta data exists
     };
 
-    ///Representation of a peak/feature filter combining FilterType, FilterOperation and a value
+    /// Representation of a peak/feature filter combining FilterType, FilterOperation and a value (either double or String)
     struct OPENMS_DLLAPI DataFilter
     {
-      ///Default constructor
-      DataFilter();
-
-      ///Field to filter
-      FilterType field;
-      ///Filter operation
-      FilterOperation op;
-      ///Value for comparison
-      double value;
-      ///String value for comparison (for meta data)
+      DataFilter(){};
+      /// ctor for common case of numerical filter
+      DataFilter(const FilterType type, const FilterOperation op, const double val, const String& meta_name = "")
+        : field(type), op(op), value(val), value_string(), meta_name(meta_name), value_is_numerical(true)
+      {};
+      /// ctor for common case of string filter
+      DataFilter(const FilterType type, const FilterOperation op, const String& val, const String& meta_name = "")
+        : field(type), op(op), value(0.0), value_string(val), meta_name(meta_name), value_is_numerical(false)
+      {};
+      /// Field to filter
+      FilterType field{ DataFilters::INTENSITY };
+      /// Filter operation
+      FilterOperation op{ DataFilters::GREATER_EQUAL} ;
+      /// Value for comparison
+      double value{ 0.0 };
+      /// String value for comparison (for meta data)
       String value_string;
-      ///Name of the considered meta information
+      /// Name of the considered meta information (key)
       String meta_name;
-      ///Bool value that indicates if the specified value is numerical
-      bool value_is_numerical;
+      /// use @p value or @p value_string ?
+      bool value_is_numerical{ false };
 
       /// Returns a string representation of the filter
       String toString() const;
@@ -109,7 +115,7 @@ public:
 
     };
 
-    ///Filter count
+    /// Filter count
     Size size() const;
 
     /**
@@ -154,13 +160,13 @@ public:
     }
 
     ///Returns if the @p feature fulfills the current filter criteria
-    bool passes(const Feature & feature) const;
+    bool passes(const Feature& feature) const;
 
     ///Returns if the @p consensus_feature fulfills the current filter criteria
-    bool passes(const ConsensusFeature & consensus_feature) const;
+    bool passes(const ConsensusFeature& consensus_feature) const;
 
     ///Returns if the @p peak fulfills the current filter criteria
-    inline bool passes(const MSSpectrum & spectrum, Size peak_index) const
+    inline bool passes(const MSSpectrum& spectrum, Size peak_index) const
     {
       if (!is_active_) return true;
 
@@ -248,35 +254,7 @@ protected:
     bool is_active_;
 
     ///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
-    inline bool metaPasses_(const MetaInfoInterface & meta_interface, const DataFilters::DataFilter & filter, Size index) const
-    {
-      if (!meta_interface.metaValueExists((UInt)index)) return false;
-      else if (filter.op != EXISTS)
-      {
-        const DataValue & data_value = meta_interface.getMetaValue((UInt)index);
-        if (!filter.value_is_numerical)
-        {
-          if (data_value.valueType() != DataValue::STRING_VALUE) return false;
-          else
-          {
-            // for string values, equality is the only valid operation (besides "exists", see above)
-            if (filter.op != EQUAL) return false;
-            else if (filter.value_string != data_value.toString()) return false;
-          }
-        }
-        else             // value_is_numerical
-        {
-          if (data_value.valueType() == DataValue::STRING_VALUE || data_value.valueType() == DataValue::EMPTY_VALUE) return false;
-          else
-          {
-            if (filter.op == EQUAL && (double)data_value != filter.value) return false;
-            else if (filter.op == LESS_EQUAL && (double)data_value > filter.value) return false;
-            else if (filter.op == GREATER_EQUAL && (double)data_value < filter.value) return false;
-          }
-        }
-      }
-      return true;
-    }
+    bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const;
 
   };
 

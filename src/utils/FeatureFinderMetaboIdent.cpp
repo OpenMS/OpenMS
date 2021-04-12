@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,6 +87,8 @@ using namespace std;
    @see @ref TOPP_FeatureFinderIdentification - targeted feature detection based on peptide identifications.
 
    <B>Input format</B>
+
+   Spectra are expected in centroided or profile mode. Only MS1 level spectra are considered for feature detection.
 
    The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
    This file has to start with the following header line, defining its columns:

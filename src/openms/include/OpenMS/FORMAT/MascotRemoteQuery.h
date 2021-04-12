@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,6 +86,11 @@ public:
     /// returns the search number
     OPENMS_DLLAPI String getSearchIdentifier() const;
 
+    /// request export of decoy summary and decoys (note: internal decoy search must be enabled in the MGF file passed to mascot)
+    OPENMS_DLLAPI void setExportDecoys(const bool b);
+
+    /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
+    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 protected:
 
     OPENMS_DLLAPI virtual void updateMembers_();
@@ -165,6 +170,7 @@ private:
     // Input / Output data
     String query_spectra_;
     QByteArray mascot_xml_;
+    QByteArray mascot_decoy_xml_;
 
     // Internal data structures
     QString cookie_;
@@ -184,6 +190,8 @@ private:
     String boundary_;
     /// Timeout after these many seconds
     Int to_;
+
+    bool export_decoys_ = false;
   };
 
 }

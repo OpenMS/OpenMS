@@ -447,8 +447,8 @@ MultiplexPeakPattern
 SILACAnalyzer
 LowLevelComparator
 AxisWidget
-SpectrumCanvas
-SpectrumWidget
+PlotCanvas
+PlotWidget
 CachedMzMLConsumer
 LowLevelComparator
 ParamEditor
@@ -621,7 +621,7 @@ LocalClustering
 MovingAverage
 HierarchicalClustering
 LocalClustering
-SpectraIdentificationViewWidget
+SpectraIDViewTab
 MetaValueInterface
 ProteinIdentificationVisualizer
 
@@ -1184,7 +1184,7 @@ UniMod
 consensusXML
 idXML
 OpenSWATH
-SpectrumWidgets
+PlotWidgets
 TOPPView
 SpectraComparison
 Metadata

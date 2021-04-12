@@ -1722,8 +1722,8 @@ def testPosteriorErrorProbabilityModel():
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
 
     scores = [float(i) for i in range(10)]
-    model.fit(scores)
-    model.fit(scores, scores)
+    model.fit(scores, "none")
+    model.fit(scores, scores, "none")
 
     model.fillLogDensities(scores, scores, scores)
 
@@ -4525,10 +4525,16 @@ def testTransformationModels():
      TransformationModelInterpolated.getParameters
      TransformationModelLinear.getDefaultParameters
      TransformationModelLinear.getParameters
+     TransformationModelBSpline.getDefaultParameters
+     TransformationModelBSpline.getParameters
+     TransformationModelLowess.getDefaultParameters
+     TransformationModelLowess.getParameters
+     NB: THIS TEST STOPS AFTER THE FIRST FAILURE
     """
     for clz in [pyopenms.TransformationModelLinear,
                 pyopenms.TransformationModelBSpline,
-                pyopenms.TransformationModelInterpolated]:
+                pyopenms.TransformationModelInterpolated,
+                pyopenms.TransformationModelLowess]:
         p = pyopenms.Param()
         data = [ pyopenms.TM_DataPoint(9.0, 8.9),
                  pyopenms.TM_DataPoint(5.0, 6.0),
@@ -5198,7 +5204,7 @@ def testRibonucleotideDB():
     """
     r = pyopenms.RibonucleotideDB()
 
-    uridine = r.getRibonucleotide("U")
+    uridine = r.getRibonucleotide(b"U")
 
     assert uridine.getName() == u'uridine'
     assert uridine.getCode() == u'U'
@@ -5217,10 +5223,10 @@ def testRibonucleotide():
     r.setHTMLCode("test")
     assert r.getHTMLCode() == "test"
 
-    r.setOrigin("A")
+    r.setOrigin(b"A")
     assert r.getOrigin() == "A"
 
-    r.setNewCode("A")
+    r.setNewCode(b"A")
     assert r.getNewCode() == "A"
 
 
@@ -5290,7 +5296,7 @@ def testExperimentalDesign():
     fourplex_fractionated_design = pyopenms.ExperimentalDesign()
     ed_dirname = os.path.dirname(os.path.abspath(__file__))
     ed_filename = os.path.join(ed_dirname, "ExperimentalDesign_input_2.tsv").encode()
-    fourplex_fractionated_design = f.load(ed_filename, False)
+    fourplex_fractionated_design = pyopenms.ExperimentalDesignFile.load(ed_filename, False)
     assert fourplex_fractionated_design.getNumberOfSamples() == 8
     assert fourplex_fractionated_design.getNumberOfFractions() == 3
     assert fourplex_fractionated_design.getNumberOfLabels() == 4

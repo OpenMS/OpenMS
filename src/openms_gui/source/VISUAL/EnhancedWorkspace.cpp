@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,17 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
+
+#include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
+
 #include <QtCore/QMimeData>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
 
-#include <QtCore/QStringList>
+#include <QMdiSubWindow>
 
 namespace OpenMS
 {
 
-  EnhancedWorkspace::EnhancedWorkspace(QWidget * parent) :
+  EnhancedWorkspace::EnhancedWorkspace(QWidget* parent) :
     QMdiArea(parent)
   {
     setAcceptDrops(true);
@@ -51,6 +54,84 @@ namespace OpenMS
 
   EnhancedWorkspace::~EnhancedWorkspace()
   {
+  }
+
+  void EnhancedWorkspace::tileHorizontal()
+  {
+    // primitive horizontal tiling
+    QList<QMdiSubWindow*> windows = this->subWindowList();
+
+    if (!windows.count())
+    {
+      return;
+    }
+
+    int heightForEach = this->height() / windows.count();
+    int y = 0;
+    for (int i = 0; i < int(windows.count()); ++i)
+    {
+      QMdiSubWindow* window = windows.at(i);
+      if (window->isMaximized() || window->isMinimized() || window->isFullScreen())
+      {
+        // prevent flicker
+        window->hide();
+        window->showNormal();
+      }
+      int preferredHeight = window->widget()->minimumHeight() + window->baseSize().height();
+      int actHeight = std::max(heightForEach, preferredHeight);
+
+      window->setGeometry(0, y, this->width(), actHeight);
+      y += actHeight;
+      window->setVisible(true);
+      window->show();
+    }
+  }
+
+  void EnhancedWorkspace::tileVertical()
+  {
+    // primitive vertical tiling
+    QList<QMdiSubWindow*> windows = this->subWindowList();
+    if (!windows.count())
+    {
+      return;
+    }
+
+    int widthForEach = this->width() / windows.count();
+    int y = 0;
+    for (int i = 0; i < int(windows.count()); ++i)
+    {
+      QMdiSubWindow* window = windows.at(i);
+      if (window->isMaximized() || window->isMinimized() || window->isFullScreen())
+      {
+        // prevent flicker
+        window->hide();
+        window->showNormal();
+      }
+      int preferredWidth = window->widget()->minimumWidth() + window->baseSize().width();
+      int actWidth = std::max(widthForEach, preferredWidth);
+
+      window->setGeometry(y, 0, actWidth, this->height());
+      y += actWidth;
+      window->setVisible(true);
+      window->show();
+    }
+  }
+
+  /// get the subwindow with the given id (for all subwindows which inherit from EnhancedTabBarWidgetInterface)
+  /// Returns nullptr if window is not present
+
+  EnhancedTabBarWidgetInterface* EnhancedWorkspace::getWidget(int id) const
+  {
+    for (const auto& sub_window : this->subWindowList())
+    {
+      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(sub_window->widget());
+      //cout << "  Tab " << i << ": " << w->window_id << endl;
+      if (w != 0 && w->getWindowId() == id)
+      {
+        return w;
+      }
+    }
+    return nullptr;
   }
 
   void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent * event)

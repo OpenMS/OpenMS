@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -582,6 +582,20 @@ public:
     {
 public:
       IOException(const char* file, int line, const char* function, const std::string& filename) noexcept;
+    };
+
+    /**
+      @brief SqlOperation failed exception.
+
+      E.g. when retrieving data from a table using the wrong column name or index.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI SqlOperationFailed :
+      public BaseException
+    {
+public:
+      SqlOperationFailed(const char* file, int line, const char* function, const std::string& description)  noexcept;
     };
 
     /**

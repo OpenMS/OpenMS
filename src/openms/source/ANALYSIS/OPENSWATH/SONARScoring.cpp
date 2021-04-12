@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ namespace OpenMS
   }
 
   void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
-                                   double& xcorr_coelution_score, double& xcorr_shape_score)
+                                   double& xcorr_coelution_score, double& xcorr_shape_score) const
   {
     /// Cross Correlation array
     typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
@@ -130,7 +130,7 @@ namespace OpenMS
   void SONARScoring::computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
                                         const std::vector<OpenSwath::LightTransition> & transitions,
                                         const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                        OpenSwath_Scores & scores)
+                                        OpenSwath_Scores & scores) const
   {
     if (transitions.empty()) {return;}
 

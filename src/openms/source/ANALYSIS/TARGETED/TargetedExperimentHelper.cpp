@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -103,7 +103,7 @@ namespace OpenMS
           std::cerr << "Warning: Could not determine modification with delta mass " <<
             it->mono_mass_delta << " for peptide " << peptide.sequence <<
             " at position " << it->location << std::endl;
-          std::cerr << "Skipping this modifcation" << std::endl;
+          std::cerr << "Skipping this modification" << std::endl;
         }
       }
       return aas;

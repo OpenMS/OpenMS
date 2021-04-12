@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,18 +125,11 @@ namespace OpenMS
   public:
 
     OpenSwathOSWWriter(const String& output_filename,
+                       const UInt64 run_id,
                        const String& input_filename = "inputfile",
                        bool ms1_scores = false,
                        bool sonar = false,
-                       bool uis_scores = false) :
-      output_filename_(output_filename),
-      input_filename_(input_filename),
-      run_id_(OpenMS::UniqueIdGenerator::getUniqueId()),
-      doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores),
-      sonar_(sonar),
-      enable_uis_scoring_(uis_scores)
-      {}
+                       bool uis_scores = false);
 
     bool isActive() const;
 
@@ -188,7 +181,7 @@ namespace OpenMS
      */
     String prepareLine(const OpenSwath::LightCompound& /* pep */,
         const OpenSwath::LightTransition* /* transition */,
-        FeatureMap& output, String id) const;
+        const FeatureMap& output, const String& id) const;
 
     /**
      * @brief Write data to disk

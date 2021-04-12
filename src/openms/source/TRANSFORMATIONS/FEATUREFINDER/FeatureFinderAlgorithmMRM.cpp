@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -168,7 +168,7 @@ namespace OpenMS
         continue;
       }
       sne.setParameters(sne_param);
-      sne.init(chromatogram.begin(), chromatogram.end());
+      sne.init(chromatogram);
 
       if (write_debuginfo)
       {
@@ -176,17 +176,17 @@ namespace OpenMS
       }
 
       PeakSpectrum::FloatDataArray signal_to_noise;
-      for (PeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
+      for (Size i = 0; i < chromatogram.size(); ++i)
       {
-        double sn(sne.getSignalToNoise(sit));
+        double sn(sne.getSignalToNoise(i));
         signal_to_noise.push_back(sn);
         if (write_debuginfo)
         {
-          std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
+          std::cerr << chromatogram[i].getMZ() << " " << chromatogram[i].getIntensity() << " " << sn << std::endl;
         }
         if (min_signal_to_noise_ratio == 0 || sn > min_signal_to_noise_ratio)
         {
-          sn_chrom.push_back(*sit);
+          sn_chrom.push_back(chromatogram[i]);
         }
       }
       chromatogram.getFloatDataArrays().push_back(signal_to_noise);
@@ -209,7 +209,7 @@ namespace OpenMS
           }
           // new section
           std::vector<DPosition<2> > section;
-          section.push_back(DPosition<2>(this_rt, sit->getIntensity()));
+          section.emplace_back(this_rt, sit->getIntensity());
           sections.push_back(section);
         }
         else
@@ -300,7 +300,7 @@ namespace OpenMS
             p.setIntensity(filter_spec[j].getIntensity());
             data_to_fit.push_back(p);
           }
-          InterpolationModel* model_rt = nullptr;
+          std::unique_ptr<InterpolationModel> model_rt;
           double quality = fitRT_(data_to_fit, model_rt);
 
           Feature f;
@@ -374,7 +374,6 @@ namespace OpenMS
               std::cerr << "An error occurred during the gnuplot execution" << std::endl;
             }
           }
-
           features_->push_back(f);
         }
       }
@@ -393,7 +392,7 @@ namespace OpenMS
     return "mrm";
   }
 
-  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, InterpolationModel*& model) const
+  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
   {
     double quality;
     Param param;

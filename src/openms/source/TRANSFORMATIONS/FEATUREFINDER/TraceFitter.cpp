@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  TraceFitter::GenericFunctor::~GenericFunctor()
-  {
-  }
+  TraceFitter::GenericFunctor::~GenericFunctor() = default;
 
   TraceFitter::TraceFitter() :
     DefaultParamHandler("TraceFitter")
@@ -85,11 +83,9 @@ namespace OpenMS
     return *this;
   }
 
-  TraceFitter::~TraceFitter()
-  {
-  }
+  TraceFitter::~TraceFitter() = default;
 
-  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)
+  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k) const
   {
     double rt = trace.peaks[k].first;
 

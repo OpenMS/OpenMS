@@ -5,10 +5,6 @@
    Simply download and install the MacOS drag-and-drop installer for your system from our <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest">archive</a>.
    After double-clicking, accepting the "downloaded App warning" and mounting the dmg image, drag the OpenMS folder
    into your Applications folder as advised.
-   CAUTION (before OpenMS 2.3): Due to new security measures since macOS Sierra 10.12, Apps of a downloaded bundle (such as TOPPView.app from OpenMS)
-   are executed in a sandbox and may not find shared files required to start. If you see nothing happening after double clicking
-   one of our Apps, please drag them out of the Applications/OpenMS folder and back into it (to signal the system that you trust it)!
-   This issue is solved with new signed installers starting from OpenMS 2.3
 
    To use TOPP as regular apps in your shell just add the following lines to your <tt>~/.profile</tt> file.
    Please adapt the first line to point to the folder where you installed %OpenMS (e.g., <tt>/Applications/OpenMS-2.3.0</tt>)
@@ -19,7 +15,17 @@
      \endcode
 
    <H2>Known Issues:</H2><br>
-   There is a known bug with running Java based thirdparty tools (like MSGFPlusAdapter and LuciphorAdapter)
+   Since macOS Catalina (maybe also Mojave) notarized apps and executables are mandatory. Although we put a lot of effort
+   in signing and notarizing everything, it seems like our software still lands in quarantine on the abovementioned systems,
+   after installation of the DMG (when downloading it from a browser). Therefore, to have a streamlined experience without blocking popups, we recommend to remove
+   the quarantine flag manually. For this, open the Terminal.app and type the following (replace the first line with the actual installation directory):
+   
+     \code
+      cd /Applications/OpenMS-2.5-0
+      sudo xattr -r -d com.apple.quarantine *
+     \endcode
+
+   There is also a known bug with running Java based thirdparty tools (like MSGFPlusAdapter and LuciphorAdapter)
    from within TOPPAS.app. Please run the TOPPAS.app from within the Terminal.app (e.g. with the <i>open</i> command)
    to get access to the path where Java is located
    (which is usually present in the <b><i>PATH</i></b> of your Terminal).

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtGui/QPainter>
 #include <QtCore/QPoint>
@@ -75,7 +75,7 @@ namespace OpenMS
     text_ = text; // this is just to keep the base class consistent.. we don't really use text_
   }
 
-  void Annotation1DCaret::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
+  void Annotation1DCaret::draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
     painter.save();
 
@@ -251,7 +251,7 @@ namespace OpenMS
     return caret_positions_;
   }
 
-  void Annotation1DCaret::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
+  void Annotation1DCaret::ensureWithinDataRange(Plot1DCanvas* const canvas)
   {
     DRange<3> data_range = canvas->getDataRange();
 

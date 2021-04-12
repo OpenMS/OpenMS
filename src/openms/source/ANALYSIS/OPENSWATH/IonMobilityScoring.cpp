@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -431,21 +431,23 @@ namespace OpenMS
       // delta_drift_weighted += delta_drift * normalized_library_intensity[k];
       // weights += normalized_library_intensity[k];
     }
-    OPENMS_LOG_DEBUG << " Scoring delta drift time " << delta_drift / tr_used << std::endl;
-    scores.im_delta_score = delta_drift / tr_used;
 
     if (tr_used != 0)
     {
+      delta_drift /= tr_used;
       computed_im /= tr_used;
       computed_im_weighted /= sum_intensity;
     }
     else
     {
+      delta_drift = -1;
       computed_im = -1;
       computed_im_weighted = -1;
     }
 
+    OPENMS_LOG_DEBUG << " Scoring delta drift time " << delta_drift << std::endl;
     OPENMS_LOG_DEBUG << " Scoring weighted delta drift time " << computed_im_weighted << " -> get difference " << std::fabs(computed_im_weighted - drift_target)<< std::endl;
+    scores.im_delta_score = delta_drift;
     scores.im_drift = computed_im;
     scores.im_drift_weighted = computed_im_weighted;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,11 +99,12 @@ public:
         @brief Stores the data in an idXML file
 
         The data is read in and stored in the file 'filename'. PeptideHits are sorted by score.
+        Note that ranks are not stored and need to be reassigned after loading.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id = "");
-  
+
 
 protected:
     // Docu in base class

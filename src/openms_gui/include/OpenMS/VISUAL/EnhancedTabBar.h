@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,22 +68,25 @@ public:
     /// Destructor
     ~EnhancedTabBar() override;
 
+    /// sets the text of the current tab
+    void setTabText(const QString& text);
+
     /// Adds a new tab with the name @p text and the identifier @p id
     int addTab(const String & text, int id);
 
     /// Selects the tab with identifier @p id
-    void setCurrentId(int id);
+    void show(int id);
 
 public slots:
     /// Remove the tab with identifier @p id
     void removeId(int id);
 
 signals:
-    /// Signal that indicates that the current tab changed
+    /// Signal that indicates that the current tab changed, giving the @p id of the Tab
     void currentIdChanged(int id);
 
-    /// Signal that indicates that the tab with identifier @p id is about to be removed (double click or context menu)
-    void aboutToCloseId(int id);
+    /// Signal that indicates that the tab with identifier @p id is requested to be removed (double click or context menu)
+    void closeRequested(int id);
 
     /// Signal that is emitted, when a drag-and-drop action ends on a tab
     void dropOnTab(const QMimeData * data, QWidget * source, int id);

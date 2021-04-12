@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -307,6 +307,14 @@ namespace OpenMS
                                                        const String& name,
                                                        const String& unit_accession)
   {
+    bool is_default_array = (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595");
+
+    // store unit accession for non-default arrays
+    if (!unit_accession.empty() && !is_default_array)
+    {
+      data.back().meta.setMetaValue("unit_accession", unit_accession);
+    }
+
     //MS:1000518 ! binary data type
     if (accession == "MS:1000523") //64-bit float
     {
@@ -375,7 +383,7 @@ namespace OpenMS
       data.back().compression = false;
       data.back().np_compression = MSNumpressCoder::NONE;
     }
-    else if (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595")    // handle m/z, intensity, rt
+    else if (is_default_array) // handle m/z, intensity, rt
     {
       data.back().meta.setName(name);
 

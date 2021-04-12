@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -220,7 +220,7 @@ namespace OpenMS
       for (Size c = 0; c < charges.size(); ++c)
       {
         // calculate exclusion window
-        double mz = pep_seqs[i].getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
+        double mz = pep_seqs[i].getMZ(charges[c]);
         double rt_start = std::max(0.0, relative_rt ? (rts[i] - rel_rt_window_size * rts[i]) : rts[i] - abs_rt_window_size);
         double rt_stop =                relative_rt ? (rts[i] + rel_rt_window_size * rts[i]) : rts[i] + abs_rt_window_size;
 
@@ -307,7 +307,7 @@ namespace OpenMS
         bool charge_found = false;
         for (Size c = 0; c < charges.size(); ++c)
         {
-          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
+          double mz = pep_hit_iter->getSequence().getMZ(charges[c]);
           result.push_back(IEWindow(rt_start, rt_stop, mz));
           if (charges[c] == charge)
           {
@@ -316,7 +316,7 @@ namespace OpenMS
         }
         if (!charge_found) // if not already done, consider annotated charge of peptide (unless its 0)
         {
-          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
+          double mz = pep_hit_iter->getSequence().getMZ(charge);
           result.push_back(IEWindow(rt_start, rt_stop, mz));
         }
       }

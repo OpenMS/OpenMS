@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,9 +165,9 @@ public:
     return data_fg_[pos];
   }
 
-  /** @brief Retrieve a FASTA entry at global position @pos (must not be behind the currently active chunk, but can be smaller)
+  /** @brief Retrieve a FASTA entry at global position @p pos (must not be behind the currently active chunk, but can be smaller)
 
-    This query is fast, if @pos hits the currently active chunk, and slow (read from disk) for
+    This query is fast, if @p pos contains the currently active chunk, and slow (read from disk) for
     earlier entries. Can be used before reaching the end of the file,
     since it will reset the file position after its done reading (if reading from disk is required), but
     must not be used for entries beyond the active chunk (unseen data).
@@ -360,7 +360,7 @@ public:
   {
     // common decoy strings in FASTA files
     // note: decoy prefixes/suffices must be provided in lower case
-    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
@@ -428,7 +428,10 @@ public:
     }
 
     // DEBUG ONLY: print counts of found decoys
-    for (auto &a : decoy_count) OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+    for (auto &a : decoy_count)
+    {
+      OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+    }
 
     // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
     // return default values

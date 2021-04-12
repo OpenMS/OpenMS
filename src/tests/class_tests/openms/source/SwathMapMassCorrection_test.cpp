@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
 {
   OpenSwath::LightTargetedExperiment exp;
   {
-    String native_id = "tr2";
+    String native_id = "tr1";
     TransitionType tr;
     tr.product_mz = 500.00;
     tr.precursor_mz = 412;

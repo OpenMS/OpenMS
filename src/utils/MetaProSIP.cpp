@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,6 +85,36 @@ typedef map<double, double> MapRateToScoreType;
 typedef pair<double, vector<double> > IsotopePattern;
 typedef vector<IsotopePattern> IsotopePatterns;
 
+//-------------------------------------------------------------
+// Doxygen docu
+//-------------------------------------------------------------
+
+/**
+    @page UTILS_MetaProSIP MetaProSIP 
+
+    @brief Performs proteinSIP on peptide features for elemental flux analysis.
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_MetaProSIP.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_MetaProSIP.html
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+class MetaProSIP :
+  public TOPPBase
+{
+public:
+  MetaProSIP()
+    : TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false),
+    ADDITIONAL_ISOTOPES(5),
+    FEATURE_STRING("feature"),
+    UNASSIGNED_ID_STRING("id"),
+    UNIDENTIFIED_STRING("unidentified")
+  {
+  }
+
 struct RateScorePair
 {
   double rate = -1.;
@@ -161,8 +191,7 @@ struct SIPPeptide
 };
 
 ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
-struct SizeLess :
-  public std::binary_function<vector<SIPPeptide>, vector<SIPPeptide>, bool>
+struct SizeLess
 {
   inline bool operator()(const vector<SIPPeptide>& a, const vector<SIPPeptide>& b) const
   {
@@ -171,8 +200,7 @@ struct SizeLess :
 
 };
 
-struct SequenceLess :
-  public std::binary_function<pair<SIPPeptide, Size>, pair<SIPPeptide, Size>, bool>
+struct SequenceLess
 {
   inline bool operator()(const pair<SIPPeptide, Size>& a, const pair<SIPPeptide, Size>& b) const
   {
@@ -181,8 +209,7 @@ struct SequenceLess :
 
 };
 
-struct RIALess :
-  public std::binary_function<SIPIncorporation, SIPIncorporation, bool>
+struct RIALess
 {
   inline bool operator()(const SIPIncorporation& a, const SIPIncorporation& b) const
   {
@@ -2017,35 +2044,6 @@ public:
 
 };
 
-//-------------------------------------------------------------
-// Doxygen docu
-//-------------------------------------------------------------
-
-/**
-    @page UTILS_MetaProSIP MetaProSIP 
-
-    @brief Performs proteinSIP on peptide features for elemental flux analysis.
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MetaProSIP.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MetaProSIP.html
- */
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-class TOPPMetaProSIP :
-  public TOPPBase
-{
-public:
-  TOPPMetaProSIP()
-    : TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false),
-    ADDITIONAL_ISOTOPES(5),
-    FEATURE_STRING("feature"),
-    UNASSIGNED_ID_STRING("id"),
-    UNIDENTIFIED_STRING("unidentified")
-  {
-  }
 
 protected:
   Size ADDITIONAL_ISOTOPES;
@@ -3043,8 +3041,7 @@ protected:
           {
             continue;
           }
-          double charged_weight = hits[0].getSequence().getMonoWeight(Residue::Full, charge);
-          double mz = charged_weight / charge;
+          double mz =  hits[0].getSequence().getMZ(charge);
           f.setMZ(mz);
           // add id to pseudo feature
           vector<PeptideIdentification> id;
@@ -3236,7 +3233,7 @@ protected:
       {
         feature_hit_aaseq = feature_hit.getSequence();
         feature_hit_seq = feature_hit_aaseq.toString();
-        feature_hit_theoretical_mz = feature_hit_aaseq.getMonoWeight(Residue::Full, feature_hit.getCharge()) / feature_hit.getCharge();
+        feature_hit_theoretical_mz = feature_hit_aaseq.getMZ(feature_hit.getCharge());
       }
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
@@ -3634,6 +3631,8 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPMetaProSIP tool;
+  MetaProSIP tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

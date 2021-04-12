@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,10 +57,10 @@ public:
     ~Annotation1DPeakItem() override;
 
     /// Docu in base class
-    void ensureWithinDataRange(Spectrum1DCanvas* const canvas) override;
+    void ensureWithinDataRange(Plot1DCanvas* const canvas) override;
 
     /// Docu in base class
-    void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
+    void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
 
     /// Docu in base class
     void move(const PointType& /*delta*/) override;
@@ -85,7 +85,7 @@ public:
       const PointType & peak_position, 
       const PointType & position,
       const QString & text,
-      Spectrum1DCanvas * const canvas,
+      Plot1DCanvas * const canvas,
       bool flipped,
       QPoint & position_widget, 
       QPoint & peak_position_widget,

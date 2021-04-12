@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ ptr = new ProcessData();
 START_SECTION((ProcessData::get_MZ(double IN_mz)))
   ProcessData d;
   ProcessData::main_iterator it = d.get_MZ(500.25);
-  // TEST_EQUAL(it, d.get_MZ_LIST_end()) // doesnt work directly
+  // TEST_EQUAL(it, d.get_MZ_LIST_end()) // doesn't work directly
   if( it == d.get_MZ_LIST_end()) { TEST_EQUAL(true, true) }
   else {TEST_EQUAL(true, false)}
 END_SECTION

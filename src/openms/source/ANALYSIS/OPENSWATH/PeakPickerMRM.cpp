@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,17 +95,17 @@ namespace OpenMS
                                        "Chromatogram must be sorted by position");
     }
 
-    OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
-        " with " << chromatogram.size() << " peaks ";
     if (chromatogram.empty())
     {
-        OPENMS_LOG_DEBUG << std::endl; 
-        OPENMS_LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
-        return;
+      OPENMS_LOG_DEBUG << " ====  Chromatogram " << chromatogram.getNativeID() << "empty. Skip picking.";
+      return;
     }
-    OPENMS_LOG_DEBUG << "(start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
+    else
+    {
+        OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
+        " with " << chromatogram.size() << " peaks (start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
         "using method \'" << method_ << "\'" << std::endl;
-
+    }
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
@@ -127,7 +127,7 @@ namespace OpenMS
 
     // Find initial seeds (peak picking)
     pp_.pick(smoothed_chrom, picked_chrom);
-    OPENMS_LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
+    OPENMS_LOG_DEBUG << "Picked " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
     {
@@ -198,7 +198,7 @@ namespace OpenMS
              //&& std::fabs(chromatogram[min_i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getRT() - central_peak_rt) < peak_width_))
-            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(min_i - k) >= signal_to_noise_))
       {
         ++k;
       }
@@ -210,7 +210,7 @@ namespace OpenMS
              //&& std::fabs(chromatogram[min_i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getRT() - central_peak_rt) < peak_width_))
-            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(min_i + k) >= signal_to_noise_) )
       {
         ++k;
       }
@@ -220,8 +220,8 @@ namespace OpenMS
       right_width_.push_back(right_idx);
       integrated_intensities_.push_back(0);
 
-      OPENMS_LOG_DEBUG << "Found peak at " << central_peak_rt << " and "  << picked_chrom[i].getIntensity()
-                << " with borders " << chromatogram[left_width_[i]].getRT() << " " << chromatogram[right_width_[i]].getRT() <<
+      OPENMS_LOG_DEBUG << "Found peak at " << central_peak_rt << " with intensity "  << picked_chrom[i].getIntensity()
+                << " and borders " << chromatogram[left_width_[i]].getRT() << " " << chromatogram[right_width_[i]].getRT() <<
         " (" << chromatogram[right_width_[i]].getRT() - chromatogram[left_width_[i]].getRT() << ") "
                 << 0 << " weighted RT " << /* weighted_mz << */ std::endl;
     }
@@ -231,6 +231,12 @@ namespace OpenMS
   void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
+
+    // copy meta data of the input chromatogram
+    picked_chrom.clear(true);
+    picked_chrom.ChromatogramSettings::operator=(chromatogram);
+    picked_chrom.MetaInfoInterface::operator=(chromatogram);
+    picked_chrom.setName(chromatogram.getName());
 
     std::vector<double> time;
     std::vector<double> intensity;

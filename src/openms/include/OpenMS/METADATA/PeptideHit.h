@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -210,9 +211,9 @@ public:
     class OPENMS_DLLAPI PepXMLAnalysisResult
     {
 public:
-      String score_type; // e.g. peptideprophet / interprophet
-      bool higher_is_better; // is higher score better ?
-      double main_score; // posterior probability for example
+      String score_type; /// e.g. peptideprophet / interprophet
+      bool higher_is_better; /// is higher score better ?
+      double main_score; /// posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
@@ -341,4 +342,6 @@ protected:
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
   };
 
+  /// Stream operator
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
 } // namespace OpenMS

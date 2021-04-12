@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtGui/QPainter>
 #include <QtCore/QPoint>
@@ -59,7 +59,7 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DTextItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DTextItem::draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped)
   {
     //translate mz/intensity to pixel coordinates
     QPoint pos;
@@ -101,7 +101,7 @@ namespace OpenMS
     return flags_;
   }
 
-  void Annotation1DTextItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  void Annotation1DTextItem::ensureWithinDataRange(Plot1DCanvas * const canvas)
   {
     DRange<3> data_range = canvas->getDataRange();
 

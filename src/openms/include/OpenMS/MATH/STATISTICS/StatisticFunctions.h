@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -204,6 +204,35 @@ namespace OpenMS
         diffs.push_back(fabs(*it - median_of_numbers));
       }
       return median(diffs.begin(), diffs.end(), false);
+    }
+    
+    /**
+      @brief mean absolute deviation (MeanAbsoluteDeviation)
+
+      Computes the MeanAbsoluteDeviation, defined as
+
+      MeanAbsoluteDeviation = mean( | x_i - mean(x) | ) for a vector x with indices i in [1,n].
+
+      For efficiency, you must provide the mean separately, in order to avoid potentially duplicate efforts (usually one
+      computes the mean anyway externally).
+      
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param mean_of_numbers The precomputed mean of range @p begin - @p end.
+      @return the MeanAbsoluteDeviation
+
+      @ingroup MathFunctionsStatistics
+
+    */
+    template <typename IteratorType>
+    double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)
+    {
+      double mean {0};
+      for (IteratorType it = begin; it != end; ++it)
+      {
+        mean += fabs(*it - mean_of_numbers);
+      }
+      return mean / std::distance(begin, end);
     }
 
     /**

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,9 +66,9 @@ public:
       {
 public:
         GaussFitResult()
-        : A(-1.0), x0(-1.0), sigma(-1.0), logsigma(-1.0) {}
+        : A(-1.0), x0(-1.0), sigma(-1.0) {}
         GaussFitResult(double a, double x, double s)
-        : A(a), x0(x), sigma(s), logsigma(log(s)) {}
+        : A(a), x0(x), sigma(s) {}
 
         /// parameter A of Gaussian distribution (amplitude)
         double A;
@@ -99,8 +99,6 @@ public:
         double log_eval_no_normalize(double x) const;
 
       private:
-        /// cached value of log sigma
-        double logsigma;
         double halflogtwopi = 0.5*log(2.0*Constants::PI);
       };
 

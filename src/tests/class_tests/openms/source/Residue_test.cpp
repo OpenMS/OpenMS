@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,7 +63,7 @@ START_SECTION((virtual ~Residue()))
 END_SECTION
 
 ResidueDB* db = ResidueDB::getInstance();
-e_ptr = new Residue(*db->getResidue("LYS"));
+e_ptr = new Residue(*db->getResidue("Lys"));
 
 EmpiricalFormula h2o("H2O");
 
@@ -131,16 +132,6 @@ END_SECTION
 
 START_SECTION(const String& getName() const)
 	TEST_EQUAL(e_ptr->getName(), "BLUBB")
-END_SECTION
-
-START_SECTION(void setShortName(const String &short_name))
-	Residue copy(*e_ptr);
-	e_ptr->setShortName("BB");
-	TEST_NOT_EQUAL(copy, *e_ptr)
-END_SECTION
-
-START_SECTION(const String& getShortName() const)
-	TEST_EQUAL(e_ptr->getShortName(), "BB")
 END_SECTION
 
 START_SECTION(void setSynonyms(const std::set< String > &synonyms))
@@ -312,13 +303,24 @@ END_SECTION
 START_SECTION(void setModification(const String& name))
 	e_ptr->setOneLetterCode("M"); // we need M for this mod
 	TEST_EQUAL(e_ptr->getModificationName(), "")
-	TEST_EQUAL(e_ptr->getModification(), 0)
+	TEST_EQUAL(e_ptr->getModification() == nullptr, true)
 	e_ptr->setModification("Oxidation");
 	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
 	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 
+START_SECTION(String Residue::toString() const)
+	auto rr(*db->getResidue("Met"));
+	TEST_EQUAL(rr.toString(), "M");
+	TEST_EQUAL(rr.getModification() == nullptr, true)
+	rr.setModification("Oxidation");
+	TEST_EQUAL(rr.getModificationName(), "Oxidation")
+	TEST_EQUAL(rr.toString(), "M(Oxidation)");
+	const ResidueModification* mod = ResidueModification::createUnknownFromMassString("123", 123.0, false, ResidueModification::ANYWHERE, &rr);
+	rr.setModification(mod);
+  TEST_EQUAL(rr.toString(), "M[123]");
+END_SECTION
 
 START_SECTION(const String& getModificationName() const)
   NOT_TESTABLE // tested above
@@ -357,11 +359,7 @@ START_SECTION(bool operator==(const Residue &residue) const)
 
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setShortName("other_short_name");
-	TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
 	set<String> syns;
 	syns.insert("new_syn");
 	r.setSynonyms(syns);
@@ -456,11 +454,7 @@ START_SECTION(bool operator!=(const Residue &residue) const)
 
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  r.setShortName("other_short_name");
-  TEST_EQUAL(r != *e_ptr, true)
 
-  r = *e_ptr;
-  TEST_EQUAL(r != *e_ptr, false)
   set<String> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);

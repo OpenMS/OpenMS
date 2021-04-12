@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       libcpp_set[String] accessions
 
       # number of identifications
-      Size id_count
+      Size psm_count
 
       # constructor
       PeptideAndProteinQuant_PeptideData()  nogil except +
@@ -84,7 +84,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       # libcpp_map[unsigned long, double] total_abundances
 
       # total number of identifications (of peptides mapping to this protein)
-      Size id_count
+      Size psm_count
 
       # constructor
       PeptideAndProteinQuant_ProteinData()  nogil except +

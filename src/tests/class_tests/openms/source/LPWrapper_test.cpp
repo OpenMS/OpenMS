@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,6 @@ START_SECTION(~LPWrapper())
 END_SECTION
 
 LPWrapper lp;
-//lp.setSolver(LPWrapper::SOLVER_GLPK);
 std::vector<double> values(2,0.5);
 std::vector<Int> indices;
 indices.push_back(0);
@@ -331,55 +330,48 @@ END_SECTION
 
 START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
 {
-  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
-      String tmp_filename;
-      NEW_TMP_FILE(tmp_filename);
-      lp.writeProblem(tmp_filename,LPWrapper::FORMAT_LP);
-      LPWrapper lp2;
-      lp2.setSolver(LPWrapper::SOLVER_GLPK);
-      lp2.readProblem(tmp_filename,"LP");
-      TEST_EQUAL(lp2.getNumberOfColumns(),2)
-      TEST_EQUAL(lp2.getNumberOfRows(),3)
-      TEST_EQUAL(lp2.getColumnType(0),LPWrapper::INTEGER)
-      TEST_EQUAL(lp2.getColumnType(1),LPWrapper::INTEGER)
-      TEST_EQUAL(lp2.getObjective(0),1)
-      TEST_EQUAL(lp2.getObjective(1),0)
-      TEST_EQUAL(lp2.getRowUpperBound(0),0)
-      TEST_EQUAL(lp2.getRowUpperBound(1),12)
-      TEST_EQUAL(lp2.getRowUpperBound(2),12)
-      TEST_EQUAL(lp2.getElement(0,0),1)
-      TEST_EQUAL(lp2.getElement(0,1),-1)
-      TEST_EQUAL(lp2.getElement(1,0),2)
-      TEST_EQUAL(lp2.getElement(1,1),3)
-      TEST_EQUAL(lp2.getElement(2,0),3)
-      TEST_EQUAL(lp2.getElement(2,1),2)
-    }
 #if COINOR_SOLVER==1
-  else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
-  {
-      String tmp_filename;
-      NEW_TMP_FILE(tmp_filename);
-      lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
-      LPWrapper lp2;
-      lp2.setSolver(LPWrapper::SOLVER_COINOR);
-      lp2.readProblem(tmp_filename,"MPS");
-      TEST_EQUAL(lp2.getNumberOfColumns(),2)
-      TEST_EQUAL(lp2.getNumberOfRows(),3)
-      TEST_EQUAL(lp2.getColumnType(0),LPWrapper::INTEGER)
-      TEST_EQUAL(lp2.getColumnType(1),LPWrapper::INTEGER)
-      TEST_EQUAL(lp2.getObjective(0),1)
-      TEST_EQUAL(lp2.getObjective(1),0)
-      TEST_EQUAL(lp2.getRowUpperBound(0),0)
-      TEST_EQUAL(lp2.getRowUpperBound(1),12)
-      TEST_EQUAL(lp2.getRowUpperBound(2),12)
-      TEST_EQUAL(lp2.getElement(0,0),1)
-      TEST_EQUAL(lp2.getElement(0,1),-1)
-      TEST_EQUAL(lp2.getElement(1,0),2)
-      TEST_EQUAL(lp2.getElement(1,1),3)
-      TEST_EQUAL(lp2.getElement(2,0),3)
-      TEST_EQUAL(lp2.getElement(2,1),2)
-  }
+    String tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
+    LPWrapper lp2;
+    lp2.readProblem(tmp_filename,"MPS");
+    TEST_EQUAL(lp2.getNumberOfColumns(),2)
+    TEST_EQUAL(lp2.getNumberOfRows(),3)
+    TEST_EQUAL(lp2.getColumnType(0),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getColumnType(1),LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getObjective(0),1)
+    TEST_EQUAL(lp2.getObjective(1),0)
+    TEST_EQUAL(lp2.getRowUpperBound(0),0)
+    TEST_EQUAL(lp2.getRowUpperBound(1),12)
+    TEST_EQUAL(lp2.getRowUpperBound(2),12)
+    TEST_EQUAL(lp2.getElement(0,0),1)
+    TEST_EQUAL(lp2.getElement(0,1),-1)
+    TEST_EQUAL(lp2.getElement(1,0),2)
+    TEST_EQUAL(lp2.getElement(1,1),3)
+    TEST_EQUAL(lp2.getElement(2,0),3)
+    TEST_EQUAL(lp2.getElement(2,1),2)
+#else
+    String tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    lp.writeProblem(tmp_filename, LPWrapper::FORMAT_LP);
+    LPWrapper lp2;
+    lp2.readProblem(tmp_filename, "LP");
+    TEST_EQUAL(lp2.getNumberOfColumns(), 2)
+    TEST_EQUAL(lp2.getNumberOfRows(), 3)
+    TEST_EQUAL(lp2.getColumnType(0), LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getColumnType(1), LPWrapper::INTEGER)
+    TEST_EQUAL(lp2.getObjective(0), 1)
+    TEST_EQUAL(lp2.getObjective(1), 0)
+    TEST_EQUAL(lp2.getRowUpperBound(0), 0)
+    TEST_EQUAL(lp2.getRowUpperBound(1), 12)
+    TEST_EQUAL(lp2.getRowUpperBound(2), 12)
+    TEST_EQUAL(lp2.getElement(0, 0), 1)
+    TEST_EQUAL(lp2.getElement(0, 1), -1)
+    TEST_EQUAL(lp2.getElement(1, 0), 2)
+    TEST_EQUAL(lp2.getElement(1, 1), 3)
+    TEST_EQUAL(lp2.getElement(2, 0), 3)
+    TEST_EQUAL(lp2.getElement(2, 1), 2)
 #endif
 }
 END_SECTION
@@ -462,16 +454,14 @@ START_SECTION((void getMatrixRow(Int idx,std::vector<Int>& indexes)))
 }
 END_SECTION
 
-START_SECTION((void setSolver(const SOLVER s)))
-{
-  lp4.setSolver(LPWrapper::SOLVER_GLPK);
-  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_GLPK)
-}
-END_SECTION
-
 START_SECTION((SOLVER getSolver() const ))
 {
-  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_GLPK)
+
+#if COINOR_SOLVER==1
+  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
+#else
+  TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)
+#endif
 }
 END_SECTION
 

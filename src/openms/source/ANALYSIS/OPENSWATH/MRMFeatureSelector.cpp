@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -147,7 +147,6 @@ namespace OpenMS
     result.clear();
     std::set<String> variables;
     LPWrapper problem;
-    // problem.setSolver(LPWrapper::SOLVER_GLPK); // glpk
     problem.setObjectiveSense(LPWrapper::MIN);
     Size n_constraints = 0;
     Size n_variables = 0;

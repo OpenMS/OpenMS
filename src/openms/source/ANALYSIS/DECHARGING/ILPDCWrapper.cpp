@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -228,7 +228,6 @@ namespace OpenMS
 
 
     LPWrapper build;
-    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     // add ALL edges first. Their result is what is interesting to us later
@@ -325,7 +324,6 @@ namespace OpenMS
                                         const Size verbose_level) const
   {
     LPWrapper build;
-    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     //------------------------------------objective function-----------------------------------------------

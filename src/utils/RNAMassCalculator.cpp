@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,9 +52,9 @@ using namespace std;
 /**
     @page UTILS_RNAMassCalculator RNAMassCalculator
 
-    @brief Calculates masses and mass-to-charge ratios of RNA sequences.
+    @brief Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences.
 
-    Given an RNA (oligonucleotide) sequence and a charge state, the charged mass (including H+ adducts or losses) and the mass-to-charge ratio are computed.
+    Given an RNA (oligonucleotide) sequence and a charge state, the charged mass (including H+ adducts or losses), mass-to-charge ratio and molecular sum formula are computed.
     The sequence can include modifications (for information on valid notation see the @ref OpenMS::NASequence "NASequence" class documentation).
     Neutral masses can be computed by using "0" as charge state.
 
@@ -67,10 +67,11 @@ using namespace std;
     Output can be written to a file or to the screen (see parameter @p out).
     Results for different charge states are always ordered from lowest to highest charge.
     A number of different output formats are available via the parameter @p format:
-    - @p list writes a human-readable list of the form "ABCDEF: z=1 m=566.192 m/z=566.192, z=2 m=567.199 m/z=283.599";
-    - @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "sequence", "charge", "mass", and "mass-to-charge", and with one row per sequence and charge state;
+    - @p list writes a human-readable list of the form "ACGU: z=-2 m=1221.1951 m/z=610.5976 f=C38H46N15O26P3, z=-1 m=1222.2030 m/z=1222.2030 f=C38H47N15O26P3";
+    - @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "sequence", "charge", "mass", "mass-to-charge" and "formula", and with one row per sequence and charge state;
     - @p mass_only writes only mass values (one line per sequence, values for different charge states separated by spaces);
-    - @p mz_only writes only mass-to-charge ratios (one line per sequence, values for different charge states separated by spaces).
+    - @p mz_only writes only mass-to-charge ratios (one line per sequence, values for different charge states separated by spaces);
+    - @p formula_only writes only sum formulas.
 
 
     <B>The command line parameters of this tool are:</B>
@@ -88,7 +89,7 @@ class TOPPRNAMassCalculator :
 public:
 
   TOPPRNAMassCalculator() :
-    TOPPBase("RNAMassCalculator", "Calculates masses and mass-to-charge ratios of RNA sequences", false), use_avg_mass_(false), output_(nullptr), format_(), frag_type_(NASequence::NASFragmentType::Full)
+    TOPPBase("RNAMassCalculator", "Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences", false), use_avg_mass_(false), output_(nullptr), format_(), frag_type_(NASequence::NASFragmentType::Full)
   {
     frag_type_names_["full"] = NASequence::NASFragmentType::Full;
     frag_type_names_["internal"] = NASequence::NASFragmentType::Internal;
@@ -116,16 +117,16 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with RNA sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
-    setValidFormats_("in", vector<String>(1, "txt"));
+    setValidFormats_("in", {"txt"});
 
     registerStringList_("in_seq", "<sequences>", StringList(), "List of RNA sequences (mutually exclusive to 'in')", false, false);
 
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
-    setValidFormats_("out", vector<String>(1, "txt"));
+    setValidFormats_("out", {"txt"});
 
-    registerIntList_("charge", "<numbers>", ListUtils::create<Int>("0"), "List of charge states; required if 'in_seq' is given", false);
-    registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
-    setValidStrings_("format", ListUtils::create<String>("list,table,mass_only,mz_only"));
+    registerIntList_("charge", "<numbers>", {0}, "List of charge states; required if 'in_seq' is given", false);
+    registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only, 'formula_only': sum formula only)\n", false);
+    setValidStrings_("format", {"list", "table", "mass_only", "mz_only", "formula_only"});
     registerFlag_("average_mass", "Compute average (instead of monoisotopic) oligonucleotide masses");
     registerStringOption_("fragment_type", "<choice>", "full", "For what type of sequence/fragment the mass should be computed\n", false);
     setValidStrings_("fragment_type", ListUtils::create<String>("full,internal,5-prime,3-prime,a-B-ion,a-ion,b-ion,c-ion,d-ion,w-ion,x-ion,y-ion,z-ion"));
@@ -145,8 +146,10 @@ protected:
          ++it)
     {
       double mass = computeMass_(seq, *it);
+      EmpiricalFormula formula = seq.getFormula(frag_type_, *it);
       sv_out << seq.toString() << *it << mass;
       sv_out.writeValueOrNan(abs(mass / *it));
+      sv_out << formula.toString();
       sv_out << endl;
     }
   }
@@ -158,10 +161,12 @@ protected:
          ++it)
     {
       double mass = computeMass_(seq, *it);
+      EmpiricalFormula formula = seq.getFormula(frag_type_, *it);
       if (it != charges.begin()) *output_ << ", ";
       *output_ << "z=" << *it << " m=" << mass << " m/z=";
       if (*it != 0) *output_ << abs(mass / *it);
       else *output_ << "inf";
+      *output_ << " f=" << formula.toString();
     }
     *output_ << endl;
   }
@@ -181,12 +186,26 @@ protected:
     *output_ << endl;
   }
 
+  void writeFormulaOnly_(const NASequence& seq, const set<Int>& charges)
+  {
+    bool first = true;
+    for (Int charge : charges)
+    {
+      EmpiricalFormula formula = seq.getFormula(frag_type_, charge);
+      if (!first) *output_ << " ";
+      *output_ << formula.toString();
+      first = false;
+    }
+    *output_ << endl;
+  }
+
   void writeLine_(const NASequence& seq, const set<Int>& charges)
   {
     if (format_ == "list") writeList_(seq, charges);
     else if (format_ == "table") writeTable_(seq, charges);
     else if (format_ == "mass_only") writeMassOnly_(seq, charges);
-    else writeMassOnly_(seq, charges, true); // "mz_only"
+    else if (format_ == "mz_only") writeMassOnly_(seq, charges, true);
+    else writeFormulaOnly_(seq, charges);
   }
 
   String getItem_(String& line, const String& skip = " \t,;")
@@ -283,7 +302,7 @@ protected:
       if (separator_.empty()) separator_ = "\t";
       // write header:
       SVOutStream sv_out(*output_, separator_);
-      sv_out << "sequence" << "charge" << "mass" << "mass-to-charge" << endl;
+      sv_out << "sequence" << "charge" << "mass" << "mass-to-charge" << "formula" << endl;
     }
 
     if ((in.size() > 0) && (in_seq.size() > 0))

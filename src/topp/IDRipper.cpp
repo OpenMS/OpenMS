@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,8 +75,8 @@ using namespace OpenMS;
 
   <p>Assuming each peptide identification in a given idXML file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
 
-  @p <tt><userParam type="string" name="file_origin" value="IDMerger1_test.idXML"/></tt> or <br />
-  @p <tt><userParam type="string" name="file_origin" value="IDMerger2_test.idXML"/></tt>
+  @p <tt>&lt;userParam type="string" name="file_origin" value="IDMerger1_test.idXML"/&gt;</tt> or <br />
+  @p <tt>&lt;userParam type="string" name="file_origin" value="IDMerger2_test.idXML"/&gt;</tt>
 
   <p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
 

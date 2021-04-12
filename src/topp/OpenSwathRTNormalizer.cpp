@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,11 +82,9 @@ using namespace OpenMS;
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathRTNormalizer.cli
-
- <B>The algorithm parameters for the Analyzer filter are:</B>
+ <B>INI file documentation of this tool:</B>
  @htmlinclude TOPP_OpenSwathRTNormalizer.html
- 
- */
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

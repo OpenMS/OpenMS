@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,6 +107,17 @@ namespace OpenMS
   set<Precursor::ActivationMethod> & Precursor::getActivationMethods()
   {
     return activation_methods_;
+  }
+
+  StringList Precursor::getActivationMethodsAsString() const
+  {
+    StringList am;
+    am.reserve(activation_methods_.size());
+    for (const auto& m : activation_methods_)
+    {
+      am.push_back(NamesOfActivationMethod[m]);
+    }
+    return am;
   }
 
   void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)

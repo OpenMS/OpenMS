@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,8 @@ class QDropEvent;
 
 namespace OpenMS
 {
+  class EnhancedTabBarWidgetInterface;
+
   class OPENMS_GUI_DLLAPI EnhancedWorkspace :
     public QMdiArea
   {
@@ -57,6 +59,16 @@ public:
 
     /// Destructor
     ~EnhancedWorkspace() override;
+
+    /// arrange all windows horizontally
+    void tileHorizontal();
+
+    /// arrange all windows vertically
+    void tileVertical();
+
+    /// get the subwindow with the given id (for all subwindows which inherit from EnhancedTabBarWidgetInterface)
+    /// Returns nullptr if window is not present
+    EnhancedTabBarWidgetInterface* getWidget(int id) const;
 
 signals:
 

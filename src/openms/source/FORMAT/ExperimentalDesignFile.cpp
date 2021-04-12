@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -151,6 +151,8 @@ namespace OpenMS
 
     bool ExperimentalDesignFile::isOneTableFile_(const TextFile& text_file)
     {
+      // To dermine if we have a *separate* sample table, we check if a row is present
+      // that contains "Sample" but no "Fraction_Group".
       for (String s : text_file)
       {
         const String line(s.trim());
@@ -207,6 +209,7 @@ namespace OpenMS
         if (state == RUN_HEADER)
         {
           state = RUN_CONTENT;
+          line_number = 0;
           parseHeader_(
             cells,
             tsv_file,
@@ -216,10 +219,26 @@ namespace OpenMS
           );
           has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
           has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
-          
+     
+          // readd label column to end of header
+          if (!has_label)
+          {
+            size_t hs = fs_column_header_to_index.size();
+            fs_column_header_to_index["Label"] = hs;
+            cells.push_back("Label");
+          }
+
+          // readd sample column to end of header
+          if (!has_sample)
+          {
+            size_t hs = fs_column_header_to_index.size();
+            fs_column_header_to_index["Sample"] = hs;
+            cells.push_back("Sample");
+          }
+    
           n_col = fs_column_header_to_index.size();
 
-          // determine columns with sample metainfo
+          // determine columns with sample metainfo like condition or replication
           for (size_t i = 0; i != cells.size(); ++i)
           {
             const String& c = cells[i];
@@ -232,43 +251,61 @@ namespace OpenMS
         }
         else if (state == RUN_CONTENT)
         {
+          // readd label column as we already did in the header
+          if (!has_label) { cells.push_back("1"); }
+
+          // Assign label, fall back to 1 if column is missing
+          int label = cells[fs_column_header_to_index["Label"]].toInt();
+          int fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
+          int fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
+                    // readd sample column
+          if (!has_sample) 
+          {
+            int sample = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
+            cells.push_back(String(sample)); 
+          }
+
+          int sample = cells[fs_column_header_to_index["Sample"]].toInt();
+          parseErrorIf(sample < 1, tsv_file,
+                       "Sample index may not be smaller than 1");
+
+
           parseErrorIf(n_col != cells.size(), tsv_file,
                        "Wrong number of records in line");
 
           ExperimentalDesign::MSFileSectionEntry e;
 
           // Assign fraction group and fraction
-          e.fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
-          e.fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
+          e.fraction_group = fraction_group;
+          e.fraction = fraction;
+          e.label = label;
+          e.sample = sample;
 
-          // Assign label
-          e.label = has_label ? cells[fs_column_header_to_index["Label"]].toInt() : 1;
+          sample_sample_to_rowindex_[e.sample] = line_number++;
 
-          // Assign sample number
-          if (has_sample)
+          // get indices of sample metadata and store content in sample cells
+          StringList sample_cells;
+          for (const auto & c2i : sample_columnname_to_columnindex_)
           {
-            e.sample = cells[fs_column_header_to_index["Sample"]].toInt();
-            sample_sample_to_rowindex_[e.sample] = line_number++;
-            StringList sample_cells;
-            // get indices of sample metadata and store content in sample cells
-            for (const auto & c2i : sample_columnname_to_columnindex_)
-            {
-              sample_cells.push_back(cells[c2i.second]);
-            }
-            sample_content_.push_back(sample_cells);
+            sample_cells.push_back(cells[c2i.second]);
           }
-          else
-          {
-            e.sample = has_label ? e.label : e.fraction_group;
-          }
+          sample_content_.push_back(sample_cells);
 
           // Spectra files
           e.path = findSpectraFile(
             cells[fs_column_header_to_index["Spectra_Filepath"]],
             tsv_file,
             require_spectra_file);
+       
           msfile_section.push_back(e);
         }
+      }
+
+      // Assign correct position in sample column (without "Fraction_Group", "Fraction", "Spectra_Filepath", "Label")
+      int sample_index = 0;
+      for (auto & c : sample_columnname_to_columnindex_)
+      {
+        c.second = sample_index++;
       }
 
       // Create Sample Section and set in design
@@ -366,7 +403,7 @@ namespace OpenMS
           }
           else
           {
-            e.sample = has_label ? e.label : e.fraction_group;
+            e.sample = e.fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
           }
 
           // Spectra files

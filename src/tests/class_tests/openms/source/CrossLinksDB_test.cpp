@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -270,9 +270,9 @@ END_SECTION
 START_SECTION((bool addModification(ResidueModification* modification)))
 {
   TEST_EQUAL(ptr->has("DSS (C-term)"), false);
-  ResidueModification* modification = new ResidueModification();
+  std::unique_ptr<ResidueModification> modification(new ResidueModification());
   modification->setFullId("DSS (C-term)");
-  ptr->addModification(modification);
+  ptr->addModification(std::move(modification));
   TEST_EQUAL(ptr->has("DSS (C-term)"), true);
 }
 END_SECTION

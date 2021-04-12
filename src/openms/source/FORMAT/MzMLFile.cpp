@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,12 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <sstream>
@@ -250,6 +252,49 @@ namespace OpenMS
     handler.getCounts(scount, ccount);
     consumer->setExpectedSize(scount, ccount);
     consumer->setExperimentalSettings(experimental_settings);
+  }
+
+  std::map<UInt, MzMLFile::SpecInfo> MzMLFile::getCentroidInfo(const String& filename, const Size first_n_spectra_only)
+  {
+    bool oldoption = options_.getFillData();
+    options_.setFillData(true); // we want the data as well (to allow estimation from data if metadata is missing)
+    std::map<UInt, SpecInfo> ret;
+    Size first_n_spectra_only_remaining = first_n_spectra_only;
+    auto f = [&ret, &first_n_spectra_only_remaining](const MSSpectrum& s)
+    {
+        UInt lvl = s.getMSLevel();
+        switch (s.getType(true))
+        {
+          case (MSSpectrum::SpectrumType::CENTROID):
+            ++ret[lvl].count_centroided;
+            --first_n_spectra_only_remaining;
+            break;
+          case (MSSpectrum::SpectrumType::PROFILE):
+            ++ret[lvl].count_profile;
+            --first_n_spectra_only_remaining;
+            break;
+          case (MSSpectrum::SpectrumType::UNKNOWN):  // this can only happen for spectra with very few peaks (or completely empty spectra)
+            ++ret[lvl].count_unknown;
+            break;
+          default:
+            // make sure we did not forget a case
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+
+        // stop parsing after 10 or so spectra
+        if (first_n_spectra_only_remaining == 0)
+        {
+          throw Internal::XMLHandler::EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+    };
+    MSDataTransformingConsumer c;
+    c.setSpectraProcessingFunc(f);
+    transform(filename, &c, true, true); // no first pass
+
+    // restore old state
+    options_.setFillData(oldoption);
+
+    return ret;
   }
 
 } // namespace OpenMS

@@ -38,6 +38,7 @@ FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
 GzipInputStream.h
+HDF5Connector.h
 IBSpectraFile.h
 IdXMLFile.h
 IndexedMzMLFileLoader.h
@@ -85,6 +86,7 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
+TriqlerFile.h
 UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h

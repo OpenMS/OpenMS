@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -564,7 +563,6 @@ protected:
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        ConsensusMap::ColumnHeaders::iterator file_it = columns_headers_.begin();
         double light = q.second.total_abundances.find(1)->second;
         double middle = q.second.total_abundances.find(2)->second;
         double heavy = q.second.total_abundances.find(3)->second;
@@ -789,7 +787,7 @@ protected:
       IdXMLFile().load(in, proteins, peptides);
       for (Size i = 0; i < proteins.size(); ++i)
       {
-        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString(Qt::ISODate);
+        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
       }
 
       ed = getExperimentalDesignIds_(design_file, proteins);
@@ -812,12 +810,14 @@ protected:
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
-      // protein inference results in the consensusXML?
+      bool inference_in_cxml = false;
+      // protein inference results in the consensusXML or from external ID-only file?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
           (!consensus.getProteinIdentifications()[0].getHits().empty()))
       {
         proteins_ = consensus.getProteinIdentifications()[0];
+        inference_in_cxml = true;
       }
 
       quantifier.readQuantData(consensus, ed);
@@ -830,9 +830,15 @@ protected:
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
         PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
-        vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
-        proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
-        consensus.setProteinIdentifications(proteins);
+        if (!inference_in_cxml)
+        {
+          auto& prots = consensus.getProteinIdentifications();
+          prots.insert(prots.begin(), proteins_); // insert inference information as first protein identification
+        }
+        else
+        {
+          std::swap(consensus.getProteinIdentifications()[0], proteins_);
+        }
 /*
  *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
         auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
@@ -843,7 +849,7 @@ protected:
         const bool report_unmapped(true);
         const bool report_unidentified_features(false);
         const bool report_subfeatures(false);
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, true, report_unidentified_features, report_unmapped, report_subfeatures);
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, !inference_in_cxml, report_unidentified_features, report_unmapped, report_subfeatures);
         MzTabFile().store(mztab, m);
       }
     }

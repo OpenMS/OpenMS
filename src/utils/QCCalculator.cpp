@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -900,8 +900,9 @@ protected:
           row.push_back(tmp.getScore());
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
-          row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-          double dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), it->getMZ(), true));
+          double mz = tmp.getSequence().getMZ(tmp.getCharge());
+          row.push_back(String(mz));
+          double dppm = getMassDifference(mz, it->getMZ(), true);
           row.push_back(String(dppm));
 //          row.push_back(String(calculateSNident(tmp)));
           deltas.push_back(dppm);

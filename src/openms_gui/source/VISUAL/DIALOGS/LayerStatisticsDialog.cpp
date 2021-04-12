@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,7 @@
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 #include <ui_LayerStatisticsDialog.h>
 
-#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 
 using namespace std;
@@ -44,15 +44,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  LayerStatisticsDialog::LayerStatisticsDialog(SpectrumWidget * parent) :
+  LayerStatisticsDialog::LayerStatisticsDialog(PlotWidget * parent) :
     QDialog(parent),
+    canvas_(parent->canvas()),
+    layer_data_(canvas_->getCurrentLayer()),
     ui_(new Ui::LayerStatisticsDialogTemplate)
   {
     ui_->setupUi(this);
-
-    canvas_ = parent->canvas();
-    layer_data_ = canvas_->getCurrentLayer();
-
+    
     if (layer_data_.type == LayerData::DT_PEAK)
     {
       computePeakStats_();
@@ -108,7 +107,7 @@ namespace OpenMS
     {
       computeConsensusStats_();
 
-      // add thres rows for charge, quality and elements
+      // add three rows: charge, quality and elements
       ui_->table_->setRowCount(ui_->table_->rowCount() + 3);
       QTableWidgetItem * item = new QTableWidgetItem();
       item->setText(QString("Charge"));
@@ -461,11 +460,11 @@ namespace OpenMS
 
     if (text == "intensity")
     {
-      qobject_cast<SpectrumWidget *>(parent())->showIntensityDistribution();
+      qobject_cast<PlotWidget *>(parent())->showIntensityDistribution();
     }
     else
     {
-      qobject_cast<SpectrumWidget *>(parent())->showMetaDistribution(String(text));
+      qobject_cast<PlotWidget *>(parent())->showMetaDistribution(String(text));
     }
   }
 

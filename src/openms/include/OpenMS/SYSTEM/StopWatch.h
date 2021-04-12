@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,69 +50,64 @@
 namespace OpenMS
 {
   /**
-      @brief StopWatch Class.
+      @brief This class is used to determine the current process' CPU (user and/or kernel) and wall time.
 
-      This class is used to determine the current process time.
+      CPU time is measured as sum of all threads of the current process.
+
+      To read a time, the stopwatch must be started beforehand, but not necessarily stopped.
+      
+      You can stop() the timer and resume() it later to omit intermediate steps which should not count towards 
+      the measured times.
+
 
       @ingroup System
   */
   class OPENMS_DLLAPI StopWatch
   {
 public:
-
-    /**	@name	Constructors and Destructors
-    */
-    //@{
-
-    /**	Default constructor.
-            Create a new stop watch. The stop watch is stopped.
-    */
-    StopWatch();
-
-    /**	Copy constructor.
-            Create a new stop watch from an existing stop watch.
-    */
-    StopWatch(const StopWatch & stop_watch);
-
-    /**	Destructor.
-            Destructs a stop watch object.
-    */
-    virtual ~StopWatch();
-
-    //@}
     /**	Starting, Stopping and Resetting the stop watch
     */
     //@{
 
-    /**	Clear and stop the stop watch.
-            This sets the stop watch to zero and stops it when running.
-            @see	reset
+    /**
+        @brief Start the stop watch.
+        
+        If the watch holds data from previous measurements, these will be reset before starting up,
+        i.e. it is not possible to resume by start(), stop(), start().
+        Use resume(), stop(), resume() instead.
+    
+        @throw Exception::Precondition if the StopWatch is already running
     */
-    void clear();
+    void start();
 
-    /** Start the stop watch.
-            The stop watch is started. If the stop watch is already running, <b>false</b>
-            is returned.
+    /** 
+        @brief Stop the stop watch (can be resumed later).
+        If the stop watch was not running an exception is thrown.
 
-            If the watch holds data from previous measurements, these will be reset before starting up,
-            i.e. it is not possible to resume by start(), stop(), start().
-
-            @return bool <b>false</b> if the stop watch was already running, <b>true</b> otherwise
+        @throw Exception::Precondition if the StopWatch is not running
     */
-    bool start();
+    void stop();
 
-    /** Stop the stop watch.
-            The stop watch is stopped. If the stop watch was not running, <b>false</b>
-            is returned.
-            @return bool <b>false</b> if the was not running, <b>true</b> otherwise
+    /**
+      @brief Resume a stopped StopWatch
+
+      @throw Exception::Precondition if the StopWatch is already running
     */
-    bool stop();
+    void resume();
 
-    /** Clear the stop watch without stopping.
-            The stop watch is cleared, but not stopped (if running).
-            @see clear
+    /** 
+        @brief Clear the stop watch but keep running.
+        
+        The stop watch is reset to 0, but not stopped (if running).
+        @see clear
     */
     void reset();
+
+    /**	Clear and stop the stop watch.
+        This sets the stop watch to zero and stops it when running.
+        @see	reset
+*/
+    void clear();
 
     //@}
 
@@ -121,40 +116,25 @@ public:
     //@{
 
     /**	Get clock time.
-            Return the accumulated clock (real) time in seconds.
+            Return the accumulated wall clock (real) time in seconds.
     */
     double getClockTime() const;
 
     /**	Get user time.
-            Return the accumulated user time in seconds.
+            Return the accumulated user time in seconds across all threads.
     */
     double getUserTime() const;
 
     /**	Get user time.
-            Return the accumulated system time in seconds.
+            Return the accumulated system time in seconds across all threads.
     */
     double getSystemTime() const;
 
     /**	Get CPU time.
             Return the accumulated CPU time in seconds.
-            CPU time is the sum of user time and system time.
+            CPU time is the sum of user time and system time across all threads.
     */
     double getCPUTime() const;
-
-    //@}
-
-    /**	@name	Assignment
-    */
-    //@{
-
-    /**	Assignment operator.
-            Assigns a stop watch from another. The two stop watch will then run
-            synchronously.
-            @return StopWatch <tt>*this</tt>
-    */
-    StopWatch & operator=(const StopWatch & stop_watch);
-
-    //@}
 
     /**	@name	Predicates
     */
@@ -229,45 +209,51 @@ public:
     /**
       custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
     */
-    static String toString(const double time);
+    static String toString(const double time_in_seconds);
 
 private:
-
-    static PointerSizeInt cpu_speed_;
-
-#ifdef OPENMS_WINDOWSPLATFORM
-    static PointerSizeInt clock_speed_;
-    typedef OPENMS_UINT64_TYPE TimeType; // do not use clock_t on Windows, since its not big enough for larger time intervals
-#else
+  #ifdef OPENMS_WINDOWSPLATFORM
+    typedef OPENMS_UINT64_TYPE TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
+    static const long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
+  #else
     typedef clock_t TimeType;
-#endif
+    static const PointerSizeInt cpu_speed_; ///< POSIX API returns CPU ticks, so we need to divide by CPU speed
+  #endif
 
-    // state of stop watch, either true(on) or false(off)
-    bool is_running_;
+    struct TimeDiff_
+    {
+      TimeType user_ticks{ 0 }; ///< platform dependent value (might be CPU ticks or time intervals)
+      TimeType kernel_ticks{ 0 }; ///< platform dependent value (might be CPU ticks or time intervals)
+      PointerSizeInt start_time{ 0 }; ///< time in seconds (relative or absolute, depending on usage)
+      PointerSizeInt start_time_usec{ 0 }; ///< time in microseconds (relative or absolute, depending on usage)
 
-    // clock seconds value when the stop watch was last started
-    PointerSizeInt start_secs_;
+      double userTime() const;
+      double kernelTime() const;
+      double getCPUTime() const;
+      double clockTime() const;
 
-    // clock useconds value when the stop watch was last started
-    PointerSizeInt start_usecs_;
+      TimeDiff_ operator-(const TimeDiff_& earlier) const;
+      TimeDiff_& operator+=(const TimeDiff_& other);
+      bool operator==(const TimeDiff_& rhs) const;
 
-    // user time when the stop watch was last started
-    TimeType start_user_time_;
+      private:
+        double ticksToSeconds_(TimeType in) const;
+    };
 
-    // system time when the stop watch was last started
-    TimeType start_system_time_;
 
-    // current accumulated clock seconds
-    PointerSizeInt current_secs_;
+    /// get the absolute times for current system, user and kernel times
+    TimeDiff_ snapShot_() const;
 
-    // current accumulated clock useconds
-    PointerSizeInt current_usecs_;
+    /// currently accumulated times between start to stop intervals (initially 0),
+    /// not counting the currently running interval which started at last_start_
+    TimeDiff_ accumulated_times_;
 
-    // current accumulated user time
-    TimeType current_user_time_;
+    /// point in time of last start()
+    TimeDiff_ last_start_;
 
-    // current accumulated user time
-    TimeType current_system_time_;
+    /// state of stop watch, either true(on) or false(off)
+    bool is_running_ = false;
+
   };
 
 }

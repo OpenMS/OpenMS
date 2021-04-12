@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,8 +92,8 @@ using namespace OpenMS;
   This tools accepts a set of chromatograms and picks peaks in them, correctly
   grouping related transitions from the same precursor together. It will
   perform the following steps:
-  - Step 1: find features (peaks) in individual chromatograms </li>
-  - Step 2: merge these features to consensus features that span multiple chromatograms </li>
+  - Step 1: find features (peaks) in individual chromatograms
+  - Step 2: merge these features to consensus features that span multiple chromatograms
 
   Step 1 is performed by smoothing the individual chromatogram and applying the
   PeakPickerHiRes.

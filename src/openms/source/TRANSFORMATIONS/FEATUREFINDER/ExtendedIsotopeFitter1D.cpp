@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ namespace OpenMS
     return *this;
   }
 
-  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // build model
     if (charge_ == 0)
@@ -97,7 +97,7 @@ namespace OpenMS
       max_bb += stdev;
 
 
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -109,7 +109,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("ExtendedIsotopeModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("ExtendedIsotopeModel")));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

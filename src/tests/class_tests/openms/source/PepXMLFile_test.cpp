@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -176,13 +176,37 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
   TEST_EQUAL(fix_mods.size(), 1)
-  TEST_EQUAL(var_mods.size(), 5)
+  TEST_EQUAL(var_mods.size(), 12)
 
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Ammonia-loss (N-term C)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (N-term E)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Oxidation (M)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (N-term Q)") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+1") != var_mods.end(), true)
+  TEST_EQUAL(var_mods[0], "Ammonia-loss (N-term C)")
+  TEST_EQUAL(var_mods[1], "Glu->pyro-Glu (N-term E)")
+  TEST_EQUAL(var_mods[2], "Oxidation (M)")
+  TEST_EQUAL(var_mods[3], "Gln->pyro-Glu (N-term Q)")
+
+  TEST_EQUAL(var_mods[4], "M[1.0]")
+  TEST_EQUAL(var_mods[5], ".n[2.0]")
+  TEST_EQUAL(var_mods[6], ".c[2.0]")
+  TEST_EQUAL(var_mods[7], ".n[2.5]")
+  TEST_EQUAL(var_mods[8], ".n[2.5]")
+  TEST_EQUAL(var_mods[9], ".n[-2.5]")
+  TEST_EQUAL(var_mods[10], ".n[2.5]")
+  TEST_EQUAL(var_mods[11], ".c[3.4]")
+
+  /* TODO Probably would be nicer to have the following as fullID for readability
+   *  (with the other notation you can't see if it has AA restrictions or if it is protein term)
+   *  Actually, I am not sure if you get problems, when you later search by fullID and
+   *  erroneously find the another modification with different AA specificity!
+   *  We could still use the above notation when writing it to a sequence in
+   *  bracket notation
+  TEST_EQUAL(var_mods[4], "+1 (M)")
+  TEST_EQUAL(var_mods[5], "+2 (N-term M)")
+  TEST_EQUAL(var_mods[6], "+2 (Protein C-term L)")
+  TEST_EQUAL(var_mods[7], "+2.5 (N-term)")
+  TEST_EQUAL(var_mods[8], "+2.5 (Protein N-term)")
+  TEST_EQUAL(var_mods[9], "-2.5 (N-term)")
+  TEST_EQUAL(var_mods[10], "+2.5 (Protein N-term)")
+  TEST_EQUAL(var_mods[11], "+3.4 (Protein C-term)")
+   */
 
   // wrong "experiment_name" produces an exception:
   TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));

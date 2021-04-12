@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ namespace Ui
 
 namespace OpenMS
 {
-  class SpectrumWidget;
-  class SpectrumCanvas;
+  class PlotWidget;
+  class PlotCanvas;
 
   /**
       @brief Dialog showing statistics about the data of the current layer
@@ -68,7 +68,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    LayerStatisticsDialog(SpectrumWidget * parent);
+    LayerStatisticsDialog(PlotWidget * parent);
 
     ~LayerStatisticsDialog();
 
@@ -124,9 +124,9 @@ protected:
     /// Map containing the statistics about the FloatDataArrays of all spectra in this layer
     std::map<String, MetaStatsValue_> meta_array_stats_;
     /// The canvas of the layer
-    SpectrumCanvas * canvas_;
+    PlotCanvas * canvas_;
     /// The LayerData object we compute statistics about
-    LayerData layer_data_;
+    const LayerData& layer_data_;
     /// Minimum intensity value
     double min_intensity_;
     /// Maximum intensity value

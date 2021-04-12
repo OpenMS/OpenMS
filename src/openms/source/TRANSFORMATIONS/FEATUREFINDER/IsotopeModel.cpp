@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -221,8 +221,6 @@ namespace OpenMS
 
     monoisotopic_mz_ = mean_ - isotopes_mean;
     interpolation_.setMapping(interpolation_step_, peak_width / interpolation_step_, monoisotopic_mz_);
-
-    //std::cerr << "mono now: " << monoisotopic_mz_ << " mono easy: " << formula.getMonoWeight()/formula.getCharge() << "\n";
 
     // scale data so that integral over distribution equals one
     // multiply sum by interpolation_step_ -> rectangular approximation of integral

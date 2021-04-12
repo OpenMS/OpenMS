@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,10 +102,16 @@ namespace OpenMS
 
     private:
 
-        typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
+        struct Apex
+        {
+          Apex(double intensity, Size scan_idx, Size peak_idx);
+          double intensity;
+          Size scan_idx;
+          Size peak_idx;
+        };
 
         /// The internal run method
-        void run_(const MapIdxSortedByInt& chrom_apices,
+        void run_(const std::vector<Apex>& chrom_apices,
                   const Size peak_count,
                   const PeakMap & work_exp,
                   const std::vector<Size>& spec_offsets,

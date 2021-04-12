@@ -32,11 +32,10 @@
 
     <b>Pre-Requisites (Software)</b>
     <ul>
-      <li><b>Visual Studio</b>: VS2015 and above are supported, but we thoroughly recommend <b>VS2019</b> (faster compilation, faster executables and it fixes a bug in OpenMP multithreading - see <a href="https://github.com/OpenMS/OpenMS/issues/4389" target="_new">issue #4389</a>).
-             The C++ Express editions should work as well, we tested VSE2015 Update 3.
-        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier, due to missing C11 support). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
+      <li><b>Visual Studio</b>: Microsoft Visual Studio (Community) 2019 or above
+        <br><b>Not supported are MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li><b>CMake</b>: Have at least CMake 3.1 or greater installed (see http://www.cmake.org). For building with our contrib package please use 3.14+. <br>
+      <li><b>CMake</b>: Have at least CMake 3.14+ or greater installed (see http://www.cmake.org). <br>
 	      CMake's Generator (-G flag) also must support your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
@@ -51,7 +50,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, SeqAn, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -65,6 +64,7 @@
     If you plan to use the development version of %OpenMS, clone %OpenMS and checkout the optional contrib submodule with
     \code
     git clone https://github.com/OpenMS/OpenMS
+    cd OpenMS
     git submodule update --init contrib
     \endcode
     to obtain the latest potentially unstable version.
@@ -80,7 +80,7 @@
       <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
 					@note VS2015 does not provide a commandline shortcut for a 64bit command prompt. Call <tt>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64</tt> to get one!
 					@note VS2017 has a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
-					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>
+					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2019)
       <li>Create a build directory for the %OpenMS contrib<br>
           e.g. <tt>mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
@@ -94,7 +94,7 @@
 
         The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
         Use the <tt>-A x64</tt> flag to build 64-bit libraries for the contrib (32-bit does not really make any sense for LC-MS data processing)!
-        Type <tt>cmake</tt> to see a list of available generators.<br>
+        Type <tt>cmake -help</tt> to see a list of available generators.<br>
 
         Example:
         \code
@@ -135,7 +135,7 @@
             cd qt-5.9
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
+          <li>To save disk space, we use the <tt>-prefix</tt> switch to install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
               Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers). Note that part of Qt requires Python to compile, so its a good idea to add the Python executable to your path
             \code
             PATH=%PATH%;C:\Python27\
@@ -150,7 +150,7 @@
 	    nmake install
 	    \endcode
           <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories.
-          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
+          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" and subsequently "jom install" in your Qt build directory to use multiple cores (builds a lot faster usually)
         </ol>
       <li>commercial:
         <ol>
@@ -225,7 +225,11 @@
         \endcode
 
         The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
+        @note If you build Qt5 from source, the build directories will be located at <tt>&lt;path_to_qt&gt;\\mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
+        @note Example CMAKE_PREFIX_PATH: <tt>C:\\dev\\qt-5.9\\mkspecs\\winrt-x64-msvc2017</tt>
+        
         The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
+        
         @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
         Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
         The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
@@ -234,6 +238,7 @@
         cd c:\dev\OpenMS_Win64
         cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 16 2019" -A x64 -T host=x64 ..\OpenMS
         \endcode
+       
     </ol>
 
     \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
@@ -268,7 +273,7 @@
   go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
   For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
   You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
-  Single tests can be run with <tt>ctest -R <testnameregex></tt>, e.g. <tt>ctest -R Base64_test</tt>.
+  Single tests can be run with <tt>ctest -R &lt;testnameregex&gt;</tt>, e.g. <tt>ctest -R Base64_test</tt>.
   For more syntax on CTest look at the online documentation at http://cmake.org/.
 
   @section install_win_cmdline_openms Building OpenMS on the commandline
@@ -280,6 +285,11 @@
   as arguments to <tt>MSBuild.exe</tt>, e.g.
   \code
   MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
+  \endcode
+  
+  Example:
+  \code
+  MSBuild.exe OpenMS_host.sln
   \endcode
 
   @note Since the call can be a bit lengthy, there is a batch file in

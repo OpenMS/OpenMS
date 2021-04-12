@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,10 +98,11 @@ END_SECTION
 
 START_SECTION((bool isRunning() const))
   StopWatch w;
-
+  TEST_EQUAL(w.isRunning(), false);
   w.start();
   TEST_EQUAL(w.isRunning(), true);
   w.stop();
+  TEST_EQUAL(w.isRunning(), false); 
 END_SECTION
 
 START_SECTION((bool operator != (const StopWatch& stop_watch) const))
@@ -129,15 +130,23 @@ START_SECTION((bool operator >= (const StopWatch& stop_watch) const))
 END_SECTION
 
 START_SECTION((bool start()))
-  NOT_TESTABLE; // see below
+  StopWatch s1;
+  s1.start();
+  TEST_EXCEPTION(Exception::Precondition, s1.start()); // cannot start twice
 END_SECTION
 
 START_SECTION((bool stop()))
   const double t_wait = 0.2;
-  StopWatch s;
+  const double t_wait_more = 0.1;
+  StopWatch s, s_nostop, s_reset, s_resume;
   s.start();
+  s_nostop.start();
+  s_reset.start();
+  s_resume.resume();
   wait(t_wait);
   s.stop();
+  s_resume.stop();
+  TEST_EXCEPTION(Exception::Precondition, s.stop()); // cannot stop twice
 
   TEST_EQUAL(s.getClockTime() > 0.1, true)
   TEST_EQUAL(s.getClockTime() < 0.3, true)
@@ -146,8 +155,11 @@ START_SECTION((bool stop()))
   double t2 = s.getClockTime();
   double t3 = s.getSystemTime();
   double t4 = s.getUserTime();
+  s_reset.reset();
+  TEST_EQUAL(s_reset.isRunning(), true); // keeps on running
+  s_resume.resume();
   // wait some more
-  wait(0.1);
+  wait(t_wait_more);
   // ... and see if time is still the old one
   TEST_EQUAL(s.getCPUTime(), t1)
   TEST_EQUAL(s.getClockTime(), t2)
@@ -162,6 +174,41 @@ START_SECTION((bool stop()))
   TEST_EQUAL(s.getUserTime() < t_wait * 2, true)
   TEST_EQUAL(s.getSystemTime() < t_wait, true) // and usually quite few system time
                                                //(not guaranteed on VMs, therefore do a trivial check)
+
+  // the watch that never stopped should be ahead...
+  TEST_EQUAL(s.getCPUTime() < s_nostop.getCPUTime(), true) 
+  TEST_EQUAL(s.getClockTime() < s_nostop.getClockTime(), true)
+  TEST_EQUAL(s.getUserTime() < s_nostop.getUserTime(), true)
+  TEST_EQUAL(s.getSystemTime() <= s_nostop.getSystemTime(), true)
+
+  s.reset(); // was stopped, so remains stopped
+  TEST_EQUAL(s.isRunning(), false);
+  TEST_EQUAL(s == StopWatch(), true);
+
+  // kept on running the whole time after reset above .. should accumulate time
+  TEST_EQUAL(s_reset.getCPUTime() > 0, true);
+
+  // don't stop the timer.. just keep running and query on the fly
+  TEST_EQUAL(s_resume.getCPUTime() > (t_wait_more + t_wait) / 2, true) // waiting costs CPU time in our implementation... just not sure how much...
+  TEST_EQUAL(s_resume.getClockTime() > (t_wait_more + t_wait) * 0.95, true) //  must consume wall time
+END_SECTION
+
+START_SECTION((void clear()))
+  StopWatch s;
+  s.start();
+  s.clear();
+  TEST_EQUAL(s.isRunning(), false);
+  TEST_EQUAL(s == StopWatch(), true);
+  END_SECTION
+
+START_SECTION((void reset()))
+  NOT_TESTABLE; // done above to save Test time
+END_SECTION
+
+START_SECTION((void resume()))
+  StopWatch s1;
+  s1.start();
+  TEST_EXCEPTION(Exception::Precondition, s1.resume()); // cannot start twice
 END_SECTION
 
 START_SECTION((double getCPUTime() const ))
@@ -177,14 +224,6 @@ START_SECTION((double getSystemTime() const ))
 END_SECTION
 
 START_SECTION((double getUserTime() const ))
-  NOT_TESTABLE; // done above
-END_SECTION
-
-START_SECTION((void clear()))
-  NOT_TESTABLE; // done above
-END_SECTION
-
-START_SECTION((void reset()))
   NOT_TESTABLE; // done above
 END_SECTION
 

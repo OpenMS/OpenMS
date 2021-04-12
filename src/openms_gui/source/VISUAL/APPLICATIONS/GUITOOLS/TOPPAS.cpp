@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,9 +72,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
-using namespace OpenMS;
-using namespace std;
-
 //STL
 #include <iostream>
 #include <map>
@@ -87,6 +84,8 @@ using namespace std;
 #   include <Windows.h>
 #endif
 
+using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 // command line name of this tool
@@ -177,8 +176,8 @@ int main(int argc, const char** argv)
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
     pt_ver.setPen(QColor(44, 50, 152));
     pt_ver.drawText(490, 84, VersionInfo::getVersion().toQString());
-    QSplashScreen* splash_screen = new QSplashScreen(qpm);
-    splash_screen->show();
+    QSplashScreen splash_screen(qpm);
+    splash_screen.show();
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
@@ -190,11 +189,11 @@ int main(int argc, const char** argv)
 
     if (param.exists("misc"))
     {
-      mw->loadFiles(param.getValue("misc"), splash_screen);
+      mw->loadFiles(param.getValue("misc"), &splash_screen);
     }
-    else // remember this new window as obsolete once a real workflow is loaded without this window being touched
-    {    // if this is not desired, simply call newPipeline() without arguments
-      mw->newPipeline(mw->IDINITIALUNTITLED);
+    else 
+    {
+      mw->newPipeline();
     }
 
     // We are about to show the application.
@@ -203,8 +202,7 @@ int main(int argc, const char** argv)
     {
     }
     stop_watch.stop();
-    splash_screen->close();
-    delete splash_screen;
+    splash_screen.close();
 
 #ifdef OPENMS_WINDOWSPLATFORM
     FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -62,21 +62,26 @@ execute_process(
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 #------------------------------------------------------------------------------
-# Windows support requires that the correct Python version is matched to the correct MSVS version:
+# See https://wiki.python.org/moin/WindowsCompilers
+# Windows support requires that the correct Python version is matched to the
+# correct MSVS version:
 # * Python 2.[67] needs to be compiled with MSVS 2008
 # * Python 3.[34] needs to be compiled with MSVS 2010
-# * Python 3.[56] needs to be compiled with MSVS 2015
+# * Python 3.[5678] needs to be compiled with MSVS 2015
 if(WIN32)
-    if(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
+    if(SKIP_WIN_COMPILERCHECK)
+        message(STATUS "Skipping MS Visual C++ compiler check (not recommended)")
+    elseif(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
     elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" ))
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" OR ${PY_VERSION} STREQUAL "3.7" OR ${PY_VERSION} STREQUAL "3.8" OR ${PY_VERSION} STREQUAL "3.9" ))
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions")
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions")
+        message(STATUS "To skip this check, please configure with -DSKIP_WIN_COMPILERCHECK=On")
         message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
@@ -366,13 +371,13 @@ endif()
 # If we only could get rid of distutils in general and do everything with CMake..
 if(NOT WIN32)
   find_boost(regex) ## variables are not global -> find again
-  
+  find_package(XercesC)
   # the following does not work since the FindBoost does not annotate all target_properties,
   # when run without BOOST_USE_STATIC On or Off.
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
   
   # the logic for static vs dynamic is in setup.py
-  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>")
+  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
   
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
@@ -387,14 +392,27 @@ endif()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 #  1 thread for compilation and using 8 modules seems like a reasonable number
-#  for now -- note that you need change __init__.py if you change the number of
-#  modules...
+#  for now
 if(NOT PY_NUM_THREADS)
   set(PY_NUM_THREADS 1)
 endif()
 if(NOT PY_NUM_MODULES)
   set(PY_NUM_MODULES 8)
 endif()
+
+# set data variable nightly builds use repository last change date
+# yyyy-mm-dd 08:04:17 +0200 -> yyyymmdd
+string(REPLACE "-" "" OPENMS_GIT_LC_DATE_REPLACED ${OPENMS_GIT_LC_DATE})
+set(OPENMS_GIT_LC_DATE_REPLACED_LIST "${OPENMS_GIT_LC_DATE_REPLACED}")
+separate_arguments(OPENMS_GIT_LC_DATE_REPLACED_LIST)
+list(GET OPENMS_GIT_LC_DATE_REPLACED_LIST 0 OPENMS_GIT_LC_DATE_FORMAT)
+
+###debug
+set(OPENMS_GIT_LC_DATE ${OPENMS_GIT_LC_DATE})
+###debug 
+
+set(OPENMS_GIT_LC_DATE_FORMAT ${OPENMS_GIT_LC_DATE_FORMAT})
+
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
@@ -580,6 +598,7 @@ set(pyopenms_unittest_testfiles
   test_TraML.py
   test_MzMLConsumer.py
   test_MzXMLConsumer.py
+  test_AcquisitionInfo.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder

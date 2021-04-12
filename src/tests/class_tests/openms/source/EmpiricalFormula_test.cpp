@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Chris Bielow, Ahmed Khalil $
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
@@ -72,12 +72,15 @@ START_SECTION(~EmpiricalFormula())
 END_SECTION
 
 START_SECTION(EmpiricalFormula(const String& rhs))
-  e_ptr = new EmpiricalFormula("C4");
+  // adding spaces and tabs to test sanitizeIfNotValidFormula.
+  // test succeeds when sanitizeIfNotValidFormula has removed
+  // all spaces, tabs and newlines from the provided formula
+  e_ptr = new EmpiricalFormula("C4 ");
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)
-  EmpiricalFormula e0("C5(13)C4H2");
-  EmpiricalFormula e1("C5(13)C4");
-  EmpiricalFormula e2("(12)C5(13)C4");
-  EmpiricalFormula e3("C9");
+  EmpiricalFormula e0("C5(13)C4H2 ");
+  EmpiricalFormula e1("C5(13)C4\n\n ");
+  EmpiricalFormula e2("(12)C5(13)C4\t\n ");
+  EmpiricalFormula e3("C9 ");
   TEST_REAL_SIMILAR(e1.getMonoWeight(), e2.getMonoWeight())
   TEST_REAL_SIMILAR(e1.getMonoWeight(), 112.013419)
   TEST_REAL_SIMILAR(e2.getMonoWeight(), 112.013419)

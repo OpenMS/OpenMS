@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -133,6 +133,7 @@ public:
         }
 
         MSChromatogram picked_chrom, smoothed_chrom;
+        smoothed_chrom.setNativeID(native_id);
         picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity();
         picked_chroms.push_back(std::move(picked_chrom));
@@ -173,7 +174,11 @@ public:
           findWidestPeakIndices(picked_chroms, chr_idx, peak_idx);
         }
 
-        if (chr_idx == -1 && peak_idx == -1) break;
+        if (chr_idx == -1 && peak_idx == -1)
+        {
+          OPENMS_LOG_DEBUG << "**** No more peaks left. Nr. chroms: " << picked_chroms.size() << std::endl;
+          break;
+        }
 
         // Compute a feature from the individual chromatograms and add non-zero features
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
@@ -183,12 +188,16 @@ public:
         {
           total_xic = mrm_feature.getMetaValue("total_xic");
           features.push_back(std::move(mrm_feature));
+          cnt++;
         }
 
-        cnt++;
-        if (stop_after_feature_ > 0 && cnt > stop_after_feature_) {break;}
+        if (stop_after_feature_ > 0 && cnt > stop_after_feature_) {
+          // If you set this, you only expect one feature anyway. No logging necessary why it stopped.
+          break;
+        }
         if (intensity > 0 && intensity / total_xic < stop_after_intensity_ratio_)
         {
+          OPENMS_LOG_DEBUG << "**** Minimum intensity ratio reached. Nr. chroms: " << picked_chroms.size() << std::endl;
           break;
         }
       }
@@ -228,8 +237,8 @@ public:
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][peak_idx];
       double best_right = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][peak_idx];
       double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
-      OPENMS_LOG_DEBUG << "**** Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
-        picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
+      OPENMS_LOG_DEBUG << "**** Creating MRMFeature for peak " << peak_idx << " in chrom. " << chr_idx << " with " <<
+        picked_chroms[chr_idx][peak_idx] << " and borders " << best_left << " " <<
         best_right << " (" << best_right - best_left << ")" << std::endl;
 
       if (use_consensus_ && recalculate_peaks_)
@@ -409,7 +418,7 @@ public:
           if (!transition_group.getTransitions()[k].isDetectingTransition())
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "When using non-censensus peak picker, all transitions need to be detecting transitions.");
+                "When using non-consensus peak picker, all transitions need to be detecting transitions.");
           }
           local_left = left_edges[k];
           local_right = right_edges[k];
@@ -716,6 +725,7 @@ public:
     void remove_overlapping_features(std::vector<SpectrumT>& picked_chroms, double best_left, double best_right)
     {
       // delete all seeds that lie within the current seed
+      Size count_inside = 0;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
@@ -723,10 +733,12 @@ public:
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
             picked_chroms[k][i].setIntensity(0.0);
+            count_inside++;
           }
         }
       }
 
+      Size count_overlap = 0;
       // delete all seeds that overlap within the current seed
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
@@ -740,9 +752,12 @@ public:
              || (right > best_left && right < best_right))
           {
             picked_chroms[k][i].setIntensity(0.0);
+            count_overlap++;
           }
         }
       }
+      OPENMS_LOG_DEBUG << " ** Removed " << count_inside << " peaks enclosed in and " <<
+       count_overlap << " peaks overlapping with added feature." << std::endl;
     }
 
     /// Find largest peak in a vector of chromatograms
@@ -919,7 +934,7 @@ protected:
       // the same element has a bad shape and a bad coelution score) -> potential outlier
       if (min_index_shape == max_index_coel)
       {
-        OPENMS_LOG_DEBUG << " element " << min_index_shape << " is a candidate for removal ... " << std::endl;
+        OPENMS_LOG_DEBUG << " Element " << min_index_shape << " is a candidate for removal ... " << std::endl;
         outlier = String(picked_chroms[min_index_shape].getNativeID());
       }
       else
@@ -938,7 +953,7 @@ protected:
 
       double score = shape_score - coel_score - 1.0 * missing_peaks / picked_chroms.size();
 
-      OPENMS_LOG_DEBUG << " computed score  " << score << " (from " <<  shape_score << 
+      OPENMS_LOG_DEBUG << " Computed score  " << score << " (from " <<  shape_score << 
         " - " << coel_score << " - " << 1.0 * missing_peaks / picked_chroms.size() << ")" << std::endl;
 
       return score;
@@ -960,6 +975,8 @@ protected:
       // - Per chromatogram only the most intense one counts, otherwise very
       // - low intense peaks can contribute disproportionally to the voting
       // - procedure.
+      // TODO Especially with DDA MS1 "transitions" from FFID, you often have exactly the same
+      // borders and the logs get confusing and you get -Nan CVs. You also might save time if you use a set here.
       std::vector<double> left_borders;
       std::vector<double> right_borders;
       for (Size k = 0; k < picked_chroms.size(); k++)
@@ -983,8 +1000,8 @@ protected:
         {
           left_borders.push_back(left);
           right_borders.push_back(right);
-          OPENMS_LOG_DEBUG << " * " << k << " left boundary " << left_borders.back()   <<  " with int " << max_int << std::endl;
-          OPENMS_LOG_DEBUG << " * " << k << " right boundary " << right_borders.back() <<  " with int " << max_int << std::endl;
+          OPENMS_LOG_DEBUG << " * peak " << k << " left boundary " << left_borders.back()   <<  " with inty " << max_int << std::endl;
+          OPENMS_LOG_DEBUG << " * peak " << k << " right boundary " << right_borders.back() <<  " with inty " << max_int << std::endl;
         }
       }
 
@@ -1020,7 +1037,7 @@ protected:
       if (std::fabs(best_right - mean) / stdev > max_z)
       {
         best_right = right_borders[right_borders.size() / 2]; // pseudo median
-        OPENMS_LOG_DEBUG << " - Setting right boundary to  " << best_right << std::endl;
+        OPENMS_LOG_DEBUG << " - CV too large: correcting right boundary to  " << best_right << std::endl;
       }
 
       // Left borders
@@ -1037,7 +1054,7 @@ protected:
       if (std::fabs(best_left - mean)  / stdev > max_z)
       {
         best_left = left_borders[left_borders.size() / 2]; // pseudo median
-        OPENMS_LOG_DEBUG << " - Setting left boundary to  " << best_left << std::endl;
+        OPENMS_LOG_DEBUG << " - CV too large: correcting left boundary to  " << best_left << std::endl;
       }
 
     }

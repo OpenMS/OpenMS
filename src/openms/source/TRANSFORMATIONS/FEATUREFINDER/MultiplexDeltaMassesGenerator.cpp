@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -577,7 +577,7 @@ namespace OpenMS
         String::size_type length_after = s.size();
         String::size_type multiple = (length_before - length_after)/length_label;
         
-        // add as many labels to the set as occured in the peptide sequence
+        // add as many labels to the set as occurred in the peptide sequence
         for (String::size_type j = 0; j < multiple; ++j)
         {
           label_set.insert(labels_list_[i]);

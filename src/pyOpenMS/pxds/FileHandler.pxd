@@ -8,6 +8,18 @@ from Types cimport *
 from PeakFileOptions cimport *
 
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
+        # wrap-doc:
+        #   Facilitates file handling by file type recognition.
+        #   This class provides file type recognition from the file name and
+        #   for some types from the file content.
+        #   It offers a common interface to load MSExperiment data
+        #   and allows querying for supported file types.
+        #   -----
+        #   Usage:
+        #     MSExperiment exp;
+        #     FileHandler().loadExperiment("test.mzXML", exp)
+        #     FileHandler().loadExperiment("test.mzML", exp)
+        #   -----
 
     cdef cppclass FileHandler:  # wrap=True
         FileHandler() nogil except +
@@ -32,3 +44,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler"
     bool isSupported(FileType type_) nogil except + # wrap-attach:FileHandler 
     bool hasValidExtension(const String & filename, FileType type_) nogil except + # wrap-attach:FileHandler 
 
+    # Returns the file name without the extension
+    String stripExtension(String file) nogil except + # wrap-attach:FileHandler
+    # Removes the current extension (if any) and adds a new one
+    String swapExtension(String filename, FileType new_type) nogil except + # wrap-attach:FileHandler 

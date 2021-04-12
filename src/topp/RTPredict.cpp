@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -573,7 +573,7 @@ protected:
           {
             identifications[i].sort();
             Int charge = identifications[i].getHits().front().getCharge();
-            double mz =  identifications[i].getHits().front().getSequence().getMonoWeight(Residue::Full, charge) / double(charge);
+            double mz =  identifications[i].getHits().front().getSequence().getMZ(charge);
             double rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
 
             identifications[i].setRT(rt);

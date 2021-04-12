@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
   - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
   - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
+  - @subpage TOPP_SwathWizard - A user-friendly step-by-step wizard for SWATH data analysis
 
   <b>File Handling</b>
   - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
@@ -97,13 +98,16 @@
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
+  - @subpage UTILS_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
+  - @subpage UTILS_ProteomicsLFQ - Perform label-free quantification in a single tool.
 
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
-  - @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
-  - @subpage TOPP_MapAlignerPoseClustering - Corrects retention time distortions between maps using a pose clustering approach.
-  - @subpage TOPP_MapAlignerSpectrum - Corrects retention time distortions between maps by spectrum alignment.
-  - @subpage TOPP_MapRTTransformer - Applies retention time transformations to maps.
+  - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
+  - @subpage TOPP_MapAlignerTreeGuided - Corrects RT distortions between maps based on common peptide identifications guided by a similarity tree.
+  - @subpage TOPP_MapAlignerPoseClustering - Corrects RT distortions between maps using a pose clustering approach (not using pep-ids and a linear model).
+  - @subpage TOPP_MapAlignerSpectrum - Corrects RT distortions between maps by spectrum alignment.
+  - @subpage TOPP_MapRTTransformer - Applies RT transformations to maps.
   - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
@@ -122,7 +126,7 @@
   - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
-  - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
+  - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
   - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 
   <b>Protein/Peptide Processing</b>
@@ -161,8 +165,16 @@
   - @subpage TOPP_RTModel - Trains a model for the retention time prediction of peptides from a training set.
   - @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
 
-  <b>Misc</b>
+  <b>Cross-linking</b>
+  - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
+  - @subpage TOPP_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
+  - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.
+
+  <b>Quality Control</b>
   - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
+  - @subpage TOPP_DatabaseSuitability - Calculates the suitability of a database for peptide identification search using a de novo approach.
+
+  <b>Misc</b>
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
   - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.

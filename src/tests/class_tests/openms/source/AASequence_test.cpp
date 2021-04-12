@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -406,6 +406,18 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 }
 END_SECTION
 
+START_SECTION((double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const))
+{
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.0 + 1e-6)
+
+  // uses getMonoWeight and is thus thoroughly tested
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(1, Residue::YIon), double(1018.4952))
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMZ(2, Residue::YIon), double((1018.4952 + Constants::PROTON_MASS_U) / 2.0))
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, AASequence::fromString("DFPIANGER").getMZ(0));
+}
+END_SECTION
+
 START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;
@@ -636,6 +648,26 @@ START_SECTION(void setNTerminalModification(const String &modification))
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
   TEST_EQUAL(seq3 == seq4, true)
+
+  AASequence seq5 = AASequence::fromString("DABCDEF");
+  AASequence seq6 = seq5;
+  AASequence seq7 = seq5;
+  AASequence seq8 = seq5;
+
+  seq5.setNTerminalModification("Met-loss (Protein N-term M)");
+  TEST_EQUAL(seq5.isModified(), true)
+
+  seq6.setNTerminalModification("Acetyl (N-term)");
+  TEST_EQUAL(seq6.isModified(), true)
+
+  seq7.setCTerminalModification("Amidated (C-term)");
+  TEST_EQUAL(seq7.isModified(), true)
+
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("(T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("foobar"));
+
 END_SECTION
 
 START_SECTION(const String& getNTerminalModificationName() const)
@@ -1051,7 +1083,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 
   // test C-terminal modification
   {
-    AASequence test_seq = AASequence::fromString("IDE.[1617.2333940319]");
+    const AASequence test_seq = AASequence::fromString("IDE.[1617.2333940319]");
     TEST_EQUAL(test_seq.size(), 3)
     TEST_STRING_SIMILAR(test_seq.toString(), "IDE.[1617.2333940319]")
     TEST_STRING_SIMILAR(test_seq.toUniModString(), "IDE.[1617.2333940319]")
@@ -1070,14 +1102,15 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     // test that we can re-read the UniModString
     test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1617.2333940319]")
+    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[1617.23339"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
 
     // test that we can re-read the string from BracketString
-    test_other = AASequence::fromString(test_seq.toBracketString(false, true));
+    auto bs = test_seq.toBracketString(false, true);
+    test_other = AASequence::fromString(bs);
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1600.230654]")
+    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[+1600.2306539"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     test_other = AASequence::fromString(test_seq.toBracketString(false, false));
     TEST_EQUAL(test_other.size(), 3)
@@ -1421,17 +1454,17 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(AASequence::fromString("(UniMod:385)CFPIANGER.").toBracketString(true), "n[-16]CFPIANGER") // absolute
   TEST_EQUAL(AASequence::fromString("(UniMod:385)CFPIANGER.").toBracketString(true, true), "n[-17]CFPIANGER") // relative
 
-  // UniMod 1009 can only occur on N-terminal peptide on an C
-  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:1009).DFPIANGER.")) // not just any N-term is allowed
-  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:1009)DFPIANGER.")) // not just any N-term is allowed
-  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:1009)CFPIANGER.")) // not just any C is allowed
-  TEST_EQUAL(AASequence::fromString("(UniMod:1009).CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
-  TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
+  // UniMod 26 can only occur on N-terminal peptide on an C
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:26).DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:26)DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:1419)CFPIANGER.")) // not just any C is allowed
+  TEST_EQUAL(AASequence::fromString("(UniMod:26).CFPIANGER."), AASequence::fromString("(UniMod:26).CFPIANGER."))
+  TEST_EQUAL(AASequence::fromString("(UniMod:26)CFPIANGER."), AASequence::fromString("(UniMod:26).CFPIANGER."))
 
-  // This case is non-ambiguous since we have absolute mass (13) and relative mass (+12)
-  TEST_EQUAL(AASequence::fromString("n[13].CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
-  TEST_EQUAL(AASequence::fromString("n[13.0078250319].CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
-  TEST_EQUAL(AASequence::fromString("n[+12.00].CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
+  // This case is non-ambiguous since we have absolute mass (41.0027400319) and relative mass (+39.994915)
+  TEST_EQUAL(AASequence::fromString("n[41].CFPIANGER."), AASequence::fromString("(UniMod:26).CFPIANGER."))
+  TEST_EQUAL(AASequence::fromString("n[41.0027400319].CFPIANGER."), AASequence::fromString("(UniMod:26).CFPIANGER."))
+  TEST_EQUAL(AASequence::fromString("n[+39.994915].CFPIANGER."), AASequence::fromString("(UniMod:26).CFPIANGER."))
 
   TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER.").toBracketString(true), "n[13]CFPIANGER") // absolute
   TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER.").toBracketString(true, true), "n[+12]CFPIANGER") // relative
@@ -1478,6 +1511,18 @@ START_SECTION([EXTRA] testing uniqueness of modifications)
       TEST_REAL_SIMILAR( fabs(tmp3.getMonoWeight() - tmp1.getMonoWeight()), 132.0534932552 ) // this *needs* to be different!
     }
 
+}
+END_SECTION
+
+START_SECTION([EXTRA] testing new type of modification with brackets in their name)
+{
+  AASequence tmp1 = AASequence::fromString("PEPTK(Xlink:DSS[156])IDE");
+  AASequence tmp2 = AASequence::fromString("PEPTK(Xlink:DSS[155])IDE");
+
+  TEST_EQUAL(tmp1[4].getModification()->getDiffMonoMass(), 156.078644)
+  TEST_EQUAL(tmp1.toString(), "PEPTK(Xlink:DSS[156])IDE")
+  TEST_EQUAL(tmp2[4].getModification()->getDiffMonoMass(), 155.094629)
+  TEST_EQUAL(tmp2.toString(), "PEPTK(Xlink:DSS[155])IDE")
 }
 END_SECTION
 

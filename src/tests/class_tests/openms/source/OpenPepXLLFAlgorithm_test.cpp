@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,9 +97,9 @@ OpenPepXLLFAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spe
 
 TEST_EQUAL(exit_code, OpenPepXLLFAlgorithm::EXECUTION_OK)
 TEST_EQUAL(protein_ids.size(), 1)
-TEST_EQUAL(peptide_ids.size(), 5)
+TEST_EQUAL(peptide_ids.size(), 7)
 TEST_EQUAL(spectra.size(), 127)
-TEST_EQUAL(all_top_csms.size(), 5)
+TEST_EQUAL(all_top_csms.size(), 7)
 
 for (Size i = 0; i < peptide_ids.size(); i += 1)
 {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,8 +120,8 @@ protected:
   enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }
     ref_params_;
 
-  void registerOptionsAndFlags_(const String& file_formats,
-                                enum ReferenceParameterKind ref_params)
+  void registerOptionsAndFlagsMapAligners_(const String& file_formats,
+                                           enum ReferenceParameterKind ref_params)
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));

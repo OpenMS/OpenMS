@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,29 +57,29 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_EICExtractor EICExtractor
+@page TOPP_EICExtractor EICExtractor
 
-    @brief Extracts EICs from an MS experiment, in order to quantify analytes at a given position
+@brief Extracts EICs from an MS experiment, in order to quantify analytes at a given position
 
 <CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ EICExtractor \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter</td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> statistical tools, e.g., Excel, R, ... </td>
-        </tr>
-    </table>
+<table>
+    <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ EICExtractor \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter</td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> statistical tools, e.g., Excel, R, ... </td>
+    </tr>
+</table>
 </CENTER>
 
-  Use this instead of FeatureFinder, if you have bad features  which are not recognized (much noise etc)
-    or if you want to quantify non-peptides.
+Use this instead of FeatureFinder, if you have bad features  which are not recognized (much noise etc)
+or if you want to quantify non-peptides.
 
-    The input EDTA file specifies where to search for signal in RT and m/z.
-    Retention time is in seconds [s]. A third intensity column is ignored but needs to be present.
+The input EDTA file specifies where to search for signal in RT and m/z.
+Retention time is in seconds [s]. A third intensity column is ignored but needs to be present.
 
 Example (replace space separator with &lt;TAB&gt;):<br>
 @code
@@ -90,25 +90,25 @@ RT m/z int
 59.2 431.85 0
 @endcode
 
-  RT positions can also be automatically generated using the 'auto-RT' functionality, which can be enabled by the flag 'auto_rt:enabled'.
-  All EDTA input lines with negative RT and some m/z values are replaced by 'n' other lines, where the m/z value is identical
-  and the RT column is replaced by of the 'n' RT estimates as discovered by the auto-RT functionality.
-  This allows you to specify only the expected m/z positions and let the auto-RT function handle the RT positions.
-  Info: auto-RT positions are only generated once from the FIRST mzML input file. All other mzML input files are expected to
-        have similar RT positions!
-  To debug auto-RT, you can specify an mzML output file (see 'auto_rt:out_debug_TIC' option) which will contain four single spectra which represent:
-    1. the TIC (of the first mzML input file)
-    2. the smoothed version of #1
-    3. the signal/noise (S/N) ratio of #2
-    4. the centroided version of #2 (not #3!)
-  Since you can specify the smoothing aggressiveness using 'auto_rt:FHWM' and
-  the minimum S/N theshold for centroided using 'auto_rt:SNThreshold', this should give you all information needed to set the best parameters which fit your data.
-  Sensible default thresholds have been chosen though, such that adaption should only be required in extreme cases.
+RT positions can also be automatically generated using the 'auto-RT' functionality, which can be enabled by the flag 'auto_rt:enabled'.
+All EDTA input lines with negative RT and some m/z values are replaced by 'n' other lines, where the m/z value is identical
+and the RT column is replaced by of the 'n' RT estimates as discovered by the auto-RT functionality.
+This allows you to specify only the expected m/z positions and let the auto-RT function handle the RT positions.
+Info: auto-RT positions are only generated once from the FIRST mzML input file. All other mzML input files are expected to
+      have similar RT positions!
+To debug auto-RT, you can specify an mzML output file (see 'auto_rt:out_debug_TIC' option) which will contain four single spectra which represent:
+  1. the TIC (of the first mzML input file)
+  2. the smoothed version of #1
+  3. the signal/noise (S/N) ratio of #2
+  4. the centroided version of #2 (not #3!)
+Since you can specify the smoothing aggressiveness using 'auto_rt:FHWM' and
+the minimum S/N theshold for centroided using 'auto_rt:SNThreshold', this should give you all information needed to set the best parameters which fit your data.
+Sensible default thresholds have been chosen though, such that adaption should only be required in extreme cases.
 
-    The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
+The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
 
-  As output, one file in text format is given. It contains the actual RT and m/z positions of the data,
-  as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position as specified in the EDTA file or as found by the auto-RT feature.
+As output, one file in text format is given. It contains the actual RT and m/z positions of the data,
+as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position as specified in the EDTA file or as found by the auto-RT feature.
 
 <pre>
   RT	  - expected RT position (in [s])
@@ -338,7 +338,7 @@ public:
           {
             Peak1D peak;
             peak.setMZ(tic[is].getMZ());
-            peak.setIntensity(snt.getSignalToNoise(tics[is]));
+            peak.setIntensity(snt.getSignalToNoise(is));
             tics_sn.push_back(peak);
           }
           out_debug.addChromatogram(toChromatogram(tics_sn));

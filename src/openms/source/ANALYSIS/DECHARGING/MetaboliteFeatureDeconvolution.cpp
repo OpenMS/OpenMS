@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -575,7 +575,7 @@ namespace OpenMS
                   right_charges = md_s->getPositiveCharges();
                 }
 
-                if ( // compomer fits charge assignment of left & right feature. doesnt consider charge sign switch over span!
+                if ( // compomer fits charge assignment of left & right feature. doesn't consider charge sign switch over span!
                   (abs(q1)  >= abs(left_charges)) && (abs(q2) >= abs(right_charges)))
                 {
                   // compomer has better probability

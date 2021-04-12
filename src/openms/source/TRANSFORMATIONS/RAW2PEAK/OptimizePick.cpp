@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -225,7 +225,7 @@ namespace OpenMS
   // compute Jacobian matrix for the different parameters
   int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
   {
-    std::cout << "rows: " << J.rows() << " colums: " << J.cols() << std::endl;//DEBUG
+    std::cout << "rows: " << J.rows() << " columns: " << J.cols() << std::endl;//DEBUG
     const std::vector<double> & positions = m_data->positions;
     const std::vector<PeakShape> & peaks = m_data->peaks;
     const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;

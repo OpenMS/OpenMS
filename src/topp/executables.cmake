@@ -10,6 +10,7 @@ CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
 CruxAdapter
+DatabaseSuitability
 Decharger
 DTAExtractor
 EICExtractor
@@ -49,6 +50,7 @@ LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
+MapAlignerTreeGuided
 MapNormalizer
 MapRTTransformer
 MapStatistics

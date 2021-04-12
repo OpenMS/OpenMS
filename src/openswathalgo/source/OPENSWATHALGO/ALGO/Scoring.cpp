@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
+#include <algorithm>
 
 #include <boost/numeric/conversion/cast.hpp>
 
@@ -105,7 +106,15 @@ namespace OpenSwath
       x_len = std::sqrt(x_len);
       y_len = std::sqrt(y_len);
 
-      return std::acos(dotprod / (x_len * y_len));
+      // normalise, avoiding a divide by zero. See unit tests for what happens
+      // when one of the vectors has a length of zero.
+      double denominator = x_len * y_len;
+      double theta = (denominator == 0) ? 0.0 : dotprod / denominator;
+
+      // clip to range [-1, 1] to save acos blowing up
+      theta = std::max(-1.0, std::min(1.0, theta));
+
+      return std::acos(theta);
     }
 
     XCorrArrayType::const_iterator xcorrArrayGetMaxPeak(const XCorrArrayType& array)
