@@ -197,11 +197,20 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
               }
               
               // ratio of first isotopic peak to monoisotopic peak may not be too large otherwise it might be just a satelite peak (e.g, amidation)
-              if (i == 1 && old_spectrum[p].getIntensity() / old_spectrum[extensions.back()].getIntensity() > 10.0)
+              if (i == 1 
+                && old_spectrum[p].getIntensity() / old_spectrum[extensions.back()].getIntensity() > 10.0)
               {
                 has_min_isopeaks = (i >= min_isopeaks);
                 break;
-              }            
+              }
+
+              // ratio of first isotopic peak to monoisotopic peak may not be too small otherwise it might be just matching a noise peak
+              if (i == 1 
+                && old_spectrum[p].getIntensity() / old_spectrum[extensions.back()].getIntensity() < 0.01)
+              {
+                has_min_isopeaks = (i >= min_isopeaks);
+                break;
+              }
 
               // averagine check passed or skipped
               extensions.push_back(p);
