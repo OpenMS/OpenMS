@@ -53,14 +53,20 @@ using namespace std;
 namespace OpenMS
 { 
 
-  void MzQCFile::store(const String & inputFileName,
-                       const String & outputFileName,
-                       const MSExperiment & exp,
-                       const String & contactName,
-                       const String & contactAddress,
-                       const String & description,
-                       const String & label) const
+  void MzQCFile::store(const String& input_file,
+                       const String& output_file,
+                       const MSExperiment& exp,
+                       const String& contact_name,
+                       const String& contact_address,
+                       const String& description,
+                       const String& label) const
   {
+    // open stream
+    ofstream os(output_file.c_str());
+    if (!os)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file);
+    }
     using json = nlohmann::ordered_json;
     json out;
     // required: creationDate, version
@@ -68,14 +74,14 @@ namespace OpenMS
     out["mzQC"]["creationDate"] = currentTime.toString();
     out["mzQC"]["version"] = "1.0.0";
 
-    // optional: contactName, contactAddress, description
-    if (!contactName.empty()) 
+    // optional: contact_name, contact_address, description
+    if (!contact_name.empty()) 
     {
-      out["mzQC"]["contactName"] = contactName;
+      out["mzQC"]["contact_name"] = contact_name;
     }
-    if (!contactAddress.empty()) 
+    if (!contact_address.empty()) 
     {
-      out["mzQC"]["contactAddress"] = contactAddress;
+      out["mzQC"]["contact_address"] = contact_address;
     }
     if (!description.empty()) 
     {
@@ -85,8 +91,8 @@ namespace OpenMS
     out["mzQC"]["runQualities"]["metadata"]["label"] = label;
     out["mzQC"]["runQualities"]["metadata"]["inputFiles"] = {
         {
-          {"location", File::absolutePath(inputFileName)},
-          {"name", File::basename(inputFileName)},
+          {"location", File::absolutePath(input_file)},
+          {"name", File::basename(input_file)},
           {"fileFormat",
           {
             {"accession", "MS:10000584"},
@@ -104,7 +110,7 @@ namespace OpenMS
             {
               {"accession", "MS:1000569"},
               {"name", "SHA-1"},
-              {"value", String(FileHandler::computeFileHash(inputFileName))}
+              {"value", String(FileHandler::computeFileHash(input_file))}
             },
             {
               {"accession", "MS:1000031"},
@@ -177,6 +183,8 @@ namespace OpenMS
     out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000138", "MZ acquisition range", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
     
     const MSChromatogram& tic = exp.getTIC();
+    if (!tic.empty())
+    {
     UInt jump = 0;
     UInt fall = 0;
     vector<float> retention_times;
@@ -207,8 +215,6 @@ namespace OpenMS
     tic_values["Relative intensity"] = intensities;
     tic_values["Retention time"] = retention_times;
 
-    if (!tic.empty())
-    {
       // QC:4000067 Total ion current chromatogram
       out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000067", "Total ion current chromatogram", tic_values);
       // QC:4000077 Area under TIC
@@ -229,13 +235,6 @@ namespace OpenMS
     // HPLC:
     // QC:4000107 Column type
     // QC:4000079 Pump pressure chromatogram
-
-    //open stream
-    ofstream os(outputFileName.c_str());
-    if (!os)
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outputFileName);
-    }
 
     // write out the json object in proper format with indentation level of 2
     os << out.dump(2);

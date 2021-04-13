@@ -82,6 +82,7 @@ using namespace std;
     - @p address only for mzQC: contact address (mail/e-mail or phone) of the person creating the mzQC file
     - @p label only for mzQC: RECOMMENDED unique and informative label for the run, so that it can be used as a figure label
     - @p description only for mzQC: description and comments about the mzQC file contents
+    - @p out_type specifies the output file type, default: determined by output file extension
     
     Output is in mzQC with JSON formatting or qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
     The output file specified by the user determines which output file format will be used.
@@ -122,10 +123,13 @@ protected:
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Your QC file.");
-    setValidFormats_("out", ListUtils::create<String>("mzQC,qcML"));
+    String formats("mzQC,qcML");
+    setValidFormats_("out", ListUtils::create<String>(formats));
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerStringOption_("label", "<label>", "label", "unique name for the run that can be used in a figure label", false);
-    registerStringOption_("name", "<contactName>", "", "name of the person creating this mzQC file", false);
-    registerStringOption_("address", "<contactAddress>", "", "contact address (mail/e-mail or phone)", false);
+    registerStringOption_("name", "<contact_name>", "", "name of the person creating this mzQC file", false);
+    registerStringOption_("address", "<contact_address>", "", "contact address (mail/e-mail or phone)", false);
     registerStringOption_("description", "<description>", "", "description and comments about the mzQC file contents", false);
     registerInputFile_("id", "<file>", "", "Input idXML file containing the identifications. Your identifications will be exported in an easy-to-read format", false);
     setValidFormats_("id", ListUtils::create<String>("idXML"));
@@ -144,11 +148,23 @@ protected:
     String inputfile_consensus = getStringOption_("consensus");
     String inputfile_raw = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
-    String contactName = getStringOption_("name");
-    String contactAddress = getStringOption_("address");
+    String contact_name = getStringOption_("name");
+    String contact_address = getStringOption_("address");
     String description = getStringOption_("description");
     String label = getStringOption_("label");
     bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
+    
+    // ensure output file hase valid extension
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      FileHandler fh;
+      out_type = fh.getTypeByFileName(outputfile_name);
+    }
+    if (out_type != FileTypes::QCML and out_type != FileTypes::MZQC) 
+    {
+      cout << "Invalid output file type!" << endl;
+    }
 
     // prepare input
     cout << "Reading mzML file..." << endl;
@@ -159,17 +175,17 @@ protected:
     exp.updateRanges();
     
     // collect QC data and store according to output file extension
-    if (FileHandler::hasValidExtension (outputfile_name, FileTypes::QCML)) 
+    if (out_type == FileTypes::QCML) 
     {
       QcMLFile qcmlfile;
       qcmlfile.collectQCData(inputfile_id, inputfile_feature,
                     inputfile_consensus, inputfile_raw, remove_duplicate_features, exp);
       qcmlfile.store(outputfile_name);
     } 
-    else if (FileHandler::hasValidExtension (outputfile_name, FileTypes::MZQC))
+    else if (out_type == FileTypes::MZQC)
     {
       MzQCFile mzqcfile;
-      mzqcfile.store(inputfile_raw, outputfile_name, exp, contactName, contactAddress, description, label);
+      mzqcfile.store(inputfile_raw, outputfile_name, exp, contact_name, contact_address, description, label);
     }
 
     return EXECUTION_OK;
