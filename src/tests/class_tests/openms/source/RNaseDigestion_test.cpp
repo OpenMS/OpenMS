@@ -38,6 +38,9 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
+// these are only used for debugging if tests fail:
+// #include <OpenMS/CHEMISTRY/RNaseDB.h>
+// #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -195,9 +198,12 @@ END_SECTION
 
 START_SECTION((void setVariableInosine(bool value)))
 {
+  // if the test fails, make sure the right enzyme definition is loaded:
+  // const RNase* rnase = RNaseDB::getInstance()->getEnzyme("RNase_T1");
+  // STATUS(rnase->getCutsAfterRegEx());
+
   IdentificationData id_data;
   IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
-  // IdentificationData::ParentMoleculeRef rna_ref =
   id_data.registerParentMolecule(rna);
 
   RNaseDigestion rd;
@@ -214,6 +220,7 @@ START_SECTION((void setVariableInosine(bool value)))
 
   // get oligos ordered by occurrence in the RNA:
   // set<tuple<Size, Size, String>> oligos;
+  // IdentificationData::ParentMoleculeRef rna_ref = id_data.getParentMolecules().begin();
   // for (const auto& oligo : id_data.getIdentifiedOligos())
   // {
   //   const IdentificationData::MoleculeParentMatch match = *oligo.parent_matches.at(rna_ref).begin();
