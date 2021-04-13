@@ -40,6 +40,8 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
+#include <map>
+
 namespace OpenMS
 {
 
@@ -124,16 +126,14 @@ protected:
      */
     double calculateMonoWeight_(const Map<UInt, double> & Z_to_mass);
 
-    /*_ read elements from a XML file, formatted as a Param file.
+	// constructs element objects
+    void storeElements();
 
-            @throw throws ParseError if the file cannot be parsed
-            @throw throws FileNotFound if the file could not be found
-     */
-    void readFromFile_(const String & file_name);
+  // add element objects to documentation maps
+    void addElementToMaps(const String& name, const String& symbol, const UInt an, const Element* e);
 
-
-    /// store element after parsing it
-    void storeElement_(const UInt an, const String& name, const String& symbol, const Map<UInt, double>& Z_to_abundancy, const Map<UInt, double>& Z_to_mass);
+  // constructs isotope objects
+    void storeIsotopes(const String& name, const String& symbol, const UInt an, const Map<UInt, double>& Z_to_mass, const IsotopeDistribution& isotopes);
 
     /*_ resets all containers
      */
