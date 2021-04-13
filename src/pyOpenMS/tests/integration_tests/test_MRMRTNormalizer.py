@@ -54,7 +54,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
         featurefinder = pyopenms.MRMFeatureFinderScoring()
         # set the correct rt use values
         scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
-        scoring_params.setValue("Scores:use_rt_score", 'false', '')
+        scoring_params.setValue(b"Scores:use_rt_score", 'false', b'')
         featurefinder.setParameters(scoring_params);
         featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
 
