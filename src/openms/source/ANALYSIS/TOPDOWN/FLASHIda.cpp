@@ -257,7 +257,26 @@ namespace OpenMS {
         std::set<int> current_selected_masses; // current selected masses
         std::set<int> current_selected_mzs; // current selected mzs
         std::map<int, double> mz_charge_snr;
+        for (auto &pg : deconvoluted_spectrum_) {
+            if (pg.getQScore() < qscore_threshold_) {
+                break;
+            }
 
+            if (pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
+                continue;
+            }
+
+            int mz = (int) round(
+                    (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+
+            double current_snr = pg.getChargeSNR(pg.getRepAbsCharge());
+
+            if (mz_charge_snr.find(mz) == mz_charge_snr.end()) { //
+                mz_charge_snr[mz] = current_snr;
+            } else if (mz_charge_snr[mz] < current_snr) {
+                mz_charge_snr[mz] = current_snr;
+            }
+        }
 
         for (int i = 0; i < 2; i++) {
             if (i == 0 && target_nominal_masses_.empty()) {
@@ -282,12 +301,7 @@ namespace OpenMS {
 
                     int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
                     double current_snr = pg.getChargeSNR(pg.getRepAbsCharge());
-
-                    if (mz_charge_snr.find(mz) == mz_charge_snr.end()) { //
-                        mz_charge_snr[mz] = current_snr;
-                    } else if (mz_charge_snr[mz] < current_snr) {
-                        mz_charge_snr[mz] = current_snr;
-                    } else {
+                    if (mz_charge_snr[mz] > current_snr) {
                         continue;
                     }
 
