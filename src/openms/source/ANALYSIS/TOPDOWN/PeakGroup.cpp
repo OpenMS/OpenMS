@@ -53,9 +53,10 @@ namespace OpenMS
 
   void PeakGroup::clearChargeInfo()
   {
-    std::vector<float>().swap(per_charge_snr_);
-    std::vector<float>().swap(per_charge_cos_);
-    std::vector<float>().swap(per_charge_int_);
+      std::vector<float>().swap(per_charge_pwr_);
+      std::vector<float>().swap(per_charge_signal_pwr_);
+      std::vector<float>().swap(per_charge_cos_);
+      std::vector<float>().swap(per_charge_int_);
   }
 
   bool PeakGroup::operator<(const PeakGroup& a) const
@@ -119,28 +120,32 @@ namespace OpenMS
 
   }
 
-  void PeakGroup::setChargeSNR(const int abs_charge, const float snr)
-  {
-    if (max_abs_charge_ < abs_charge)
-    {
-      return;
+    void PeakGroup::setChargePower(const int abs_charge, const float pwr) {
+        if (max_abs_charge_ < abs_charge) {
+            return;
+        }
+        if (per_charge_pwr_.empty()) {
+            per_charge_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
+        }
+        per_charge_pwr_[abs_charge] = pwr;
     }
-    if (per_charge_snr_.empty())
-    {
-      per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
-    }
-    per_charge_snr_[abs_charge] = snr;
-  }
 
-  void PeakGroup::setChargeIsotopeCosine(const int abs_charge, const float cos)
-  {
-    if (max_abs_charge_ < abs_charge)
-    {
-      return;
+    void PeakGroup::setChargeSignalPower(const int abs_charge, const float pwr) {
+        if (max_abs_charge_ < abs_charge) {
+            return;
+        }
+        if (per_charge_signal_pwr_.empty()) {
+            per_charge_signal_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
+        }
+        per_charge_signal_pwr_[abs_charge] = pwr;
     }
-    if (per_charge_cos_.empty())
-    {
-      per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
+
+    void PeakGroup::setChargeIsotopeCosine(const int abs_charge, const float cos) {
+        if (max_abs_charge_ < abs_charge) {
+            return;
+        }
+        if (per_charge_cos_.empty()) {
+            per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
     }
     per_charge_cos_[abs_charge] = cos;
   }
@@ -196,11 +201,6 @@ namespace OpenMS
     avg_ppm_error_ = error;
   }
 
-  void PeakGroup::setSNR(const float snr)
-  {
-    total_snr_ = snr;
-  }
-
   void PeakGroup::setQScore(const float q)
   {
     qscore_ = q;
@@ -252,9 +252,19 @@ namespace OpenMS
   }
 
 
-  float PeakGroup::getSNR() const
-  {
-    return total_snr_;
+  float PeakGroup::getSNR() const {
+      float charge_cos_squred = isotope_cosine_score_ * isotope_cosine_score_;
+      float signal = 0, noise = 0;
+      for (int c = min_abs_charge_; c <= std::min((int) per_charge_signal_pwr_.size(), max_abs_charge_); ++c) {
+          signal += per_charge_signal_pwr_[c];
+          noise += per_charge_pwr_[c] - per_charge_signal_pwr_[c];
+      }
+
+      auto nom = charge_cos_squred * signal;
+      auto denom = noise
+                   + (1 - charge_cos_squred) * signal + 1;
+
+      return nom / denom;
   }
 
   float PeakGroup::getChargeScore() const
@@ -268,15 +278,18 @@ namespace OpenMS
   }
 
 
-  float PeakGroup::getChargeSNR(const int abs_charge) const
-  {
-    if (per_charge_snr_.size() <= abs_charge)
-    {
-      return 0;
-    }
-    //std::cout<<per_charge_snr_.size()<<" " << abs_charge << " " << per_charge_snr_[abs_charge] <<  std::endl;
+  float PeakGroup::getChargeSNR(const int abs_charge) const {
+      if (per_charge_signal_pwr_.size() <= abs_charge) {
+          return 0;
+      }
 
-    return per_charge_snr_[abs_charge];
+      auto charge_cos_squred = per_charge_cos_[abs_charge] * per_charge_cos_[abs_charge];
+      auto nom = charge_cos_squred * per_charge_signal_pwr_[abs_charge];
+      auto denom = per_charge_pwr_[abs_charge] - per_charge_signal_pwr_[abs_charge]
+                   + (1 - charge_cos_squred) * per_charge_signal_pwr_[abs_charge] + 1;
+
+
+      return nom / denom;
   }
 
   float PeakGroup::getChargeIsotopeCosine(const int abs_charge) const

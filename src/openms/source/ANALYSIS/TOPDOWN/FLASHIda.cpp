@@ -36,7 +36,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <sstream>
-//#define DEBUG_COLOR
 
 namespace OpenMS {
     // constructor
@@ -257,9 +256,11 @@ namespace OpenMS {
         filtered_peakgroups.reserve(mass_count_.size());
         std::set<int> current_selected_masses; // current selected masses
         std::set<int> current_selected_mzs; // current selected mzs
+        std::map<int, double> mz_charge_snr;
+
 
         for (int i = 0; i < 2; i++) {
-            if(i==0 && target_nominal_masses_.empty()){
+            if (i == 0 && target_nominal_masses_.empty()) {
                 continue;
             }
             for (auto &c: color_order) {
@@ -269,24 +270,34 @@ namespace OpenMS {
                         break;
                     }
 
-                    if (i == 1 && pg.getQScore() < qscore_threshold_)
-                    {
+                    if (i == 1 && pg.getQScore() < qscore_threshold_) {
                         break;
                     }
 
-                    if (i == 1 && pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_)
-                    {
+                    if (i == 1 && pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
+                        continue;
+                    }
+                    int mz = (int) round(
+                            (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+
+                    int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+                    double current_snr = pg.getChargeSNR(pg.getRepAbsCharge());
+
+                    if (mz_charge_snr.find(mz) == mz_charge_snr.end()) { //
+                        mz_charge_snr[mz] = current_snr;
+                    } else if (mz_charge_snr[mz] < current_snr) {
+                        mz_charge_snr[mz] = current_snr;
+                    } else {
                         continue;
                     }
 
-                    int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
                     if (i == 0) {
                         if (target_nominal_masses_.find(nominal_mass) == target_nominal_masses_.end()) {
                             continue;
                         }
                         bool in = false;
-                        for(auto prt : target_nominal_masses_[nominal_mass]){ // second?
-                            if(abs(rt-prt) < 300.0){
+                        for (auto prt : target_nominal_masses_[nominal_mass]) { // second?
+                            if (abs(rt - prt) < 300.0) {
                                 in = true;
                                 break;
                             }
@@ -295,8 +306,6 @@ namespace OpenMS {
                             continue;
                         }
                     }
-                    int mz = (int) round(
-                            (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
                     if (current_selected_mzs.find(mz) != current_selected_mzs.end()) {
                         continue;
                     }

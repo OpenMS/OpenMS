@@ -94,7 +94,6 @@ namespace OpenMS
     return fvector;
   }
 
-
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f

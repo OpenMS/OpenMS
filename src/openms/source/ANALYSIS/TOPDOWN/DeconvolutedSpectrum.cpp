@@ -327,27 +327,114 @@ namespace OpenMS {
                                                  const int max_survey_cntr) {
         bool is_positive = true; // TODO update..
         precursor_peak_.setIntensity(.0);
+        //
+        double start_mz = 0;
+        double end_mz = 0;
+        int target_precursor_scan = -1;
 
-        if (!precursor_map_for_real_time_acquisition.empty()) {
-            for (auto &precursor: spec_.getPrecursors()) {
-                //double max_precurosr_intensity = .0;
-                for (auto &activation_method :  precursor.getActivationMethods()) {
-                    activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
-                    break;
+        for (auto &precursor: spec_.getPrecursors()) {
+            for (auto &activation_method :  precursor.getActivationMethods()) {
+                activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
+                break;
+            }
+            precursor_peak_ = precursor;
+            start_mz = precursor.getIsolationWindowLowerOffset() > 100.0 ?
+                       precursor.getIsolationWindowLowerOffset() :
+                       -precursor.getIsolationWindowLowerOffset() + precursor.getMZ();
+            end_mz = precursor.getIsolationWindowUpperOffset() > 100.0 ?
+                     precursor.getIsolationWindowUpperOffset() :
+                     precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
+
+            if (!precursor_map_for_real_time_acquisition.empty()) {
+                for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
+                     map != precursor_map_for_real_time_acquisition.begin();
+                     map--) {
+                    if (target_precursor_scan >= 0) {
+                        break;
+                    }
+                    if (map->first >= scan_number_) {
+                        continue;
+                    }
+
+                    if (map->first < scan_number_ - 50) {
+                        return false;
+                    }
+
+                    if (map != precursor_map_for_real_time_acquisition.end()) {
+                        for (auto &smap : map->second) {
+                            //
+                            if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001) {
+                                target_precursor_scan = map->first;
+                                break;
+                            }
+                        }
+                    }
                 }
-                if (precursor_peak_.getIntensity() > precursor.getIntensity()) {
-                    continue;
-                }
-                precursor_peak_ = precursor;
+            }
+        }
+
+        int survey_cntr = 0;
+        for (int i = survey_scans.size() - 1; i >= 0; i--) {
+            auto precursor_spectrum = survey_scans[i];
+
+            if (target_precursor_scan >= 0 && target_precursor_scan != precursor_spectrum.scan_number_) {
+                continue;
+            }
+            if (survey_cntr++ >= max_survey_cntr) {
+                break;
             }
 
-            double start_mz = precursor_peak_.getIsolationWindowLowerOffset() > 100.0 ?
-                              precursor_peak_.getIsolationWindowLowerOffset() :
-                              -precursor_peak_.getIsolationWindowLowerOffset() + precursor_peak_.getMZ();
-            double end_mz = precursor_peak_.getIsolationWindowUpperOffset() > 100.0 ?
-                            precursor_peak_.getIsolationWindowUpperOffset() :
-                            precursor_peak_.getIsolationWindowUpperOffset() + precursor_peak_.getMZ();
+            if (precursor_spectrum.empty()) {
+                continue;
+            }
 
+            precursor_scan_number_ = precursor_spectrum.scan_number_;
+
+            double max_score = 0;
+
+            for (auto &pg: precursor_spectrum) {
+                if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz) {
+                    continue;
+                }
+                double sum_int = 0;
+                double max_intensity = .0;
+                const LogMzPeak *tmp_precursor = nullptr;
+                for (auto &tmp_peak:pg) {
+                    if (tmp_peak.mz < start_mz) {
+                        continue;
+                    }
+                    if (tmp_peak.mz > end_mz) {
+                        break;
+                    }
+                    if (tmp_peak.intensity < max_intensity) {
+                        continue;
+                    }
+                    max_intensity = tmp_peak.intensity;
+                    tmp_precursor = &tmp_peak;
+                    sum_int += tmp_peak.intensity * tmp_peak.intensity;
+                }
+
+                if (tmp_precursor == nullptr) {
+                    continue;
+                }
+                // auto score =  pg.getChargeSNR(
+                //        tmp_precursor->abs_charge); // most intense one should determine the mass
+                if (sum_int < max_score) {
+                    continue;
+                }
+
+                precursor_peak_
+                        .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge
+                                                              : -tmp_precursor->abs_charge);
+                max_score = sum_int;
+                precursor_peak_group_ = pg;
+            }
+            if (!precursor_peak_group_.empty()) {
+                break;
+            }
+        }
+
+        if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty()) {
             for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
                  map != precursor_map_for_real_time_acquisition.begin();
                  map--) {
@@ -361,7 +448,6 @@ namespace OpenMS {
 
                 if (map != precursor_map_for_real_time_acquisition.end()) {
                     for (auto &smap : map->second) {
-                        //
                         if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001) {
                             LogMzPeak precursor_log_mz_peak(precursor_peak_, is_positive);
                             precursor_log_mz_peak.abs_charge = (int) smap[1];
@@ -377,6 +463,7 @@ namespace OpenMS {
                             precursor_peak_group_.updateMassesAndIntensity();
                             //precursor_peak_group_.setScanNumber()
                             precursor_scan_number_ = map->first;
+                            //std::cout<<precursor_scan_number_<<" " << precursor_peak_group_.getMonoMass()<<std::endl;
                             return true;
                         }
                     }
@@ -385,79 +472,6 @@ namespace OpenMS {
             return false;
         }
 
-        //precursor_spectrum.updatePeakGroupMap();
-
-        //
-        int survey_cntr = 0;
-        for (int i = survey_scans.size() - 1; i >= 0; i--) {
-            auto precursor_spectrum = survey_scans[i];
-
-            if (survey_cntr++ >= max_survey_cntr) {
-                break;
-            }
-
-            if (precursor_spectrum.empty()) {
-                continue;
-            }
-            for (auto &precursor: spec_.getPrecursors()) {
-                for (auto &activation_method :  precursor.getActivationMethods()) {
-                    activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
-                    break;
-                }
-                precursor_peak_ = precursor;
-                precursor_scan_number_ = precursor_spectrum.scan_number_;
-                double start_mz = precursor.getIsolationWindowLowerOffset() > 100.0 ?
-                                  precursor.getIsolationWindowLowerOffset() :
-                                  -precursor.getIsolationWindowLowerOffset() + precursor.getMZ();
-                double end_mz = precursor.getIsolationWindowUpperOffset() > 100.0 ?
-                                precursor.getIsolationWindowUpperOffset() :
-                                precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
-
-                double max_isotope_cosine = -3.0;
-                for (auto &pg: precursor_spectrum) {
-                    if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz) {
-                        continue;
-                    }
-
-                    double max_intensity = .0;
-                    const LogMzPeak *tmp_precursor = nullptr;
-                    for (auto &tmp_peak:pg) {
-                        if (tmp_peak.mz < start_mz) {
-                            continue;
-                        }
-                        if (tmp_peak.mz > end_mz) {
-                            break;
-                        }
-                        if (tmp_peak.intensity < max_intensity) {
-                            continue;
-                        }
-                        max_intensity = tmp_peak.intensity;
-                        tmp_precursor = &tmp_peak;
-                    }
-
-                    if (tmp_precursor == nullptr) {
-                        continue;
-                    }
-                    auto qScore = pg.getChargeSNR(
-                            tmp_precursor->abs_charge); // most intense one should determine the mass
-                    if (qScore < max_isotope_cosine) {
-                        continue;
-                    }
-
-                    precursor_peak_
-                            .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge
-                                                                  : -tmp_precursor->abs_charge);
-                    max_isotope_cosine = qScore;
-                    precursor_peak_group_ = pg;
-                }
-                if (!precursor_peak_group_.empty()) {
-                    break;
-                }
-            }
-            if (!precursor_peak_group_.empty()) {
-                break;
-            }
-        }
         return precursor_peak_group_.empty();
     }
 
