@@ -39,7 +39,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 #include <QtCore/QStringList>
 #include <QtWidgets/QPushButton>
@@ -71,9 +70,9 @@ namespace OpenMS
           String layer_name
     ) :
     QDialog(parent),
-    params_(params),
     ini_file_(ini_file),
-    default_dir_(default_dir)
+    default_dir_(default_dir),
+    params_(params)
   {
     auto main_grid = new QGridLayout(this);
 

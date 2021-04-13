@@ -85,6 +85,7 @@ namespace OpenMS
   class Plot2DWidget;
   class Plot3DWidget;
   class ToolsDialog;
+  class TVToolDiscovery;
 
   /**
     @brief Main window of TOPPView tool
@@ -440,6 +441,8 @@ protected:
 
     /// Determines TVToolDiscovery scans for tool/utils and generates new params.
     TOOL_SCAN scan_mode_;
+    /// Scans for tools/utils and generates a param for each.
+    static TVToolDiscovery tool_scanner_;
 
     /** @name Toolbar
     */
@@ -536,9 +539,10 @@ protected:
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
 
-private:
     /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
     void addToolParamsToIni();
+
+private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
   }; //class

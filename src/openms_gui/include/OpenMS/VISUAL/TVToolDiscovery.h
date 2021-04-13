@@ -39,41 +39,59 @@
 #include <future>
 #include <vector>
 #include <unordered_map>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace OpenMS
 {
-    class Param;
-    class String;
+    /**
+       @brief Scans for tools/utils and generates a param for each asynchronously.
 
+       @details All tools and utils listed in the ToolHandler class are considered.
+
+       @example
+       @code
+       TVToolDiscovery scanner;
+       scanner.loadParams();
+       // Do something else before explicitly waiting for the threads to finish
+       ...
+       // Wait when convenient. Keeps the GUI responsive while waiting
+       scanner.waitForParams();
+       // Access the params. If no special timing for waiting or loading is needed this function can be safely called directly.
+       scanner.getToolParams();
+       @endcode
+     */
     class OPENMS_DLLAPI TVToolDiscovery
     {
     private:
-      /// Return param for a given tool/util
+      /// Returns param for a given tool/util. This function is thread-safe
       static Param getParamFromIni_(const std::string& tool_name);
 
       /// Contains a future param for each tool/util name
-      static std::unordered_map<std::string, std::future<Param>> future_results_;
+      std::unordered_map<std::string, std::future<Param>> future_results_;
 
       /// Contains a mapping of each tool/util name to its param.
-      static std::unordered_map<std::string, Param> params_;
+      std::unordered_map<std::string, Param> params_;
 
     public:
+      TVToolDiscovery() = default;
+      ~TVToolDiscovery() = default;
+
       /// Start creating params for each tool/util asynchronously
-      static void loadParams();
+      void loadParams();
 
       /**
-       * @brief Returns a hash map containing a param for each tool/util.
-       *
-       * Note that it is possible that not all param futures have been finished yet if this function is called before waitForParams().
-       * Therefore it is possible that this function has to wait.
+         @brief Returns a hash map containing a param for each tool/util.
+         @details
+         Note that it is possible that not all param futures have been finished yet if this function is called before waitForParams().
+         Therefore it is possible that this function has to wait.
        */
-      static const std::unordered_map<std::string, Param>& getToolParams();
+      const std::unordered_map<std::string, Param>& getToolParams();
 
       /**
-       * @brief Wait for all future params to finish evaluating.
-       *
-       * While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
+         @brief Wait for all future params to finish evaluating.
+         @details
+         While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
        */
-      static void waitForParams();
+      void waitForParams();
     };
 }

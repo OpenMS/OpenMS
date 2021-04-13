@@ -44,25 +44,22 @@
 
 namespace OpenMS {
 
-    std::unordered_map<std::string, std::future<Param>> TVToolDiscovery::future_results_;
-    std::unordered_map<std::string, Param> TVToolDiscovery::params_;
-
     void TVToolDiscovery::loadParams()
     {
       // tool params are only loaded once by using a immediately evaluated lambda
-      static bool _ [[maybe_unused]] = []() -> bool
+      static bool _ [[maybe_unused]] = [&]() -> bool
       {
         // Get a map of all tools
         const auto& tools = ToolHandler::getTOPPToolList();
         const auto& utils = ToolHandler::getUtilList();
-        // Get param for each tool/util
+        // Launch threads for loading tool/util params.
         for (const auto& pair : tools)
         {
           std::string tool_name = pair.first;
           future_results_.insert(
                   std::make_pair(
                           tool_name,
-                          std::async(TVToolDiscovery::getParamFromIni_, tool_name)
+                          std::async(getParamFromIni_, tool_name)
                           )
           );
         }
@@ -72,7 +69,7 @@ namespace OpenMS {
           future_results_.insert(
                   std::make_pair(
                           util_name,
-                          std::async(TVToolDiscovery::getParamFromIni_, util_name)
+                          std::async(getParamFromIni_, util_name)
                           )
           );
         }
@@ -83,9 +80,10 @@ namespace OpenMS {
     void TVToolDiscovery::waitForParams()
     {
       // Make sure that future results are only waited for and inserted in params_ once
-      static bool _ [[maybe_unused]] = []() -> bool
+      static bool _ [[maybe_unused]] = [&]() -> bool
       {
-        TVToolDiscovery::loadParams();
+        // Make sure threads have been launched before waiting
+        loadParams();
         // Wait for futures to finish
         for (auto& pair : future_results_)
         {
@@ -103,6 +101,7 @@ namespace OpenMS {
 
     const std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams()
     {
+      // Make sure threads have been launched and waited for before accessing results
       TVToolDiscovery::loadParams();
       TVToolDiscovery::waitForParams();
       return params_;

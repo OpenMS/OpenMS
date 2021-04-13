@@ -94,32 +94,21 @@
 
 //Qt
 #include <QtCore/QSettings>
-#include <QtCore/QDate>
 #include <QtCore/QDir>
-#include <QtCore/QTime>
 #include <QtCore/QUrl>
-#include <QtWidgets/QCheckBox>
 #include <QCloseEvent>
-#include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
 #include <QPainter>
 #include <QtWidgets/QSplashScreen>
-#include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolTip>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QTreeWidget>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QWhatsThis>
 #include <QTextCodec>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <algorithm>
 #include <utility>
 
 using namespace std;
@@ -137,6 +126,7 @@ namespace OpenMS
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
                                                   FileTypes::DTA, FileTypes::DTA2D,
                                                   FileTypes::BZ2, FileTypes::GZ });
+  TVToolDiscovery TOPPViewBase::tool_scanner_ = TVToolDiscovery();
 
   TOPPViewBase::TOPPViewBase(QWidget* parent, TOOL_SCAN scan_mode) :
     QMainWindow(parent),
@@ -1568,7 +1558,7 @@ namespace OpenMS
     // whatever reason
     if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
-      TVToolDiscovery::loadParams();
+      tool_scanner_.loadParams();
     }
 
     param_.setValue("PreferencesFile", filename);
@@ -1606,9 +1596,9 @@ namespace OpenMS
 
   void TOPPViewBase::addToolParamsToIni()
   {
-    TVToolDiscovery::waitForParams();
+    tool_scanner_.waitForParams();
     param_.addSection("tool_params", "");
-    for (const auto& pair : TVToolDiscovery::getToolParams())
+    for (const auto& pair : tool_scanner_.getToolParams())
     {
       param_.insert("tool_params:", pair.second);
     }
