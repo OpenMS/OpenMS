@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          bool exists(libcpp_string key) nogil except +
 
          void addTag(libcpp_string key, libcpp_string tag) nogil except +
-         void addTags(libcpp_string key, libcpp_string tags) nogil except +
+         void addTags(libcpp_string key, libcpp_vector[libcpp_string] tags) nogil except +
          int hasTag(libcpp_string key, libcpp_string tag) nogil except +
          libcpp_vector[libcpp_string] getTags(libcpp_string key) nogil except +
          void clearTags(libcpp_string key) nogil except +
