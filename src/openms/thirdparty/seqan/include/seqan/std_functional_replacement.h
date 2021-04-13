@@ -14,4 +14,4 @@ struct unary_function
     using argument_type = ArgumentType;
     using result_type = ResultType;
 };
-#endif _STD_FUNCTIONAL_REPLACEMENT_H
+#endif
