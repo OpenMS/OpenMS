@@ -112,7 +112,7 @@ namespace OpenMS
     bool parse_firstpeakinfo_only(param_.getValue("parse_firstpeakinfo_only").toBool());
     String instrument((String)param_.getValue("instrument"));
     bool inst_type_correct(true);
-    bool spectrast_format(false);
+    [[maybe_unused]] bool spectrast_format(false); // TODO: implement usage
     Size spectrum_number = 0;
 
     PeakSpectrum spec;
