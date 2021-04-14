@@ -254,8 +254,8 @@ namespace OpenMS {
                 }
 
                 if (i == 0) { // first, select masses or m/zs outside exclusion list
-                    if (mass_rt_map_.find(nominal_mass) == mass_rt_map_.end() ||
-                        mz_rt_map_.find(mz) == mz_rt_map_.end()) {
+                    if (mass_rt_map_.find(nominal_mass) != mass_rt_map_.end() ||
+                        mz_rt_map_.find(mz) != mz_rt_map_.end()) {
                         continue;
                     }
                 }
