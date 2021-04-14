@@ -161,7 +161,7 @@ class OpenMSDataValue(TypeConverterBase):
 class OpenMSParamValue(TypeConverterBase):
 
     def get_base_types(self):
-        return "DataValue",
+        return "ParamValue",
 
     def matches(self, cpp_type):
         return  not cpp_type.is_ptr and not cpp_type.is_ref
@@ -173,7 +173,7 @@ class OpenMSParamValue(TypeConverterBase):
         return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
-        call_as = "deref(DataValue(%s).inst.get())" % argument_var
+        call_as = "deref(ParamValue(%s).inst.get())" % argument_var
         return "", call_as, ""
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
