@@ -83,7 +83,7 @@ namespace OpenMS
                                    wend,
                                    qscores,
                                    charges,
-                                   mono_masses,
+                                   mono_masses, chare_cos,
                                    charge_snrs, iso_cos, snrs, charge_scores, ppm_errors,
                                    precursor_intensities,
                                    peakgroup_intensities);

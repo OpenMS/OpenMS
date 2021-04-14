@@ -947,9 +947,10 @@ namespace OpenMS {
                                        double *qscores,
                                        int *charges,
                                        double *mono_masses,
+                                       double *chare_cos,
                                        double *charge_snrs,
                                        double *iso_cos,
-                                       double *snrs, double * charge_scores,
+                                       double *snrs, double *charge_scores,
                                        double *ppm_errors,
                                        double *precursor_intensities,
                                        double *peakgroup_intensities) {
@@ -965,7 +966,8 @@ namespace OpenMS {
             charges[i] = peakgroup.getRepAbsCharge();
             // double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
             mono_masses[i] = peakgroup.getMonoMass();
-            charge_snrs[i] = peakgroup.getChargeSNR( peakgroup.getRepAbsCharge());
+            chare_cos[i] = peakgroup.getChargeIsotopeCosine(peakgroup.getRepAbsCharge());
+            charge_snrs[i] = peakgroup.getChargeSNR(peakgroup.getRepAbsCharge());
             iso_cos[i] = peakgroup.getIsotopeCosine();
             snrs[i] = peakgroup.getSNR();
             charge_scores[i] = peakgroup.getChargeScore();
