@@ -69,7 +69,7 @@ namespace OpenMS {
         }
         rt_window_ = inputs["RT_window"][0];
         qscore_threshold_ = inputs["score_threshold"][0];
-        charge_snr_threshold_ = 0.0;
+        charge_snr_threshold_ = 1.0;
         Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
         // overwrite algorithm default so we export everything (important for copying back MSstats results)
         fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
@@ -200,84 +200,83 @@ namespace OpenMS {
         std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
         int mass_count = mass_count_[ms_level - 1];
 
-        const auto color_order = std::vector<char>({'B', 'b'});
-
-        std::unordered_map<int, std::vector<double>> new_mass_rt_qscore_map; // integer mass, rt, qscore
-        std::unordered_map<int, double> new_mass_qscore_map;
-        std::unordered_map<int, char> new_color_map; // integer mass, color
-
-        for (auto &item : mass_rt_qscore_map_) {
-            if (item.second[0] < rt - rt_window_) {
-                continue;
-            }
-            new_mass_rt_qscore_map[item.first] = item.second;
-        }
-
-        for (auto &item : mass_color_map_) {
-            if (new_mass_rt_qscore_map.find(item.first) == new_mass_rt_qscore_map.end()) {
-                continue;
-            }
-            new_color_map[item.first] = item.second;
-        }
-
-        for (Size i = 0; i < deconvoluted_spectrum_.size(); i++) // now update new_mass_qscore_map, per mass max qscore
-        {
-            auto pg = deconvoluted_spectrum_[i];
-            int m = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-            double qscore = pg.getQScore();
-
-            if (new_mass_qscore_map.find(m) == new_mass_qscore_map.end()) { // new mass
-                new_mass_qscore_map[m] = qscore;
-            } else if (new_mass_qscore_map[m] < qscore) { // increasing mass
-                new_mass_qscore_map[m] = qscore;
-            }
-        }
-        for (auto &item : new_mass_qscore_map) // now update color and new_mass_rt_qscore_map
-        {
-            int m = item.first;
-            double qscore = item.second;
-
-            if (new_mass_rt_qscore_map.find(m) == new_mass_rt_qscore_map.end()) {
-                new_mass_rt_qscore_map[m] = std::vector<double>(2);
-                new_color_map[m] = 'B';
-            }
-
-            new_mass_rt_qscore_map[m][0] = rt;
-            new_mass_rt_qscore_map[m][1] = qscore;
-        }
-
-        new_mass_rt_qscore_map.swap(mass_rt_qscore_map_);
-        std::unordered_map<int, std::vector<double>>().swap(new_mass_rt_qscore_map);
-
-        new_color_map.swap(mass_color_map_);
-        std::unordered_map<int, char>().swap(new_color_map);
-
         std::vector<PeakGroup> filtered_peakgroups;
         filtered_peakgroups.reserve(mass_count_.size());
         std::set<int> current_selected_masses; // current selected masses
         std::set<int> current_selected_mzs; // current selected mzs
-        std::map<int, double> mz_charge_snr;
-        for (auto &pg : deconvoluted_spectrum_) {
-            if (pg.getQScore() < qscore_threshold_) {
-                break;
-            }
 
-            if (pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
+        std::unordered_map<int, double> new_mz_rt_map_;
+        std::unordered_map<int, double> new_mass_rt_map_;
+
+        for (auto &item:mz_rt_map_) {
+            if (rt - item.second > rt_window_) {
                 continue;
             }
+            new_mz_rt_map_[item.first] = item.second;
+        }
+        new_mz_rt_map_.swap(mz_rt_map_);
+        std::unordered_map<int, double>().swap(new_mz_rt_map_);
 
-            int mz = (int) round(
-                    (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+        for (auto &item:new_mass_rt_map_) {
+            if (rt - item.second > rt_window_) {
+                continue;
+            }
+            new_mass_rt_map_[item.first] = item.second;
+        }
+        new_mass_rt_map_.swap(mass_rt_map_);
+        std::unordered_map<int, double>().swap(new_mass_rt_map_);
 
-            double current_snr = pg.getChargeSNR(pg.getRepAbsCharge());
+        for (int i = 0; i < 2; i++) {
+            for (auto &pg : deconvoluted_spectrum_) {
 
-            if (mz_charge_snr.find(mz) == mz_charge_snr.end()) { //
-                mz_charge_snr[mz] = current_snr;
-            } else if (mz_charge_snr[mz] < current_snr) {
-                mz_charge_snr[mz] = current_snr;
+                if (filtered_peakgroups.size() >= mass_count) {
+                    break;
+                }
+
+                if (pg.getQScore() < qscore_threshold_) {
+                    break;
+                }
+
+                if (pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
+                    continue;
+                }
+
+                int mz = (int) round(
+                        (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+                int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+
+                if (current_selected_mzs.find(mz) != current_selected_mzs.end()) {
+                    continue;
+                }
+
+                if (current_selected_masses.find(nominal_mass) != current_selected_masses.end()) {
+                    continue;
+                }
+
+                if (i == 0) { // first, select masses or m/zs outside exclusion list
+                    if (mass_rt_map_.find(nominal_mass) == mass_rt_map_.end() ||
+                        mz_rt_map_.find(mz) == mz_rt_map_.end()) {
+                        continue;
+                    }
+                }
+
+                mass_rt_map_[nominal_mass] = rt;
+                mz_rt_map_[mz] = rt;
+                filtered_peakgroups.push_back(pg);
+                current_selected_masses.insert(nominal_mass - 1);
+                current_selected_masses.insert(nominal_mass);
+                current_selected_masses.insert(nominal_mass + 1);
+                current_selected_mzs.insert(mz);
+                current_selected_mzs.insert(mz - 1);
+                current_selected_mzs.insert(mz + 1);
             }
         }
 
+
+
+
+
+/*
         for (int i = 0; i < 2; i++) {
             if (i == 0 && target_nominal_masses_.empty()) {
                 continue;
@@ -300,10 +299,10 @@ namespace OpenMS {
                             (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
 
                     int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-                    double current_snr = pg.getChargeSNR(pg.getRepAbsCharge());
-                    if (mz_charge_snr[mz] > current_snr) {
-                        continue;
-                    }
+                    //double current_snr = pg.getChargeSNR(pg.getRepAbsCharge());
+                    //if (mz_charge_snr[mz] > current_snr) {
+                    //    continue;
+                    //}
 
                     if (i == 0) {
                         if (target_nominal_masses_.find(nominal_mass) == target_nominal_masses_.end()) {
@@ -356,7 +355,7 @@ namespace OpenMS {
             if (filtered_peakgroups.size() >= mass_count) {
                 break;
             }
-        }
+        }*/
 
         deconvoluted_spectrum_.swap(filtered_peakgroups);
         std::vector<PeakGroup>().swap(filtered_peakgroups);

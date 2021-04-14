@@ -141,11 +141,12 @@ namespace OpenMS
       //  return;
       double monomass = pmass <= .0? pg.getMonoMass() : pmass;
       double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
-      f << acc << "," << fr << "," << lr << ","<< proID << "," << rt << "," << scan_number<< ","<< pscan << "," << monomass << "," << mass << ","<< color <<"," << pmz << ","
+      f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","
+        << monomass << "," << mass << "," << color << "," << pmz << ","
         << precursor_intensity << ","
-        << pg.getIntensity()<< "," << fintensity << ","
+        << pg.getIntensity() << "," << fintensity << ","
         << charge << ","
-        << (proID ? (ptm_mass.size()) : -1) << ",";
+        << (is_identified ? (ptm_mass.size()) : -1) << ",";
         for(int k=0;k<3;k++){
             if(k < ptm_mass.size()){
                 f<<ptm_mass[k]<<",";

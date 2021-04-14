@@ -107,26 +107,31 @@ namespace OpenMS
 
   private:
 
-    /// PeakGroup comparator for soring by QScore
-    struct
-    {
-      bool operator()(const PeakGroup& a, const PeakGroup& b) const
-      {
-        return a.getQScore() > b.getQScore();
-      }
-    } QscoreComparator_;
+      /// PeakGroup comparator for soring by QScore
+      struct {
+          bool operator()(const PeakGroup &a, const PeakGroup &b) const {
+              return a.getQScore() > b.getQScore();
+          }
+      } QscoreComparator_;
 
-    std::unordered_map<int, std::vector<double>> mass_rt_qscore_map_; // int mass vs. {rt, qscore_}
-    /// Selected integer masses - necessary for mass exclusion
-    std::unordered_map<int, char> mass_color_map_;
-    /// precalculated averagine for fast selection
-    PrecalculatedAveragine averagine_;
-    /// discard peak groups using mass exclusion
-    void filterPeakGroupsUsingMassExclusion_(const MSSpectrum& spec, const int ms_level);
-    /// generate MSSpectrum class using mzs and intensities
-    static MSSpectrum makeMSSpectrum_(const double *mzs, const double *ints, const int length, const double rt, const int ms_level, const char *name);
-    /// deconvoluted spectrum that contains the peak groups
-    DeconvolutedSpectrum deconvoluted_spectrum_;
+      //std::unordered_map<int, std::vector<double>> mass_rt_qscore_map_; // int mass vs. {rt, qscore_}
+      /// Selected integer masses - necessary for mass exclusion
+      std::unordered_map<int, double> mz_rt_map_;
+      /// Selected integer masses - necessary for mass exclusion
+      std::unordered_map<int, double> mass_rt_map_;
+      /// precalculated averagine for fast selection
+      PrecalculatedAveragine averagine_;
+
+      /// discard peak groups using mass exclusion
+      void filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level);
+
+      /// generate MSSpectrum class using mzs and intensities
+      static MSSpectrum
+      makeMSSpectrum_(const double *mzs, const double *ints, const int length, const double rt, const int ms_level,
+                      const char *name);
+
+      /// deconvoluted spectrum that contains the peak groups
+      DeconvolutedSpectrum deconvoluted_spectrum_;
     /// FLASHDeconvAlgorithm class for deconvolution
     FLASHDeconvAlgorithm fd_;
     /// q score threshold - determined from C# side
