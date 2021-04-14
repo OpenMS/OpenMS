@@ -78,7 +78,7 @@ namespace OpenMS
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
     // ---------------------------------------------------------------
-    auto addMetric = [&cv, &quality_metrics](const String& accession, const String& name, const auto& value) -> void
+    auto addMetric = [&cv, &quality_metrics](const String& accession, const auto& value) -> void
       {
         json qm;
         qm["accession"] = accession;
@@ -87,8 +87,8 @@ namespace OpenMS
           qm["name"] = cv.getTerm(accession).name;
         } else
         {
-          qm["name"] = name;
           cout << accession << " not found in CV." << endl;
+          return;
         }
         qm["value"] = value;
         quality_metrics.push_back(qm);
@@ -98,9 +98,65 @@ namespace OpenMS
     // collecting quality metrics
     // ---------------------------------------------------------------
 
-    addMetric("MS:1000031", "instrument model", "LTQ Orbitrap Velos");
+    map<Size, UInt> counts;
+    for (const auto& spectrum : exp)
+      {
+        const Size level = spectrum.getMSLevel();
+        ++counts[level];  // count MS level
+      }
+    // Number of MS1 spectra
+    addMetric("QC:4000059", counts[1]);
+    // Number of MS2 spectra
+    addMetric("QC:4000060", counts[2]);
+    // Number of chromatograms"
+    addMetric("QC:4000135", exp.getChromatograms().size());
+    // Run time (RT duration)
+    addMetric("QC:4000053", UInt(exp.getMaxRT() - exp.getMinRT()));
+    // MZ acquisition range
+    addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
 
+    const MSChromatogram& tic = exp.getTIC();
+    if (!tic.empty())
+    {
+    UInt jump = 0;
+    UInt fall = 0;
+    vector<float> retention_times;
+    vector<UInt> intensities;
+    
+    for (const auto& p : tic)
+    {
+      intensities.push_back(p.getIntensity());
+      retention_times.push_back(p.getRT());
+    }
 
+    UInt tic_area = intensities[0];
+
+    for (UInt i = 1; i < intensities.size(); ++i)
+    {
+      tic_area += intensities[i];
+      if (intensities[i] > intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
+      {
+        ++jump;
+      }
+      if (intensities[i] < intensities[i-1] / 10) // detect 10x falls between two subsequent scans
+      {
+        ++fall;
+      }
+    }
+    
+    json tic_values;
+    tic_values["Relative intensity"] = intensities;
+    tic_values["Retention time"] = retention_times;
+
+    // Total ion current chromatogram
+    addMetric("QC:4000067", tic_values);
+    // Area under TIC
+    addMetric("QC:4000077", tic_area);
+    // MS1 signal jump (10x) count
+    addMetric("QC:4000172", jump);
+    // MS1 signal fall (10x) count
+    addMetric("QC:4000173", fall);
+    }
 
     // ---------------------------------------------------------------
     // writing mzQC file
