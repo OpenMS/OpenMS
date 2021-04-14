@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/QC/DBSuitability.h>
@@ -65,6 +66,8 @@ namespace OpenMS
     defaults_.setValue("FDR", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)");
     defaults_.setMinFloat("FDR", 0.);
     defaults_.setMaxFloat("FDR", 1.);
+    defaults_.setValue("number_of_subsampled_runs", 1, "Controls how many runs should be done for calculating corrected suitability. (0 : number of runs will be estimated automaticly) ATTENTION: For each run a seperate ID-search is performed. This can result in some serious run time.");
+    defaults_.setMinInt("number_of_subsampled_runs", 0);
     defaults_.setValue("keep_search_files", "false", "Set this flag if you wish to keep the files used by and produced by the internal ID search.");
     defaults_.setValidStrings("keep_search_files", { "true", "false" });
     defaults_.setValue("disable_correction", "false", "Set this flag to disable the calculation of the corrected suitability.");
@@ -127,31 +130,47 @@ namespace OpenMS
     if(!param_.getValue("disable_correction").toBool())
     {
       pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
+      
       // calculate correction of suitability with extrapolation
-
-      // sampled run
-      // TODO: maybe multiple runs? could be controlled with a parameter
-      double subsampling_rate = 0.5;
-      vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, subsampling_rate);
-      sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
-      appendDecoys_(sampled_db);
-      vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
-      // make sure pep_ids are sorted
-      for (auto& pep_id : subsampled_ids)
+      UInt number_of_runs = param_.getValue("number_of_subsampled_runs");
+      if (number_of_runs == 0)
       {
-        pep_id.sort();
+        number_of_runs = ceil(original_fasta.size() / double(numberOfUniqueProteins_(pep_ids)));
       }
 
-      SuitabilityData suitability_data_sampled;
-      calculateSuitability_(subsampled_ids, suitability_data_sampled);
+      // sampled run(s)
+      // TODO: maybe multiple runs? could be controlled with a parameter
+      double subsampling_rate = 0.5;
+      vector<SuitabilityData> subsampled_results;
 
-      suitability_data_full.setCorrectionFactor(calculateCorrectionFactor_(suitability_data_full, suitability_data_sampled, subsampling_rate));
+      UInt current_run = 0;
+      while (current_run < number_of_runs)
+      {
+        ++current_run;
+        vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, subsampling_rate);
+        sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
+        appendDecoys_(sampled_db);
+        vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
+        // make sure pep_ids are sorted
+        for (auto& pep_id : subsampled_ids)
+        {
+          pep_id.sort();
+        }
+
+        SuitabilityData suitability_data_sampled;
+        calculateSuitability_(subsampled_ids, suitability_data_sampled);
+        subsampled_results.push_back(suitability_data_sampled);
+      }
+
+      SuitabilityData median_sampled_data = getEntryWithMedianNovoHits_(subsampled_results);
+
+      suitability_data_full.setCorrectionFactor(calculateCorrectionFactor_(suitability_data_full, median_sampled_data, subsampling_rate));
 
       // fill in theoretical suitability if re-ranking hadn't happen
       SuitabilityData no_rerank = suitability_data_full.simulateNoReRanking();
-      SuitabilityData no_rerank_sampled = suitability_data_sampled.simulateNoReRanking();
+      SuitabilityData no_rerank_sampled = median_sampled_data.simulateNoReRanking();
 
-      double factor_no_rerank = calculateCorrectionFactor_(no_rerank, no_rerank_sampled, subsampling_rate);
+      double factor_no_rerank = calculateCorrectionFactor_(no_rerank, {no_rerank_sampled}, subsampling_rate);
 
       suitability_data_full.suitability_corr_no_rerank = double(no_rerank.num_top_db) / (no_rerank.num_top_novo * factor_no_rerank + no_rerank.num_top_db);
     }
@@ -581,7 +600,7 @@ namespace OpenMS
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported for re-ranking. Set 'force' flag to use the default score for this. This may result in undefined behaviour and is not advised."));
       }
 
-      return pep_hit.getScore();
+      return pep_hit.getScore(); // uses q-value from FDR
     }
   }
 
@@ -595,6 +614,78 @@ namespace OpenMS
     double db_slope = (int(data_sampled.num_top_db) - int(data_full.num_top_db)) / (sampling_rate - 1);
     double deNovo_slope = (int(data_sampled.num_top_novo) - int(data_full.num_top_novo)) / (sampling_rate - 1);
     return -(db_slope) / (deNovo_slope);
+  }
+
+  UInt DBSuitability::numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits) const
+  {
+    set<String> proteins;
+
+    for (const auto& pep : peps)
+    {
+      const vector<PeptideHit>& hits = pep.getHits();
+      for (UInt i = 0; i < number_of_hits; ++i)
+      {
+        const PeptideHit& hit = hits[i];
+
+        // skip if the hit is a decoy hit
+        if (!hit.metaValueExists("target_decoy"))
+        {
+          throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
+        }
+        if (hit.getMetaValue("target_decoy") == "decoy") continue;
+
+        // insert protein accessions
+        const set<String> accessions = hit.extractProteinAccessionsSet();
+        for (const String& acc : accessions)
+        {
+          String acc_copy(acc);
+          if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) != String::npos) // skip novo accessions
+          {
+            continue;
+          }
+          if (boost::regex_search(acc_copy.toLower(), decoy_pattern_)) // skip decoy accessions
+          {
+            continue;
+          }
+
+          proteins.insert(acc); // insert the rest
+        }
+      }
+    }
+
+    return proteins.size();
+  }
+
+  DBSuitability::SuitabilityData DBSuitability::getEntryWithMedianNovoHits_(const vector<SuitabilityData>& data) const
+  {
+    if (data.size() == 0)
+    {
+      throw(Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No suitability data given!"));
+    }
+
+    vector<Size> novo_data;
+    map<Size, Size> novo_hits_to_data;
+    for (int i = 0; i < data.size(); ++i)
+    {
+      Size num_top_novo = data[i].num_top_novo;
+      novo_data.push_back(num_top_novo);
+      novo_hits_to_data[num_top_novo] = i;
+    }
+
+    UInt curr_index = 0;
+    double best_diff = DBL_MAX;
+    double avg_novo_hits = Math::mean(novo_data.begin(), novo_data.end());
+    for (int i = 0; i < novo_data.size(); ++i)
+    {
+      double curr_diff = abs(novo_data[i] - avg_novo_hits);
+      if (curr_diff < best_diff)
+      {
+        best_diff = curr_diff;
+        curr_index = i;
+      }
+    }
+
+    return data[novo_hits_to_data.at(novo_data[curr_index])];
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)

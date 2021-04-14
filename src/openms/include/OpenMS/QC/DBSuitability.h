@@ -404,11 +404,15 @@ namespace OpenMS
     * The factor is calculated with the negative ratio of the db slope and the deNovo slope.
     *
     * @param data            suitability data from the original search
-    * @param data_sampled    suitability data from the sampled search
+    * @param data_sampled    vector of suitability data from the sampled search(s)
     * @param sampling_rate   the sampling rate used for sampled db [0,1)
     * @returns               correction factor
     */
     double calculateCorrectionFactor_(const SuitabilityData& data, const SuitabilityData& data_sampled, double sampling_rate) const;
+
+    UInt numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1) const;
+
+    SuitabilityData getEntryWithMedianNovoHits_(const std::vector<SuitabilityData>& data) const;
   };
 
   class DBSuitability_friend
