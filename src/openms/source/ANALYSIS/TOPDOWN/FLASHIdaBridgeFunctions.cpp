@@ -69,7 +69,8 @@ namespace OpenMS
                            double *chare_cos,
                            double *charge_snrs,
                            double *iso_cos,
-                           double *snrs, double *charge_scores,
+                           double *snrs,
+                           double *charge_scores,
                            double *ppm_errors,
                            double *precursor_intensities,
                            double *peakgroup_intensities
