@@ -177,7 +177,7 @@ class OpenMSParamValue(TypeConverterBase):
         return "", call_as, ""
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
-        # this one is slow as it uses construction of python type DataValue for
+        # this one is slow as it uses construction of python type ParamValue for
         # delegating conversion to this type, which reduces code below:
         return Code().add("""
                     |cdef ParamValue _value = ParamValue.__new__(ParamValue)
