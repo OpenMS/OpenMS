@@ -150,7 +150,8 @@ namespace OpenMS
         if (cv.exists(accession)) 
         {
           qm["name"] = cv.getTerm(accession).name;
-        } else
+        } 
+        else
         {
           qm["name"] = name;
           cout << accession << " not found in CV." << endl;
