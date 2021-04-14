@@ -50,10 +50,8 @@ namespace OpenMS
     // Default constructor
     MzQCFile() = default;
 
-    // Store the mzQC file
     /**
       @brief Stores QC data in mzQC file with JSON format
-<<<<<<< HEAD
       @param input_file mzML input file name
       @param output_file mzQC output file name
       @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
@@ -69,23 +67,6 @@ namespace OpenMS
                const String& contact_address,
                const String& description,
                const String& label) const;
-=======
-      @param inputFileName mzML input file name
-      @param outputFileName mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-      @param contactName name of the person creating the mzQC file
-      @param contactAddress contact address (mail/e-mail or phone) of the person creating the mzQC file
-      @param description description and comments about the mzQC file contents
-      @param label unique and informative label for the run
-    */
-    void store(const String & inputFileName,
-               const String & outputFileName,
-               const MSExperiment & exp,
-               const String & contactName,
-               const String & contactAddress,
-               const String & description,
-               const String & label) const;
->>>>>>> origin
 
   };
 }
