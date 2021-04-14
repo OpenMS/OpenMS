@@ -7,7 +7,7 @@ tailored for a specific problem.
 
 Note that the Windows binary release is meant for end-users only, rather than
 for developers who want to contribute algorithms.  Developers should download
-the source code version (see http://www.open-ms.de for details).
+the source code version (see https://www.openms.de for details).
 
 ======================
 Read the documentation

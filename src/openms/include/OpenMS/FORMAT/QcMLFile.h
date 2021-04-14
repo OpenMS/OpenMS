@@ -37,6 +37,9 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 
 
 #include <vector>

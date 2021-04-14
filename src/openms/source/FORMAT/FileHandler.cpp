@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 

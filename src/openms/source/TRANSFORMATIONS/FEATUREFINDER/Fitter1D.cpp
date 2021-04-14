@@ -63,6 +63,8 @@ namespace OpenMS
     updateMembers_();
   }
 
+  Fitter1D::~Fitter1D() = default;
+
   Fitter1D& Fitter1D::operator=(const Fitter1D& source)
   {
     if (&source == this)
@@ -92,7 +94,7 @@ namespace OpenMS
     statistics_.setVariance(param_.getValue("statistics:variance"));
   }
 
-  Fitter1D::QualityType Fitter1D::fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */)
+  Fitter1D::QualityType Fitter1D::fit1d(const RawDataArrayType& /* range */, std::unique_ptr<InterpolationModel>& /* model */)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
