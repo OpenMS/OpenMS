@@ -76,6 +76,7 @@ namespace OpenMS {
         fd_defaults.setValue("max_charge", (int) inputs["max_charge"][0]);
         fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
         fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
+        fd_defaults.setValue("min_isotope_cosine", DoubleList{.8, .75});
 
         fd_defaults.setValue("min_qscore", .0);
         fd_defaults.setValue("tol", inputs["tol"]);
