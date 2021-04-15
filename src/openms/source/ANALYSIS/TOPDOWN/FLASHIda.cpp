@@ -76,7 +76,7 @@ namespace OpenMS {
         fd_defaults.setValue("max_charge", (int) inputs["max_charge"][0]);
         fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
         fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
-        fd_defaults.setValue("min_isotope_cosine", DoubleList{.8, .75});
+        fd_defaults.setValue("min_isotope_cosine", DoubleList{.75, .75});
 
         fd_defaults.setValue("min_qscore", .0);
         fd_defaults.setValue("tol", inputs["tol"]);
@@ -271,8 +271,8 @@ namespace OpenMS {
                 // mass_rt_map_[nominal_mass - 1] = rt;
                 // mass_rt_map_[nominal_mass + 1] = rt;
                 mz_rt_map_[mz] = rt;
-                mz_rt_map_[mz - 1] = rt;
-                mz_rt_map_[mz + 1] = rt;
+                //mz_rt_map_[mz - 1] = rt;
+                //mz_rt_map_[mz + 1] = rt;
                 filtered_peakgroups.push_back(pg);
                 // current_selected_masses.insert(nominal_mass - 1);
                 current_selected_masses.insert(nominal_mass);
