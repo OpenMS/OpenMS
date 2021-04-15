@@ -140,7 +140,7 @@ protected:
 
     registerIntOption_("preceding_MS1_count",
                        "<number>",
-                       1,
+                       2,
                        "Specifies the number of preceding MS1 spectra for MS2 precursor determination. In TDP, some precursor peaks in MS2 are not part of "
                        "the deconvoluted masses in MS1 immediately preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
                        "MS1 spectra and helps determine exact precursor masses.",

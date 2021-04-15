@@ -376,6 +376,8 @@ namespace OpenMS {
         }
 
         int survey_cntr = 0;
+        double max_score = 0;
+
         for (int i = survey_scans.size() - 1; i >= 0; i--) {
             auto precursor_spectrum = survey_scans[i];
 
@@ -389,10 +391,6 @@ namespace OpenMS {
             if (precursor_spectrum.empty()) {
                 continue;
             }
-
-            precursor_scan_number_ = precursor_spectrum.scan_number_;
-
-            double max_score = 0;
 
             for (auto &pg: precursor_spectrum) {
                 if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz) {
@@ -447,6 +445,7 @@ namespace OpenMS {
                                                               : -tmp_precursor->abs_charge);
                 max_score = score;
                 precursor_peak_group_ = pg;
+                precursor_scan_number_ = precursor_spectrum.scan_number_;
             }
             if (!precursor_peak_group_.empty()) {
                 break;

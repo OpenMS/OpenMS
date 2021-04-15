@@ -61,11 +61,11 @@ namespace OpenMS
     defaults_.setValue("max_rt", -1.0, "if set to positive value, maximum RT to deconvolute.");
 
     defaults_.setValue("min_isotope_cosine",
-                       DoubleList{.8, .75},
+                       DoubleList{.8, .8},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
     defaults_.setValue("min_qscore",
-                       .03,
+                       .05,
                        "minimum QScore threshold. QScore is the probability that a mass is identified, learned by a logistic regression.");
 
     defaults_.setValue("min_peaks",
