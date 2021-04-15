@@ -113,7 +113,7 @@ namespace OpenMS
     /** Proton mass.
             In units (\f$1.00727646677(10)\f$u)
     */
-    extern OPENMS_DLLAPI const double PROTON_MASS_U;               // u
+    inline static OPENMS_DLLAPI const double PROTON_MASS_U = 1.0072764667710; // u
 
     /** C13C12 mass difference.
         In units (\f$1.0033548\f$u)
