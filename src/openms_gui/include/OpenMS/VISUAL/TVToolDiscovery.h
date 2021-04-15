@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: David Voigt $
 // $Authors: David Voigt $
 // --------------------------------------------------------------------------
 
@@ -64,10 +64,10 @@ namespace OpenMS
     {
     private:
       /// Returns param for a given tool/util. This function is thread-safe
-      static Param getParamFromIni_(const std::string& tool_name);
+      OPENMS_DLLAPI static Param getParamFromIni_(const std::string& tool_name);
 
-      /// Contains a future param for each tool/util name
-      std::unordered_map<std::string, std::future<Param>> future_results_;
+      /// Contains a param future for each tool/util name
+      std::unordered_map<std::string, std::future<Param>> param_futures_;
 
       /// Contains a mapping of each tool/util name to its param.
       std::unordered_map<std::string, Param> params_;
@@ -82,8 +82,8 @@ namespace OpenMS
       /**
          @brief Returns a hash map containing a param for each tool/util.
          @details
-         Note that it is possible that not all param futures have been finished yet if this function is called before waitForParams().
-         Therefore it is possible that this function has to wait.
+         Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called
+         before waitForParams() (loadParams()). Therefore it is possible that this function has to wait.
        */
       const std::unordered_map<std::string, Param>& getToolParams();
 

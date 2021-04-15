@@ -120,13 +120,13 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
+  TVToolDiscovery TOPPViewBase::tool_scanner_ = TVToolDiscovery();
 
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
                                                   FileTypes::DTA, FileTypes::DTA2D,
                                                   FileTypes::BZ2, FileTypes::GZ });
-  TVToolDiscovery TOPPViewBase::tool_scanner_ = TVToolDiscovery();
 
   TOPPViewBase::TOPPViewBase(QWidget* parent, TOOL_SCAN scan_mode) :
     QMainWindow(parent),

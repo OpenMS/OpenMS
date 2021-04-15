@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: David Voigt $
 // $Authors: David Voigt $
 // --------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ namespace OpenMS {
         for (const auto& pair : tools)
         {
           std::string tool_name = pair.first;
-          future_results_.insert(
+          param_futures_.insert(
                   std::make_pair(
                           tool_name,
                           std::async(getParamFromIni_, tool_name)
@@ -66,7 +66,7 @@ namespace OpenMS {
         for (const auto& pair : utils)
         {
           std::string util_name = pair.first;
-          future_results_.insert(
+          param_futures_.insert(
                   std::make_pair(
                           util_name,
                           std::async(getParamFromIni_, util_name)
@@ -85,7 +85,7 @@ namespace OpenMS {
         // Make sure threads have been launched before waiting
         loadParams();
         // Wait for futures to finish
-        for (auto& pair : future_results_)
+        for (auto& pair : param_futures_)
         {
           while (pair.second.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
           {
@@ -102,28 +102,31 @@ namespace OpenMS {
     const std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams()
     {
       // Make sure threads have been launched and waited for before accessing results
-      TVToolDiscovery::loadParams();
-      TVToolDiscovery::waitForParams();
+      loadParams();
+      waitForParams();
       return params_;
     }
 
     Param TVToolDiscovery::getParamFromIni_(const std::string& tool_name)
     {
+      // Temporary file path and arguments
       String path = File::getTempDirectory() + "/" + File::getUniqueName() + ".ini";
       QStringList args{ "-write_ini", path.toQString()};
-
+      // Start tool/util to write the ini file
       QProcess qp;
       Param tool_param;
       String executable = File::findSiblingTOPPExecutable(tool_name);
       qp.start(executable.toQString(), args, QProcess::NotOpen);
 
       const bool success = qp.waitForFinished(-1); // wait till job is finished
+      // If something went wrong close the file handle, remove the file and return an empty param
       if (qp.error() == QProcess::FailedToStart || !success || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
       {
         qp.close();
         std::remove(path.c_str());
         return tool_param;
       }
+      // Parse ini file to param object and return it
       ParamXMLFile paramFile;
       paramFile.load((path).c_str(), tool_param);
 
