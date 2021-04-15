@@ -85,9 +85,9 @@ namespace OpenMS
     boost::cmatch m;
     boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
-    boost::regex re_points_line("^\\d");
-    boost::regex re_point("(\\d+(?:\\.\\d+)?)[: ](\\d+(?:\\.\\d+)?);? ?");
-    boost::regex re_cas_nist("^CAS#: ([\\d-]+);  NIST#: (\\d+)"); // specific to NIST db
+    boost::regex re_points_line(R"(^\d)");
+    boost::regex re_point(R"((\d+(?:\.\d+)?)[: ](\d+(?:\.\d+)?);? ?)");
+    boost::regex re_cas_nist(R"(^CAS#: ([\d-]+);  NIST#: (\d+))"); // specific to NIST db
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
 
     OPENMS_LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;

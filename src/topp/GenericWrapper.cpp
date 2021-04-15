@@ -274,7 +274,7 @@ protected:
 
     // %DIR% replace
     {
-      QRegExp rx("%DIR\\[(.*)\\]");
+      QRegExp rx(R"(%DIR\[(.*)\])");
       rx.setMinimal(true);
       int pos = 0;
       QString t_tmp = fragment.toQString();
@@ -293,7 +293,7 @@ protected:
 
     // %BASENAME% replace
     {
-      QRegExp rx("%BASENAME\\[(.*)\\]");
+      QRegExp rx(R"(%BASENAME\[(.*)\])");
       rx.setMinimal(true);
       int pos = 0, count = 0;
       QString t_tmp = fragment.toQString();

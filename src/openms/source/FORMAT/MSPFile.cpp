@@ -90,7 +90,7 @@ namespace OpenMS
     // matches 2+ whitespaces or tabs or returns "   ", "\t", "\r"
     // Note: this is a hack because one of the encountered formats has single whitespaces in quotes.
     // TODO choose a format during construction of the class. If we actually knew how to call and define them.
-    const std::regex ws_rex("\\s{2,}|\\t|\\r");
+    const std::regex ws_rex(R"(\s{2,}|\t|\r)");
 
     exp.reset();
 
