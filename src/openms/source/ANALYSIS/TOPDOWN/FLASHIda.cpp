@@ -204,7 +204,7 @@ namespace OpenMS {
         std::vector<PeakGroup> filtered_peakgroups;
         filtered_peakgroups.reserve(mass_count_.size());
         std::set<int> current_selected_masses; // current selected masses
-        //std::set<int> current_selected_mzs; // current selected mzs
+        std::set<int> current_considered_mzs; // current selected mzs
 
         std::unordered_map<int, double> new_mz_rt_map_;
         std::unordered_map<int, double> new_mass_rt_map_;
@@ -244,11 +244,16 @@ namespace OpenMS {
 
                 int mz = (int) round(
                         (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
-                int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
 
-                if (mz_rt_map_.find(mz) != mz_rt_map_.end()) {
+                if (current_considered_mzs.find(mz) != current_considered_mzs.end()) {
                     continue;
                 }
+
+                current_considered_mzs.insert(mz);
+                current_considered_mzs.insert(mz - 1);
+                current_considered_mzs.insert(mz + 1);
+
+                int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
 
                 if (current_selected_masses.find(nominal_mass) != current_selected_masses.end()) {
                     continue;
@@ -256,8 +261,8 @@ namespace OpenMS {
 
                 if (i == 0) { // first, select masses or m/zs outside exclusion list
                     if (mass_rt_map_.find(nominal_mass) != mass_rt_map_.end()
-
-
+                        ||
+                        mz_rt_map_.find(mz) != mz_rt_map_.end()
                             ) {
                         continue;
                     }
@@ -273,9 +278,7 @@ namespace OpenMS {
                 current_selected_masses.insert(nominal_mass - 1);
                 current_selected_masses.insert(nominal_mass);
                 current_selected_masses.insert(nominal_mass + 1);
-                //current_selected_mzs.insert(mz);
-                //current_selected_mzs.insert(mz - 1);
-                //current_selected_mzs.insert(mz + 1);
+
             }
         }
 
@@ -326,7 +329,7 @@ namespace OpenMS {
                             continue;
                         }
                     }
-                    if (current_selected_mzs.find(mz) != current_selected_mzs.end()) {
+                    if (current_considered_mzs.find(mz) != current_considered_mzs.end()) {
                         continue;
                     }
 
@@ -353,7 +356,7 @@ namespace OpenMS {
                     current_selected_masses.insert(nominal_mass - 1);
                     current_selected_masses.insert(nominal_mass);
                     current_selected_masses.insert(nominal_mass + 1);
-                    current_selected_mzs.insert(mz);
+                    current_considered_mzs.insert(mz);
                 }
                 if (filtered_peakgroups.size() >= mass_count) {
                     break;
