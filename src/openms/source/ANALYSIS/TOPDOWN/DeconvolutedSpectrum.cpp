@@ -246,7 +246,9 @@ namespace OpenMS {
         UInt ms_level = spec_.getMSLevel();
 
         if (ms_level > 1) {
-            if (precursor_peak_group_.empty()) {
+            if (precursor_peak_group_.empty()
+                //|| precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge())<1.0
+                    ) {
                 return;
             }
         }
@@ -396,9 +398,11 @@ namespace OpenMS {
                 if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz) {
                     continue;
                 }
-                double sum_int = 0;
+
+                //double sum_int = 0;
                 double max_intensity = .0;
                 const LogMzPeak *tmp_precursor = nullptr;
+
                 for (auto &tmp_peak:pg) {
                     if (tmp_peak.mz < start_mz) {
                         continue;
@@ -411,29 +415,43 @@ namespace OpenMS {
                     }
                     max_intensity = tmp_peak.intensity;
                     tmp_precursor = &tmp_peak;
-                    sum_int += tmp_peak.intensity * tmp_peak.intensity;
+                    //sum_int += tmp_peak.intensity * tmp_peak.intensity;
                 }
 
                 if (tmp_precursor == nullptr) {
                     continue;
                 }
-                // auto score =  pg.getChargeSNR(
-                //        tmp_precursor->abs_charge); // most intense one should determine the mass
-                if (sum_int < max_score) {
+/*
+                double pg_start_mz = end_mz;
+                double pg_end_mz = start_mz;
+                for (auto &tmp_peak:pg) {
+                    if(tmp_peak.abs_charge != tmp_precursor->abs_charge){
+                        continue;
+                    }
+                    double mz = tmp_peak.mz;
+                    pg_start_mz = pg_start_mz < mz? pg_start_mz : mz;
+                    pg_end_mz = pg_end_mz > mz? pg_end_mz : mz;
+                }
+
+                if(pg_start_mz < start_mz || pg_end_mz > end_mz){
+                    continue;
+                }
+*/
+                auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
+                if (score < max_score) {
                     continue;
                 }
 
                 precursor_peak_
                         .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge
                                                               : -tmp_precursor->abs_charge);
-                max_score = sum_int;
+                max_score = score;
                 precursor_peak_group_ = pg;
             }
             if (!precursor_peak_group_.empty()) {
                 break;
             }
         }
-
         if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty()) {
             for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
                  map != precursor_map_for_real_time_acquisition.begin();
