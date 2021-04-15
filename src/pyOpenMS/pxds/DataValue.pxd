@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          DataValue(ParamValue) nogil except +
 
          #conversion ops, different declarations as in c++ !
-         int operator()(int) nogil except + #wrap-cast:toInt
+         int operator()(DataValue) nogil except + #wrap-cast:toInt
          String operator()(DataValue) nogil except + #wrap-cast:toString
          double operator()(DataValue) nogil except + #wrap-cast:toDouble
          StringList toStringList() nogil except +
