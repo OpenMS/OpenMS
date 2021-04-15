@@ -124,7 +124,7 @@ namespace OpenMS
       PrecalculatedAveragine averagine_;
 
       /// discard peak groups using mass exclusion
-      void filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level);
+      void filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt);
 
       /// generate MSSpectrum class using mzs and intensities
       static MSSpectrum

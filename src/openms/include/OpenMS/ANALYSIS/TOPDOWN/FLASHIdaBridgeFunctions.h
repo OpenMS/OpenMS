@@ -51,7 +51,7 @@ namespace OpenMS
                                                 double *mzs,
                                                 double *ints,
                                                 int length,
-                                                double rt,
+                                                double rt_min,
                                                 int ms_level,
                                                 char *name);
   extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda *object,

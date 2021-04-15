@@ -189,15 +189,14 @@ namespace OpenMS {
         // per spec deconvolution
         //    int specIndex = 0, massIndex = 0; // ..
         //fd_.getDeconvolutedSpectrum(deconvoluted_spectrum_, 0);
-        FLASHIda::filterPeakGroupsUsingMassExclusion_(spec, ms_level);
+        FLASHIda::filterPeakGroupsUsingMassExclusion_(spec, ms_level, rt);
 
         // spec.clear(true);
 
         return deconvoluted_spectrum_.size();
     }
 
-    void FLASHIda::filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level) {
-        double rt = spec.getRT();
+    void FLASHIda::filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt) {
         std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
         int mass_count = mass_count_[ms_level - 1];
 
