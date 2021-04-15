@@ -61,7 +61,7 @@ namespace OpenMS
     defaults_.setValue("max_rt", -1.0, "if set to positive value, maximum RT to deconvolute.");
 
     defaults_.setValue("min_isotope_cosine",
-                       DoubleList{.75, .75},
+                       DoubleList{.8, .8},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
 
     defaults_.setValue("min_qscore",
@@ -69,7 +69,7 @@ namespace OpenMS
                        "minimum QScore threshold. QScore is the probability that a mass is identified, learned by a logistic regression.");
 
     defaults_.setValue("min_peaks",
-                       IntList{2, 1},
+                       IntList{3, 1},
                        "minimum number of supporting peaks for MS1, 2, ...  (e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively)");
 
     //defaults_.setValue("min_charge_score",
@@ -681,17 +681,15 @@ namespace OpenMS
               {
                 continue;
               }
-              for (int h = 2; h <= 6 && !artifact; h++)
-              {
-                for (int f = -1; f <= 1 && !artifact; f += 2) //
-                {
-                  double hmass = log_mass - log(h) * f;
-                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
-                  if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
-                  {
-                    //for (int off = 0; off <= 0 && !artifact; off++)
-                    //{
-                    if (mass_intensities[hmass_index] >= t)
+                for (int h = 2; h <= 3 && !artifact; h++) {
+                    for (int f = -1; f <= 1 && !artifact; f += 2) //
+                    {
+                        double hmass = log_mass - log(h) * f;
+                        Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
+                        if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1) {
+                            //for (int off = 0; off <= 0 && !artifact; off++)
+                            //{
+                            if (mass_intensities[hmass_index] >= t)
                     {
                       artifact = true;
                       break;
@@ -848,27 +846,25 @@ namespace OpenMS
           {
             break;
           }
-          cpi++;
+            cpi++;
         }
 
-        if (max_peak_index < 0)
-        {
-          continue;
-        }
+          if (max_peak_index < 0) {
+              continue;
+          }
 
-        const double mz = log_mz_peaks_[max_peak_index].mz;
-        const double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / (abs_charge);
-        double mz_delta = tol * mz * 2; //
+          const double mz = log_mz_peaks_[max_peak_index].mz;
+          const double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / (abs_charge);
+          double mz_delta = tol * mz; //
 
           double peak_pwr = .0;
 
-        int candidate_i = 0;
-        // int peakcntr = 0;
-        for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++)
-        {
-          const double observed_mz = log_mz_peaks_[peak_index].mz;
-          const double intensity = log_mz_peaks_[peak_index].intensity;
-          //observedMz = mz + isof * i * d - d * mzDelta;
+          int candidate_i = 0;
+          // int peakcntr = 0;
+          for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++) {
+              const double observed_mz = log_mz_peaks_[peak_index].mz;
+              const double intensity = log_mz_peaks_[peak_index].intensity;
+              //observedMz = mz + isof * i * d - d * mzDelta;
           double mz_diff = observed_mz - mz;
 
           int tmp_i = (int) (.5 + mz_diff / iso_delta);
@@ -1062,7 +1058,6 @@ namespace OpenMS
   //spectral deconvolution main function
   void FLASHDeconvAlgorithm::generatePeakGroupsFromSpectrum_()
   {
-
     std::vector<PeakGroup> empty;
     deconvoluted_spectrum_.swap(empty);
     int min_peak_cntr = min_support_peak_count_[ms_level_ - 1];
@@ -1815,7 +1810,7 @@ namespace OpenMS
           {
             break;
           }
-          select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
+            select &= pg.getQScore() > pgo.getQScore();
         }
       }
 
@@ -1841,7 +1836,7 @@ namespace OpenMS
           {
             break;
           }
-          select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
+            select &= pg.getQScore() > pgo.getQScore();
         }
       }
       if (!select)
