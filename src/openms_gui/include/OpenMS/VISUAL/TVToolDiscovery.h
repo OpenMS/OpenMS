@@ -64,7 +64,7 @@ namespace OpenMS
     {
     private:
       /// Returns param for a given tool/util. This function is thread-safe
-      OPENMS_DLLAPI static Param getParamFromIni_(const std::string& tool_name);
+      static Param getParamFromIni_(const std::string& tool_name);
 
       /// Contains a param future for each tool/util name
       std::unordered_map<std::string, std::future<Param>> param_futures_;

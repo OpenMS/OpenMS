@@ -128,7 +128,7 @@ namespace OpenMS
                                                   FileTypes::DTA, FileTypes::DTA2D,
                                                   FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(QWidget* parent, TOOL_SCAN scan_mode) :
+  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
     scan_mode_(scan_mode),

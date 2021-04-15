@@ -166,7 +166,7 @@ public:
     };
 
     ///Constructor
-    explicit TOPPViewBase(QWidget* parent = nullptr, TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
 
