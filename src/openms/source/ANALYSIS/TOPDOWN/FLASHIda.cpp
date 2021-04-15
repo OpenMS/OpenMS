@@ -69,7 +69,7 @@ namespace OpenMS {
         }
         rt_window_ = inputs["RT_window"][0];
         qscore_threshold_ = inputs["score_threshold"][0];
-        charge_snr_threshold_ = 0.0;
+        charge_snr_threshold_ = 1.0;
         Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
         // overwrite algorithm default so we export everything (important for copying back MSstats results)
         fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
@@ -204,7 +204,7 @@ namespace OpenMS {
         std::vector<PeakGroup> filtered_peakgroups;
         filtered_peakgroups.reserve(mass_count_.size());
         std::set<int> current_selected_masses; // current selected masses
-        std::set<int> current_considered_mzs; // current selected mzs
+        //std::set<int> current_considered_mzs; // current selected mzs
 
         std::unordered_map<int, double> new_mz_rt_map_;
         std::unordered_map<int, double> new_mass_rt_map_;
@@ -245,13 +245,13 @@ namespace OpenMS {
                 int mz = (int) round(
                         (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
 
-                if (current_considered_mzs.find(mz) != current_considered_mzs.end()) {
-                    continue;
-                }
+                // if (current_considered_mzs.find(mz) != current_considered_mzs.end()) {
+                //     continue;
+                // }
 
-                current_considered_mzs.insert(mz);
-                current_considered_mzs.insert(mz - 1);
-                current_considered_mzs.insert(mz + 1);
+                //current_considered_mzs.insert(mz);
+                //current_considered_mzs.insert(mz - 1);
+                //current_considered_mzs.insert(mz + 1);
 
                 int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
 
@@ -269,15 +269,15 @@ namespace OpenMS {
                 }
 
                 mass_rt_map_[nominal_mass] = rt;
-                mass_rt_map_[nominal_mass - 1] = rt;
-                mass_rt_map_[nominal_mass + 1] = rt;
+                // mass_rt_map_[nominal_mass - 1] = rt;
+                // mass_rt_map_[nominal_mass + 1] = rt;
                 mz_rt_map_[mz] = rt;
                 mz_rt_map_[mz - 1] = rt;
                 mz_rt_map_[mz + 1] = rt;
                 filtered_peakgroups.push_back(pg);
-                current_selected_masses.insert(nominal_mass - 1);
+                // current_selected_masses.insert(nominal_mass - 1);
                 current_selected_masses.insert(nominal_mass);
-                current_selected_masses.insert(nominal_mass + 1);
+                // current_selected_masses.insert(nominal_mass + 1);
 
             }
         }
