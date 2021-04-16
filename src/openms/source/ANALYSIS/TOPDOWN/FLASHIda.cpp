@@ -235,10 +235,10 @@ namespace OpenMS {
         new_mass_qscore_map_.swap(mass_qscore_map_);
         std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
-        for (int i = 0; i < 2; i++) { // hard exclusion
-            auto c_deconvoluted_spectrum_ = i == 0 ? deconvoluted_spectrum_ : prev_peak_groups;
+        for (int i = 0; i < 1; i++) { // hard exclusion
+            //auto c_deconvoluted_spectrum_ = i == 0 ? deconvoluted_spectrum_ : prev_peak_groups;
 
-            for (auto &pg : c_deconvoluted_spectrum_) {
+            for (auto &pg : deconvoluted_spectrum_) {
                 if (filtered_peakgroups.size() >= mass_count) {
                     break;
                 }
@@ -285,7 +285,7 @@ namespace OpenMS {
             }
         }
 
-        prev_peak_groups.clear();
+        /*prev_peak_groups.clear();
         prev_peak_groups.reserve(deconvoluted_spectrum_.size());
         for (auto &pg : deconvoluted_spectrum_) {
 
@@ -297,7 +297,7 @@ namespace OpenMS {
                 continue;
             }
             prev_peak_groups.push_back(pg);
-        }
+        }*/
         //next_rt = rt + filtered_peakgroups.size() * .4;
         //std::cout << next_rt << "\n\n";
         /*
