@@ -41,11 +41,9 @@ namespace OpenMS
 {
 
     /**
-      @brief Helper functions for FAIMS data
+      @brief This class splits PeakMaps by IM values
 
-      FAIMSHelper contains convenience functions to deal with FAIMS
-      compensation voltages and related data.
-
+      Contains a function to split a PeakMap by FAIMS compensation voltages.
     */
     class OPENMS_DLLAPI MSRunIMSplitter
     {
@@ -60,7 +58,7 @@ namespace OpenMS
 
         @param exp The PeakMap
       */
-      std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp);
+      static std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp);
 
     };
 
