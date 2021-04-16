@@ -28,74 +28,46 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
 #pragma once
-
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <vector>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
   /**
-      @brief File adapter for MSP files (NIST spectra library)
+      @brief File adapter for mzQC files used to load and store mzQC files
 
-
-      @htmlinclude OpenMS_MSPFile.parameters
+      This Class is supposed to internally collect the data for the mzQC File
 
       @ingroup FileIO
   */
-  class OPENMS_DLLAPI MSPFile :
-    public DefaultParamHandler
+  class OPENMS_DLLAPI MzQCFile
   {
-public:
+  public:
+    // Default constructor
+    MzQCFile() = default;
 
-    /** Constructors and destructors
-    */
-    //@{
-    ///Default constructor
-    MSPFile();
-
-    /// Copy constructor
-    MSPFile(const MSPFile & rhs);
-
-    ///Destructor
-    ~MSPFile() override;
-    //@}
-
-    /// assignment operator
-    MSPFile & operator=(const MSPFile & rhs);
-
+    // Store the mzQC file
     /**
-        @brief Loads a map from a MSPFile file.
-
-        @param exp PeakMap which contains the spectra after reading
-        @param filename the filename of the experiment
-        @param ids output parameter which contains the peptide identifications from the spectra annotations
-
-        @throw FileNotFound is thrown if the file could not be found
-        @throw ParseError is thrown if the given file could not be parsed
-        @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
+      @brief Stores QC data in mzQC file with JSON format
+      @param inputFileName mzML input file name
+      @param outputFileName mzQC output file name
+      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param contactName name of the person creating the mzQC file
+      @param contactAddress contact address (mail/e-mail or phone) of the person creating the mzQC file
+      @param description description and comments about the mzQC file contents
+      @param label unique and informative label for the run
     */
-    void load(const String & filename, std::vector<PeptideIdentification> & ids, PeakMap & exp);
+    void store(const String & inputFileName,
+               const String & outputFileName,
+               const MSExperiment & exp,
+               const String & contactName,
+               const String & contactAddress,
+               const String & description,
+               const String & label) const;
 
-    /**
-        @brief Stores a map in a MSPFile file.
-
-        @throw UnableToCreateFile is thrown if the given file could not be created
-    */
-    void store(const String & filename, const PeakMap & exp) const;
-
-protected:
-
-    /// reads the header information and stores it as metainfo in the spectrum
-    void parseHeader_(const String & header, PeakSpectrum & spec);
   };
-
-} // namespace OpenMS
-
+}
