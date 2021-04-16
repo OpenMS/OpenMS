@@ -57,8 +57,7 @@
 using namespace OpenMS;
 using namespace std;
 
-class FindFeature :
-  std::unary_function<Feature, bool>
+class FindFeature
 {
 public:
   /**
@@ -92,8 +91,7 @@ private:
 };
 
 
-class FindConsensusFeature :
-  std::unary_function<ConsensusFeature, bool>
+class FindConsensusFeature
 {
 public:
   /**
@@ -125,8 +123,7 @@ private:
 };
 
 
-class SumFormulaValue :
-  std::unary_function<Feature, bool>
+class SumFormulaValue
 {
 public:
   /**

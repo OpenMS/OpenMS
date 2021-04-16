@@ -106,6 +106,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
   FeatureFinderAlgorithm* ptr2 = nullptr;
   ptr2 = FeatureFinderAlgorithmMRM::create();
   TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
+  delete ptr2;
 }
 END_SECTION
 

@@ -213,7 +213,7 @@ START_SECTION((static void createRandomPartitions(svm_problem *problem, Size num
 	problem->l = count;
 	problem->y = labels;
 
-	SVMWrapper::createRandomPartitions(problem, 2, partitions);
+	SVMWrapper().createRandomPartitions(problem, 2, partitions);
 	TEST_EQUAL(partitions.size(), 2)
 	TEST_EQUAL(partitions[0]->l, 2)
 	TEST_EQUAL(partitions[1]->l, 2)
@@ -242,7 +242,7 @@ START_SECTION((static void createRandomPartitions(const SVMData &problem, Size n
 	problem.sequences = sequences;
 	problem.labels = labels;
 
-	SVMWrapper::createRandomPartitions(problem, 2, partitions);
+  SVMWrapper().createRandomPartitions(problem, 2, partitions);
 	TEST_EQUAL(partitions.size(), 2)
 	TEST_EQUAL(partitions[0].sequences.size(), 2)
 	TEST_EQUAL(partitions[1].sequences.size(), 2)
@@ -272,7 +272,7 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	problem->l = count;
 	problem->y = labels;
 
-	SVMWrapper::createRandomPartitions(problem, number_of_partitions, partitions);
+	SVMWrapper().createRandomPartitions(problem, number_of_partitions, partitions);
 	problem2 = SVMWrapper::mergePartitions(partitions, 4);
 	UInt problem2_size = (count / number_of_partitions) * (number_of_partitions - 1);
 	UInt partition_size = count / number_of_partitions;
@@ -313,7 +313,7 @@ START_SECTION((static void mergePartitions(const std::vector< SVMData > &problem
 	problem.sequences = vectors;
 	problem.labels = labels;
 
-	SVMWrapper::createRandomPartitions(problem, number_of_partitions, partitions);
+  SVMWrapper().createRandomPartitions(problem, number_of_partitions, partitions);
 	SVMWrapper::mergePartitions(partitions, 4, problem2);
 	UInt problem2_size = (count / number_of_partitions) * (number_of_partitions - 1);
 	UInt partition_size = count / number_of_partitions;
@@ -528,8 +528,8 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
   labels.push_back(1);
   labels.push_back(2);
-  sequences.push_back("ACNNGTATCA");
-  sequences.push_back("AACNNGTACCA");
+  sequences.emplace_back("ACNNGTATCA");
+  sequences.emplace_back("AACNNGTACCA");
 	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
 	kernel_matrix = svm.computeKernelMatrix(data, data);
 	svm.train(data);
@@ -550,6 +550,7 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 	TEST_EQUAL(kernel_matrix->y[0], 1)
 	TEST_EQUAL(kernel_matrix->y[1], 2)
 
+  LibSVMEncoder::destroyProblem(kernel_matrix);
 END_SECTION
 
 START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const SVMData &problem2)))
