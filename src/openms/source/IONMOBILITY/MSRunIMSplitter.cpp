@@ -35,30 +35,38 @@
 #include <OpenMS/IONMOBILITY/MSRunIMSplitter.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <map>
 
 namespace OpenMS
 {
-  std::vector<PeakMap> MSRunIMSplitter::splitByFAIMSCV(PeakMap& exp)
+  std::vector<PeakMap> MSRunIMSplitter::splitByFAIMSCV(PeakMap&& exp)
   {
     std::vector<PeakMap> splitPeakMap;
 
     // TODO test with any random PeakMap without FAIMS data.
     // What breaks, how should it break?
-    // CVs would be empty, so nothing gets added to splitPeakMap.
-    std::vector<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
+    std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
 
+    // create map to easily turn a CV value into a PeakMap index
+    std::map<double, size_t> cv2index;
+    size_t counter(0);
+    for (auto cv : CVs)
+    {
+      cv2index[cv] = counter;
+      counter++;
+    }
+
+    // make as many PeakMaps as there are different CVs and fill their Meta Data
     splitPeakMap.resize(CVs.size());
+    for (auto it = splitPeakMap.begin(); it != splitPeakMap.end(); ++it)
+    {
+      it->getExperimentalSettings() = exp.getExperimentalSettings();
+    }
 
+    // fill up the PeakMaps by moving spectra from the input PeakMap
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      //TODO copy MetaData to new PeakMaps? or keep original as reference for merging back later?
-      for (Size i = 0; i < CVs.size(); i++)
-      {
-        if (it->getDriftTime() == CVs[i])
-        {
-          splitPeakMap[i].addSpectrum(*it);
-        }
-      }
+      splitPeakMap[cv2index[it->getDriftTime()]].addSpectrum(std::move(*it));
     }
 
     return splitPeakMap;

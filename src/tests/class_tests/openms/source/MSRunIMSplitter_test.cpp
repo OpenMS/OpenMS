@@ -74,13 +74,12 @@ START_SECTION((std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp)))
 
   TEST_EQUAL(exp.getSpectra().size(), 19)
 
-  vector<PeakMap> splitPeakMap = e_ptr->splitByFAIMSCV(exp);
+  vector<PeakMap> splitPeakMap = e_ptr->splitByFAIMSCV(std::move(exp));
   TEST_EQUAL(splitPeakMap.size(), 3)
 
 	TEST_EQUAL(splitPeakMap[0].size(), 4)
 	TEST_EQUAL(splitPeakMap[1].size(), 9)
 	TEST_EQUAL(splitPeakMap[2].size(), 6)
-
 
 	for (PeakMap::Iterator it = splitPeakMap[0].begin(); it != splitPeakMap[0].end(); ++it)
 	{
@@ -94,6 +93,8 @@ START_SECTION((std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp)))
 	{
 		TEST_EQUAL(it->getDriftTime(), -45.0)
 	}
+
+	TEST_EQUAL(splitPeakMap[1].getExperimentalSettings().getDateTime().toString(), "2019-09-07T09:40:04")
 
 END_SECTION
 

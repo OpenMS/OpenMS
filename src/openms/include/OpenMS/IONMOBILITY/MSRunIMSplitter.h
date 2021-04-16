@@ -55,10 +55,12 @@ namespace OpenMS
 
         This only works with a PeakMap that has a FAIMS compensation voltage
         associated with each spectrum.
+        The spectra from the original PeakMap are moved to new PeakMaps,
+        so the orinǵinal PeakMap is unusable afterwards.
 
         @param exp The PeakMap
       */
-      static std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp);
+      static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
 
     };
 

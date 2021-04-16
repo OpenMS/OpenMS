@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <vector>
+#include <set>
 
 namespace OpenMS
 {
@@ -57,7 +57,7 @@ namespace OpenMS
 
         @param exp The PeakMap with FAIMS data
       */
-      static std::vector<double> getCompensationVoltages(PeakMap& exp);
+      static std::set<double> getCompensationVoltages(PeakMap& exp);
 
     };
 
