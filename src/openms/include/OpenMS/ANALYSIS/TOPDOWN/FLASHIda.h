@@ -118,6 +118,7 @@ namespace OpenMS {
         /// Selected integer masses - necessary for mass exclusion
         std::unordered_map<int, double> mass_rt_map_;
         ///
+        std::unordered_map<int, double> all_mass_rt_map_;
         std::unordered_map<int, double> mass_qscore_map_;
 
         /// discard peak groups using mass exclusion
@@ -135,7 +136,6 @@ namespace OpenMS {
 
         double error_threshold_ = .9;
 
-        double next_rt = 0;
         /// q score threshold - determined from C# side
         double qscore_threshold_;
         /// retention time window - determined from C# side
@@ -146,6 +146,7 @@ namespace OpenMS {
         const double min_isolation_window_half_ = .6;
 
         std::map<int, std::vector<double>> target_nominal_masses_;
+        DeconvolutedSpectrum *prev_deconvoluted_spectrum_;
         std::set<double> target_masses_;
         double charge_snr_threshold_ = 1.0;
         //const double snr_threshold = 0.0;
