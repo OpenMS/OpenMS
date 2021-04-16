@@ -245,7 +245,7 @@ namespace OpenMS
           {
             potential_decoy_transitions[i]
                 .setNativeID(std::regex_replace(potential_decoy_transitions[i].getNativeID(),
-                                                std::regex(R"("_\[)"),
+                                                std::regex(R"(_\[)"),
                                                 "_decoy_["));
             potential_decoy_transitions[i]
                 .setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
