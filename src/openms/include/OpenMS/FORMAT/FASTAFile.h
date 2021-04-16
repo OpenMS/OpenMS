@@ -36,11 +36,10 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <functional>
+#include <functional> // for std::function
 #include <fstream>
-#include <memory>
-#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -61,7 +60,7 @@ namespace OpenMS
 
   */
 
-  class OPENMS_DLLAPI FASTAFile
+  class OPENMS_DLLAPI FASTAFile : public ProgressLogger
   {
 public:
   /**
@@ -197,12 +196,12 @@ public:
     /**
       @brief loads a FASTA file given by 'filename' and stores the information in 'data'
 
-      This uses more RAM than readStart() and readNext().
+      This uses more RAM than readStart() and readNext(), but supports progress-logging.
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
     */
-    void static load(const String& filename, std::vector<FASTAEntry>& data);
+    void load(const String& filename, std::vector<FASTAEntry>& data) const;
 
   /**
       @brief stores the data given by 'data' at the file 'filename'
@@ -211,7 +210,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
     */
-    void static store(const String& filename, const std::vector<FASTAEntry>& data);
+    void store(const String& filename, const std::vector<FASTAEntry>& data) const;
 
 protected:
     std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()

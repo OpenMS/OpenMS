@@ -466,10 +466,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
 #endif
 
-    startProgress(0, 1, "Load database from FASTA file...");
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile::load(in_db, fasta_db);
-    endProgress();
+    FASTAFile().load(in_db, fasta_db);
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
