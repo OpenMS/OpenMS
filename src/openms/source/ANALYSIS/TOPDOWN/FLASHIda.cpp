@@ -160,7 +160,6 @@ namespace OpenMS {
         fd_.calculateAveragine(false);
         fd_.setTargetMasses(target_masses_ , 1);
 
-        averagine_ = fd_.getAveragine();
         std::cout << "QScore threshold: " << qscore_threshold_ << std::endl;
         std::cout << fd_defaults << std::endl;
     }
@@ -197,6 +196,11 @@ namespace OpenMS {
     }
 
     void FLASHIda::filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt) {
+
+        if(next_rt>0 && next_rt > rt){
+            return;
+        }
+
         std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
         int mass_count = mass_count_[ms_level - 1];
 
@@ -207,6 +211,7 @@ namespace OpenMS {
 
         std::unordered_map<int, double> new_mz_rt_map_;
         std::unordered_map<int, double> new_mass_rt_map_;
+        std::unordered_map<int, double> new_mass_qscore_map_;
 
         for (auto &item:mz_rt_map_) {
             if (rt - item.second > rt_window_) {
@@ -217,7 +222,7 @@ namespace OpenMS {
         new_mz_rt_map_.swap(mz_rt_map_);
         std::unordered_map<int, double>().swap(new_mz_rt_map_);
 
-        for (auto &item:new_mass_rt_map_) {
+        for (auto &item:mass_rt_map_) {
             if (rt - item.second > rt_window_) {
                 continue;
             }
@@ -225,11 +230,18 @@ namespace OpenMS {
         }
         new_mass_rt_map_.swap(mass_rt_map_);
         std::unordered_map<int, double>().swap(new_mass_rt_map_);
-        int pgcntr = 0;
-        for (int i = 0; i < 2; i++) {
-            if (i == 1) {
-                std::cout << pgcntr << std::endl;
+
+        for (auto &item:mass_qscore_map_) {
+            if (rt - item.second > rt_window_) {
+                continue;
             }
+            new_mass_qscore_map_[item.first] = item.second;
+        }
+        new_mass_qscore_map_.swap(mass_qscore_map_);
+        std::unordered_map<int, double>().swap(new_mass_qscore_map_);
+
+
+        for (int i = 0; i < 1; i++) { // hard exclusion
             for (auto &pg : deconvoluted_spectrum_) {
 
                 if (filtered_peakgroups.size() >= mass_count) {
@@ -243,7 +255,6 @@ namespace OpenMS {
                 if (pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
                     continue;
                 }
-                pgcntr++;
 
                 int mz = (int) round(
                         (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
@@ -271,12 +282,17 @@ namespace OpenMS {
                     }
                 }
 
-                mass_rt_map_[nominal_mass] = rt;
-                // mass_rt_map_[nominal_mass - 1] = rt;
-                // mass_rt_map_[nominal_mass + 1] = rt;
+                auto inter = mass_qscore_map_.find(nominal_mass);
+                if(inter == mass_qscore_map_.end()){
+                    mass_qscore_map_[nominal_mass] = 1 - pg.getQScore();
+                }else{
+                    mass_qscore_map_[nominal_mass] *= 1 - pg.getQScore();
+                }
+
+                if(1 - mass_qscore_map_[nominal_mass] > error_threshold_){
+                    mass_rt_map_[nominal_mass] = rt;
+                }
                 mz_rt_map_[mz] = rt;
-                //mz_rt_map_[mz - 1] = rt;
-                //mz_rt_map_[mz + 1] = rt;
                 filtered_peakgroups.push_back(pg);
                 // current_selected_masses.insert(nominal_mass - 1);
                 current_selected_masses.insert(nominal_mass);
@@ -285,9 +301,7 @@ namespace OpenMS {
             }
         }
 
-
-
-
+        next_rt = rt + filtered_peakgroups.size() * .5;
 
 /*
         for (int i = 0; i < 2; i++) {

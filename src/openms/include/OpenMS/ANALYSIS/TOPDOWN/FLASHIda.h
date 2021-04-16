@@ -39,115 +39,116 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 
-namespace OpenMS
-{
-  /**
-   * @brief FLASHIda class for real time deconvolution
-   *
-   * @see FLASHIdaBridgeFunctions
-   * @reference: FeatureFinderAlgorithmPickedHelperStructs
-   * @reference: https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
-   */
-  class OPENMS_DLLAPI FLASHIda
-  {
-  public:
-    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-
-    /// constructor that takes string input argument
-    explicit FLASHIda(char *arg);
-
-    /// destructor
-    ~FLASHIda() = default;
-
-    /// copy constructor
-    FLASHIda(const FLASHIda& ) = default;
-
-    /// move constructor
-    FLASHIda(FLASHIda&& other) = default;
-
-    /// assignment operator
-    FLASHIda& operator=(const FLASHIda& fd) = default;
-
+namespace OpenMS {
     /**
-           @brief get peak groups from input spectrum, specified by mzs and intensities (due to C# interface it is necessary)
-           @param mzs mz values of the input spectrum
-           @param intensities intensities of the input spectrum
-           @param length length of mzs and ints
-           @param rt Retention time in seconds
-           @param ms_level ms level
-           @param name spectrum name
-      */
-    int getPeakGroups(const double *mzs,
-                      const double *intensities,
-                      const int length,
-                      const double rt,
-                      const int ms_level,
-                      const char *name);
+     * @brief FLASHIda class for real time deconvolution
+     *
+     * @see FLASHIdaBridgeFunctions
+     * @reference: FeatureFinderAlgorithmPickedHelperStructs
+     * @reference: https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
+     */
+    class OPENMS_DLLAPI FLASHIda {
+    public:
+        typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
+        typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    /**
-           @brief get isolation windows
-           @param window_start window start mzs
-           @param window_end windo end mzs
-           @param qscores QScores of windows
-           @param charges charges of windows
-           @param avg_masses average masses of windows
-      */
-    void getIsolationWindows(double *wstart,
-                             double *wend,
-                             double *qscores,
-                             int *charges,
-                             double *mono_masses,
-                             double *chare_cos,
-                             double *charge_snrs,
-                             double *iso_cos,
-                             double *snrs, double *charge_scores,
-                             double *ppm_errors,
-                             double *precursor_intensities,
-                             double *peakgroup_intensities);
+        /// constructor that takes string input argument
+        explicit FLASHIda(char *arg);
 
-  private:
+        /// destructor
+        ~FLASHIda() = default;
 
-      /// PeakGroup comparator for soring by QScore
-      struct {
-          bool operator()(const PeakGroup &a, const PeakGroup &b) const {
-              return a.getQScore() > b.getQScore();
-          }
-      } QscoreComparator_;
+        /// copy constructor
+        FLASHIda(const FLASHIda &) = default;
 
-      //std::unordered_map<int, std::vector<double>> mass_rt_qscore_map_; // int mass vs. {rt, qscore_}
-      /// Selected integer masses - necessary for mass exclusion
-      std::unordered_map<int, double> mz_rt_map_;
-      /// Selected integer masses - necessary for mass exclusion
-      std::unordered_map<int, double> mass_rt_map_;
-      /// precalculated averagine for fast selection
-      PrecalculatedAveragine averagine_;
+        /// move constructor
+        FLASHIda(FLASHIda &&other) = default;
 
-      /// discard peak groups using mass exclusion
-      void filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt);
+        /// assignment operator
+        FLASHIda &operator=(const FLASHIda &fd) = default;
 
-      /// generate MSSpectrum class using mzs and intensities
-      static MSSpectrum
-      makeMSSpectrum_(const double *mzs, const double *ints, const int length, const double rt, const int ms_level,
-                      const char *name);
+        /**
+               @brief get peak groups from input spectrum, specified by mzs and intensities (due to C# interface it is necessary)
+               @param mzs mz values of the input spectrum
+               @param intensities intensities of the input spectrum
+               @param length length of mzs and ints
+               @param rt Retention time in seconds
+               @param ms_level ms level
+               @param name spectrum name
+          */
+        int getPeakGroups(const double *mzs,
+                          const double *intensities,
+                          const int length,
+                          const double rt,
+                          const int ms_level,
+                          const char *name);
 
-      /// deconvoluted spectrum that contains the peak groups
-      DeconvolutedSpectrum deconvoluted_spectrum_;
-    /// FLASHDeconvAlgorithm class for deconvolution
-    FLASHDeconvAlgorithm fd_;
-    /// q score threshold - determined from C# side
-    double qscore_threshold_;
-    /// retention time window - determined from C# side
-    double rt_window_;
-    /// how many masses will be selected per ms level? - determined from C# side
-    IntList mass_count_;
-    /// minimum isolation window width divided by two
-    const double min_isolation_window_half_ = .6;
+        /**
+               @brief get isolation windows
+               @param window_start window start mzs
+               @param window_end windo end mzs
+               @param qscores QScores of windows
+               @param charges charges of windows
+               @param avg_masses average masses of windows
+          */
+        void getIsolationWindows(double *wstart,
+                                 double *wend,
+                                 double *qscores,
+                                 int *charges,
+                                 double *mono_masses,
+                                 double *chare_cos,
+                                 double *charge_snrs,
+                                 double *iso_cos,
+                                 double *snrs, double *charge_scores,
+                                 double *ppm_errors,
+                                 double *precursor_intensities,
+                                 double *peakgroup_intensities);
 
-    std::map<int, std::vector<double>> target_nominal_masses_;
-    std::set<double> target_masses_;
-    double charge_snr_threshold_ = 1.0;
-    //const double snr_threshold = 0.0;
-    //const double isotope_cosine_threshold = 0;
-  };
+    private:
+
+        /// PeakGroup comparator for soring by QScore
+        struct {
+            bool operator()(const PeakGroup &a, const PeakGroup &b) const {
+                return a.getQScore() > b.getQScore();
+            }
+        } QscoreComparator_;
+
+        /// Selected integer masses - necessary for mass exclusion
+        std::unordered_map<int, double> mz_rt_map_;
+        /// Selected integer masses - necessary for mass exclusion
+        std::unordered_map<int, double> mass_rt_map_;
+        ///
+        std::unordered_map<int, double> mass_qscore_map_;
+
+        /// discard peak groups using mass exclusion
+        void filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt);
+
+        /// generate MSSpectrum class using mzs and intensities
+        static MSSpectrum
+        makeMSSpectrum_(const double *mzs, const double *ints, const int length, const double rt, const int ms_level,
+                        const char *name);
+
+        /// deconvoluted spectrum that contains the peak group
+        DeconvolutedSpectrum deconvoluted_spectrum_;
+        /// FLASHDeconvAlgorithm class for deconvolution
+        FLASHDeconvAlgorithm fd_;
+
+        double error_threshold_ = .9;
+
+        double next_rt = 0;
+        /// q score threshold - determined from C# side
+        double qscore_threshold_;
+        /// retention time window - determined from C# side
+        double rt_window_;
+        /// how many masses will be selected per ms level? - determined from C# side
+        IntList mass_count_;
+        /// minimum isolation window width divided by two
+        const double min_isolation_window_half_ = .6;
+
+        std::map<int, std::vector<double>> target_nominal_masses_;
+        std::set<double> target_masses_;
+        double charge_snr_threshold_ = 1.0;
+        //const double snr_threshold = 0.0;
+        //const double isotope_cosine_threshold = 0;
+    };
 }
