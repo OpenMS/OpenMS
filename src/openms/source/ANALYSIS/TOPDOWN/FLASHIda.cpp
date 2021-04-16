@@ -196,16 +196,16 @@ namespace OpenMS {
     }
 
     void FLASHIda::filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt) {
+        std::vector<PeakGroup> filtered_peakgroups;
 
         if(next_rt>0 && next_rt > rt){
-            deconvoluted_spectrum_.swap(std::vector<PeakGroup>());
+            deconvoluted_spectrum_.swap(filtered_peakgroups);
             return;
         }
 
         std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
         int mass_count = mass_count_[ms_level - 1];
 
-        std::vector<PeakGroup> filtered_peakgroups;
         filtered_peakgroups.reserve(mass_count_.size());
         std::set<int> current_selected_masses; // current selected masses
         //std::set<int> current_considered_mzs; // current selected mzs
