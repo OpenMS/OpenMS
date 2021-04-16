@@ -191,11 +191,11 @@ class OpenMSParamValue(TypeConverterBase):
                     |elif _type == ValueType.DOUBLE_VALUE:
                     |    $output_py_var = _value.toDouble()
                     |elif _type == ValueType.INT_LIST:
-                    |    $output_py_var = _value.toIntList()
+                    |    $output_py_var = _value.toIntVector()
                     |elif _type == ValueType.DOUBLE_LIST:
-                    |    $output_py_var = _value.toDoubleList()
+                    |    $output_py_var = _value.toDoubleVector()
                     |elif _type == ValueType.STRING_LIST:
-                    |    $output_py_var = _value.toStringList()
+                    |    $output_py_var = _value.toStringVector()
                     |elif _type == ValueType.EMPTY_VALUE:
                     |    $output_py_var = None
                     |else:
