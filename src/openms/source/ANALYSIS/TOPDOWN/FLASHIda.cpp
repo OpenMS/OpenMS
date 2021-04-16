@@ -198,6 +198,7 @@ namespace OpenMS {
     void FLASHIda::filterPeakGroupsUsingMassExclusion_(const MSSpectrum &spec, const int ms_level, const double rt) {
 
         if(next_rt>0 && next_rt > rt){
+            std::vector<PeakGroup>().swap(deconvoluted_spectrum_);
             return;
         }
 
