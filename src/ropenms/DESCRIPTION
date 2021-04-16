@@ -9,7 +9,7 @@ Description: This package provides access to the classes of pyopenms
 Config/reticulate:
   list(
     packages = list(
-      list(package = "pyopenms", version = "2.5.0", pip = TRUE)
+      list(package = "pyopenms", version >= "2.5.0", pip = TRUE)
     )
   )
 License: GPL-3
@@ -27,4 +27,3 @@ Collate:
 Roxygen: list(markdown = TRUE)
 Suggests:
     testthat
-
