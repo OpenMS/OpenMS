@@ -59,6 +59,7 @@ namespace OpenMS
     using std::vector<PeakGroup>::swap;
     using std::vector<PeakGroup>::empty;
     using std::vector<PeakGroup>::reserve;
+    using std::vector<PeakGroup>::clear;
     /// default constructor
     DeconvolutedSpectrum() = default;
 

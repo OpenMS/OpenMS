@@ -146,7 +146,7 @@ namespace OpenMS {
         const double min_isolation_window_half_ = .6;
 
         std::map<int, std::vector<double>> target_nominal_masses_;
-        DeconvolutedSpectrum *prev_deconvoluted_spectrum_;
+        DeconvolutedSpectrum prev_peak_groups;
         std::set<double> target_masses_;
         double charge_snr_threshold_ = 1.0;
         //const double snr_threshold = 0.0;
