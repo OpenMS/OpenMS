@@ -681,7 +681,7 @@ namespace OpenMS
               {
                 continue;
               }
-                for (int h = 2; h <= 6 && !artifact; h++) {
+                for (int h = 2; h <= 3 && !artifact; h++) {
                     for (int f = -1; f <= 1 && !artifact; f += 2) //
                     {
                         double hmass = log_mass - log(h) * f;
@@ -691,10 +691,10 @@ namespace OpenMS
                             //{
                             if (mass_intensities[hmass_index] >= t) {
                                 artifact = true;
-                      break;
-                    }
-                    //}
-                  }
+                                break;
+                            }
+                            //}
+                        }
                 }
               }
               //   max_intensity_abs_charge off by one here
