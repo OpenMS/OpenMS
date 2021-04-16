@@ -54,7 +54,6 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
-#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -495,7 +494,6 @@ namespace OpenMS
     OPENMS_LOG_INFO << seeds_added << " seeds without RT and m/z overlap with existing IDs added" << endl;
   }
 
-
   pair<String, Int> FeatureFinderIdentificationAlgorithm::extractTargetID_(
     const Feature& feature, bool extract_charge)
   {
@@ -548,7 +546,7 @@ namespace OpenMS
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
 
-    //TODO MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
+    // TODO: MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
     // Would be nice if we could only do the fitting once, since it is one of the bottlenecks.
     // What is the intention of this post-processing here anyway? Does it filter anything?
     // If so, why not filter based on the corresponding Swath/MRM score?

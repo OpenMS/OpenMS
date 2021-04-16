@@ -198,7 +198,7 @@ namespace OpenMS
       peptides_counter++;
       progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
-      ID::ProcessingStepRef step_ref = id_to_step[id];
+      ID::ProcessingStepRef step_ref = id_to_step.at(id);
       ID::Observation obs(""); // fill in "data_id" later
       if (!step_ref->input_file_refs.empty())
       {
@@ -490,6 +490,7 @@ namespace OpenMS
         }
       }
     }
+
 
     for (const auto& step_ref_opt : steps)
     {
@@ -1057,7 +1058,8 @@ namespace OpenMS
         vector<String> meta_keys;
         hit.getKeys(meta_keys);
         for (const String& key : meta_keys)
-        {
+        { // ID-data stores a trace (path through the feature-subfeature hierarchy) which is used
+          // for a lookup to attach the converted IDs back to the specific feature.
           if (key.hasPrefix("IDConverter_trace_"))
           {
             IntList indexes = hit.getMetaValue(key);
@@ -1112,7 +1114,6 @@ namespace OpenMS
       }
     }
   }
-
 
   void IdentificationDataConverter::handleFeatureExport_(
     Feature& feature, IntList indexes, IdentificationData& id_data, Size& id_counter)

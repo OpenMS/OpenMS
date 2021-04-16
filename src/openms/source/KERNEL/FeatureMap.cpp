@@ -135,6 +135,8 @@ namespace OpenMS
     }
   }
 
+  FeatureMap::FeatureMap(FeatureMap&& source) = default;
+
   FeatureMap::~FeatureMap()
   {
   }
