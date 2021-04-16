@@ -48,6 +48,7 @@
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 //STL
 #include <map>
@@ -85,7 +86,7 @@ namespace OpenMS
   class Plot2DWidget;
   class Plot3DWidget;
   class ToolsDialog;
-  class TVToolDiscovery;
+  //class TVToolDiscovery;
 
   /**
     @brief Main window of TOPPView tool
@@ -442,7 +443,7 @@ protected:
     /// Determines TVToolDiscovery scans for tool/utils and generates new params.
     TOOL_SCAN scan_mode_;
     /// Scans for tools/utils and generates a param for each.
-    static TVToolDiscovery tool_scanner_;
+    TVToolDiscovery tool_scanner_;
 
     /** @name Toolbar
     */
