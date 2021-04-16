@@ -681,7 +681,7 @@ namespace OpenMS
               {
                 continue;
               }
-                for (int h = 2; h <= 3 && !artifact; h++) {
+                for (int h = 2; h <= 6 && !artifact; h++) {
                     for (int f = -1; f <= 1 && !artifact; f += 2) //
                     {
                         double hmass = log_mass - log(h) * f;
@@ -689,9 +689,8 @@ namespace OpenMS
                         if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1) {
                             //for (int off = 0; off <= 0 && !artifact; off++)
                             //{
-                            if (mass_intensities[hmass_index] >= t)
-                    {
-                      artifact = true;
+                            if (mass_intensities[hmass_index] >= t) {
+                                artifact = true;
                       break;
                     }
                     //}
