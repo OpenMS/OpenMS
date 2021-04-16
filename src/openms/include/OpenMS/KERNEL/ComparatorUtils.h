@@ -414,20 +414,5 @@ protected:
     }
 
   };
-
-  /**
-    @brief Function to flip the arguments of a binary function. Useful when using lambdas as comparators, to
-    create a reverse comparator
-
-    @param fun function with two arguments (a1, a2)
-    @return function that flips arguments a1 and a2 before passing it to @p fun
-   */
-  auto flip = [](auto fun) {
-    return [fun = std::move(fun)]
-        (const auto& arg1, const auto& arg2)
-    {
-      return fun(arg2, arg1);
-    };
-  };
 }
 

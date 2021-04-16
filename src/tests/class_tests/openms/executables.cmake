@@ -17,6 +17,7 @@ set(concept_executables_list
 )
 set(qc_executables_list
   Contaminants_test
+  DBSuitability_test
   FragmentMassError_test
   FWHM_test
   MissedCleavages_test
@@ -24,9 +25,9 @@ set(qc_executables_list
   Ms2SpectrumStats_test
   MzCalibration_test
   PeptideMass_test
+  PSMExplainedIonCurrent_test
   QCBase_test
   RTAlignment_test
-  DBSuitability_test
   TIC_test
 )
 
@@ -530,6 +531,7 @@ set(analysis_executables_list
   OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
+  PeptideProteinResolution_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test

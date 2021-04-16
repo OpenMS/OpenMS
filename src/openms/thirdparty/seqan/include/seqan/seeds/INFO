@@ -1,0 +1,18 @@
+Name: seqan-seeds
+Author: Birte Kehr <birte.kehr@fu-berlin.de>
+Author: Manuel Holtgrewe <manuel.holtgrewe@fu-berlin.de>
+Author: Rene Rahn <rene.rahn@fu-berlin.de>
+Maintainer: Rene Rahn <rene.rahn@fu-berlin.de>
+License: BSD 3-clause
+Copyright: 2006-2013, FU Berlin
+Status: mature
+Description: Everything seeds: Local/global chaining, seed extension, ...
+ .
+ This module contains seed-related code.  The seed set class allows the
+ efficient management of seeds and local chaining.  Furthermore, the module
+ contains code for global, 2-dimensional chaining and gapped as well as ungapped
+ X-drop seed extension. Recently, a new banded chain alignment algorithm was
+ added to the module, such that a global alignment can be computed between large
+ genomic sequences given a monotonic non-decreasing chain of seeds.
+ .
+ This module will eventually be renamed to seeds and replace the old module.

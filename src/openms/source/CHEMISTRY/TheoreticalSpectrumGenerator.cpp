@@ -241,6 +241,48 @@ namespace OpenMS
     spectrum.getPrecursors().push_back(prec);
   }
 
+  MSSpectrum TheoreticalSpectrumGenerator::generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge)
+  {
+    if (precursor_charge == 0)
+    {
+      OPENMS_LOG_WARN << "Precursor charge can't be 0. Using 2 instead." << endl;
+      precursor_charge = 2;
+    }
+
+    // initialize a TheoreticalSpectrumGenerator
+    TheoreticalSpectrumGenerator theo_gen;
+
+    // get current parameters (default)
+    // default with b and y ions
+    Param theo_gen_settings = theo_gen.getParameters();
+
+    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+    {
+      theo_gen_settings.setValue("add_b_ions", "true");
+      theo_gen_settings.setValue("add_y_ions", "true");
+    }
+    else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+    {
+      theo_gen_settings.setValue("add_c_ions", "true");
+      theo_gen_settings.setValue("add_z_ions", "true");
+      theo_gen_settings.setValue("add_b_ions", "false");
+      theo_gen_settings.setValue("add_y_ions", "false");
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
+    }
+
+    // set changed parameters
+    theo_gen.setParameters(theo_gen_settings);
+
+    // generate b/y or c/z-ion spectrum of peptide seq
+    PeakSpectrum theo_spectrum;
+    theo_gen.getSpectrum(theo_spectrum, seq, 1, precursor_charge <= 2 ? 1 : 2);
+
+    return theo_spectrum;
+  }
+
 
   void TheoreticalSpectrumGenerator::addAbundantImmoniumIons_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const
   {

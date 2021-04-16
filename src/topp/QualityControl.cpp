@@ -56,6 +56,7 @@
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/MzCalibration.h>
 #include <OpenMS/QC/PeptideMass.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
@@ -230,9 +231,9 @@ protected:
     bool all_target_flag = getFlag_("MS2_id_rate:assume_all_target");
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
-    auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
-    auto idx = std::distance(FragmentMassError::names_of_toleranceUnit, it);
-    auto tolerance_unit = FragmentMassError::ToleranceUnit(idx);
+    auto it = std::find(QCBase::names_of_toleranceUnit, QCBase::names_of_toleranceUnit + (int) QCBase::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
+    auto idx = std::distance(QCBase::names_of_toleranceUnit, it);
+    auto tolerance_unit = QCBase::ToleranceUnit(idx);
 
 
     // Instantiate the QC metrics
@@ -244,6 +245,7 @@ protected:
     MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     PeptideMass qc_pepmass;
+    PSMExplainedIonCurrent qc_psm_corr;
     TIC qc_tic;
     Ms2SpectrumStats qc_ms2stats;
     MzMLFile mzml_file;
@@ -326,6 +328,11 @@ protected:
       if (qc_pepmass.isRunnable(status))
       {
         qc_pepmass.compute(*fmap);
+      }
+
+      if (qc_psm_corr.isRunnable(status))
+      {
+        qc_psm_corr.compute(*fmap, exp, spec_map, tolerance_unit, tolerance_value);
       }
 
       if (qc_tic.isRunnable(status))

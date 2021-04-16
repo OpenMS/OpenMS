@@ -54,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  TraceFitter::GenericFunctor::~GenericFunctor()
-  {
-  }
+  TraceFitter::GenericFunctor::~GenericFunctor() = default;
 
   TraceFitter::TraceFitter() :
     DefaultParamHandler("TraceFitter")
@@ -85,11 +83,9 @@ namespace OpenMS
     return *this;
   }
 
-  TraceFitter::~TraceFitter()
-  {
-  }
+  TraceFitter::~TraceFitter() = default;
 
-  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)
+  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k) const
   {
     double rt = trace.peaks[k].first;
 
