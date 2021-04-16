@@ -155,7 +155,8 @@ namespace OpenMS
     /// MZML becomes "mzML raw data file", but FEATUREXML becomes "OpenMS feature map"
     static String typeToDescription(Type type);
     
-    /// Converts a file type name into a Type
+    /// Converts a file type name into a Type 
+    /// @param name A case-insensitive name (e.g. FASTA or Fasta, etc.)
     static Type nameToType(const String& name);
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)
