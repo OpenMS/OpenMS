@@ -32,33 +32,36 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#pragma once
-
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <vector>
+#include <OpenMS/IONMOBILITY/MSRunIMSplitter.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
+  std::vector<PeakMap> MSRunIMSplitter::splitByFAIMSCV(PeakMap& exp)
+  {
+    std::vector<PeakMap> splitPeakMap;
 
-    /**
-      @brief Helper functions for FAIMS data
+    // TODO test with any random PeakMap without FAIMS data.
+    // What breaks, how should it break?
+    // CVs would be empty, so nothing gets added to splitPeakMap.
+    std::vector<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
 
-      FAIMSHelper contains convenience functions to deal with FAIMS
-      compensation voltages and related data.
+    splitPeakMap.resize(CVs.size());
 
-    */
-    class OPENMS_DLLAPI FAIMSHelper
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
-    public:
-      virtual ~FAIMSHelper() {}
+      //TODO copy MetaData to new PeakMaps? or keep original as reference for merging back later?
+      for (Size i = 0; i < CVs.size(); i++)
+      {
+        if (it->getDriftTime() == CVs[i])
+        {
+          splitPeakMap[i].addSpectrum(*it);
+        }
+      }
+    }
 
-      /**
-        @brief Get all FAIMS compensation voltages that occur in a PeakMap
+    return splitPeakMap;
+  }
 
-        @param exp The PeakMap with FAIMS data
-      */
-      static std::vector<double> getCompensationVoltages(PeakMap& exp);
-
-    };
-
-} //end namespace OpenMS
+}  //end namespace OpenMS

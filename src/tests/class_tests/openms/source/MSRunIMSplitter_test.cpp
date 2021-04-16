@@ -31,34 +31,75 @@
 // $Maintainer: Eugen Netz $
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
+//
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <vector>
+///////////////////////////
 
-namespace OpenMS
-{
+#include <OpenMS/IONMOBILITY/MSRunIMSplitter.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
-    /**
-      @brief Helper functions for FAIMS data
+using namespace OpenMS;
+using namespace std;
 
-      FAIMSHelper contains convenience functions to deal with FAIMS
-      compensation voltages and related data.
+///////////////////////////
 
-    */
-    class OPENMS_DLLAPI FAIMSHelper
-    {
-    public:
-      virtual ~FAIMSHelper() {}
+START_TEST(MSRunIMSplitter, "$Id$")
 
-      /**
-        @brief Get all FAIMS compensation voltages that occur in a PeakMap
+/////////////////////////////////////////////////////////////
 
-        @param exp The PeakMap with FAIMS data
-      */
-      static std::vector<double> getCompensationVoltages(PeakMap& exp);
+MSRunIMSplitter* e_ptr = nullptr;
+MSRunIMSplitter* e_nullPointer = nullptr;
 
-    };
+START_SECTION((MSRunIMSplitter()))
+	e_ptr = new MSRunIMSplitter;
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+END_SECTION
 
-} //end namespace OpenMS
+START_SECTION((~MSRunIMSplitter()))
+	delete e_ptr;
+END_SECTION
+
+e_ptr = new MSRunIMSplitter();
+
+START_SECTION((std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp)))
+	delete e_ptr;
+	e_ptr = new MSRunIMSplitter();
+  MzMLFile IM_file;
+  PeakMap exp;
+  IM_file.load(OPENMS_GET_TEST_DATA_PATH("IM_FAIMS_test.mzML"), exp);
+
+  TEST_EQUAL(exp.getSpectra().size(), 19)
+
+  vector<PeakMap> splitPeakMap = e_ptr->splitByFAIMSCV(exp);
+  TEST_EQUAL(splitPeakMap.size(), 3)
+
+	TEST_EQUAL(splitPeakMap[0].size(), 4)
+	TEST_EQUAL(splitPeakMap[1].size(), 9)
+	TEST_EQUAL(splitPeakMap[2].size(), 6)
+
+
+	for (PeakMap::Iterator it = splitPeakMap[0].begin(); it != splitPeakMap[0].end(); ++it)
+	{
+		TEST_EQUAL(it->getDriftTime(), -65.0)
+	}
+	for (PeakMap::Iterator it = splitPeakMap[1].begin(); it != splitPeakMap[1].end(); ++it)
+	{
+		TEST_EQUAL(it->getDriftTime(), -55.0)
+	}
+	for (PeakMap::Iterator it = splitPeakMap[2].begin(); it != splitPeakMap[2].end(); ++it)
+	{
+		TEST_EQUAL(it->getDriftTime(), -45.0)
+	}
+
+END_SECTION
+
+
+delete e_ptr;
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

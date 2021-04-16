@@ -4,6 +4,7 @@ set(directory source/IONMOBILITY)
 ### list all filenames of the directory here
 set(sources_list
 FAIMSHelper.cpp
+MSRunIMSplitter.cpp
 )
 
 ### add path to the filenames

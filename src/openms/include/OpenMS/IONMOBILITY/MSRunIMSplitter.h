@@ -47,17 +47,20 @@ namespace OpenMS
       compensation voltages and related data.
 
     */
-    class OPENMS_DLLAPI FAIMSHelper
+    class OPENMS_DLLAPI MSRunIMSplitter
     {
     public:
-      virtual ~FAIMSHelper() {}
+      virtual ~MSRunIMSplitter() {}
 
       /**
-        @brief Get all FAIMS compensation voltages that occur in a PeakMap
+        @brief Splits a PeakMap into one PeakMap per FAIMS CV value
 
-        @param exp The PeakMap with FAIMS data
+        This only works with a PeakMap that has a FAIMS compensation voltage
+        associated with each spectrum.
+
+        @param exp The PeakMap
       */
-      static std::vector<double> getCompensationVoltages(PeakMap& exp);
+      std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp);
 
     };
 
