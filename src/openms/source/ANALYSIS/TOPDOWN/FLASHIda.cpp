@@ -225,8 +225,11 @@ namespace OpenMS {
         }
         new_mass_rt_map_.swap(mass_rt_map_);
         std::unordered_map<int, double>().swap(new_mass_rt_map_);
-
+        int pgcntr = 0;
         for (int i = 0; i < 2; i++) {
+            if (i == 1) {
+                std::cout << pgcntr << std::endl;
+            }
             for (auto &pg : deconvoluted_spectrum_) {
 
                 if (filtered_peakgroups.size() >= mass_count) {
@@ -240,6 +243,7 @@ namespace OpenMS {
                 if (pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
                     continue;
                 }
+                pgcntr++;
 
                 int mz = (int) round(
                         (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
