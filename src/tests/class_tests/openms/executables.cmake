@@ -633,6 +633,10 @@ set(transformations_executables_list
 )
 endif(NOT DISABLE_OPENSWATH)
 
+set(ionmobility_executables_list
+  FAIMSHelper_test
+)
+
 set(simulation_executables_list
   DetectabilitySimulation_test
   DigestSimulation_test
@@ -724,6 +728,7 @@ set(TEST_executables
     ${analysis_executables_list}
     ${applications_executables_list}
     ${transformations_executables_list}
+    ${ionmobility_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}
