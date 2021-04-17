@@ -578,7 +578,7 @@ protected:
     int scan_number = 0;
     float prev_progress = .0;
       int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
-      const int max_num_last_deconvoluted_spectra = std::max(50, num_last_deconvoluted_spectra * 2);
+      const int max_num_last_deconvoluted_spectra = num_last_deconvoluted_spectra * 2;
       auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
     //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 #ifdef DEBUG_EXTRA_PARAMTER
