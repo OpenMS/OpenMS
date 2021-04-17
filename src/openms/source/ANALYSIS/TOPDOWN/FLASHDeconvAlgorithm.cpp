@@ -209,7 +209,7 @@ namespace OpenMS
       bin_width_.push_back(.5 / tolerance_[j]);
     }
 
-    min_qscore_ = param_.getValue("min_qscore");
+   // min_qscore_ = param_.getValue("min_qscore");
     min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
     //minChargeScore = param_.getValue("min_charge_score");
     //minChargeCosine = param_.getValue("min_charge_cosine");
@@ -806,27 +806,25 @@ namespace OpenMS
       peak_bin_numbers[i] = getBinNumber_(log_mz_peaks_[i].logMz, mz_bin_min_value_, bin_width);
     }
 
-    while (mass_bin_index != mass_bins_.npos)
-    {
-      double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
-      double mass = exp(log_m);
-      PeakGroup pg(current_min_charge_,
-                   per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + current_min_charge_,
-                   is_positive_);
+    while (mass_bin_index != mass_bins_.npos) {
+        double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
+        double mass = exp(log_m);
+        PeakGroup pg(current_min_charge_,
+                     per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + current_min_charge_,
+                     is_positive_);
 
-      pg.reserve(charge_range * 30);
-      Size right_index = avg_.getIsotopeRightIndexFromApex(mass);
-      Size left_index = avg_.getIsotopeLeftIndexFromApex(mass);
+        pg.reserve(charge_range * 30);
+        Size right_index = avg_.getRightCountFromApex(mass);
+        Size left_index = avg_.getLeftCountFromApex(mass);
 
-      for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index);
-           j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
-           j++)
-      {
-        int &bin_offset = bin_offsets_[j];
-        int b_index = mass_bin_index - bin_offset;
+        for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index);
+             j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
+             j++) {
+            int &bin_offset = bin_offsets_[j];
+            int b_index = mass_bin_index - bin_offset;
 
-        double max_intensity = -1.0;
-        int abs_charge = j + current_min_charge_;
+            double max_intensity = -1.0;
+            int abs_charge = j + current_min_charge_;
         int &cpi = current_peak_index[j];
         int max_peak_index = -1;
 
@@ -1064,10 +1062,10 @@ namespace OpenMS
     int tmp_peak_cntr = current_charge_range - min_peak_cntr;
 
     tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
-    double mass_bin_max_value = std::min(
-        log_mz_peaks_[log_mz_peaks_.size() - 1].logMz -
-        filter_[tmp_peak_cntr],
-        log(current_max_mass_ + avg_.getIsotopeRightIndexFromApex(current_max_mass_) + 1));
+      double mass_bin_max_value = std::min(
+              log_mz_peaks_[log_mz_peaks_.size() - 1].logMz -
+              filter_[tmp_peak_cntr],
+              log(current_max_mass_ + avg_.getRightCountFromApex(current_max_mass_) + 1));
 
     double bin_width = bin_width_[ms_level_ - 1];
     tmp_peak_cntr = min_peak_cntr - 1;
@@ -1168,14 +1166,14 @@ namespace OpenMS
                                           const int &a_end,
                                           const IsotopeDistribution &b,
                                           const int &b_size,
+                                          const double &a_norm,
                                           const double &b_norm,
                                           const int offset)
   {
-    double n = .0, d1 = .0;
+      double n = .0;
     //int c = 0;
     for (int j = a_start; j <= a_end; j++)
     {
-        d1 += a[j] * a[j];
       int i = j - offset;
       if (i < 0 || i >= b_size)
       {
@@ -1184,7 +1182,7 @@ namespace OpenMS
 
       n += a[j] * b[i].getIntensity(); //
     }
-    double d = (d1 * b_norm);
+      double d = (a_norm * b_norm);
     if (d <= 0)
     {
       return 0;
@@ -1223,7 +1221,8 @@ namespace OpenMS
     auto iso = avg.get(mono_mass);
     double iso_norm = avg.getNorm(mono_mass);
 
-    int iso_size = (int) iso.size();
+      int iso_size = (int) iso.size();
+      int apex_index = avg.getApexIndex(mono_mass);
 
     offset = 0;
     double max_cosine = -1;
@@ -1234,31 +1233,34 @@ namespace OpenMS
     {
       if (per_isotope_intensities[i] <= 0)
       {
-        continue;
+          continue;
       }
-      //isotope_length++;
-      max_isotope_index = i;
-      if (min_isotope_index < 0)
-      {
-        min_isotope_index = i;
-      }
+        //isotope_length++;
+        max_isotope_index = i;
+        if (min_isotope_index < 0) {
+            min_isotope_index = i;
+        }
     }
 
-      for (int tmp_offset = -iso_size; tmp_offset <= iso_size; tmp_offset++)
-    {
-      double tmp_cos = getCosine_(per_isotope_intensities,
-                                  min_isotope_index,
-                                  max_isotope_index,
-                                  iso,
-                                  iso_size,
-                                  iso_norm,
-                                  tmp_offset);
-
-      if (max_cosine <= tmp_cos)
-      {
-          max_cosine = tmp_cos;
-          offset = tmp_offset;
+      double norm = .0;
+      for (int j = min_isotope_index; j <= max_isotope_index; j++) {
+          norm += per_isotope_intensities[j] * per_isotope_intensities[j];
       }
+
+      for (int tmp_offset = -apex_index; tmp_offset <= -apex_index + max_isotope_index; tmp_offset++) {
+          double tmp_cos = getCosine_(per_isotope_intensities,
+                                      min_isotope_index,
+                                      max_isotope_index,
+                                      iso,
+                                      iso_size,
+                                      norm,
+                                      iso_norm,
+                                      tmp_offset);
+
+          if (max_cosine < tmp_cos) {
+              max_cosine = tmp_cos;
+              offset = tmp_offset;
+          }
     }
 
     return max_cosine;
@@ -1502,22 +1504,25 @@ namespace OpenMS
           continue;
         }
 
-        for (int k = min_isotope_index; k <= max_isotope_index; ++k)
-        {
-          if (k > iso_size)
-          {
-            break;
+          for (int k = min_isotope_index; k <= max_isotope_index; ++k) {
+              if (k > iso_size) {
+                  break;
+              }
+              //summed_intensity_squares += current_per_isotope_intensities[k] * current_per_isotope_intensities[k];
           }
-            //summed_intensity_squares += current_per_isotope_intensities[k] * current_per_isotope_intensities[k];
-        }
+          double norm = .0;
+          for (int j = min_isotope_index; j <= max_isotope_index; j++) {
+              norm += current_per_isotope_intensities[j] * current_per_isotope_intensities[j];
+          }
 
-        double cos_score = getCosine_(current_per_isotope_intensities,
-                                      min_isotope_index,
-                                      max_isotope_index,
-                                      iso_dist,
-                                      iso_size,
-                                      iso_norm,
-                                      0);
+          double cos_score = getCosine_(current_per_isotope_intensities,
+                                        min_isotope_index,
+                                        max_isotope_index,
+                                        iso_dist,
+                                        iso_size,
+                                        norm,
+                                        iso_norm,
+                                        0);
 
           // double cos_score_squared = cos_score * cos_score;
 
@@ -1550,18 +1555,17 @@ namespace OpenMS
         }
         int j = abs_charge - current_min_charge_;
 
-        double q_score = QScore::getQScore(&peak_group, abs_charge);
+            double q_score = QScore::getQScore(&peak_group, abs_charge);
 
-        if (q_score <= peak_group.getQScore())
-        {
-            continue;
-        }
+            if (q_score <= peak_group.getQScore()) {
+                continue;
+            }
             peak_group.setRepAbsCharge(abs_charge);
             peak_group.setQScore(q_score);
         }
-        if (peak_group.getQScore() < min_qscore_) {//
-            continue;
-        }
+        //if (peak_group.getQScore() < min_qscore_) {//
+        //    continue;
+        // }
 
         //if (ms_level_==1 &&  peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < 1.0) {
         //    continue;

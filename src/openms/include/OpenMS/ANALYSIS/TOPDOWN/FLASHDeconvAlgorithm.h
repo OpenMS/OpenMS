@@ -310,12 +310,13 @@ namespace OpenMS
      * @param b_norm precalculated L2 norm of b
      * @param offset element index offset between a and b
      */
-    static double getCosine_(const std::vector<double>& a,
-                             const int& a_start,
-                             const int& a_end,
-                             const IsotopeDistribution& b,
-                             const int& b_size,
-                             const double& b_norm,
+    static double getCosine_(const std::vector<double> &a,
+                             const int &a_start,
+                             const int &a_end,
+                             const IsotopeDistribution &b,
+                             const int &b_size,
+                             const double &a_norm,
+                             const double &b_norm,
                              const int offset);
   };
 }

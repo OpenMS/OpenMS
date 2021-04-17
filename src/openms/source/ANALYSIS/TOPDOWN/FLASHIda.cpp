@@ -177,6 +177,7 @@ namespace OpenMS {
             //current_max_mass_ = max_mass;
             //currentChargeRange = chargeRange;
         } else {
+            return 0;
             //TODO precursor infor here
         }
 

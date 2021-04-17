@@ -54,26 +54,28 @@ namespace OpenMS
     struct OPENMS_DLLAPI PrecalculatedAveragine
     {
     private:
-      /// isotope distributions for different (binned) masses
-      std::vector<IsotopeDistribution> isotopes_;
-      /// L2 norms_ for masses
-      std::vector<double> norms_;
-      /// mass differences between average mass and monoisotopic mass
-      std::vector<double> average_mono_mass_difference_;
-      /// Isotope start indices: isotopes of the indices less than them have very low intensities
-      std::vector<Size> isotope_left_index_from_apex_;
-      /// Isotope end indices: isotopes of the indices larger than them have very low intensities
-      std::vector<Size> isotope_right_index_from_apex_;
-      /// max isotope index
-      Size max_isotope_index_;
-      Size most_abundant_index_;
-      /// mass interval for calculation
-      double mass_interval_;
-      /// min mass for calculation
-      double min_mass_;
+        /// isotope distributions for different (binned) masses
+        std::vector<IsotopeDistribution> isotopes_;
+        /// L2 norms_ for masses
+        std::vector<double> norms_;
+        /// mass differences between average mass and monoisotopic mass
+        std::vector<double> average_mono_mass_difference_;
+        /// Isotope start indices: isotopes of the indices less than them have very low intensities
+        std::vector<Size> left_count_from_apex_;
+        /// Isotope end indices: isotopes of the indices larger than them have very low intensities
+        std::vector<Size> right_count_from_apex_;
+        /// most abundant isotope index
+        std::vector<Size> apex_index_;
+
+        /// max isotope index
+        Size max_isotope_index_;
+        /// mass interval for calculation
+        double mass_interval_;
+        /// min mass for calculation
+        double min_mass_;
     public:
-      /// default constructor
-      PrecalculatedAveragine() = default;
+        /// default constructor
+        PrecalculatedAveragine() = default;
 
       /**
        @brief constructor with parameters such as mass ranges and bin size.
@@ -98,19 +100,20 @@ namespace OpenMS
       /// get max isotope index
       void setMaxIsotopeIndex(const int index);
 
-      /// get norm
-      double getNorm(const double mass) const;
+        /// get norm
+        double getNorm(const double mass) const;
 
-      /// get isotope start index
-      Size getIsotopeLeftIndexFromApex(const double mass) const;
+        /// get isotope start index
+        Size getLeftCountFromApex(const double mass) const;
 
-      /// get isotope end index
-      Size getIsotopeRightIndexFromApex(const double mass) const;
+        /// get isotope end index
+        Size getRightCountFromApex(const double mass) const;
 
-      Size getMostAbundantIndex() const;
+        Size getApexIndex(const double mass) const;
 
-      /// get mass difference between avg and mono masses
-      double getAverageMassDelta(const double mass) const;
+
+        /// get mass difference between avg and mono masses
+        double getAverageMassDelta(const double mass) const;
 
     };
 
