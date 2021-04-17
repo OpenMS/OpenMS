@@ -46,37 +46,46 @@ namespace OpenMS
       if (pg == nullptr) { // all zero
           return .0;
       }
+      const double th = .3;
       //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-      const std::vector<double> weights_h({-1.4105, -1.514, -2.2335, -1.4643, 0.1329, 0.262, 4.3052});
-      //const std::vector<double> weights_l({-3.203, -2.6899, 11.1909, -3.1146, -1.9595, -2.3368});
+      const std::vector<double> weights({-0.3687, -1.662, -8.9028, -0.7966, -0.0914, 0.4444, 9.4034});
+      const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
-      //
-      //ChargeCos       -4.8145
-      //ChargeSNR       -2.0881
-      //Cos            -21.4721
-      //SNR             -0.6114
-      //ChargeScore     -0.8793
-      //AvgPPMerror      0.0418
-      //Intercept       28.1305
+      //ChargeCos      -0.7461
+      //ChargeSNR      -1.8176
+      //Cos            -1.4793
+      //SNR            -0.3707
+      //ChargeScore    -0.0881
+      //AvgPPMerror     0.0623
+      //Intercept       2.9463
 
-      //ChargeCos      -1.4105
-      //ChargeSNR       -1.514
-      //Cos            -2.2335
-      //SNR            -1.4643
-      //ChargeScore     0.1329
-      //AvgPPMerror      0.262
-      //Intercept       4.3052
+      //ChargeCos      -0.3687
+      //ChargeSNR       -1.662
+      //Cos            -8.9028
+      //SNR            -0.7966
+      //ChargeScore    -0.0914
+      //AvgPPMerror     0.4444
+      //Intercept       9.4034
 
-      const std::vector<double> &weights = weights_h;// (abs_charge > 6 ?
-      //(pg->getMonoMass() > 30000.0 ? weights_vh : weights_h) :
-      //weights_l);
       double score = weights[weights.size() - 1];
       auto fv = toFeatureVector_(pg, abs_charge);
 
       for (int i = 0; i < weights.size() - 1; i++) {
           score += fv[i] * weights[i];
       }
-    return 1.0 / (1.0 + exp(score));
+      double qscore = 1.0 / (1.0 + exp(score));
+      if (qscore < th) {
+          return qscore;
+      }
+
+      score = weights_h[weights_h.size() - 1];
+
+      for (int i = 0; i < weights_h.size() - 1; i++) {
+          score += fv[i] * weights_h[i];
+      }
+      qscore = 1.0 / (1.0 + exp(score));
+
+      return qscore;
   }
 
   std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
