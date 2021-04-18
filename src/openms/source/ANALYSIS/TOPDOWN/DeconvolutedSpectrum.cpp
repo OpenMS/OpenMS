@@ -366,6 +366,7 @@ namespace OpenMS {
                         for (auto &smap : map->second) {
                             //
                             if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001) {
+                                //TODO update here later use predeconvoluted one.
                                 target_precursor_scan = map->first;
                                 break;
                             }
@@ -450,7 +451,7 @@ namespace OpenMS {
             if (!precursor_peak_group_.empty()) {
                 break;
             }
-        }
+        }/*
         if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty()) {
             for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
                  map != precursor_map_for_real_time_acquisition.begin();
@@ -488,7 +489,7 @@ namespace OpenMS {
             }
             return false;
         }
-
+*/
         return precursor_peak_group_.empty();
     }
 

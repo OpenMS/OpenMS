@@ -477,10 +477,10 @@ namespace OpenMS {
                             }
                         }
                         if (!is_harmonic) {
-                            if (spc == 0 && abs_charge > low_charge) {
-                                mass_intensitites[mass_bin_index] += prev_intensity;
-                            } else if (spc == 0 && abs_charge == low_charge && !charge_not_continous) {
-                                mass_intensitites[mass_bin_index] += prev_intensity;
+                            if (spc == 0) {
+                                if (abs_charge > low_charge || (abs_charge == low_charge && !charge_not_continous)) {
+                                    mass_intensitites[mass_bin_index] += prev_intensity;
+                                }
                             }
                             mass_intensitites[mass_bin_index] += intensity;
                             if (++spc >= min_peak_cntr || abs_charge <= low_charge) //
