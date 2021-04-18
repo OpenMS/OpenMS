@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <future>
 #include <vector>
@@ -60,7 +60,7 @@ namespace OpenMS
        scanner.getToolParams();
        @endcode
      */
-    class OPENMS_DLLAPI TVToolDiscovery
+    class OPENMS_GUI_DLLAPI TVToolDiscovery
     {
     private:
       /// Returns param for a given tool/util. This function is thread-safe
@@ -73,8 +73,8 @@ namespace OpenMS
       std::unordered_map<std::string, Param> params_;
 
     public:
-      TVToolDiscovery() = default;
-      ~TVToolDiscovery() = default;
+      TVToolDiscovery() = default;;
+      ~TVToolDiscovery() = default;;
 
       /// Start creating params for each tool/util asynchronously
       void loadParams();

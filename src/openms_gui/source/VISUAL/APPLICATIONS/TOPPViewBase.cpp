@@ -90,7 +90,6 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
-#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 //Qt
 #include <QtCore/QSettings>
@@ -130,7 +129,6 @@ namespace OpenMS
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
     scan_mode_(scan_mode),
-    tool_scanner_(),
     ws_(this),
     tab_bar_(this),
     recent_files_(),

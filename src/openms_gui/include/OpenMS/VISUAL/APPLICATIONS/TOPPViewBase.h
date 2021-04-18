@@ -86,7 +86,6 @@ namespace OpenMS
   class Plot2DWidget;
   class Plot3DWidget;
   class ToolsDialog;
-  //class TVToolDiscovery;
 
   /**
     @brief Main window of TOPPView tool
@@ -153,6 +152,7 @@ public:
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
+    /// Used for deciding whether new tool/util params should be generated or reused from TOPPView's ini file
     enum class TOOL_SCAN
     {
       /**
