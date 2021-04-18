@@ -40,6 +40,7 @@
 
 #include <functional> // for std::function
 #include <fstream>
+#include <memory>  // for unique_ptr
 #include <vector>
 
 namespace OpenMS
