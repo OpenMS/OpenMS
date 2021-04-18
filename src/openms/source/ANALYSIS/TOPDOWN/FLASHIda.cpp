@@ -297,7 +297,8 @@ namespace OpenMS {
                     mass_qscore_map_[nominal_mass] *= 1 - pg.getQScore();
                 }
                 //std::cout << rt << " " << nominal_mass << " " << 1 - pg.getQScore() << " " << 1 - mass_qscore_map_[nominal_mass] << std::endl;
-                if (1 - mass_qscore_map_[nominal_mass] > error_threshold_) {
+                //if (1 - mass_qscore_map_[nominal_mass] > error_threshold_) {
+                if (pg.getQScore() > error_threshold_) {
                     mass_rt_map_[nominal_mass] = rt;
                     mz_rt_map_[mz] = rt;
                 }
