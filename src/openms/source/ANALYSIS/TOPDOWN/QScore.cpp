@@ -46,10 +46,18 @@ namespace OpenMS
       if (pg == nullptr) { // all zero
           return .0;
       }
-      const double th = .3;
+      const double th = 2;
       //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-      const std::vector<double> weights({-0.3687, -1.662, -8.9028, -0.7966, -0.0914, 0.4444, 9.4034});
+      const std::vector<double> weights({-0.5272, -1.6196, -9.6303, -1.0463, -0.3036, 0.4334, 10.4141});
       const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
+
+      //ChargeCos      -0.5272
+      //ChargeSNR      -1.6196
+      //Cos            -9.6303
+      //SNR            -1.0463
+      //ChargeScore    -0.3036
+      //AvgPPMerror     0.4334
+      //Intercept      10.4141
 
       //ChargeCos      -0.7461
       //ChargeSNR      -1.8176
