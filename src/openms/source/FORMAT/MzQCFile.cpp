@@ -62,20 +62,27 @@ namespace OpenMS
                        const String& description,
                        const String& label) const
   {
-    // ---------------------------------------------------------------
-    // preparing output stream, quality metrics json object and CV
-    // ---------------------------------------------------------------
+    // --------------------------------------------------------------------
+    // preparing output stream, quality metrics json object, CV and status
+    // --------------------------------------------------------------------
     ofstream os(output_file.c_str());
     if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file);
     }
+
     using json = nlohmann::ordered_json;
     json quality_metrics = {};
+
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
 
+    QCBase::Status status;
+    if (input_file != "")
+    {
+    status |= QCBase::Requires::RAWMZML;
+    }
     TIC qc_tic;
 
     // ---------------------------------------------------------------
@@ -119,7 +126,7 @@ namespace OpenMS
     // MZ acquisition range
     addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
 
-    if (qc_tic.isRunnable() and !exp.getTIC().empty())
+    if (qc_tic.isRunnable(status) and !exp.getTIC().empty())
     {
     auto result = qc_tic.compute(exp);
     json chrom;
