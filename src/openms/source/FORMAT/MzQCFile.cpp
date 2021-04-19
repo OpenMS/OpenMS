@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/QC/TIC.h>
 
 #include <nlohmann/json.hpp>
 
@@ -74,6 +75,8 @@ namespace OpenMS
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+
+    TIC qc_tic;
 
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
@@ -116,47 +119,21 @@ namespace OpenMS
     // MZ acquisition range
     addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
 
-    const MSChromatogram& tic = exp.getTIC();
-    if (!tic.empty())
+    if (qc_tic.isRunnable() and !exp.getTIC().empty())
     {
-    UInt jump = 0;
-    UInt fall = 0;
-    vector<float> retention_times;
-    vector<UInt> intensities;
-    
-    for (const auto& p : tic)
-    {
-      intensities.push_back(p.getIntensity());
-      retention_times.push_back(p.getRT());
-    }
-
-    UInt tic_area = intensities[0];
-
-    for (UInt i = 1; i < intensities.size(); ++i)
-    {
-      tic_area += intensities[i];
-      if (intensities[i] > intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
-      {
-        ++jump;
-      }
-      if (intensities[i] < intensities[i-1] / 10) // detect 10x falls between two subsequent scans
-      {
-        ++fall;
-      }
-    }
-    
-    json tic_values;
-    tic_values["Relative intensity"] = intensities;
-    tic_values["Retention time"] = retention_times;
+    auto result = qc_tic.compute(exp);
+    json chrom;
+    chrom["Relative intensity"] = result.intensities;
+    chrom["Retention time"] = result.retention_times;
 
     // Total ion current chromatogram
-    addMetric("QC:4000067", tic_values);
+    addMetric("QC:4000067", chrom);
     // Area under TIC
-    addMetric("QC:4000077", tic_area);
+    addMetric("QC:4000077", result.area);
     // MS1 signal jump (10x) count
-    addMetric("QC:4000172", jump);
+    addMetric("QC:4000172", result.jump);
     // MS1 signal fall (10x) count
-    addMetric("QC:4000173", fall);
+    addMetric("QC:4000173", result.fall);
     }
 
     // ---------------------------------------------------------------

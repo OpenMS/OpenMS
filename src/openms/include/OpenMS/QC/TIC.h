@@ -71,7 +71,16 @@ namespace OpenMS
     @param bin_size RT bin size in seconds
     @return TIC Chromatogram
     **/
-    void compute(const MSExperiment &exp, float bin_size=0);
+    struct Result
+    {
+      std::vector<UInt> intensities;
+      std::vector<float> retention_times;
+      UInt area = 0;
+      UInt fall = 0;
+      UInt jump = 0;
+    };
+
+    Result compute(const MSExperiment& exp, float bin_size=0);
 
     const String& getName() const override;
 

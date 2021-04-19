@@ -46,9 +46,37 @@ namespace OpenMS
   {
     results_.clear();
   }
-  void TIC::compute(const MSExperiment &exp, float bin_size)
+
+  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size)
   {
     results_.push_back(exp.getTIC(bin_size));
+
+    struct Result result;
+    const MSChromatogram& tic = exp.getTIC();
+    if (!tic.empty())
+    {
+    for (const auto& p : tic)
+    {
+      result.intensities.push_back(p.getIntensity());
+      result.retention_times.push_back(p.getRT());
+    }
+
+    result.area = result.intensities[0];
+
+    for (UInt i = 1; i < result.intensities.size(); ++i)
+    {
+      result.area += result.intensities[i];
+      if (result.intensities[i] > result.intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
+      {
+        ++result.jump;
+      }
+      if (result.intensities[i] < result.intensities[i-1] / 10) // detect 10x falls between two subsequent scans
+      {
+        ++result.fall;
+      }
+    }
+    }
+    return result;
   }
 
   /// Returns the name of the metric
