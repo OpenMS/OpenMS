@@ -250,7 +250,7 @@ namespace OpenMS {
         std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
 
-        for (int i = 0; i < 2; i++) { // hard exclusion
+        for (int i = 0; i < 2; i++) { //
             for (auto &pg : deconvoluted_spectrum_) {
 
                 if (filtered_peakgroups.size() >= mass_count) {

@@ -717,10 +717,10 @@ namespace OpenMS {
                          per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + current_min_charge_, //
                          is_positive_);
 
-            pg.reserve(charge_range * 30);
+            pg.reserve(charge_range * 128);
             Size right_index = avg_.getRightCountFromApex(mass);
             Size left_index = avg_.getLeftCountFromApex(mass);
-
+            Size scan_range = right_index + left_index;
             for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index);
                  j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
                  j++) {
@@ -755,17 +755,25 @@ namespace OpenMS {
 
                 double peak_pwr = .0;
 
-                int candidate_i = 0;
+                //int candidate_i = 0;
                 // int peakcntr = 0;
+                double max_mz = mz;
+                double max_peak_intensity = log_mz_peaks_[max_peak_index].intensity;
                 for (int peak_index = max_peak_index; peak_index < log_mz_peak_size; peak_index++) {
                     const double observed_mz = log_mz_peaks_[peak_index].mz;
                     const double intensity = log_mz_peaks_[peak_index].intensity;
+
                     //observedMz = mz + isof * i * d - d * mzDelta;
                     double mz_diff = observed_mz - mz;
 
                     int tmp_i = (int) (.5 + mz_diff / iso_delta);
 
-                    if (tmp_i > (int) right_index) {
+                    if (max_peak_intensity < intensity) {
+                        max_peak_intensity = intensity;
+                        max_mz = observed_mz;
+                    }
+                    int tmp_i_for_stop = (int) (.5 + (observed_mz - max_mz) / iso_delta);;
+                    if (tmp_i_for_stop > (int) right_index) {
                         break;
                     }
 
@@ -783,11 +791,8 @@ namespace OpenMS {
                             p.isotopeIndex = tmp_i;
                             pg.push_back(p);
                         }
-                        candidate_i = tmp_i;
                     }
                 }
-
-                candidate_i = 0;
 
                 for (int peak_index = max_peak_index - 1; peak_index >= 0; peak_index--) {
                     const double observed_mz = log_mz_peaks_[peak_index].mz;
@@ -797,7 +802,12 @@ namespace OpenMS {
                     double mz_diff = mz - observed_mz;
                     int tmp_i = (int) (.5 + mz_diff / iso_delta);
 
-                    if (tmp_i > (int) left_index) {
+                    if (max_peak_intensity < intensity) {
+                        max_peak_intensity = intensity;
+                        max_mz = observed_mz;
+                    }
+                    int tmp_i_for_stop = (int) (.5 + (max_mz - observed_mz) / iso_delta);;
+                    if (tmp_i_for_stop > (int) left_index) {
                         break;
                     }
 
@@ -814,7 +824,6 @@ namespace OpenMS {
                             p.isotopeIndex = tmp_i;
                             pg.push_back(p);
                         }
-                        candidate_i = tmp_i;
                     }
                 }
 
