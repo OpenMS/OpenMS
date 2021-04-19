@@ -56,21 +56,17 @@ namespace OpenMS {
         for (const auto& pair : tools)
         {
           std::string tool_name = pair.first;
-          param_futures_.insert(std::move(
-                  std::make_pair(
+          param_futures_.emplace(
                           tool_name,
-                          std::move(std::async(std::launch::async, getParamFromIni_, tool_name))
-                          ))
+                          std::async(std::launch::async, getParamFromIni_, tool_name)
           );
         }
         for (const auto& pair : utils)
         {
           std::string util_name = pair.first;
-          param_futures_.insert(std::move(
-                  std::make_pair(
+          param_futures_.emplace(
                           util_name,
-                          std::move(std::async(std::launch::async, getParamFromIni_, util_name))
-                          ))
+                          std::async(std::launch::async, getParamFromIni_, util_name)
           );
         }
         return true;

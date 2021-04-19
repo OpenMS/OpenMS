@@ -37,7 +37,6 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <future>
-#include <vector>
 #include <unordered_map>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
