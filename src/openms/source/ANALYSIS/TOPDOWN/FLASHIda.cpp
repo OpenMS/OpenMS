@@ -209,8 +209,7 @@ namespace OpenMS {
         int mass_count = mass_count_[ms_level - 1];
 
         filtered_peakgroups.reserve(mass_count_.size());
-        std::set<int> current_selected_masses; // current selected masses
-        //std::set<int> current_considered_mzs; // current selected mzs
+        std::set<int> current_selected_mzs; // current selected mzs
 
         std::unordered_map<int, double> new_mz_rt_map_;
         std::unordered_map<int, double> new_mass_rt_map_;
@@ -264,14 +263,24 @@ namespace OpenMS {
                     continue;
                 }
 
-                int mz = 0;
                 int charge = pg.getRepAbsCharge();
                 double qscore = pg.getQScore();
 
-                if (i == 0) {
-                    mz = (int) round(
-                            (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
-                } else {
+                int mz = (int) round(
+                        (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+
+
+                int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+
+                if (i == 0) { // first, select masses or m/zs outside exclusion list
+                    if (mass_rt_map_.find(nominal_mass) != mass_rt_map_.end()
+                        ||
+                        mz_rt_map_.find(mz) != mz_rt_map_.end()
+                            ) {
+                        continue;
+                    }
+                } else if (mz_rt_map_.find(mz) != mz_rt_map_.end() ||
+                           current_selected_mzs.find(mz) != current_selected_mzs.end()) {
                     qscore = qscore_threshold_;
                     charge = 0;
                     for (int offset = 1; offset < 3; offset++) {
@@ -297,31 +306,9 @@ namespace OpenMS {
                                 (std::get<0>(t_mz_range) + std::get<1>(t_mz_range)) / 2.0);
                     }
                 }
-                if (mz <= 0) {
+
+                if (charge <= 0 || current_selected_mzs.find(mz) != current_selected_mzs.end()) {
                     continue;
-                }
-
-                // if (current_considered_mzs.find(mz) != current_considered_mzs.end()) {
-                //     continue;
-                // }
-
-                //current_considered_mzs.insert(mz);
-                //current_considered_mzs.insert(mz - 1);
-                //current_considered_mzs.insert(mz + 1);
-
-                int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-
-                if (current_selected_masses.find(mz) != current_selected_masses.end()) {
-                    continue;
-                }
-
-                if (i == 0) { // first, select masses or m/zs outside exclusion list
-                    if (mass_rt_map_.find(nominal_mass) != mass_rt_map_.end()
-                        ||
-                        mz_rt_map_.find(mz) != mz_rt_map_.end()
-                            ) {
-                        continue;
-                    }
                 }
 
                 all_mass_rt_map_[nominal_mass] = rt;
@@ -340,7 +327,7 @@ namespace OpenMS {
                 filtered_peakgroups.push_back(pg);
                 trigger_charges.push_back(charge);
                 // current_selected_masses.insert(nominal_mass - 1);
-                current_selected_masses.insert(mz);
+                current_selected_mzs.insert(mz);
                 // current_selected_masses.insert(nominal_mass + 1);
             }
         }

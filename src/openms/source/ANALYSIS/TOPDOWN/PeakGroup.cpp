@@ -196,15 +196,13 @@ namespace OpenMS
     charge_score_ = score;
   }
 
-  void PeakGroup::setAvgPPMError(const float error)
-  {
-    avg_ppm_error_ = error;
+  void PeakGroup::setAvgPPMError(const float error) {
+      avg_ppm_error_ = error;
   }
 
-  void PeakGroup::setQScore(const float q)
-  {
-    qscore_ = q;
-  }
+    void PeakGroup::setQScore(const float q) {
+        qscore_ = q;
+    }
 
 
     void PeakGroup::setColor(const char color) {
@@ -242,15 +240,13 @@ namespace OpenMS
         return scan_number_;
     }
 
-  double PeakGroup::getMonoMass() const
-  {
-    return monoisotopic_mass_;
-  }
+    double PeakGroup::getMonoMass() const {
+        return monoisotopic_mass_;
+    }
 
-  double PeakGroup::getIntensity() const
-  {
-    return intensity_;
-  }
+    double PeakGroup::getIntensity() const {
+        return intensity_;
+    }
   float PeakGroup::getIsotopeCosine() const
   {
     return isotope_cosine_score_;

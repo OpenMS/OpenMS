@@ -141,14 +141,14 @@ namespace OpenMS
     /// get scan number
     int getScanNumber() const;
 
-    /// get monoisotoopic mass
-    double getMonoMass() const;
+      /// get monoisotoopic mass
+      double getMonoMass() const;
 
-    /// get intensity
-    double getIntensity() const;
+      /// get intensity
+      double getIntensity() const;
 
-    /// get per abs_charge SNR
-    float getChargeSNR(const int abs_charge) const;
+      /// get per abs_charge SNR
+      float getChargeSNR(const int abs_charge) const;
 
       /// get per abs_charge isotope cosine
       float getChargeIsotopeCosine(const int abs_charge) const;
@@ -171,14 +171,14 @@ namespace OpenMS
       /// get representative chrage
       int getRepAbsCharge() const;
 
-    /// get Q score
-    float getQScore() const;
+      /// get Q score
+      float getQScore() const;
 
-    /// get total SNR
-    float getSNR() const;
+      /// get total SNR
+      float getSNR() const;
 
-    /// get charge score
-    float getChargeScore() const;
+      /// get charge score
+      float getChargeScore() const;
 
     /// get average mass ppm error;
     float getAvgPPMError() const;
