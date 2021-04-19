@@ -2075,7 +2075,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, true, true, "", seq_string + QString(" (theoretical)"));
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2600,14 +2600,14 @@ namespace OpenMS
       else if (spec_view != nullptr)
       {
         ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-        if (spec_view->getSelectedScan(*new_exp_sptr))
+        if (LayerData::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
         {
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
           const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerData::DT_PEAK : LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)
