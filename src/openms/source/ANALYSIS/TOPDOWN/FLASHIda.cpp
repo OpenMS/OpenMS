@@ -255,7 +255,7 @@ namespace OpenMS {
                     break;
                 }
 
-                if (i == 0 && pg.getQScore() < qscore_threshold_) {
+                if (pg.getQScore() < qscore_threshold_) {
                     break;
                 }
 
@@ -269,8 +269,11 @@ namespace OpenMS {
                 int mz = (int) round(
                         (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
 
-
                 int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
+
+                if (current_selected_mzs.find(mz) != current_selected_mzs.end()) {
+                    continue;
+                }
 
                 if (i == 0) { // first, select masses or m/zs outside exclusion list
                     if (mass_rt_map_.find(nominal_mass) != mass_rt_map_.end()
@@ -279,7 +282,7 @@ namespace OpenMS {
                             ) {
                         continue;
                     }
-                } else if (mz_rt_map_.find(mz) != mz_rt_map_.end() ||
+                }/* else if (mz_rt_map_.find(mz) != mz_rt_map_.end() ||
                            current_selected_mzs.find(mz) != current_selected_mzs.end()) {
                     qscore = qscore_threshold_;
                     charge = 0;
@@ -318,7 +321,7 @@ namespace OpenMS {
                 if (charge <= 0 || current_selected_mzs.find(mz) != current_selected_mzs.end()) {
                     continue;
                 }
-
+*/
                 all_mass_rt_map_[nominal_mass] = rt;
                 auto inter = mass_qscore_map_.find(nominal_mass);
                 if (inter == mass_qscore_map_.end()) {
