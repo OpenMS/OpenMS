@@ -307,6 +307,14 @@ namespace OpenMS {
                     }
                 }
 
+                if (qscore < qscore_threshold_) {
+                    continue;
+                }
+
+                if (pg.getChargeSNR(charge) < charge_snr_threshold_) {
+                    continue;
+                }
+
                 if (charge <= 0 || current_selected_mzs.find(mz) != current_selected_mzs.end()) {
                     continue;
                 }
