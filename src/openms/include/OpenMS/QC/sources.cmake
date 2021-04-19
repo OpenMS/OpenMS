@@ -16,6 +16,7 @@ set(sources_list_h
   RTAlignment.h
   DBSuitability.h
   TIC.h
+  SpectrumCount.h
 )
 
 ### add path to the filenames

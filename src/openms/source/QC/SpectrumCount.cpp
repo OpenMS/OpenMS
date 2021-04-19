@@ -17,7 +17,7 @@
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARSpectrumCountULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
 // INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
@@ -28,96 +28,39 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/QC/TIC.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-#include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/QC/SpectrumCount.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  /// Reset
-  void TIC::clear()
+
+  map<Size, UInt> SpectrumCount::compute(const MSExperiment& exp)
   {
-    results_.clear();
-  }
-
-  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size)
-  {
-    results_.push_back(exp.getTIC(bin_size));
-    struct Result result;
-    const MSChromatogram& tic = exp.getTIC();
-    if (!tic.empty())
+    map<Size, UInt> counts;
+    for (const auto& spectrum : exp)
     {
-    for (const auto& p : tic)
-    {
-      result.intensities.push_back(p.getIntensity());
-      result.retention_times.push_back(p.getRT());
+      const Size level = spectrum.getMSLevel();
+      ++counts[level];  // count MS level
     }
-
-    result.area = result.intensities[0];
-
-    for (UInt i = 1; i < result.intensities.size(); ++i)
-    {
-      result.area += result.intensities[i];
-      if (result.intensities[i] > result.intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
-      {
-        ++result.jump;
-      }
-      if (result.intensities[i] < result.intensities[i-1] / 10) // detect 10x falls between two subsequent scans
-      {
-        ++result.fall;
-      }
-    }
-    }
-    return result;
+    return counts;
   }
 
   /// Returns the name of the metric
-  const String& TIC::getName() const
+  const String& SpectrumCount::getName() const
   {
     return name_;
-  }
-  
-  /// Returns all results calculated with compute.
-  const std::vector<MSChromatogram>& TIC::getResults() const
-  {
-    return results_;
   }
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status TIC::requires() const
+  QCBase::Status SpectrumCount::requires() const
   {
     return QCBase::Status(QCBase::Requires::RAWMZML);
-  }
-
-  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta)
-  {
-    // Adding TIC information to meta data
-    const auto& tics = this->getResults();
-    for (Size i = 0; i < tics.size(); ++i)
-    {
-      if (tics[i].empty()) continue; // no MS1 spectra
-
-      MzTabParameter tic{};
-      tic.setCVLabel("total ion current");
-      tic.setAccession("MS:1000285");
-      tic.setName("TIC_" + String(i + 1));
-      String value("[");
-      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
-      for (Size j = 1; j < tics[i].size(); ++j)
-      {
-        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
-      }
-      value += "]";
-      tic.setValue(value);
-      meta.custom[meta.custom.size()] = tic;
-    }
   }
 }

@@ -17,7 +17,7 @@
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARSpectrumCountULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
 // INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
@@ -28,72 +28,47 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow$
-// $Authors: Tom Waschischeck $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#pragma once
 
-///////////////////////////
-
-#include <OpenMS/QC/TIC.h>
+#include <OpenMS/QC/QCBase.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <map>
 
-///////////////////////////
+/**
+ * @brief Number of MS spectra per MS level (SpectrumCount) as a QC metric
+ */
 
-START_TEST(TIC, "$Id$")
+namespace OpenMS
+{
+  class MSExperiment;
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-using namespace OpenMS;
-using namespace std;
+  class OPENMS_DLLAPI SpectrumCount : public QCBase
+  {
+  public:
+    /// Constructor
+    SpectrumCount() = default;
 
-TIC* ptr = nullptr;
-TIC* nullPointer = nullptr;
-START_SECTION(TIC())
-  ptr = new TIC();
-  TEST_NOT_EQUAL(ptr, nullPointer)
-END_SECTION
+    /// Destructor
+    virtual ~SpectrumCount() = default;
 
-START_SECTION(~TIC())
-  delete ptr;
-END_SECTION
+    /**
+    @brief Compute number of spectra per MS level and returns them in a map
 
-TIC tic;
-START_SECTION(const String& getName() const override)
-  TEST_EQUAL(tic.getName(), "TIC")
-END_SECTION
+    @param exp MSExperiment containing the spectra to be counted
+    @return SpectrumCount
+    **/
 
-START_SECTION(Status requires() const override)
-  TEST_EQUAL((tic.requires() == QCBase::Status(QCBase::Requires::RAWMZML)),true);
-END_SECTION
+    std::map<Size, UInt> compute(const MSExperiment& exp);
 
-START_SECTION(void compute(const MSExperiment &exp, float bin_size))
-  // very simple test ATM, since the computation is simply exp.getTIC(bin_size);
-  MSExperiment exp;
-  exp.setSpectra( { MSSpectrum() });
-  TIC tic;
-  auto result = tic.compute(exp, 0);
-  auto r = tic.getResults();
-  TEST_EQUAL(r.size(), 1);
-  ABORT_IF(r[0].size() != 1); // one intensity per input spectrum
-  ABORT_IF(r[0][0].getIntensity() != 0); // empty spectrum
-END_SECTION
+    const String& getName() const override;
 
-START_SECTION(vector<MSChromatogram> getResults() const)
-  NOT_TESTABLE // tested above
-END_SECTION
+    QCBase::Status requires() const override;
 
-START_SECTION(void clear())
-  TIC tic;
-  MSExperiment exp2;
-  auto result = tic.compute(exp2);
-  TEST_EQUAL(tic.getResults().empty(), false);
-  tic.clear();
-  TEST_EQUAL(tic.getResults().empty(), true);
-END_SECTION
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST
+  private:
+    const String name_ = "SpectrumCount";
+  };
+}

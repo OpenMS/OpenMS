@@ -16,6 +16,7 @@ set(sources_list
   RTAlignment.cpp
   DBSuitability.cpp
   TIC.cpp
+  SpectrumCount.cpp
 )
 
 ### add path to the filenames

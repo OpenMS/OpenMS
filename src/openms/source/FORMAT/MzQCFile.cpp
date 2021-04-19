@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/QC/TIC.h>
+#include <OpenMS/QC/SpectrumCount.h>
 
 #include <nlohmann/json.hpp>
 
@@ -63,7 +64,8 @@ namespace OpenMS
                        const String& label) const
   {
     // --------------------------------------------------------------------
-    // preparing output stream, quality metrics json object, CV and status
+    // preparing output stream, quality metrics json object, CV, status
+    // and initialize QC metric classes
     // --------------------------------------------------------------------
     ofstream os(output_file.c_str());
     if (!os)
@@ -83,7 +85,8 @@ namespace OpenMS
     {
     status |= QCBase::Requires::RAWMZML;
     }
-    TIC qc_tic;
+    TIC tic;
+    SpectrumCount spectrum_count;
 
     // ---------------------------------------------------------------
     // function to add quality metrics to quality_metrics
@@ -109,16 +112,14 @@ namespace OpenMS
     // collecting quality metrics
     // ---------------------------------------------------------------
 
-    map<Size, UInt> counts;
-    for (const auto& spectrum : exp)
-      {
-        const Size level = spectrum.getMSLevel();
-        ++counts[level];  // count MS level
-      }
-    // Number of MS1 spectra
-    addMetric("QC:4000059", counts[1]);
-    // Number of MS2 spectra
-    addMetric("QC:4000060", counts[2]);
+    if (spectrum_count.isRunnable(status))
+    {
+      auto counts = spectrum_count.compute(exp);
+      // Number of MS1 spectra
+      addMetric("QC:4000059", counts[1]);
+      // Number of MS2 spectra
+      addMetric("QC:4000060", counts[2]);
+    }
     // Number of chromatograms"
     addMetric("QC:4000135", exp.getChromatograms().size());
     // Run time (RT duration)
@@ -126,13 +127,12 @@ namespace OpenMS
     // MZ acquisition range
     addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
 
-    if (qc_tic.isRunnable(status) and !exp.getTIC().empty())
+    if (tic.isRunnable(status) and !exp.getTIC().empty())
     {
-    auto result = qc_tic.compute(exp);
+    auto result = tic.compute(exp);
     json chrom;
     chrom["Relative intensity"] = result.intensities;
     chrom["Retention time"] = result.retention_times;
-
     // Total ion current chromatogram
     addMetric("QC:4000067", chrom);
     // Area under TIC
