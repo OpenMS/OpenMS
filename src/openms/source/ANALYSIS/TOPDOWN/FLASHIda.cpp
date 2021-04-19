@@ -205,6 +205,7 @@ namespace OpenMS {
         //    return;
         //}
         trigger_charges.clear();
+        trigger_charges.reserve(mass_count);
         std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
         int mass_count = mass_count_[ms_level - 1];
 
