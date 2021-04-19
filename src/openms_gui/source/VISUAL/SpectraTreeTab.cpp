@@ -483,10 +483,8 @@ namespace OpenMS
       }
 
       int precursor_idx = 0;
-      for (const auto& pc_indices : map_precursor_to_chrom_idx)
+      for (const auto& [pc, indx] : map_precursor_to_chrom_idx)
       {
-        const auto& pc = pc_indices.first;
-        const auto& indx = pc_indices.second;
         // Show the peptide sequence if available, otherwise show the m/z and charge only
         QString description;
         if (pc.metaValueExists("peptide_sequence"))
