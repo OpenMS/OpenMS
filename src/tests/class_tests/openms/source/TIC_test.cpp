@@ -74,7 +74,7 @@ START_SECTION(void compute(const MSExperiment &exp, float bin_size))
   MSExperiment exp;
   exp.setSpectra( { MSSpectrum() });
   TIC tic;
-  auto result = tic.compute(exp, 0);
+  tic.compute(exp, 0);
   auto r = tic.getResults();
   TEST_EQUAL(r.size(), 1);
   ABORT_IF(r[0].size() != 1); // one intensity per input spectrum
@@ -88,7 +88,7 @@ END_SECTION
 START_SECTION(void clear())
   TIC tic;
   MSExperiment exp2;
-  auto result = tic.compute(exp2);
+  tic.compute(exp2);
   TEST_EQUAL(tic.getResults().empty(), false);
   tic.clear();
   TEST_EQUAL(tic.getResults().empty(), true);

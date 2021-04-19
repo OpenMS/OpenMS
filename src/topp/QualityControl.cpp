@@ -337,7 +337,7 @@ protected:
 
       if (qc_tic.isRunnable(status))
       {
-        auto result = qc_tic.compute(exp);
+        qc_tic.compute(exp);
       }
 
       if (qc_ms2stats.isRunnable(status))
