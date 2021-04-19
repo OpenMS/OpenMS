@@ -214,8 +214,8 @@ namespace OpenMS
     }
 
     std::tuple<double, double> PeakGroup::getMzRange(int abs_charge) const {
-        double mz_start = MAXFLOAT;
-        double mz_end = -1;
+        double mz_start = -1;
+        double mz_end = -10;
         if (abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_) {
 
         } else {
@@ -223,8 +223,11 @@ namespace OpenMS
                 if (tmp_p.abs_charge != abs_charge) {
                     continue;
                 }
-
-                mz_start = mz_start < tmp_p.mz ? mz_start : tmp_p.mz;
+                if (mz_start < 0) {
+                    mz_start = tmp_p.mz;
+                } else {
+                    mz_start = mz_start < tmp_p.mz ? mz_start : tmp_p.mz;
+                }
                 mz_end = mz_end > tmp_p.mz ? mz_end : tmp_p.mz;
             }
         }
