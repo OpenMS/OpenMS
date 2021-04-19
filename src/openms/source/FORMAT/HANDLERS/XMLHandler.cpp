@@ -49,6 +49,31 @@ namespace OpenMS
   namespace Internal
   {
 
+    // Specializations for character types, released by XMLString::release
+    template<> void shared_xerces_ptr<char>::doRelease_(char* item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    template<> void shared_xerces_ptr<XMLCh>::doRelease_(XMLCh* item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    // Specializations for character types, which needs to be
+    // released by XMLString::release
+    template <>
+    void unique_xerces_ptr<char>::doRelease_(char*& item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    template <>
+    void unique_xerces_ptr<XMLCh>::doRelease_(XMLCh*& item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
     XMLHandler::XMLHandler(const String & filename, const String & version) :
       file_(filename),
       version_(version),

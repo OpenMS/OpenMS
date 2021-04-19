@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 
@@ -152,6 +153,27 @@ namespace OpenMS
     {
       return true;
     }
+  }
+
+  FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)
+  {
+    FileTypes::Type t_file = getTypeByFileName(output_filename);
+    FileTypes::Type t_req = FileTypes::nameToType(requested_type);
+    // both UNKNOWN
+    if (t_file == FileTypes::Type::UNKNOWN && t_req == FileTypes::Type::UNKNOWN) 
+    {
+      OPENMS_LOG_ERROR << "Type of '" << output_filename << "' and requested output type '" << requested_type << "' are both unknown." << std::endl;
+      return FileTypes::Type::UNKNOWN;
+    }
+    // or inconsistent (while both are known)
+    if ((t_file != t_req) && (t_file != FileTypes::Type::UNKNOWN) + (t_req != FileTypes::Type::UNKNOWN) == 2)
+    {
+      OPENMS_LOG_ERROR << "Type of '" << output_filename << "' and requested output type '" << requested_type << "' are inconsistent." << std::endl;
+      return FileTypes::Type::UNKNOWN;
+    }
+
+    if (t_file != FileTypes::Type::UNKNOWN) return t_file;
+    else return t_req;
   }
 
   FileTypes::Type FileHandler::getTypeByContent(const String& filename)

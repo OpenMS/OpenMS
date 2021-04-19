@@ -70,23 +70,16 @@ public:
      */ 
     struct TransformationStatistics
     {
-      TransformationStatistics& operator=(const TransformationStatistics& rhs)
-      {
-        if (this == &rhs)
-          return *this;
+      // default constructor
+      TransformationStatistics() = default;
 
-        // percents = rhs.percents; // const, cannot be assigned
-        xmin = rhs.xmin;
-        xmax = rhs.xmax;
-        ymin = rhs.ymin;
-        ymax = rhs.ymax;
-        percentiles_before = rhs.percentiles_before;
-        percentiles_after = rhs.percentiles_after;
+      // copy constructor
+      TransformationStatistics(const TransformationStatistics& rhs) = default;
 
-        return *this;
-      }
+      // copy assignment
+      TransformationStatistics& operator=(const TransformationStatistics& rhs) = default;
 
-      const std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};
+      std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};  // TODO: use constexpr array
       double xmin = 0; ///< smallest x value before transformation
       double xmax = 0; ///< largest x value before transformation
       double ymin = 0; ///< smallest y value before transformation
@@ -104,8 +97,10 @@ public:
 
     /// Default constructor
     TransformationDescription();
+    
     /// Constructor from data
     explicit TransformationDescription(const DataPoints& data);
+    
     /// Destructor
     ~TransformationDescription();
 

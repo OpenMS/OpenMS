@@ -466,10 +466,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
 #endif
 
-    startProgress(0, 1, "Load database from FASTA file...");
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile::load(in_db, fasta_db);
-    endProgress();
+    FASTAFile().load(in_db, fasta_db);
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
@@ -492,7 +490,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
-      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
       digestor.setMissedCleavages(peptide_missed_cleavages_);
     }

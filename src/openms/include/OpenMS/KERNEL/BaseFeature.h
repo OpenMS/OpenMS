@@ -115,8 +115,7 @@ public:
     /// Set the overall quality
     void setQuality(QualityType q);
     /// Compare by quality
-    struct QualityLess :
-      std::binary_function<BaseFeature, BaseFeature, bool>
+    struct QualityLess
     {
       bool operator()(const BaseFeature& left, const BaseFeature& right) const
       {
