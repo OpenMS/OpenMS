@@ -131,6 +131,9 @@ namespace OpenMS {
 
         /// deconvoluted spectrum that contains the peak group
         DeconvolutedSpectrum deconvoluted_spectrum_;
+        /// peakGroup charges to be triggered
+        std::vector<int> trigger_charges;
+
         /// FLASHDeconvAlgorithm class for deconvolution
         FLASHDeconvAlgorithm fd_;
 

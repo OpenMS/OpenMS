@@ -207,25 +207,40 @@ namespace OpenMS
   }
 
 
-  void PeakGroup::setColor(const char color)
-  {
-    color_ = color;
-  }
+    void PeakGroup::setColor(const char color) {
+        color_ = color;
+    }
 
-  std::tuple<double, double> PeakGroup::getMaxQScoreMzRange() const
-  {
-    return std::tuple<double, double>{max_qscore_mz_start_, max_qscore_mz_end_};
-  }
+    std::tuple<double, double> PeakGroup::getMaxQScoreMzRange() const {
+        return std::tuple<double, double>{max_qscore_mz_start_, max_qscore_mz_end_};
+    }
 
-  std::tuple<int, int> PeakGroup::getAbsChargeRange() const
-  {
-    return std::tuple<int, int>{min_abs_charge_, max_abs_charge_};
-  }
+    std::tuple<double, double> PeakGroup::getMzRange(int abs_charge) const {
+        double mz_start = MAXFLOAT;
+        double mz_end = -1;
+        if (abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_) {
 
-  int PeakGroup::getScanNumber() const
-  {
-    return scan_number_;
-  }
+        } else {
+            for (auto &tmp_p:*this) {
+                if (tmp_p.abs_charge != abs_charge) {
+                    continue;
+                }
+
+                mz_start = mz_start < tmp_p.mz ? mz_start : tmp_p.mz;
+                mz_end = mz_end > tmp_p.mz ? mz_end : tmp_p.mz;
+            }
+        }
+        return std::tuple<double, double>{mz_start, mz_end};
+
+    }
+
+    std::tuple<int, int> PeakGroup::getAbsChargeRange() const {
+        return std::tuple<int, int>{min_abs_charge_, max_abs_charge_};
+    }
+
+    int PeakGroup::getScanNumber() const {
+        return scan_number_;
+    }
 
   double PeakGroup::getMonoMass() const
   {

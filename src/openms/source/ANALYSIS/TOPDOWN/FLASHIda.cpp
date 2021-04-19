@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <sstream>
 
@@ -203,7 +204,7 @@ namespace OpenMS {
         //    deconvoluted_spectrum_.swap(filtered_peakgroups);
         //    return;
         //}
-
+        trigger_charges.clear();
         std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
         int mass_count = mass_count_[ms_level - 1];
 
@@ -255,7 +256,7 @@ namespace OpenMS {
                     break;
                 }
 
-                if (pg.getQScore() < qscore_threshold_) {
+                if (i == 0 && pg.getQScore() < qscore_threshold_) {
                     break;
                 }
 
@@ -263,8 +264,42 @@ namespace OpenMS {
                     continue;
                 }
 
-                int mz = (int) round(
-                        (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+                int mz = 0;
+                int charge = pg.getRepAbsCharge();
+                double qscore = pg.getQScore();
+
+                if (i == 0) {
+                    mz = (int) round(
+                            (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+                } else {
+                    qscore = qscore_threshold_;
+                    charge = 0;
+                    for (int offset = 1; offset < 3; offset++) {
+                        for (int direction = -1; direction < 2; direction += 2) {
+                            int t_charge = pg.getRepAbsCharge() + offset * direction;
+                            double t_qscore = QScore::getQScore(&pg, t_charge);
+
+                            if (qscore >= t_qscore) {
+                                continue;
+                            }
+                            double t_snr = pg.getChargeSNR(t_charge);
+
+                            if (t_snr < charge_snr_threshold_) {
+                                continue;
+                            }
+                            qscore = t_qscore;
+                            charge = t_charge;
+                        }
+                    }
+                    if (charge > 0) {
+                        auto t_mz_range = pg.getMzRange(charge);
+                        mz = (int) round(
+                                (std::get<0>(t_mz_range) + std::get<1>(t_mz_range)) / 2.0);
+                    }
+                }
+                if (mz <= 0) {
+                    continue;
+                }
 
                 // if (current_considered_mzs.find(mz) != current_considered_mzs.end()) {
                 //     continue;
@@ -292,17 +327,18 @@ namespace OpenMS {
                 all_mass_rt_map_[nominal_mass] = rt;
                 auto inter = mass_qscore_map_.find(nominal_mass);
                 if (inter == mass_qscore_map_.end()) {
-                    mass_qscore_map_[nominal_mass] = 1 - pg.getQScore();
+                    mass_qscore_map_[nominal_mass] = 1 - qscore;
                 } else {
-                    mass_qscore_map_[nominal_mass] *= 1 - pg.getQScore();
+                    mass_qscore_map_[nominal_mass] *= 1 - qscore;
                 }
-                //std::cout << rt << " " << nominal_mass << " " << 1 - pg.getQScore() << " " << 1 - mass_qscore_map_[nominal_mass] << std::endl;
+
                 if (1 - mass_qscore_map_[nominal_mass] > error_threshold_) {
-                    //if (pg.getQScore() > error_threshold_) {
+                    //if (qscore > error_threshold_) {
                     mass_rt_map_[nominal_mass] = rt;
                     mz_rt_map_[mz] = rt;
                 }
                 filtered_peakgroups.push_back(pg);
+                trigger_charges.push_back(charge);
                 // current_selected_masses.insert(nominal_mass - 1);
                 current_selected_masses.insert(mz);
                 // current_selected_masses.insert(nominal_mass + 1);
@@ -989,20 +1025,25 @@ break;
                                        double *ppm_errors,
                                        double *precursor_intensities,
                                        double *peakgroup_intensities) {
-        std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
+        //std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
 
         for (int i = 0; i < deconvoluted_spectrum_.size(); i++) {
+            if (trigger_charges[i] == 0) {
+                continue;
+            }
             auto peakgroup = deconvoluted_spectrum_[i];
-            auto mz_range = peakgroup.getMaxQScoreMzRange();
+            charges[i] = trigger_charges[i];
+            auto mz_range =
+                    charges[i] == peakgroup.getRepAbsCharge() ? peakgroup.getMaxQScoreMzRange() : peakgroup.getMzRange(
+                            charges[i]);
             wstart[i] = std::get<0>(mz_range) - min_isolation_window_half_;
             wend[i] = std::get<1>(mz_range) + min_isolation_window_half_;
 
-            qscores[i] = peakgroup.getQScore();
-            charges[i] = peakgroup.getRepAbsCharge();
+            qscores[i] = QScore::getQScore(&peakgroup, charges[i]);
             // double mass_diff = averagine_.getAverageMassDelta(deconvoluted_spectrum_[i].getMonoMass());
             mono_masses[i] = peakgroup.getMonoMass();
-            chare_cos[i] = peakgroup.getChargeIsotopeCosine(peakgroup.getRepAbsCharge());
-            charge_snrs[i] = peakgroup.getChargeSNR(peakgroup.getRepAbsCharge());
+            chare_cos[i] = peakgroup.getChargeIsotopeCosine(charges[i]);
+            charge_snrs[i] = peakgroup.getChargeSNR(charges[i]);
             iso_cos[i] = peakgroup.getIsotopeCosine();
             snrs[i] = peakgroup.getSNR();
             charge_scores[i] = peakgroup.getChargeScore();

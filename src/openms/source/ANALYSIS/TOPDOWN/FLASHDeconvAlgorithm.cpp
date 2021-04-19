@@ -1417,7 +1417,7 @@ namespace OpenMS {
             //if (ms_level_==1 &&  peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < 1.0) {
             //    continue;
             //}
-
+            /*
             double max_q_score_mz_start = peak_group.getMonoMass() * 2;
             double max_q_score_mz_end = .0;
             for (auto &tmp_p:peak_group) {
@@ -1430,11 +1430,12 @@ namespace OpenMS {
 
                 max_q_score_mz_start = max_q_score_mz_start < tmp_p.mz ? max_q_score_mz_start : tmp_p.mz;
                 max_q_score_mz_end = max_q_score_mz_end > tmp_p.mz ? max_q_score_mz_end : tmp_p.mz;
-            }
-            if (max_q_score_mz_start > max_q_score_mz_end) {
+            }*/
+            auto max_q_score_mz_range = peak_group.getMzRange(peak_group.getRepAbsCharge());
+            if (std::get<0>(max_q_score_mz_range) > std::get<1>(max_q_score_mz_range)) {
                 continue;
             }
-            peak_group.setMaxQScoreMzRange(max_q_score_mz_start, max_q_score_mz_end);
+            peak_group.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
             filtered_peak_groups.push_back(peak_group);
         }
         deconvoluted_spectrum_.swap(filtered_peak_groups);
