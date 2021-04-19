@@ -47,10 +47,8 @@ namespace OpenMS
 {
     /**
       @brief This class serves for reading in and writing FASTA files
-
       If the protein/gene sequence contains unusual symbols (such as translation end (*)),
       they will be kept!
-
       You can use aggregate methods load() and store() to read/write a
       set of protein sequences at the cost of memory.
 
@@ -58,7 +56,6 @@ namespace OpenMS
       and writeStart(), writeNext(), writeEnd() for more memory efficiency.
       Reading from one and writing to another FASTA file can be handled by
       one single FASTAFile instance.
-
     */
 
     class OPENMS_DLLAPI FASTAFile
@@ -66,7 +63,6 @@ namespace OpenMS
     public:
         /**
             @brief FASTA entry type (identifier, description and sequence)
-
             The first String corresponds to the identifier that is
             written after the > in the FASTA file. The part after the
             first whitespace is stored in description and the text
@@ -143,9 +139,10 @@ namespace OpenMS
         /// Destructor
         virtual ~FASTAFile();
 
+        bool FASTAFile::readRecordNew(std::string & id, std::string & seq);
+
         /**
           @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
-
           @exception Exception::FileNotFound is thrown if the file does not exists.
           @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
@@ -153,9 +150,7 @@ namespace OpenMS
 
         /**
         @brief Reads the next FASTA entry from file.
-
         If you want to read all entries in one go, use load().
-
         @return true if entry was read; false if eof was reached
         @exception Exception::FileNotFound is thrown if the file does not exists.
         @exception Exception::ParseError is thrown if the file does not suit to the standard.
@@ -173,32 +168,26 @@ namespace OpenMS
 
         /**
         @brief Prepares a FASTA file given by 'filename' for streamed writing using writeNext().
-
         @exception Exception::UnableToCreateFile is thrown if the process is not able to write to the file (disk full?).
         */
         void writeStart(const String& filename);
 
         /**
         @brief Stores the data given by @p protein. Call writeStart() once before calling writeNext().
-
         Call writeEnd() when done to close the file!
-
         @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
         */
         void writeNext(const FASTAEntry& protein);
 
         /**
         @brief Closes the file (flush). Called implicitly when FASTAFile object does out of scope.
-
         */
         void writeEnd();
 
 
         /**
           @brief loads a FASTA file given by 'filename' and stores the information in 'data'
-
           This uses more RAM than readStart() and readNext().
-
           @exception Exception::FileNotFound is thrown if the file does not exists.
           @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
@@ -208,7 +197,6 @@ namespace OpenMS
             @brief stores the data given by 'data' at the file 'filename'
 
             This uses more RAM than writeStart() and writeNext().
-
             @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
           */
         void static store(const String& filename, const std::vector<FASTAEntry>& data);
@@ -216,9 +204,8 @@ namespace OpenMS
     protected:
         std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()
         std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
-        std::unique_ptr<void, std::function<void(void*) > > reader_; ///< filestream for reading; init using FastaFile::readStart(); needs to be a pointer, since its not copy-constructable; we use void* here, to avoid pulling in seqan includes
         Size entries_read_; ///< some internal book-keeping during reading
+        unsigned fileSize_{};
     };
 
 } // namespace OpenMS
-
