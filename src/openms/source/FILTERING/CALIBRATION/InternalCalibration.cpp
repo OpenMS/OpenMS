@@ -100,7 +100,7 @@ namespace OpenMS
     }
   }
 
-  Size InternalCalibration::fillCalibrants(const PeakMap exp,
+  Size InternalCalibration::fillCalibrants(const PeakMap& exp,
                                            const std::vector<InternalCalibration::LockMass>& ref_masses,
                                            double tol_ppm,
                                            bool lock_require_mono,
@@ -182,7 +182,7 @@ namespace OpenMS
     return cal_data_.size();
   }
 
-  Size InternalCalibration::fillCalibrants( const FeatureMap& fm, double tol_ppm )
+  Size InternalCalibration::fillCalibrants(const FeatureMap& fm, double tol_ppm)
   {
     cal_data_.clear();
     CalibrantStats_ stats(tol_ppm);
@@ -248,7 +248,7 @@ namespace OpenMS
     PeptideIdentification pid = pep_id;
     pid.sort();
     int q = pid.getHits()[0].getCharge();
-    mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
+    mz_ref = pid.getHits()[0].getSequence().getMZ(q);
 
     // Only use ID if precursor m/z and theoretical mass don't deviate too much.
     // as they may occur due to isotopic peak misassignments
@@ -263,7 +263,7 @@ namespace OpenMS
     return false;
   }
 
-  Size InternalCalibration::fillCalibrants( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
+  Size InternalCalibration::fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm)
   {
     cal_data_.clear();
     CalibrantStats_ stats(tol_ppm);
@@ -313,7 +313,7 @@ namespace OpenMS
     if (global_model)
     { // build one global modal
       OPENMS_LOG_INFO << "Building a global model..." << std::endl;
-      tms.push_back(MZTrafoModel());
+      tms.emplace_back();
       tms[0].train(cal_data_, model_type, use_RANSAC);
       if (MZTrafoModel::isValidModel(tms[0]))
       {
@@ -340,7 +340,7 @@ namespace OpenMS
         //
         // build model
         //
-        tms.push_back(MZTrafoModel());
+        tms.emplace_back();
         tms.back().train(cal_data_, model_type, use_RANSAC, it->getRT() - rt_chunk, it->getRT() + rt_chunk);
         if (!MZTrafoModel::isValidModel(tms.back())) // model not trained or coefficients are too extreme
         {

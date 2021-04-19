@@ -49,13 +49,13 @@
 
   <ul>
     <li>
-      Essential are \b gcc/g++ (>= 4.9) or similar ANSI C++ compiler with full C++11 support,
+      Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
       \b CMake (>= 3.1; with >= 3.9 suggested), \b Qt5, \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
       For the complete feature set to be enabled, %OpenMS needs recent versions of
       \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b WildMagic5, \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
-      \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
+      \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
       These should be built by our contrib build script in case they are not already installed via your package manager.
     </li>
     <li>
@@ -85,7 +85,7 @@
     # Get REQUIRED installable contrib libraries
     sudo yum install cmake3 qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel glpk-devel
     # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
-    #sudo yum boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel
+    ## sudo yum boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel
     # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
     </pre>
     </td>
@@ -99,7 +99,7 @@
       # REQUIRED dependencies
       sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel python-devel glpk-devel
       # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
-      #sudo zypper install boost-devel libzip-devel zlib-devel \
+      ## sudo zypper install boost-devel libzip-devel zlib-devel \
       # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
       </pre></td>
   </tr>
@@ -152,7 +152,7 @@
   You can and should check which dependencies you still need by attempting to configure %OpenMS (see the next section),
   it will complain about anything unusual/missing.
   @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or deinstall and use the contrib version.
-  @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are SeqAn, WildMagic and CoinOR.
+  @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are WildMagic and CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.
 
@@ -182,10 +182,9 @@
      \code
         cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
      \endcode
-  and then build SeqAn (the other build scripts may or may not be needed to be
+  and then build Widmagic or Eigen (both lines may or may not be needed to be
   executed depending on if your distribution does not provide a package for the dependency):
-      \code
-          cmake -DBUILD_TYPE=SEQAN ../OpenMS/contrib
+      \code        
           cmake -DBUILD_TYPE=WILDMAGIC ../OpenMS/contrib
           cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib       
       \endcode

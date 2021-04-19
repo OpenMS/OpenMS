@@ -36,6 +36,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -44,7 +46,6 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
 #include <QtCore/qfile.h>
 
@@ -67,7 +68,7 @@ using namespace std;
   @page TOPP_PercolatorAdapter PercolatorAdapter
 
   @brief PercolatorAdapter facilitates the input to, the call of and output integration of Percolator.
-  Percolator (http://per-colator.com/) is a tool to apply semi-supervised learning for peptide
+  Percolator (http://percolator.ms/) is a tool to apply semi-supervised learning for peptide
   identification from shotgun proteomics datasets.
 
   @experimental This tool is work in progress and usage and input requirements might change.
@@ -96,6 +97,11 @@ Additionally you need to set the enzyme setting.
 We only read the q-value for protein groups since Percolator has a more elaborate FDR estimation.
 For proteins we add q-value as main score and PEP as metavalue.
 For PSMs you can choose the main score. Peptide level FDRs cannot be parsed and used yet.</p>
+
+Multithreading: The thread parameter is passed to percolator.
+Note: By default, a minimum of 3 threads is used (default of percolator) even if the number of threads
+is set to e.g. 1 for backwards compatibility reasons. You can still force the usage of less than 3 threads
+by setting the force flag.     
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PercolatorAdapter.cli
@@ -259,7 +265,10 @@ protected:
     );
     registerFlag_("peptide_level_fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein_level_fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy_pattern to set the Fasta file and decoy pattern.");
-    registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
+    
+    registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: the data level selected for scoring.", !is_required);
+    setValidStrings_("osw_level", StringList(OSWFile::names_of_oswlevel.begin(), OSWFile::names_of_oswlevel.end()));
+    
     registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
     setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
 
@@ -476,8 +485,8 @@ protected:
         double calc_mass; 
         if (!hit.metaValueExists("CalcMass"))
         {
-          calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
-          hit.setMetaValue("CalcMass", calc_mass);
+          calc_mass = hit.getSequence().getMZ(charge);
+          hit.setMetaValue("CalcMass", calc_mass); // Percolator calls is CalcMass instead of m/z
         }
         else
         {
@@ -785,7 +794,7 @@ protected:
     const StringList in_decoy = getStringList_("in_decoy");
     OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
     const String in_osw = getStringOption_("in_osw");
-    const String osw_level = getStringOption_("osw_level");
+    const OSWFile::OSWLevel osw_level = (OSWFile::OSWLevel)Helpers::indexOf(OSWFile::names_of_oswlevel, getStringOption_("osw_level"));
 
     //output file names and types
     String out = getStringOption_("out");
@@ -992,11 +1001,8 @@ protected:
     else
     {
       OPENMS_LOG_DEBUG << "Writing percolator input file." << endl;
-      TextFile txt;  
-      std::stringstream pin_output;
-      OSWFile().read(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
-      txt << pin_output.str();
-      txt.store(pin_file);
+      std::ofstream pin_output(pin_file);
+      OSWFile::readToPIN(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
     }
 
     QStringList arguments;
@@ -1027,6 +1033,19 @@ protected:
 
         String decoy_pattern = getStringOption_("decoy_pattern");
         if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
+      }
+      
+      int cv_threads = getIntOption_("threads"); // pass-through of OpenMS thread parameter
+
+      if (cv_threads != 3) // default in percolator is 3
+      {
+        // If a lower than default value (3) is chosen the user needs to enforce it.
+        // This ensures that existing workflows (which implicitly used 3 threads) don't slow down
+        // if e.g. the OpenMS version and this adapter is updated.
+        if (cv_threads > 3 || getFlag_("force"))
+        { 
+          arguments << "--num-threads" << String(cv_threads).toQString();
+        }
       }
       
       double cpos = getDoubleOption_("cpos");
@@ -1242,7 +1261,7 @@ protected:
         // it is not a real search engine but we set it so that we know that
         // scores were postprocessed
         it->setSearchEngine("Percolator");
-        it->setSearchEngineVersion("3.02");
+        it->setSearchEngineVersion("3.05"); // TODO: read from percolator
         if (protein_level_fdrs)
         {
           //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
@@ -1267,7 +1286,7 @@ protected:
           if (protein_level_fdrs)
           {
             it->setInferenceEngine("Percolator");
-            it->setInferenceEngineVersion("3.02");
+            it->setInferenceEngineVersion("3.05");
           }
           it->setScoreType("q-value");
           it->setHigherScoreBetter(false);
@@ -1331,15 +1350,14 @@ protected:
     }
     else
     {
-      std::map< std::string, std::vector<double> > features;
+      std::map< std::string, OSWFile::PercolatorFeature > features;
       for (auto const &feat : pep_map)
       {
-
-        features[feat.second.PSMId].push_back(feat.second.score);
-        features[feat.second.PSMId].push_back(feat.second.qvalue);
-        features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
+        features.emplace(std::piecewise_construct,
+                         std::forward_as_tuple(feat.second.PSMId),
+                         std::forward_as_tuple(feat.second.score, feat.second.qvalue, feat.second.posterior_error_prob));
       }
-      OSWFile().write(out, osw_level, features);
+      OSWFile::writeFromPercolator(out, osw_level, features);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+#include <regex>
 
 using namespace std;
 
@@ -341,7 +342,7 @@ namespace OpenMS
       {
         precursor_charge = peptide.getChargeState();
       }
-      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      double precursor_mz = peptide_sequence.getMZ(precursor_charge);
       int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Compute all alternative peptidoforms compatible with ModificationsDB
@@ -487,7 +488,7 @@ namespace OpenMS
       }
 
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      double precursor_mz = peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      double precursor_mz = peptide_sequence.getMZ(precursor_charge);
       int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Copy properties of target peptide to decoy and get sequence from map
@@ -556,7 +557,7 @@ namespace OpenMS
         precursor_charge = peptide.getChargeState();
       }
       AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
-      int target_precursor_swath = getSwath_(swathes, peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge);
+      int target_precursor_swath = getSwath_(swathes, peptide_sequence.getMZ(precursor_charge));
 
       // Sort all transitions and make them unique
       auto transition_vector = pep_it.second;
@@ -576,7 +577,7 @@ namespace OpenMS
           ReactionMonitoringTransition trn;
           trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
-          trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
+          trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMZ(precursor_charge), round_decPow));
           trn.setProductMZ(tr_it->second);
           trn.setPeptideRef(peptide.id);
           mrmis.annotateTransitionCV(trn, tr_it->first);
@@ -632,7 +633,7 @@ namespace OpenMS
         precursor_charge = target_peptide.getChargeState();
       }
       AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
-      int target_precursor_swath = getSwath_(swathes, target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge);
+      int target_precursor_swath = getSwath_(swathes, target_peptide_sequence.getMZ(precursor_charge));
 
       TargetedExperiment::Peptide decoy_peptide = TargetDecoyMap[decoy_pep_it.first];
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
@@ -656,7 +657,7 @@ namespace OpenMS
           trn.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
           trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
-          trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
+          trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMZ(precursor_charge), round_decPow));
           trn.setProductMZ(decoy_tr_it->second);
           trn.setPeptideRef(decoy_peptide.id);
           mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
@@ -736,7 +737,7 @@ namespace OpenMS
                                                     enable_unspecific_losses, round_decPow);
 
       // Generate theoretical precursor m.z
-      double precursor_mz = target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      double precursor_mz = target_peptide_sequence.getMZ(precursor_charge);
       precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
 
       for (Size i = 0; i < pep_it->second.size(); i++)
@@ -1005,7 +1006,7 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
+  void MRMAssay::filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     CompoundVectorType compounds;
     std::vector<String> compound_ids;
@@ -1029,9 +1030,9 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
     for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
-      // Ensure that all precursors have the minimum number of transitions
-      if (m->second.size() >= (Size)min_transitions)
-      {
+        // Ensure that all precursors have the minimum number of transitions or are a decoy transitions
+        if (m->second.size() >= (Size)min_transitions || m->second[0].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> LibraryIntensity;
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
@@ -1039,14 +1040,11 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
         }
 
-        // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
-        std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
-        std::reverse(LibraryIntensity.begin(), LibraryIntensity.end());
+        // Reverse-sort by intensity and delete all elements after max_transitions to find the best candidates
+        std::sort(LibraryIntensity.begin(), LibraryIntensity.end(), std::greater<>());
         if ((Size)max_transitions < LibraryIntensity.size())
         {
-          std::vector<double>::iterator start_delete = LibraryIntensity.begin();
-          std::advance(start_delete, max_transitions);
-          LibraryIntensity.erase(start_delete, LibraryIntensity.end());
+          LibraryIntensity.resize(max_transitions);
         }
 
         // Check if transitions are among the ones with maximum intensity
@@ -1055,8 +1053,7 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
-
-          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && j < (Size)max_transitions)
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);
@@ -1090,11 +1087,94 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
       }
       else
       {
-        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transistions."<< std::endl;
+        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transitions."<< std::endl;
       }
     }
     exp.setTransitions(transitions);
     exp.setCompounds(compounds);
+  }
+
+  void MRMAssay::filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp)
+  {
+    vector<TargetedExperiment::Compound> compounds = exp.getCompounds();
+    vector<std::string> descriptions_targets;
+    vector<std::string> descriptions_decoys;
+    vector<std::string> difference_target_decoys;
+    vector<std::pair<std::string, std::string>> reference_decoys;
+    vector<std::string> single_decoy_id;
+    String decoy_suffix = "_decoy";
+
+    for (const auto &it : compounds)
+    {
+      // extract potential target TransitionIds based on the decoy annotation '0_CompoundName_decoy_[M+H]+_448_0'
+      if (it.id.find("decoy") != std::string::npos)
+      {
+        String current_decoy = it.id;
+        String potential_target = current_decoy;
+        potential_target.erase(potential_target.find(decoy_suffix), decoy_suffix.size());
+        descriptions_decoys.emplace_back(potential_target);
+        reference_decoys.emplace_back(std::make_pair(current_decoy, potential_target));
+      }
+      else
+      {
+        descriptions_targets.emplace_back(it.id);
+      }
+    }
+
+    // compare the actual target TransitionsIds with the potential ones
+    difference_target_decoys.clear();
+    std::sort(descriptions_targets.begin(), descriptions_targets.end());
+    std::sort(descriptions_decoys.begin(), descriptions_decoys.end());
+    std::set_difference(descriptions_decoys.begin(),
+                        descriptions_decoys.end(),
+                        descriptions_targets.begin(),
+                        descriptions_targets.end(),
+                        std::inserter(difference_target_decoys, difference_target_decoys.begin()));
+
+    // translate the potential targets back to decoy annotations
+    for (const auto &it : difference_target_decoys)
+    {
+      auto iter = std::find_if(reference_decoys.begin(),
+                               reference_decoys.end(),
+                               [&it](const std::pair<String, String> &element) { return element.second == it; });
+      if (iter != reference_decoys.end())
+      {
+        single_decoy_id.emplace_back(iter->first);
+      }
+    }
+
+    // remove decoy compound due to missing target
+    vector<TargetedExperiment::Compound> filtered_compounds;
+    for (const auto& it : compounds)
+    {
+      // Check if decoy was filtered
+      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.id) != single_decoy_id.end())
+      {
+        OPENMS_LOG_DEBUG << "The decoy " << it.id << " was filtered due to missing a respective target." << std::endl;
+      }
+      else
+      {
+        filtered_compounds.push_back(it);
+      }
+    }
+
+    // remove decoy transitions due to missing target
+    vector<ReactionMonitoringTransition> filtered_transitions;
+    for (const auto& it : exp.getTransitions())
+    {
+      // Check if compound has any transitions left
+      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.getCompoundRef()) != single_decoy_id.end())
+      {
+        OPENMS_LOG_DEBUG << "The decoy " << it.getCompoundRef()
+                         << " was filtered due to missing a respective target." << std::endl;
+      }
+      else
+      {
+        filtered_transitions.push_back(it);
+      }
+    }
+    exp.setCompounds(filtered_compounds);
+    exp.setTransitions(filtered_transitions);
   }
 
 }

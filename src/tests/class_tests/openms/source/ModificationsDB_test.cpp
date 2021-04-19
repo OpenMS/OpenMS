@@ -222,10 +222,10 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
   ptr->searchModificationsByDiffMonoMass(mods, 16.0, 1.0, "M");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Oxidation (M)")
-  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "N");
+  ptr->searchModificationsByDiffMonoMass(mods, 0.98, 0.1, "N");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Deamidated (N)")
-  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "Q");
+  ptr->searchModificationsByDiffMonoMass(mods, 0.98, 1.0, "Q");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Deamidated (Q)")
 }

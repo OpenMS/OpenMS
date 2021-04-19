@@ -113,9 +113,9 @@ private:
     // pointers of MassTraces contained in isotopic pattern
     std::vector<const MassTrace*> iso_pattern_;
 
-    double feat_score_;
+    double feat_score_{};
 
-    SignedSize charge_;
+    SignedSize charge_{};
   };
 
   class OPENMS_DLLAPI CmpMassTraceByMZ
@@ -311,11 +311,12 @@ e conditions are fulfilled. Mainly the
     void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM parameters
-    svm_model* isotope_filt_svm_;
+    svm_model* isotope_filt_svm_ = nullptr;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
 
-    double total_intensity_;
+    //unused
+    //double total_intensity_;
 
     /// parameter stuff
     double local_rt_range_;

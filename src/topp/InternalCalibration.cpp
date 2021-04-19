@@ -114,7 +114,7 @@ using namespace std;
      The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
   
   2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
-    Each line represents one lock mass in the format: <m/z>, <ms-level>, <charge>
+    Each line represents one lock mass in the format: \<m/z\>, \<ms-level\>, \<charge\>
     Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
 
     Example:
@@ -355,6 +355,10 @@ protected:
     Size RANSAC_initial_points = model_type.hasSubstring("linear") ? 2 : 3;
     Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:threshold"), getIntOption_("RANSAC:pc_inliers"), true);
     MZTrafoModel::setRANSACParams(p);
+    if (getFlag_("test"))
+    {
+      MZTrafoModel::setRANSACSeed(0);
+    }
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 

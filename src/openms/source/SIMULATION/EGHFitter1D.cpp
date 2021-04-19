@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
   {
     Size n = m_data->n;
     RawDataArrayType set = m_data->set;
@@ -81,7 +81,7 @@ namespace OpenMS
   }
 
   // compute Jacobian matrix for the different parameters
-  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
   {
     Size n =  m_data->n;
     RawDataArrayType set = m_data->set;
@@ -153,9 +153,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  EGHFitter1D::~EGHFitter1D()
-  {
-  }
+  EGHFitter1D::~EGHFitter1D() = default;
 
   EGHFitter1D& EGHFitter1D::operator=(const EGHFitter1D& source)
   {
@@ -169,7 +167,7 @@ namespace OpenMS
     return *this;
   }
 
-  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -221,7 +219,8 @@ namespace OpenMS
 #endif
 
     // build model
-    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EGHModel"));
+
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("EGHModel")));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
@@ -268,23 +267,26 @@ namespace OpenMS
     for (Size i = 0; i < set.size(); ++i)
       sum += set[i].getIntensity();
 
-    // calculate the median
-    //Size median = 0;
-    //float count = 0.0;
+    // find maximum = apex
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
     for (Size i = 0; i < set.size(); ++i)
     {
-      //count += set[i].getIntensity();
-      //if ( count <= sum / 2 ) median = i;
-
       if (set[i].getIntensity() > apex)
       {
         apex = set[i].getIntensity();
         apex_rt = i;
       }
-
     }
+
+    // calculate the median
+    /*Size median = 0;
+    float count = 0.0;
+    for (Size i = 0; i < set.size(); ++i)
+    {
+      count += set[i].getIntensity();
+      if ( count <= sum / 2 ) median = i;
+    }*/
 
     // calculate the height of the peak
     height_ = set[apex_rt].getIntensity();
@@ -292,27 +294,14 @@ namespace OpenMS
     // calculate retention time
     retention_ = set[apex_rt].getPos();
 
-
     // guess A / B for alpha = 0.5 -> left/right half max distance
 
     Size i = apex_rt;
-    while (i > 0)
-    {
-      if (set[i].getIntensity() / height_ < 0.5)
-        break;
-      else
-        --i;
-    }
+    while (i > 0 && (set[i].getIntensity() / height_) >= 0.5) --i;
     CoordinateType A = retention_ - set[i + 1].getPos();
 
     i = apex_rt;
-    while (i < set.size())
-    {
-      if (set[i].getIntensity() / height_ < 0.5)
-        break;
-      else
-        ++i;
-    }
+    while (i < set.size() && (set[i].getIntensity() / height_) >= 0.5) ++i;
     CoordinateType B = set[i - 1].getPos() - retention_;
 
     // compute estimates for tau / sigma_square based on A/B

@@ -48,6 +48,7 @@ MsInspectFile.cpp
 MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
+MzQCFile.cpp
 MzQuantMLFile.cpp
 MzTab.cpp
 MzTabFile.cpp
@@ -76,6 +77,7 @@ TextFile.cpp
 ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
+TriqlerFile.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp

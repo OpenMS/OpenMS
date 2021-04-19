@@ -69,7 +69,7 @@ namespace OpenMS
     return *this;
   }
 
-  BiGaussFitter1D::QualityType BiGaussFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  BiGaussFitter1D::QualityType BiGaussFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -90,7 +90,7 @@ namespace OpenMS
 
 
     // build model
-    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("BiGaussModel"));
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("BiGaussModel")));
     model->setInterpolationStep(interpolation_step_);
     Param tmp;
     tmp.setValue("bounding_box:min", min_bb);

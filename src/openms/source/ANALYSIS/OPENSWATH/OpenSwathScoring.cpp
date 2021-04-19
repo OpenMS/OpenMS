@@ -130,7 +130,7 @@ namespace OpenMS
                                             const std::vector<TransitionType>& transitions,
                                             const std::vector<OpenSwath::SwathMap>& swath_maps,
                                             OpenSwath::SpectrumAccessPtr ms1_map,
-                                            OpenMS::DIAScoring& diascoring,
+                                            const OpenMS::DIAScoring& diascoring,
                                             const CompoundType& compound,
                                             OpenSwath_Scores& scores,
                                             std::vector<double>& masserror_ppm,
@@ -187,19 +187,25 @@ namespace OpenMS
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
 
-    // DIA dotproduct and manhattan score based on library intensity
-    diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
+    //TODO this score and the next, both rely on the CoarseIsotope of the PeptideAveragine. Maybe we could
+    // DIA dotproduct and manhattan score based on library intensity and sum formula if present
+    if (su_.use_ms2_isotope_scores)
+    {
+      diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
 
-    // Isotope correlation / overlap score: Is this peak part of an
-    // isotopic pattern or is it the monoisotopic peak in an isotopic
-    // pattern?
-    // Currently this is computed for an averagine model of a peptide so its
-    // not optimal for metabolites - but better than nothing, given that for
-    // most fragments we dont really know their composition
-    diascoring.dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
+      // Isotope correlation / overlap score: Is this peak part of an
+      // isotopic pattern or is it the monoisotopic peak in an isotopic
+      // pattern?
+      // Currently this is computed for an averagine model of a peptide so its
+      // not optimal for metabolites - but better than nothing, given that for
+      // most fragments we dont really know their composition
+      diascoring
+          .dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
+    }
 
-    // Peptide-specific scores
-    if (compound.isPeptide())
+    // Peptide-specific scores (only useful, when product transitions are REAL fragments, e.g. not in FFID)
+    // and only if sequence is known (non-empty)
+    if (compound.isPeptide() && !compound.sequence.empty() && su_.use_ionseries_scores)
     {
       // Presence of b/y series score
       OpenMS::AASequence aas;
@@ -232,7 +238,7 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
-                                   OpenMS::DIAScoring & diascoring, 
+                                   const OpenMS::DIAScoring & diascoring,
                                    double precursor_mz, 
                                    double rt, 
                                    const CompoundType& compound, 
@@ -256,15 +262,39 @@ namespace OpenMS
 
       if (compound.isPeptide())
       {
-        diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                          precursor_charge, scores.ms1_isotope_correlation,
-                                          scores.ms1_isotope_overlap);
+        if (!compound.sequence.empty())
+        {
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, scores.ms1_isotope_correlation,
+                                            scores.ms1_isotope_overlap,
+                                            AASequence::fromString(compound.sequence).getFormula(Residue::Full, precursor_charge));
+        }
+        else
+        {
+          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum,
+                                                      scores.ms1_isotope_correlation,
+                                                      scores.ms1_isotope_overlap, precursor_charge);
+        }
       }
       else
       {
-        diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
-                                          precursor_charge, scores.ms1_isotope_correlation,
-                                          scores.ms1_isotope_overlap, compound.sum_formula);
+        if (!compound.sequence.empty())
+        {
+          EmpiricalFormula empf{compound.sequence};
+          //Note: this only sets the charge to be extracted again in the following function.
+          // It is not really used in EmpiricalFormula. Also the m/z of the formula is not used since
+          // it is shadowed by the exact precursor_mz.
+          //TODO check if charges are the same (in case the charge was actually present in the sum_formula?)
+          empf.setCharge(precursor_charge);
+          diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, scores.ms1_isotope_correlation,
+                                            scores.ms1_isotope_overlap,
+                                            empf);
+        }
+        else
+        {
+          diascoring.dia_ms1_isotope_scores_averagine(precursor_mz, ms1_spectrum,
+                                                      scores.ms1_isotope_correlation,
+                                                      scores.ms1_isotope_overlap, precursor_charge);
+        }
       }
     }
   }
@@ -272,7 +302,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
                                               const std::vector<OpenSwath::SwathMap> swath_maps,
-                                              OpenMS::DIAScoring & diascoring,
+                                              const OpenMS::DIAScoring & diascoring,
                                               OpenSwath_Scores & scores,
                                               double drift_lower, double drift_upper)
   {
@@ -303,7 +333,7 @@ namespace OpenMS
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;
-    if (transition.getProductChargeState() > 0)
+    if (transition.getProductChargeState() != 0)
     {
       putative_product_charge = transition.getProductChargeState();
     }
@@ -311,7 +341,11 @@ namespace OpenMS
     // Isotope correlation / overlap score: Is this peak part of an
     // isotopic pattern or is it the monoisotopic peak in an isotopic
     // pattern?
-    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), spectrum, putative_product_charge, scores.isotope_correlation, scores.isotope_overlap);
+    diascoring.dia_ms1_isotope_scores_averagine(transition.getProductMZ(),
+                                                spectrum,
+                                                scores.isotope_correlation,
+                                                scores.isotope_overlap,
+                                                putative_product_charge);
     // Mass deviation score
     diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), spectrum, scores.massdev_score);
   }
@@ -457,12 +491,14 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     std::vector<std::string> native_ids;
-    OpenSwath::MRMScoring mrmscore_;
-    for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
+    for (const auto& trans : transitions)
+    {
+      native_ids.push_back(trans.getNativeID());
+    }
 
     if (su_.use_library_score_)
     {
-      mrmscore_.calcLibraryScore(imrmfeature, transitions,
+      OpenSwath::MRMScoring::calcLibraryScore(imrmfeature, transitions,
           scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan,
           scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
     }
@@ -472,7 +508,7 @@ namespace OpenMS
     {
       // rt score is delta iRT
       double normalized_experimental_rt = normalized_feature_rt;
-      double rt_score = mrmscore_.calcRTScore(pep, normalized_experimental_rt);
+      double rt_score = OpenSwath::MRMScoring::calcRTScore(pep, normalized_experimental_rt);
 
       scores.normalized_experimental_rt = normalized_experimental_rt;
       scores.raw_rt_score = rt_score;

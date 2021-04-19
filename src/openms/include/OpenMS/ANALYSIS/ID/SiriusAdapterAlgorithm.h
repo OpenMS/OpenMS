@@ -29,13 +29,20 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka $
+// $Authors: Oliver Alka, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
 #pragma once 
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
+#include <unordered_map>
+#include <QString>
+
+using namespace std;
 
 namespace OpenMS
 {
@@ -49,8 +56,46 @@ namespace OpenMS
       /// default constructor
       SiriusAdapterAlgorithm();
 
+      /*
+       * Accessors for Preprocessing Parameters
+       */
+
+      bool isFeatureOnly() const { return preprocessing.getValue("feature_only").toBool(); }
+      UInt getFilterByNumMassTraces() const { return preprocessing.getValue("filter_by_num_masstraces"); }
+      double getPrecursorMzTolerance() const { return preprocessing.getValue("precursor_mz_tolerance"); }
+      double getPrecursorRtTolerance() const { return preprocessing.getValue("precursor_rt_tolerance"); }
+      bool precursorMzToleranceUnitIsPPM() const { return preprocessing.getValue("precursor_mz_tolerance_unit") == "ppm"; }
+      bool isNoMasstraceInfoIsotopePattern() const { return preprocessing.getValue("no_masstrace_info_isotope_pattern").toBool(); }
+      int getIsotopePatternIterations() const { return  preprocessing.getValue("isotope_pattern_iterations"); }
+
+      /*
+       * Accessors for Sirius Parameters
+       */
+
+      int getNumberOfSiriusCandidates() const { return sirius.getValue("candidates");  }
+
+      /**
+       * Updates all parameters that already exist in this DefaultParamHandler
+       * with the values provided by the input param object.
+       *
+       * @param param The Param object supplying updated parameter values. Keys that exist in the param
+       *        parameter, but not in this DefaultParamHander, are ignored.
+       */
+      void updateExistingParameter(const Param &param);
+
+      /**
+       * Checks whether this DefaultParamHandler has a ParamEntry with the provided name.
+       * @param name The name of the ParamEntry that should be checked for its existence in this DefaultParamHandler
+       * @return Whether this DefaultParamHandler has an ParamEntry for the provided name.
+       */
+      bool hasFullNameParameter(const String &name) const;
+
+
+      int getNumberOfCSIFingerIDCandidates() const { return fingerid.getValue("candidates"); }
+
+
       /// Struct for temporary folder structure
-      struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
+      class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
       public:
 
@@ -70,8 +115,27 @@ namespace OpenMS
         String tmp_dir_;
         String tmp_ms_file_;
         String tmp_out_dir_;
-
       };
+
+      /**
+      @brief Checks if the provided String points to a valid SIRIUS executable, otherwise tries
+       to select the executable from the environment
+
+      @return Path to SIRIUS executable
+
+      @param executable Path to the potential executable
+      */
+      static String determineSiriusExecutable(String& executable);
+
+      /**
+
+      @brief Sort function using the extracted scan_index from the sirius workspace file path
+
+      @return Vector of sorted sirius workspace paths based on the scan_index
+
+      */
+      static void sortSiriusWorkspacePathsByScanIndex(std::vector<String>& subdirs);
+
 
       /**
       @brief Preprocessing needed for SIRIUS
@@ -80,89 +144,176 @@ namespace OpenMS
             
       Filter number of masstraces and perform feature mapping.
 
-      @param featureinfo: Path to featureXML
-      @param spectra: Input of MSExperiment with spectra information
-      @param fp_map_kd: KDTree used for query and match spectra with features
-      @param sirius_algo: Parameters needed for preprocessing
-      @param feature_mapping: Empty FeatureToMs2Indices
+      @param featureinfo Path to featureXML
+      @param spectra Input of MSExperiment with spectra information
+      @param fm_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
+      @param feature_mapping Empty FeatureToMs2Indices
       */
-      static void preprocessingSirius(const String& featureinfo,
-                                      const MSExperiment& spectra,
-                                      std::vector<FeatureMap>& v_fp,
-                                      KDTreeFeatureMaps& fp_map_kd,
-                                      const SiriusAdapterAlgorithm& sirius_algo,
-                                      FeatureMapping::FeatureToMs2Indices& feature_mapping);
+      void preprocessingSirius(const String& featureinfo,
+                               const MSExperiment& spectra,
+                               FeatureMapping::FeatureMappingInfo& fm_info,
+                               FeatureMapping::FeatureToMs2Indices& feature_mapping);
 
       /**
       @brief logs number of features and spectra used
 
       Prints the number of features and spectra used (OPENMS_LOG_INFO)
 
-      @param featureinfo: Path to featureXML
-      @param feature_mapping: FeatureToMs2Indices with feature mapping
-      @param spectra: Input of MSExperiment with spectra information
-      @param sirius_algo: Parameters needed for preprocessing
+      @param featureinfo Path to featureXML
+      @param feature_mapping FeatureToMs2Indices with feature mapping
+      @param spectra Input of MSExperiment with spectra information
       */
-      static void checkFeatureSpectraNumber(const String& featureinfo,
-                                            const FeatureMapping::FeatureToMs2Indices& feature_mapping, 
-                                            const MSExperiment& spectra, 
-                                            const SiriusAdapterAlgorithm& sirius_algo);
+      void logFeatureSpectraNumber(const String& featureinfo,
+                                   const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                                   const MSExperiment& spectra);
 
-      
       /**
       @brief Call SIRIUS with QProcess
 
-      @return Vector with paths to a compound 
+      @param tmp_ms_file path to temporary .ms file
+      @param tmp_out_dir path to temporary output folder
+      @param executable path to executable
+      @param out_csifingerid path to CSI:FingerID output (can be empty).
 
-      @param tmp_ms_file: path to temporary .ms file
-      @param tmp_out_dir: path to temporary output folder
-      @param executable: path to executable
-      @param out_csifingerid: path to CSI:FingerID output (can be empty).
-      @param sirius_algo: Parameters needed for SIRIUS
-
+      @return Vector with paths to a compound
       */
-      const static std::vector<String> callSiriusQProcess(const String& tmp_ms_file,
-                                                          const String& tmp_out_dir,
-                                                          String& executable,
-                                                          const String& out_csifingerid,
-                                                          const SiriusAdapterAlgorithm& sirius_algo);
+      const vector<String> callSiriusQProcess(const String& tmp_ms_file,
+                                              const String& tmp_out_dir,
+                                              String& executable,
+                                              const String& out_csifingerid,
+                                              const bool decoy_generation) const;
 
-      // getter (used to call functions from SiriusMSConverter, SiriusMzTabWriter, CsiFingerIDMzTabWriter)
-      String getFeatureOnly();  
-      String getNoMasstraceInfoIsotopePattern();
-      int getIsotopePatternIterations();
-      int getCandidates();
-      int getTopNHits();
+    private:
+    class ParameterModifier
+    {
+      const String openms_param_name;
+      SiriusAdapterAlgorithm *enclose;
+
+    public:
+      explicit ParameterModifier(const String &param_name, SiriusAdapterAlgorithm *enclose) :
+              openms_param_name(param_name), enclose(enclose) {}
+
+      void withValidStrings(initializer_list<String> choices)
+      {
+        enclose->defaults_.setValidStrings(openms_param_name, choices);
+      }
+
+      void withMinInt(int value)
+      {
+        enclose->defaults_.setMinInt(openms_param_name, value);
+      }
+    };
+
+    class ParameterSection
+    {
+      // Maps the OpenMS Parameter Names to the one for Sirius
+      unordered_map<String, String> openms_to_sirius;
+
+      String toFullParameter(const String &param_name) const
+      {
+        String result(param_name);
+        result.substitute('-', '_');
+        return sectionName() + ":" + result;
+      }
 
     protected:
+      ParameterModifier parameter(
+              const String &parameter_name,
+              const DataValue &default_value,
+              const String &parameter_description);
+      void flag(
+              const String &parameter_name,
+              const String &parameter_description);
 
-      // adapter parameters (preprocessing)
-      unsigned int filter_by_num_masstraces_;
-      double precursor_mz_tolerance_;
-      String precursor_mz_tolerance_unit_;
-      double precursor_rt_tolerance_;
-      int isotope_pattern_iterations_;
-      // flags
-      String feature_only_;
-      String no_masstrace_info_isotope_pattern_;
-      // parameters for SIRIUS (sirius)
-      String profile_;
-      int candidates_;
-      String database_;
-      int noise_;
-      int ppm_max_;
-      String isotope_;
-      String elements_;
-      int compound_timeout_;
-      int tree_timeout_;
-      int top_n_hits_;
-      int cores_;
-      // flags
-      String auto_charge_;
-      String ion_tree_;
-      String no_recalibration_;
-      String most_intense_ms2_;
+      explicit ParameterSection(SiriusAdapterAlgorithm* enclose): enclose(enclose) {}
 
-      void updateMembers_() override;
+      virtual void parameters() = 0;
+      virtual String sectionName() const = 0;
+
+      SiriusAdapterAlgorithm *enclose;
+
+    public:
+      virtual ~ParameterSection() = default;
+
+      DataValue getValue(const String &param_name) const
+      {
+        return enclose->param_.getValue(toFullParameter(param_name));
+      }
+
+      QStringList getCommandLine() const
+      {
+        const DataValue omit_integer(-1);
+        const DataValue omit_string("");
+
+        QStringList result;
+        for (const auto &pair : openms_to_sirius)
+        {
+          DataValue value = enclose->param_.getValue(pair.first);
+
+          if (!value.isEmpty() && value != omit_integer && value != omit_string)
+          {
+           String string_value = value.toString(true);
+           if (string_value == "true")
+           {
+             result.push_back(String("--" + pair.second).toQString());
+           }
+           else if (string_value != "false")
+           {
+             result.push_back(String("--" + pair.second + "=" + string_value).toQString());
+           }
+          };
+        }
+        return result;
+      }
+    };
+
+    using SiriusSubtool = ParameterSection;
+
+    class Preprocessing : public ParameterSection
+    {
+      String sectionName() const override { return "preprocessing"; }
+    public:
+      explicit Preprocessing(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+    };
+
+    class Project final : public SiriusSubtool
+    {
+      String sectionName() const override { return "project"; }
+    public:
+      explicit Project(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+    };
+
+    class Sirius final : public SiriusSubtool
+    {
+      String sectionName() const override { return "sirius"; }
+    public:
+      explicit Sirius(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+    };
+
+    class Fingerid final : public SiriusSubtool
+    {
+      String sectionName() const override { return "fingerid"; }
+    public:
+      explicit Fingerid(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+    };
+
+    class Passatutto final : public SiriusSubtool
+    {
+      String sectionName() const override { return "passatutto"; }
+    public:
+      explicit Passatutto(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+     };
+
+    Preprocessing preprocessing;
+    Project project;
+    Sirius sirius;
+    Fingerid fingerid;
+    Passatutto passatutto;
+
     };
 } // namespace OpenMS

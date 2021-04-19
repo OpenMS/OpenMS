@@ -38,8 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
-#include <sstream>
+#include <type_traits> // for is_same
 
 // forward declarations
 struct sqlite3;
@@ -56,21 +55,28 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI SqliteConnector
   {
-public:
+  public:
+
+    /// how an sqlite db should be opened
+    enum class SqlOpenMode
+    {
+      READONLY,  ///< the DB must exist and is read-only
+      READWRITE, ///< the DB is readable and writable, but must exist when opening it
+      READWRITE_OR_CREATE ///< the DB readable and writable and is created new if not present already
+    };
 
     /// Default constructor
-    SqliteConnector();
+    SqliteConnector() = delete;
 
-    explicit SqliteConnector(const String& filename)
-    {
-      openDatabase(filename);
-    }
+    /// Constructor which opens a connection to @p filename
+    /// @throws Exception::SqlOperationFailed if the file does not exist/cannot be created (depending on @p mode)
+    explicit SqliteConnector(const String& filename, const SqlOpenMode mode = SqlOpenMode::READWRITE_OR_CREATE);
 
     /// Destructor
     ~SqliteConnector();
 
     /**
-      @brief Returns the raw pointer to the database 
+      @brief Returns the raw pointer to the database
 
       @note The pointer is tied to the lifetime of the SqliteConnector object,
       do not use it after the object has gone out of scope!
@@ -95,6 +101,10 @@ public:
       return tableExists(db_, tablename);
     }
 
+    /// Counts the number of entries in SQL table @p table_name
+    /// @throws Exception::SqlOperationFailed if table is unknown
+    Size countTableRows(const String& table_name);
+
     /**
       @brief Checkes whether the given table contains a certain column
 
@@ -115,19 +125,6 @@ public:
 
       @p statement The SQL statement
 
-    */
-    void executeStatement(const std::stringstream& statement)
-    {
-      executeStatement(db_, statement);
-    }
-
-    /**
-      @brief Executes a given SQL statement (insert statement)
-
-      This is useful for writing a single row of data
-
-      @p statement The SQL statement
-
       @exception Exception::IllegalArgument is thrown if the SQL command fails.
     */
     void executeStatement(const String& statement)
@@ -136,7 +133,7 @@ public:
     }
 
     /**
-      @brief Executes raw data SQL statements (insert statements) 
+      @brief Executes raw data SQL statements (insert statements)
 
       This is useful for a case where raw data should be inserted into sqlite
       databases, and the raw data needs to be passed separately as it cannot be
@@ -258,7 +255,7 @@ public:
     */
     static void executeBindStatement(sqlite3* db, const String& prepare_statement, const std::vector<String>& data);
 
-protected:
+  protected:
 
     /**
       @brief Opens a new SQLite database
@@ -267,10 +264,10 @@ protected:
 
       @note Call this only once!
     */
-    void openDatabase(const String& filename);
+    void openDatabase_(const String& filename, const SqlOpenMode mode);
 
-protected:
-    sqlite3 *db_;
+  protected:
+    sqlite3* db_ = nullptr;
 
   };
 
@@ -278,6 +275,43 @@ protected:
   {
     namespace SqliteHelper
     {
+      /// Sql only stores signed 64bit ints, so we remove the highest bit, because some/most
+      /// of our sql-insert routines first convert to string, which might yield an uint64 which cannot
+      /// be represented as int64, and sqlite would attempt to store it as double(!), which will loose precision
+      template <typename T>
+      UInt64 clearSignBit(T /*value*/)
+      {
+        static_assert(std::is_same<T, std::false_type>::value, "Wrong input type to clearSignBit(). Please pass unsigned 64bit ints!");
+        return 0;
+      };
+      /// only allow UInt64 specialization
+      template <>
+      inline UInt64 clearSignBit(UInt64 value) {
+        return value & ~(1ULL << 63);
+      }
+
+
+      enum class SqlState
+      {
+        SQL_ROW,
+        SQL_DONE,
+        SQL_ERROR ///< includes SQLITE_BUSY, SQLITE_ERROR, SQLITE_MISUSE
+      };
+
+      /**
+        @brief retrieves the next row from a prepared statement
+
+        If you receive 'SqlState::SQL_DONE', do NOT query nextRow() again,
+        because you might enter an infinite loop!
+        To avoid oversights, you can pass the old return value into the function again
+        and get an Exception which will tell you that there is buggy code!
+
+        @param current Return value of the previous call to this function.
+        @return one of SqlState::SQL_ROW or SqlState::SQL_DONE
+        @throws Exception::SqlOperationFailed if state would be SqlState::ERROR
+      */
+      SqlState nextRow(sqlite3_stmt* stmt, SqlState current = SqlState::SQL_ROW);
+
 
       /**
         @brief Extracts a specific value from an SQL column
@@ -305,12 +339,13 @@ protected:
       bool extractValue(ValueType* /* dst */, sqlite3_stmt* /* stmt */, int /* pos */)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Not implemented");
+          "Not implemented");
       }
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
       template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
+      template <> bool extractValue<Int64>(Int64* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
       template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos); //explicit specialization
 
@@ -319,10 +354,21 @@ protected:
       /// Special case where an integer should be stored in a String field
       bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos);
 
+      /** @defgroup sqlThrowingGetters Functions for getting values from sql-select statements
+
+          All these function throw Exception::SqlOperationFailed if the given position is of the wrong type.
+       @{
+       */
+      double extractDouble(sqlite3_stmt* stmt, int pos);
+      float extractFloat(sqlite3_stmt* stmt, int pos); ///< convenience function; note: in SQL there is no float, just double. So this might be narrowing.
+      int extractInt(sqlite3_stmt* stmt, int pos);
+      Int64 extractInt64(sqlite3_stmt* stmt, int pos);
+      String extractString(sqlite3_stmt* stmt, int pos);
+      char extractChar(sqlite3_stmt* stmt, int pos);
+      bool extractBool(sqlite3_stmt* stmt, int pos);
+      /** @} */ // end of sqlThrowingGetters
     }
   }
 
 
 } // namespace OpenMS
-
-

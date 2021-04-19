@@ -47,6 +47,8 @@
 namespace OpenMS
 {
 
+  const char* AccurateMassSearchEngine::search_engine_identifier = "AccurateMassSearch";
+
   AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier)
     :
     name_(name),
@@ -62,6 +64,10 @@ namespace OpenMS
     { // EF will add Proton weights for positive charges, and do nothing for negative ones ...
       // we just use the uncharged formula and take care of electrons ourselves
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "EmpiricalFormula must not have a charge (" + ef_.toString() + "), since the internal weight computation of EF is currently unreliable.");
+    }
+    if (mol_multiplier_ == 0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Molecule multiplier of 0 is not allowed for an adduct (" + ef_.toString() + ")");
     }
     mass_ = ef_.getMonoWeight();
   }
@@ -112,6 +118,11 @@ namespace OpenMS
   const String& AdductInfo::getName() const
   {
     return name_;
+  }
+
+  UInt AdductInfo::getMolMultiplier() const
+  {
+    return mol_multiplier_;
   }
 
   const EmpiricalFormula& AdductInfo::getEmpiricalFormula() const
@@ -618,7 +629,11 @@ namespace OpenMS
       // What about the adduct?
       // absolute mass error: the adduct itself is irrelevant here since its a constant for both the theoretical and observed mass
       //       ppm tolerance: the diff_mz accounts for it already (heavy adducts lead to larger m/z tolerance)
-      double diff_mass = diff_mz * std::abs(it->getCharge()); // do not use observed charge (could be 0=unknown)
+
+      // The adduct mass multiplier has to be taken into account when calculating the diff_mass (observed = 228 Da; Multiplier = 2M; theoretical mass = 114 Da)
+      // if not the allowed mass error will be the one from 228 Da instead of 114 Da (in this example twice as high).
+
+      double diff_mass = (diff_mz * std::abs(it->getCharge())) / it->getMolMultiplier(); // do not use observed charge (could be 0=unknown)
 
       searchMass_(neutral_mass, diff_mass, hit_idx);
 
@@ -831,8 +846,8 @@ namespace OpenMS
     }
     // add dummy protein identification which is required to keep peptidehits alive during store()
     fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
-    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
-    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
+    fmap.getProteinIdentifications().back().setIdentifier(search_engine_identifier);
+    fmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
     fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     if (fmap.empty())
@@ -852,7 +867,7 @@ namespace OpenMS
   void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
   {
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
-    f.getPeptideIdentifications().back().setIdentifier("AccurateMassSearch");
+    f.getPeptideIdentifications().back().setIdentifier(search_engine_identifier);
     for (std::vector<AccurateMassSearchResult>::const_iterator it_row  = amr.begin();
          it_row != amr.end();
          ++it_row)
@@ -913,8 +928,8 @@ namespace OpenMS
     }
     // add dummy protein identification which is required to keep peptidehits alive during store()
     cmap.getProteinIdentifications().resize(cmap.getProteinIdentifications().size() + 1);
-    cmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
-    cmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
+    cmap.getProteinIdentifications().back().setIdentifier(search_engine_identifier);
+    cmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
     cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     exportMzTab_(overall_results, num_of_maps, mztab_out);
@@ -966,8 +981,8 @@ namespace OpenMS
 
     Size id_group(1);
 
-    std::map<String, UInt> adduct_stats; // adduct --> # occurences
-    std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
+    std::map<String, UInt> adduct_stats; // adduct --> # occurrences
+    std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurrences (count each feature only once)
 
     bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 

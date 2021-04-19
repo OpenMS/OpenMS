@@ -43,7 +43,6 @@
 
 namespace OpenMS
 {
-
   namespace Internal
   {
     /**
@@ -56,7 +55,14 @@ namespace OpenMS
       String target; ///< TOPP parameter that determines the desired name
       // thus: move location -> target
 
-      FileMapping& operator=(const FileMapping& rhs);
+      /// Default constructor
+      FileMapping() = default;
+
+      /// Copy constructor
+      FileMapping(const FileMapping& other) = default;
+
+      /// Copy assignment
+      FileMapping& operator=(const FileMapping& rhs) = default;
     };
 
     /**
@@ -69,8 +75,14 @@ namespace OpenMS
       std::vector<FileMapping> pre_moves;
       std::vector<FileMapping> post_moves;
 
-      OPENMS_DLLAPI MappingParam& operator=(const MappingParam& rhs);
+      /// Default constructor
+      MappingParam() = default;
 
+      /// Copy constructor
+      MappingParam(const MappingParam& other) = default;
+
+      /// Copy assignment
+      MappingParam& operator=(const MappingParam& other) = default;  
     };
 
     /**
@@ -82,13 +94,13 @@ namespace OpenMS
     */
     struct OPENMS_DLLAPI ToolDescriptionInternal
     {
-      bool is_internal;
+      bool is_internal = false;
       String name;
       String category;
       StringList types; ///< -types of the tool (if any, e.g. ['centroided','wavelet'])
 
       /// default C'Tor
-      ToolDescriptionInternal();
+      ToolDescriptionInternal() = default;
 
       /// C'Tor with arguments
       ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types);
@@ -96,7 +108,8 @@ namespace OpenMS
       /// short C'Tor
       ToolDescriptionInternal(const String& p_name, const StringList& p_types);
 
-      ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs);
+      /// Copy assignment
+      ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs) = default;
 
       bool operator==(const ToolDescriptionInternal& rhs) const;
 
@@ -126,19 +139,20 @@ namespace OpenMS
       std::vector<ToolExternalDetails> external_details;
 
       /// default CTor
-      ToolDescription();
+      ToolDescription() = default;
+
+      /// Copy C'Tor
+      ToolDescription(const ToolDescription& other) = default;
 
       /// C'Tor for internal TOPP tools
       ToolDescription(const String& p_name, const String& p_category, const StringList& p_types = StringList());
 
+      /// Copy assignment
+      ToolDescription& operator=(const ToolDescription& rhs) = default;
+
       void addExternalType(const String& type, const ToolExternalDetails& details);
 
       void append(const ToolDescription& other);
-
-      ToolDescription& operator=(const ToolDescription& rhs);
     };
-
   } // namespace Internal
-
 } // namespace OPENMS
-

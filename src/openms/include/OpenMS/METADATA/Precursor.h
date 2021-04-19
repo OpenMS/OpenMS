@@ -120,9 +120,11 @@ public:
     bool operator!=(const Precursor & rhs) const;
 
     /// returns a const reference to the activation methods
-    const std::set<ActivationMethod> & getActivationMethods() const;
+    const std::set<ActivationMethod>& getActivationMethods() const;
     /// returns a mutable reference to the activation methods
-    std::set<ActivationMethod> & getActivationMethods();
+    std::set<ActivationMethod>& getActivationMethods();
+    /// convenience function, returning string representation of getActivationMethods()
+    StringList getActivationMethodsAsString() const;
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 

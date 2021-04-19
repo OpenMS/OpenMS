@@ -1,4 +1,18 @@
 {
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
+    "cmake.parallelJobs": 0,
+    "cmake.clearOutputBeforeBuild": false,
+    "cmake.ignoreKitEnv": true,
+    "cmake.configureOnOpen": false,
+    "cmake.configureArgs": [
+      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "-DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local'",
+      "-DBOOST_USE_STATIC=OFF"
+    ],
+    "cmake.skipConfigureIfCachePresent": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "clangd.arguments": [
+      "--background-index"
+    ]
 }

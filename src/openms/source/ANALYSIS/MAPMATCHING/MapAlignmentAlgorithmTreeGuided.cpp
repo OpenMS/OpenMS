@@ -266,6 +266,34 @@ namespace OpenMS
     trafo_order = map_sets[last_trafo];
   }
 
+  void MapAlignmentAlgorithmTreeGuided::align(std::vector<FeatureMap>& feature_maps,
+           std::vector<TransformationDescription>& transformations)
+  {
+    // constructing tree
+    vector<vector<double>> maps_ranges(feature_maps.size());  // to save ranges for alignment (larger rt_range -> reference)
+    std::vector<BinaryTreeNode> tree;    // to construct tree with pearson coefficient
+    buildTree(feature_maps, tree, maps_ranges);
+        // print tree
+    ClusterAnalyzer ca;
+    OPENMS_LOG_INFO << "  Alignment follows Newick tree: " << ca.newickTree(tree, true) << endl;
+
+    // alignment
+    vector<Size> trafo_order;
+    FeatureMap map_transformed;
+    {
+      vector<FeatureMap> copied_maps = feature_maps;
+      treeGuidedAlignment(tree, copied_maps, maps_ranges, map_transformed, trafo_order);
+    } // free copied maps
+
+    //-------------------------------------------------------------
+    // generating output
+    //-------------------------------------------------------------
+    transformations.clear();
+    transformations.resize(feature_maps.size()); // for trafo_out
+    computeTrafosByOriginalRT(feature_maps, map_transformed, transformations, trafo_order);
+    OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(feature_maps, transformations);
+  }
+
   // Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
   void MapAlignmentAlgorithmTreeGuided::computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps,
                                                                   FeatureMap& map_transformed,

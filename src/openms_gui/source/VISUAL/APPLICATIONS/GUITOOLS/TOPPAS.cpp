@@ -72,9 +72,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
-using namespace OpenMS;
-using namespace std;
-
 //STL
 #include <iostream>
 #include <map>
@@ -87,6 +84,8 @@ using namespace std;
 #   include <Windows.h>
 #endif
 
+using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 // command line name of this tool
@@ -192,9 +191,9 @@ int main(int argc, const char** argv)
     {
       mw->loadFiles(param.getValue("misc"), &splash_screen);
     }
-    else // remember this new window as obsolete once a real workflow is loaded without this window being touched
-    {    // if this is not desired, simply call newPipeline() without arguments
-      mw->newPipeline(mw->IDINITIALUNTITLED);
+    else 
+    {
+      mw->newPipeline();
     }
 
     // We are about to show the application.

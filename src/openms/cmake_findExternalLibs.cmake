@@ -36,15 +36,6 @@
 # This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
-# set which library extensions are preferred (we prefer shared libraries)
-if(NOT MSVC)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
-endif()
-if (APPLE)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.a")
-endif()
-
 
 #------------------------------------------------------------------------------
 # find libs (for linking)
@@ -68,10 +59,6 @@ if(Boost_FOUND)
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
 endif()
-
-#------------------------------------------------------------------------------
-# SEQAN
-find_package(SEQAN 1.4.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # libsvm
@@ -131,7 +118,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # SQLITE
-find_package(SQLITE 3.15.0 REQUIRED)
+find_package(SQLite 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # HDF5

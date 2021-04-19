@@ -133,7 +133,7 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge) const
   {
     if (peptide.empty())
     {
@@ -216,6 +216,71 @@ namespace OpenMS
     if (ion_names_dynamic) delete ion_names;
 
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
+
+    // set MS Level
+    spectrum.setMSLevel(2);
+
+    // set spectrum type
+    spectrum.setType(MSSpectrum::SpectrumSettings::CENTROID);
+
+    // set precursor
+    Precursor prec;
+
+    if (precursor_charge == 0)
+    {
+      precursor_charge = max_charge +1;
+    }
+    
+    if (precursor_charge < max_charge)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'precursor_charge' has to be higher than or equal to 'max_charge'.");
+    }
+
+    prec.setCharge(precursor_charge);
+    prec.setMZ(peptide.getMZ(precursor_charge, Residue::Full));
+    spectrum.getPrecursors().push_back(prec);
+  }
+
+  MSSpectrum TheoreticalSpectrumGenerator::generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge)
+  {
+    if (precursor_charge == 0)
+    {
+      OPENMS_LOG_WARN << "Precursor charge can't be 0. Using 2 instead." << endl;
+      precursor_charge = 2;
+    }
+
+    // initialize a TheoreticalSpectrumGenerator
+    TheoreticalSpectrumGenerator theo_gen;
+
+    // get current parameters (default)
+    // default with b and y ions
+    Param theo_gen_settings = theo_gen.getParameters();
+
+    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+    {
+      theo_gen_settings.setValue("add_b_ions", "true");
+      theo_gen_settings.setValue("add_y_ions", "true");
+    }
+    else if (fm == Precursor::ActivationMethod::ECD || fm == Precursor::ActivationMethod::ETD)
+    {
+      theo_gen_settings.setValue("add_c_ions", "true");
+      theo_gen_settings.setValue("add_z_ions", "true");
+      theo_gen_settings.setValue("add_b_ions", "false");
+      theo_gen_settings.setValue("add_y_ions", "false");
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragmentation method is not supported.");
+    }
+
+    // set changed parameters
+    theo_gen.setParameters(theo_gen_settings);
+
+    // generate b/y or c/z-ion spectrum of peptide seq
+    PeakSpectrum theo_spectrum;
+    theo_gen.getSpectrum(theo_spectrum, seq, 1, precursor_charge <= 2 ? 1 : 2);
+
+    return theo_spectrum;
   }
 
 
