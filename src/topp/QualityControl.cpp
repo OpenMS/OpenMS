@@ -165,7 +165,7 @@ protected:
     vector<FASTAFile::FASTAEntry> contaminants;
     if (!in_contaminants.empty())
     {
-      FASTAFile::load(in_contaminants, contaminants);
+      FASTAFile().load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
     ConsensusMap cmap;
