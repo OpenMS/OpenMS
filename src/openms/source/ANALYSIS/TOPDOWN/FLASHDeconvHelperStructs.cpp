@@ -35,101 +35,103 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <sstream>
 
-namespace OpenMS
-{
-  FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass,
-                                                                           const double max_mass,
-                                                                           const double delta,
-                                                                           CoarseIsotopePatternGenerator *generator,
-                                                                           const bool use_RNA_averagine)
-      :
-      mass_interval_(delta), min_mass_(min_mass)
-  {
-    int i = 0;
-    while (true)
-    {
-      double mass_delta = i * mass_interval_;
-      i++;
-      if (mass_delta < min_mass)
-      {
-        continue;
-      }
-      if (mass_delta > max_mass)
-      {
-        break;
-      }
-      auto iso = use_RNA_averagine ?
-                 generator->estimateFromRNAWeight(mass_delta) :
-                 generator->estimateFromPeptideWeight(mass_delta);
-      const double factor = .05;
-      iso.trimRight(factor * iso.getMostAbundant().getIntensity());
+namespace OpenMS {
+    FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass,
+                                                                             const double max_mass,
+                                                                             const double delta,
+                                                                             CoarseIsotopePatternGenerator *generator,
+                                                                             const bool use_RNA_averagine)
+            :
+            mass_interval_(delta), min_mass_(min_mass) {
+        int i = 0;
+        while (true) {
+            double mass_delta = i * mass_interval_;
+            i++;
+            if (mass_delta < min_mass) {
+                continue;
+            }
+            if (mass_delta > max_mass) {
+                break;
+            }
+            auto iso = use_RNA_averagine ?
+                       generator->estimateFromRNAWeight(mass_delta) :
+                       generator->estimateFromPeptideWeight(mass_delta);
+            const double factor = .3;
+            const int min_iso_count = 3;
+            double threshold = .0;
 
-      double norm = .0;
-        int most_abundant_index_ = 0;
-        double most_abundant_int = 0;
+            if (iso.size() > min_iso_count) {
+                std::vector<double> iso_intensities;
+                iso_intensities.reserve(iso.size());
+                for (Size k = 0; k < iso.size(); k++) {
+                    iso_intensities.push_back(iso[k].getIntensity());
+                }
+                std::sort(iso_intensities.rbegin(), iso_intensities.rend());
+                threshold =
+                        std::min(iso_intensities[min_iso_count], iso.getMostAbundant().getIntensity() * factor) - 1e-5;
+            }
 
-      for (Size k = 0; k < iso.size(); k++)
-      {
-        norm += iso[k].getIntensity() * iso[k].getIntensity();
-        if (most_abundant_int >= iso[k].getIntensity())
-        {
-          continue;
+            iso.trimRight(threshold);
+
+            double norm = .0;
+            int most_abundant_index_ = 0;
+            double most_abundant_int = 0;
+
+            for (Size k = 0; k < iso.size(); k++) {
+                norm += iso[k].getIntensity() * iso[k].getIntensity();
+                if (most_abundant_int >= iso[k].getIntensity()) {
+                    continue;
+                }
+                most_abundant_int = iso[k].getIntensity();
+                most_abundant_index_ = k;
+            }
+
+            Size left_count = most_abundant_index_;
+            for (Size k = 0; k <= most_abundant_index_; k++) {
+                if (iso[k].getIntensity() > threshold) {
+                    break;
+                }
+                norm -= iso[k].getIntensity() * iso[k].getIntensity();
+                left_count--;
+                iso[k].setIntensity(0);
+            }
+
+            Size right_count = iso.size() - 1 - most_abundant_index_;
+            /*for (Size k = iso.size() - 1; k >= most_abundant_index; k--)
+            {
+              if (iso[k].getIntensity() > most_abundant_int * factor)
+              {
+                break;
+              }
+              norm -= iso[k].getIntensity() * iso[k].getIntensity();
+              right_count--;
+              iso[k].setIntensity(0);
+            }*/
+            apex_index_.push_back(most_abundant_index_);
+            right_count_from_apex_.push_back(right_count + 1);
+            left_count_from_apex_.push_back(left_count + 1);
+            average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
+            norms_.push_back(norm);
+            isotopes_.push_back(iso);
         }
-          most_abundant_int = iso[k].getIntensity();
-          most_abundant_index_ = k;
-      }
-
-      Size left_index = most_abundant_index_;
-      for (Size k = 0; k <= most_abundant_index_; k++)
-      {
-        if (iso[k].getIntensity() > most_abundant_int * factor)
-        {
-          break;
-        }
-        norm -= iso[k].getIntensity() * iso[k].getIntensity();
-        left_index--;
-        iso[k].setIntensity(0);
-      }
-
-      Size right_index = iso.size() - 1 - most_abundant_index_;
-        /*for (Size k = iso.size() - 1; k >= most_abundant_index; k--)
-        {
-          if (iso[k].getIntensity() > most_abundant_int * factor)
-          {
-            break;
-          }
-          norm -= iso[k].getIntensity() * iso[k].getIntensity();
-          right_index--;
-          iso[k].setIntensity(0);
-        }*/
-        apex_index_.push_back(most_abundant_index_);
-        right_count_from_apex_.push_back(right_index);
-        left_count_from_apex_.push_back(left_index);
-        average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
-        norms_.push_back(norm);
-        isotopes_.push_back(iso);
     }
-  }
 
-  IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
-  {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return isotopes_[i];
-  }
+    IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const {
+        Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
+        i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+        return isotopes_[i];
+    }
 
-  int FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
-  {
-    return max_isotope_index_;
-  }
+    int FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const {
+        return max_isotope_index_;
+    }
 
 
-  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(const double mass) const
-  {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return norms_[i];
-  }
+    double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(const double mass) const {
+        Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
+        i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+        return norms_[i];
+    }
 
     Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftCountFromApex(const double mass) const {
         Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
@@ -137,12 +139,11 @@ namespace OpenMS
         return left_count_from_apex_[i];
     }
 
-  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
-  {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-      return average_mono_mass_difference_[i];
-  }
+    double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const {
+        Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
+        i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+        return average_mono_mass_difference_[i];
+    }
 
     Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightCountFromApex(const double mass) const {
         Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
@@ -164,150 +165,136 @@ namespace OpenMS
             mz(peak.getMZ()),
             intensity(peak.getIntensity()),
             logMz(getLogMz(peak.getMZ(), positive)),
-      abs_charge(0),
-      is_positive(positive),
-      isotopeIndex(0)
-  {
-  }
-
-  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
-  {
-    if (abs_charge == 0)
-    {
-      return .0;
+            abs_charge(0),
+            is_positive(positive),
+            isotopeIndex(0) {
     }
-    if (mass <= 0)
-    {
-      mass = (mz - getChargeMass(is_positive)) * abs_charge;
+
+    double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass() {
+        if (abs_charge == 0) {
+            return .0;
+        }
+        if (mass <= 0) {
+            mass = (mz - getChargeMass(is_positive)) * abs_charge;
+        }
+        return mass;
     }
-    return mass;
-  }
 
-  bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak& a) const
-  {
-    return this->logMz < a.logMz;
-  }
-
-  bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak& a) const
-  {
-    return this->logMz > a.logMz;
-  }
-
-  bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak& a) const
-  {
-    return this->logMz == a.logMz;
-  }
-
-  class LogMzPeakHashFunction
-  {
-  public:
-
-    size_t operator()(const FLASHDeconvHelperStructs::LogMzPeak& peak) const
-    {
-      return std::hash<double>()(peak.mz);
+    bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak &a) const {
+        return this->logMz < a.logMz;
     }
-  };
 
-  FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvHelperStructs::calculateAveragines(const double max_mass,
-                                                                                                 const bool use_RNA_averagine)
-  {
-    auto generator = new CoarseIsotopePatternGenerator();
-
-    auto iso = use_RNA_averagine ?
-               generator->estimateFromRNAWeight(max_mass) :
-               generator->estimateFromPeptideWeight(max_mass);
-    iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
-
-    generator->setMaxIsotope(iso.size());
-    auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, max_mass, 25, generator, use_RNA_averagine);
-    avg.setMaxIsotopeIndex(iso.size() - 1);
-    return avg;
-  }
-
-  double FLASHDeconvHelperStructs::getChargeMass(const bool positive)
-  {
-    return (positive ? Constants::PROTON_MASS_U : Constants::ELECTRON_MASS_U);
-  }
-
-
-  double FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
-  {
-    return std::log(mz - getChargeMass(positive));
-  }
-
-  FLASHDeconvHelperStructs::TopPicItem::TopPicItem(String in)
-  {
-    str_ = in;
-    std::vector<String> results;
-    std::stringstream tmp_stream(in);
-    String str;
-    //Data file name	Prsm ID	Spectrum ID	Fragmentation	Scan(s)	Retention time	#peaks	Charge	Precursor mass
-    // Adjusted precursor mass	Proteoform ID	Feature intensity	Feature score	Protein accession	Protein description
-    // First residue	Last residue	Proteoform	#unexpected modifications	MIScore	#variable PTMs	#matched peaks
-    // #matched fragment ions	E-value	Spectrum-level Q-value	Proteoform-level Q-value
-
-    while (getline(tmp_stream, str, '\t'))
-    {
-      results.push_back(str);
+    bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak &a) const {
+        return this->logMz > a.logMz;
     }
-    prsm_id_ = stoi(results[1]);
-    spec_id_ = stoi(results[2]);
-    scan_ = stoi(results[4]);
-    rt_ = stod(results[5]);
-    peak_count_ = stoi(results[6]);
-    charge_ = stoi(results[7]);
-    precursor_mass_ = stod(results[8]);
-    adj_precursor_mass_ = stod(results[9]);
-    proteform_id_ = stoi(results[10]);
-      if (results[11].hasPrefix("-")) {
-          intensity_ = 0;
-      }else{
-          intensity_ = stod(results[11]);
-      }
-    String acc = results[13];
-    int first = acc.find("|");
-    int second = acc.find("|", first + 1);
-    protein_acc_ = acc.substr(first + 1, second - first - 1);
-    first_residue_ = stoi(results[15]);
-    last_residue_ = stoi(results[16]);
-      if (stoi(results[18]) == 0){
-          //unexp_mod_ = .0;
-      }else{
-          String seq =  results[17];
-          int loc = 0;
-          int off = seq.find(".", 0);
-          while (seq.find("[", loc) != String::npos) {
-             // mod_first_.push_back(seq.find("(", loc) - off -1);
-             // mod_last_.push_back(seq.find(")", loc) - off -3);
-              loc = seq.find("[", loc);
-              String sub = seq.substr(loc + 1, seq.find("]", loc) - 1 - loc);
-              double mmass = .0;
-              if (isdigit(sub[sub.length()-1])){
-                  mmass = stod(sub);
-              }else if (sub == "Acetyl"){
-                  mmass = 42.010565;
-              }else if (sub == "Phospho"){
-                  mmass = 79.966331;
-              }else if (sub == "Oxidation"){
-                  mmass = 15.994915;
-              }else if (sub == "Methyl"){
-                  mmass = 14.015650;
-              }
-              unexp_mod_.push_back(mmass);
-              loc++;
-          }
-      }
 
-
-    matched_peaks_ = stoi(results[21]);
-    matched_frags_ = stoi(results[22]);
-    e_value_ = stod(results[23]);
-    if (results[24] != "-")
-    {
-      spec_q_value_ = stod(results[24]);
-      proteofrom_q_value_ = stod(results[25]);
+    bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak &a) const {
+        return this->logMz == a.logMz;
     }
-  }
+
+    class LogMzPeakHashFunction {
+    public:
+
+        size_t operator()(const FLASHDeconvHelperStructs::LogMzPeak &peak) const {
+            return std::hash<double>()(peak.mz);
+        }
+    };
+
+    FLASHDeconvHelperStructs::PrecalculatedAveragine
+    FLASHDeconvHelperStructs::calculateAveragines(const double max_mass,
+                                                  const bool use_RNA_averagine) {
+        auto generator = new CoarseIsotopePatternGenerator();
+
+        auto iso = use_RNA_averagine ?
+                   generator->estimateFromRNAWeight(max_mass) :
+                   generator->estimateFromPeptideWeight(max_mass);
+        iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
+
+        generator->setMaxIsotope(iso.size());
+        auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, max_mass, 25, generator, use_RNA_averagine);
+        avg.setMaxIsotopeIndex(iso.size() - 1);
+        return avg;
+    }
+
+    double FLASHDeconvHelperStructs::getChargeMass(const bool positive) {
+        return (positive ? Constants::PROTON_MASS_U : Constants::ELECTRON_MASS_U);
+    }
+
+
+    double FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive) {
+        return std::log(mz - getChargeMass(positive));
+    }
+
+    FLASHDeconvHelperStructs::TopPicItem::TopPicItem(String in) {
+        str_ = in;
+        std::vector<String> results;
+        std::stringstream tmp_stream(in);
+        String str;
+        //Data file name	Prsm ID	Spectrum ID	Fragmentation	Scan(s)	Retention time	#peaks	Charge	Precursor mass
+        // Adjusted precursor mass	Proteoform ID	Feature intensity	Feature score	Protein accession	Protein description
+        // First residue	Last residue	Proteoform	#unexpected modifications	MIScore	#variable PTMs	#matched peaks
+        // #matched fragment ions	E-value	Spectrum-level Q-value	Proteoform-level Q-value
+
+        while (getline(tmp_stream, str, '\t')) {
+            results.push_back(str);
+        }
+        prsm_id_ = stoi(results[1]);
+        spec_id_ = stoi(results[2]);
+        scan_ = stoi(results[4]);
+        rt_ = stod(results[5]);
+        peak_count_ = stoi(results[6]);
+        charge_ = stoi(results[7]);
+        precursor_mass_ = stod(results[8]);
+        adj_precursor_mass_ = stod(results[9]);
+        proteform_id_ = stoi(results[10]);
+        if (results[11].hasPrefix("-")) {
+            intensity_ = 0;
+        } else {
+            intensity_ = stod(results[11]);
+        }
+        String acc = results[13];
+        int first = acc.find("|");
+        int second = acc.find("|", first + 1);
+        protein_acc_ = acc.substr(first + 1, second - first - 1);
+        first_residue_ = stoi(results[15]);
+        last_residue_ = stoi(results[16]);
+        if (stoi(results[18]) == 0) {
+            //unexp_mod_ = .0;
+        } else {
+            String seq = results[17];
+            int loc = 0;
+            int off = seq.find(".", 0);
+            while (seq.find("[", loc) != String::npos) {
+                // mod_first_.push_back(seq.find("(", loc) - off -1);
+                // mod_last_.push_back(seq.find(")", loc) - off -3);
+                loc = seq.find("[", loc);
+                String sub = seq.substr(loc + 1, seq.find("]", loc) - 1 - loc);
+                double mmass = .0;
+                if (isdigit(sub[sub.length() - 1])) {
+                    mmass = stod(sub);
+                } else if (sub == "Acetyl") {
+                    mmass = 42.010565;
+                } else if (sub == "Phospho") {
+                    mmass = 79.966331;
+                } else if (sub == "Oxidation") {
+                    mmass = 15.994915;
+                } else if (sub == "Methyl") {
+                    mmass = 14.015650;
+                }
+                unexp_mod_.push_back(mmass);
+                loc++;
+            }
+        }
+
+
+        matched_peaks_ = stoi(results[21]);
+        matched_frags_ = stoi(results[22]);
+        e_value_ = stod(results[23]);
+        if (results[24] != "-") {
+            spec_q_value_ = stod(results[24]);
+            proteofrom_q_value_ = stod(results[25]);
+        }
+    }
 
     bool FLASHDeconvHelperStructs::TopPicItem::operator<(const FLASHDeconvHelperStructs::TopPicItem &a) const {
         return this->scan_ < a.scan_;

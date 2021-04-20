@@ -1133,7 +1133,7 @@ namespace OpenMS {
         //           norm += per_isotope_intensities[j] * per_isotope_intensities[j];
         //       }
 
-        for (int tmp_offset = -apex_index; tmp_offset <= -apex_index + max_isotope_index; tmp_offset++) {
+        for (int tmp_offset = -apex_index - 1; tmp_offset <= -apex_index + max_isotope_index + 1; tmp_offset++) {
             double tmp_cos = getCosine_(per_isotope_intensities,
                                         min_isotope_index,
                                         max_isotope_index,
