@@ -53,21 +53,13 @@ namespace OpenMS {
         const auto& tools = ToolHandler::getTOPPToolList();
         const auto& utils = ToolHandler::getUtilList();
         // Launch threads for loading tool/util params.
-        for (auto& pair : tools)
+        for (auto& [name, description] : tools)
         {
-          std::string tool_name = pair.first;
-          param_futures_.emplace(
-                          tool_name,
-                          std::async(std::launch::async, getParamFromIni_, tool_name)
-          );
+          param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
         }
-        for (auto& pair : utils)
+        for (auto& [name, description] : utils)
         {
-          std::string util_name = pair.first;
-          param_futures_.emplace(
-                          util_name,
-                          std::async(std::launch::async, getParamFromIni_, util_name)
-          );
+          param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
         }
         return true;
       }();
@@ -81,21 +73,21 @@ namespace OpenMS {
         // Make sure threads have been launched before waiting
         loadParams();
         // Wait for futures to finish
-        for (auto& pair : param_futures_)
+        for (auto& [name, param_future] : param_futures_)
         {
-          while (pair.second.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+          while (param_future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
           {
             // Keep GUI responsive while waiting
             QCoreApplication::processEvents();
           }
           // Make future results available in params_
-          params_.insert(std::make_pair(pair.first, pair.second.get()));
+          params_.emplace(name, param_future.get());
         }
         return true;
       }();
     }
 
-    const std::unordered_map<std::string, Param>& TVToolDiscovery::getToolParams()
+    const std::map<std::string, Param>& TVToolDiscovery::getToolParams()
     {
       // Make sure threads have been launched and waited for before accessing results
       loadParams();

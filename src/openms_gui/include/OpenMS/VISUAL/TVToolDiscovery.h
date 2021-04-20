@@ -37,7 +37,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <future>
-#include <unordered_map>
+#include <map>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace OpenMS
@@ -61,36 +61,43 @@ namespace OpenMS
      */
     class OPENMS_GUI_DLLAPI TVToolDiscovery
     {
-    private:
-      /// Returns param for a given tool/util. This function is thread-safe
-      static Param getParamFromIni_(const std::string& tool_name);
-
-      /// Contains a param future for each tool/util name
-      std::unordered_map<std::string, std::future<Param>> param_futures_;
-
-      /// Contains a mapping of each tool/util name to its param.
-      std::unordered_map<std::string, Param> params_;
-
     public:
-      TVToolDiscovery() = default;;
-      ~TVToolDiscovery() = default;;
+        TVToolDiscovery() {};
 
-      /// Start creating params for each tool/util asynchronously
-      void loadParams();
+        TVToolDiscovery(const TVToolDiscovery&) = delete;
 
-      /**
-         @brief Returns a hash map containing a param for each tool/util.
-         @details
-         Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called
-         before waitForParams() (loadParams()). Therefore it is possible that this function has to wait.
-       */
-      const std::unordered_map<std::string, Param>& getToolParams();
+        TVToolDiscovery& operator=(const TVToolDiscovery&) = delete;
 
-      /**
-         @brief Wait for all future params to finish evaluating.
-         @details
-         While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
-       */
-      void waitForParams();
+        ~TVToolDiscovery() {};
+
+        /// Start creating params for each tool/util asynchronously
+        void loadParams();
+
+        /**
+           @brief Returns a hash map containing a param for each tool/util.
+           @details
+           Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called.
+           In that case, the function starts param parsing (loadParam()) and waits for completion (waitForParams())
+           before returning the result.
+         */
+        const std::map<std::string, Param>& getToolParams();
+
+        /**
+           @brief Wait for all future params to finish evaluating.
+           @details
+           While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
+         */
+        void waitForParams();
+
+    private:
+        /// Returns param for a given tool/util. This function is thread-safe
+        static Param getParamFromIni_(const std::string& tool_name);
+
+        /// Contains a param future for each tool/util name
+        std::map<std::string, std::future<Param>> param_futures_;
+
+        /// Contains a mapping of each tool/util name to its param.
+        std::map<std::string, Param> params_;
+
     };
 }
