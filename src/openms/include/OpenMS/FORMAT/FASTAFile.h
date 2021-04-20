@@ -139,7 +139,7 @@ namespace OpenMS
         /// Destructor
         virtual ~FASTAFile();
 
-        bool FASTAFile::readRecordNew(std::string & id, std::string & seq);
+        bool readSequence(std::string & seq);
 
         /**
           @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
@@ -158,7 +158,7 @@ namespace OpenMS
         bool readNext(FASTAEntry& protein);
 
         /// current stream position
-        std::streampos position() const;
+        std::streampos position();
 
         /// is stream at EOF?
         bool atEnd() const;
@@ -206,6 +206,7 @@ namespace OpenMS
         std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
         Size entries_read_; ///< some internal book-keeping during reading
         unsigned fileSize_{};
+        std:: string nextID_{};///< saving ID of next protein since reading current protein stops AFTER reading next ID
     };
 
 } // namespace OpenMS

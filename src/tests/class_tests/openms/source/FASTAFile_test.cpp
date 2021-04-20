@@ -127,7 +127,7 @@ START_TEST(FASTAFile, "$Id$")
                                                          + String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
                                                          + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
                                                          + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
-                                                         + String("AGEGEN"))
+                                                         + String("AGEGEN"))//wie modifikationen drin lassen?
 
                 // test if the modifed sequence is convertable
                 AASequence aa = AASequence::fromString(sequences_iterator->sequence);
@@ -163,11 +163,11 @@ START_TEST(FASTAFile, "$Id$")
                 TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/bla/bluff/blblb/sdfhsdjf/test.txt",data))
 
                 file.store(tmp_filename,data);
-                file.load(tmp_filename,data2);
+                file.load(tmp_filename,data2);//fail
                 TEST_EQUAL(data==data2,true);
         END_SECTION
 
-/*
+
 START_SECTION([EXTRA] test_strange_symbols_in_sequence)
   // test if * is read correctly (not changed into something weird like 'X')
   String tmp_filename;
@@ -181,15 +181,37 @@ START_SECTION([EXTRA] test_strange_symbols_in_sequence)
   data.push_back(temp_entry);
   data.push_back(temp_entry); // twice
 
+
   file.store(tmp_filename, data);
-  file.load(tmp_filename, data2);
 
   ABORT_IF(data2.size() != 2);
   TEST_EQUAL(data2[0] == temp_entry, true);
   TEST_EQUAL(data2[1] == temp_entry, true);
 
 END_SECTION
-*/
+
+
+START_SECTION(test_white_spaces)
+//test if spaces and tabulators are removed correctly
+    String tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    FASTAFile file;
+    vector<FASTAFile::FASTAEntry> data, data2;
+                FASTAFile::FASTAEntry temp_entry;
+                temp_entry.identifier = String("P68509|1433F_BOVIN");
+                temp_entry.description = String("This is the description of the first protein");
+                temp_entry.sequence = String("GDREQLLQRAR LAEQ\tAERYDDMASAMKAVTEL");
+                data.push_back(temp_entry);
+
+
+                file.store(tmp_filename, data);
+                file.load(tmp_filename, data2);
+
+                ABORT_IF(data2.size() != 1);
+                TEST_EQUAL(data2[0].sequence == String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL"), true);
+
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

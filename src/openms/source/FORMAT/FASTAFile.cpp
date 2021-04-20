@@ -58,25 +58,15 @@ namespace OpenMS
         // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
     }
 
-    bool FASTAFile::readRecordNew(std::string & id, std::string & seq)
+    bool FASTAFile::readSequence(std::string & seq)
     {
-        std::string line;
-        if(TextFile::getLine(infile_, line))
+       std::string line;
+        while(TextFile::getLine(infile_, line) && line[0] != '>')
         {
-            id.push_back(line)
+            seq+=line;
         }
-        else return false;
-        while(TextFile::getLine(infile_, line) && line[0] != ">")
-        {
-            for(unsigned i=0; i<=line.length();++i)//removing illegal characters//besser erst nach dem einlesen vor dem assignen zur sequenz?
-            {
-                if(line[i]<='A' || line[i]>='Z')//ambigous akzeptieren wir hier
-                {
-                    line.erase(i,i+1);
-                }
-            }
-            seq.push_back(line);
-        }
+        nextID_=line;//because while loop stops AFTER reading first line of next protein
+
         if(seq.empty()) return false;
         return true;
     }
@@ -103,16 +93,17 @@ namespace OpenMS
 
         // Skip the header of PEFF files (http://www.psidev.info/peff)
         std::string line;
-        std::streampos firstline = 0;
         while (TextFile::getLine(infile_, line))
         {
             if (!line.empty() && line[0] != '#')
             {
+                if(line[0]=='>')
+                {
+                    nextID_=line;//because while loop stops AFTER reading first line of first protein
+                }
                 break;
             }
-            firstline = infile_.tellg();
         }
-        infile_.seekg(firstline);
 
         entries_read_ = 0;
     }
@@ -125,7 +116,13 @@ namespace OpenMS
         }
 
         String id, s;
-        if (readRecordNew(id, s) != 0)
+        if(!nextID_.empty() && nextID_[0]=='>')
+        {
+            nextID_.erase(0,1);
+            id=nextID_;
+        }
+
+        if (readSequence(s) == false)
         {
             if (entries_read_ == 0) s = "The first entry could not be read!";
             else s = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
@@ -133,6 +130,7 @@ namespace OpenMS
         }
         ++entries_read_;
 
+        s.removeWhitespaces();
         protein.sequence = s; // assign here, since 's' might have higher capacity, thus wasting memory (usually 10-15%)
 
         // handle id
@@ -151,7 +149,7 @@ namespace OpenMS
         return true;
     }
 
-    std::streampos FASTAFile::position() const
+    std::streampos FASTAFile::position()
     {
         return infile_.tellg();
     }
@@ -160,7 +158,7 @@ namespace OpenMS
     {
         if(pos <= fileSize_)
         {
-            infile_.seekg(pos);//relative to the beginning of the stream
+            infile_.seekg(pos);
             return true;
         }
         return false;
