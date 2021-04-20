@@ -919,7 +919,7 @@ namespace OpenMS {
                 }
                  */
                 //t_mass /= sum_intensity;
-                double iso_tolerance = tol * t_mass;
+                double iso_tolerance = tol * t_mass; //
                 int min_off = 10000;
                 std::vector<double> signal_power(current_max_charge_ + 1, .0);
                 for (auto &p : pg) {
@@ -1059,17 +1059,17 @@ namespace OpenMS {
                                             const int &a_end,
                                             const IsotopeDistribution &b,
                                             const int &b_size,
-                                            const double &a_norm,
+            //const double &a_norm,
                                             const double &b_norm,
                                             const int offset) {
-        double n = .0;
+        double n = .0, a_norm = .0;
         //int c = 0;
         for (int j = a_start; j <= a_end; j++) {
             int i = j - offset;
             if (i < 0 || i >= b_size) {
                 continue;
             }
-
+            a_norm += a[j] * a[j];
             n += a[j] * b[i].getIntensity(); //
         }
         double d = (a_norm * b_norm);
@@ -1128,10 +1128,10 @@ namespace OpenMS {
             }
         }
 
-        double norm = .0;
-        for (int j = min_isotope_index; j <= max_isotope_index; j++) {
-            norm += per_isotope_intensities[j] * per_isotope_intensities[j];
-        }
+//        double norm = .0;
+        //       for (int j = min_isotope_index; j <= max_isotope_index; j++) {
+        //           norm += per_isotope_intensities[j] * per_isotope_intensities[j];
+        //       }
 
         for (int tmp_offset = -apex_index; tmp_offset <= -apex_index + max_isotope_index; tmp_offset++) {
             double tmp_cos = getCosine_(per_isotope_intensities,
@@ -1139,7 +1139,7 @@ namespace OpenMS {
                                         max_isotope_index,
                                         iso,
                                         iso_size,
-                                        norm,
+                    //norm,
                                         iso_norm,
                                         tmp_offset);
 
@@ -1362,17 +1362,17 @@ namespace OpenMS {
                     }
                     //summed_intensity_squares += current_per_isotope_intensities[k] * current_per_isotope_intensities[k];
                 }
-                double norm = .0;
-                for (int j = min_isotope_index; j <= max_isotope_index; j++) {
-                    norm += current_per_isotope_intensities[j] * current_per_isotope_intensities[j];
-                }
+                //double norm = .0;
+                //for (int j = min_isotope_index; j <= max_isotope_index; j++) {
+                //    norm += current_per_isotope_intensities[j] * current_per_isotope_intensities[j];
+                //}
 
                 double cos_score = getCosine_(current_per_isotope_intensities,
                                               min_isotope_index,
                                               max_isotope_index,
                                               iso_dist,
                                               iso_size,
-                                              norm,
+                        // norm,
                                               iso_norm,
                                               0);
 

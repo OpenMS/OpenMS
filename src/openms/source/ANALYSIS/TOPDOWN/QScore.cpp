@@ -104,8 +104,8 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-        << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,Color,PrecursorMz,PrecursorIntensity,"
-           "MassIntensity,FeatureIntensity,PrecursorCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
+            << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,Color,PrecursorMz,PrecursorIntensity,"
+               "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -152,7 +152,7 @@ namespace OpenMS
           << monomass << "," << mass << "," << color << "," << pmz << ","
           << precursor_intensity << ","
           << pg.getIntensity() << "," << fintensity << ","
-          << charge << ","
+          << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","
           << (is_identified ? std::to_string(ptm_mass.size()) : "nan") << ",";
         for(int k=0;k<3;k++){
             if(k < ptm_mass.size()){

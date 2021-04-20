@@ -615,7 +615,7 @@ protected:
               freqv.push_back(item.second);
           }
           std::sort(freqv.rbegin(), freqv.rend());
-          int threshold = freqv[5];
+          int threshold = freqv[6];
           std::map<String, double> acc_eval;
           for (auto &item: top_pic_map) {
               auto &acc = item.second.protein_acc_;
