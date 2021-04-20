@@ -2,8 +2,8 @@
   "mzQC": {
     "creationDate": "2021-04-14T12:11:57",
     "version": "1.0.0",
-    "contact_name": "name",
-    "contact_address": "address",
+    "contactName": "name",
+    "contactAddress": "address",
     "description": "description",
     "runQualities": [
       {

@@ -129,18 +129,18 @@ namespace OpenMS
 
     if (tic.isRunnable(status) and !exp.getTIC().empty())
     {
-    auto result = tic.compute(exp);
-    json chrom;
-    chrom["Relative intensity"] = result.intensities;
-    chrom["Retention time"] = result.retention_times;
-    // Total ion current chromatogram
-    addMetric("QC:4000067", chrom);
-    // Area under TIC
-    addMetric("QC:4000077", result.area);
-    // MS1 signal jump (10x) count
-    addMetric("QC:4000172", result.jump);
-    // MS1 signal fall (10x) count
-    addMetric("QC:4000173", result.fall);
+      auto result = tic.compute(exp);
+      json chrom;
+      chrom["Relative intensity"] = result.intensities;
+      chrom["Retention time"] = result.retention_times;
+      // Total ion current chromatogram
+      addMetric("QC:4000067", chrom);
+      // Area under TIC
+      addMetric("QC:4000077", result.area);
+      // MS1 signal jump (10x) count
+      addMetric("QC:4000172", result.jump);
+      // MS1 signal fall (10x) count
+      addMetric("QC:4000173", result.fall);
     }
 
     // ---------------------------------------------------------------
@@ -155,11 +155,11 @@ namespace OpenMS
     // optional: contact_name, contact_address, description
     if (!contact_name.empty()) 
     {
-      out["mzQC"]["contact_name"] = contact_name;
+      out["mzQC"]["contactName"] = contact_name;
     }
     if (!contact_address.empty()) 
     {
-      out["mzQC"]["contact_address"] = contact_address;
+      out["mzQC"]["contactAddress"] = contact_address;
     }
     if (!description.empty()) 
     {

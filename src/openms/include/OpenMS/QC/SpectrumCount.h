@@ -35,8 +35,6 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <map>
 
 /**
  * @brief Number of MS spectra per MS level (SpectrumCount) as a QC metric

@@ -34,7 +34,7 @@
 
 
 #include <OpenMS/QC/SpectrumCount.h>
-
+#include <OpenMS/KERNEL/MSExperiment.h>
 using namespace std;
 
 namespace OpenMS

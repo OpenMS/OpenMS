@@ -54,26 +54,26 @@ namespace OpenMS
     const MSChromatogram& tic = exp.getTIC();
     if (!tic.empty())
     {
-    for (const auto& p : tic)
-    {
-      result.intensities.push_back(p.getIntensity());
-      result.retention_times.push_back(p.getRT());
-    }
-
-    result.area = result.intensities[0];
-
-    for (UInt i = 1; i < result.intensities.size(); ++i)
-    {
-      result.area += result.intensities[i];
-      if (result.intensities[i] > result.intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
+      for (const auto& p : tic)
       {
-        ++result.jump;
+        result.intensities.push_back(p.getIntensity());
+        result.retention_times.push_back(p.getRT());
       }
-      if (result.intensities[i] < result.intensities[i-1] / 10) // detect 10x falls between two subsequent scans
+
+      result.area = result.intensities[0];
+
+      for (size_t i = 1; i < result.intensities.size(); ++i)
       {
-        ++result.fall;
+        result.area += result.intensities[i];
+        if (result.intensities[i] > result.intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
+        {
+          ++result.jump;
+        }
+        if (result.intensities[i] < result.intensities[i-1] / 10) // detect 10x falls between two subsequent scans
+        {
+          ++result.fall;
+        }
       }
-    }
     }
     return result;
   }
