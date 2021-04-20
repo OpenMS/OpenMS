@@ -1066,7 +1066,7 @@ namespace OpenMS {
         //int c = 0;
         for (int j = a_start; j <= a_end; j++) {
             int i = j - offset;
-            if (i < 0 || i >= b_size) {
+            if (i < 0 || i >= b_size || b[i].getIntensity() <= 0) {
                 continue;
             }
             a_norm += a[j] * a[j];

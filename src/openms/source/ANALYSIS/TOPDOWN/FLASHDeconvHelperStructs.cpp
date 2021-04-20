@@ -56,7 +56,7 @@ namespace OpenMS {
             auto iso = use_RNA_averagine ?
                        generator->estimateFromRNAWeight(mass_delta) :
                        generator->estimateFromPeptideWeight(mass_delta);
-            const double factor = .3;
+            const double factor = .05;
             const int min_iso_count = 3;
             double threshold = .0;
 
