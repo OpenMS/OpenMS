@@ -261,8 +261,7 @@ namespace OpenMS
     const set<String>& accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
     {
-      String acc_copy(acc);
-      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(acc_copy.toLower(), decoy_pattern_))
+      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos && !boost::regex_search(String(acc).toLower(), decoy_pattern_))
       {
         return false;
       }
@@ -622,34 +621,30 @@ namespace OpenMS
 
     for (const auto& pep : peps)
     {
-      const vector<PeptideHit>& hits = pep.getHits();
-      for (UInt i = 0; i < number_of_hits; ++i)
+      if (pep.getHits().empty())  continue;
+
+      const PeptideHit& hit = pep.getHits()[0];
+
+      if (!hit.metaValueExists("target_decoy"))
       {
-        const PeptideHit& hit = hits[i];
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
+      }
+      if (hit.getMetaValue("target_decoy") == "decoy") continue; // skip if the hit is a decoy hit
 
-        // skip if the hit is a decoy hit
-        if (!hit.metaValueExists("target_decoy"))
+      // insert protein accessions
+      const set<String> accessions = hit.extractProteinAccessionsSet();
+      for (const String& acc : accessions)
+      {
+        if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) != String::npos) // skip novo accessions
         {
-          throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
+          continue;
         }
-        if (hit.getMetaValue("target_decoy") == "decoy") continue;
-
-        // insert protein accessions
-        const set<String> accessions = hit.extractProteinAccessionsSet();
-        for (const String& acc : accessions)
+        if (boost::regex_search(String(acc).toLower(), decoy_pattern_)) // skip decoy accessions
         {
-          String acc_copy(acc);
-          if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) != String::npos) // skip novo accessions
-          {
-            continue;
-          }
-          if (boost::regex_search(acc_copy.toLower(), decoy_pattern_)) // skip decoy accessions
-          {
-            continue;
-          }
-
-          proteins.insert(acc); // insert the rest
+          continue;
         }
+
+        proteins.insert(acc); // insert the rest
       }
     }
 
@@ -672,20 +667,9 @@ namespace OpenMS
       novo_hits_to_data[num_top_novo] = i;
     }
 
-    UInt curr_index = 0;
-    double best_diff = DBL_MAX;
-    double avg_novo_hits = Math::mean(novo_data.begin(), novo_data.end());
-    for (int i = 0; i < novo_data.size(); ++i)
-    {
-      double curr_diff = abs(novo_data[i] - avg_novo_hits);
-      if (curr_diff < best_diff)
-      {
-        best_diff = curr_diff;
-        curr_index = i;
-      }
-    }
+    double median_novo_hits = Math::median(novo_data.begin(), novo_data.end());
 
-    return data[novo_hits_to_data.at(novo_data[curr_index])];
+    return data[novo_hits_to_data.at(median_novo_hits)];
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)
