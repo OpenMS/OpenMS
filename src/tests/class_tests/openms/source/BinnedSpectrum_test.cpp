@@ -66,16 +66,19 @@ START_SECTION((BinnedSpectrum(const PeakSpectrum & ps, float size, UInt spread, 
 {
   bs1 = new BinnedSpectrum(s1, 1.5, false, 2, 0.0);
   TEST_NOT_EQUAL(bs1, nullPointer)
+  delete(bs1);
 }
 END_SECTION
 
 START_SECTION((BinnedSpectrum(const BinnedSpectrum &source)))
 {
+  bs1 = new BinnedSpectrum(s1, 1.5, false, 2, 0.0);
   BinnedSpectrum copy(*bs1);
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
   TEST_EQUAL(copy.getPrecursors().size(), 1);
   TEST_EQUAL(bs1->getPrecursors().size(), 1);
   TEST_EQUAL((UInt)copy.getPrecursors()[0].getMZ(),(UInt)bs1->getPrecursors()[0].getMZ());
+  delete(bs1;) 
 }
 END_SECTION
 
@@ -85,6 +88,7 @@ START_SECTION((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
   bs1 = new BinnedSpectrum(s1, 1.5, false, 2, 0.0);
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
   TEST_EQUAL((UInt)copy.getPrecursors()[0].getMZ(),(UInt)bs1->getPrecursors()[0].getMZ());
+  delete(bs1);
 }
 END_SECTION
 
@@ -121,6 +125,7 @@ START_SECTION((SparseVectorIndexType getBinIndex(double mz) const))
   TEST_EQUAL(bs1->getBinIndex(10.0), 230259);
   TEST_EQUAL(bs1->getBinIndex(100.0), 460519);
   TEST_EQUAL(bs1->getBinIndex(1000.0), 690778);
+  delete(bs1);
 }
 END_SECTION
 
@@ -134,6 +139,7 @@ START_SECTION((float getBinLowerMZ(size_t i) const))
   TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(10.0)), 10.0);
   TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(100.0)), 100.0);
   TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(1000.0)), 1000.0);
+  delete(bs1);
 
   BinnedSpectrum* bs2 = new BinnedSpectrum(s1, 1.0, false, 0, 0.5); // 1.0 m/z bins with 0.5 offset
   // offset ensures that floats close to nominal masses fall into same bin 
@@ -149,6 +155,7 @@ START_SECTION((float getBinLowerMZ(size_t i) const))
   TEST_REAL_SIMILAR(bs2->getBinLowerMZ(bs2->getBinIndex(9.5)), 9.5);
   TEST_REAL_SIMILAR(bs2->getBinLowerMZ(bs2->getBinIndex(99.5)), 99.5);
   TEST_REAL_SIMILAR(bs2->getBinLowerMZ(bs2->getBinIndex(999.5)), 999.5);
+  delete(bs2);
 }
 END_SECTION
 
@@ -168,6 +175,7 @@ START_SECTION((const SparseVectorType& getBins() const))
   UInt c = 0;
   for (BinnedSpectrum::SparseVectorIteratorType it(bs1->getBins()); it; ++it) { ++c; }
   TEST_EQUAL(bs1->getBins().nonZeros(), c)
+  delete(bs1);
 }
 END_SECTION
 
@@ -193,9 +201,6 @@ START_SECTION((bool BinnedSpectrum::isCompatible(const BinnedSpectrum& a, const 
 }
 END_SECTION
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-

@@ -52,17 +52,17 @@ using namespace OpenMS::Math;
 using std::stringstream;
 
 // default ctor
-BiGaussModel* ptr = nullptr;
+BiGaussModel* raw_ptr = nullptr;
 BiGaussModel* nullPointer = nullptr;
 START_SECTION((BiGaussModel()))
-	ptr = new BiGaussModel();
-        TEST_EQUAL(ptr->getName(), "BiGaussModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
+	raw_ptr = new BiGaussModel();
+  TEST_EQUAL(raw_ptr->getName(), "BiGaussModel")
+	TEST_NOT_EQUAL(raw_ptr, nullPointer)
 END_SECTION
 
 // destructor
 START_SECTION((virtual ~BiGaussModel()))
-	delete ptr;
+	delete raw_ptr;
 END_SECTION
 
 START_SECTION((static const String getProductName()))
@@ -74,6 +74,7 @@ START_SECTION( static BaseModel<1>* create() )
 	BaseModel<1>* ptr = BiGaussModel::create();
 	TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
 // assignment operator

@@ -39,6 +39,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <memory>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -49,22 +50,22 @@ START_TEST(BinnedSharedPeakCount, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BinnedSharedPeakCount* ptr = nullptr;
+BinnedSharedPeakCount* raw_ptr = nullptr;
 BinnedSharedPeakCount* nullPointer = nullptr;
 START_SECTION(BinnedSharedPeakCount())
 {
-  ptr = new BinnedSharedPeakCount();
-  TEST_NOT_EQUAL(ptr, nullPointer)
+  raw_ptr = new BinnedSharedPeakCount();
+  TEST_NOT_EQUAL(raw_ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~BinnedSharedPeakCount())
 {
-  delete ptr;
+  delete raw_ptr;
 }
 END_SECTION
 
-ptr = new BinnedSharedPeakCount();
+std::unique_ptr<Base64> ptr = std::make_unique(new BinnedSharedPeakCount); 
 
 START_SECTION((BinnedSharedPeakCount(const BinnedSharedPeakCount &source)))
 {

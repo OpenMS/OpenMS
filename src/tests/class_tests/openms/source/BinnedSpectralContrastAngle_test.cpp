@@ -39,6 +39,8 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <memory>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -49,22 +51,22 @@ START_TEST(BinnedSpectralContrastAngle, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BinnedSpectralContrastAngle* ptr = nullptr;
+BinnedSpectralContrastAngle* raw_ptr = nullptr;
 BinnedSpectralContrastAngle* nullPointer = nullptr;
 START_SECTION(BinnedSpectralContrastAngle())
 {
   ptr = new BinnedSpectralContrastAngle();
-  TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_NOT_EQUAL(raw_ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~BinnedSpectralContrastAngle())
 {
-  delete ptr;
+  delete raw_ptr;
 }
 END_SECTION
 
-ptr = new BinnedSpectralContrastAngle();
+std::unique_ptr<Base64> ptr = std::make_unique(new BinnedSpectralContrastAngle); 
 
 START_SECTION((BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle &source)))
 {

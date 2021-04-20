@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <memory>
 
 ///////////////////////////
 
@@ -54,17 +55,17 @@ using namespace OpenMS;
 
 
 // default ctor
-Base64* ptr = nullptr;
+Base64* raw_ptr = nullptr;
 Base64* nullPointer = nullptr;
 
 START_SECTION((Base64()))
-  ptr = new Base64;
-  TEST_NOT_EQUAL(ptr, nullPointer)
+  raw_ptr = new Base64;
+  TEST_NOT_EQUAL(raw_ptr, nullPointer)
 END_SECTION
 
 // destructor
 START_SECTION((virtual ~Base64()))
-  delete ptr;
+  delete raw_ptr;
 END_SECTION
 
 /*
@@ -502,7 +503,7 @@ START_SECTION((template <typename FromType> void encodeIntegers(std::vector<From
 }
 END_SECTION
 
-ptr = new Base64;
+std::unique_ptr<Base64> ptr = std::make_unique(new Base64); 
 
 START_SECTION(inline UInt32 endianize32(const UInt32& n))
   TEST_EQUAL(0, endianize32(0))  // swapping 0 should do nothing
@@ -531,6 +532,8 @@ START_SECTION(inline UInt64 endianize64(const UInt64& n))
   UInt64 r = UniqueIdGenerator::getUniqueId();
   TEST_EQUAL(r, endianize64(endianize64(r)))
 END_SECTION
+
+delete(ptr)
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
