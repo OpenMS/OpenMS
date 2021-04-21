@@ -47,7 +47,24 @@ class OPENMS_DLLAPI Deisotoper
 {
   public:
 
-  /** @brief Detect isotopic clusters in a mass spectrum.
+    // This algorithm is in parts taken from Guo Ci Teo et al, DOI: 10.1021/acs.jproteome.0c00544 
+    static void deisotopeAndSingleCharge_exp(MSSpectrum& spectrum,
+      double fragment_tolerance,
+      bool fragment_unit_ppm,
+      int min_charge = 1,
+      int max_charge = 3,
+      bool keep_only_deisotoped = false,
+      unsigned int min_isopeaks = 2,
+      unsigned int max_isopeaks = 10,
+      bool make_single_charged = true,
+      bool annotate_charge = false,
+      bool annotate_iso_peak_count = false,
+      bool use_averagine_model = true,
+      bool add_up_intensity = false,
+      bool rem_low_intensity = true, // Also removes peaks of intensity 0 as these might interfere with finding correct peaks
+      bool used_for_open_search = false);
+
+    /** @brief Detect isotopic clusters in a mass spectrum.
 
     Deisotoping is based on C13 abundance and will try to identify a simple
     model based on the C12-C13 distance and charge state. This is often a good

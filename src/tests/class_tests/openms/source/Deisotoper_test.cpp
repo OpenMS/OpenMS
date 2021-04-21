@@ -41,6 +41,8 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 
@@ -133,7 +135,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    spec_generator.setParameters(param);
    MSSpectrum theo1;
    AASequence peptide1 = AASequence::fromString("PEPTIDE");
-   spec_generator.getSpectrum(theo1, peptide1, 1, 2); // charge 1..2
+   spec_generator.getSpectrum(theo1, peptide1, 1, 2);// charge 1..2
    TEST_EQUAL(theo1.size(), 36);
    theo1.sortByPosition();
    Deisotoper::deisotopeAndSingleCharge(theo1, 
@@ -152,6 +154,161 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    MSSpectrum theo1_noiso;
    spec_generator.getSpectrum(theo1_noiso, peptide1, 1, 2); // charge 1..2
    TEST_EQUAL(theo1.size(), theo1_noiso.size()); // same number of peaks after deisotoping
+
+   // NEW ALGORTIHM TESTS
+   // spectrum with one isotopic pattern
+   MSSpectrum spec;
+   CoarseIsotopePatternGenerator gen(5);
+   IsotopeDistribution distr = gen.estimateFromPeptideWeight(700);
+   double base_mz1 = distr[0].getMZ();
+   for (auto it = distr.begin(); it != distr.end(); ++it)
+   {
+	 if (it->getIntensity() != 0)
+	 {
+	   spec.push_back(*it);
+	 }
+   }
+   spec.sortByPosition();
+   MSSpectrum theo(spec);
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true);
+
+   TEST_EQUAL(theo.size(), 1);
+   TEST_REAL_SIMILAR(theo[0].getMZ(), base_mz1);
+   
+   // Peaks before and after spectrum should not be chosen
+   // Shows a fault of the old algorithm occurring with e.g. deamination
+   double correct_monoiso = theo.getBasePeak()->getMZ();
+   double deamin_mz = spec.front().getMZ() - OpenMS::Constants::NEUTRON_MASS_U;
+   Peak1D deamin_peak = Peak1D(deamin_mz, 0.01f);
+   spec.push_back(deamin_peak);
+   spec.sortByPosition();
+   theo = spec;
+   theo1 = spec;
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true, 1, 3, true); //keep only deisotoped
+   TEST_REAL_SIMILAR(theo.front().getMZ(), correct_monoiso);
+   Deisotoper::deisotopeAndSingleCharge(theo1, 10.0, true, 1, 3, true);
+   TEST_NOT_EQUAL(theo1.front().getMZ(), correct_monoiso); // passes -> not equal
+
+   // Additional peaks that only fit m/z - wise should not disturb cluster formation
+   double add_mz = spec.back().getMZ() + OpenMS::Constants::C13C12_MASSDIFF_U;
+   Peak1D add_peak(add_mz, 2); // intensity is a lot too high to fit correct distribution
+   spec.push_back(add_peak);
+   theo = spec;
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true);
+   TEST_EQUAL(theo.size(), 3);
+   TEST_REAL_SIMILAR(theo.back().getMZ(), add_mz);
+   
+   // spectrum with two isotopic patterns
+   distr = gen.estimateFromPeptideWeight(500);
+   double base_mz2 = distr[0].getMZ();
+   for (auto it = distr.begin(); it != distr.end(); ++it)
+   {
+	 if (it->getIntensity() != 0)
+	 {
+	   it->setMZ((it->getMZ() + OpenMS::Constants::PROTON_MASS_U) / 2); // set to charge 2
+	   spec.push_back((*it));
+	 }
+   }
+   theo = spec;
+   theo.sortByPosition();
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true, 1, 3, true); // keep only deisotoped
+   TEST_EQUAL(theo.size(), 2);
+   TEST_EQUAL(theo[0].getMZ(), base_mz2);
+   TEST_EQUAL(theo[1].getMZ(), base_mz1);
+
+   // Add unassignable peaks
+   Peak1D peak1(550, 0.8f);
+   spec.push_back(peak1);
+   Peak1D peak2(600, 0.9f);
+   spec.push_back(peak2);
+   spec.sortByPosition();
+   theo = spec;
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true);
+   TEST_EQUAL(theo.size(), 6); // two spectra, one before, one after one spectrum, two unassignable peaks
+
+   // keep only deisotoped
+   theo = spec;
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true, 1, 3, true);
+   TEST_EQUAL(theo.size(), 2);
+
+   // test with complete theoretical spectrum
+   param.setValue("isotope_model", "coarse");
+   spec_generator.setParameters(param);
+   theo.clear(true);
+   spec_generator.getSpectrum(theo, peptide1, 1, 2); // charge 1..2
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true);
+   // create theoretical spectrum without isotopic peaks for comparison to the deisotoped one
+   param.setValue("isotope_model", "none");  // disable additional isotopes
+   spec_generator.setParameters(param);
+   MSSpectrum theo_noiso;
+   spec_generator.getSpectrum(theo_noiso, peptide1, 1, 2); // charge 1..2
+   TEST_EQUAL(theo.size(), theo_noiso.size()); // same number of peaks after deisotoping
+
+   // two patterns where all isotopic peaks have the same intensity
+   //MSSpectrum two_patterns;
+   two_patterns.clear(true);
+   //Peak1D p;
+   p.setIntensity(1.0);
+
+   // one charge one pattern
+   p.setMZ(100.0);
+   two_patterns.push_back(p);
+   p.setMZ(100.0 + Constants::C13C12_MASSDIFF_U);
+   two_patterns.push_back(p);
+   p.setMZ(100.0 + 2.0 * Constants::C13C12_MASSDIFF_U);
+   two_patterns.push_back(p);
+
+
+   // one charge two pattern
+   p.setMZ(200.0);
+   two_patterns.push_back(p);
+   p.setMZ(200.0 + 0.5 * Constants::C13C12_MASSDIFF_U);
+   two_patterns.push_back(p);
+   p.setMZ(200.0 + 2.0 * 0.5 * Constants::C13C12_MASSDIFF_U);
+   two_patterns.push_back(p);
+   theo = two_patterns;
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true);
+   TEST_EQUAL(theo.size(), 6); // all six peaks remain as the patterns should not be similar to averagine model
+
+   // Test with a section of actual spectrum
+   MzMLFile file;
+   PeakMap exp;
+   file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_in.mzML"), exp);
+   Size ori_size = exp.getSpectrum(0).size();
+   Deisotoper::deisotopeAndSingleCharge_exp(exp.getSpectrum(0), 10.0, true, 1, 3, true);// only keep deisotoped
+   file.store(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_out.mzML"), exp);
+
+   theo.clear(true);
+   theo = exp.getSpectrum(0);
+   Deisotoper::deisotopeAndSingleCharge(theo, 10.0, true, 1, 3, true);
+   TEST_NOT_EQUAL(exp.getSpectrum(0).size(), ori_size);
+   TEST_EQUAL(exp.getSpectrum(0), 4);
+   
+   /*
+   // ****** BENCHMARKING ****** //
+   // Generate spectra for benchmarking
+   // Generate spectrum deisotoped by original algorithm
+   file.load("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/B1.mzML", exp);
+   PeakMap exp1 = exp;
+   unsigned int count = 0;
+   std::cerr << "starting old algorithm on " << (String)exp.size() << " spectra:";
+   for (auto it = exp1.begin(); it != exp1.end(); ++it)
+   {
+	 std::cerr << "Starting spectrum number " << (String)count++;
+	 Deisotoper::deisotopeAndSingleCharge(*it, 10.0, true);
+   }
+   file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_old.mzML", exp1);
+  
+   count = 0;
+   std::cerr << "starting new algorithm on " << (String)exp.size() << " spectra:";
+   // Generate spectrum deisotoped by new algorithm
+   for (auto it = exp.begin(); it != exp.end(); ++it)
+   {
+     std::cerr << "Starting spectrum number " << (String) count++;
+	 Deisotoper::deisotopeAndSingleCharge_exp(*it, 10.0, true);
+   }
+   file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_new.mzML", exp);
+   /**/
 }
 END_SECTION
 
