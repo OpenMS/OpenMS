@@ -1017,6 +1017,8 @@ break;
                                        double *wend,
                                        double *qscores,
                                        int *charges,
+                                       int *min_charges,
+                                       int *max_charges,
                                        double *mono_masses,
                                        double *chare_cos,
                                        double *charge_snrs,
@@ -1033,6 +1035,10 @@ break;
             }
             auto peakgroup = deconvoluted_spectrum_[i];
             charges[i] = trigger_charges[i];
+            auto cr = peakgroup.getAbsChargeRange();
+            min_charges[i] = std::get<0>(cr);
+            max_charges[i] = std::get<1>(cr);
+
             auto mz_range =
                     charges[i] == peakgroup.getRepAbsCharge() ? peakgroup.getMaxQScoreMzRange() : peakgroup.getMzRange(
                             charges[i]);

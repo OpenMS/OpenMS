@@ -59,6 +59,8 @@ namespace OpenMS
                                                     double *wend,
                                                     double *qscores,
                                                     int *charges,
+                                                    int *min_charges,
+                                                    int *max_charges,
                                                     double *mono_masses,
                                                     double *chare_cos,
                                                     double *charge_snrs,
