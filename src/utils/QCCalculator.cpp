@@ -154,15 +154,13 @@ protected:
     bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
     
     // ensure output file hase valid extension
-    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
-    if (out_type == FileTypes::UNKNOWN)
-    {
-      FileHandler fh;
-      out_type = fh.getTypeByFileName(outputfile_name);
-    }
-    if (out_type != FileTypes::QCML and out_type != FileTypes::MZQC) 
-    {
+    FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(outputfile_name, getStringOption_("out_type"));
+
+    // exit early if invalid file type
+    if (out_type != FileTypes::QCML or out_type != FileTypes::MZQC)
+    { 
       cout << "Invalid output file type!" << endl;
+      return EXECUTION_OK;
     }
 
     // prepare input
