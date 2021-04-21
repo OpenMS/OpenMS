@@ -312,9 +312,9 @@ namespace OpenMS
     // internal helper struct to store a modified region
     struct ModifiedRegion
     {
-      ResidueModification* xl;
-      int first; 
-      int last;
+      ResidueModification* xl = nullptr;
+      int first = 0; 
+      int last = 0;
       bool operator<(const ModifiedRegion& rhs) const
       {
         return std::tie(first, last, *xl) < std::tie(rhs.first, rhs.last, *rhs.xl);
@@ -340,11 +340,13 @@ namespace OpenMS
 
       // create a user defined modification (at most once)
       ResidueModification* xl;
+
+      // count adduct
       const String NA = ph.getMetaValue("NuXL:NA");
       adduct2count[NA] += 1;
-      auto it = name2mod.find(NA);
-      if (it != name2mod.end())
-      {
+
+      if (auto it = name2mod.find(NA); it != name2mod.end())
+      { // mod already registered? take it
         xl = it->second;
       }
       else
@@ -366,9 +368,8 @@ namespace OpenMS
 
         bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
 
-        // not localized? annotate region
         if (best_localization < 0)
-        {
+        { // not localized? annotate region
           ModifiedRegion mr;
           mr.xl = xl;
           mr.first = ph_evidence.getStart();
@@ -382,14 +383,16 @@ namespace OpenMS
             modified_region_xls_decoys[acc][mr]++;
           }
         }
-
-        // retrieve protein the evidence points to
-        ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
-        if (xl_pos_in_protein < (int)protein->getSequence().size())
+        else
         {
-          auto mods = protein->getModifications();  // TODO: add mutable reference access
-          mods.AALevelSummary[xl_pos_in_protein][xl].count++;
-          protein->setModifications(mods);
+          // localized? retrieve protein the evidence points to and set position as cross-linked
+          ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
+          if (xl_pos_in_protein < (int)protein->getSequence().size())
+          {
+            auto mods = protein->getModifications();  // TODO: add mutable reference access
+            mods.AALevelSummary[xl_pos_in_protein][xl].count++;
+            protein->setModifications(mods);
+          }
         }
       }
     }
@@ -401,7 +404,7 @@ namespace OpenMS
 
     map<char, double> aa2background_freq; // AA background distribution for normalization
 
-    struct  AALevelLocalization
+    struct AALevelLocalization
     {
       String NA;
       String AA;
@@ -431,6 +434,7 @@ namespace OpenMS
     for (const ProteinIdentification& prot_id : prot_ids)
     { 
       const vector<ProteinHit>& phs = prot_id.getHits();
+
       for (const ProteinHit& protein : phs)
       { // for all identified proteins
         const String& acc = protein.getAccession();        
@@ -466,14 +470,21 @@ namespace OpenMS
 
         if (!position2psm_count.empty())
         {       
-          for (const auto p2psm : position2psm_count)
+          for (const auto& [pos, psm_count] : position2psm_count)
           {
-            while (p < p2psm.first) { annotated_sequence += seq[p]; ++p; }
+            while (p < pos) 
+            { 
+              annotated_sequence += seq[p]; 
+              ++p;
+            }
             // p now points to the modified AA
-            annotated_sequence += String("[") + seq[p] + String(p2psm.first + 1) + "," + String(p2psm.second) + "]";
+            annotated_sequence += String("[") + seq[p] + String(pos + 1) + "," + String(psm_count) + "]";
             ++p;
           }
-          while (p < seq.size()) { annotated_sequence += seq[p]; ++p; } // output AAs after last modification
+          while (p < seq.size()) 
+          { // output AAs after last modification
+            annotated_sequence += seq[p]; ++p; 
+          }
           e.annotated_sequence = annotated_sequence;
         }
         else
