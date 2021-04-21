@@ -1929,7 +1929,6 @@ namespace OpenMS
           qp.name = "number of identified features"; ///< Name
         }
         addRunQualityParameter(base_name, qp);
-
       }
       else if (inputfile_feature != "" && remove_duplicate_features)
       {
@@ -2038,7 +2037,6 @@ namespace OpenMS
 
   void QcMLFile::store(const String& filename) const 
   {
-
     //~ startProgress(0, 0, "storing qcML file");
     //~ progress_ = 0;
     //~ setProgress(++progress_);

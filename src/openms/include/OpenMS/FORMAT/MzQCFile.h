@@ -67,6 +67,5 @@ namespace OpenMS
                const String& contact_address,
                const String& description,
                const String& label) const;
-
   };
 }
