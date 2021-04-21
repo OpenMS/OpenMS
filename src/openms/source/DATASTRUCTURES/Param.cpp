@@ -36,8 +36,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <fstream>
-
 namespace OpenMS
 {
 
@@ -49,8 +47,8 @@ namespace OpenMS
     tags(),
     min_float(-std::numeric_limits<double>::max()),
     max_float(std::numeric_limits<double>::max()),
-    min_int(-std::numeric_limits<Int>::max()),
-    max_int(std::numeric_limits<Int>::max()),
+    min_int(-std::numeric_limits<int>::max()),
+    max_int(std::numeric_limits<int>::max()),
     valid_strings()
   {
   }
@@ -62,12 +60,12 @@ namespace OpenMS
     tags(),
     min_float(-std::numeric_limits<double>::max()),
     max_float(std::numeric_limits<double>::max()),
-    min_int(-std::numeric_limits<Int>::max()),
-    max_int(std::numeric_limits<Int>::max()),
+    min_int(-std::numeric_limits<int>::max()),
+    max_int(std::numeric_limits<int>::max()),
     valid_strings()
   {
     //add tags
-    for (Size i = 0; i < t.size(); ++i)
+    for (size_t i = 0; i < t.size(); ++i)
     {
       tags.insert(t[i]);
     }
@@ -114,7 +112,7 @@ namespace OpenMS
     {
       std::string str_value;
       std::vector<std::string> ls_value = value;
-      for (Size i = 0; i < ls_value.size(); ++i)
+      for (size_t i = 0; i < ls_value.size(); ++i)
       {
         str_value = ls_value[i];
 
@@ -145,8 +143,8 @@ namespace OpenMS
     }
     else if (value.valueType() == ParamValue::INT_VALUE)
     {
-      Int tmp = value;
-      if ((min_int != -std::numeric_limits<Int>::max() && tmp < min_int) || (max_int != std::numeric_limits<Int>::max() && tmp > max_int))
+      int tmp = value;
+      if ((min_int != -std::numeric_limits<int>::max() && tmp < min_int) || (max_int != std::numeric_limits<int>::max() && tmp > max_int))
       {
         message = "Invalid integer parameter value '" + std::to_string(tmp) + "' for parameter '" + name + "' given! The valid range is: [" + std::to_string(min_int) + ":" + std::to_string(max_int) + "].";
         return false;
@@ -156,12 +154,12 @@ namespace OpenMS
     {
       int int_value;
       std::vector<int> ls_value = value;
-      for (Size i = 0; i < ls_value.size(); ++i)
+      for (size_t i = 0; i < ls_value.size(); ++i)
       {
         int_value = ls_value[i];
-        if ((min_int != -std::numeric_limits<Int>::max() && int_value < min_int) || (max_int != std::numeric_limits<Int>::max() && int_value > max_int))
+        if ((min_int != -std::numeric_limits<int>::max() && int_value < min_int) || (max_int != std::numeric_limits<int>::max() && int_value > max_int))
         {
-          message = String("Invalid integer parameter value '") + int_value + "' for parameter '" + name + "' given! The valid range is: [" + min_int + ":" + max_int + "].";
+          message = "Invalid integer parameter value '" + std::to_string(int_value) + "' for parameter '" + name + "' given! The valid range is: [" + std::to_string(min_int) + ":" + std::to_string(max_int) + "].";
           return false;
         }
       }
@@ -171,19 +169,19 @@ namespace OpenMS
       double tmp = value;
       if ((min_float != -std::numeric_limits<double>::max() && tmp < min_float) || (max_float != std::numeric_limits<double>::max() && tmp > max_float))
       {
-        message = String("Invalid double parameter value '") + tmp + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
+        message = "Invalid double parameter value '" + std::to_string(tmp) + "' for parameter '" + name + "' given! The valid range is: [" + std::to_string(min_float)+ ":" + std::to_string(max_float) + "].";
         return false;
       }
     }
     else if (value.valueType() == ParamValue::DOUBLE_LIST)
     {
       std::vector<double> ls_value = value;
-      for (Size i = 0; i < ls_value.size(); ++i)
+      for (size_t i = 0; i < ls_value.size(); ++i)
       {
         double dou_value = ls_value[i];
         if ((min_float != -std::numeric_limits<double>::max() && dou_value < min_float) || (max_float != std::numeric_limits<double>::max() && dou_value > max_float))
         {
-          message = String("Invalid double parameter value '") + dou_value + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
+          message = "Invalid double parameter value '" + std::to_string(dou_value) + "' for parameter '" + name + "' given! The valid range is: [" + std::to_string(min_float) + ":" + std::to_string(max_float) + "].";
           return false;
         }
       }
@@ -227,14 +225,14 @@ namespace OpenMS
       return false;
 
     //order of sections / entries should not matter
-    for (Size i = 0; i < entries.size(); ++i)
+    for (size_t i = 0; i < entries.size(); ++i)
     {
       if (find(rhs.entries.begin(), rhs.entries.end(), entries[i]) == rhs.entries.end())
       {
         return false;
       }
     }
-    for (Size i = 0; i < nodes.size(); ++i)
+    for (size_t i = 0; i < nodes.size(); ++i)
     {
       if (find(rhs.nodes.begin(), rhs.nodes.end(), nodes[i]) == rhs.nodes.end())
       {
@@ -291,12 +289,12 @@ namespace OpenMS
     else // we are in the right child
     {
         //check if a node or entry prefix match
-        for (Size i = 0; i < nodes.size(); ++i)
+        for (size_t i = 0; i < nodes.size(); ++i)
         {
             if (nodes[i].name.compare(0, local_name.size(), local_name) == 0)
                 return this;
         }
-        for (Size i = 0; i < entries.size(); ++i)
+        for (size_t i = 0; i < entries.size(); ++i)
         {
             if (entries[i].name.compare(0, local_name.size(), local_name) == 0)
                 return this;
@@ -418,9 +416,9 @@ namespace OpenMS
     }
   }
 
-  Size Param::ParamNode::size() const
+  size_t Param::ParamNode::size() const
   {
-    Size subnode_size = 0;
+    size_t subnode_size = 0;
     for (std::vector<ParamNode>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
       subnode_size += it->size();
@@ -430,7 +428,7 @@ namespace OpenMS
 
   std::string Param::ParamNode::suffix(const std::string& key) const
   {
-      Size pos = key.rfind(':');
+    size_t pos = key.rfind(':');
     if (pos != std::string::npos)
     {
       return key.substr(++pos);
@@ -475,7 +473,7 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     //check for commas
-    for (Size i = 0; i < strings.size(); ++i)
+    for (size_t i = 0; i < strings.size(); ++i)
     {
       if (strings[i].find(',') != std::string::npos)
       {
@@ -485,7 +483,7 @@ namespace OpenMS
     entry.valid_strings = strings;
   }
 
-  void Param::setMinInt(const std::string& key, Int min)
+  void Param::setMinInt(const std::string& key, int min)
   {
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != ParamValue::INT_VALUE && entry.value.valueType() != ParamValue::INT_LIST)
@@ -495,7 +493,7 @@ namespace OpenMS
     entry.min_int = min;
   }
 
-  void Param::setMaxInt(const std::string& key, Int max)
+  void Param::setMaxInt(const std::string& key, int max)
   {
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != ParamValue::INT_VALUE && entry.value.valueType() != ParamValue::INT_LIST)
@@ -1029,7 +1027,7 @@ namespace OpenMS
     return os;
   }
 
-  Size Param::size() const
+  size_t Param::size() const
   {
     return root_.size();
   }
@@ -1189,7 +1187,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
                 !(suffix.length() > it.getName().length()) &&
                 it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
-          SignedSize first = it.getName().find(':');
+          ptrdiff_t first = it.getName().find(':');
           if (it.getName().find(':', first+1) != std::string::npos) 
           {
             if (this->getValue(it.getName()) != it->value) 
@@ -1323,12 +1321,12 @@ OPENMS_THREAD_CRITICAL(oms_log)
   void Param::merge(const OpenMS::Param& toMerge)
   {
     // keep track of the path inside the param tree
-    String pathname;
+    std::string pathname;
 
     // augment
     for (Param::ParamIterator it = toMerge.begin(); it != toMerge.end(); ++it)
     {
-      String prefix = "";
+      std::string prefix = "";
       if (it.getName().find(':') != std::string::npos)
         prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
 
@@ -1352,7 +1350,8 @@ OPENMS_THREAD_CRITICAL(oms_log)
         else
         {
           OPENMS_LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
-          if (pathname.hasSuffix(traceIt->name + ":"))
+          std::string suffix = traceIt->name + ":";
+          if (suffix.size() <= pathname.size() && pathname.compare(pathname.size() - suffix.size(), suffix.size(), suffix) == 0)
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
         }
         std::string real_pathname = pathname.substr(0, pathname.size() - 1);//remove ':' at the end
@@ -1441,7 +1440,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return &(stack_.back()->entries[current_]);
   }
 
-  Param::ParamIterator Param::ParamIterator::operator++(Int)
+  Param::ParamIterator Param::ParamIterator::operator++(int)
   {
     ParamIterator tmp(*this);
     ++(*this);
@@ -1461,7 +1460,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
       //cout << "############ operator++ #### " << node->name << " ## " << current_ <<endl;
 
       //check if there is a next entry in the current node
-      if (current_ + 1 < (Int)node->entries.size())
+      if (current_ + 1 < (int)node->entries.size())
       {
         //cout << " - next entry" <<endl;
         ++current_;
@@ -1503,7 +1502,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           trace_.push_back(TraceInfo(last->name, last->description, false));
 
           //check of new subtree is accessible
-          UInt next_index = (last - &(node->nodes[0])) + 1;
+          unsigned int next_index = (last - &(node->nodes[0])) + 1;
           if (next_index < node->nodes.size())
           {
             current_ = -1;
@@ -1565,7 +1564,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
   void Param::addTags(const std::string& key, const std::vector<std::string>& tags)
   {
     ParamEntry& entry = getEntry_(key);
-    for (Size i = 0; i != tags.size(); ++i)
+    for (size_t i = 0; i != tags.size(); ++i)
     {
       if (tags[i].find(',') != std::string::npos)
       {
