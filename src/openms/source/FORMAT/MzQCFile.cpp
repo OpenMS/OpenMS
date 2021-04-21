@@ -127,20 +127,23 @@ namespace OpenMS
     // MZ acquisition range
     addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
 
-    if (tic.isRunnable(status) and !exp.getTIC().empty())
+    if (tic.isRunnable(status))
     {
       auto result = tic.compute(exp);
-      json chrom;
-      chrom["Relative intensity"] = result.intensities;
-      chrom["Retention time"] = result.retention_times;
-      // Total ion current chromatogram
-      addMetric("QC:4000067", chrom);
-      // Area under TIC
-      addMetric("QC:4000077", result.area);
-      // MS1 signal jump (10x) count
-      addMetric("QC:4000172", result.jump);
-      // MS1 signal fall (10x) count
-      addMetric("QC:4000173", result.fall);
+      if (!result.intensities.empty())
+      {
+        json chrom;
+        chrom["Relative intensity"] = result.intensities;
+        chrom["Retention time"] = result.retention_times;
+        // Total ion current chromatogram
+        addMetric("QC:4000067", chrom);
+        // Area under TIC
+        addMetric("QC:4000077", result.area);
+        // MS1 signal jump (10x) count
+        addMetric("QC:4000172", result.jump);
+        // MS1 signal fall (10x) count
+        addMetric("QC:4000173", result.fall);
+      }
     }
 
     // ---------------------------------------------------------------

@@ -90,7 +90,6 @@ namespace OpenMS
     for (Size i = 0; i < tics.size(); ++i)
     {
       if (tics[i].intensities.empty()) continue; // no MS1 spectra
-
       MzTabParameter tic{};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");
