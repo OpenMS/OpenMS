@@ -48,16 +48,16 @@ namespace OpenMS
       }
       const double th = 2;
       //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-      const std::vector<double> weights({0.3523, -1.7273, -21.0409, -0.2962, -0.3998, 0.212, 21.2338});
+      const std::vector<double> weights({0.2445, -1.5979, -23.9211, -0.07, -0.6011, 0.2085, 24.0713});
       const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
-      //ChargeCos        0.3523
-      //ChargeSNR       -1.7273
-      //Cos            -21.0409
-      //SNR             -0.2962
-      //ChargeScore     -0.3998
-      //AvgPPMerror       0.212
-      //Intercept       21.2338
+      //ChargeCos        0.2445
+      //ChargeSNR       -1.5979
+      //Cos            -23.9211
+      //SNR               -0.07
+      //ChargeScore     -0.6011
+      //AvgPPMerror      0.2085
+      //Intercept       24.0713
 
       double score = weights[weights.size() - 1];
       auto fv = toFeatureVector_(pg, abs_charge);
