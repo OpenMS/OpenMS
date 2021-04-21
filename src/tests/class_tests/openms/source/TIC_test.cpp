@@ -73,25 +73,13 @@ START_SECTION(void compute(const MSExperiment &exp, float bin_size))
   // very simple test ATM, since the computation is simply exp.getTIC(bin_size);
   MSExperiment exp;
   exp.setSpectra( { MSSpectrum() });
-  TIC tic;
-  tic.compute(exp, 0);
-  auto r = tic.getResults();
-  TEST_EQUAL(r.size(), 1);
-  ABORT_IF(r[0].size() != 1); // one intensity per input spectrum
-  ABORT_IF(r[0][0].getIntensity() != 0); // empty spectrum
-END_SECTION
-
-START_SECTION(vector<MSChromatogram> getResults() const)
-  NOT_TESTABLE // tested above
+  auto r = tic.compute(exp, 0);
+  ABORT_IF(!r.intensities.empty()); // empty spectrum
 END_SECTION
 
 START_SECTION(void clear())
-  TIC tic;
   MSExperiment exp2;
   tic.compute(exp2);
-  TEST_EQUAL(tic.getResults().empty(), false);
-  tic.clear();
-  TEST_EQUAL(tic.getResults().empty(), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

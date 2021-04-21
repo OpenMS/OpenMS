@@ -41,17 +41,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  /// Reset
-  void TIC::clear()
-  {
-    results_.clear();
-  }
-
   TIC::Result TIC::compute(const MSExperiment& exp, float bin_size)
   {
-    results_.push_back(exp.getTIC(bin_size));
-    struct Result result;
-    const MSChromatogram& tic = exp.getTIC();
+    TIC::Result result;
+    MSChromatogram tic = exp.getTIC(bin_size);
     if (!tic.empty())
     {
       for (const auto& p : tic)
@@ -83,12 +76,6 @@ namespace OpenMS
   {
     return name_;
   }
-  
-  /// Returns all results calculated with compute.
-  const std::vector<MSChromatogram>& TIC::getResults() const
-  {
-    return results_;
-  }
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
@@ -97,23 +84,22 @@ namespace OpenMS
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
 
-  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta)
+  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta, vector<TIC::Result>& tics)
   {
     // Adding TIC information to meta data
-    const auto& tics = this->getResults();
     for (Size i = 0; i < tics.size(); ++i)
     {
-      if (tics[i].empty()) continue; // no MS1 spectra
+      if (tics[i].intensities.empty()) continue; // no MS1 spectra
 
       MzTabParameter tic{};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");
       tic.setName("TIC_" + String(i + 1));
       String value("[");
-      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
-      for (Size j = 1; j < tics[i].size(); ++j)
+      value += String(tics[i].retention_times[0], false) + ", " + String((UInt64)tics[i].intensities[0]);
+      for (Size j = 1; j < tics[i].intensities.size(); ++j)
       {
-        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
+        value += ", " + String(tics[i].retention_times[j], false) + ", " + String((UInt64)tics[i].intensities[j]);
       }
       value += "]";
       tic.setValue(value);

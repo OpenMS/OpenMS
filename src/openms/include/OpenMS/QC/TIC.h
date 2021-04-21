@@ -60,7 +60,6 @@ namespace OpenMS
 
     /// Destructor
     virtual ~TIC() = default;
-    void clear();
 
     /**
     @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
@@ -89,10 +88,10 @@ namespace OpenMS
     QCBase::Status requires() const override;
 
     /// append QC data for given metrics to mzTab's MTD section
-    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);
 
   private:
     const String name_ = "TIC";
-    std::vector<MSChromatogram> results_;
+    Result result;
   };
 }
