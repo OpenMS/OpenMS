@@ -194,7 +194,7 @@ protected:
         fd_defaults.setValue("min_intensity", .0, "intensity threshold");
         fd_defaults.addTag("min_intensity", "advanced");
         fd_defaults.setValue("min_isotope_cosine",
-                             DoubleList{.8, .9},
+                             DoubleList{.8, .8},
                              "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
         //fd_defaults.addTag("min_isotope_cosine_", "advanced");
 

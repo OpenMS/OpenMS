@@ -1017,12 +1017,12 @@ namespace OpenMS {
 
         scoreAndFilterPeakGroups_();
 
-        //if (ms_level_ == 1) {
-        //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
-        removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1]);
-        // } else {
-        //removeOverlappingPeakGroupsWithNominalMass_();
-        //  }
+        if (ms_level_ == 1) {
+            //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
+            removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1]);
+            // } else {
+            //removeOverlappingPeakGroupsWithNominalMass_();
+        }
 
         if (ms_level_ == 1) {
             while (!prev_rt_vector_.empty() &&
