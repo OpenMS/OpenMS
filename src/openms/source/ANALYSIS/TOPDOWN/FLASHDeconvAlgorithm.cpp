@@ -382,7 +382,7 @@ namespace OpenMS {
         // intensity change ratio should not exceed the factor.
         const float factor = 5.0;
         const float hfactor = 1.1;
-        const int low_charge = 6;
+        const int low_charge = 7;
         while (mz_bin_index != mz_bins_.npos) {
             float intensity = mz_intensities[mz_bin_index];
             double mz = -1.0, log_mz = 0;
@@ -1017,12 +1017,12 @@ namespace OpenMS {
 
         scoreAndFilterPeakGroups_();
 
-        if (ms_level_ == 1) {
-            //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
-            removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1]);
-        } else {
-            removeOverlappingPeakGroupsWithNominalMass_();
-        }
+        //if (ms_level_ == 1) {
+        //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
+        removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1]);
+        // } else {
+        //removeOverlappingPeakGroupsWithNominalMass_();
+        //  }
 
         if (ms_level_ == 1) {
             while (!prev_rt_vector_.empty() &&
@@ -1449,11 +1449,11 @@ namespace OpenMS {
         }
         deconvoluted_spectrum_.swap(filtered_peak_groups);
 
-        if (ms_level_ > 1) {
-            filterPeakGroupsByIsotopeCosine_(max_c);
-        } else {
-            filterPeakGroupsByQScore_(max_c);
-        }
+        //if (ms_level_ > 1) {
+        filterPeakGroupsByIsotopeCosine_(max_c);
+        //} else {
+        //    filterPeakGroupsByQScore_(max_c);
+        //}
         triggeredMzs.clear();
     }
 
@@ -1625,7 +1625,7 @@ namespace OpenMS {
                     if (!select || pgo.getMonoMass() - pg.getMonoMass() > off + mass_tolerance) {
                         break;
                     }
-                    select &= pg.getQScore() > pgo.getQScore();
+                    select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
                 }
             }
 
@@ -1646,7 +1646,7 @@ namespace OpenMS {
                     if (!select || pg.getMonoMass() - pgo.getMonoMass() > off + mass_tolerance) {
                         break;
                     }
-                    select &= pg.getQScore() > pgo.getQScore();
+                    select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
                 }
             }
             if (!select) {
