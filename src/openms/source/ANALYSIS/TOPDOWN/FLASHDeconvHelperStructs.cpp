@@ -45,40 +45,26 @@ namespace OpenMS {
             mass_interval_(delta), min_mass_(min_mass) {
         int i = 0;
         while (true) {
-            double mass_delta = i * mass_interval_;
+            double mass = i * mass_interval_;
             i++;
-            if (mass_delta < min_mass) {
+            if (mass < min_mass) {
                 continue;
             }
-            if (mass_delta > max_mass) {
+            if (mass > max_mass) {
                 break;
             }
             auto iso = use_RNA_averagine ?
-                       generator->estimateFromRNAWeight(mass_delta) :
-                       generator->estimateFromPeptideWeight(mass_delta);
-            const double factor = .05;
-            const int min_iso_count = 3;
-            double threshold = .0;
+                       generator->estimateFromRNAWeight(mass) :
+                       generator->estimateFromPeptideWeight(mass);
 
-            if (iso.size() > min_iso_count) {
-                std::vector<double> iso_intensities;
-                iso_intensities.reserve(iso.size());
-                for (Size k = 0; k < iso.size(); k++) {
-                    iso_intensities.push_back(iso[k].getIntensity());
-                }
-                std::sort(iso_intensities.rbegin(), iso_intensities.rend());
-                threshold =
-                        std::min(iso_intensities[min_iso_count], iso.getMostAbundant().getIntensity() * factor) - 1e-5;
-            }
-
-            iso.trimRight(threshold);
-
-            double norm = .0;
+            const double min_pwr = .995;
+            const Size min_iso_length = 3;
+            double total_pwr = .0;
             int most_abundant_index_ = 0;
             double most_abundant_int = 0;
 
             for (Size k = 0; k < iso.size(); k++) {
-                norm += iso[k].getIntensity() * iso[k].getIntensity();
+                total_pwr += iso[k].getIntensity() * iso[k].getIntensity();
                 if (most_abundant_int >= iso[k].getIntensity()) {
                     continue;
                 }
@@ -86,32 +72,53 @@ namespace OpenMS {
                 most_abundant_index_ = k;
             }
 
-            Size left_count = most_abundant_index_;
-            for (Size k = 0; k <= most_abundant_index_; k++) {
-                if (iso[k].getIntensity() > threshold) {
+            Size left_count = 0;
+            Size right_count = iso.size() - 1;
+            int trim_count = 0;
+            while (iso.size() - trim_count > min_iso_length) {
+                double lint = iso[left_count].getIntensity();
+                double rint = iso[right_count].getIntensity();
+                double pwr;
+                bool trim_left = true;
+                if (lint < rint) {
+                    pwr = lint * lint;
+                } else {
+                    pwr = rint * rint;
+                    trim_left = false;
+                }
+                if (total_pwr - pwr < total_pwr * min_pwr) {
                     break;
                 }
-                norm -= iso[k].getIntensity() * iso[k].getIntensity();
-                left_count--;
-                iso[k].setIntensity(0);
+                total_pwr -= pwr;
+                trim_count++;
+                if (trim_left) {
+                    iso[left_count].setIntensity(0);
+                    left_count++;
+                } else {
+                    iso[right_count].setIntensity(0); // for trimming
+                    right_count--;
+                }
             }
+            left_count = most_abundant_index_ - left_count;
+            right_count = right_count - most_abundant_index_;
+            iso.trimRight(1e-10);
 
-            Size right_count = iso.size() - 1 - most_abundant_index_;
-            /*for (Size k = iso.size() - 1; k >= most_abundant_index; k--)
-            {
-              if (iso[k].getIntensity() > most_abundant_int * factor)
-              {
-                break;
-              }
-              norm -= iso[k].getIntensity() * iso[k].getIntensity();
-              right_count--;
-              iso[k].setIntensity(0);
-            }*/
+            for (Size k = 0; k < iso.size(); k++) {
+                double ori_int = iso[k].getIntensity();
+                iso[k].setIntensity(ori_int / sqrt(total_pwr));
+            }
+/*
+            std::cout<<"iso"<<mass<<"=[";
+            for (int j = 0; j <iso.size(); ++j) {
+                std::cout<<iso[j].getIntensity()<<",";
+            }
+            std::cout<<"];"<<std::endl;
+*/
             apex_index_.push_back(most_abundant_index_);
             right_count_from_apex_.push_back(right_count + 1);
             left_count_from_apex_.push_back(left_count + 1);
             average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
-            norms_.push_back(norm);
+            //norms_.push_back(total_pwr);
             isotopes_.push_back(iso);
         }
     }
@@ -127,11 +134,11 @@ namespace OpenMS {
     }
 
 
-    double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(const double mass) const {
-        Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-        i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-        return norms_[i];
-    }
+    //double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(const double mass) const {
+    //    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
+    //    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
+    //    return norms_[i];
+    //}
 
     Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftCountFromApex(const double mass) const {
         Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);

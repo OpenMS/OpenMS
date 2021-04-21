@@ -316,7 +316,7 @@ namespace OpenMS
                              const IsotopeDistribution &b,
                              const int &b_size,
                              //const double &a_norm,
-                             const double &b_norm,
+            //const double &b_norm,
                              const int offset);
   };
 }

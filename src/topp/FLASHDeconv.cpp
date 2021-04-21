@@ -266,12 +266,11 @@ protected:
     out_train_file = getStringOption_("out_train");
     fstream fi_out;
     fi_out.open(in_file + ".txt", fstream::out); //
-    fstream fi_m, fi_m2;
-    auto fi_m_str(in_file);
+    fstream fi_m;
+      auto fi_m_str(in_file);
     std::replace( fi_m_str.begin(), fi_m_str.end(), '_', 't');
       std::replace( fi_m_str.begin(), fi_m_str.end(), '.', 'd');
     fi_m.open(fi_m_str + ".m", fstream::out);
-    fi_m2.open(fi_m_str + "2.m", fstream::out);
     #endif
 
     fstream out_stream, out_train_stream, out_promex_stream;
@@ -572,76 +571,43 @@ protected:
 
       map = ensemble_map;
     }
-    // Run FLASHDeconv here
+      // Run FLASHDeconv here
 
-    int scan_number = 0;
-    float prev_progress = .0;
+      int scan_number = 0;
+      float prev_progress = .0;
       int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
       const int max_num_last_deconvoluted_spectra = std::max(10, num_last_deconvoluted_spectra * 2);
       auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
-    //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
+      //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 #ifdef DEBUG_EXTRA_PARAMTER
-    std::set<int> m_scans;
-      std::set<int> m2_scans;
-
-      if (!in_train_file.empty()) {
-          std::map<String, int> freq;
-
-          std::map<int, double> eval;
-          for (auto &item: top_pic_map) {
-              auto &acc = item.second.protein_acc_;
-              auto proid = item.second.proteform_id_;
-              if (eval.find(proid) == eval.end() || eval[proid] > item.second.e_value_) {
-                  eval[proid] = item.second.e_value_;
-                  continue;
-              }
-          }
-
-          for (auto &item: top_pic_map) {
-              auto &acc = item.second.protein_acc_;
-              auto proid = item.second.proteform_id_;
-              if (eval[proid] != item.second.e_value_) {
-                  continue;
-              }
-
-              if (freq.find(acc) == freq.end()) {
-                  freq[acc] = 1;
-                  continue;
-              }
-              freq[acc]++;
-          }
-          std::vector<int> freqv;
-          for (auto &item: freq) {
-              freqv.push_back(item.second);
-          }
-          std::sort(freqv.rbegin(), freqv.rend());
-          int threshold = freqv[6];
-          std::map<String, double> acc_eval;
-          for (auto &item: top_pic_map) {
-              auto &acc = item.second.protein_acc_;
-              auto proid = item.second.proteform_id_;
-
-              if (freq[acc] < threshold) {
-                  continue;
-              }
-
-              if (eval[proid] != item.second.e_value_) {
-                  continue;
-              }
-
-              m2_scans.insert(item.first);
-          }
-      }
+      // TODO
+      std::set<int> m_scans{6314, 6326, 6404, 6626, 6596, 6236, 6572, 6296, 6410, 6578, 6212, 6344, 6326, 6248, 6530,
+                            6332, 6374, 6338, 6314, 6356, 6476, 6482, 6368, 6542, 6356, 6457, 6534, 6541, 6709, 6493,
+                            6691, 6601, 6493, 6673, 6534, 6450, 6481, 6457, 6367, 6667, 6487, 6463, 6619, 6439, 6355,
+                            6577, 6511, 6457, 6478, 6262, 6400, 6394, 6292, 6664, 6430, 6441, 6430, 6262, 6634, 6412,
+                            6622, 6358, 6640, 6532, 6502, 6502, 6358, 6460, 6478, 6364, 6532, 6394, 6604, 6370, 6238,
+                            9940, 10129, 10050, 9886, 10176, 10008, 10008, 10199, 9995, 9776, 10134, 9885, 10068, 9948,
+                            9940, 10092, 10074, 9912, 10026, 9900, 9894, 10057, 10109, 10117, 9960, 9818, 10200, 9918,
+                            10170, 9948, 9908, 10141, 10177, 10058, 10195, 10069, 9942, 10141, 10201, 10129, 9896, 9925,
+                            10099, 9730, 10147, 9800, 10147, 11144, 11310, 10964, 10964, 11096, 11238, 11020, 11032,
+                            11322, 11032, 11280, 10997, 11146, 11134, 11134, 11056, 10912, 11322, 11232, 11249, 11050,
+                            10890, 11044, 11308, 11179, 11143, 10898, 11099, 11191, 11279, 10993, 11024, 8426, 8486,
+                            7892, 7982, 7850, 8444, 8042, 8012, 8576, 7946, 8102, 8353, 8395, 8210, 8383, 7970, 7658,
+                            8617, 8011, 8611, 8106, 8575, 8377, 8106, 8095, 7813, 8311, 8155, 7789, 8623, 8683, 8539,
+                            8344, 8416, 7900, 8447, 8134, 8507, 8471, 7894, 7906, 7810, 7954, 8110, 7660, 7996, 6536,
+                            15689, 16039, 15565, 16902, 15745, 15675, 15547, 6272, 6554, 15358, 16404, 6572, 15774,
+                            16685, 15968, 16051, 15236, 16122, 15985, 15511, 15529, 15713, 15630, 16206, 6781, 15469,
+                            15258, 6391, 15962, 15529, 6586, 15479, 15919, 16593, 15492, 15900, 15617, 16179, 15444,
+                            16348, 6286, 15931, 15162, 16236, 15997, 16000};
 #endif
-    MSExperiment exp;
+      MSExperiment exp;
 
-    auto fd = FLASHDeconvAlgorithm();
-    Param fd_param = getParam_().copy("Algorithm:", true);
-    //fd_param.setVa˘lue("tol", getParam_().getValue("tol"));
-    if (ensemble)
-    {
-      fd_param.setValue("min_rt", .0);
-      fd_param.setValue("max_rt", .0);
+      auto fd = FLASHDeconvAlgorithm();
+      Param fd_param = getParam_().copy("Algorithm:", true);
+      //fd_param.setVa˘lue("tol", getParam_().getValue("tol"));
+      if (ensemble) {
+          fd_param.setValue("min_rt", .0);
+          fd_param.setValue("max_rt", .0);
     }
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
@@ -769,11 +735,6 @@ protected:
                             top_pic_map[scan_number].e_value_,
                             avg, out_train_stream, write_detail_qscore_att);
 
-#ifdef DEBUG_EXTRA_PARAMTER
-          if(m2_scans.find(scan_number) != m2_scans.end()) {
-              m_scans.insert(deconvoluted_spectrum.getPrecursorScanNumber());
-          }
-#endif
       }
 
 
@@ -902,7 +863,6 @@ protected:
     }
 
 #ifdef DEBUG_EXTRA_PARAMTER
-    int cntr = 0;
 
       for (auto it = map.begin(); it != map.end(); ++it) {
 
@@ -910,9 +870,6 @@ protected:
                                                           map.getSourceFiles()[0].getNativeIDTypeAccession());
 
           if(m_scans.find(scan_number) == m_scans.end()){
-              continue;
-          }
-          if(cntr++ % 2 == 1){
               continue;
           }
           fi_m << "Spec{" << scan_number << "}=[";
@@ -922,28 +879,9 @@ protected:
           fi_m << "];";
 
       }
-      cntr = 0;
-      for (auto it = map.begin(); it != map.end(); ++it) {
-
-          scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
-                                                          map.getSourceFiles()[0].getNativeIDTypeAccession());
-
-          if(m_scans.find(scan_number) == m_scans.end()){
-              continue;
-          }
-          if(cntr++ % 2 == 0){
-              continue;
-          }
-          fi_m2 << "Spec{" << scan_number << "}=[";
-          for (auto &p : *it) {
-              fi_m2 << p.getMZ() << "," << std::setprecision(2)<< p.getIntensity() <<std::setprecision(-1)<< "\n";
-          }
-          fi_m2 << "];";
-      }
 
       fi_out.close(); //
     fi_m.close();
-    fi_m2.close();
 #endif
     out_stream.close();
 

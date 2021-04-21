@@ -1060,7 +1060,7 @@ namespace OpenMS {
                                             const IsotopeDistribution &b,
                                             const int &b_size,
             //const double &a_norm,
-                                            const double &b_norm,
+            //const double &b_norm,
                                             const int offset) {
         double n = .0, a_norm = .0;
         //int c = 0;
@@ -1072,7 +1072,7 @@ namespace OpenMS {
             a_norm += a[j] * a[j];
             n += a[j] * b[i].getIntensity(); //
         }
-        double d = (a_norm * b_norm);
+        double d = (a_norm);
         if (d <= 0) {
             return 0;
         }
@@ -1107,7 +1107,7 @@ namespace OpenMS {
                                                                           int &offset,
                                                                           const PrecalculatedAveragine &avg) {
         auto iso = avg.get(mono_mass);
-        double iso_norm = avg.getNorm(mono_mass);
+        //double iso_norm = avg.getNorm(mono_mass);
 
         int iso_size = (int) iso.size();
         int apex_index = avg.getApexIndex(mono_mass);
@@ -1140,7 +1140,7 @@ namespace OpenMS {
                                         iso,
                                         iso_size,
                     //norm,
-                                        iso_norm,
+                    //1,
                                         tmp_offset);
 
             if (max_cosine < tmp_cos) {
@@ -1307,7 +1307,7 @@ namespace OpenMS {
                 continue;
             }
             auto iso_dist = avg_.get(peak_group.getMonoMass());
-            double iso_norm = avg_.getNorm(peak_group.getMonoMass());
+            //double iso_norm = avg_.getNorm(peak_group.getMonoMass());
             int iso_size = (int) iso_dist.size();
             float total_noise = .0;
             float total_signal = .0;
@@ -1373,7 +1373,7 @@ namespace OpenMS {
                                               iso_dist,
                                               iso_size,
                         // norm,
-                                              iso_norm,
+                        //1,
                                               0);
 
                 // double cos_score_squared = cos_score * cos_score;

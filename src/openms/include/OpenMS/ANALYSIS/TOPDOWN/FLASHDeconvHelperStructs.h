@@ -101,7 +101,7 @@ namespace OpenMS
       void setMaxIsotopeIndex(const int index);
 
         /// get norm
-        double getNorm(const double mass) const;
+        //double getNorm(const double mass) const;
 
         /// get isotope start index
         Size getLeftCountFromApex(const double mass) const;
