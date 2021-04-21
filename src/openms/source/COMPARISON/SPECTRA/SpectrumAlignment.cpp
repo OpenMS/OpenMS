@@ -34,7 +34,6 @@
 //
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 

@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 #include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 

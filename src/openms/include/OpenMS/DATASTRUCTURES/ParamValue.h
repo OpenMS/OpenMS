@@ -41,7 +41,7 @@
 namespace OpenMS
 {
   /**
-    @brief Class to hold strings, numeric values, lists of strings and lists of numeric values using the stl types.
+    @brief Class to hold strings, numeric values, vectors of strings and vectors of numeric values using the stl types.
 
     - To choose one of these types, just use the appropriate constructor.
     - Automatic conversion is supported and throws Exceptions in case of invalid conversions.
@@ -63,9 +63,9 @@ public:
       STRING_VALUE, ///< string value
       INT_VALUE, ///< integer value
       DOUBLE_VALUE, ///< double value
-      STRING_LIST, ///< string list
-      INT_LIST, ///< integer list
-      DOUBLE_LIST, ///< double list
+      STRING_LIST, ///< string vector
+      INT_LIST, ///< integer vector
+      DOUBLE_LIST, ///< double vector
       EMPTY_VALUE ///< empty value
     };
 
@@ -81,11 +81,11 @@ public:
     ParamValue(const char*);
     /// specific constructor for std::string values
     ParamValue(const std::string&);
-    /// specific constructor for string lists
+    /// specific constructor for string vectors
     ParamValue(const std::vector<std::string>&);
-    /// specific constructor for integer lists
+    /// specific constructor for integer vectors
     ParamValue(const std::vector<int>&);
-    /// specific constructor for double lists
+    /// specific constructor for double vectors
     ParamValue(const std::vector<double>&);
     /// specific constructor for long double values (note: the implementation uses double)
     ParamValue(long double);
@@ -93,21 +93,21 @@ public:
     ParamValue(double);
     /// specific constructor for float values (note: the implementation uses double)
     ParamValue(float);
-    /// specific constructor for short int values (note: the implementation uses SignedSize)
+    /// specific constructor for short int values (note: the implementation uses ptrdiff_t)
     ParamValue(short int);
-    /// specific constructor for unsigned short int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned short int values (note: the implementation uses ptrdiff_t)
     ParamValue(unsigned short int);
-    /// specific constructor for int values (note: the implementation uses SignedSize)
+    /// specific constructor for int values (note: the implementation uses ptrdiff_t)
     ParamValue(int);
-    /// specific constructor for unsigned int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned int values (note: the implementation uses ptrdiff_t)
     ParamValue(unsigned);
-    /// specific constructor for long int values (note: the implementation uses SignedSize)
+    /// specific constructor for long int values (note: the implementation uses ptrdiff_t)
     ParamValue(long int);
-    /// specific constructor for unsigned long int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned long int values (note: the implementation uses ptrdiff_t)
     ParamValue(unsigned long);
-    /// specific constructor for long long int values (note: the implementation uses SignedSize)
+    /// specific constructor for long long int values (note: the implementation uses ptrdiff_t)
     ParamValue(long long);
-    /// specific constructor for unsigned long long int values (note: the implementation uses SignedSize)
+    /// specific constructor for unsigned long long int values (note: the implementation uses ptrdiff_t)
     ParamValue(unsigned long long);
     /// Destructor
     ~ParamValue();
@@ -126,21 +126,21 @@ public:
     operator std::string() const;
 
     /**
-      @brief conversion operator to string list
+      @brief conversion operator to string vector
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
     operator std::vector<std::string>() const;
 
     /**
-      @brief conversion operator to integer list
+      @brief conversion operator to integer vector
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
     operator std::vector<int>() const;
 
     /**
-      @brief conversion operator to double list
+      @brief conversion operator to double vector
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -176,7 +176,7 @@ public:
     /**
       @brief conversion operator to short int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -185,7 +185,7 @@ public:
     /**
       @brief conversion operator to unsigned short int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -194,7 +194,7 @@ public:
     /**
       @brief conversion operator to int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -204,7 +204,7 @@ public:
     /**
       @brief conversion operator to unsigned int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -213,7 +213,7 @@ public:
     /**
       @brief conversion operator to long int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -222,7 +222,7 @@ public:
     /**
       @brief conversion operator to unsigned long int
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -231,7 +231,7 @@ public:
     /**
       @brief conversion operator to long long
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -240,7 +240,7 @@ public:
     /**
       @brief conversion operator to unsigned long long
 
-      Note: The implementation uses typedef SignedSize.
+      Note: The implementation uses typedef ptrdiff_t.
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -304,11 +304,11 @@ public:
     ParamValue& operator=(const char*);
     /// specific assignment for std::string values
     ParamValue& operator=(const std::string&);
-    /// specific assignment for string lists
+    /// specific assignment for string vectors
     ParamValue& operator=(const std::vector<std::string>&);
-    /// specific assignment for integer lists
+    /// specific assignment for integer vectors
     ParamValue& operator=(const std::vector<int>&);
-    /// specific assignment for double lists
+    /// specific assignment for double vectors
     ParamValue& operator=(const std::vector<double>&);
     /// specific assignment for long double values (note: the implementation uses double)
     ParamValue& operator=(const long double);
@@ -316,21 +316,21 @@ public:
     ParamValue& operator=(const double);
     /// specific assignment for float values (note: the implementation uses double)
     ParamValue& operator=(const float);
-    /// specific assignment for short int values (note: the implementation uses SignedSize)
+    /// specific assignment for short int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const short int);
-    /// specific assignment for unsigned short int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned short int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const unsigned short int);
-    /// specific assignment for int values (note: the implementation uses SignedSize)
+    /// specific assignment for int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const int);
-    /// specific assignment for unsigned int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const unsigned);
-    /// specific assignment for long int values (note: the implementation uses SignedSize)
+    /// specific assignment for long int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const long int);
-    /// specific assignment for unsigned long int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned long int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const unsigned long);
-    /// specific assignment for long long int values (note: the implementation uses SignedSize)
+    /// specific assignment for long long int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const long long);
-    /// specific assignment for unsigned long long int values (note: the implementation uses SignedSize)
+    /// specific assignment for unsigned long long int values (note: the implementation uses ptrdiff_t)
     ParamValue& operator=(const unsigned long long);
     //@}
 
