@@ -80,13 +80,13 @@ namespace OpenMS
     defaults_.setValue("max_iters", 100, "The maximum number of iterations to find an optimal set of calibration curve points and parameters.");
 
     defaults_.setValue("outlier_detection_method", "iter_jackknife", "Outlier detection method to find and remove bad calibration points.");
-    defaults_.setValidStrings("outlier_detection_method", ListUtils::create<String>("iter_jackknife,iter_residual"));
+    defaults_.setValidStrings("outlier_detection_method", {"iter_jackknife","iter_residual"});
 
     defaults_.setValue("use_chauvenet", "true", "Whether to only remove outliers that fulfill Chauvenet's criterion for outliers (otherwise it will remove any outlier candidate regardless of the criterion).");
-    defaults_.setValidStrings("use_chauvenet", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_chauvenet", {"true","false"});
 
     defaults_.setValue("optimization_method", "iterative", "Calibrator optimization method to find the best set of calibration points for each method.");
-    defaults_.setValidStrings("optimization_method", ListUtils::create<String>("iterative"));
+    defaults_.setValidStrings("optimization_method", {"iterative"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -99,9 +99,9 @@ namespace OpenMS
     max_bias_ = (double)param_.getValue("max_bias");
     min_correlation_coefficient_ = (double)param_.getValue("min_correlation_coefficient");
     max_iters_ = (size_t)param_.getValue("max_iters");
-    outlier_detection_method_ = param_.getValue("outlier_detection_method");
+    outlier_detection_method_ = param_.getValue("outlier_detection_method").toString();
     use_chauvenet_ = (bool)param_.getValue("use_chauvenet").toBool();
-    optimization_method_ = param_.getValue("optimization_method");
+    optimization_method_ = param_.getValue("optimization_method").toString();
   }
 
   AbsoluteQuantitation::~AbsoluteQuantitation()

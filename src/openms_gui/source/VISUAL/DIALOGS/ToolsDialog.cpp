@@ -278,7 +278,7 @@ namespace OpenMS
     }
     arg_param_ = getParamFromIni_(getTool());
 
-    tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
+    tool_desc_->setText(String(arg_param_.getSectionDescription(getTool())).toQString());
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");

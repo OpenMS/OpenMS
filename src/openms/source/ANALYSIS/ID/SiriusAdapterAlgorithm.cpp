@@ -56,7 +56,7 @@ namespace OpenMS
     using FingeridName = String;
     using PassatuttoName = String;
     using OpenMSName = String;
-    using DefaultValue = DataValue;
+    using DefaultValue = ParamValue;
     using Description = String;
 
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
@@ -74,7 +74,6 @@ namespace OpenMS
       fingerid.parameters();
       passatutto.parameters();
 
-
       defaultsToParam_();
     }
 
@@ -89,7 +88,7 @@ namespace OpenMS
 
       parameter(
                   OpenMSName("precursor_mz_tolerance"),
-                  DefaultValue(10),
+                  DefaultValue(10.0),
                   Description("Tolerance window for precursor selection (Feature selection in regard to the precursor)")
                 );
 
@@ -101,7 +100,7 @@ namespace OpenMS
 
       parameter(
                   OpenMSName("precursor_rt_tolerance"),
-                  DefaultValue(5),
+                  DefaultValue(5.0),
                   Description("Tolerance window (left and right) for precursor selection [seconds]")
                );
 
@@ -157,13 +156,13 @@ namespace OpenMS
     {
       parameter(
                  SiriusName("ppm-max"),
-                 DefaultValue(10),
+                 DefaultValue(10.0),
                  Description("Maximum allowed mass deviation in ppm for decomposing masses [ppm].")
                );
 
       parameter(
                  SiriusName("ppm-max-ms2"),
-                 DefaultValue(10),
+                 DefaultValue(10.0),
                  Description("Maximum allowed mass deviation in ppm for decomposing masses in MS2 [ppm]."
                              "If not specified, the same value as for the MS1 is used. ")
                 );
@@ -189,7 +188,7 @@ namespace OpenMS
                  SiriusName("profile"),
                  DefaultValue("qtof"),
                  Description("Name of the configuration profile")
-               ).withValidStrings({"qtof", "orbitrap", "fticr"});
+               ).withValidStrings({"default", "qtof", "orbitrap", "fticr"});
 
       parameter(
                  SiriusName("formula"),
@@ -261,35 +260,19 @@ namespace OpenMS
 
       parameter(
                  SiriusName("db"),
-                 DefaultValue("all"),
-                 Description("Search formulas in given database.")
-               ).withValidStrings({"all",
-                                   "pubchem",
-                                   "mesh",
-                                   "hmdb",
-                                   "knapsack",
-                                   "chebi",
-                                   "pubmed",
-                                   "bio",
-                                   "kegg",
-                                   "hsdb",
-                                   "maconda",
-                                   "metacyc",
-                                   "gnps",
-                                   "zincbio",
-                                   "train",
-                                   "undp",
-                                   "pantcyc",
-                                   "ymdb",
-                                   "keggmine",
-                                   "ecocycmine",
-                                   "ymdbmine",
-                                   "custom",
-                                   "custom_0",
-                                   "custom_1",
-                                   "custom_2",
-                                   "custom_3",
-                                   "custom_4"});
+                 DefaultValue(""),
+                 Description("Search formulas in the Union of the given "
+                              "databases db-name1,db-name2,db-name3. If no database is given all possible "
+                              "molecular formulas will be respected (no database "
+                              "is used). "
+                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB,"
+                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC,"
+                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL,"
+                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG,"
+                              "PUBCHEMANNOTATIONSAFETYANDTOXIC,"
+                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE,"
+                              "YMDBMINE")
+                );
 
       parameter(
                  SiriusName("ions-enforced"),
@@ -310,35 +293,19 @@ namespace OpenMS
 
       parameter(
                  FingeridName("db"),
-                 DefaultValue("all"),
-                 Description("Search structure in given database. To use a custom database, please rename your database to custom_n (e.g. custom_0)")
-                ).withValidStrings({"all",
-                                    "pubchem",
-                                    "mesh",
-                                    "hmdb",
-                                    "knapsack",
-                                    "chebi",
-                                    "pubmed",
-                                    "bio",
-                                    "kegg",
-                                    "hsdb",
-                                    "maconda",
-                                    "metacyc",
-                                    "gnps",
-                                    "zincbio",
-                                    "train",
-                                    "undp",
-                                    "pantcyc",
-                                    "ymdb",
-                                    "keggmine",
-                                    "ecocycmine",
-                                    "ymdbmine",
-                                    "custom",
-                                    "custom_0",
-                                    "custom_1",
-                                    "custom_2",
-                                    "custom_3",
-                                    "custom_4"});
+                 DefaultValue(""),
+                 Description("Search formulas in the Union of the given "
+                              "databases db-name1,db-name2,db-name3. If no database is given all possible "
+                              "molecular formulas will be respected (no database "
+                              "is used). "
+                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB,"
+                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC,"
+                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL,"
+                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG,"
+                              "PUBCHEMANNOTATIONSAFETYANDTOXIC,"
+                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE,"
+                              "YMDBMINE")
+                );
     }
 
     void SiriusAdapterAlgorithm::Passatutto::parameters()
@@ -349,10 +316,10 @@ namespace OpenMS
     {
       for (auto it = param.begin(); it != param.end(); ++it)
       {
-        const String name = it.getName();
+        const std::string name = it.getName();
         if (hasFullNameParameter(name))
         {
-          vector<String> tags(it->tags.begin(), it->tags.end());
+          vector<std::string> tags(it->tags.begin(), it->tags.end());
           param_.setValue(name, it->value, it->description, tags);
         }
       }
@@ -475,8 +442,7 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
-                                                     std::vector<FeatureMap>& v_fp,
-                                                     KDTreeFeatureMaps& fp_map_kd,
+                                                     FeatureMapping::FeatureMappingInfo& fm_info,
                                                      FeatureMapping::FeatureToMs2Indices& feature_mapping)
     {
       // if fileparameter is given and should be not empty
@@ -508,12 +474,12 @@ namespace OpenMS
                                   });
           feature_map.erase(map_it, feature_map.end());
   
-          v_fp.push_back(feature_map);
-          fp_map_kd.addMaps(v_fp);
+          fm_info.feature_maps.push_back(feature_map);
+          fm_info.kd_tree.addMaps(fm_info.feature_maps); // KDTree references into feature_map
   
           // mapping of MS2 spectra to features
           feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,
-                                                                    fp_map_kd,
+                                                                    fm_info,
                                                                     precursor_mz_tol,
                                                                     precursor_rt_tol,
                                                                     precursorMzToleranceUnitIsPPM());
@@ -645,7 +611,7 @@ namespace OpenMS
 
     SiriusAdapterAlgorithm::ParameterModifier SiriusAdapterAlgorithm::ParameterSection::parameter(
             const String &parameter_name,
-            const DataValue &default_value,
+            const ParamValue &default_value,
             const String &parameter_description)
     {
       const String full_parameter = toFullParameter(parameter_name);

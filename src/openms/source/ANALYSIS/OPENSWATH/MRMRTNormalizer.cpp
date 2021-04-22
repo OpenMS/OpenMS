@@ -166,8 +166,6 @@ namespace OpenMS
 
       rsq = lin_reg.getRSquared();
 
-      std::cout << "rsq: " << rsq << " points: " << x.size() << std::endl;
-
       if (rsq < rsq_limit)
       {
         std::vector<double> residuals;

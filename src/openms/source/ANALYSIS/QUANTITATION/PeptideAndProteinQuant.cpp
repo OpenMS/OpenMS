@@ -49,9 +49,9 @@ namespace OpenMS
     defaults_.setMinInt("top", 0);
 
     defaults_.setValue("average", "median", "Averaging method used to compute protein abundances from peptide abundances");
-    defaults_.setValidStrings("average", ListUtils::create<String>("median,mean,weighted_mean,sum"));
+    defaults_.setValidStrings("average", {"median","mean","weighted_mean","sum"});
 
-    StringList true_false = ListUtils::create<String>("true,false");
+    std::vector<std::string> true_false = {"true","false"};
 
     defaults_.setValue("include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'top' (no effect if 'top' is 0 or 1)");
     defaults_.setValidStrings("include_all", true_false);
@@ -414,7 +414,7 @@ namespace OpenMS
     }
 
     Size top = param_.getValue("top");
-    String average = param_.getValue("average");
+    std::string average = param_.getValue("average");
     bool include_all = param_.getValue("include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
 

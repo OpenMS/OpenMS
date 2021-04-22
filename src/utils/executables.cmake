@@ -39,6 +39,7 @@ MultiplexResolver
 MzMLSplitter
 NovorAdapter
 NucleicAcidSearchEngine
+OpenMSDatabasesInfo
 OpenMSInfo
 PeakPickerIterative
 PSMFeatureExtractor
