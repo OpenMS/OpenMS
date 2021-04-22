@@ -51,8 +51,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>                                     l
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -72,18 +71,16 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/LogWindow.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -91,31 +88,33 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 //Qt
-#include <QtCore/QSettings>
+#include <QCloseEvent>
+#include <QPainter>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
+#include <QtCore/QSettings>
 #include <QtCore/QTime>
 #include <QtCore/QUrl>
+#include <QTextCodec>
 #include <QtWidgets/QCheckBox>
-#include <QCloseEvent>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
-#include <QPainter>
 #include <QtWidgets/QSplashScreen>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
-#include <QtWidgets/QToolTip>
 #include <QtWidgets/QToolButton>
+#include <QtWidgets/QToolTip>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QWhatsThis>
-#include <QTextCodec>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -697,7 +696,6 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          MzMLFile f;
           Internal::IndexedMzMLHandler indexed_mzml_file_;
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
@@ -739,16 +737,8 @@ namespace OpenMS
             if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
-        else if (file_type == FileTypes::MSP)
-        {
-          MSPGenericFile().load(abs_filename, *peak_map_sptr);
-          for (size_t i = 0; i != peak_map_sptr->size(); ++i)
-          {
-            if ((*peak_map_sptr)[i].getRT() < 0) (*peak_map_sptr)[i].setRT(i); // set RT to spectrum index
-          }
-        }
 
-        // Load all data into memory if e.g. no mzML file
+        // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
