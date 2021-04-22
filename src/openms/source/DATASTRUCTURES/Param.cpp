@@ -103,7 +103,7 @@ namespace OpenMS
           for (auto it = valid_strings.begin() + 1, end = valid_strings.end(); it != end; ++it) {
               valid += "," + *it;
           }
-          message = "Invalid string parameter value '" + static_cast<std::string>(value) + "' for parameter '" + name + "' given! Valid values are: '" + valid + "'.";
+          message = "Invalid string parameter value '" + value.toString() + "' for parameter '" + name + "' given! Valid values are: '" + valid + "'.";
           return false;
         }
       }
