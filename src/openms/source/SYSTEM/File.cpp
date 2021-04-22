@@ -543,9 +543,9 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_TMPDIR");
     }
-    else if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
+    else if (p.exists("temp_dir") && String(p.getValue("temp_dir").toString()).trim() != "")
     {
-      dir = p.getValue("temp_dir");
+      dir = p.getValue("temp_dir").toString();
     }
     else
     {
@@ -563,9 +563,9 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
-    else if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
+    else if (p.exists("home_dir") && String(p.getValue("home_dir").toString()).trim() != "")
     {
-      dir = p.getValue("home_dir");
+      dir = p.getValue("home_dir").toString();
     }
     else
     {
@@ -581,7 +581,7 @@ namespace OpenMS
     String full_db_name;
     try
     {
-      full_db_name = find(db_name, sys_p.getValue("id_db_dir"));
+      full_db_name = find(db_name, ListUtils::toStringList<std::string>(sys_p.getValue("id_db_dir")));
       OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
     }
     catch (Exception::FileNotFound& e)
@@ -651,7 +651,7 @@ namespace OpenMS
     p.setValue("version", VersionInfo::getVersion());
     p.setValue("home_dir", ""); // only active when user enters something in this value
     p.setValue("temp_dir", ""); // only active when user enters something in this value
-    p.setValue("id_db_dir", ListUtils::create<String>(""),
+    p.setValue("id_db_dir", std::vector<std::string>(),
                String("Default directory for FASTA and psq files used as databased for id engines. ") + \
                "This allows you to specify just the filename of the DB in the " + \
                "respective TOPP tool, and the database will be searched in the directories specified here " + \

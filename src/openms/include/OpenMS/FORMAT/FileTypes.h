@@ -76,6 +76,7 @@ namespace OpenMS
       MZIDENTML,          ///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
       MZQUANTML,          ///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
       QCML,               ///< qcML (will undergo standardisation maybe) (.qcml)
+      MZQC,               ///< mzQC (HUPO PSI format) (.mzQC)
       GELML,              ///< GelML (HUPO PSI format) (.gelML)
       TRAML,              ///< TraML (HUPO PSI format) for transitions (.traML)
       MSP,                ///< NIST spectra library file format (.msp)
@@ -155,7 +156,8 @@ namespace OpenMS
     /// MZML becomes "mzML raw data file", but FEATUREXML becomes "OpenMS feature map"
     static String typeToDescription(Type type);
     
-    /// Converts a file type name into a Type
+    /// Converts a file type name into a Type 
+    /// @param name A case-insensitive name (e.g. FASTA or Fasta, etc.)
     static Type nameToType(const String& name);
 
     /// Returns the mzML name (TODO: switch to accession since they are more stable!)

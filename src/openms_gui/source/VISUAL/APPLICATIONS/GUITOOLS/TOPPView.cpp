@@ -109,7 +109,7 @@ void print_usage()
 int main(int argc, const char** argv)
 {
   //list of all the valid options
-  Map<String, String> valid_options, valid_flags, option_lists;
+  std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--force"] = "force";
   valid_options["-ini"] = "ini";
@@ -130,7 +130,7 @@ int main(int argc, const char** argv)
     // if TOPPView is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
     // if this is the only unknown option it will be ignored .. maybe this should be solved directly
     // in Param.h
-    if (!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
+    if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
     {
       cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
       print_usage();
@@ -162,13 +162,13 @@ int main(int argc, const char** argv)
 
     if (param.exists("ini"))
     {
-      tb.loadPreferences((String)param.getValue("ini"));
+      tb.loadPreferences(param.getValue("ini").toString());
     }
 
     //load command line files
     if (param.exists("misc"))
     {
-      tb.loadFiles(param.getValue("misc"), &splash_screen);
+      tb.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
 
     // We are about to show the application.
