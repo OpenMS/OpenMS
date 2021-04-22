@@ -1151,6 +1151,7 @@ namespace OpenMS {
 
         int iso_size = (int) iso.size();
         int apex_index = avg.getApexIndex(mono_mass);
+        int iso_range = avg.getRightCountFromApex(mono_mass) + avg.getLeftCountFromApex(mono_mass);
 
         offset = 0;
         double min_diff = -1;
@@ -1192,20 +1193,22 @@ namespace OpenMS {
 
         min_diff = -1;
         int final_offset = offset;
-        for (int tmp_offset = offset - 1; tmp_offset <= offset + 1; tmp_offset++) {
-            double tmp_diff = getShapeDiff_(per_isotope_intensities,
-                                            min_isotope_index,
-                                            max_isotope_index,
-                                            iso,
-                                            iso_size, apex_index,
-                                            tmp_offset);
-            if (tmp_diff < 0) {
-                continue;
-            }
+        if (iso_range / 4 > 0) {
+            for (int tmp_offset = offset - iso_range / 4; tmp_offset <= offset + iso_range / 4; tmp_offset++) {
+                double tmp_diff = getShapeDiff_(per_isotope_intensities,
+                                                min_isotope_index,
+                                                max_isotope_index,
+                                                iso,
+                                                iso_size, apex_index,
+                                                tmp_offset);
+                if (tmp_diff < 0) {
+                    continue;
+                }
 
-            if (min_diff < 0 || min_diff > tmp_diff) {//||
-                min_diff = tmp_diff;
-                final_offset = tmp_offset;
+                if (min_diff < 0 || min_diff > tmp_diff) {//||
+                    min_diff = tmp_diff;
+                    final_offset = tmp_offset;
+                }
             }
         }
 
