@@ -1174,6 +1174,25 @@ namespace OpenMS {
         //       }
 
         for (int tmp_offset = -apex_index - 1; tmp_offset <= -apex_index + max_isotope_index + 1; tmp_offset++) {
+            double tmp_diff = getCosine_(per_isotope_intensities,
+                                         min_isotope_index,
+                                         max_isotope_index,
+                                         iso,
+                                         iso_size, //apex_index,
+                                         tmp_offset);
+            //if (tmp_diff < 0) {
+            //    continue;
+            //}
+
+            if (min_diff < tmp_diff) {//min_diff < 0 ||
+                min_diff = tmp_diff;
+                offset = tmp_offset;
+            }
+        }
+
+        min_diff = -1;
+        int final_offset = offset;
+        for (int tmp_offset = offset - 1; tmp_offset <= offset + 1; tmp_offset++) {
             double tmp_diff = getShapeDiff_(per_isotope_intensities,
                                             min_isotope_index,
                                             max_isotope_index,
@@ -1184,9 +1203,9 @@ namespace OpenMS {
                 continue;
             }
 
-            if (min_diff < 0 || min_diff > tmp_diff) {
+            if (min_diff < 0 || min_diff > tmp_diff) {//||
                 min_diff = tmp_diff;
-                offset = tmp_offset;
+                final_offset = tmp_offset;
             }
         }
 
@@ -1195,7 +1214,7 @@ namespace OpenMS {
                           max_isotope_index,
                           iso,
                           iso_size,
-                          offset);
+                          final_offset);
     }
 
 
