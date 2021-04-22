@@ -93,6 +93,8 @@ namespace OpenMS
     vector<NASequence>& finished_seqs,
     const function<bool(NASequence&, Int&)>& applyMod)
   {
+    // try to apply a mod. to sequences in "temp_seqs", and add the result
+    // either to "temp_seqs" (if more mods. can be added) or "finished_seqs":
     for (Size i = 0; i < n_temp_seqs; ++i)
     {
       NASequence new_seq = temp_seqs[i].seq;

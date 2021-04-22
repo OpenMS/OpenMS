@@ -218,7 +218,7 @@ START_SECTION((void setVariableInosine(bool value)))
 
   TEST_EQUAL(id_data.getIdentifiedOligos().size(), 11);
 
-  // get oligos ordered by occurrence in the RNA:
+  // get oligos ordered by occurrence in the RNA - useful for debugging:
   // set<tuple<Size, Size, String>> oligos;
   // IdentificationData::ParentMoleculeRef rna_ref = id_data.getParentMolecules().begin();
   // for (const auto& oligo : id_data.getIdentifiedOligos())

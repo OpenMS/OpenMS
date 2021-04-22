@@ -172,7 +172,7 @@ namespace OpenMS
                                    (rna[i - 1]->getCode() == "A"));
         if (cuts_after_special && cuts_before_regular)
         {
-          fragment_pos.emplace_back(i, true, false);
+          fragment_pos.emplace_back(i, true, false); // var. mod. required before cutting site
           continue;
         }
         bool cuts_before_special = (!cuts_before_regular && cuts_before_I &&
@@ -180,16 +180,16 @@ namespace OpenMS
 
         if (cuts_after_regular && cuts_before_special)
         {
-          fragment_pos.emplace_back(i, false, true);
+          fragment_pos.emplace_back(i, false, true); // var. mod. required after cutting site
           continue;
         }
         if (cuts_after_special && cuts_before_special)
         {
-          fragment_pos.emplace_back(i, true, true);
+          fragment_pos.emplace_back(i, true, true); // var. mod. required before and after cutting site
           continue;
         }
       }
-      fragment_pos.emplace_back(rna.size(), false, false);
+      fragment_pos.emplace_back(rna.size(), false, false); // no var. mods. required
 
       // "fragment_pos" has at least two elements (zero and "rna.size()"):
       for (Size start_it = 0; start_it < fragment_pos.size() - 1; ++start_it)

@@ -64,7 +64,11 @@ namespace OpenMS
     /// Sets the enzyme for the digestion (by name)
     void setEnzyme(const String& name);
 
-    /// Sets how many As may be modified to I
+    /**
+       @brief Sets how many As may be modified to I
+
+       This is relevant for RNase T1 cleavage when variable inosine modifications are considered.
+    */
     void setVariableInosine(Size max_per_oligo);
 
     /// Returns how many As may be modified to I
