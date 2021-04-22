@@ -35,10 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <vector>
 #include <map>
@@ -265,7 +266,7 @@ private:
       /// @requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
       /// @hit the PeptideHit to extract from
       /// @actual_score_type the current score type to take preference if matching
-      static double getScore_(const StringList& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
+      static double getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
 
       /// assignment operator (not implemented)
       PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);

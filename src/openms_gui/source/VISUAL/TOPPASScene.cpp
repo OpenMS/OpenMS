@@ -692,10 +692,10 @@ namespace OpenMS
   {
     Param save_param;
 
-    save_param.setValue("info:version", DataValue(VersionInfo::getVersion()));
-    save_param.setValue("info:num_vertices", DataValue(vertices_.size()));
-    save_param.setValue("info:num_edges", DataValue(edges_.size()));
-    save_param.setValue("info:description", DataValue(String("<![CDATA[") + String(this->description_text_) + String("]]>")));
+    save_param.setValue("info:version", VersionInfo::getVersion());
+    save_param.setValue("info:num_vertices", vertices_.size());
+    save_param.setValue("info:num_edges", edges_.size());
+    save_param.setValue("info:description", String("<![CDATA[") + String(this->description_text_) + String("]]>"));
 
     // store all vertices (together with all parameters)
     foreach(TOPPASVertex * tv, vertices_)
@@ -703,7 +703,7 @@ namespace OpenMS
       String id(tv->getTopoNr() - 1);
 
       // common for all vertices
-      save_param.setValue("vertices:" + id + ":recycle_output", DataValue(tv->isRecyclingEnabled() ? "true" : "false"));
+      save_param.setValue("vertices:" + id + ":recycle_output", tv->isRecyclingEnabled() ? "true" : "false");
 
       // vertex subclasses
       TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
@@ -712,56 +712,56 @@ namespace OpenMS
         // store file names relative to toppas file
         QDir save_dir(File::path(file).toQString());
         const QStringList& files_qt = iflv->getFileNames();
-        StringList files;
+        std::vector<std::string> files;
         foreach(const QString &file_qt, files_qt)
         {
-          files.push_back(save_dir.relativeFilePath(file_qt));
+          files.push_back(save_dir.relativeFilePath(file_qt).toStdString());
         }
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("input file list"));
-        save_param.setValue("vertices:" + id + ":file_names", DataValue(files));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
+        save_param.setValue("vertices:" + id + ":toppas_type", "input file list");
+        save_param.setValue("vertices:" + id + ":file_names", files);
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
         continue;
       }
 
       TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
       if (oflv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("output file list"));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
-        save_param.setValue("vertices:" + id + ":output_folder_name", oflv->getOutputFolderName());
+        save_param.setValue("vertices:" + id + ":toppas_type", "output file list");
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
+        save_param.setValue("vertices:" + id + ":output_folder_name", oflv->getOutputFolderName().toStdString());
         continue;
       }
 
       TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
       if (ttv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("tool"));
-        save_param.setValue("vertices:" + id + ":tool_name", DataValue(ttv->getName()));
-        save_param.setValue("vertices:" + id + ":tool_type", DataValue(ttv->getType()));
+        save_param.setValue("vertices:" + id + ":toppas_type", "tool");
+        save_param.setValue("vertices:" + id + ":tool_name", ttv->getName());
+        save_param.setValue("vertices:" + id + ":tool_type", ttv->getType());
         save_param.insert("vertices:" + id + ":parameters:", ttv->getParam());
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
         continue;
       }
 
       TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
       if (mv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("merger"));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
-        save_param.setValue("vertices:" + id + ":round_based", DataValue(mv->roundBasedMode() ? "true" : "false"));
+        save_param.setValue("vertices:" + id + ":toppas_type", "merger");
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
+        save_param.setValue("vertices:" + id + ":round_based", mv->roundBasedMode() ? "true" : "false");
         continue;
       }
 
       TOPPASSplitterVertex* sv = qobject_cast<TOPPASSplitterVertex*>(tv);
       if (sv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("splitter"));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
+        save_param.setValue("vertices:" + id + ":toppas_type", "splitter");
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
         continue;
       }
     }
@@ -780,9 +780,9 @@ namespace OpenMS
         continue;
       }
 
-      save_param.setValue("edges:" + String(counter) + ":source/target:", DataValue(String(te->getSourceVertex()->getTopoNr() - 1) + "/" + String(te->getTargetVertex()->getTopoNr() - 1)));
-      //save_param.setValue("edges:"+String(counter)+":source_out_param:", DataValue(te->getSourceOutParam()));
-      //save_param.setValue("edges:"+String(counter)+":target_in_param:", DataValue(te->getTargetInParam()));
+      save_param.setValue("edges:" + String(counter) + ":source/target:", String(te->getSourceVertex()->getTopoNr() - 1) + "/" + String(te->getTargetVertex()->getTopoNr() - 1));
+      //save_param.setValue("edges:"+String(counter)+":source_out_param:", te->getSourceOutParam()));
+      //save_param.setValue("edges:"+String(counter)+":target_in_param:", te->getTargetInParam()));
       QVector<TOPPASToolVertex::IOInfo> files;
       String v = "__no_name__";
       if (te->getSourceOutParam() >= 0)
@@ -795,7 +795,7 @@ namespace OpenMS
           v = files[te->getSourceOutParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + String(counter) + ":source_out_param:", DataValue(v));
+      save_param.setValue("edges:" + String(counter) + ":source_out_param:", v);
 
       v = "__no_name__";
       if (te->getTargetInParam() >= 0)
@@ -808,7 +808,7 @@ namespace OpenMS
           v = files[te->getTargetInParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + String(counter) + ":target_in_param:", DataValue(v));
+      save_param.setValue("edges:" + String(counter) + ":target_in_param:", v);
 
       ++counter;
     }
@@ -851,7 +851,7 @@ namespace OpenMS
     String file_version = "1.8.0"; // default (were we did not have the tag)
     if (load_param.exists("info:version"))
     {
-      file_version = load_param.getValue("info:version");
+      file_version = load_param.getValue("info:version").toString();
     }
     VersionInfo::VersionDetails v_file = VersionInfo::VersionDetails::create(file_version);
     VersionInfo::VersionDetails v_this_low = VersionInfo::VersionDetails::create("1.9.0"); // last compatible TOPPAS file version
@@ -902,7 +902,7 @@ namespace OpenMS
 
     if (load_param.exists("info:description"))
     {
-      String text = String(load_param.getValue("info:description")).toQString();
+      String text = String(load_param.getValue("info:description").toString()).toQString();
       text.substitute("<![CDATA[", "");
       text.substitute("]]>", "");
       description_text_ = text.trim().toQString();
@@ -917,7 +917,7 @@ namespace OpenMS
     for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
     {
       StringList substrings;
-      it.getName().split(':', substrings);
+      String(it.getName()).split(':', substrings);
       if (substrings.back() == "toppas_type") // next node (all nodes have a "toppas_type")
       {
         current_vertex = nullptr;
@@ -927,7 +927,7 @@ namespace OpenMS
 
         if (current_type == "input file list")
         {
-          StringList file_names = vertices_param.getValue(current_id + ":file_names");
+          StringList file_names = ListUtils::toStringList<std::string>(vertices_param.getValue(current_id + ":file_names"));
           QStringList file_names_qt;
 
           for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
@@ -948,7 +948,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            oflv->setOutputFolderName(vertices_param.getValue(current_id + ":output_folder_name").toQString());
+            oflv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
           }
           
           connectOutputVertexSignals(oflv);
@@ -957,8 +957,8 @@ namespace OpenMS
         }
         else if (current_type == "tool")
         {
-          String tool_name = vertices_param.getValue(current_id + ":tool_name");
-          String tool_type = vertices_param.getValue(current_id + ":tool_type");
+          String tool_name = vertices_param.getValue(current_id + ":tool_name").toString();
+          String tool_type = vertices_param.getValue(current_id + ":tool_type").toString();
           Param param_param = vertices_param.copy(current_id + ":parameters:", true);
           TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type);
           tv->setParam(param_param);
@@ -972,7 +972,7 @@ namespace OpenMS
           String rb = "true";
           if (vertices_param.exists(current_id + ":round_based"))
           {
-            rb = vertices_param.getValue(current_id + ":round_based");
+            rb = vertices_param.getValue(current_id + ":round_based").toString();
           }
           TOPPASMergerVertex* mv = new TOPPASMergerVertex(rb == "true");
 
@@ -1001,7 +1001,7 @@ namespace OpenMS
           // vertex parameters:
           if (vertices_param.exists(current_id + ":recycle_output")) // only since TOPPAS 1.9, so does not need to exist
           {
-            String recycle = vertices_param.getValue(current_id + ":recycle_output");
+            String recycle = vertices_param.getValue(current_id + ":recycle_output").toString();
             current_vertex->setRecycling(recycle == "true" ? true : false);
           }
 
@@ -1068,8 +1068,8 @@ namespace OpenMS
 
         addEdge(edge);
 
-        String source_out_param = (++it)->value;
-        String target_in_param = (++it)->value;
+        String source_out_param = (++it)->value.toString();
+        String target_in_param = (++it)->value.toString();
         if (pre_1_9_toppas) // just indices stored - no way we can check
         {
           edge->setSourceOutParam(source_out_param.toInt());

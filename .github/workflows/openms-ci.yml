@@ -6,7 +6,7 @@ name: openms-ci
 # events but only for the master branch
 on:
   push:
-    branches: [ develop, ci/github_actions ]
+    branches: [ develop ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -66,12 +66,20 @@ jobs:
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
-      run: echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
       
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.8
+      with:
+        cmake-version: '3.20.x'
+        
     - name: Tests windows
       shell: bash
       run: |
+          cmake --version
+          
+          #run openms tests
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
 
@@ -94,8 +102,10 @@ jobs:
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
-          OPENMP: "On"
+          OPENMP: "Off"
           USE_STATIC_BOOST: "On"
+          BUILD_FLAGS: "-p:CL_MPCount=2"
+
 
   build-macos:
     runs-on: macos-latest
@@ -168,7 +178,7 @@ jobs:
     - name: Extract PR number
       if: github.event_name == 'pull_request'
       shell: bash
-      run: echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
     - name: Build and test osx
       run: |
@@ -198,6 +208,7 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j3"
 
   build-lnx:
     runs-on: ubuntu-latest
@@ -234,7 +245,7 @@ jobs:
       run: |
         yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         yum -y install jq
-        echo "RUN_NAME=pr-$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+        echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
       
       #  open step log to get ssh access
@@ -287,3 +298,4 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "On"
           USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j2"

@@ -411,13 +411,7 @@ protected:
 
     // output file names and types
     String out = getStringOption_("out");
-    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
-
-    if (out_type == FileTypes::UNKNOWN)
-    {
-      out_type = fh.getTypeByFileName(out);
-    }
-
+    FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
       writeLog_("Error: Could not determine output file type!");

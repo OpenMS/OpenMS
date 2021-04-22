@@ -435,7 +435,7 @@ namespace OpenMS
                            const bool no_masstrace_info_isotope_pattern,
                            std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
-    const Map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
+    const std::map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
 
     bool use_feature_information = false;
@@ -565,8 +565,8 @@ namespace OpenMS
         }
         else
         {
-          OPENMS_LOG_WARN << "The featureXML input misses the MetaValues for 'masstrace_centroid_mz' and 'masstrace_intensity'."
-                             "Please validate your featureXML, or use a newer version of FeatureFinderMetabo for its generation."  << endl;
+          OPENMS_LOG_WARN << "The feature " << feature->getUniqueId() << " misses the MetaValues for 'masstrace_centroid_mz' and 'masstrace_intensity'."
+                             "If this happens more often, please validate your featureXML."  << endl;
         }
 
         // prefer adducts from AccurateMassSearch if MetaboliteAdductDecharger and AccurateMassSearch were performed

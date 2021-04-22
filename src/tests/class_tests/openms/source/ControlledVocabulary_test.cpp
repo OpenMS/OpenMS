@@ -188,6 +188,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm()))
 {
   cvterm = new ControlledVocabulary::CVTerm();
   TEST_NOT_EQUAL(cvterm, cvtermNullPointer)
+  delete cvterm;
 }
 END_SECTION
 

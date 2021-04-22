@@ -199,8 +199,8 @@ protected:
       search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("no cleavage"));
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
-    search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");
-    search_parameters.variable_modifications = algorithm_param.getValue("variable_modifications");
+    search_parameters.fixed_modifications = ListUtils::toStringList<std::string>(algorithm_param.getValue("fixed_modifications"));
+    search_parameters.variable_modifications = ListUtils::toStringList<std::string>(algorithm_param.getValue("variable_modifications"));
 
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
     search_parameters.fragment_mass_tolerance = (double)algorithm_param.getValue("fragment_mass_tolerance");

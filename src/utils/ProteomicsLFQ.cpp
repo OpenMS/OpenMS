@@ -537,7 +537,7 @@ protected:
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
       Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
-      String model_type = model_params.getValue("type");
+      String model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 
       try
@@ -1709,7 +1709,7 @@ protected:
 
         if (e != EXECUTION_OK) { return e; }
         
-        if (getStringOption_("transfer_ids") != "false")
+        if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
         {  
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
           // needs to occur in >= 50% of all runs for transfer

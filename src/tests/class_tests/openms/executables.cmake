@@ -17,6 +17,7 @@ set(concept_executables_list
 )
 set(qc_executables_list
   Contaminants_test
+  DBSuitability_test
   FragmentMassError_test
   FWHM_test
   MissedCleavages_test
@@ -24,9 +25,9 @@ set(qc_executables_list
   Ms2SpectrumStats_test
   MzCalibration_test
   PeptideMass_test
+  PSMExplainedIonCurrent_test
   QCBase_test
   RTAlignment_test
-  DBSuitability_test
   TIC_test
 )
 
@@ -67,6 +68,7 @@ set(datastructures_executables_list
   #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
+  ParamValue_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test

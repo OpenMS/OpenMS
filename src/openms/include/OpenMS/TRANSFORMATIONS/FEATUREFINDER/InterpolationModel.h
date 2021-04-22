@@ -68,6 +68,7 @@ public:
     {
       this->defaults_.setValue("interpolation_step", 0.1, "Sampling rate for the interpolation of the model function ");
       this->defaults_.setValue("intensity_scaling", 1.0, "Scaling factor used to adjust the model distribution to the intensities of the data");
+      defaultsToParam_();
     }
 
     /// copy constructor
@@ -77,15 +78,14 @@ public:
       interpolation_step_(source.interpolation_step_),
       scaling_(source.scaling_)
     {
+      updateMembers_();
     }
 
     /// destructor
-    ~InterpolationModel() override
-    {
-    }
+    ~InterpolationModel() override = default;
 
     /// assignment operator
-    virtual InterpolationModel & operator=(const InterpolationModel & source)
+    InterpolationModel & operator=(const InterpolationModel & source)
     {
       if (&source == this) return *this;
 
@@ -93,6 +93,8 @@ public:
       interpolation_step_ = source.interpolation_step_;
       interpolation_ = source.interpolation_;
       scaling_ = source.scaling_;
+
+      updateMembers_();
 
       return *this;
     }

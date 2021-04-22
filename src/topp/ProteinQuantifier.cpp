@@ -608,7 +608,7 @@ protected:
     for (StringList::iterator it = relevant_params.begin();
          it != relevant_params.end(); ++it)
     {
-      String value = algo_params_.getValue(*it);
+      String value = algo_params_.getValue(*it).toString();
       if (value != "false") params += *it + "=" + value + ", ";
     }
     if (params.empty()) params = "(none)";
