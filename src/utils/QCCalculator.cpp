@@ -156,13 +156,6 @@ protected:
     // ensure output file hase valid extension
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(outputfile_name, getStringOption_("out_type"));
 
-    // exit early if invalid file type
-    if (out_type != FileTypes::QCML or out_type != FileTypes::MZQC)
-    { 
-      cout << "Invalid output file type!" << endl;
-      return EXECUTION_OK;
-    }
-
     // prepare input
     cout << "Reading mzML file..." << endl;
     PeakMap exp;

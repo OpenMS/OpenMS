@@ -70,16 +70,9 @@ START_SECTION(Status requires() const override)
 END_SECTION
 
 START_SECTION(void compute(const MSExperiment &exp, float bin_size))
-  // very simple test ATM, since the computation is simply exp.getTIC(bin_size);
+  // very simple test ATM, check if compute returns an empty Result struct
   MSExperiment exp;
-  exp.setSpectra( { MSSpectrum() });
-  auto r = tic.compute(exp, 0);
-  ABORT_IF(!r.intensities.empty()); // empty spectrum
-END_SECTION
-
-START_SECTION(void clear())
-  MSExperiment exp2;
-  tic.compute(exp2);
+  TEST_EQUAL(tic.compute(exp, 0) == TIC::Result(), true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

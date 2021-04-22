@@ -61,6 +61,19 @@ namespace OpenMS
     /// Destructor
     virtual ~TIC() = default;
 
+    // stores TIC values calculated by compute function
+    struct Result
+    {
+      std::vector<UInt> intensities;  // TIC intensities
+      std::vector<float> retention_times; // TIC RTs in seconds
+      UInt area = 0;  // Area under TIC
+      UInt fall = 0;  // MS1 signal fall (10x) count
+      UInt jump = 0;  // MS1 signal jump (10x) count
+
+      bool operator==(const Result& rhs) const;
+    };
+
+    
     /**
     @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
 
@@ -68,17 +81,9 @@ namespace OpenMS
 
     @param exp Peak map to compute the MS1 tick from
     @param bin_size RT bin size in seconds
-    @return TIC Chromatogram
-    **/
-    struct Result
-    {
-      std::vector<UInt> intensities;
-      std::vector<float> retention_times;
-      UInt area = 0;
-      UInt fall = 0;
-      UInt jump = 0;
-    };
+    @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
 
+    **/
     Result compute(const MSExperiment& exp, float bin_size=0);
 
     const String& getName() const override;
@@ -92,6 +97,5 @@ namespace OpenMS
 
   private:
     const String name_ = "TIC";
-    Result result;
   };
 }

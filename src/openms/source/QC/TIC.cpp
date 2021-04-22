@@ -40,7 +40,8 @@
 using namespace std;
 
 namespace OpenMS
-{
+{ 
+
   TIC::Result TIC::compute(const MSExperiment& exp, float bin_size)
   {
     TIC::Result result;
@@ -69,6 +70,15 @@ namespace OpenMS
       }
     }
     return result;
+  }
+
+  bool TIC::Result::operator==(const Result& rhs) const
+  {
+    return intensities == rhs.intensities
+          && retention_times == rhs.retention_times
+          && area == rhs.area
+          && fall == rhs.fall
+          && jump == rhs.jump;
   }
 
   /// Returns the name of the metric
