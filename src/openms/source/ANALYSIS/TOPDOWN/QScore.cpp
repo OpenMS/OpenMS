@@ -48,16 +48,16 @@ namespace OpenMS
       }
       const double th = 2;
       //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-      const std::vector<double> weights({0.2445, -1.5979, -23.9211, -0.07, -0.6011, 0.2085, 24.0713});
+      const std::vector<double> weights({0.4074, -1.5867, -22.1376, 0.4664, -0.4767, 0.541, 20.248});
       const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
-      //ChargeCos        0.2445
-      //ChargeSNR       -1.5979
-      //Cos            -23.9211
-      //SNR               -0.07
-      //ChargeScore     -0.6011
-      //AvgPPMerror      0.2085
-      //Intercept       24.0713
+      //ChargeCos        0.4074
+      //ChargeSNR       -1.5867
+      //Cos            -22.1376
+      //SNR              0.4664
+      //ChargeScore     -0.4767
+      //AvgPPMerror       0.541
+      //Intercept        20.248
 
       double score = weights[weights.size() - 1];
       auto fv = toFeatureVector_(pg, abs_charge);
@@ -141,23 +141,22 @@ namespace OpenMS
     {
       return;
     }
-    else
-    {
-      auto fv = toFeatureVector_(&pg, charge);
-      //if (pg.getChargeIsotopeCosine(charge) <= 0)
-      //  return;
-      double monomass = pmass <= .0? pg.getMonoMass() : pmass;
-      double mass = pmass <= .0 ? avg.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() : avgpmass;
+    else {
+        auto fv = toFeatureVector_(&pg, charge);
+        //if (pg.getChargeIsotopeCosine(charge) <= 0)
+        //  return;
+        double monomass = pmass;
+        double mass = avgpmass;
         f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","
           << monomass << "," << mass << "," << color << "," << pmz << ","
           << precursor_intensity << ","
           << pg.getIntensity() << "," << fintensity << ","
           << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","
           << (is_identified ? std::to_string(ptm_mass.size()) : "nan") << ",";
-        for(int k=0;k<3;k++){
-            if(k < ptm_mass.size()){
-                f<<ptm_mass[k]<<",";
-            }else{
+        for (int k = 0; k < 3; k++) {
+            if (k < ptm_mass.size()) {
+                f << ptm_mass[k] << ",";
+            } else {
                 f<<"nan,";
             }
         }

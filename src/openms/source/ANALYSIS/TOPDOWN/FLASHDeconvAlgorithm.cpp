@@ -1054,13 +1054,54 @@ namespace OpenMS {
         }
     }
 
+
+    double FLASHDeconvAlgorithm::getShapeDiff_(const std::vector<double> &a,
+                                               const int &a_start,
+                                               const int &a_end,
+                                               const IsotopeDistribution &b,
+                                               const int &b_size,
+                                               const int max_b_index,
+                                               const int offset) {
+        double a_norm = .0, b_norm = .0;
+        double diff = 0;
+
+        for (int j = a_start; j <= a_end; j++) {
+            int i = j - offset;
+            if (i < 0 || i >= b_size || b[i].getIntensity() <= 0) {
+                continue;
+            }
+
+            if (i < max_b_index - 2 || i > max_b_index + 2) {
+                continue;
+            }
+            a_norm += a[j] * a[j];
+            b_norm += b[i].getIntensity() * b[i].getIntensity();
+        }
+
+        if (a_norm <= 0 || b_norm <= 0) {
+            return -1;
+        }
+        a_norm = sqrt(a_norm);
+        b_norm = sqrt(b_norm);
+
+        for (int j = a_start; j <= a_end; j++) {
+            int i = j - offset;
+            if (i < 0 || i >= b_size || b[i].getIntensity() <= 0) {
+                continue;
+            }
+            double t_diff = (a[j] / a_norm - b[i].getIntensity() / b_norm);
+            diff += (t_diff * t_diff);
+        }
+
+        return diff;
+    }
+
+
     double FLASHDeconvAlgorithm::getCosine_(const std::vector<double> &a,
                                             const int &a_start,
                                             const int &a_end,
                                             const IsotopeDistribution &b,
                                             const int &b_size,
-            //const double &a_norm,
-            //const double &b_norm,
                                             const int offset) {
         double n = .0, a_norm = .0;
         //int c = 0;
@@ -1072,11 +1113,10 @@ namespace OpenMS {
             a_norm += a[j] * a[j];
             n += a[j] * b[i].getIntensity(); //
         }
-        double d = (a_norm);
-        if (d <= 0) {
+        if (a_norm <= 0) {
             return 0;
         }
-        return n / sqrt(d);
+        return n / sqrt(a_norm);
     }
 
     /*
@@ -1113,7 +1153,7 @@ namespace OpenMS {
         int apex_index = avg.getApexIndex(mono_mass);
 
         offset = 0;
-        double max_cosine = -1;
+        double min_diff = -1;
         //int isotope_length = 0;
         int max_isotope_index = 0, min_isotope_index = -1;
 
@@ -1134,22 +1174,28 @@ namespace OpenMS {
         //       }
 
         for (int tmp_offset = -apex_index - 1; tmp_offset <= -apex_index + max_isotope_index + 1; tmp_offset++) {
-            double tmp_cos = getCosine_(per_isotope_intensities,
-                                        min_isotope_index,
-                                        max_isotope_index,
-                                        iso,
-                                        iso_size,
-                    //norm,
-                    //1,
-                                        tmp_offset);
+            double tmp_diff = getShapeDiff_(per_isotope_intensities,
+                                            min_isotope_index,
+                                            max_isotope_index,
+                                            iso,
+                                            iso_size, apex_index,
+                                            tmp_offset);
+            if (tmp_diff < 0) {
+                continue;
+            }
 
-            if (max_cosine < tmp_cos) {
-                max_cosine = tmp_cos;
+            if (min_diff < 0 || min_diff > tmp_diff) {
+                min_diff = tmp_diff;
                 offset = tmp_offset;
             }
         }
 
-        return max_cosine;
+        return getCosine_(per_isotope_intensities,
+                          min_isotope_index,
+                          max_isotope_index,
+                          iso,
+                          iso_size,
+                          offset);
     }
 
 

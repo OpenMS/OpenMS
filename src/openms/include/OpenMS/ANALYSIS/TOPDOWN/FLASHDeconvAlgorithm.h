@@ -315,8 +315,16 @@ namespace OpenMS
                              const int &a_end,
                              const IsotopeDistribution &b,
                              const int &b_size,
-                             //const double &a_norm,
-            //const double &b_norm,
                              const int offset);
+
+
+      static double getShapeDiff_(const std::vector<double> &a,
+                                  const int &a_start,
+                                  const int &a_end,
+                                  const IsotopeDistribution &b,
+                                  const int &b_size,
+                                  const int max_b_index,
+                                  const int offset);
+
   };
 }
