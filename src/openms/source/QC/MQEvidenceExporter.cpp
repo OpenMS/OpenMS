@@ -47,11 +47,11 @@ MQEvidence::MQEvidence(const string &file)
     file_ = fstream(file, fstream::out);
     vector<string> columnnames = {
             "Sequence",
-            "Length",
-            "Modifications",
+            //"Length",
+            //"Modifications",
             "Modified sequence",
-            "Oxidation (M) Probabilities",
-            "Oxidation (M) Score Diffs",
+            //"Oxidation (M) Probabilities",
+            /*"Oxidation (M) Score Diffs",
             "Acetyl (Protein N-term)",
             "Oxidation (M)",
             "Missed cleavages",
@@ -61,9 +61,9 @@ MQEvidence::MQEvidence(const string &file)
             "Type",
             "Raw file",
             "MS/MS m/z",
-            "Charge",
+            */"Charge",
             "m/z",
-            "Mass",
+            /*"Mass",
             "Resolution",
             "Uncalibrated - Calibrated m/z [ppm]",
             "Uncalibrated - Calibrated m/z [Da]",
@@ -72,8 +72,8 @@ MQEvidence::MQEvidence(const string &file)
             "Uncalibrated mass error [ppm]",
             "Uncalibrated mass error [Da]",
             "Max intensity m/z 0",
-            "Retention time",
-            "Retention length",
+            */"Retention time",
+            /*"Retention length",
             "Calibrated retention time",
             "Calibrated retention time start",
             "Calibrated retention time finish",
@@ -91,11 +91,11 @@ MQEvidence::MQEvidence(const string &file)
             "PEP",
             "MS/MS count",
             "MS/MS scan number",
-            "Score",
-            "Delta score",
-            "Combinatorics",
+            */"Score",
+            //"Delta score",
+            //"Combinatorics",
             "Intensity",
-            "Reporter PIF",
+            /*"Reporter PIF",
             "Reporter fraction",
             "Reverse",
             "Potential contaminant",
@@ -105,7 +105,7 @@ MQEvidence::MQEvidence(const string &file)
             "Mod. peptide ID",
             "MS/MS IDs",
             "Best MS/MS",
-            "Oxidation (M) site IDs"
+            "Oxidation (M) site IDs"*/
     };
     for(string column : columnnames)
     {
@@ -138,9 +138,26 @@ void MQEvidence::f_export(const FeatureMap &fm)
         charge = f.getCharge();
         mz = f.getMZ();
         rt = f.getRT();
+        auto v_pepI = f.getPeptideIdentifications();
+        auto pepH = v_pepI[0].getHits()[0];
+        for(auto pep : v_pepI)
+        {
+
+            pep.sort();
+            auto pH = pep.getHits();
+            if(pH[0].getScore() > pepH.getScore())
+            {
+                pepH = pH[0];
+            }
+
+        }
+        double score_pepH = pepH.getScore();
+        auto seq = pepH.getSequence();
+        pepH.getSequence();
+        
 
 
-        file_ << intensity << "\t" << charge << "\t" << mz << "\t" <<rt<<"\n";
+        file_ <<seq<<"\t"<<seq.getNTerminalModificationName()<<seq<<seq.getCTerminalModificationName()<<"\t"<< charge << "\t" << mz << "\t" <<rt<<"\t"<<score_pepH<<"\t"<< intensity << "\t" ;
     }
 
 

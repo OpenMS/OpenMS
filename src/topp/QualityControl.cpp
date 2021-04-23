@@ -60,7 +60,9 @@
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
+//#include <OpenMS/QC/MQEvidenceExporter.h>
 #include <cstdio>
+
 
 #include <map>
 
@@ -254,7 +256,7 @@ protected:
 
     // Loop through featuremaps...
     vector<PeptideIdentification> all_new_upep_ids;
-    // 
+//    MQEvidence out_test("/buffer/ag_bsc/pmsb_2021/musch/test.txt");
     for (Size i = 0; i < number_exps; ++i)
     {
       //-------------------------------------------------------------
@@ -386,6 +388,7 @@ protected:
       {
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
       }
+      //out_test.f_export(fmap_local);
     }
     // mztab writer requires single PIs per CF
     // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
