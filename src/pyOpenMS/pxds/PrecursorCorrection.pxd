@@ -19,26 +19,26 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
     void getPrecursors(MSExperiment & exp,
                         libcpp_vector[ Precursor ] & precursors,
                         libcpp_vector[ double ] & precursors_rt,
-                        libcpp_vector[ size_t ] & precursor_scan_index) nogil except + # wrap-attach:AASequence
+                        libcpp_vector[ size_t ] & precursor_scan_index) nogil except + # wrap-attach:PrecursorCorrection
 
     void writeHist(String & out_csv,
                     libcpp_vector[ double ] & delta_mzs,
                     libcpp_vector[ double ] & mzs,
-                    libcpp_vector[ double ] & rts) nogil except + # wrap-attach:AASequence
+                    libcpp_vector[ double ] & rts) nogil except + # wrap-attach:PrecursorCorrection
 
     libcpp_set[ size_t ] correctToNearestMS1Peak(MSExperiment & exp,
                                                   double mz_tolerance,
                                                   bool ppm,
                                                   libcpp_vector[ double ] & delta_mzs,
                                                   libcpp_vector[ double ] & mzs,
-                                                  libcpp_vector[ double ] & rts) nogil except + # wrap-attach:AASequence
+                                                  libcpp_vector[ double ] & rts) nogil except + # wrap-attach:PrecursorCorrection
 
     libcpp_set[ size_t ] correctToHighestIntensityMS1Peak(MSExperiment & exp,
                                                           double mz_tolerance,
                                                           bool ppm,
                                                           libcpp_vector[ double ] & delta_mzs,
                                                           libcpp_vector[ double ] & mzs,
-                                                          libcpp_vector[ double ] & rts) nogil except + # wrap-attach:AASequence
+                                                          libcpp_vector[ double ] & rts) nogil except + # wrap-attach:PrecursorCorrection
     
     libcpp_set[ size_t ] correctToNearestFeature(FeatureMap & features,
                                                   MSExperiment & exp,
@@ -49,5 +49,5 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
                                                   bool keep_original,
                                                   bool all_matching_features,
                                                   int max_trace,
-                                                  int debug_level) nogil except + # wrap-attach:AASequence
+                                                  int debug_level) nogil except + # wrap-attach:PrecursorCorrection
 
