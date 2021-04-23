@@ -39,10 +39,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <seqan/basic.h>
-#include <seqan/stream.h>
-#include <seqan/seq_io/guess_stream_format.h>
-#include <seqan/seq_io/read_fasta_fastq.h>
 
 namespace OpenMS
 {
@@ -58,14 +54,73 @@ namespace OpenMS
         // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
     }
 
-    bool FASTAFile::readSequence(std::string & seq)
+
+    bool FASTAFile::getLine_(std::istream& is, std::string& t){
+        t.clear();
+        std::istream::sentry se(is, true);
+        if (!se)
+        { // the stream has an error
+            return false;
+        }
+        std::streambuf* sb = is.rdbuf();
+        if(entries_read_== 0)//
+        {
+            if(sb->sgetc() == '>') return false;
+            if(sb->sgetc() == '#')
+            {
+                is.ignore(numeric_limits<streamsize>::max(),'\n');//skipping the following line without reading
+                return true;
+            }
+        }
+        for (;;)
+        {
+            int c = sb->sbumpc();// get and advance to next char
+            switch (c)
+            {
+                case '\n':
+                    if (sb->sgetc() == '>') // peek current char
+                    {
+                        return false;//reaching the beginning of the next protein-entry
+                    }
+                    return true;
+                case '\r':
+                    if (sb->sgetc() == '\n') // peek current char
+                    {
+                        sb->sbumpc(); // consume it
+                    }
+                    return true;
+                case ' ':
+                    break;
+                case '\t':
+                    break;
+                case std::streambuf::traits_type::eof():
+                    is.setstate(std::ios::eofbit); // still allows: while(is == true)
+                    if (t.empty())
+                    { // only if we just started a new line, we set the is.fail() == true, ie. is == false
+                        is.setstate(std::ios::badbit);
+                    }
+                    return false;
+                default:
+                    t += (char)c;
+            }
+        }
+    }
+
+    bool FASTAFile::readEntry_(std::string & id, std::string & seq)
     {
        std::string line;
-        while(TextFile::getLine(infile_, line) && line[0] != '>')
+       if(TextFile::getLine(infile_,line))//using Textfile::getLine to be able to read '>'
+       {
+           line.erase(0,1);
+           id=line;
+       }
+       else return false; //infile_ empty
+
+        while(FASTAFile::getLine_(infile_, line))
         {
             seq+=line;
         }
-        nextID_=line;//because while loop stops AFTER reading first line of next protein
+        seq+=line;//after getLine_ returns false still add the line read
 
         if(seq.empty()) return false;
         return true;
@@ -93,16 +148,9 @@ namespace OpenMS
 
         // Skip the header of PEFF files (http://www.psidev.info/peff)
         std::string line;
-        while (TextFile::getLine(infile_, line))
+        while (FASTAFile::getLine_(infile_, line))
         {
-            if (!line.empty() && line[0] != '#')
-            {
-                if(line[0]=='>')
-                {
-                    nextID_=line;//because while loop stops AFTER reading first line of first protein
-                }
-                break;
-            }
+            //skipping PEFF header or anything before the first identifier
         }
 
         entries_read_ = 0;
@@ -116,13 +164,8 @@ namespace OpenMS
         }
 
         String id, s;
-        if(!nextID_.empty() && nextID_[0]=='>')
-        {
-            nextID_.erase(0,1);
-            id=nextID_;
-        }
 
-        if (readSequence(s) == false)
+        if (readEntry_(id, s) == false)
         {
             if (entries_read_ == 0) s = "The first entry could not be read!";
             else s = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
@@ -130,9 +173,7 @@ namespace OpenMS
         }
         ++entries_read_;
 
-        s.removeWhitespaces();
         protein.sequence = s; // assign here, since 's' might have higher capacity, thus wasting memory (usually 10-15%)
-
         // handle id
         id.trim();
         String::size_type position = id.find_first_of(" \v\t");

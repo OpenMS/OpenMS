@@ -57,6 +57,7 @@ START_TEST(FASTAFile, "$Id$")
         using namespace std;
 
         FASTAFile* ptr = nullptr;
+
         START_SECTION((FASTAFile()))
                 ptr = new FASTAFile();
                 TEST_EQUAL(ptr == nullptr, false)
@@ -71,6 +72,7 @@ START_TEST(FASTAFile, "$Id$")
                 ptr_e = new FASTAFile::FASTAEntry();
                 TEST_EQUAL(ptr_e == nullptr, false)
         END_SECTION
+
 
         START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String seq))
                 FASTAFile::FASTAEntry entry("ID", "DESC", "DAVLDELNER");
@@ -127,7 +129,7 @@ START_TEST(FASTAFile, "$Id$")
                                                          + String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
                                                          + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
                                                          + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
-                                                         + String("AGEGEN"))//wie modifikationen drin lassen?
+                                                         + String("AGEGEN"))
 
                 // test if the modifed sequence is convertable
                 AASequence aa = AASequence::fromString(sequences_iterator->sequence);
@@ -153,6 +155,8 @@ START_TEST(FASTAFile, "$Id$")
 
         END_SECTION
 
+
+
         START_SECTION((void store(const String& filename, const std::vector< FASTAEntry > &data) const))
                 vector<FASTAFile::FASTAEntry> data, data2;
                 String tmp_filename;
@@ -163,7 +167,7 @@ START_TEST(FASTAFile, "$Id$")
                 TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/bla/bluff/blblb/sdfhsdjf/test.txt",data))
 
                 file.store(tmp_filename,data);
-                file.load(tmp_filename,data2);//fail
+                file.load(tmp_filename,data2);
                 TEST_EQUAL(data==data2,true);
         END_SECTION
 
@@ -183,11 +187,11 @@ START_SECTION([EXTRA] test_strange_symbols_in_sequence)
 
 
   file.store(tmp_filename, data);
+  file.load(tmp_filename, data2);
 
   ABORT_IF(data2.size() != 2);
   TEST_EQUAL(data2[0] == temp_entry, true);
   TEST_EQUAL(data2[1] == temp_entry, true);
-
 END_SECTION
 
 
@@ -209,7 +213,6 @@ START_SECTION(test_white_spaces)
 
                 ABORT_IF(data2.size() != 1);
                 TEST_EQUAL(data2[0].sequence == String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL"), true);
-
 END_SECTION
 
 
