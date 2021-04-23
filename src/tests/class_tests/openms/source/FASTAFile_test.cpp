@@ -156,7 +156,6 @@ START_TEST(FASTAFile, "$Id$")
         END_SECTION
 
 
-
         START_SECTION((void store(const String& filename, const std::vector< FASTAEntry > &data) const))
                 vector<FASTAFile::FASTAEntry> data, data2;
                 String tmp_filename;

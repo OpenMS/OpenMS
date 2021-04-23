@@ -139,7 +139,6 @@ namespace OpenMS
         /// Destructor
         virtual ~FASTAFile();
 
-
         /**
           @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
           @exception Exception::FileNotFound is thrown if the file does not exists.

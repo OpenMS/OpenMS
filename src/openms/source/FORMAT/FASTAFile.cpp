@@ -164,7 +164,6 @@ namespace OpenMS
         }
 
         String id, s;
-
         if (readEntry_(id, s) == false)
         {
             if (entries_read_ == 0) s = "The first entry could not be read!";
