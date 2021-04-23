@@ -665,7 +665,9 @@ namespace OpenMS
       Size num_top_novo = data[i].num_top_novo;
       novo_data.push_back(num_top_novo);
       novo_hits_to_data[num_top_novo] = i;
+      cout << num_top_novo << ", ";
     }
+    cout << endl;
 
     double median_novo_hits = Math::median(novo_data.begin(), novo_data.end());
 
