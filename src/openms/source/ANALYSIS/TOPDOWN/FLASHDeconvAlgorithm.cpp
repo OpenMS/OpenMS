@@ -1465,6 +1465,7 @@ namespace OpenMS {
             //     continue;
             //}
 
+            peak_group.updateSNR();
             peak_group.setQScore(-10000);
 
             for (int abs_charge = std::get<0>(current_charge_range);

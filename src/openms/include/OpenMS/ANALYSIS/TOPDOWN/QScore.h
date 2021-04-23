@@ -64,7 +64,6 @@ namespace OpenMS
                             const int pscan,
                             const double pmass,
                             const double pmz,
-                            const DataValue color,
                             const double fintensity,
                             PeakGroup &pg,
                             const int fr,

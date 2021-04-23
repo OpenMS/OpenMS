@@ -203,7 +203,6 @@ protected:
                              "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
         fd_defaults.addTag("max_mass_count", "advanced");
 
-
         fd_defaults.setValue("rt_window", 180.0, "RT window for MS1 deconvolution");
         fd_defaults.addTag("rt_window", "advanced");
 
@@ -334,7 +333,8 @@ protected:
             if (instream.good()) {
                 String line;
                 int scan;
-                double mass, charge, w1, w2, qscore, pint, mint, color;
+                double mass, charge, w1, w2, qscore, pint, mint, z1, z2;
+                double features[6];
                 while (std::getline(instream, line)) {
                     if (line.find("0 targets") != line.npos) {
                         continue;
@@ -382,22 +382,49 @@ protected:
                         n = line.substr(st, ed);
                         mint = atof(n.c_str());
 
-                        st = line.find("Color=", ed) + 6;
+                        st = line.find("Features=", ed) + 9;
                         //ed = line.find(' ', st);
-                        n = line.substr(st, st + 1);
-                        if (n.hasPrefix("B")) {
-                            color = 1.0;
-                        } else if (n.hasPrefix("R")) {
-                            color = 2.0;
-                        } else if (n.hasPrefix("b")) {
-                            color = 3.0;
-                        } else if (n.hasPrefix("r")) {
-                            color = 4.0;
-                        } else {
-                            color = 5.0;
-                        }
 
-                        std::vector<double> e(8);
+                        st = line.find('[', st) + 1;
+                        ed = line.find(',', st);
+                        n = line.substr(st, ed);
+                        features[0] = atof(n.c_str());
+
+                        st = line.find(',', st) + 1;
+                        ed = line.find(',', st);
+                        n = line.substr(st, ed);
+                        features[1] = atof(n.c_str());
+
+                        st = line.find(',', st) + 1;
+                        ed = line.find(',', st);
+                        n = line.substr(st, ed);
+                        features[2] = atof(n.c_str());
+
+                        st = line.find(',', st) + 1;
+                        ed = line.find(',', st);
+                        n = line.substr(st, ed);
+                        features[3] = atof(n.c_str());
+
+                        st = line.find(',', st) + 1;
+                        ed = line.find(',', st);
+                        n = line.substr(st, ed);
+                        features[4] = atof(n.c_str());
+
+                        st = line.find(',', st) + 1;
+                        ed = line.find(']', st);
+                        n = line.substr(st, ed);
+                        features[5] = atof(n.c_str());
+
+                        st = line.find("ChargeRange=[", ed) + 13;
+                        ed = line.find('-', st);
+                        n = line.substr(st, ed);
+                        z1 = atof(n.c_str());
+
+                        st = line.find("-", ed) + 1;
+                        ed = line.find(']', st);
+                        n = line.substr(st, ed);
+                        z2 = atof(n.c_str());
+                        std::vector<double> e(15);
                         e[0] = mass;
                         e[1] = charge;
                         e[2] = qscore;
@@ -405,8 +432,11 @@ protected:
                         e[4] = w2;
                         e[5] = pint;
                         e[6] = mint;
-                        e[7] = color;
-
+                        e[7] = z1;
+                        e[8] = z2;
+                        for (int i = 9; i < 15; i++) {
+                            e[i] = features[i - 9];
+                        }
                         precursor_map_for_real_time_acquisition[scan].push_back(e);
                     }
                 }
@@ -648,7 +678,6 @@ protected:
                 && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
                     ) {
                 double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
-                auto color = deconvoluted_spectrum.getPrecursor().getMetaValue("color");
                 auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
                 double pmass = pg.getMonoMass();
                 //     top_pic_map[scan_number].proteform_id_ < 0 ? .0 : top_pic_map[scan_number].precursor_mass_;
@@ -660,7 +689,7 @@ protected:
                                     top_pic_map[scan_number].proteform_id_,
                                     deconvoluted_spectrum.getOriginalSpectrum().getRT(),
                                     deconvoluted_spectrum.getPrecursorScanNumber(),
-                                    pmass, pmz, color,
+                                    pmass, pmz,
                                     top_pic_map[scan_number].intensity_,
                                     pg, fr, lr,
                                     deconvoluted_spectrum.getPrecursorCharge(),

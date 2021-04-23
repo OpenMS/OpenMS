@@ -332,7 +332,7 @@ namespace OpenMS {
         //
         double start_mz = 0;
         double end_mz = 0;
-        int target_precursor_scan = -1;
+        //int target_precursor_scan = -1;
 
         for (auto &precursor: spec_.getPrecursors()) {
             for (auto &activation_method :  precursor.getActivationMethods()) {
@@ -347,7 +347,7 @@ namespace OpenMS {
                      precursor.getIsolationWindowUpperOffset() :
                      precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
 
-            if (!precursor_map_for_real_time_acquisition.empty()) {
+            /*if (!precursor_map_for_real_time_acquisition.empty()) {
                 for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
                      map != precursor_map_for_real_time_acquisition.begin();
                      map--) {
@@ -366,15 +366,61 @@ namespace OpenMS {
                         for (auto &smap : map->second) {
                             //
                             if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001) {
-                                //TODO update here later use predeconvoluted one.
                                 target_precursor_scan = map->first;
                                 break;
                             }
                         }
                     }
                 }
-            }
+            }*/
         }
+
+
+        if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty()) {
+            for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
+                 map != precursor_map_for_real_time_acquisition.begin();
+                 map--) {
+                if (map->first >= scan_number_) {
+                    continue;
+                }
+
+                if (map->first < scan_number_ - 50) {
+                    return false;
+                }
+
+                if (map != precursor_map_for_real_time_acquisition.end()) {
+                    for (auto &smap : map->second) {
+                        if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001) {
+                            LogMzPeak precursor_log_mz_peak(precursor_peak_, is_positive);
+                            precursor_log_mz_peak.abs_charge = (int) smap[1];
+                            precursor_log_mz_peak.isotopeIndex = 0;
+                            precursor_log_mz_peak.mass = smap[0];
+                            precursor_log_mz_peak.intensity = smap[6];
+                            //precursor_peak_.setMetaValue("color", smap[7]);
+                            precursor_peak_group_.push_back(precursor_log_mz_peak);
+                            precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
+                            precursor_peak_.setIntensity(smap[5]);
+                            precursor_peak_group_.setAbsChargeRange(smap[7], smap[8]);
+                            precursor_peak_group_.setChargeIsotopeCosine(precursor_log_mz_peak.abs_charge, smap[9]);
+                            precursor_peak_group_.setChargeSNR(precursor_log_mz_peak.abs_charge, smap[10]);//cnsr
+                            precursor_peak_group_.setIsotopeCosine(smap[11]);
+                            precursor_peak_group_.setSNR(smap[12]);
+                            precursor_peak_group_.setChargeScore(smap[13]);
+                            precursor_peak_group_.setAvgPPMError(smap[14]);
+                            precursor_peak_group_.setQScore(smap[2]);
+                            precursor_peak_group_.setRepAbsCharge((int) smap[1]);
+                            precursor_peak_group_.updateMassesAndIntensity();
+                            //precursor_peak_group_.setScanNumber()
+                            precursor_scan_number_ = map->first;
+                            //std::cout<<precursor_scan_number_<<" " << precursor_peak_group_.getMonoMass()<<std::endl;
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
 
         int survey_cntr = 0;
         double max_score = 0;
@@ -382,9 +428,9 @@ namespace OpenMS {
         for (int i = survey_scans.size() - 1; i >= 0; i--) {
             auto precursor_spectrum = survey_scans[i];
 
-            if (target_precursor_scan >= 0 && target_precursor_scan != precursor_spectrum.scan_number_) {
-                continue;
-            }
+            //if (target_precursor_scan >= 0 && target_precursor_scan != precursor_spectrum.scan_number_) {
+            //    continue;
+            //}
             if (survey_cntr++ >= max_survey_cntr) {
                 break;
             }
@@ -451,45 +497,7 @@ namespace OpenMS {
             if (!precursor_peak_group_.empty()) {
                 break;
             }
-        }/*
-        if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty()) {
-            for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
-                 map != precursor_map_for_real_time_acquisition.begin();
-                 map--) {
-                if (map->first >= scan_number_) {
-                    continue;
-                }
-
-                if (map->first < scan_number_ - 50) {
-                    return false;
-                }
-
-                if (map != precursor_map_for_real_time_acquisition.end()) {
-                    for (auto &smap : map->second) {
-                        if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001) {
-                            LogMzPeak precursor_log_mz_peak(precursor_peak_, is_positive);
-                            precursor_log_mz_peak.abs_charge = (int) smap[1];
-                            precursor_log_mz_peak.isotopeIndex = 0;
-                            precursor_log_mz_peak.mass = smap[0];
-                            precursor_log_mz_peak.intensity = smap[6];
-                            precursor_peak_.setMetaValue("color", smap[7]);
-                            precursor_peak_.setCharge(precursor_log_mz_peak.abs_charge);
-                            precursor_peak_.setIntensity(smap[5]);
-                            precursor_peak_group_.push_back(precursor_log_mz_peak);
-                            precursor_peak_group_.setQScore(smap[2]);
-                            precursor_peak_group_.setRepAbsCharge((int) smap[1]);
-                            precursor_peak_group_.updateMassesAndIntensity();
-                            //precursor_peak_group_.setScanNumber()
-                            precursor_scan_number_ = map->first;
-                            //std::cout<<precursor_scan_number_<<" " << precursor_peak_group_.getMonoMass()<<std::endl;
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
         }
-*/
         return precursor_peak_group_.empty();
     }
 
