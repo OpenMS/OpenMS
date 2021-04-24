@@ -36,6 +36,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <ui_TOPPViewPrefDialog.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtWidgets/QFileDialog>
 
@@ -150,10 +152,10 @@ namespace OpenMS
     {
       Param p; 
       p.setValue("preferences:default_path", ui_->default_path->text());
-      p.setValue("preferences:default_path_current", ui_->default_path_current->isChecked());
+      p.setValue("preferences:default_path_current", fromCheckState(ui_->default_path_current->checkState()));
 
-      p.setValue("preferences:use_cached_ms1", ui_->use_cached_ms1->isChecked());
-      p.setValue("preferences:use_cached_ms2", ui_->use_cached_ms2->isChecked());
+      p.setValue("preferences:use_cached_ms1", fromCheckState(ui_->use_cached_ms1->checkState()));
+      p.setValue("preferences:use_cached_ms2", fromCheckState(ui_->use_cached_ms2->checkState()));
 
       p.setValue("preferences:default_map_view", ui_->map_default->currentText());
       p.setValue("preferences:intensity_cutoff", ui_->map_cutoff->currentText());
@@ -204,9 +206,15 @@ namespace OpenMS
       p.setValue("preferences:idview:add_isotopes", fromCheckState(ic_ions[0]->checkState()), "Show isotopes");
       p.setValue("preferences:idview:add_abundant_immonium_ions", fromCheckState(ai_ions[0]->checkState()), "Show abundant immonium ions");
 
-      if (param_.empty()) param_ = p; // if setParam() was not called before, param_ is empty and p is the only thing we have...
-      else param_.update(p, false); // update with new values from 'p' to avoid loosing additional parameters and the existing descriptions already present in param_
-
+      // if setParam() was not called before, param_ is empty and p is the only thing we have...
+      if (param_.empty()) param_ = p;
+      // update with new values from 'p' to avoid loosing additional parameters and the existing descriptions already present in param_
+      else  if (!param_.update(p, true, true, true, true, OpenMS_Log_warn))
+      { // fails if parameter types are incompatible, e.g. param_.getValue("checkbox") is STRING, but p.setValue("checkBox", 1), i.e. Int was stored.
+        // You should see 'Parameter 'preferences:use_cached_ms2' has changed value type!' or similar in the console
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Storing parameters failed. This is a bug! Please report it!");
+      }
+        
       return param_;
     }
 
