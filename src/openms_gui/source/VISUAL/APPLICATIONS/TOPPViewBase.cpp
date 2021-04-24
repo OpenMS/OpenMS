@@ -1589,17 +1589,12 @@ namespace OpenMS
         error = true;
       }
       //apply preferences if they are of the current TOPPView version
-      if (!error && tmp.exists("preferences:version") && tmp.hasSection("tool_params:") &&
+      if (!error && tmp.exists("preferences:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
         {
           setParameters(tmp.copy("preferences:"));
-          if (scan_mode_ != TOOL_SCAN::FORCE_SCAN)
-          {
-            param_.insert("tool_params:", tmp.copy("tool_params:", true));
-            tool_params_added = true;
-          }
         }
         catch (Exception::InvalidParameter& /*e*/)
         {
@@ -1609,6 +1604,12 @@ namespace OpenMS
       else
       {
         error = true;
+      }
+      // Load tool/util params
+      if (!error && scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
+      {
+        param_.insert("tool_params:", tmp.copy("tool_params:", true));
+        tool_params_added = true;
       }
 
       // set parameters to defaults when something is fishy with the parameters file
@@ -1623,8 +1624,7 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
-    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for
-    // whatever reason
+    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
     if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
       tool_scanner_.loadParams();

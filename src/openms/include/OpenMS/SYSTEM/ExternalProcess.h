@@ -40,6 +40,7 @@
 #include <QtCore/QObject>
 
 #include <functional> // for std::function
+#include <Q_PID>
 
 class QProcess; // forward declare to avoid header include
 class QString;
@@ -74,7 +75,7 @@ namespace OpenMS
       FAILED_TO_START ///< executable not found or not enough access rights for user
     };
 
-    /// Open mode for the process
+    /// Open mode for the process. Instead of
     enum class IO_MODE
     {
         NO_IO, ///< No read nor write access
@@ -103,7 +104,7 @@ namespace OpenMS
       @param verbose Report the call command and errors via the callbacks (default: false)
       @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
       @param[out] error_string Message to display to the user if something went wrong (if return != SUCCESS)
-      @param io_mode Open mode for the process (read, write, ... access)
+      @param io_mode Open mode for the process (read access, write access, ...)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
     RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE);
@@ -121,5 +122,7 @@ namespace OpenMS
     QProcess* qp_; ///< pointer to avoid including the QProcess header here (it's huge)
     std::function<void(const String&)> callbackStdOut_;
     std::function<void(const String&)> callbackStdErr_;
+    /// Maps an IO_MODE value to the corresponding QIODevice::OpenModeFlag.
+    static QIODevice::OpenModeFlag getOpenModeFlag(IO_MODE io_mode);
   };
 } // ns OpenMS

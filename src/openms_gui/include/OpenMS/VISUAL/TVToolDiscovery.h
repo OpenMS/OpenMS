@@ -62,18 +62,23 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI TVToolDiscovery
   {
   public:
-    TVToolDiscovery()
-    {};
+    TVToolDiscovery() {};
 
     TVToolDiscovery(const TVToolDiscovery &) = delete;
 
     TVToolDiscovery &operator=(const TVToolDiscovery &) = delete;
 
-    ~TVToolDiscovery()
-    {};
+    ~TVToolDiscovery() {};
 
     /// Start creating params for each tool/util asynchronously
     void loadParams();
+
+    /**
+       @brief Wait for all future params to finish evaluating.
+       @details
+       While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
+     */
+    void waitForParams();
 
     /**
        @brief Returns a hash map containing a param for each tool/util.
@@ -84,13 +89,6 @@ namespace OpenMS
      */
     const std::map<std::string, Param> &getToolParams();
 
-    /**
-       @brief Wait for all future params to finish evaluating.
-       @details
-       While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
-     */
-    void waitForParams();
-
   private:
     /// Returns param for a given tool/util. This function is thread-safe
     static Param getParamFromIni_(const std::string &tool_name);
@@ -100,6 +98,5 @@ namespace OpenMS
 
     /// Contains a mapping of each tool/util name to its param.
     std::map<std::string, Param> params_;
-
   };
 }

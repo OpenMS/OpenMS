@@ -38,7 +38,6 @@
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include <QProcess>
 #include <QCoreApplication>
 
 namespace OpenMS

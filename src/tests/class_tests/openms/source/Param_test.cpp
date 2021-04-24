@@ -659,8 +659,12 @@ START_SECTION((bool hasSection(const std::string& key) const))
 	p.addSection("test:test", "");
 	TEST_EQUAL(p.hasSection("test"), true)
 	TEST_EQUAL(p.hasSection("test:test"), true)
+	TEST_EQUAL(p.hasSection("test:"), true)
+	TEST_EQUAL(p.hasSection("test:test:"), true)
 	TEST_EQUAL(p.hasSection("sectionThatDoesNotExist"), false)
-	TEST_EQUAL(p.hasSection("AnotherSection"), false)
+	TEST_EQUAL(p.hasSection("AnotherSection:"), false)
+	TEST_EQUAL(p.hasSection("Section:WithinSection"), false)
+	TEST_EQUAL(p.hasSection("Section:WithinSection:"), false)
 END_SECTION
 
 START_SECTION((const DataValue& getValue(const std::string &key) const))
