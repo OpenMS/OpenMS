@@ -72,10 +72,8 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  Map<String, String> option_lists;
-  Map<String, String> options;
+  std::map<std::string, std::string> options, flags, option_lists;
   options["-print"] = "print";
-  Map<String, String> flags;
   flags["--help"] = "help";
   Param param;
   param.parseCommandLine(argc, argv, options, flags, option_lists);
@@ -107,7 +105,7 @@ int main(int argc, const char** argv)
     ParamXMLFile paramFile;
     try
     {
-      paramFile.load(param.getValue("print"), data);
+      paramFile.load(param.getValue("print").toString(), data);
       for (Param::ParamIterator it = data.begin(); it != data.end(); ++it)
       {
         cout << it.getName() << " = " << it->value << endl;

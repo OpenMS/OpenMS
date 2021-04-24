@@ -61,8 +61,8 @@ namespace OpenMS
     y_datum_min_ = params_.exists("y_datum_min") ? (double)params_.getValue("y_datum_min") : 1e-15;
     y_datum_max_ = params_.exists("y_datum_max") ? (double)params_.getValue("y_datum_max") : 1e15;
 
-    y_weight_ = params_.exists("y_weight") ? (String)params_.getValue("y_weight") : "";
-    x_weight_ = params_.exists("x_weight") ? (String)params_.getValue("x_weight") : "";
+    y_weight_ = params_.exists("y_weight") ? String(params_.getValue("y_weight").toString()) : "";
+    x_weight_ = params_.exists("x_weight") ? String(params_.getValue("x_weight").toString()) : "";
 
     std::vector<String> valid_x_weights = getValidXWeights();
     std::vector<String> valid_y_weights = getValidYWeights();
