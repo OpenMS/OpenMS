@@ -765,12 +765,14 @@ namespace OpenMS
   const String& File::TemporaryFiles_::newFile()
   {
     String s = getTempDirectory().ensureLastChar('/') + getUniqueName();
+    std::lock_guard<std::mutex> _(mtx_);
     filenames_.push_back(s);
     return filenames_.back();
   }
 
   File::TemporaryFiles_::~TemporaryFiles_()
   {
+    std::lock_guard<std::mutex> _(mtx_);
     for (Size i = 0; i < filenames_.size(); ++i)
     {
       if (File::exists(filenames_[i]) && !File::remove(filenames_[i])) 

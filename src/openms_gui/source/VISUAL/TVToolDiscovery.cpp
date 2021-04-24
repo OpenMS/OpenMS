@@ -35,91 +35,85 @@
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QProcess>
 #include <QCoreApplication>
 
-#include <iostream>
+namespace OpenMS
+{
 
-namespace OpenMS {
-
-    void TVToolDiscovery::loadParams()
+  void TVToolDiscovery::loadParams()
+  {
+    // tool params are only loaded once by using a immediately evaluated lambda
+    static bool _ [[maybe_unused]] = [&]() -> bool
     {
-      // tool params are only loaded once by using a immediately evaluated lambda
-      static bool _ [[maybe_unused]] = [&]() -> bool
+      // Get a map of all tools
+      const auto &tools = ToolHandler::getTOPPToolList();
+      const auto &utils = ToolHandler::getUtilList();
+      // Launch threads for loading tool/util params.
+      for (auto&[name, description] : tools)
       {
-        // Get a map of all tools
-        const auto& tools = ToolHandler::getTOPPToolList();
-        const auto& utils = ToolHandler::getUtilList();
-        // Launch threads for loading tool/util params.
-        for (auto& [name, description] : tools)
-        {
-          param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
-        }
-        for (auto& [name, description] : utils)
-        {
-          param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
-        }
-        return true;
-      }();
-    }
-
-    void TVToolDiscovery::waitForParams()
-    {
-      // Make sure that future results are only waited for and inserted in params_ once
-      static bool _ [[maybe_unused]] = [&]() -> bool
-      {
-        // Make sure threads have been launched before waiting
-        loadParams();
-        // Wait for futures to finish
-        for (auto& [name, param_future] : param_futures_)
-        {
-          while (param_future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
-          {
-            // Keep GUI responsive while waiting
-            QCoreApplication::processEvents();
-          }
-          // Make future results available in params_
-          params_.emplace(name, param_future.get());
-        }
-        return true;
-      }();
-    }
-
-    const std::map<std::string, Param>& TVToolDiscovery::getToolParams()
-    {
-      // Make sure threads have been launched and waited for before accessing results
-      loadParams();
-      waitForParams();
-      return params_;
-    }
-
-    Param TVToolDiscovery::getParamFromIni_(const std::string& tool_name)
-    {
-      // Temporary file path and arguments
-      String path = File::getTempDirectory() + "/" + File::getUniqueName() + ".ini";
-      QStringList args{ "-write_ini", path.toQString()};
-      // Start tool/util to write the ini file
-      QProcess qp;
-      Param tool_param;
-      String executable = File::findSiblingTOPPExecutable(tool_name);
-      qp.start(executable.toQString(), args, QProcess::NotOpen);
-
-      const bool success = qp.waitForFinished(-1); // wait till job is finished
-      // If something went wrong close the file handle, remove the file and return an empty param
-      if (qp.error() == QProcess::FailedToStart || !success || qp.exitStatus() != 0 || qp.exitCode() != 0 || !File::exists(path))
-      {
-        qp.close();
-        std::remove(path.c_str());
-        return tool_param;
+        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
       }
-      // Parse ini file to param object and return it
-      ParamXMLFile paramFile;
-      paramFile.load((path).c_str(), tool_param);
+      for (auto&[name, description] : utils)
+      {
+        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
+      }
+      return true;
+    }();
+  }
 
-      qp.close();
-      std::remove(path.c_str());
+  void TVToolDiscovery::waitForParams()
+  {
+    // Make sure that future results are only waited for and inserted in params_ once
+    static bool _ [[maybe_unused]] = [&]() -> bool
+    {
+      // Make sure threads have been launched before waiting
+      loadParams();
+      // Wait for futures to finish
+      for (auto&[name, param_future] : param_futures_)
+      {
+        while (param_future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+        {
+          // Keep GUI responsive while waiting
+          QCoreApplication::processEvents();
+        }
+        // Make future results available in params_
+        params_.emplace(name, param_future.get());
+      }
+      return true;
+    }();
+  }
+
+  const std::map<std::string, Param> &TVToolDiscovery::getToolParams()
+  {
+    // Make sure threads have been launched and waited for before accessing results
+    loadParams();
+    waitForParams();
+    return params_;
+  }
+
+  Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name)
+  {
+    // Temporary file path and arguments
+    String path = File::getTemporaryFile();
+    String working_dir = path.prefix(path.find_last_of('/'));
+    QStringList args{"-write_ini", path.toQString()};
+    // Start tool/util to write the ini file
+    String executable = File::findSiblingTOPPExecutable(tool_name);
+    ExternalProcess proc;
+    auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), false, ExternalProcess::IO_MODE::NO_IO);
+    // Return empty param if writing the ini file failed
+    Param tool_param;
+    if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
+    {
       return tool_param;
     }
+    // Parse ini file to param object and return it
+    ParamXMLFile paramFile;
+    paramFile.load((path).c_str(), tool_param);
+    return tool_param;
+  }
 }

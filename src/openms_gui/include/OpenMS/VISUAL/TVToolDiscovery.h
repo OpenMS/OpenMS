@@ -42,62 +42,64 @@
 
 namespace OpenMS
 {
+  /**
+     @brief Scans for tools/utils and generates a param for each asynchronously.
+
+     @details All tools and utils listed in the ToolHandler class are considered.
+
+     @example
+     @code
+     TVToolDiscovery scanner;
+     scanner.loadParams();
+     // Do something else before explicitly waiting for the threads to finish
+     ...
+     // Wait when convenient. Keeps the GUI responsive while waiting
+     scanner.waitForParams();
+     // Access the params. If no special timing for waiting or loading is needed this function can be safely called directly.
+     scanner.getToolParams();
+     @endcode
+   */
+  class OPENMS_GUI_DLLAPI TVToolDiscovery
+  {
+  public:
+    TVToolDiscovery()
+    {};
+
+    TVToolDiscovery(const TVToolDiscovery &) = delete;
+
+    TVToolDiscovery &operator=(const TVToolDiscovery &) = delete;
+
+    ~TVToolDiscovery()
+    {};
+
+    /// Start creating params for each tool/util asynchronously
+    void loadParams();
+
     /**
-       @brief Scans for tools/utils and generates a param for each asynchronously.
-
-       @details All tools and utils listed in the ToolHandler class are considered.
-
-       @example
-       @code
-       TVToolDiscovery scanner;
-       scanner.loadParams();
-       // Do something else before explicitly waiting for the threads to finish
-       ...
-       // Wait when convenient. Keeps the GUI responsive while waiting
-       scanner.waitForParams();
-       // Access the params. If no special timing for waiting or loading is needed this function can be safely called directly.
-       scanner.getToolParams();
-       @endcode
+       @brief Returns a hash map containing a param for each tool/util.
+       @details
+       Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called.
+       In that case, the function starts param parsing (loadParam()) and waits for completion (waitForParams())
+       before returning the result.
      */
-    class OPENMS_GUI_DLLAPI TVToolDiscovery
-    {
-    public:
-        TVToolDiscovery() {};
+    const std::map<std::string, Param> &getToolParams();
 
-        TVToolDiscovery(const TVToolDiscovery&) = delete;
+    /**
+       @brief Wait for all future params to finish evaluating.
+       @details
+       While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
+     */
+    void waitForParams();
 
-        TVToolDiscovery& operator=(const TVToolDiscovery&) = delete;
+  private:
+    /// Returns param for a given tool/util. This function is thread-safe
+    static Param getParamFromIni_(const std::string &tool_name);
 
-        ~TVToolDiscovery() {};
+    /// Contains a param future for each tool/util name
+    std::map<std::string, std::future<Param>> param_futures_;
 
-        /// Start creating params for each tool/util asynchronously
-        void loadParams();
+    /// Contains a mapping of each tool/util name to its param.
+    std::map<std::string, Param> params_;
 
-        /**
-           @brief Returns a hash map containing a param for each tool/util.
-           @details
-           Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called.
-           In that case, the function starts param parsing (loadParam()) and waits for completion (waitForParams())
-           before returning the result.
-         */
-        const std::map<std::string, Param>& getToolParams();
-
-        /**
-           @brief Wait for all future params to finish evaluating.
-           @details
-           While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
-         */
-        void waitForParams();
-
-    private:
-        /// Returns param for a given tool/util. This function is thread-safe
-        static Param getParamFromIni_(const std::string& tool_name);
-
-        /// Contains a param future for each tool/util name
-        std::map<std::string, std::future<Param>> param_futures_;
-
-        /// Contains a mapping of each tool/util name to its param.
-        std::map<std::string, Param> params_;
-
-    };
+  };
 }

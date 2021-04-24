@@ -315,7 +315,7 @@ protected:
       @param key The key of the section to be searched for. May or may not contain ":" suffix.
       @return True if the section exists, false otherwise.
      */
-    bool hasSection(const String& key) const;
+    bool hasSection(const std::string& key) const;
 
     /**
       @brief Find leaf node by name (if it exists).

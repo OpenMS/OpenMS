@@ -73,13 +73,13 @@ namespace OpenMS
   }
 
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode)
   {
     String error_msg;
-    return run(exe, args, working_dir, verbose, error_msg);
+    return run(exe, args, working_dir, verbose, error_msg, io_mode);
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode)
   {
     error_msg.clear();
     if (!working_dir.isEmpty())
@@ -89,7 +89,23 @@ namespace OpenMS
 
     if (verbose)  callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
 
-    qp_->start(exe, args);
+    QIODevice::OpenModeFlag mode;
+    switch (io_mode) {
+      case IO_MODE::NO_IO:
+        mode = QProcess::NotOpen;
+        break;
+      case IO_MODE::READ_ONLY:
+        mode = QProcess::ReadOnly;
+        break;
+      case IO_MODE::WRITE_ONLY:
+        mode = QProcess::WriteOnly;
+        break;
+      case IO_MODE::READ_WRITE:
+        mode = QProcess::ReadWrite;
+        break;
+    }
+
+    qp_->start(exe, args, mode);
     if (!(qp_->waitForStarted()))
     {
       error_msg = "Process '" + exe + "' failed to start. Does it exist? Is it executable?";
