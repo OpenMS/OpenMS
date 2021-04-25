@@ -63,7 +63,7 @@ START_SECTION(f_export())
     FeatureMap e;
     FeatureXMLFile dfmap_file;
     dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
-    ptr->f_export(e);
+    ptr->exportFeatureMapTotxt(e);
     delete ptr;
 }
 END_SECTION

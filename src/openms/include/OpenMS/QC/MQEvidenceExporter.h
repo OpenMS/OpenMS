@@ -51,6 +51,6 @@ public:
     ~MQEvidence();
     //std::fstream getFile() const;
     void export_header();
-    void f_export(const FeatureMap &fm);
+    void exportRowFromFeature(const Feature &f);
     void exportFeatureMapTotxt(const FeatureMap & feature_map);
 };
