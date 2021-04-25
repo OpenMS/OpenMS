@@ -1602,7 +1602,15 @@ OPENMS_THREAD_CRITICAL(oms_log)
 
   bool Param::hasSection(const std::string &key) const
   {
-    return root_.findParentOf(key) != nullptr;
+    if (key.back() == ':')
+    {
+      // Remove trailing colon from key
+      return root_.findParentOf(key.substr(0, key.size() - 1)) != nullptr;
+    }
+    else
+    {
+      return root_.findParentOf(key) != nullptr;
+    }
   }
 
   Param::ParamEntry& Param::getEntry_(const std::string& key) const
