@@ -78,81 +78,79 @@ void MQEvidence::export_header()
     file_ << "\n";
 }
 
-void MQEvidence::exportRowFromFeature(const Feature &f)
-{
-    const vector<PeptideIdentification> & pep_ids = f.getPeptideIdentifications();
-    if(pep_ids.empty())
-    {
+void MQEvidence::exportRowFromFeature(const Feature &f) {
+    const vector<PeptideIdentification> &pep_ids = f.getPeptideIdentifications();
+    if (pep_ids.empty()) {
         return;
     }
 
     vector<PeptideHit> pep_hits; // TODO: Referenzen auf Peptide Hits
-    for(const PeptideIdentification & it: pep_ids)
-    {
-        pep_hits.insert(pep_hits.end(),it.getHits().begin(), it.getHits().end());
+    for (const PeptideIdentification &it: pep_ids) {
+        pep_hits.insert(pep_hits.end(), it.getHits().begin(), it.getHits().end());
     }
-    if(pep_hits.empty())
-    {
+    if (pep_hits.empty()) {
         return;
     }
-    vector<PeptideHit>::iterator pep_hits_iterator = max_element(pep_hits.begin(), pep_hits.end(), [](PeptideHit a, PeptideHit b){return a.getScore() < b.getScore();});
-    const PeptideHit & pep_hits_max = pep_hits_iterator[0];
+    vector<PeptideHit>::iterator pep_hits_iterator = max_element(pep_hits.begin(), pep_hits.end(),
+                                                                 [](PeptideHit a, PeptideHit b) {
+                                                                     return a.getScore() < b.getScore();
+                                                                 });
+    const PeptideHit &pep_hits_max = pep_hits_iterator[0];
 
-    const AASequence & pep_seq = pep_hits_max.getSequence();
+    const AASequence &pep_seq = pep_hits_max.getSequence();
 
-    if(pep_seq.empty())
-    {
+    if (pep_seq.empty()) {
         return;
     }
 
     file_ << pep_seq.toUnmodifiedString() << "\t"; // Sequence
     file_ << pep_seq.size() << "\t"; // Length
-    if(!pep_seq.isModified())
-    {
+    if (!pep_seq.isModified()) {
         file_ << "Unmodified" << "\t"; // Modification (Unmodified)
-    }
-    else{
+    } else {
         set<String> modifications;
         modifications.emplace(pep_seq.getNTerminalModification());
         modifications.emplace(pep_seq.getCTerminalModification());
-        for(uint i = 0; i < pep_seq.size(); ++i)
-        {
+        for (uint i = 0; i < pep_seq.size(); ++i) {
             modifications.emplace(pep_seq.getResidue(i).getModification());
         }
-        for(const String & m : modifications){
+        for (const String &m : modifications) {
             file_ << m << ";"; // Modification
         }
         file_ << "\t";
     }
-    file_ << "_" << pep_seq << "_" <<"\t"; // Modified Sequence
-    file_ << pep_seq.getMonoWeight() <<"\t"; // Mass
-    file_ << pep_seq.getMonoWeight()-(f.getCharge()*f.getMZ()) << "\t"; // Mass error
-    file_ << pep_hits_max.getScore() <<"\t"; // Score
+    file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
+    file_ << pep_seq.getMonoWeight() << "\t"; // Mass
+    file_ << pep_seq.getMonoWeight() - (f.getCharge() * f.getMZ()) << "\t"; // Mass error
+    file_ << pep_hits_max.getScore() << "\t"; // Score
 
     //const vector<PeptideEvidence> & evidence = pep_hits_max.getPeptideEvidences(); //TODO: Fragen was das ist und ob wir es brauchen
-    const set<String> & accessions = pep_hits_max.extractProteinAccessionsSet();
-    for(const String & p : accessions){
+    const set<String> &accessions = pep_hits_max.extractProteinAccessionsSet();
+    for (const String &p : accessions) {
         file_ << p << ";"; // Protein Group IDs?
     }
     file_ << "\t";
     file_ << f.getCharge() << "\t"; // Charge
     file_ << f.getMZ() << "\t"; // MZ
     file_ << f.getRT() << "\t"; // retention time
-    file_ <<  f.getConvexHull().getBoundingBox().maxX()-f.getConvexHull().getBoundingBox().minX()<< "\t"; // rentention length
+    file_ << f.getConvexHull().getBoundingBox().maxX() - f.getConvexHull().getBoundingBox().minX()
+          << "\t"; // rentention length
     file_ << f.getIntensity() << "\t"; // intensity
     file_ << "\n";
-
+    file_ << pep_hits_max.getMetaValue("missed_cleavages") << "\t";
+    file_ << pep_hits_max.getMetaValue("calibrated_mz_error_ppm") << "\t";
 }
 
 
-void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map) {
+void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map)
+{
     //go trough all features
     for (Feature f : feature_map)
     {
         exportRowFromFeature(f);
+        file_ << feature_map.getProteinIdentifications()[0].getSearchParameters().missed_cleavages << "\t";
+        file_ << feature_map.getProteinIdentifications()[0].getSearchParameters().mass_type <<"\t";
+
     }
 
 }
-
-
-//////////////////////////////////////////////////////////////////////////////////////
