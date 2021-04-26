@@ -52,7 +52,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -72,18 +71,16 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/LogWindow.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -91,21 +88,30 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 //Qt
-#include <QtCore/QSettings>
-#include <QtCore/QDir>
-#include <QtCore/QUrl>
 #include <QCloseEvent>
+#include <QPainter>
+#include <QtCore/QDate>
+#include <QtCore/QDir>
+#include <QtCore/QSettings>
+#include <QtCore/QTime>
+#include <QtCore/QUrl>
+#include <QTextCodec>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
-#include <QPainter>
 #include <QtWidgets/QSplashScreen>
 #include <QtWidgets/QToolBar>
-#include <QtWidgets/QToolTip>
 #include <QtWidgets/QToolButton>
-#include <QTextCodec>
+#include <QtWidgets/QToolTip>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QTreeWidgetItem>
+#include <QtWidgets/QWhatsThis>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -686,7 +692,6 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          MzMLFile f;
           Internal::IndexedMzMLHandler indexed_mzml_file_;
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
@@ -728,16 +733,8 @@ namespace OpenMS
             if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
-        else if (file_type == FileTypes::MSP)
-        {
-          MSPGenericFile().load(abs_filename, *peak_map_sptr);
-          for (size_t i = 0; i != peak_map_sptr->size(); ++i)
-          {
-            if ((*peak_map_sptr)[i].getRT() < 0) (*peak_map_sptr)[i].setRT(i); // set RT to spectrum index
-          }
-        }
 
-        // Load all data into memory if e.g. no mzML file
+        // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
@@ -2097,7 +2094,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2622,14 +2619,14 @@ namespace OpenMS
       else if (spec_view != nullptr)
       {
         ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-        if (spec_view->getSelectedScan(*new_exp_sptr))
+        if (LayerData::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
         {
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
           const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerData::DT_PEAK : LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)

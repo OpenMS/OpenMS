@@ -635,7 +635,7 @@ namespace OpenMS
   void Param::remove(const std::string& key)
   {
     std::string keyname = key;
-    if (key.back() == ':') // delete section
+    if (!key.empty() && key.back() == ':') // delete section
     {
       keyname = key.substr(0, key.length() - 1);
 
@@ -677,7 +677,7 @@ namespace OpenMS
 
   void Param::removeAll(const std::string& prefix)
   {
-    if (prefix.back() == ':')//we have to delete one node only (and its subnodes)
+    if (!prefix.empty() && prefix.back() == ':')//we have to delete one node only (and its subnodes)
     {
       ParamNode* node = root_.findParentOf(prefix.substr(0, prefix.length() - 1));
       if (node != nullptr)
@@ -776,7 +776,7 @@ namespace OpenMS
       return Param();
     }
     //we have to copy this node only
-    if (prefix.back() == ':')
+    if (!prefix.empty() && prefix.back() == ':')
     {
       if (remove_prefix)
       {
@@ -1013,7 +1013,7 @@ namespace OpenMS
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
       os << '"';
-      if (it.getName().length() > it->name.length())
+      if (it.getName().length() > it->name.length() + 1)
       {
         os << it.getName().substr(0, it.getName().length() - it->name.length() - 1) << "|";
       }
@@ -1187,8 +1187,9 @@ OPENMS_THREAD_CRITICAL(oms_log)
                 !(suffix.length() > it.getName().length()) &&
                 it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
-          ptrdiff_t first = it.getName().find(':');
-          if (it.getName().find(':', first+1) != std::string::npos) 
+          size_t first = it.getName().find(':');
+          if (first != std::string::npos &&
+              it.getName().find(':', first+1) != std::string::npos)
           {
             if (this->getValue(it.getName()) != it->value) 
             {
