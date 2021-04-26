@@ -344,7 +344,7 @@ namespace OpenMS
     bool annotations_changed(false);
 
     // regular expression for a charge at the end of the annotation
-    QRegExp reg_exp("([\\+|\\-]\\d+)$");
+    QRegExp reg_exp(R"(([\+|\-]\d+)$)");
 
     // for each annotation item on the canvas
     for (auto& a : las)
