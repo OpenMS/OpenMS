@@ -52,7 +52,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -72,18 +71,16 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/LogWindow.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -91,31 +88,33 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 //Qt
-#include <QtCore/QSettings>
+#include <QCloseEvent>
+#include <QPainter>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
+#include <QtCore/QSettings>
 #include <QtCore/QTime>
 #include <QtCore/QUrl>
+#include <QTextCodec>
 #include <QtWidgets/QCheckBox>
-#include <QCloseEvent>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
-#include <QPainter>
 #include <QtWidgets/QSplashScreen>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
-#include <QtWidgets/QToolTip>
 #include <QtWidgets/QToolButton>
+#include <QtWidgets/QToolTip>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QWhatsThis>
-#include <QTextCodec>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -447,7 +446,7 @@ namespace OpenMS
     loadPreferences();
 
     // set current path
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     // update the menu
     updateMenu();
@@ -468,20 +467,20 @@ namespace OpenMS
   {
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-    defaults_.setValidStrings("preferences:default_map_view", ListUtils::create<String>("2d,3d"));
+    defaults_.setValidStrings("preferences:default_map_view", {"2d","3d"});
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
-    defaults_.setValidStrings("preferences:intensity_cutoff", ListUtils::create<String>("on,off"));
+    defaults_.setValidStrings("preferences:intensity_cutoff", {"on","off"});
     defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-    defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<String>("none,ask,update automatically"));
+    defaults_.setValidStrings("preferences:on_file_change", {"none","ask","update automatically"});
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:topp_cleanup", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms2", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms2", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms1", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms1", {"true","false"});
     // 1d view
     defaults_.insert("preferences:1d:", Plot1DCanvas(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:1d", "Settings for single spectrum view.");
@@ -571,8 +570,8 @@ namespace OpenMS
     // lock the GUI - no interaction possible when loading...
     GUIHelpers::GUILock glock(this);
 
-    bool cache_ms2_on_disc = ((String)param_.getValue("preferences:use_cached_ms2") == "true");
-    bool cache_ms1_on_disc = ((String)param_.getValue("preferences:use_cached_ms1") == "true");
+    bool cache_ms2_on_disc = (param_.getValue("preferences:use_cached_ms2") == "true");
+    bool cache_ms1_on_disc = (param_.getValue("preferences:use_cached_ms1") == "true");
 
     try
     {
@@ -697,7 +696,6 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          MzMLFile f;
           Internal::IndexedMzMLHandler indexed_mzml_file_;
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
@@ -739,16 +737,8 @@ namespace OpenMS
             if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
-        else if (file_type == FileTypes::MSP)
-        {
-          MSPGenericFile().load(abs_filename, *peak_map_sptr);
-          for (size_t i = 0; i != peak_map_sptr->size(); ++i)
-          {
-            if ((*peak_map_sptr)[i].getRT() < 0) (*peak_map_sptr)[i].setRT(i); // set RT to spectrum index
-          }
-        }
 
-        // Load all data into memory if e.g. no mzML file
+        // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
@@ -848,9 +838,9 @@ namespace OpenMS
                              Size spectrum_id)
   {
     // initialize flags with defaults from the parameters
-    bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view") == "2d");
+    bool maps_as_2d = (param_.getValue("preferences:default_map_view") == "2d");
     bool maps_as_1d = false;
-    bool use_intensity_cutoff = ((String)param_.getValue("preferences:intensity_cutoff") == "on");
+    bool use_intensity_cutoff = (param_.getValue("preferences:intensity_cutoff") == "on");
     bool is_dia_data = false;
 
     // feature, consensus feature and identifications can be merged
@@ -1640,7 +1630,7 @@ namespace OpenMS
     // replace recent files
     param_.removeAll("preferences:RecentFiles");
     param_.insert("preferences:RecentFiles:", recent_files_.getAsParam());
-    
+
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
 
@@ -2075,7 +2065,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2600,14 +2590,14 @@ namespace OpenMS
       else if (spec_view != nullptr)
       {
         ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-        if (spec_view->getSelectedScan(*new_exp_sptr))
+        if (LayerData::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
         {
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
           const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerData::DT_PEAK : LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)
@@ -2639,7 +2629,7 @@ namespace OpenMS
     }
 
     //reset
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     //update if the current layer has a path associated
     if (getActiveCanvas() && getActiveCanvas()->getLayerCount() != 0 && getActiveCanvas()->getCurrentLayer().filename != "")
@@ -2693,11 +2683,11 @@ namespace OpenMS
     Size layer_index = slp.second;
 
     bool user_wants_update = false;
-    if ((String)(param_.getValue("preferences:on_file_change")) == "update automatically") //automatically update
+    if (param_.getValue("preferences:on_file_change") == "update automatically") //automatically update
     {
       user_wants_update = true;
     }
-    else if ((String)(param_.getValue("preferences:on_file_change")) == "ask") //ask the user if the layer should be updated
+    else if (param_.getValue("preferences:on_file_change") == "ask") //ask the user if the layer should be updated
     {
       if (watcher_msgbox_ == true) // we already have a dialog for that opened... do not ask again
       {
