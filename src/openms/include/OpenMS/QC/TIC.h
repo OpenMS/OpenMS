@@ -62,7 +62,7 @@ namespace OpenMS
     virtual ~TIC() = default;
 
     // stores TIC values calculated by compute function
-    struct Result
+    struct OPENMS_DLLAPI Result
     {
       std::vector<UInt> intensities;  // TIC intensities
       std::vector<float> retention_times; // TIC RTs in seconds
