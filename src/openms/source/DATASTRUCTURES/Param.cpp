@@ -1548,6 +1548,11 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return getEntry_(key);
   }
 
+  ParamValue::ValueType Param::getValueType(const std::string& key) const
+  {
+    return getEntry_(key).value.valueType();
+  }
+
   const std::string& Param::getDescription(const std::string& key) const
   {
     return getEntry_(key).description;

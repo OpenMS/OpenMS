@@ -295,6 +295,13 @@ protected:
     const ParamValue& getValue(const std::string& key) const;
 
     /**
+      @brief Returns the type of a parameter.
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    */
+    ParamValue::ValueType getValueType(const std::string& key) const;
+
+    /**
       @brief Returns the whole parameter entry.
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
