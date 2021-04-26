@@ -40,7 +40,6 @@
 #include <QtCore/QObject>
 
 #include <functional> // for std::function
-#include <Q_PID>
 
 class QProcess; // forward declare to avoid header include
 class QString;
@@ -75,7 +74,7 @@ namespace OpenMS
       FAILED_TO_START ///< executable not found or not enough access rights for user
     };
 
-    /// Open mode for the process. Instead of
+    /// Open mode for the process.
     enum class IO_MODE
     {
         NO_IO, ///< No read nor write access
@@ -122,7 +121,5 @@ namespace OpenMS
     QProcess* qp_; ///< pointer to avoid including the QProcess header here (it's huge)
     std::function<void(const String&)> callbackStdOut_;
     std::function<void(const String&)> callbackStdErr_;
-    /// Maps an IO_MODE value to the corresponding QIODevice::OpenModeFlag.
-    static QIODevice::OpenModeFlag getOpenModeFlag(IO_MODE io_mode);
   };
 } // ns OpenMS

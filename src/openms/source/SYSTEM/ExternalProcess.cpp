@@ -89,7 +89,24 @@ namespace OpenMS
 
     if (verbose)  callbackStdOut_("Running: " + (QStringList() << exe << args).join(' ') + '\n');
 
-    qp_->start(exe, args, getOpenModeFlag(io_mode));
+    // Map IO_MODE enum value to QIODevice value
+    QIODevice::OpenModeFlag mode;
+    switch (io_mode)
+    {
+      case IO_MODE::NO_IO:
+        mode = QIODevice::NotOpen;
+        break;
+      case IO_MODE::READ_ONLY:
+        mode = QIODevice::ReadOnly;
+        break;
+      case IO_MODE::WRITE_ONLY:
+        mode = QIODevice::WriteOnly;
+        break;
+      default:
+        mode = QIODevice::ReadWrite;
+    }
+
+    qp_->start(exe, args, mode);
     if (!(qp_->waitForStarted()))
     {
       error_msg = "Process '" + exe + "' failed to start. Does it exist? Is it executable?";
@@ -137,18 +154,4 @@ namespace OpenMS
     callbackStdErr_(s);
   }
 
-  QIODevice::OpenModeFlag ExternalProcess::getOpenModeFlag(ExternalProcess::IO_MODE io_mode)
-  {
-    switch (io_mode)
-    {
-      case IO_MODE::NO_IO:
-        return QProcess::NotOpen;
-      case IO_MODE::READ_ONLY:
-        return QProcess::ReadOnly;
-      case IO_MODE::WRITE_ONLY:
-        return QProcess::WriteOnly;
-      case IO_MODE::READ_WRITE:
-        return QProcess::ReadWrite;
-    }
-  }
 } // ns OpenMS

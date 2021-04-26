@@ -433,7 +433,7 @@ namespace OpenMS
     defaultsToParam_();
 
     // load param file
-    loadPreferences("");
+    loadPreferences();
 
     // set current path
     current_path_ = param_.getValue("preferences:default_path").toString();
