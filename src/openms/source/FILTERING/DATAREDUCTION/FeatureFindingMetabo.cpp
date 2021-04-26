@@ -264,36 +264,36 @@ namespace OpenMS
   FeatureFindingMetabo::FeatureFindingMetabo() :
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
-    defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced")); // 5.0
-    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // 6.5
+    defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", {"advanced"}); // 5.0
+    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", {"advanced"}); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
     defaults_.setValue("charge_upper_bound", 3, "Highest charge state to consider"); // 3
     defaults_.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds)."); // 5.0
-    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("report_summed_ints", ListUtils::create<String>("false,true"));
+    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", {"advanced"});
+    defaults_.setValidStrings("report_summed_ints", {"false","true"});
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
-    defaults_.setValidStrings("enable_RT_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("enable_RT_filtering", {"false","true"});
 
     defaults_.setValue("isotope_filtering_model", "metabolites (5% RMS)", "Remove/score candidate assemblies based on isotope intensities. SVM isotope models for metabolites were trained with either 2% or 5% RMS error. For peptides, an averagine cosine scoring is used. Select the appropriate noise model according to the quality of measurement or MS device.");
-    defaults_.setValidStrings("isotope_filtering_model", ListUtils::create<String>("metabolites (2% RMS),metabolites (5% RMS),peptides,none"));
+    defaults_.setValidStrings("isotope_filtering_model", {"metabolites (2% RMS)","metabolites (5% RMS)","peptides","none"});
 
     defaults_.setValue("mz_scoring_13C", "false", "Use the 13C isotope peak position (~1.003355 Da) as the expected shift in m/z for isotope mass traces (highly recommended for lipidomics!). Disable for general metabolites (as described in Kenar et al. 2014, MCP.).");
-    defaults_.setValidStrings("mz_scoring_13C", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("mz_scoring_13C", {"false","true"});
 
-    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("use_smoothed_intensities", ListUtils::create<String>("false,true"));
+    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", {"advanced"});
+    defaults_.setValidStrings("use_smoothed_intensities", {"false","true"});
     
     defaults_.setValue("report_convex_hulls", "false", "Augment each reported feature with the convex hull of the underlying mass traces (increases featureXML file size considerably).");
-    defaults_.setValidStrings("report_convex_hulls", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("report_convex_hulls", {"false","true"});
 
     defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (Output in mzml).");
-    defaults_.setValidStrings("report_chromatograms", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("report_chromatograms", {"false","true"});
 
     defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
-    defaults_.setValidStrings("remove_single_traces", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("remove_single_traces", {"false","true"});
 
     defaults_.setValue("mz_scoring_by_elements", "false", "Use the m/z range of the assumed elements to detect isotope peaks. A expected m/z range is computed from the isotopes of the assumed elements. If enabled, this ignores 'mz_scoring_13C'");
-    defaults_.setValidStrings("mz_scoring_by_elements", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("mz_scoring_by_elements", {"false","true"});
 
     defaults_.setValue("elements", "CHNOPS", "Elements assumes to be present in the sample (this influences isotope detection).");
 
@@ -322,7 +322,7 @@ namespace OpenMS
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     enable_RT_filtering_ = param_.getValue("enable_RT_filtering").toBool();
     
-    isotope_filtering_model_ = param_.getValue("isotope_filtering_model");
+    isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
 
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
