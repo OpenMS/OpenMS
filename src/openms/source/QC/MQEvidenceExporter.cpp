@@ -70,11 +70,15 @@ void MQEvidence::export_header()
     file_ << "Modified Sequence" << "\t";
     file_ << "Mass" << "\t";
     file_ << "Score" << "\t";
+    file_ << "Protein group IDs" << "\t";
     file_ << "Charge" << "\t";
     file_ << "M/Z" << "\t";
     file_ << "Retention Time" << "\t";
     file_ << "Retention Length" << "\t";
     file_ << "Intensity" << "\t";
+    file_ << "missed_cleavages" << "\t";
+    file_ << "calibrated_mz_error_ppm" << "\t";
+    file_ << "uncalibrated_mz_error_ppm" << "\t";
     file_ << "\n";
 }
 
@@ -109,10 +113,10 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
         file_ << "Unmodified" << "\t"; // Modification (Unmodified)
     } else {
         set<String> modifications;
-        modifications.emplace(pep_seq.getNTerminalModification());
-        modifications.emplace(pep_seq.getCTerminalModification());
+        modifications.emplace(pep_seq.getCTerminalModificationName());
+        modifications.emplace(pep_seq.getCTerminalModificationName());
         for (uint i = 0; i < pep_seq.size(); ++i) {
-            modifications.emplace(pep_seq.getResidue(i).getModification());
+            modifications.emplace(pep_seq.getResidue(i).getModificationName());
         }
         for (const String &m : modifications) {
             file_ << m << ";"; // Modification
@@ -136,9 +140,10 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     file_ << f.getConvexHull().getBoundingBox().maxX() - f.getConvexHull().getBoundingBox().minX()
           << "\t"; // rentention length
     file_ << f.getIntensity() << "\t"; // intensity
-    file_ << "\n";
-    file_ << pep_hits_max.getMetaValue("missed_cleavages") << "\t";
-    file_ << pep_hits_max.getMetaValue("calibrated_mz_error_ppm") << "\t";
+
+    file_ << pep_hits_max.getMetaValue("missed_cleavages",0) << "\t";
+    file_ << pep_hits_max.getMetaValue("calibrated_mz_error_ppm",0) << "\t";
+    file_ << pep_hits_max.getMetaValue("uncalibrated_mz_error_ppm",0) << "\t";
 }
 
 
@@ -148,8 +153,8 @@ void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map)
     for (Feature f : feature_map)
     {
         exportRowFromFeature(f);
-        file_ << feature_map.getProteinIdentifications()[0].getSearchParameters().missed_cleavages << "\t";
-        file_ << feature_map.getProteinIdentifications()[0].getSearchParameters().mass_type <<"\t";
+
+        file_ << "\n";
 
     }
 
