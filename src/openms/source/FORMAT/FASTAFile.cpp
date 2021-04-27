@@ -203,7 +203,7 @@ namespace OpenMS
         {
             return true;
         }
-        return infile_.eof();
+        return false;
     }
 
     void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
