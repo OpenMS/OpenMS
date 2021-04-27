@@ -215,22 +215,26 @@ START_TEST(FASTAFile, "$Id$")
                 String tmp_filename;
                 NEW_TMP_FILE(tmp_filename);
                 FASTAFile file;
-                vector<FASTAFile::FASTAEntry> data;
+                //vector<FASTAFile::FASTAEntry> data;
+                vector<pair<streampos, FASTAFile::FASTAEntry>> data;
                 FASTAFile::FASTAEntry temp_entry;
                 file.readStart(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"));
-                streampos a = file.position();
 
+                unsigned i =1;
+                while(i<5){ //read the first, say, 4 entries
                 file.readNext(temp_entry);
-                data.push_back(temp_entry);
-                streampos b = file.position();// check if a+
-                file.setPosition(a);
-                file.readNext(temp_entry);
-                data.push_back(temp_entry);
-                streampos c = file.position();
+                data.push_back(std::make_pair(file.position(), temp_entry));//remember their FASTAEntry's as well as their position.
+                i++;}
+                file.setPosition(data[1].first); //reset the position to the, say, 2nd entry
+                while(i<8){ //read the next 3 entries
+                    file.readNext(temp_entry);
+                    data.push_back(std::make_pair(file.position(), temp_entry));//and also remember their positions
+                    i++;
+                }//
 
-                ABORT_IF(data.size() != 2 || data[0].sequence != data[1].sequence);
-                // die erste Proteinsequenz in FASTAFile_test.fasta
-                TEST_EQUAL(data[0].sequence == string("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN"), true);
+                ABORT_IF(data.size() != 7 || data[1].second.sequence != data[4].second.sequence || data[6].first != data[3].first );
+                // die dritte Proteinsequenz in FASTAFile_test.fasta
+                TEST_EQUAL(data[5].second.sequence == string("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFYLKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGDAGEGEN"), true);
 
 
         END_SECTION
