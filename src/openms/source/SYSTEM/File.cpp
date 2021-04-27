@@ -516,7 +516,7 @@ namespace OpenMS
         std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
       }
 #ifdef OPENMS_WINDOWSPLATFORM
-      String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
+      String share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
 #else
       String share_dir = "/usr/share/OpenMS";
 #endif

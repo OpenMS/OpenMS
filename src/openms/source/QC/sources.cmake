@@ -14,6 +14,7 @@ set(sources_list
   PSMExplainedIonCurrent.cpp
   QCBase.cpp
   RTAlignment.cpp
+  SpectrumCount.cpp
   DBSuitability.cpp
   TIC.cpp
 )

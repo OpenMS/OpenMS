@@ -620,7 +620,7 @@ namespace OpenMS
     {
       // check whether Mascot responded using an error code e.g. [M00440], pipe through results else
       QString response_text = new_bytes;
-      QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
+      QRegExp mascot_error_regex(R"(\[M[0-9][0-9][0-9][0-9][0-9]\])");
       if (response_text.contains(mascot_error_regex))
       {
         OPENMS_LOG_ERROR << "Received response with Mascot error message!" << std::endl;

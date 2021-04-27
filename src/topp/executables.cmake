@@ -44,7 +44,6 @@ IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
 InclusionExclusionListCreator
-InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
 LuciphorAdapter
