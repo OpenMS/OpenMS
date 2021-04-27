@@ -1,7 +1,10 @@
 import CTDopts
 import sys
+import os
 from CTDopts.CTDopts import CTDModel, parse_cl_directives
 import pyopenms as pms
+import tempfile
+
 
 # code related to CTD support
 def addParamToCTDopts(defaults, model):
@@ -53,3 +56,34 @@ def addParamToCTDopts(defaults, model):
             is_list=ctd_list,
             description=desc)
 
+
+def parseCTDCommandLine(argv, model, openms_param):
+    # Configure CTDOpt to use OpenMS style on the command line.
+    directives = parse_cl_directives(argv, input_ctd='ini', write_tool_ctd='write_ini', prefix='-')
+
+    if directives["write_tool_ctd"] is not None: # triggered if -write_ini was provided on CML
+        # if called with -write_ini write CTD
+        model.write_ctd(directives["write_tool_ctd"])
+        exit(0)
+    elif directives["input_ctd"] is not None: # read ctd/ini file
+        model = CTDModel(from_file=directives["input_ctd"])
+#        print(model.get_defaults())
+           
+        param = pms.Param()
+        fh = pms.ParamXMLFile()
+        fh.load(directives["input_ctd"], param)
+        openms_param.update(param, True)
+        return model.get_defaults(), openms_param
+        
+    else: # only command line options provided
+        temp = tempfile.NamedTemporaryFile(suffix='ini') # makes sure we get a writable file
+        tmp_name = temp.name
+        temp.close() # removes the file
+
+        model.write_ctd(tmp_name)
+        param = pms.Param()
+        fh = pms.ParamXMLFile()
+        fh.load(tmp_name, param)
+        openms_param.update(param)
+        os.remove(tmp_name)
+        return model.parse_cl_args(argv), openms_param
