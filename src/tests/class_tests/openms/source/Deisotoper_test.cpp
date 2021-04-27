@@ -268,21 +268,21 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    two_patterns.push_back(p);
    theo = two_patterns;
    Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true);
-   TEST_EQUAL(theo.size(), 6); // all six peaks remain as the patterns should not be similar to averagine model
+   TEST_EQUAL(theo.size(), 6); // all six peaks remain, since the patterns should not be similar to averagine model
 
-   // Test with a section of actual spectrum
+   // Test with a section of an actual spectrum
    MzMLFile file;
    PeakMap exp;
    file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_in.mzML"), exp);
    Size ori_size = exp.getSpectrum(0).size();
    Deisotoper::deisotopeAndSingleCharge_exp(exp.getSpectrum(0), 10.0, true, 1, 3, true);// only keep deisotoped
-   file.store(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_out.mzML"), exp);
 
    theo.clear(true);
    theo = exp.getSpectrum(0);
-   Deisotoper::deisotopeAndSingleCharge(theo, 10.0, true, 1, 3, true);
-   TEST_NOT_EQUAL(exp.getSpectrum(0).size(), ori_size);
-   TEST_EQUAL(exp.getSpectrum(0), 4);
+   TEST_NOT_EQUAL(theo.size(), ori_size);
+   TEST_EQUAL(theo.size(), 21);
+   file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_out.mzML"), exp);
+   TEST_EQUAL(theo, exp.getSpectrum(0));
    
    /*
    // ****** BENCHMARKING ****** //
