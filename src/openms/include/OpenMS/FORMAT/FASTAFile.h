@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <functional>
 #include <fstream>
@@ -58,7 +59,7 @@ namespace OpenMS
       one single FASTAFile instance.
     */
 
-    class OPENMS_DLLAPI FASTAFile
+    class OPENMS_DLLAPI FASTAFile : public ProgressLogger
     {
     public:
         /**
@@ -159,7 +160,7 @@ namespace OpenMS
         std::streampos position();
 
         /// is stream at EOF?
-        bool atEnd() const;
+        bool atEnd();
 
         /// seek stream to @p pos
         bool setPosition(const std::streampos& pos);
@@ -200,13 +201,12 @@ namespace OpenMS
         void static store(const String& filename, const std::vector<FASTAEntry>& data);
 
     protected:
-        bool readEntry_(std::string & id, std::string & seq);
-        bool getLine_(std::istream& is, std::string& t);
-
+        bool readEntry_(std::string & id, std::string & seq);///<  reading a protein entry and saving the ID and
+                                                             ///<   sequence into the strings id and seq
         std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()
         std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
         Size entries_read_; ///< some internal book-keeping during reading
-        std::streampos fileSize_{};
+        std::streampos fileSize_{};///< total number of characters of filestream
     };
 
 } // namespace OpenMS

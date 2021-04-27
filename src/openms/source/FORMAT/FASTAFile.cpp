@@ -54,80 +54,80 @@ namespace OpenMS
         // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
     }
 
+    bool FASTAFile::readEntry_(std::string & id, std::string & seq)
+    {
+        std::streambuf* sb = infile_.rdbuf();
+        bool condition = true;
 
-    bool FASTAFile::getLine_(std::istream& is, std::string& t){
-        t.clear();
-        std::istream::sentry se(is, true);
-        if (!se)
-        { // the stream has an error
-            return false;
-        }
-        std::streambuf* sb = is.rdbuf();
-        if(entries_read_== 0)//
+        while(sb->sgetc() == '#')// Skip the header of PEFF files (http://www.psidev.info/peff)
         {
-            if(sb->sgetc() == '>') return false;
-            if(sb->sgetc() == '#')
+            infile_.ignore(numeric_limits<streamsize>::max(),'\n');
+        }
+        if(sb->sbumpc() == '>')//not saving '>'
+        {
+            while(condition)// reading the ID
             {
-                is.ignore(numeric_limits<streamsize>::max(),'\n');//skipping the following line without reading
-                return true;
+                int c = sb->sbumpc();// get and advance to next char
+                switch (c)
+                {
+                    case '\n'://ID finished
+                        condition = false;
+                        break;
+                    case std::streambuf::traits_type::eof():
+                        infile_.setstate(std::ios::eofbit);
+                        if (id.empty())
+                        { // only if we just started a new line, we set the is.fail() == true, ie. is == false
+                            infile_.setstate(std::ios::badbit);
+                        }
+                        return true;
+                    default:
+                        id += (char)c;
+                }
             }
         }
-        for (;;)
+        else return false;//was in wrong position for reading ID
+        if(id.empty()==true) return false;
+
+        condition = true;
+        while(condition)//reading the sequence
         {
             int c = sb->sbumpc();// get and advance to next char
             switch (c)
             {
                 case '\n':
-                    if (sb->sgetc() == '>') // peek current char
+                    if (sb->sgetc() == '>') //reaching the beginning of the next protein-entry
                     {
-                        return false;//reaching the beginning of the next protein-entry
+                        condition = false;
                     }
-                    return true;
+                    break;
                 case '\r':
                     if (sb->sgetc() == '\n') // peek current char
                     {
                         sb->sbumpc(); // consume it
                     }
-                    return true;
-                case ' ':
+                    break;
+                case ' ': //not saving white spaces
                     break;
                 case '\t':
                     break;
                 case std::streambuf::traits_type::eof():
-                    is.setstate(std::ios::eofbit); // still allows: while(is == true)
-                    if (t.empty())
+                    infile_.setstate(std::ios::eofbit);
+                    if (seq.empty())
                     { // only if we just started a new line, we set the is.fail() == true, ie. is == false
-                        is.setstate(std::ios::badbit);
+                        infile_.setstate(std::ios::badbit);
                     }
-                    return false;
+                    return true;
                 default:
-                    t += (char)c;
+                    seq += (char)c;
             }
         }
-    }
-
-    bool FASTAFile::readEntry_(std::string & id, std::string & seq)
-    {
-       std::string line;
-       if(TextFile::getLine(infile_,line))//using Textfile::getLine to be able to read '>'
-       {
-           line.erase(0,1);
-           id=line;
-       }
-       else return false; //infile_ empty
-
-        while(FASTAFile::getLine_(infile_, line))
-        {
-            seq+=line;
-        }
-        seq+=line;//after getLine_ returns false still add the line read
-
         if(seq.empty()) return false;
         return true;
     }
 
     void FASTAFile::readStart(const String& filename)
     {
+
         if (!File::exists(filename))
         {
             throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -141,17 +141,9 @@ namespace OpenMS
         if (infile_.is_open()) infile_.close(); // precaution
 
         infile_.open(filename.c_str(), std::ios::binary | std::ios::in);
-
         infile_.seekg(0, infile_.end);
         fileSize_ = infile_.tellg();
         infile_.seekg(0, infile_.beg);
-
-        // Skip the header of PEFF files (http://www.psidev.info/peff)
-        std::string line;
-        while (FASTAFile::getLine_(infile_, line))
-        {
-            //skipping PEFF header or anything before the first identifier
-        }
 
         entries_read_ = 0;
     }
@@ -198,14 +190,19 @@ namespace OpenMS
     {
         if(pos <= fileSize_)
         {
+            infile_.clear();//when end of file is reached, otherwise it gets -1
             infile_.seekg(pos);
             return true;
         }
         return false;
     }
 
-    bool FASTAFile::atEnd() const
+    bool FASTAFile::atEnd()
     {
+        if(infile_.peek() == std::streambuf::traits_type::eof()) // empty file
+        {
+            return true;
+        }
         return infile_.eof();
     }
 

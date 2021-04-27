@@ -147,9 +147,9 @@ protected:
     registerDoubleOption_("mz_tolerance", "<value>", p.getValue("mz_tolerance"), "m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.\nTolerance is understood as 'plus or minus x', so the matching range increases by twice the given value.", false);
     setMinFloat_("mz_tolerance", 0.0);
     registerStringOption_("mz_measure", "<choice>", p.getEntry("mz_measure").valid_strings[0], "Unit of 'mz_tolerance'.", false);
-    setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
+    setValidStrings_("mz_measure", ListUtils::toStringList<std::string>(p.getEntry("mz_measure").valid_strings));
     registerStringOption_("mz_reference", "<choice>", p.getEntry("mz_reference").valid_strings[1], "Source of m/z values for peptide identifications. If 'precursor', the precursor-m/z from the idXML is used. If 'peptide',\nmasses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.\n('peptide' should be used together with 'feature:use_centroid_mz' to avoid false-positive matches.)", false);
-    setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
+    setValidStrings_("mz_reference", ListUtils::toStringList<std::string>(p.getEntry("mz_reference").valid_strings));
     registerFlag_("ignore_charge", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.", true);
 
     addEmptyLine_();

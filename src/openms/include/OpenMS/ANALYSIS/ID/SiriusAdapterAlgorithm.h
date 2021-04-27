@@ -193,7 +193,7 @@ namespace OpenMS
       explicit ParameterModifier(const String &param_name, SiriusAdapterAlgorithm *enclose) :
               openms_param_name(param_name), enclose(enclose) {}
 
-      void withValidStrings(initializer_list<String> choices)
+      void withValidStrings(initializer_list<std::string> choices)
       {
         enclose->defaults_.setValidStrings(openms_param_name, choices);
       }
@@ -219,7 +219,7 @@ namespace OpenMS
     protected:
       ParameterModifier parameter(
               const String &parameter_name,
-              const DataValue &default_value,
+              const ParamValue &default_value,
               const String &parameter_description);
       void flag(
               const String &parameter_name,

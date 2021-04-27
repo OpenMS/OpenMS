@@ -43,7 +43,7 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmPEPMatrix"); // DefaultParamHandler
 
     defaults_.setValue("matrix", "identity", "Substitution matrix to use for alignment-based similarity scoring");
-    defaults_.setValidStrings("matrix", ListUtils::create<String>("identity,PAM30MS"));
+    defaults_.setValidStrings("matrix", {"identity","PAM30MS"});
     defaults_.setValue("penalty", 5, "Alignment gap penalty (the same value is used for gap opening and extension)");
     defaults_.setMinInt("penalty", 1);
 
@@ -58,7 +58,7 @@ namespace OpenMS
     ConsensusIDAlgorithmSimilarity::updateMembers_();
 
     // alignment scoring using SeqAn/similarity matrices:
-    String matrix = param_.getValue("matrix");
+    std::string matrix = param_.getValue("matrix");
     int penalty = param_.getValue("penalty");
     scoring_method_ = SeqAnScore(-penalty, -penalty);
     if (matrix == "identity")
