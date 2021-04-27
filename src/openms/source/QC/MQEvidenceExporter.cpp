@@ -82,6 +82,9 @@ void MQEvidence::export_header()
     file_ << "Calibrated MZ error [ppm]" << "\t";
     file_ << "Uncalibrated MZ error [ppm]" << "\t";
     file_ << "Uncalibrated - Calibrated m/z [ppm]" << "\t";
+    file_ << "Calibrated MZ error [Da]" << "\t";
+    file_ << "Uncalibrated MZ error [Da]" << "\t";
+    file_ << "Uncalibrated - Calibrated m/z [Da]" << "\t";
     file_ << "Mass error [ppm]" << "\t";
     file_ << "Mass error [Da]" << "\t";
     file_ << "\n";
@@ -166,15 +169,22 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     file_ << f.getConvexHull().getBoundingBox().maxX() - f.getConvexHull().getBoundingBox().minX() << "\t"; // Retention length
     file_ << f.getIntensity() << "\t"; // intensity
 
-    file_ << pep_hits_max.getMetaValue("missed_cleavages",0) << "\t"; // Missed Cleavages
-    const double & uncalibrated_mz = pep_hits_max.getMetaValue("uncalibrated_mz_error_ppm",0);
-    const double & calibrated_mz = pep_hits_max.getMetaValue("calibrated_mz_error_ppm",0);
+    file_ << pep_hits_max.getMetaValue("missed_cleavages","NA") << "\t"; // Missed Cleavages
+    const double & uncalibrated_mz = pep_hits_max.getMetaValue("uncalibrated_mz_error_ppm","NA");
+    const double & calibrated_mz = pep_hits_max.getMetaValue("calibrated_mz_error_ppm","NA");
+    const double & uncalibrated_mz_dalton = pep_hits_max.getMetaValue("uncalibrated_mz_error_dalton","NA");
+    const double & calibrated_mz_dalton = pep_hits_max.getMetaValue("calibrated_mz_error_dalton","NA");
     double uncalibrated_calibrated_diff = uncalibrated_mz - calibrated_mz;
+    double uncalibrated_calibrated_diff_dalton = uncalibrated_mz_dalton - calibrated_mz_dalton;
     file_ << calibrated_mz << "\t"; // Calibrated MZ error [ppm]
     file_ << uncalibrated_mz << "\t"; // Uncalibrated MZ error [ppm]
     file_ << uncalibrated_calibrated_diff << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-    file_ << pep_hits_max.getMetaValue("fragment_mass_error_ppm") << "\t"; // Mass error [ppm]
-    file_ << pep_hits_max.getMetaValue("fragment_mass_error_dalton") << "\t"; // Mass error [Da]
+    file_ << calibrated_mz_dalton << "\t"; // Calibrated MZ error [Da]
+    file_ << uncalibrated_mz_dalton << "\t"; // Uncalibrated MZ error [Da]
+    file_ << uncalibrated_calibrated_diff_dalton << "\t"; // Uncalibrated - Calibrated m/z [Da]
+
+    file_ << pep_hits_max.getMetaValue("fragment_mass_error_ppm","NA") << "\t"; // Mass error [ppm]
+    file_ << pep_hits_max.getMetaValue("fragment_mass_error_dalton","NA") << "\t"; // Mass error [Da]
 }
 
 
