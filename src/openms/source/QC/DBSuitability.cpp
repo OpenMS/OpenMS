@@ -162,7 +162,7 @@ namespace OpenMS
         subsampled_results.push_back(suitability_data_sampled);
       }
 
-      SuitabilityData median_sampled_data = getEntryWithMedianNovoHits_(subsampled_results);
+      SuitabilityData median_sampled_data = subsampled_results[getIndexWithMedianNovoHits_(subsampled_results)];
 
       suitability_data_full.setCorrectionFactor(calculateCorrectionFactor_(suitability_data_full, median_sampled_data, subsampling_rate));
 
@@ -621,37 +621,43 @@ namespace OpenMS
 
     for (const auto& pep : peps)
     {
-      if (pep.getHits().empty())  continue;
+      vector<PeptideHit> hits = pep.getHits();
+      if (hits.empty())
+        continue;
 
-      const PeptideHit& hit = pep.getHits()[0];
-
-      if (!hit.metaValueExists("target_decoy"))
+      for (Size i = 0; (i < number_of_hits && i < hits.size()); ++i)
       {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
-      }
-      if (hit.getMetaValue("target_decoy") == "decoy") continue; // skip if the hit is a decoy hit
+        const PeptideHit& hit = hits[i];
 
-      // insert protein accessions
-      const set<String> accessions = hit.extractProteinAccessionsSet();
-      for (const String& acc : accessions)
-      {
-        if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) != String::npos) // skip novo accessions
+        if (!hit.metaValueExists("target_decoy"))
         {
-          continue;
+          throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
         }
-        if (boost::regex_search(String(acc).toLower(), decoy_pattern_)) // skip decoy accessions
-        {
-          continue;
-        }
+        if (hit.getMetaValue("target_decoy") == "decoy")
+          continue;// skip if the hit is a decoy hit
 
-        proteins.insert(acc); // insert the rest
+        // insert protein accessions
+        const set<String> accessions = hit.extractProteinAccessionsSet();
+        for (const String& acc : accessions)
+        {
+          if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) != String::npos)// skip novo accessions
+          {
+            continue;
+          }
+          if (boost::regex_search(String(acc).toLower(), decoy_pattern_))// skip decoy accessions (this can happen if the hit is 'target+decoy'.)
+          {
+            continue;
+          }
+
+          proteins.insert(acc);// insert the rest
+        }
       }
     }
 
     return proteins.size();
   }
 
-  DBSuitability::SuitabilityData DBSuitability::getEntryWithMedianNovoHits_(const vector<SuitabilityData>& data) const
+  Size DBSuitability::getIndexWithMedianNovoHits_(const vector<SuitabilityData>& data) const
   {
     if (data.size() == 0)
     {
@@ -665,13 +671,11 @@ namespace OpenMS
       Size num_top_novo = data[i].num_top_novo;
       novo_data.push_back(num_top_novo);
       novo_hits_to_data[num_top_novo] = i;
-      cout << num_top_novo << ", ";
     }
-    cout << endl;
 
-    double median_novo_hits = Math::median(novo_data.begin(), novo_data.end());
+    Size median_novo_hits = ceil(Math::median(novo_data.begin(), novo_data.end()));
 
-    return data[novo_hits_to_data.at(median_novo_hits)];
+    return novo_hits_to_data.at(median_novo_hits);
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)

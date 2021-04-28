@@ -410,9 +410,25 @@ namespace OpenMS
     */
     double calculateCorrectionFactor_(const SuitabilityData& data, const SuitabilityData& data_sampled, double sampling_rate) const;
 
+    /**
+    * @brief Determines the number of unique proteins found in the protein accessions of PeptideIdentifications
+    *
+    * @param peps               vector of PeptideIdentifications
+    * @param number_of_hits     the number of hits to search in (if this is bigger than the actual number of hits all hits are looked at)
+    * @returns                  number of unique protein accessions
+    * @throws                   MissingInformation if no target/decoy annotation is found on @p peps
+    */
     UInt numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1) const;
 
-    SuitabilityData getEntryWithMedianNovoHits_(const std::vector<SuitabilityData>& data) const;
+    /**
+    * @brief Finds the SuitabilityData object with the median number of de novo hits
+    *
+    *  If the median isn't distinct (e.g. two entries could be considered median) the upper one is chosen.
+    *
+    * @param data     vector of SuitabilityData objects
+    * @returns        index to object with median number of de novo hits
+    */
+    Size getIndexWithMedianNovoHits_(const std::vector<SuitabilityData>& data) const;
   };
 
   class DBSuitability_friend
