@@ -28,74 +28,75 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Maintainer: David Voigt $
+// $Authors: David Voigt $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-/**
- * @brief Total Ion Count (TIC) as a QC metric
- *
- * Simple class to calculate the TIC of an MSExperiment.
- * Allows for multiple usage, because each calculated TIC is
- * stored internally. Those results can then be returned using
- * getResults().
- *
- */
+#include <future>
+#include <map>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace OpenMS
 {
-  class MzTabMetaData;
-  class MSExperiment;
-  class MSChromatogram;
+  /**
+     @brief Scans for tools/utils and generates a param for each asynchronously.
 
-  class OPENMS_DLLAPI TIC : public QCBase
+     @details All tools and utils listed in the ToolHandler class are considered.
+
+     @example
+     @code
+     TVToolDiscovery scanner;
+     scanner.loadParams();
+     // Do something else before explicitly waiting for the threads to finish
+     ...
+     // Wait when convenient. Keeps the GUI responsive while waiting
+     scanner.waitForParams();
+     // Access the params. If no special timing for waiting or loading is needed this function can be safely called directly.
+     scanner.getToolParams();
+     @endcode
+   */
+  class OPENMS_GUI_DLLAPI TVToolDiscovery
   {
   public:
-    /// Constructor
-    TIC() = default;
+    TVToolDiscovery() {};
 
-    /// Destructor
-    virtual ~TIC() = default;
+    TVToolDiscovery(const TVToolDiscovery &) = delete;
 
-    // stores TIC values calculated by compute function
-    struct OPENMS_DLLAPI Result
-    {
-      std::vector<UInt> intensities;  // TIC intensities
-      std::vector<float> retention_times; // TIC RTs in seconds
-      UInt area = 0;  // Area under TIC
-      UInt fall = 0;  // MS1 signal fall (10x) count
-      UInt jump = 0;  // MS1 signal jump (10x) count
+    TVToolDiscovery &operator=(const TVToolDiscovery &) = delete;
 
-      bool operator==(const Result& rhs) const;
-    };
+    ~TVToolDiscovery() {};
 
-    
+    /// Start creating params for each tool/util asynchronously
+    void loadParams();
+
     /**
-    @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+       @brief Wait for all future params to finish evaluating.
+       @details
+       While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
+     */
+    void waitForParams();
 
-    All MS1 TICs within a bin are summed up.
-
-    @param exp Peak map to compute the MS1 tick from
-    @param bin_size RT bin size in seconds
-    @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
-
-    **/
-    Result compute(const MSExperiment& exp, float bin_size=0);
-
-    const String& getName() const override;
-
-    const std::vector<MSChromatogram>& getResults() const ;
-
-    QCBase::Status requires() const override;
-
-    /// append QC data for given metrics to mzTab's MTD section
-    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);
+    /**
+       @brief Returns a hash map containing a param for each tool/util.
+       @details
+       Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called.
+       In that case, the function starts param parsing (loadParam()) and waits for completion (waitForParams())
+       before returning the result.
+     */
+    const std::map<std::string, Param> &getToolParams();
 
   private:
-    const String name_ = "TIC";
+    /// Returns param for a given tool/util. This function is thread-safe
+    static Param getParamFromIni_(const std::string &tool_name);
+
+    /// Contains a param future for each tool/util name
+    std::map<std::string, std::future<Param>> param_futures_;
+
+    /// Contains a mapping of each tool/util name to its param.
+    std::map<std::string, Param> params_;
   };
 }

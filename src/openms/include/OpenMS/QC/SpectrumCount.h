@@ -17,7 +17,7 @@
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARSpectrumCountULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
 // INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,65 +37,36 @@
 #include <OpenMS/QC/QCBase.h>
 
 /**
- * @brief Total Ion Count (TIC) as a QC metric
- *
- * Simple class to calculate the TIC of an MSExperiment.
- * Allows for multiple usage, because each calculated TIC is
- * stored internally. Those results can then be returned using
- * getResults().
- *
+ * @brief Number of MS spectra per MS level (SpectrumCount) as a QC metric
  */
 
 namespace OpenMS
 {
-  class MzTabMetaData;
   class MSExperiment;
-  class MSChromatogram;
 
-  class OPENMS_DLLAPI TIC : public QCBase
+  class OPENMS_DLLAPI SpectrumCount : public QCBase
   {
   public:
     /// Constructor
-    TIC() = default;
+    SpectrumCount() = default;
 
     /// Destructor
-    virtual ~TIC() = default;
+    virtual ~SpectrumCount() = default;
 
-    // stores TIC values calculated by compute function
-    struct OPENMS_DLLAPI Result
-    {
-      std::vector<UInt> intensities;  // TIC intensities
-      std::vector<float> retention_times; // TIC RTs in seconds
-      UInt area = 0;  // Area under TIC
-      UInt fall = 0;  // MS1 signal fall (10x) count
-      UInt jump = 0;  // MS1 signal jump (10x) count
-
-      bool operator==(const Result& rhs) const;
-    };
-
-    
     /**
-    @brief Compute Total Ion Count and applies the resampling algorithm, if a bin size in RT seconds greater than 0 is given.
+    @brief Compute number of spectra per MS level and returns them in a map
 
-    All MS1 TICs within a bin are summed up.
-
-    @param exp Peak map to compute the MS1 tick from
-    @param bin_size RT bin size in seconds
-    @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
-
+    @param exp MSExperiment containing the spectra to be counted
+    @return SpectrumCount
     **/
-    Result compute(const MSExperiment& exp, float bin_size=0);
+
+    std::map<Size, UInt> compute(const MSExperiment& exp);
 
     const String& getName() const override;
 
-    const std::vector<MSChromatogram>& getResults() const ;
-
     QCBase::Status requires() const override;
 
-    /// append QC data for given metrics to mzTab's MTD section
-    void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);
-
   private:
-    const String name_ = "TIC";
+    const String name_ = "SpectrumCount";
   };
 }
