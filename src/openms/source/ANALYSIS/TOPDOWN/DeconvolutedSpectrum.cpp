@@ -239,6 +239,7 @@ namespace OpenMS {
 
     void DeconvolutedSpectrum::writeTopFD(std::fstream &fs,
                                           const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+                                          const double snr_threshold,
                                           const double harmonic_factor,
                                           const double precursor_offset)//, fstream& fsm, fstream& fsp)
     {
@@ -247,7 +248,8 @@ namespace OpenMS {
 
         if (ms_level > 1) {
             if (precursor_peak_group_.empty()
-                //|| precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge())<1.0
+                || precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge()) < snr_threshold
+                //|| precursor_peak_group_.getQScore() < .25
                     ) {
                 return;
             }
@@ -337,6 +339,9 @@ namespace OpenMS {
         for (auto &precursor: spec_.getPrecursors()) {
             for (auto &activation_method :  precursor.getActivationMethods()) {
                 activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
+                if (activation_method_ == "HCID") {
+                    activation_method_ = "HCD";
+                }
                 break;
             }
             precursor_peak_ = precursor;
@@ -413,6 +418,57 @@ namespace OpenMS {
                             //precursor_peak_group_.setScanNumber()
                             precursor_scan_number_ = map->first;
                             //std::cout<<precursor_scan_number_<<" " << precursor_peak_group_.getMonoMass()<<std::endl;
+
+                            for (int i = survey_scans.size() - 1; i >= 0; i--) {
+                                auto precursor_spectrum = survey_scans[i];
+                                if (precursor_spectrum.getScanNumber() != precursor_scan_number_) {
+                                    continue;
+                                }
+                                double max_score = 1.0;
+                                for (auto &pg: precursor_spectrum) {
+                                    if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz) {
+                                        continue;
+                                    }
+                                    if (abs(pg.getMonoMass() - smap[0]) > 5.0) {
+                                        continue;
+                                    }
+                                    double max_intensity = .0;
+                                    const LogMzPeak *tmp_precursor = nullptr;
+
+                                    for (auto &tmp_peak:pg) {
+                                        if (tmp_peak.mz < start_mz) {
+                                            continue;
+                                        }
+                                        if (tmp_peak.mz > end_mz) {
+                                            break;
+                                        }
+                                        if (tmp_peak.intensity < max_intensity) {
+                                            continue;
+                                        }
+                                        max_intensity = tmp_peak.intensity;
+                                        tmp_precursor = &tmp_peak;
+                                        //sum_int += tmp_peak.intensity * tmp_peak.intensity;
+                                    }
+
+                                    if (tmp_precursor == nullptr) {
+                                        continue;
+                                    }
+                                    auto score = pg.getChargeSNR(
+                                            tmp_precursor->abs_charge); // most intense one should determine the mass
+                                    if (score < max_score) {
+                                        continue;
+                                    }
+
+                                    max_score = score;
+
+                                    if (pg.getQScore() < .25) {
+                                        continue;
+                                    }
+                                    precursor_peak_group_ = pg;
+                                }
+                            }
+
+
                             return true;
                         }
                     }

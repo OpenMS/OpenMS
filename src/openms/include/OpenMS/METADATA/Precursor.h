@@ -62,22 +62,21 @@ namespace OpenMS
 public:
 
     /// Method of activation
-    enum ActivationMethod
-    {
-      CID,                      ///< Collision-induced dissociation
-      PSD,                      ///< Post-source decay
-      PD,                       ///< Plasma desorption
-      SID,                      ///< Surface-induced dissociation
-      BIRD,                     ///< Blackbody infrared radiative dissociation
-      ECD,                      ///< Electron capture dissociation
-      IMD,                      ///< Infrared multiphoton dissociation
-      SORI,                     ///< Sustained off-resonance irradiation
-      HCD,                     ///< High-energy collision-induced dissociation
-      LCID,                     ///< Low-energy collision-induced dissociation
-      PHD,                      ///< Photodissociation
-      ETD,                      ///< Electron transfer dissociation
-      PQD,                      ///< Pulsed q dissociation
-      SIZE_OF_ACTIVATIONMETHOD
+    enum ActivationMethod {
+        CID,                      ///< Collision-induced dissociation
+        PSD,                      ///< Post-source decay
+        PD,                       ///< Plasma desorption
+        SID,                      ///< Surface-induced dissociation
+        BIRD,                     ///< Blackbody infrared radiative dissociation
+        ECD,                      ///< Electron capture dissociation
+        IMD,                      ///< Infrared multiphoton dissociation
+        SORI,                     ///< Sustained off-resonance irradiation
+        HCID,                     ///< High-energy collision-induced dissociation
+        LCID,                     ///< Low-energy collision-induced dissociation
+        PHD,                      ///< Photodissociation
+        ETD,                      ///< Electron transfer dissociation
+        PQD,                      ///< Pulsed q dissociation
+        SIZE_OF_ACTIVATIONMETHOD
     };
 
     ///Drift time unit

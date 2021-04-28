@@ -85,6 +85,10 @@ protected:
         auto outfile = getStringOption_("out");
         auto attfile = getStringOption_("out") + ".csv";
 
+        auto fd = FLASHDeconvAlgorithm();
+        fd.calculateAveragine(false);
+        auto avg = fd.getAveragine();
+
         fstream outstream, attstream;
         outstream.open(outfile, fstream::out); //
         attstream.open(attfile, fstream::out); //
@@ -114,9 +118,14 @@ protected:
                 results[item.protein_acc_] = vector<FLASHDeconvHelperStructs::TopPicItem>();
             }
             results[item.protein_acc_].push_back(item);
-
-            attstream<<item.protein_acc_<<","<<item.first_residue_<<","<<item.last_residue_<<","<<item.proteform_id_
-            <<","<<item.rt_<<",0,0,"<<item.adj_precursor_mass_<<",0,0,0,0,"<<item.intensity_<<",0,"<<item.charge_<<","<<(item.unexp_mod_.size())
+            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
+            attstream << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
+                      << item.proteform_id_
+                      << "," << item.rt_ << ",0," << item.scan_ << "," << item.adj_precursor_mass_ << ","
+                      << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
+                      << ","
+                      << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
+                      << (item.unexp_mod_.size())
             <<",";
             for(int k=0;k<3;k++){
                 if(k < item.unexp_mod_.size()){

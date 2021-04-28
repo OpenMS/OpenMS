@@ -104,7 +104,7 @@ namespace OpenMS
   void QScore::writeAttHeader(std::fstream &f, bool write_detail)
   {
     f
-            << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
+            << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
                "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,";
     if (write_detail)
     {
@@ -147,7 +147,7 @@ namespace OpenMS
         double monomass = pmass;
         double mass = avgpmass;
         f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","
-          << monomass << "," << mass << "," << pmz << ","
+          << monomass << "," << pg.getMonoMass() << "," << mass << "," << pmz << ","
           << precursor_intensity << ","
           << pg.getIntensity() << "," << fintensity << ","
           << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","

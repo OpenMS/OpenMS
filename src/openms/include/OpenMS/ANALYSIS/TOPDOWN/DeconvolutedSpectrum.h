@@ -112,6 +112,7 @@ namespace OpenMS
  */
     void writeTopFD(std::fstream &fs,
                     const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+                    const double snr_threshold = 1.0,
                     const double harmonic_factor = 1.0,
                     const double precursor_offset = .0);
 
