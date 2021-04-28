@@ -258,7 +258,7 @@
     Be aware that the order of directories in the PATH variable determines which dll or executable is used, if no absolute path was given when the executable was called.
     So the PATH might need to be updated (add/delete/reorder entries) if you are working with multiple installations or configurations of %OpenMS.
 
-    @section install_win_topp Building the TOPP tools
+  @section install_win_topp Building the TOPP tools
 
     TOPP is a toolset for the analysis of HPLC-MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
     <br>
@@ -269,39 +269,73 @@
 
   @section install_win_testing_openms Testing your OpenMS/TOPP installation
 
-  Each class in %OpenMS and each TOPP tool has a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
-  go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
-  For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
-  You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
-  Single tests can be run with <tt>ctest -R &lt;testnameregex&gt;</tt>, e.g. <tt>ctest -R Base64_test</tt>.
-  For more syntax on CTest look at the online documentation at http://cmake.org/.
+    Each class in %OpenMS and each TOPP tool has a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
+    go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
+    For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
+    You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
+    Single tests can be run with <tt>ctest -R &lt;testnameregex&gt;</tt>, e.g. <tt>ctest -R Base64_test</tt>.
+    For more syntax on CTest look at the online documentation at http://cmake.org/.
 
   @section install_win_cmdline_openms Building OpenMS on the commandline
 
-  The Visual Studio solution files can contain many targets, which makes the IDE a bit sluggish especially when starting up the first time.
-  The %OpenMS class tests are by far the largest.
+    The Visual Studio solution files can contain many targets, which makes the IDE a bit sluggish especially when starting up the first time.
+    The %OpenMS class tests are by far the largest.
 
-  If you just want to compile the library or executables, it's usually faster to use the commandline. Visual Studio solution files can be used here as well,
-  as arguments to <tt>MSBuild.exe</tt>, e.g.
-  \code
-  MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
-  \endcode
+    If you just want to compile the library or executables, it's usually faster to use the commandline. Visual Studio solution files can be used here as well,
+    as arguments to <tt>MSBuild.exe</tt>, e.g.
+    \code
+    MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
+    \endcode
   
   Example:
   \code
   MSBuild.exe OpenMS_host.sln
   \endcode
 
-  @note Since the call can be a bit lengthy, there is a batch file in
-  <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
-  there by cmake for convenience), which allows to build the most important
-  targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
-  notation. Call it without arguments to see its usage help text. For example
-  to build only the %OpenMS library in release mode, call
+    @note Since the call can be a bit lengthy, there is a batch file in
+    <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
+    there by cmake for convenience), which allows to build the most important
+    targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
+    notation. Call it without arguments to see its usage help text. For example
+    to build only the %OpenMS library in release mode, call
 
-  \code
-  build OpenMS r
-  \endcode
+    \code
+    build OpenMS r
+    \endcode
 
+  @section install_win_create_installer Creating an installer 
+  
+    <ol>
+      <li> Download <a href="https://sourceforge.net/projects/nsis/" target="_blank">NSIS</a> (we tested nsis-3.06.1 successfully) and extract it somewhere
 
+      <li> Install the <a href="https://nsis.sourceforge.io/Special_Builds" target="_blank">large-string-build NSIS installer</a> on top (just extract into the same directory as NSIS; and use a matching version!).
+           This is required for PATH manipulation of up to 8k length; the default NSIS handles up to 1k strings, which might be too short and potentially leads to a broken PATH environment variable.
+      
+      <li> Install the <a href="https://github.com/SuperPat45/UltraModernUI" target="_blank">UltraModernUI-plugin</a> on top (just extract into the same directory as NSIS). 
+           We tested <a href="https://github.com/SuperPat45/UltraModernUI/releases/tag/2.0b6" target="_blank">version 2.0b6</a> successfully.
+
+      <li> Add the NSIS folder (which contains 'makensis.exe') to your PATH, so CMake can find it.
+
+      <li> Checkout the <a href="https://github.com/OpenMS/THIRDPARTY" target="_blank">THIRDPARTY GitHub Repository</a> and flatten the structure for the target platform, e.g. copy all subdirectories in <tt>./all/</tt> to <tt>./Windows/64bit/</tt>.
+
+      <li> Configure %OpenMS as usual with additional flags <tt>SEARCH_ENGINES_DIRECTORY</tt> (for the flattened THIRDPARTY directory) and <tt>PACKAGE_TYPE="nsis"</tt>, 
+      e.g.
+      \code
+      cd <build-tree>
+      cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
+      \endcode
+      
+      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <code>[OpenMS_build]\bin\Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
+      \code
+      cd <build-tree>
+      build.bat - r
+      \endcode
+
+      <li> Create the installer package
+      \code
+      cd <build-tree>
+      cmake --build . --target dist
+      \endcode
+    </ol>
+  
 */

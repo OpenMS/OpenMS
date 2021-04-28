@@ -106,13 +106,13 @@ protected:
     // move some params from algorithm section to top level (to support input file functionality)
     Param p = AccurateMassSearchEngine().getDefaults();
     registerTOPPSubsection_("db", "Database files which contain the identifications");
-    registerInputFileList_("db:mapping", "<file(s)>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, {"skipexists"});
+    registerInputFileList_("db:mapping", "<file(s)>", ListUtils::toStringList<std::string>(p.getValue("db:mapping")), p.getDescription("db:mapping"), true, false, {"skipexists"});
     setValidFormats_("db:mapping", {"tsv"});
-    registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, {"skipexists"});
+    registerInputFileList_("db:struct", "<file(s)>", ListUtils::toStringList<std::string>(p.getValue("db:struct")), p.getDescription("db:struct"), true, false, {"skipexists"});
     setValidFormats_("db:struct", {"tsv"});
-    registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts"), p.getDescription("positive_adducts"), true, false, {"skipexists"});
+    registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts").toString(), p.getDescription("positive_adducts"), true, false, {"skipexists"});
     setValidFormats_("positive_adducts", {"tsv"});
-    registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts"), p.getDescription("negative_adducts"), true, false, {"skipexists"});
+    registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts").toString(), p.getDescription("negative_adducts"), true, false, {"skipexists"});
     setValidFormats_("negative_adducts", {"tsv"});
     // addEmptyLine_();
     // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
@@ -141,8 +141,8 @@ protected:
 
     Param ams_param = getParam_().copy("algorithm:", true);
     // copy top-level params to algorithm
-    ams_param.setValue("db:mapping", getStringList_("db:mapping"));
-    ams_param.setValue("db:struct", getStringList_("db:struct"));
+    ams_param.setValue("db:mapping", ListUtils::create<std::string>(getStringList_("db:mapping")));
+    ams_param.setValue("db:struct", ListUtils::create<std::string>(getStringList_("db:struct")));
     ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
     ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
 

@@ -56,7 +56,7 @@ namespace OpenMS
     using FingeridName = String;
     using PassatuttoName = String;
     using OpenMSName = String;
-    using DefaultValue = DataValue;
+    using DefaultValue = ParamValue;
     using Description = String;
 
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
@@ -316,10 +316,10 @@ namespace OpenMS
     {
       for (auto it = param.begin(); it != param.end(); ++it)
       {
-        const String name = it.getName();
+        const std::string name = it.getName();
         if (hasFullNameParameter(name))
         {
-          vector<String> tags(it->tags.begin(), it->tags.end());
+          vector<std::string> tags(it->tags.begin(), it->tags.end());
           param_.setValue(name, it->value, it->description, tags);
         }
       }
@@ -611,7 +611,7 @@ namespace OpenMS
 
     SiriusAdapterAlgorithm::ParameterModifier SiriusAdapterAlgorithm::ParameterSection::parameter(
             const String &parameter_name,
-            const DataValue &default_value,
+            const ParamValue &default_value,
             const String &parameter_description)
     {
       const String full_parameter = toFullParameter(parameter_name);

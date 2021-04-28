@@ -138,7 +138,7 @@ protected:
     p_epd.remove("chrom_fwhm");
 
     p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
-    p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    p_epd.setValidStrings("enabled", {"true","false"});
     combined.insert("epd:", p_epd);
 
     return combined;
