@@ -93,6 +93,10 @@ void MQEvidence::export_header()
     file_ << "Uncalibrated Mass error [Da]" << "\t";
     file_ << "Uncalibrated - Calibrated m/z [ppm]" << "\t";
     file_ << "Uncalibrated - Calibrated m/z [Da]" << "\t";
+    file_ << "Calibrated Retention Time" << "\t";
+    file_ << " Calibrated retention time start" << "\t";
+    file_ << " Calibrated retention time end" << "\t";
+    file_ << "Retention time calibration" << "\t";
     file_ << "Raw file" << "\t";
     file_ << "\n";
 }
@@ -196,24 +200,65 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     file_ << f.getWidth()/60 << "\t";  // Resolution in min.
     file_ << pep_hits_max.getMetaValue("is_contaminant", "NA") << "\t"; // Potential contaminant
     file_ << pep_ids[0].getExperimentLabel() << "\t"; // Type
-    file_ << pep_hits_max.getMetaValue("missed_cleavages","NA") << "\t"; // Missed Cleavages
+    const String & uncalibrated_mz_error_ppm = pep_hits_max.getMetaValue("uncalibrated_mz_error_ppm","NA");
+    const String & calibrated_mz_error_ppm = pep_hits_max.getMetaValue("calibrated_mz__error_ppm","NA");
+    if(uncalibrated_mz_error_ppm == "NA" && calibrated_mz_error_ppm == "NA"){
+        double uncalibrated_mz_error_ppm = pep_hits_max.getMetaValue("uncalibrated_mz_ppm");
+        double calibrated_mz_error_ppm = pep_hits_max.getMetaValue("calibrated_mz_ppm");
+        double u_mass_error = f.getCharge()*uncalibrated_mz_error_ppm;
+        double c_mass_error= f.getCharge()*calibrated_mz_error_ppm;
+        double uncalibrated_calibrated_diff_ppm = uncalibrated_mz_error_ppm - calibrated_mz_error_ppm;
+        file_ << c_mass_error << "\t"; // Mass error [ppm]
+        file_ << u_mass_error<< "\t"; // Uncalibrated Mass error [ppm]
+        file_ << OpenMS::Math::ppmToMass(c_mass_error,f.getMZ())*1000 << "\t"; // Mass error [mDa]
+        file_ << OpenMS::Math::ppmToMass(u_mass_error,f.getMZ())*1000 << "\t"; // Uncalibrated Mass error [mDa]
+        file_ << uncalibrated_calibrated_diff_ppm << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+        file_ << OpenMS::Math::ppmToMass(uncalibrated_calibrated_diff_ppm,f.getMZ())*1000  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+    }
+    else if(calibrated_mz_error_ppm == "NA")
+    {
+        double u_mass_error = f.getCharge()*double(pep_hits_max.getMetaValue("uncalibrated_mz_ppm"));
+        file_ << "NA" << "\t"; // Mass error [ppm]
+        file_ << u_mass_error<< "\t"; // Uncalibrated Mass error [ppm]
+        file_ << "NA" << "\t"; // Mass error [mDa]
+        file_ << OpenMS::Math::ppmToMass(u_mass_error,f.getMZ())*1000 << "\t"; // Uncalibrated Mass error [mDa]
+        file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+        file_ << "NA"  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
 
-    const double & uncalibrated_mz_ppm = pep_hits_max.getMetaValue("uncalibrated_mz_ppm","NA");
-    const double & calibrated_mz_ppm = pep_hits_max.getMetaValue("calibrated_mz_ppm","NA");
-    double uncalibrated_calibrated_diff_ppm = uncalibrated_mz_ppm - calibrated_mz_ppm;
-    double c_mass_error = calibrated_mz_ppm*f.getCharge();
-    double u_mass_error= uncalibrated_mz_ppm*f.getCharge();
 
-    file_ << c_mass_error << "\t"; // Mass error [ppm]
-    file_ << u_mass_error<< "\t"; // Uncalibrated Mass error [ppm]
-    file_ << OpenMS::Math::ppmToMass(c_mass_error,f.getMZ())*1000 << "\t"; // Mass error [mDa]
-    file_ << OpenMS::Math::ppmToMass(u_mass_error,f.getMZ())*1000 << "\t"; // Uncalibrated Mass error [mDa]
-    file_ << uncalibrated_calibrated_diff_ppm << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-    file_ << OpenMS::Math::ppmToMass(uncalibrated_calibrated_diff_ppm,f.getMZ())*1000  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+    }
+    else if(uncalibrated_mz_error_ppm == "NA")
+    {
+        double c_mass_error= f.getCharge()*double(pep_hits_max.getMetaValue("calibrated_mz_ppm"));
+        file_ << c_mass_error << "\t"; // Mass error [ppm]
+        file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
+        file_ << OpenMS::Math::ppmToMass(c_mass_error,f.getMZ())*1000 << "\t"; // Mass error [mDa]
+        file_ << "NA" << "\t"; // Uncalibrated Mass error [mDa]
+        file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+        file_ << "NA"  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+    }
+    else
+    {
+        file_ << "NA" << "\t"; // Mass error [ppm]
+        file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
+        file_ << "NA" << "\t"; // Mass error [mDa]
+        file_ << "NA" << "\t"; // Uncalibrated Mass error [mDa]
+        file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+        file_ << "NA"  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+    }
 
-    file_ << f.getMetaValue("rt_align") << "\t";
-    file_ << f.getMetaValue("rt_align_start") << "\t";
-    file_ << f.getMetaValue("rt_align_end") << "\t";
+    file_ << f.getMetaValue("rt_align","NA") << "\t"; // Calibrated Retention Time
+    file_ << f.getMetaValue("rt_align_start","NA") << "\t"; //  Calibrated retention time start
+    file_ << f.getMetaValue("rt_align_end","NA") << "\t"; // Calibrated retention time end
+    if(f.getMetaValue("rt_align","NA") != "NA")
+    {
+        file_ << f.getRT() - double(f.getMetaValue("rt_align"))<< "\t"; // Retention time calibration
+    }
+    else
+    {
+        file_ << "NA" << "\t"; // Retention time calibration
+    }
+
 }
 
 
