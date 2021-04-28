@@ -178,6 +178,9 @@ namespace OpenMS
     {
       return false;
     }
+    
+    // fix legend
+    spectrum_widget_->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
     setIntensityMode(Plot1DCanvas::IM_NONE);
@@ -1270,18 +1273,16 @@ namespace OpenMS
     {
       return;
     }              
-
-    //determine coordinates;
-    double mz = 0.0;
-    float it = 0.0;
     // only peak data is supported here
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return;
     }
-    mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
-    it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
+
+    //determine coordinates;
+    double mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
+    double it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
 
     //draw text
     QStringList lines;
