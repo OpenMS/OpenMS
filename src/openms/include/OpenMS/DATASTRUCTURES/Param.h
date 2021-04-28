@@ -317,6 +317,14 @@ protected:
     bool exists(const std::string& key) const;
 
     /**
+      @brief Checks whether a section is present.
+
+      @param key The key of the section to be searched for. May or may not contain ":" suffix.
+      @return True if the section exists, false otherwise.
+     */
+    bool hasSection(const std::string& key) const;
+
+    /**
       @brief Find leaf node by name (if it exists).
 
       @param leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.

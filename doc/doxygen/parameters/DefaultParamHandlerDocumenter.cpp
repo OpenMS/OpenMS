@@ -486,7 +486,7 @@ int main(int argc, char** argv)
   // some classes require a QApplication
   QApplication app(argc, argv);
 
-  DOCME(TOPPViewBase);
+  DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
   DOCME2(Plot1DCanvas, Plot1DCanvas(Param(), nullptr));

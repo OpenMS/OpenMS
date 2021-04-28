@@ -1606,6 +1606,19 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return root_.findEntryRecursive(key);
   }
 
+  bool Param::hasSection(const std::string &key) const
+  {
+    if (key.back() == ':')
+    {
+      // Remove trailing colon from key
+      return root_.findParentOf(key.substr(0, key.size() - 1)) != nullptr;
+    }
+    else
+    {
+      return root_.findParentOf(key) != nullptr;
+    }
+  }
+
   Param::ParamEntry& Param::getEntry_(const std::string& key) const
   {
     ParamEntry* entry = root_.findEntryRecursive(key);
