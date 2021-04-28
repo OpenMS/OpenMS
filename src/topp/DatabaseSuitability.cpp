@@ -290,8 +290,9 @@ protected:
       os << "corrected_suitability\t" << suit.getCorrectedSuitability() << "\n";
       os << "no_rerank_suitability\t" << suit.suitability_no_rerank << "\n";
       os << "corrected_no_rerank_suitability\t" << suit.suitability_corr_no_rerank << "\n";
-      os << "#total_novo_seqs\t" << spectral_quality.num_peptide_identification << "\n";
-      os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
+      os << "#total_novo_seqs\t" << total_number_novo_seqs << "\n";
+      os << "#high_scoring_novo_seqs\t" << spectral_quality.num_peptide_identification << "\n";
+      os << "#unique_high_scoring_novo_seqs\t" << unique_novo.size() << "\n";
       os << "#ms2_spectra\t" << spectral_quality.num_ms2_spectra << "\n";
       os << "spectral_quality\t" << spectral_quality.identification_rate << "\n";
       os << "avg_EIC\t" << eic_result.average_correctness << "\n";

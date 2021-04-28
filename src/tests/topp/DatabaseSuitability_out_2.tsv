@@ -9,6 +9,9 @@ corrected_suitability	0.569552574805365
 no_rerank_suitability	0.605524861878453
 corrected_no_rerank_suitability	0.564420288706841
 #total_novo_seqs	2359
-#unique_novo_seqs	2008
+#high_scoring_novo_seqs	1989
+#unique_high_scoring_novo_seqs	1900
 #ms2_spectra	2789
-spectral_quality	0.845822875582646
+spectral_quality	0.713158838293295
+avg_EIC	0.898213572325255
+EIC_variance	0.0810684661838941
