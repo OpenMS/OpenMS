@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setValue("score_aggregation_method",
                        "maximum",
                        "How to aggregate scores of peptides matching to the same protein?");
-    defaults_.setValidStrings("score_aggregation_method", ListUtils::create<String>("maximum,product,sum"));
+    defaults_.setValidStrings("score_aggregation_method", {"maximum","product","sum"});
     //TODO set valid strings
     defaults_.setValue("treat_charge_variants_separately", "true",
                        "If this is set, different charge variants of the same peptide sequence count as individual evidences.");

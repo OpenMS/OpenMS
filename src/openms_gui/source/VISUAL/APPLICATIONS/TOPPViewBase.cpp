@@ -447,7 +447,7 @@ namespace OpenMS
     loadPreferences();
 
     // set current path
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     // update the menu
     updateMenu();
@@ -468,20 +468,20 @@ namespace OpenMS
   {
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-    defaults_.setValidStrings("preferences:default_map_view", ListUtils::create<String>("2d,3d"));
+    defaults_.setValidStrings("preferences:default_map_view", {"2d","3d"});
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
-    defaults_.setValidStrings("preferences:intensity_cutoff", ListUtils::create<String>("on,off"));
+    defaults_.setValidStrings("preferences:intensity_cutoff", {"on","off"});
     defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-    defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<String>("none,ask,update automatically"));
+    defaults_.setValidStrings("preferences:on_file_change", {"none","ask","update automatically"});
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:topp_cleanup", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms2", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms2", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms1", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms1", {"true","false"});
     // 1d view
     defaults_.insert("preferences:1d:", Plot1DCanvas(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:1d", "Settings for single spectrum view.");
@@ -560,6 +560,9 @@ namespace OpenMS
     ConsensusMapSharedPtrType consensus_map_sptr(consensus_map);
 
     vector<PeptideIdentification> peptides;
+    // not needed in data but for auto annotation
+    vector<ProteinIdentification> proteins;
+    String annotate_path;
 
     LayerData::DataType data_type;
 
@@ -568,8 +571,8 @@ namespace OpenMS
     // lock the GUI - no interaction possible when loading...
     GUIHelpers::GUILock glock(this);
 
-    bool cache_ms2_on_disc = ((String)param_.getValue("preferences:use_cached_ms2") == "true");
-    bool cache_ms1_on_disc = ((String)param_.getValue("preferences:use_cached_ms1") == "true");
+    bool cache_ms2_on_disc = (param_.getValue("preferences:use_cached_ms2") == "true");
+    bool cache_ms1_on_disc = (param_.getValue("preferences:use_cached_ms1") == "true");
 
     try
     {
@@ -585,7 +588,6 @@ namespace OpenMS
       }
       else if (file_type == FileTypes::IDXML)
       {
-        vector<ProteinIdentification> proteins; // not needed later
         IdXMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
@@ -614,6 +616,46 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
+
+        if (!proteins.empty())
+        {
+          StringList paths;
+          proteins[0].getPrimaryMSRunPath(paths);
+
+          for (const String &path : paths)
+          {
+            if (File::exists(path) && fh.getType(path) == FileTypes::MZML)
+            {
+              annotate_path = path;
+            }
+          }
+          // annotation could not be found in file reference
+          if (annotate_path.empty())
+          {
+            // try to find file with same path & name but with mzML extension
+            auto target = fh.swapExtension(abs_filename, FileTypes::Type::MZML);
+            if (File::exists(target))
+            {
+              annotate_path = target;
+            }
+          }
+
+          if (!annotate_path.empty())
+          {
+            // open dialog for annotation on load
+            QMessageBox msg_box;
+            auto spectra_file_name = File::basename(annotate_path);
+            msg_box.setText("Spectra data for identification data was found.");
+            msg_box.setInformativeText(String("Annotate spectra in " + spectra_file_name + "?").toQString());
+            msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            msg_box.setDefaultButton(QMessageBox::Yes);
+            auto ret = msg_box.exec();
+            if (ret == QMessageBox::No)
+            { // no annotation performed
+              annotate_path = "";
+            }
+          }
+        }
         data_type = LayerData::DT_IDENT;
       }
       else if (file_type == FileTypes::MZIDENTML)
@@ -744,6 +786,27 @@ namespace OpenMS
 
     glock.unlock();
 
+    if (!annotate_path.empty())
+    {
+      auto load_res = addDataFile(annotate_path, false, false);
+      if (load_res == LOAD_RESULT::OK)
+      {
+        auto l = getCurrentLayer();
+        if (l)
+        {
+          bool success = l->annotate(peptides, proteins);
+          if (success)
+          {
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+          }
+          else
+          {
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", "Annotation failed.");
+          }
+        }
+      }
+    }
+
     addData(feature_map_sptr, 
       consensus_map_sptr, 
       peptides, 
@@ -785,9 +848,9 @@ namespace OpenMS
                              Size spectrum_id)
   {
     // initialize flags with defaults from the parameters
-    bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view") == "2d");
+    bool maps_as_2d = (param_.getValue("preferences:default_map_view") == "2d");
     bool maps_as_1d = false;
-    bool use_intensity_cutoff = ((String)param_.getValue("preferences:intensity_cutoff") == "on");
+    bool use_intensity_cutoff = (param_.getValue("preferences:intensity_cutoff") == "on");
     bool is_dia_data = false;
 
     // feature, consensus feature and identifications can be merged
@@ -1577,7 +1640,7 @@ namespace OpenMS
     // replace recent files
     param_.removeAll("preferences:RecentFiles");
     param_.insert("preferences:RecentFiles:", recent_files_.getAsParam());
-    
+
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
 
@@ -2576,7 +2639,7 @@ namespace OpenMS
     }
 
     //reset
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     //update if the current layer has a path associated
     if (getActiveCanvas() && getActiveCanvas()->getLayerCount() != 0 && getActiveCanvas()->getCurrentLayer().filename != "")
@@ -2630,11 +2693,11 @@ namespace OpenMS
     Size layer_index = slp.second;
 
     bool user_wants_update = false;
-    if ((String)(param_.getValue("preferences:on_file_change")) == "update automatically") //automatically update
+    if (param_.getValue("preferences:on_file_change") == "update automatically") //automatically update
     {
       user_wants_update = true;
     }
-    else if ((String)(param_.getValue("preferences:on_file_change")) == "ask") //ask the user if the layer should be updated
+    else if (param_.getValue("preferences:on_file_change") == "ask") //ask the user if the layer should be updated
     {
       if (watcher_msgbox_ == true) // we already have a dialog for that opened... do not ask again
       {

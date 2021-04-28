@@ -1,0 +1,123 @@
+{
+  "mzQC": {
+    "creationDate": "2021-03-29T10:09:41",
+    "version": "1.0.0",
+    "contactName": "name",
+    "contactAddress": "address",
+    "description": "description",
+    "runQualities": {
+      "metadata": {
+        "label": "label",
+        "inputFiles": [
+          {
+            "location": "/home/axel/Development/OpenMS/src/tests/topp/QCCalculator_input.mzML",
+            "name": "QCCalculator_input.mzML",
+            "fileFormat": {
+              "accession": "MS:10000584",
+              "name": "mzML format"
+            }
+          },
+          "fileProperties",
+          [
+            {
+              "accession": "MS:1000747",
+              "name": "completion time",
+              "value": "2007-06-27T15:23:45"
+            },
+            {
+              "accession": "MS:1000569",
+              "name": "SHA-1",
+              "value": "24aeada3affec9df36568c0054e4197ac3515642"
+            },
+            {
+              "accession": "MS:1000031",
+              "name": "instrument model",
+              "value": "LCQ Deca"
+            }
+          ]
+        ],
+        "analysisSoftware": [
+          {
+            "accession": "MS:1009001",
+            "name": "QCCalculator",
+            "version": "2.6.0",
+            "uri": "https://www.openms.de"
+          }
+        ]
+      },
+      "qualityMetrics": [
+        {
+          "accession": "QC:4000059",
+          "name": "Number of MS1 spectra",
+          "value": 3
+        },
+        {
+          "accession": "QC:4000060",
+          "name": "Number of MS2 spectra",
+          "value": 1
+        },
+        {
+          "accession": "QC:4000135",
+          "name": "Number of chromatograms",
+          "value": 2
+        },
+        {
+          "accession": "QC:4000053",
+          "name": "RT duration",
+          "value": 360
+        },
+        {
+          "accession": "QC:4000138",
+          "name": "MZ acquisition range",
+          "value": [
+            0,
+            678
+          ]
+        },
+        {
+          "accession": "QC:4000067",
+          "name": "Total ion current chromatogram",
+          "value": {
+            "Relative intensity": [
+              0,
+              120,
+              120
+            ],
+            "Retention time": [
+              -1.0,
+              42.04999923706055,
+              353.42999267578125
+            ]
+          }
+        },
+        {
+          "accession": "QC:4000077",
+          "name": "Area under TIC",
+          "value": 240
+        },
+        {
+          "accession": "QC:4000172",
+          "name": "MS1 signal jump (10x) count",
+          "value": 1
+        },
+        {
+          "accession": "QC:4000173",
+          "name": "MS1 signal fall (10x) count",
+          "value": 0
+        }
+      ]
+    },
+    "controlledVocabularies": [
+      {
+        "name": "Proteomics Standards Initiative Quality Control Ontology",
+        "uri": "https://github.com/HUPO-PSI/mzQC/blob/master/cv/qc-cv.obo",
+        "version": "0.1.2"
+      },
+      {
+        "name": "Proteomics Standards Initiative Mass Spectrometry Ontology",
+        "uri": "https://github.com/HUPO-PSI/psi-ms-CV/blob/master/psi-ms.obo",
+        "version": "4.1.49"
+      }
+    ]
+  }
+}

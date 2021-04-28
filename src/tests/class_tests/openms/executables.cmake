@@ -68,6 +68,7 @@ set(datastructures_executables_list
   #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
+  ParamValue_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test
