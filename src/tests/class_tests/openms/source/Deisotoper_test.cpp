@@ -294,26 +294,26 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    std::cerr << "start loading spectra\n";
    file.load("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/B1.mzML", exp);
    unsigned int count = 0;
-   std::cerr << "starting old algorithm on " << (String)exp.size() << " spectra:\n";
+   Size num_spectra = exp.size();
    for (auto it = exp.begin(); it != exp.end(); ++it)
    {
-	 std::cerr << "Starting spectrum number " << (String)count++ << "\n";
+     std::cerr << "Starting old algorithm on spectrum " << (String) count++ << " of " << (String) num_spectra << "\n ";
 	 Deisotoper::deisotopeAndSingleCharge(*it, 10.0, true);
    }
+   std::cerr << "start storing deisotoped spectra\n";
    file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_old.mzML", exp);
   
    count = 0;
    exp.clear(true);
+   std::cerr << "start loading spectra again\n";
    file.load("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/B1.mzML", exp);
-   std::cerr << "starting new algorithm on " << (String)exp.size() << " spectra:\n";
    // Generate spectrum deisotoped by new algorithm
    for (auto it = exp.begin(); it != exp.end(); ++it)
    {
-     std::cerr << "Starting spectrum number " << (String) count++ << "\n";
+     std::cerr << "Starting new algorithm on spectrum " << (String) count++ << " of " << (String) num_spectra << "\n";
 	 Deisotoper::deisotopeWithAveragineModel(*it, 10.0, true);
    }
    file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_new.mzML", exp);
-   /**/
 }
 END_SECTION
 
