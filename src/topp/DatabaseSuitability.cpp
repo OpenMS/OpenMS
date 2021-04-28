@@ -34,12 +34,15 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/DBSuitability.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -157,6 +160,8 @@ protected:
     setValidFormats_("novo_database", { "FASTA" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", {"tsv"});
+    registerDoubleOption_("novo_threshold", "double", 60, "Minimum score a de novo sequence has to have to be defined as 'correct'. The default of 60 is proven to be a good estimate.", false, true);
+    setMinFloat_("novo_threshold", 0);
 
     registerSubsection_("algorithm", "Parameter section for the suitability calculation algorithm");
   }
@@ -173,6 +178,8 @@ protected:
     String db = getStringOption_("database");
     String novo_db = getStringOption_("novo_database");
     String out = getStringOption_("out");
+
+    double novo_threshold = getDoubleOption_("novo_threshold");
 
     //-------------------------------------------------------------
     // reading input
@@ -210,6 +217,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
+    Size total_number_novo_seqs = novo_peps.size();
+    IDFilter::filterHitsByScore(novo_peps, novo_threshold);
     set<AASequence> unique_novo;
     for (const auto& pep_id : novo_peps)
     {
@@ -228,6 +237,15 @@ protected:
 
     Ms2IdentificationRate::IdentificationRateData spectral_quality = q.getResults()[0];
 
+    QCBase::SpectraMap mapping;
+    mapping.calculateMap(exp);
+    vector<PeptideIdentification> copy_ids(pep_ids); //unattractive solution for now
+    FalseDiscoveryRate fdr;
+    fdr.apply(copy_ids);
+    PSMExplainedIonCurrent eic;
+    eic.compute(copy_ids, prot_ids[0].getSearchParameters(), exp, mapping);
+    PSMExplainedIonCurrent::Statistics eic_result = eic.getResults()[0];
+
     DBSuitability s;
     Param p = getParam_().copy("algorithm:", true);
     s.setParameters(p);
@@ -245,9 +263,10 @@ protected:
     OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of: " << suit.cut_off << "." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl;
     OPENMS_LOG_INFO << "database suitability after correction: " << suit.getCorrectedSuitability() << endl << endl;
-    OPENMS_LOG_INFO << unique_novo.size() << " / " << spectral_quality.num_peptide_identification << " de novo sequences are unique" << endl;
+    OPENMS_LOG_INFO << spectral_quality.num_peptide_identification << " / " << total_number_novo_seqs << " de novo sequences are high scoring. Of those " << unique_novo.size() << " are unique." << endl;
     OPENMS_LOG_INFO << spectral_quality.num_ms2_spectra << " ms2 spectra found" << endl;
-    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl;
+    OPENMS_LOG_INFO << "spectral quality (id rate of high scoring de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl << endl;
+    OPENMS_LOG_INFO << "avg. explained ion current [0, 1]: " << eic_result.average_correctness << " - variance: " << eic_result.variance_correctness << endl << endl;
 
     if (!out.empty())
     {
@@ -275,6 +294,8 @@ protected:
       os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
       os << "#ms2_spectra\t" << spectral_quality.num_ms2_spectra << "\n";
       os << "spectral_quality\t" << spectral_quality.identification_rate << "\n";
+      os << "avg_EIC\t" << eic_result.average_correctness << "\n";
+      os << "EIC_variance\t" << eic_result.variance_correctness << "\n";
       os.close();
     }
 
