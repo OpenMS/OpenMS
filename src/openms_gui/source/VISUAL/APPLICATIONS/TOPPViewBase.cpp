@@ -52,7 +52,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -72,18 +71,16 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/LogWindow.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -91,35 +88,33 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 //Qt
-#include <QtCore/QSettings>
+#include <QCloseEvent>
+#include <QPainter>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
+#include <QtCore/QSettings>
 #include <QtCore/QTime>
 #include <QtCore/QUrl>
+#include <QTextCodec>
 #include <QtWidgets/QCheckBox>
-#include <QCloseEvent>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
-#include <QPainter>
 #include <QtWidgets/QSplashScreen>
-#include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
-#include <QtWidgets/QToolTip>
 #include <QtWidgets/QToolButton>
+#include <QtWidgets/QToolTip>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QWhatsThis>
-#include <QTextCodec>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <algorithm>
 #include <utility>
 
 using namespace std;
@@ -131,16 +126,16 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
-
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
                                                   FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
                                                   FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(QWidget* parent) :
+  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
+    scan_mode_(scan_mode),
     ws_(this),
     tab_bar_(this),
     recent_files_(),
@@ -697,7 +692,6 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          MzMLFile f;
           Internal::IndexedMzMLHandler indexed_mzml_file_;
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
@@ -739,16 +733,8 @@ namespace OpenMS
             if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
-        else if (file_type == FileTypes::MSP)
-        {
-          MSPGenericFile().load(abs_filename, *peak_map_sptr);
-          for (size_t i = 0; i != peak_map_sptr->size(); ++i)
-          {
-            if ((*peak_map_sptr)[i].getRT() < 0) (*peak_map_sptr)[i].setRT(i); // set RT to spectrum index
-          }
-        }
 
-        // Load all data into memory if e.g. no mzML file
+        // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
@@ -1582,6 +1568,8 @@ namespace OpenMS
     // compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
 
+    bool tool_params_added = false;
+
     if (filename == "") { filename = default_ini_file; }
 
     // load preferences, if file exists
@@ -1597,14 +1585,13 @@ namespace OpenMS
       {
         error = true;
       }
-
       //apply preferences if they are of the current TOPPView version
       if (!error && tmp.exists("preferences:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
         {
-          setParameters(tmp);
+          setParameters(tmp.copy("preferences:"));
         }
         catch (Exception::InvalidParameter& /*e*/)
         {
@@ -1615,13 +1602,18 @@ namespace OpenMS
       {
         error = true;
       }
+      // Load tool/util params
+      if (!error && scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
+      {
+        param_.insert("tool_params:", tmp.copy("tool_params:", true));
+        tool_params_added = true;
+      }
 
       // set parameters to defaults when something is fishy with the parameters file
       if (error)
       {
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
-
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
       }
     }
@@ -1629,6 +1621,12 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
+    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
+    if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      tool_scanner_.loadParams();
+    }
+
     param_.setValue("PreferencesFile", filename);
 
     // set the recent files
@@ -1643,15 +1641,32 @@ namespace OpenMS
 
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
-
-    // save only the subsection that begins with "preferences:"
+    // Make sure TOPP tool/util params have been inserted
+    if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      addToolParamsToIni();
+    }
+    // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
     {
-      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), param_.copy("preferences:"));
+      Param p;
+      p.insert("preferences:", param_.copy("preferences:", true));
+      p.insert("tool_params:", param_.copy("tool_params:", true));
+      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), p);
     }
     catch (Exception::UnableToCreateFile& /*e*/)
     {
       cerr << "Unable to create INI File: '" << string(param_.getValue("PreferencesFile")) << "'" << endl;
+    }
+  }
+
+  void TOPPViewBase::addToolParamsToIni()
+  {
+    tool_scanner_.waitForParams();
+    param_.addSection("tool_params", "");
+    for (const auto& pair : tool_scanner_.getToolParams())
+    {
+      param_.insert("tool_params:", pair.second);
     }
   }
 
@@ -1708,7 +1723,11 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
+    if (!param_.hasSection("tool_params:"))
+    {
+      addToolParamsToIni();
+    }
+    ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -2075,7 +2094,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2600,14 +2619,14 @@ namespace OpenMS
       else if (spec_view != nullptr)
       {
         ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-        if (spec_view->getSelectedScan(*new_exp_sptr))
+        if (LayerData::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
         {
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
           const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerData::DT_PEAK : LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)

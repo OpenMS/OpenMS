@@ -177,7 +177,7 @@ namespace OpenMS
     // Since we could be anywhere in the XML structure, use regex to find
     // indexListOffset and read its content.
     //-------------------------------------------------------------
-    boost::regex listoffset_rx("<[^>/]*indexListOffset\\s*>\\s*(\\d*)");
+    boost::regex listoffset_rx(R"(<[^>/]*indexListOffset\s*>\s*(\d*))");
     boost::cmatch matches;
     boost::regex_search(buffer.get(), matches, listoffset_rx);
     String thismatch(matches[1].first, matches[1].second);

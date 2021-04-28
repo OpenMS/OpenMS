@@ -84,24 +84,25 @@ const char* tool_name = "TOPPView";
 void print_usage()
 {
   cerr << endl
-       << tool_name << " -- A viewer for mass spectrometry data." << endl
-       << endl
-       << "Usage:" << endl
-       << " " << tool_name << " [options] [files]" << endl
-       << endl
-       << "Options are:" << endl
-       << "  --help           Shows this help" << endl
-       << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
-       << endl
-       << "Hints:" << endl
-       << " - To open several files in one window put a '+' in between the files." << endl
-       << " - '@bw' after a map file displays the dots in a white to black gradient." << endl
-       << " - '@bg' after a map file displays the dots in a grey to black gradient." << endl
-       << " - '@b'  after a map file displays the dots in black." << endl
-       << " - '@r'  after a map file displays the dots in red." << endl
-       << " - '@g'  after a map file displays the dots in green." << endl
-       << " - '@m'  after a map file displays the dots in magenta." << endl
-       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'" << endl
+       << tool_name << " -- A viewer for mass spectrometry data." << "\n"
+       << "\n"
+       << "Usage:" << "\n"
+       << " " << tool_name << " [options] [files]" << "\n"
+       << "\n"
+       << "Options are:" << "\n"
+       << "  --help           Shows this help" << "\n"
+       << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
+       << "  --force          Forces scan for new tools/utils" << "\n"
+       << "\n"
+       << "Hints:" << "\n"
+       << " - To open several files in one window put a '+' in between the files." << "\n"
+       << " - '@bw' after a map file displays the dots in a white to black gradient." << "\n"
+       << " - '@bg' after a map file displays the dots in a grey to black gradient." << "\n"
+       << " - '@b'  after a map file displays the dots in black." << "\n"
+       << " - '@r'  after a map file displays the dots in red." << "\n"
+       << " - '@g'  after a map file displays the dots in green." << "\n"
+       << " - '@m'  after a map file displays the dots in magenta." << "\n"
+       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'" << "\n"
        << endl;
 }
 
@@ -110,6 +111,7 @@ int main(int argc, const char** argv)
   //list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
+  valid_flags["--force"] = "force";
   valid_options["-ini"] = "ini";
 
   Param param;
@@ -141,7 +143,8 @@ int main(int argc, const char** argv)
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
 
-    TOPPViewBase tb;
+    TOPPViewBase::TOOL_SCAN mode = param.exists("force")? TOPPViewBase::TOOL_SCAN::FORCE_SCAN : TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    TOPPViewBase tb(mode);
     a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
     tb.show();
 
