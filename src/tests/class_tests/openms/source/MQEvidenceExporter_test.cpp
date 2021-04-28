@@ -52,13 +52,13 @@ MQEvidence* ptr = nullptr;
 MQEvidence* null_ptr = nullptr;
 START_SECTION(MQEvidence())
 {
-    string x = "/buffer/ag_bsc/pmsb_2021/musch/test.txt";
+    string x = "/buffer/ag_bsc/pmsb_2021/noske/test.txt";
     ptr = new MQEvidence(x);
     TEST_NOT_EQUAL(ptr,null_ptr);
 }
 END_SECTION
 
-START_SECTION(f_export())
+START_SECTION(exportFeatureMapTotxt())
 {
     FeatureMap e;
     FeatureXMLFile dfmap_file;

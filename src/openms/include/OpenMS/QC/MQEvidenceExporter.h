@@ -46,6 +46,7 @@ class OPENMS_DLLAPI MQEvidence{
 private:
     std::fstream file_;
     std::string filename_;
+    int id;
 public:
     explicit MQEvidence(const std::string &_file);
     ~MQEvidence();
