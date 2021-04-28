@@ -55,9 +55,11 @@ namespace OpenMS
       /**
         @brief Get all FAIMS compensation voltages that occur in a PeakMap
 
+        If the data is not FAIMS, an empty set will be returned.
+
         @param exp The PeakMap with FAIMS data
       */
-      static std::set<double> getCompensationVoltages(PeakMap& exp);
+      static std::set<double> getCompensationVoltages(const PeakMap& exp);
 
     };
 

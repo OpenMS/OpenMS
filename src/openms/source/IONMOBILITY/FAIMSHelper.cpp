@@ -38,19 +38,22 @@
 
 namespace OpenMS
 {
-  std::set<double> FAIMSHelper::getCompensationVoltages(PeakMap& exp)
+  std::set<double> FAIMSHelper::getCompensationVoltages(const PeakMap& exp)
   {
     std::set<double> CVs;
 
     // is this FAIMS data?
-    if (exp.getSpectra()[0].getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+    if ((exp.getSpectra().size() == 0) ||
+        (exp.getSpectra()[0].getDriftTimeUnit() != MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
     {
-      for (auto it = exp.begin(); it != exp.end(); ++it)
-      {
-        CVs.insert(it->getDriftTime());
-      }
+      return;
     }
-
+  
+    for (auto it = exp.begin(); it != exp.end(); ++it)
+    {
+      CVs.insert(it->getDriftTime());
+    }
+  
     return CVs;
   }
 

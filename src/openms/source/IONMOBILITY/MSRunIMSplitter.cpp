@@ -47,10 +47,15 @@ namespace OpenMS
     // What breaks, how should it break?
     std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
 
+    if (CVs.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTYFUNCTION, "Not FAIMS data!");
+    }
+
     // create map to easily turn a CV value into a PeakMap index
     std::map<double, size_t> cv2index;
     size_t counter(0);
-    for (auto cv : CVs)
+    for (double cv : CVs)
     {
       cv2index[cv] = counter;
       counter++;
