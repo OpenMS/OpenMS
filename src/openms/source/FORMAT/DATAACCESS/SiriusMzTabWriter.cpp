@@ -45,13 +45,13 @@ using namespace std;
 
 int SiriusMzTabWriter::extractScanIndex(const String& path)
 {
-  boost::regex regexp_ind("--(?<SCAN>\\d+)--");
+  boost::regex regexp_ind(R"(--(?<SCAN>\d+)--)");
   return SpectrumLookup::extractScanNumber(path, regexp_ind, false);
 }
 
 int SiriusMzTabWriter::extractScanNumber(const String& path)
 {
-  boost::regex regexp("-(?<SCAN>\\d+)--");
+  boost::regex regexp(R"(-(?<SCAN>\d+)--)");
   return SpectrumLookup::extractScanNumber(path, regexp, false);
 }
 
@@ -59,7 +59,7 @@ String SiriusMzTabWriter::extractFeatureId(const String& path)
 {
   boost::smatch match;
   String feature_id;
-  boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+  boost::regex regexp_feature(R"(_(?<SCAN>\d+)-)");
   bool found = boost::regex_search(path, match, regexp_feature);
   if (found && match["SCAN"].matched) 
   {

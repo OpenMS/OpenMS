@@ -254,6 +254,7 @@ protected:
 
     // Loop through featuremaps...
     vector<PeptideIdentification> all_new_upep_ids;
+    vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
     {
       //-------------------------------------------------------------
@@ -337,7 +338,7 @@ protected:
 
       if (qc_tic.isRunnable(status))
       {
-        qc_tic.compute(exp);
+        tic_results.push_back(qc_tic.compute(exp));
       }
 
       if (qc_ms2stats.isRunnable(status))
@@ -423,7 +424,7 @@ protected:
     {
       MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
       MzTabMetaData meta = mztab.getMetaData();
-      qc_tic.addMetaDataMetricsToMzTab(meta);
+      qc_tic.addMetaDataMetricsToMzTab(meta, tic_results);
       qc_ms2ir.addMetaDataMetricsToMzTab(meta);
       mztab.setMetaData(meta);
 

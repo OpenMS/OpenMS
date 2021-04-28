@@ -40,6 +40,8 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/QC/TIC.h>
+#include <OpenMS/QC/SpectrumCount.h>
 
 #include <nlohmann/json.hpp>
 
@@ -53,80 +55,178 @@ using namespace std;
 namespace OpenMS
 { 
 
-  void MzQCFile::store(const String & inputFileName,
-                       const String & outputFileName,
-                       const MSExperiment & exp,
-                       const String & contactName,
-                       const String & contactAddress,
-                       const String & description,
-                       const String & label) const
+  void MzQCFile::store(const String& input_file,
+                       const String& output_file,
+                       const MSExperiment& exp,
+                       const String& contact_name,
+                       const String& contact_address,
+                       const String& description,
+                       const String& label) const
   {
+    // --------------------------------------------------------------------
+    // preparing output stream, quality metrics json object, CV, status
+    // and initialize QC metric classes
+    // --------------------------------------------------------------------
+    ofstream os(output_file.c_str());
+    if (!os)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file);
+    }
+
     using json = nlohmann::ordered_json;
+    json quality_metrics = {};
+
+    ControlledVocabulary cv;
+    cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+    cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+
+    QCBase::Status status;
+    if (input_file != "")
+    {
+    status |= QCBase::Requires::RAWMZML;
+    }
+    TIC tic;
+    SpectrumCount spectrum_count;
+
+    // ---------------------------------------------------------------
+    // function to add quality metrics to quality_metrics
+    // ---------------------------------------------------------------
+    auto addMetric = [&cv, &quality_metrics](const String& accession, const auto& value) -> void
+      {
+        json qm;
+        qm["accession"] = accession;
+        if (cv.exists(accession)) 
+        {
+          qm["name"] = cv.getTerm(accession).name;
+        } 
+        else
+        {
+          cout << accession << " not found in CV." << endl;
+          return;
+        }
+        qm["value"] = value;
+        quality_metrics.push_back(qm);
+      };
+
+    // ---------------------------------------------------------------
+    // collecting quality metrics
+    // ---------------------------------------------------------------
+
+    if (spectrum_count.isRunnable(status))
+    {
+      auto counts = spectrum_count.compute(exp);
+      // Number of MS1 spectra
+      addMetric("QC:4000059", counts[1]);
+      // Number of MS2 spectra
+      addMetric("QC:4000060", counts[2]);
+    }
+    // Number of chromatograms"
+    addMetric("QC:4000135", exp.getChromatograms().size());
+    // Run time (RT duration)
+    addMetric("QC:4000053", UInt(exp.getMaxRT() - exp.getMinRT()));
+    // MZ acquisition range
+    addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
+
+    if (tic.isRunnable(status))
+    {
+      auto result = tic.compute(exp);
+      if (!result.intensities.empty())
+      {
+        json chrom;
+        chrom["Relative intensity"] = result.intensities;
+        chrom["Retention time"] = result.retention_times;
+        // Total ion current chromatogram
+        addMetric("QC:4000067", chrom);
+        // Area under TIC
+        addMetric("QC:4000077", result.area);
+        // MS1 signal jump (10x) count
+        addMetric("QC:4000172", result.jump);
+        // MS1 signal fall (10x) count
+        addMetric("QC:4000173", result.fall);
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // writing mzQC file
+    // ---------------------------------------------------------------
     json out;
     // required: creationDate, version
     DateTime currentTime = DateTime::now();
     out["mzQC"]["creationDate"] = currentTime.toString();
     out["mzQC"]["version"] = "1.0.0";
 
-    // optional: contactName, contactAddress, description
-    if (!contactName.empty()) 
+    // optional: contact_name, contact_address, description
+    if (!contact_name.empty()) 
     {
-      out["mzQC"]["contactName"] = contactName;
+      out["mzQC"]["contactName"] = contact_name;
     }
-    if (!contactAddress.empty()) 
+    if (!contact_address.empty()) 
     {
-      out["mzQC"]["contactAddress"] = contactAddress;
+      out["mzQC"]["contactAddress"] = contact_address;
     }
     if (!description.empty()) 
     {
       out["mzQC"]["description"] = description;
     }
-
-    out["mzQC"]["runQualities"]["metadata"]["label"] = label;
-    out["mzQC"]["runQualities"]["metadata"]["inputFiles"] = {
-        {
-          {"location", File::absolutePath(inputFileName)},
-          {"name", File::basename(inputFileName)},
-          {"fileFormat",
+    // get OpenMS version for runQualities
+    VersionInfo::VersionDetails version = VersionInfo::getVersionStruct();
+    out["mzQC"]["runQualities"] =
+    {
+      {
+        {"metadata",
           {
-            {"accession", "MS:10000584"},
-            {"name", "mzML format"}
-          }
-          }
-        },
-          "fileProperties",
-          {
-            {
-              {"accession", "MS:1000747"},
-              {"name", "completion time"},
-              {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime())}
+            {"label", label},
+            {"inputFiles",
+              {
+                {
+                  {"location", File::absolutePath(input_file)},
+                  {"name", File::basename(input_file)},
+                  {"fileFormat",
+                    {
+                      {"accession", "MS:10000584"},
+                      {"name", "mzML format"}
+                    }
+                  },
+                  {"fileProperties",
+                    {
+                      {
+                        {"accession", "MS:1000747"},
+                        {"name", "completion time"},
+                        {"value", String(exp.getDateTime().getDate() + "T" + exp.getDateTime().getTime())}
+                      },
+                      {
+                        {"accession", "MS:1000569"},
+                        {"name", "SHA-1"},
+                        {"value", String(FileHandler::computeFileHash(input_file))}
+                      },
+                      {
+                        {"accession", "MS:1000031"},
+                        {"name", "instrument model"},
+                        {"value", String(exp.getInstrument().getName())}
+                      }
+                    }
+                  }
+                }
+              }
             },
-            {
-              {"accession", "MS:1000569"},
-              {"name", "SHA-1"},
-              {"value", String(FileHandler::computeFileHash(inputFileName))}
-            },
-            {
-              {"accession", "MS:1000031"},
-              {"name", "instrument model"},
-              {"value", String(exp.getInstrument().getName())}
+            {"analysisSoftware",
+              {
+                {
+                  {"accession", "MS:1009001" }, // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
+                  {"name", "QCCalculator"},
+                  {"version", String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)},
+                  {"uri", "https://www.openms.de"}
+                }
+              }
             }
           }
+        },
+        {"qualityMetrics", quality_metrics}
+      }
     };
 
-    VersionInfo::VersionDetails version = VersionInfo::getVersionStruct();
-    out["mzQC"]["runQualities"]["metadata"]["analysisSoftware"] = { // todo
-        {
-          {"accession", "MS:1009001" }, // create new qc-cv for QCCalculator: MS:1009001 quality control metrics generating software
-          {"name", "QCCalculator"},
-          {"version", String(version.version_major)+"."+String(version.version_minor)+"."+String(version.version_patch)},
-          {"uri", "https://www.openms.de"}
-        }
-    };
-
-    out["mzQC"]["runQualities"]["qualityMetrics"] = {};
-    
-    out["mzQC"]["controlledVocabularies"] = {
+    out["mzQC"]["controlledVocabularies"] = 
+    {
         {
           {"name", "Proteomics Standards Initiative Quality Control Ontology"},
           {"uri", "https://github.com/HUPO-PSI/mzQC/blob/master/cv/qc-cv.obo"},
@@ -138,107 +238,6 @@ namespace OpenMS
           {"version", "4.1.49"}
         }
     };
-    ControlledVocabulary cv;
-    cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
-
-    // create qualityMetric in json format
-    auto addValue = [&cv](const String& accession, const String& name, const auto& value) -> json
-      {
-        json qm;
-        qm["accession"] = accession;
-        if (cv.exists(accession)) 
-        {
-          qm["name"] = cv.getTerm(accession).name;
-        } 
-        else
-        {
-          qm["name"] = name;
-          cout << accession << " not found in CV." << endl;
-        }
-        qm["value"] = value;
-        return qm;
-      };
-
-    map<Size, UInt> counts;
-    for (const auto& spectrum : exp)
-      {
-        const Size level = spectrum.getMSLevel();
-        ++counts[level];  // count MS level
-      }
-    // QC:4000059 Number of MS1 spectra
-    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000059", "Number of MS1 spectra", counts[1]);
-    // QC:4000060 Number of MS2 spectra
-    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000060", "Number of MS2 spectra", counts[2]);
-    // QC:4000135 Number of chromatograms"
-    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000135", "Number of chromatograms", exp.getChromatograms().size());
-    // QC:4000053 Run time (RT duration)
-    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000053", "RT duration", UInt(exp.getMaxRT() - exp.getMinRT()));
-    // QC:4000138 MZ acquisition range
-    out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000138", "MZ acquisition range", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
-    
-    const MSChromatogram& tic = exp.getTIC();
-    UInt jump = 0;
-    UInt fall = 0;
-    vector<float> retention_times;
-    vector<UInt> intensities;
-    
-    for (const auto& p : tic)
-    {
-      intensities.push_back(p.getIntensity());
-      retention_times.push_back(p.getRT());
-    }
-
-    UInt tic_area = intensities[0];
-
-    for (UInt i = 1; i < intensities.size(); ++i)
-    {
-      tic_area += intensities[i];
-      if (intensities[i] > intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
-      {
-        ++jump;
-      }
-      if (intensities[i] < intensities[i-1] / 10) // detect 10x falls between two subsequent scans
-      {
-        ++fall;
-      }
-    }
-    
-    json tic_values;
-    tic_values["Relative intensity"] = intensities;
-    tic_values["Retention time"] = retention_times;
-
-    if (!tic.empty())
-    {
-      // QC:4000067 Total ion current chromatogram
-      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000067", "Total ion current chromatogram", tic_values);
-      // QC:4000077 Area under TIC
-      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000077", "Area under TIC", tic_area);
-      // QC:4000172 MS1 signal jump (10x) count
-      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000172", "MS1 signal jump (10x) count", jump);
-      // QC:4000173 MS1 signal fall (10x) count
-      out["mzQC"]["runQualities"]["qualityMetrics"] += addValue("QC:4000173", "MS1 signal fall (10x) count", fall);
-    }
-
-    // QC:4000074 Median MS1 peak FWHM for peptides
-    // QC:4000257 Detected Compounds
-    // MS:1000005 sample volume
-    // MS:1000011 mass resolution
-    // MS:1000015 scan rate
-    // MS:1000026 detector type
-
-    // HPLC:
-    // QC:4000107 Column type
-    // QC:4000079 Pump pressure chromatogram
-
-    //open stream
-    ofstream os(outputFileName.c_str());
-    if (!os)
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, outputFileName);
-    }
-
-    // write out the json object in proper format with indentation level of 2
     os << out.dump(2);
   }
 
