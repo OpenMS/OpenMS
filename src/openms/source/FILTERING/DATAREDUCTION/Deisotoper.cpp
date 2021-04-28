@@ -84,6 +84,7 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
     Size i = 0;
     for (auto it = spec.begin(); it != spec.end(); ++it)
     {
+      // keep peaks that are among the max_num_peaks highest and non-zero
       if (i < max_num_peaks && it->getIntensity() != 0.0)
       {
         idx.push_back(i);
@@ -136,12 +137,6 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
     int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
     precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
   }
-   /*
-  for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
-  {
-    std::cerr << "mz: " << old_spectrum[current_peak].getMZ() << ", int: " << old_spectrum[current_peak].getIntensity() << "\n";
-  }
-  std::cerr << "\n";*/
 
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
   {
@@ -157,17 +152,15 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
     {
       mono_iso_peak_intensity[current_peak] = old_spectrum[current_peak].getIntensity();
     }
-    //std::cerr << '2';
     clusters.clear();
     charges_of_extensions.clear();
-    //std::cerr << "current mz: " << (String)current_mz << "\n";
     for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
-    {
+    {      
       // try to extend isotopes from mono-isotopic peak
       // if appropriate extension larger than min_isopeaks possible:
       //   - save charge q in mono_isotopic_peak[]
       //   - annotate_charge all isotopic peaks with feature number
-      
+
       bool has_min_isopeaks = true;
       const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
 
@@ -180,7 +173,7 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
           continue;
         }
       }
-      //std::cerr << (String) q;
+
       extensions.clear();
       extensions.push_back(current_peak);
 
@@ -189,14 +182,9 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
       for (unsigned int i = 1; i < max_isopeaks; ++i)
       {
         const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
-        //std::cerr << "expected mz: " << (String)expected_mz << "\n";
         const int p = old_spectrum.findNearest(expected_mz, tolerance_dalton);
-        if (p == -1)// || old_spectrum[p].getIntensity() == 0.0) // test for missing peak
+        if (p == -1)// test for missing peak
         {
-          if (extensions.size() > 1) 
-          {
-            std::cerr << "no further peaks found, i=" << i << ", min_isopeaks=" << min_isopeaks << "\n";
-          }
           has_min_isopeaks = (i >= min_isopeaks);
           break;
         }
@@ -205,73 +193,59 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
           // compare to averagine distribution
           if (use_averagine_model)
           {
-            //std::cerr << "going into avg check with "<< (String) extensions.size() << " extensions!\n";
             // compute average weight (weighted by intensity)
             total_weight += old_spectrum[p].getIntensity() * (old_spectrum[p].getMZ() * q - (q - 1) * Constants::PROTON_MASS_U);
             total_intensity += old_spectrum[p].getIntensity();
 
-            // TODO KL aufaddieren wie total_weight?
             // generate averagine distribution
             CoarseIsotopePatternGenerator gen(extensions.size() + 1);
             IsotopeDistribution distr = gen.estimateFromPeptideWeight(total_weight / total_intensity);
-            distr.sortByMass(); // necessary?
+            distr.sortByMass();// necessary?
 
-            // compute KL divergence
+            // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x));
             // normalize spectrum intensities as this is a density measure and the averagine distribution is also normalized to 1
             float KL = 0;
             for (unsigned int peak = 0; peak != extensions.size(); ++peak)
             {
-              /*std::cerr << "normalized extensions intensity (P(X)): " << (String)(old_spectrum[extensions[peak]].getIntensity() / total_intensity) << "\n";
-              std::cerr << "distr intensity (Q(X)): " << (String)distr[peak].getIntensity() << "\n";*/
               double Px = old_spectrum[extensions[peak]].getIntensity() / total_intensity;
-              if (Px != 0.0) // Term converges to 0 for P(x) = 0 
+              if (Px != 0.0)// Term converges to 0 for P(x) -> 0
               {
                 KL += Px * log(Px / distr[peak].getIntensity());
               }
-              //std::cerr << "KL: " << (String)KL << "\n";
             }
-            //std::cerr << "KL without current peak: " << (String)KL << "\n";
             float curr_threshold = -1;
             if (distr.size() > extensions.size())
             {
-              /*std::cerr << "normalized extensions intensity (P(X)): " << (String)(old_spectrum[p].getIntensity() / total_intensity) << "\n";
-              std::cerr << "distr intensity (Q(X)): " << (String)distr[extensions.size()].getIntensity() << "\n";*/
               // also consider current peak
               double Px = old_spectrum[p].getIntensity() / total_intensity;
               if (Px != 0.0)
               {
                 KL += Px * log(Px / distr[extensions.size()].getIntensity());
               }
-              /*std::cerr << "KL: " << (String)KL << "\n";*/
-              //std::cerr << "Final KL: " << (String)KL << "\n";
+
               // choose threshold corresponding to cluster size
               curr_threshold = (extensions.size() + 1 > 6) ? averagine_check_threshold[4] : averagine_check_threshold[extensions.size() - 1];
-              //std::cerr << "curr_threshold: " << (String)curr_threshold << "\n";
             }
 
-            
+
             // compare to threshold and stop extension if distribution does not fit well enough
             if (KL > curr_threshold)
             {
-              std::cerr << "avg check not passed with KL=" << (String)KL << ", for peak at " << current_mz << " with charge " << q << "\n";
               has_min_isopeaks = (i >= min_isopeaks);
               break;
             }
-            std::cerr << "avg check passed with KL= " << KL << ", for peak at " << current_mz << " with charge " << q << " for " << (extensions.size() + 1) << " peaks\n";
           }
           // after model checks passed:
           extensions.push_back(p);
           if (annotate_iso_peak_count)
           {
-            iso_peak_count[current_peak] = i + 1; // with "+ 1" the monoisotopic peak is counted as well
+            iso_peak_count[current_peak] = i + 1;// with "+ 1" the monoisotopic peak is counted as well
           }
         }
       }
-      //std::cerr << "post";
 
       if (has_min_isopeaks)
       {
-        std::cerr << "extensions accepted!\n";
         clusters.push_back(extensions);
         charges_of_extensions.push_back(q);
       }
@@ -279,32 +253,23 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
     // if current_peak is possible monoisotopic peak for a cluster, pick the best of its clusters, annotate peaks with a feature number
     if (clusters.size() != 0)
     {
-      std::cerr << "pick\n";
       // pick cluster with largest size and highest charge (since all have the same monoisotopic peak)
       unsigned int best_idx = 0;
       Size largest_size = 0;
       int highest_charge = min_charge;
       for (unsigned int i = 0; i != clusters.size(); ++i)
       {
-        if ((clusters[i].size() > largest_size)
-          || ((clusters[i].size() == largest_size) && (charges_of_extensions[i] > highest_charge)))
+        if ((clusters[i].size() > largest_size) || ((clusters[i].size() == largest_size) && (charges_of_extensions[i] > highest_charge)))
         {
           largest_size = clusters[i].size();
           highest_charge = charges_of_extensions[i];
           best_idx = i;
         }
       }
-      std::cerr << "for peak " << old_spectrum[clusters[best_idx][0]] << " the best cluster has " << clusters[best_idx].size() << " extensions and charge " << charges_of_extensions[best_idx] << "\n";
-      //std::cerr << "pickk\n";
-      //std::cerr << (String)charges_of_extensions.size() << "\n";
-      //std::cerr << (String)best_idx << "\n";
       mono_isotopic_peak[current_peak] = charges_of_extensions[best_idx];
-      //std::cerr << "test1\n";
       for (unsigned int i = 0; i != clusters[best_idx].size(); ++i)
       {
-        //std::cerr << (String)i;
         features[clusters[best_idx][i]] = feature_number;
-        //std::cerr << " confirmed\n";
         // monoisotopic peak intensity is already set above, add up the other intensities here
         if (add_up_intensity && (i != 0))
         {
@@ -313,11 +278,8 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
       }
       ++feature_number;
     }
-
-    //std::cerr << "pickkkk";
   }
 
-  //std::cerr << "appl";
   // apply changes, i.e. select the indices which should survive
   std::vector<Size> select_idx;
 
@@ -360,7 +322,6 @@ void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
   // properly subsets all datapoints (incl. dataArrays)
   spec.select(select_idx);
   spec.sortByPosition();
-  std::cerr << "Deisotoping finished\n";
   return;
 }
 

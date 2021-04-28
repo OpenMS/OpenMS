@@ -245,12 +245,10 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    TEST_EQUAL(theo.size(), theo_noiso.size()); // same number of peaks after deisotoping
 
    // two patterns where all isotopic peaks have the same intensity
-   //MSSpectrum two_patterns;
    two_patterns.clear(true);
-   //Peak1D p;
    p.setIntensity(1.0);
 
-   // one charge one pattern
+   // first pattern
    p.setMZ(100.0);
    two_patterns.push_back(p);
    p.setMZ(100.0 + Constants::C13C12_MASSDIFF_U);
@@ -258,8 +256,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    p.setMZ(100.0 + 2.0 * Constants::C13C12_MASSDIFF_U);
    two_patterns.push_back(p);
 
-
-   // one charge two pattern
+   // second pattern
    p.setMZ(200.0);
    two_patterns.push_back(p);
    p.setMZ(200.0 + 0.5 * Constants::C13C12_MASSDIFF_U);
@@ -270,41 +267,49 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true);
    TEST_EQUAL(theo.size(), 6); // all six peaks remain, since the patterns should not be similar to averagine model
 
-   // Test with a section of an actual spectrum
+   // Test with a section of an actual spectrum plus some 0-intensity-peaks
    MzMLFile file;
    PeakMap exp;
    file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_in.mzML"), exp);
-   Size ori_size = exp.getSpectrum(0).size();
-   Deisotoper::deisotopeAndSingleCharge_exp(exp.getSpectrum(0), 10.0, true, 1, 3, true);// only keep deisotoped
-
-   theo.clear(true);
+   theo.clear(true); // copy for readability
    theo = exp.getSpectrum(0);
+   theo1.clear(true); // for next test
+   theo1 = exp.getSpectrum(0);
+   Size ori_size = theo.size();
+   Deisotoper::deisotopeAndSingleCharge_exp(theo, 10.0, true, 1, 3, true);// only keep deisotoped
    TEST_NOT_EQUAL(theo.size(), ori_size);
    TEST_EQUAL(theo.size(), 21);
    file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_out.mzML"), exp);
    TEST_EQUAL(theo, exp.getSpectrum(0));
+
+   // Test if the algorithm also works if we do not remove the low (and zero) intensity peaks
+   Deisotoper::deisotopeAndSingleCharge_exp(theo1, 10.0, true, 1, 3, true, 2, 10,
+	 true, false, false, true, false, false); // do not remove low intensity peaks beforehand
+   TEST_EQUAL(theo1.size(), 21);
+
    
-   /*
    // ****** BENCHMARKING ****** //
    // Generate spectra for benchmarking
    // Generate spectrum deisotoped by original algorithm
+   std::cerr << "start loading spectra\n";
    file.load("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/B1.mzML", exp);
-   PeakMap exp1 = exp;
    unsigned int count = 0;
-   std::cerr << "starting old algorithm on " << (String)exp.size() << " spectra:";
-   for (auto it = exp1.begin(); it != exp1.end(); ++it)
+   std::cerr << "starting old algorithm on " << (String)exp.size() << " spectra:\n";
+   for (auto it = exp.begin(); it != exp.end(); ++it)
    {
-	 std::cerr << "Starting spectrum number " << (String)count++;
+	 std::cerr << "Starting spectrum number " << (String)count++ << "\n";
 	 Deisotoper::deisotopeAndSingleCharge(*it, 10.0, true);
    }
-   file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_old.mzML", exp1);
+   file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_old.mzML", exp);
   
    count = 0;
-   std::cerr << "starting new algorithm on " << (String)exp.size() << " spectra:";
+   exp.clear(true);
+   file.load("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/B1.mzML", exp);
+   std::cerr << "starting new algorithm on " << (String)exp.size() << " spectra:\n";
    // Generate spectrum deisotoped by new algorithm
    for (auto it = exp.begin(); it != exp.end(); ++it)
    {
-     std::cerr << "Starting spectrum number " << (String) count++;
+     std::cerr << "Starting spectrum number " << (String) count++ << "\n";
 	 Deisotoper::deisotopeAndSingleCharge_exp(*it, 10.0, true);
    }
    file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_new.mzML", exp);
