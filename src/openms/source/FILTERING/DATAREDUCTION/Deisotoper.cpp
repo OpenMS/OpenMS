@@ -43,7 +43,7 @@
 namespace OpenMS
 {
 // static
-void Deisotoper::deisotopeAndSingleCharge_exp(MSSpectrum& spec,
+void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double fragment_tolerance,
   bool fragment_unit_ppm,
   int min_charge,
