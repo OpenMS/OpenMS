@@ -207,13 +207,9 @@ namespace OpenMS
         return false;
     }
 
-    bool FASTAFile::atEnd()
+    bool FASTAFile::atEnd() 
     {
-        if(infile_.peek() == std::streambuf::traits_type::eof()) // empty file
-        {
-            return true;
-        }
-        return false;
+        return (infile_.peek() == std::streambuf::traits_type::eof());
     }
 
     void FASTAFile::load(const String& filename, vector<FASTAEntry>& data) const
