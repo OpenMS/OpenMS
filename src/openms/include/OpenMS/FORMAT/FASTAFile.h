@@ -38,9 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <functional>
 #include <fstream>
-#include <memory>
 #include <utility>
 #include <vector>
 
@@ -190,7 +188,7 @@ namespace OpenMS
           @exception Exception::FileNotFound is thrown if the file does not exists.
           @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
-        void static load(const String& filename, std::vector<FASTAEntry>& data);
+        void load(const String& filename, std::vector<FASTAEntry>& data) const;
 
         /**
             @brief stores the data given by 'data' at the file 'filename'
@@ -198,11 +196,14 @@ namespace OpenMS
             This uses more RAM than writeStart() and writeNext().
             @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
           */
-        void static store(const String& filename, const std::vector<FASTAEntry>& data);
+        void store(const String& filename, const std::vector<FASTAEntry>& data) const;
 
     protected:
-        bool readEntry_(std::string & id, std::string & seq);///<  reading a protein entry and saving the ID and
-                                                             ///<   sequence into the strings id and seq
+
+        /**
+         @brief Reads a protein entry from the current file position and returns the ID and sequence
+         */
+        bool readEntry_(std::string& id, std::string& seq);
         std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()
         std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
         Size entries_read_; ///< some internal book-keeping during reading

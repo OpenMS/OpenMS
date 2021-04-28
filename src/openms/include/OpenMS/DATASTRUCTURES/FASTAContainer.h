@@ -101,7 +101,8 @@ public:
     offsets_(),
     data_fg_(),
     data_bg_(),
-    chunk_offset_(0)
+    chunk_offset_(0),
+    filename_(FASTA_file)
   {
     f_.readStart(FASTA_file);
   }
@@ -207,11 +208,11 @@ public:
   /// resets reading of the FASTA file, enables fresh reading of the FASTA from the beginning
   void reset()
   {
-    f_.setPosition(0);
     offsets_.clear();
     data_fg_.clear();
     data_bg_.clear();
     chunk_offset_ = 0;
+    f_.readStart(filename_);
   }
 
 
@@ -231,6 +232,7 @@ private:
   std::vector<FASTAFile::FASTAEntry> data_fg_; ///< active (foreground) data
   std::vector<FASTAFile::FASTAEntry> data_bg_; ///< prefetched (background) data; will become the next active data
   size_t chunk_offset_; ///< number of entries before the current chunk
+  std::string filename_;///< FASTA file name
 };
 
 /**

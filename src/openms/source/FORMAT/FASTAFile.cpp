@@ -57,27 +57,31 @@ namespace OpenMS
     bool FASTAFile::readEntry_(std::string & id, std::string & seq)
     {
         std::streambuf* sb = infile_.rdbuf();
-        bool condition = true;
+        bool keep_reading = true;
 
-        while(sb->sgetc() == '#')// Skip the header of PEFF files (http://www.psidev.info/peff)
-        {
-            infile_.ignore(numeric_limits<streamsize>::max(),'\n');
-        }
+
         if(sb->sbumpc() == '>')//not saving '>'
         {
-            while(condition)// reading the ID
+            while(keep_reading)// reading the ID
             {
                 int c = sb->sbumpc();// get and advance to next char
                 switch (c)
                 {
                     case '\n'://ID finished
-                        condition = false;
+                        keep_reading = false;
+                        break;
+                    case '\r':
+                        if (sb->sgetc() == '\n') // peek current char
+                        {
+                            sb->sbumpc(); // consume it
+                        }
                         break;
                     case std::streambuf::traits_type::eof():
                         infile_.setstate(std::ios::eofbit);
                         if (id.empty())
                         { // only if we just started a new line, we set the is.fail() == true, ie. is == false
                             infile_.setstate(std::ios::badbit);
+                            return false;
                         }
                         return true;
                     default:
@@ -88,8 +92,8 @@ namespace OpenMS
         else return false;//was in wrong position for reading ID
         if(id.empty()==true) return false;
 
-        condition = true;
-        while(condition)//reading the sequence
+        keep_reading = true;
+        while(keep_reading)//reading the sequence
         {
             int c = sb->sbumpc();// get and advance to next char
             switch (c)
@@ -97,7 +101,7 @@ namespace OpenMS
                 case '\n':
                     if (sb->sgetc() == '>') //reaching the beginning of the next protein-entry
                     {
-                        condition = false;
+                        keep_reading = false;
                     }
                     break;
                 case '\r':
@@ -115,14 +119,14 @@ namespace OpenMS
                     if (seq.empty())
                     { // only if we just started a new line, we set the is.fail() == true, ie. is == false
                         infile_.setstate(std::ios::badbit);
+                        return false;
                     }
                     return true;
                 default:
                     seq += (char)c;
             }
         }
-        if(seq.empty()) return false;
-        return true;
+        return !seq.empty();
     }
 
     void FASTAFile::readStart(const String& filename)
@@ -145,6 +149,11 @@ namespace OpenMS
         fileSize_ = infile_.tellg();
         infile_.seekg(0, infile_.beg);
 
+        std::streambuf* sb = infile_.rdbuf();
+        while(sb->sgetc() == '#')// Skip the header of PEFF files (http://www.psidev.info/peff)
+        {
+            infile_.ignore(numeric_limits<streamsize>::max(),'\n');
+        }
         entries_read_ = 0;
     }
 
@@ -186,6 +195,7 @@ namespace OpenMS
         return infile_.tellg();
     }
 
+
     bool FASTAFile::setPosition(const std::streampos& pos)
     {
         if(pos <= fileSize_)
@@ -206,7 +216,7 @@ namespace OpenMS
         return false;
     }
 
-    void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
+    void FASTAFile::load(const String& filename, vector<FASTAEntry>& data) const
     {
         data.clear();
         FASTAEntry p;
@@ -260,7 +270,7 @@ namespace OpenMS
         outfile_.close();
     }
 
-    void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data)
+    void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
     {
         FASTAFile f;
         f.writeStart(filename);
