@@ -145,8 +145,8 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    registerStringOption_("out_evidence", "String", "", "EvidenceTXT with QC information", false);
-    setValidStrings_("out_evidence", {"string"});
+    //registerStringOption_("out_evidence", "String", "", "EvidenceTXT with QC information", false);
+    //setValidStrings_("out_evidence", {"string"});
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -260,12 +260,12 @@ protected:
     // Loop through featuremaps...
     vector<PeptideIdentification> all_new_upep_ids;
 
-    String out_evidence = getStringOption_("out_evidence");
+    //String out_evidence = getStringOption_("out_evidence");
     /*if(out_evidence.empty())
     {
         cerr << "blöd";
     }*/
-    MQEvidence out_test(out_evidence);
+    MQEvidence out_test("buffer/ag_bsc/pmsb_2021/musch/test.txt");
 
     for (Size i = 0; i < number_exps; ++i)
     {

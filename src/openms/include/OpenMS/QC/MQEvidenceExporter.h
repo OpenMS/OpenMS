@@ -38,7 +38,7 @@
 #include <fstream>
 #include <vector>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/KERNEL/Feature.h>
 using namespace OpenMS;
 

@@ -190,29 +190,30 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     file_ << f.getCharge() << "\t"; // Charge
     file_ << f.getPeptideIdentifications().size() << "\t"; // Number of data points
     file_ << f.getMZ() << "\t"; // MZ
-    file_ << f.getRT() << "\t"; // Retention time
-    file_ << f.getConvexHull().getBoundingBox().maxX() - f.getConvexHull().getBoundingBox().minX() << "\t"; // Retention length
+    file_ << f.getRT()/60 << "\t"; // Retention time in min.
+    file_ << (f.getConvexHull().getBoundingBox().maxX() - f.getConvexHull().getBoundingBox().minX())/60 << "\t"; // Retention length in min.
     file_ << f.getIntensity() << "\t"; // Intensity
-    file_ << f.getWidth() << "\t";  // Resolution
+    file_ << f.getWidth()/60 << "\t";  // Resolution in min.
     file_ << pep_hits_max.getMetaValue("is_contaminant", "NA") << "\t"; // Potential contaminant
     file_ << pep_ids[0].getExperimentLabel() << "\t"; // Type
     file_ << pep_hits_max.getMetaValue("missed_cleavages","NA") << "\t"; // Missed Cleavages
+
     const double & uncalibrated_mz_ppm = pep_hits_max.getMetaValue("uncalibrated_mz_ppm","NA");
     const double & calibrated_mz_ppm = pep_hits_max.getMetaValue("calibrated_mz_ppm","NA");
-    const double & uncalibrated_mz_dalton = pep_hits_max.getMetaValue("uncalibrated_mz_dalton","NA");
-    const double & calibrated_mz_dalton = pep_hits_max.getMetaValue("calibrated_mz_dalton","NA");
-    const double & uncalibrated_mass_error_ppm = pep_hits_max.getMetaValue("uncalibrated_mass_error_ppm","NA");
-    const double & calibrated_mass_error_ppm = pep_hits_max.getMetaValue("calibrated_mass_error_ppm","NA");
-    const double & uncalibrated_mass_error_dalton = pep_hits_max.getMetaValue("uncalibrated_mass_error_dalton","NA");
-    const double & calibrated_mass_error_dalton = pep_hits_max.getMetaValue("calibrated_mass_error_dalton","NA");
     double uncalibrated_calibrated_diff_ppm = uncalibrated_mz_ppm - calibrated_mz_ppm;
-    double uncalibrated_calibrated_diff_dalton = uncalibrated_mz_dalton - calibrated_mz_dalton;
-    file_ << calibrated_mass_error_ppm << "\t"; // Mass error [ppm]
-    file_ << uncalibrated_mass_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
-    file_ << calibrated_mass_error_dalton << "\t"; // Mass error [Da]
-    file_ << uncalibrated_mass_error_dalton << "\t"; // Uncalibrated Mass error [Da]
+    double c_mass_error = calibrated_mz_ppm*f.getCharge();
+    double u_mass_error= uncalibrated_mz_ppm*f.getCharge();
+
+    file_ << c_mass_error << "\t"; // Mass error [ppm]
+    file_ << u_mass_error<< "\t"; // Uncalibrated Mass error [ppm]
+    file_ << OpenMS::Math::ppmToMass(c_mass_error,f.getMZ())*1000 << "\t"; // Mass error [mDa]
+    file_ << OpenMS::Math::ppmToMass(u_mass_error,f.getMZ())*1000 << "\t"; // Uncalibrated Mass error [mDa]
     file_ << uncalibrated_calibrated_diff_ppm << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-    file_ << uncalibrated_calibrated_diff_dalton << "\t"; // Uncalibrated - Calibrated m/z [Da]
+    file_ << OpenMS::Math::ppmToMass(uncalibrated_calibrated_diff_ppm,f.getMZ())*1000  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+
+    file_ << f.getMetaValue("rt_align") << "\t";
+    file_ << f.getMetaValue("rt_align_start") << "\t";
+    file_ << f.getMetaValue("rt_align_end") << "\t";
 }
 
 
