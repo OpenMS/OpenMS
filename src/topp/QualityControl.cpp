@@ -145,8 +145,8 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    //registerStringOption_("out_evidence", "String", "", "EvidenceTXT with QC information", false);
-    //setValidStrings_("out_evidence", {"string"});
+    registerStringOption_("out_evd", "<file>", "", "EvidenceTXT with QC information", false);
+
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -260,12 +260,15 @@ protected:
     // Loop through featuremaps...
     vector<PeptideIdentification> all_new_upep_ids;
 
-    //String out_evidence = getStringOption_("out_evidence");
-    /*if(out_evidence.empty())
+    /*String out_evidence = getStringOption_("out_evd");
+    MQEvidence *evidence = nullptr;
+    if(!out_evidence.empty())
     {
-        cerr << "blöd";
-    }*/
-    MQEvidence out_test("buffer/ag_bsc/pmsb_2021/musch/test.txt");
+       evidence = new MQEvidence(out_evidence);   //TODO: Mir fällt nichts besseres ein
+    }
+    */
+
+    MQEvidence test("/buffer/ag_bsc/pmsb_2021/musch/test.txt");
 
     for (Size i = 0; i < number_exps; ++i)
     {
@@ -398,7 +401,14 @@ protected:
       {
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
       }
-      out_test.exportFeatureMapTotxt(fmap_local);
+
+      test.exportFeatureMapTotxt(fmap_local, cmap);
+
+      /*
+      if(evidence != nullptr)
+      {
+        evidence -> exportFeatureMapTotxt(fmap_local);
+      }*/
     }
     // mztab writer requires single PIs per CF
     // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
