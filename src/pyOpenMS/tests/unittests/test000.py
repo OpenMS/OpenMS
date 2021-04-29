@@ -549,9 +549,16 @@ def testModificationDefinitionsSet():
     @tests: ModificationDefinitionsSet
      ModificationDefinitionsSet.__init__
     """
+    # [bytes, ..] to StringList conversion
     empty = pyopenms.ModificationDefinitionsSet()
     fixed = [b"Carbamidomethyl"]
     variable = [b"Oxidation"]
+    full = pyopenms.ModificationDefinitionsSet(fixed, variable)
+
+    # [str, ..] to StringList conversion
+    empty = pyopenms.ModificationDefinitionsSet()
+    fixed = ["Carbamidomethyl"]
+    variable = ["Oxidation", "Phospho"]
     full = pyopenms.ModificationDefinitionsSet(fixed, variable)
 
 @report
@@ -1088,9 +1095,16 @@ def testDataValue():
     assert a.toDoubleList() == [1.0]
     assert a.valueType() == pyopenms.DataType.DOUBLE_LIST
 
+    # StringList with bytes
     a = pyopenms.DataValue([b"1.0"])
     assert not a.isEmpty()
     assert a.toStringList() == [b"1.0"]
+    assert a.valueType() == pyopenms.DataType.STRING_LIST
+
+    # StringList with str
+    a = pyopenms.DataValue(["1.0"])
+    assert not a.isEmpty()
+    assert a.toStringList() == ["1.0"]
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
     assert pyopenms.MSSpectrum().getMetaValue("nonexisingkey") is None
@@ -5412,3 +5426,11 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
+    # TODO: str in map access
+    #ef = pyopenms.EmpiricalFormula("C2H5")
+    #m = ef.getElementalComposition()
+    #assert m["C"] == 2
+    #assert m["H"] == 5
+
+
+ 

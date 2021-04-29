@@ -60,14 +60,14 @@ START_SECTION((FAIMSHelper()))
 END_SECTION
 
 START_SECTION((~FAIMSHelper()))
-	delete e_ptr;
+  delete e_ptr;
 END_SECTION
 
 e_ptr = new FAIMSHelper();
 
 START_SECTION((std::set<double> getCompensationVoltages(PeakMap& exp)))
-	delete e_ptr;
-	e_ptr = new FAIMSHelper();
+  delete e_ptr;
+  e_ptr = new FAIMSHelper();
   MzMLFile IM_file;
   PeakMap exp;
   IM_file.load(OPENMS_GET_TEST_DATA_PATH("IM_FAIMS_test.mzML"), exp);
@@ -75,14 +75,13 @@ START_SECTION((std::set<double> getCompensationVoltages(PeakMap& exp)))
   TEST_EQUAL(exp.getSpectra().size(), 19)
 
   std::set<double> CVs = e_ptr->getCompensationVoltages(exp);
-	auto cv_it = CVs.begin();
+  
   TEST_EQUAL(CVs.size(), 3)
-	TEST_EQUAL(CVs.find(-65.0) == CVs.end(), 0)
-	TEST_EQUAL(CVs.find(-55.0) == CVs.end(), 0)
-	TEST_EQUAL(CVs.find(-45.0) == CVs.end(), 0)
+  TEST_EQUAL(CVs.find(-65.0) == CVs.end(), 0)
+  TEST_EQUAL(CVs.find(-55.0) == CVs.end(), 0)
+  TEST_EQUAL(CVs.find(-45.0) == CVs.end(), 0)
 
 END_SECTION
-
 
 delete e_ptr;
 
