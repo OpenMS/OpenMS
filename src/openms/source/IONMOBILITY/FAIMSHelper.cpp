@@ -44,7 +44,7 @@ namespace OpenMS
 
     // is this FAIMS data?
     if ((exp.getSpectra().size() == 0) ||
-        (exp.getSpectra()[0].getDriftTimeUnit() != MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+        (exp.getSpectra()[0].getDriftTimeUnit() != MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE))
     {
       return;
     }

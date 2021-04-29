@@ -49,7 +49,7 @@ namespace OpenMS
 
     if (CVs.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTYFUNCTION, "Not FAIMS data!");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not FAIMS data!");
     }
 
     // create map to easily turn a CV value into a PeakMap index
