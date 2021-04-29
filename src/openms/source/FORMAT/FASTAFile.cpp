@@ -74,12 +74,7 @@ namespace OpenMS
                         break;
                     case std::streambuf::traits_type::eof():
                         infile_.setstate(std::ios::eofbit);
-                        if (id.empty())
-                        { // only if we just started a new line, we set the is.fail() == true, ie. is == false
-                            infile_.setstate(std::ios::badbit);
-                            return false;
-                        }
-                        return true;
+                        return false;
                     default:
                         id += (char)c;
                 }
