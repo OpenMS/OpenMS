@@ -214,6 +214,7 @@ namespace OpenMS
 
     void FASTAFile::load(const String& filename, vector<FASTAEntry>& data) const
     {
+        startProgress(0, 1, "Loading FASTA file");
         data.clear();
         FASTAEntry p;
         FASTAFile f;
@@ -222,6 +223,7 @@ namespace OpenMS
         {
             data.push_back(std::move(p));
         }
+        endProgress();
         return;
     }
 
@@ -268,13 +270,16 @@ namespace OpenMS
 
     void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
     {
+        startProgress(0, data.size(), "Writing FASTA file");
         FASTAFile f;
         f.writeStart(filename);
         for (vector<FASTAEntry>::const_iterator it = data.begin(); it != data.end(); ++it)
         {
             f.writeNext(*it);
+            nextProgress();
         }
         f.writeEnd(); // close file
+        endProgress();
     }
 
 } // namespace OpenMS
