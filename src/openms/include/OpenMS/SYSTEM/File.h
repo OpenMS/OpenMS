@@ -98,6 +98,9 @@ public:
     /// Return true if the file does not exist or the file is empty
     static bool empty(const String& file);
 
+    /// Method used to test if a @p file is executable.
+    static bool executable(const String& file);
+
     /**
        @brief Rename a file
        
