@@ -46,7 +46,7 @@ namespace OpenMS
     if ((exp.getSpectra().size() == 0) ||
         (exp.getSpectra()[0].getDriftTimeUnit() != MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE))
     {
-      return;
+      return CVs;
     }
   
     for (auto it = exp.begin(); it != exp.end(); ++it)
