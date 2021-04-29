@@ -48,14 +48,6 @@
 
 namespace OpenMS
 {
-  FeatureHypothesis::FeatureHypothesis() = default;
-
-  FeatureHypothesis::~FeatureHypothesis() = default;
-
-  FeatureHypothesis::FeatureHypothesis(const FeatureHypothesis& fh) = default;
-
-  FeatureHypothesis& FeatureHypothesis::operator=(const FeatureHypothesis& rhs) = default;
-
   void FeatureHypothesis::addMassTrace(const MassTrace& mt_ptr)
   {
     iso_pattern_.push_back(&mt_ptr);
@@ -79,6 +71,20 @@ namespace OpenMS
       int_sum += iso_pattern_[i]->getIntensity(smoothed);
     }
     return int_sum;
+  }
+
+  double FeatureHypothesis::getMaxIntensity(bool smoothed) const
+  {
+    double int_max(0.0);
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      const double height = iso_pattern_[i]->getMaxIntensity(smoothed);
+      if (int_max < height) 
+      {
+        int_max = height;
+      }
+    }
+    return int_max;
   }
 
   Size FeatureHypothesis::getNumFeatPoints() const
@@ -1021,6 +1027,7 @@ namespace OpenMS
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
+      f.setMetaValue("max_height", feat_hypos[hypo_idx].getMaxIntensity(use_smoothed_intensities_));
 
       // store isotope intensities
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
