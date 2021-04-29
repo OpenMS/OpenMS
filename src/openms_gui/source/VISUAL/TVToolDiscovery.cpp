@@ -37,6 +37,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
+#include <iostream>
 
 #include <QCoreApplication>
 
@@ -54,6 +57,7 @@ namespace OpenMS
       // Get a map of all tools
       const auto &tools = ToolHandler::getTOPPToolList();
       const auto &utils = ToolHandler::getUtilList();
+      const auto &plugins = getPlugins_();
       // Launch threads for loading tool/util params.
       for (auto& tool : tools)
       {
@@ -137,5 +141,26 @@ namespace OpenMS
     ParamXMLFile paramFile;
     paramFile.load((path).c_str(), tool_param);
     return tool_param;
+  }
+
+  const StringList &TVToolDiscovery::getPlugins_()
+  {
+    FileHandler fh;
+    StringList plugins;
+
+    std::vector<std::string> valid_extensions {".py"};
+    const std::string plugin_path = File::absolutePath("./test/");
+
+    if (File::fileList(plugin_path, "*", plugins, true))
+    {
+      const auto comparator = [plugin_path, fh, valid_extensions](std::string plugin) 
+      {
+        return !File::executable(plugin) /*|| 
+          std::find(valid_extensions.begin(), valid_extensions.end(), fh.stripExtension(plugin)) != valid_extensions.end()*/; 
+      };
+      plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
+    }
+
+    return plugins;
   }
 }

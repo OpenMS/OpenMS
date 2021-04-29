@@ -39,6 +39,8 @@
 #include <future>
 #include <map>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 
 namespace OpenMS
 {
@@ -97,5 +99,7 @@ namespace OpenMS
 
     /// Contains a mapping of each tool/util name to its param.
     std::map<std::string, Param> params_;
+
+    const StringList &getPlugins_();
   };
 }
