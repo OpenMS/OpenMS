@@ -63,7 +63,6 @@ namespace OpenMS
         @throws Exception::MissingInformation if @p exp is not FAIMS data
       */
       static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
-
     };
 
 } //end namespace OpenMS

@@ -41,7 +41,7 @@ namespace OpenMS
 {
   std::vector<PeakMap> MSRunIMSplitter::splitByFAIMSCV(PeakMap&& exp)
   {
-    std::vector<PeakMap> splitPeakMap;
+    std::vector<PeakMap> split_peakmap;
 
     // TODO test with any random PeakMap without FAIMS data.
     // What breaks, how should it break?
@@ -62,8 +62,8 @@ namespace OpenMS
     }
 
     // make as many PeakMaps as there are different CVs and fill their Meta Data
-    splitPeakMap.resize(CVs.size());
-    for (auto it = splitPeakMap.begin(); it != splitPeakMap.end(); ++it)
+    split_peakmap.resize(CVs.size());
+    for (auto it = split_peakmap.begin(); it != split_peakmap.end(); ++it)
     {
       it->getExperimentalSettings() = exp.getExperimentalSettings();
     }
@@ -71,10 +71,10 @@ namespace OpenMS
     // fill up the PeakMaps by moving spectra from the input PeakMap
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      splitPeakMap[cv2index[it->getDriftTime()]].addSpectrum(std::move(*it));
+      split_peakmap[cv2index[it->getDriftTime()]].addSpectrum(std::move(*it));
     }
 
-    return splitPeakMap;
+    return split_peakmap;
   }
 
 }  //end namespace OpenMS

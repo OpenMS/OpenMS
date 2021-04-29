@@ -60,7 +60,6 @@ namespace OpenMS
         @param exp The PeakMap with FAIMS data
       */
       static std::set<double> getCompensationVoltages(const PeakMap& exp);
-
     };
 
 } //end namespace OpenMS
