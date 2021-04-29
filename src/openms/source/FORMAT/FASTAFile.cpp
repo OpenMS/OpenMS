@@ -71,10 +71,6 @@ namespace OpenMS
                         keep_reading = false;
                         break;
                     case '\r':
-                        if (sb->sgetc() == '\n') // peek current char
-                        {
-                            sb->sbumpc(); // consume it
-                        }
                         break;
                     case std::streambuf::traits_type::eof():
                         infile_.setstate(std::ios::eofbit);
@@ -105,10 +101,6 @@ namespace OpenMS
                     }
                     break;
                 case '\r':
-                    if (sb->sgetc() == '\n') // peek current char
-                    {
-                        sb->sbumpc(); // consume it
-                    }
                     break;
                 case ' ': //not saving white spaces
                     break;
