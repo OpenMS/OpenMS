@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/IONMOBILITY/MSRunIMSplitter.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/IONMOBILITY/MSRunIMSplitter.h>" namespace "OpenMS::MSRunIMSplitter":
         
         # static members
-        libcpp_vector[ MSExperiment ] splitByFAIMSCV(MSExperiment & exp) nogil except +  # wrap-attach:MSRunIMSplitter
+        libcpp_vector[ MSExperiment ] splitByFAIMSCV(MSExperiment exp) nogil except +  # wrap-attach:MSRunIMSplitter
 
 
 
