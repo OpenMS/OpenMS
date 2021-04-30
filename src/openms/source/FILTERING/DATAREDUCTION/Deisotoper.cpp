@@ -251,7 +251,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       }
     } // all charges tested, clusters complete
     // if current_peak is possible monoisotopic peak for a cluster, pick the best of its clusters, annotate peaks with a feature number
-    if (clusters.size() != 0)
+    if (!clusters.empty())
     {
       // pick cluster with largest size and highest charge (since all have the same monoisotopic peak)
       unsigned int best_idx = 0;

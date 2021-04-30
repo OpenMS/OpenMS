@@ -289,15 +289,6 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    // Test if the algorithm also works if we do not remove the low (and zero) intensity peaks
    Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, false, 1, 3, true); // do not remove low intensity peaks beforehand
    TEST_EQUAL(theo1.size(), 103);
-
-   for (auto it = theo.begin(); it != theo.end(); ++it) 
-   {
-     Size curr = theo1.findNearest(it->getMZ());
-	 if (theo1[curr].getMZ() != it->getMZ() || theo1[curr].getIntensity() != it->getIntensity())
-	 {
-     std::cout << (*it) << "\n" << theo1[curr] << "\n";
-	 }
-   }
 }
 END_SECTION
 
