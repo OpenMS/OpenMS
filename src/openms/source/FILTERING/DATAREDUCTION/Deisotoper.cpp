@@ -46,23 +46,20 @@ namespace OpenMS
 void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double fragment_tolerance,
   bool fragment_unit_ppm,
+  bool rem_low_intensity,
   int min_charge,
   int max_charge,
   bool keep_only_deisotoped,
   unsigned int min_isopeaks,
   unsigned int max_isopeaks,
   bool make_single_charged,
+  bool use_averagine_model,
   bool annotate_charge,
   bool annotate_iso_peak_count,
-  bool use_averagine_model,
   bool add_up_intensity,
-  bool rem_low_intensity,
   bool used_for_open_search)
 {
-  if (!rem_low_intensity) // else spec will get sorted anyway
-  {
-    OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
-  }
+  OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
   if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
   {
@@ -76,22 +73,27 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 
   // discard low-intensity peaks
   if (rem_low_intensity)
-  {
-    unsigned int max_num_peaks = used_for_open_search ? 1000 : 5000;
+  { 
+    Size max_num_peaks = used_for_open_search ? 1000 : 5000;
 
     spec.sortByIntensity();
-    std::vector<Size> idx;
-    Size i = 0;
-    for (auto it = spec.begin(); it != spec.end(); ++it)
+    if (spec.size() >= max_num_peaks || spec[0].getIntensity() == 0.0)
     {
-      // keep peaks that are among the max_num_peaks highest and non-zero
-      if (i < max_num_peaks && it->getIntensity() != 0.0)
+      // establish intensity that is not accepted anymore
+      Peak1D::IntensityType unacceptable = (spec.size() > max_num_peaks) ? spec[spec.size() - max_num_peaks - 1].getIntensity() : 0;
+
+      // prevent foreseeable re-allocations
+      std::vector<Size> idx(max_num_peaks);
+      Size spec_idx = spec.size() - 1;
+      for (unsigned int vec_idx = 0; spec[spec_idx].getIntensity() > unacceptable; --spec_idx, ++vec_idx)
       {
-        idx.push_back(i);
+        idx[vec_idx] = spec_idx;
       }
-      ++i;
+
+      // but also prevent expanding the spectrum by spec[0]'s
+      idx.resize(spec.size() - 1 - spec_idx);
+      spec.select(idx);
     }
-    spec.select(idx);
     spec.sortByPosition();
   }
 
@@ -459,7 +461,6 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 
         if (has_min_isopeaks)
         {
-          // std::cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << std::endl;
           mono_isotopic_peak[current_peak] = q;
           for (unsigned int i = 0; i != extensions.size(); ++i)
           {

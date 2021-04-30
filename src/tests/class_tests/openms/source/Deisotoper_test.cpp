@@ -171,7 +171,6 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    spec.sortByPosition();
    MSSpectrum theo(spec);
    Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true);
-
    TEST_EQUAL(theo.size(), 1);
    TEST_REAL_SIMILAR(theo[0].getMZ(), base_mz1);
    
@@ -184,19 +183,25 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    spec.sortByPosition();
    theo = spec;
    theo1 = spec;
-   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 1, 3, true); //keep only deisotoped
+   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true); //keep only deisotoped
    TEST_REAL_SIMILAR(theo.front().getMZ(), correct_monoiso);
    Deisotoper::deisotopeAndSingleCharge(theo1, 10.0, true, 1, 3, true);
    TEST_NOT_EQUAL(theo1.front().getMZ(), correct_monoiso); // passes -> not equal
 
-   // Additional peaks that only fit m/z - wise should not disturb cluster formation
+   // Test a peak with zero intensitiy
    double add_mz = spec.back().getMZ() + OpenMS::Constants::C13C12_MASSDIFF_U;
-   Peak1D add_peak(add_mz, 2); // intensity is a lot too high to fit correct distribution
+   Peak1D add_peak(add_mz, 0.0);
    spec.push_back(add_peak);
    theo = spec;
    Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true);
+   TEST_NOT_EQUAL(theo.back().getIntensity(), 0.0);// the new peak should be removed
+   
+   // Additional peaks that only fit m/z - wise should not disturb cluster formation
+   spec.back().setIntensity(2); // intensity is a lot too high to fit correct distribution
+   theo = spec;
+   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true);
    TEST_EQUAL(theo.size(), 3);
-   TEST_REAL_SIMILAR(theo.back().getMZ(), add_mz);
+   TEST_REAL_SIMILAR(theo.back().getMZ(), add_mz); // last peak is still there
    
    // spectrum with two isotopic patterns
    distr = gen.estimateFromPeptideWeight(500);
@@ -211,7 +216,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    }
    theo = spec;
    theo.sortByPosition();
-   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 1, 3, true); // keep only deisotoped
+   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true); // keep only deisotoped
    TEST_EQUAL(theo.size(), 2);
    TEST_EQUAL(theo[0].getMZ(), base_mz2);
    TEST_EQUAL(theo[1].getMZ(), base_mz1);
@@ -228,7 +233,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
 
    // keep only deisotoped
    theo = spec;
-   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 1, 3, true);
+   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true);
    TEST_EQUAL(theo.size(), 2);
 
    // test with complete theoretical spectrum
@@ -267,53 +272,32 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true);
    TEST_EQUAL(theo.size(), 6); // all six peaks remain, since the patterns should not be similar to averagine model
 
-   // Test with a section of an actual spectrum plus some 0-intensity-peaks
+   // Test with a section of an actual spectrum
    MzMLFile file;
    PeakMap exp;
    file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_in.mzML"), exp);
-   theo.clear(true); // copy for readability
-   theo = exp.getSpectrum(0);
-   theo1.clear(true); // for next test
-   theo1 = exp.getSpectrum(0);
+   theo.clear(true);
+   theo = exp.getSpectrum(0);// copy for readability
+   theo1.clear(true);
+   theo1 = exp.getSpectrum(0);// for next test
    Size ori_size = theo.size();
-   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 1, 3, true);// only keep deisotoped
+   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, true, 1, 3, true);// keep only deisotoped
    TEST_NOT_EQUAL(theo.size(), ori_size);
-   TEST_EQUAL(theo.size(), 21);
    file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_out.mzML"), exp);
    TEST_EQUAL(theo, exp.getSpectrum(0));
 
    // Test if the algorithm also works if we do not remove the low (and zero) intensity peaks
-   Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, 1, 3, true, 2, 10,
-	 true, false, false, true, false, false); // do not remove low intensity peaks beforehand
-   TEST_EQUAL(theo1.size(), 21);
+   Deisotoper::deisotopeWithAveragineModel(theo1, 10.0, true, false, 1, 3, true); // do not remove low intensity peaks beforehand
+   TEST_EQUAL(theo1.size(), 103);
 
-   
-   // ****** BENCHMARKING ****** //
-   // Generate spectra for benchmarking
-   // Generate spectrum deisotoped by original algorithm
-   std::cerr << "start loading spectra\n";
-   file.load("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/B1.mzML", exp);
-   unsigned int count = 0;
-   Size num_spectra = exp.size();
-   for (auto it = exp.begin(); it != exp.end(); ++it)
+   for (auto it = theo.begin(); it != theo.end(); ++it) 
    {
-     std::cerr << "Starting old algorithm on spectrum " << (String) count++ << " of " << (String) num_spectra << "\n ";
-	 Deisotoper::deisotopeAndSingleCharge(*it, 10.0, true);
+     Size curr = theo1.findNearest(it->getMZ());
+	 if (theo1[curr].getMZ() != it->getMZ() || theo1[curr].getIntensity() != it->getIntensity())
+	 {
+     std::cout << (*it) << "\n" << theo1[curr] << "\n";
+	 }
    }
-   std::cerr << "start storing deisotoped spectra\n";
-   file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_old.mzML", exp);
-  
-   count = 0;
-   exp.clear(true);
-   std::cerr << "start loading spectra again\n";
-   file.load("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/B1.mzML", exp);
-   // Generate spectrum deisotoped by new algorithm
-   for (auto it = exp.begin(); it != exp.end(); ++it)
-   {
-     std::cerr << "Starting new algorithm on spectrum " << (String) count++ << " of " << (String) num_spectra << "\n";
-	 Deisotoper::deisotopeWithAveragineModel(*it, 10.0, true);
-   }
-   file.store("C:/Users/emilp/Documents/Projekte/HiWi/data/SSE_Benchmarking/out_new.mzML", exp);
 }
 END_SECTION
 

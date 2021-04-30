@@ -89,17 +89,17 @@ class OPENMS_DLLAPI Deisotoper
     static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
       double fragment_tolerance,
       bool fragment_unit_ppm,
+      bool rem_low_intensity = true,
       int min_charge = 1,
       int max_charge = 3,
       bool keep_only_deisotoped = false,
       unsigned int min_isopeaks = 2,
       unsigned int max_isopeaks = 10,
       bool make_single_charged = true,
+      bool use_averagine_model = true,
       bool annotate_charge = false,
       bool annotate_iso_peak_count = false,
-      bool use_averagine_model = true,
       bool add_up_intensity = false,
-      bool rem_low_intensity = true,
       bool used_for_open_search = false);
 
     /** @brief Detect isotopic clusters in a mass spectrum.
