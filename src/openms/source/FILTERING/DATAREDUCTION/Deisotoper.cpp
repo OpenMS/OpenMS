@@ -77,21 +77,19 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     Size max_num_peaks = used_for_open_search ? 1000 : 5000;
 
     spec.sortByIntensity();
-    if (spec.size() >= max_num_peaks || spec[0].getIntensity() == 0.0)
+    if (spec.size() > max_num_peaks || spec[0].getIntensity() == 0.0)
     {
       // establish intensity that is not accepted anymore
       Peak1D::IntensityType unacceptable = (spec.size() > max_num_peaks) ? spec[spec.size() - max_num_peaks - 1].getIntensity() : 0;
 
-      // prevent foreseeable re-allocations
-      std::vector<Size> idx(max_num_peaks);
-      Size spec_idx = spec.size() - 1;
-      for (unsigned int vec_idx = 0; spec[spec_idx].getIntensity() > unacceptable; --spec_idx, ++vec_idx)
+      std::vector<Size> idx;
+      idx.reserve(max_num_peaks); // prevent foreseeable reallocations
+      
+      for (Size spec_idx = spec.size() - 1; spec[spec_idx].getIntensity() > unacceptable; --spec_idx)
       {
-        idx[vec_idx] = spec_idx;
+        idx.push_back(spec_idx);
       }
 
-      // but also prevent expanding the spectrum by spec[0]'s
-      idx.resize(spec.size() - 1 - spec_idx);
       spec.select(idx);
     }
     spec.sortByPosition();
