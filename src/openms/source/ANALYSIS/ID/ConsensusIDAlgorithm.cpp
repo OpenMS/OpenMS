@@ -54,10 +54,10 @@ namespace OpenMS
     defaults_.setMinFloat("filter:min_support", 0.0);
     defaults_.setMaxFloat("filter:min_support", 1.0);
     defaults_.setValue("filter:count_empty", "false", "Count empty ID runs (i.e. those containing no peptide hit for the current spectrum) when calculating 'min_support'?");
-    defaults_.setValidStrings("filter:count_empty", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("filter:count_empty", {"true","false"});
 
     defaults_.setValue("filter:keep_old_scores", "false", "if set, keeps the original scores as user params");
-    defaults_.setValidStrings("filter:keep_old_scores", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("filter:keep_old_scores", {"true","false"});
 
     defaultsToParam_();
   }

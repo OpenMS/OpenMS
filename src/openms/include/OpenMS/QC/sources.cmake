@@ -14,6 +14,7 @@ set(sources_list_h
   PSMExplainedIonCurrent.h
   QCBase.h
   RTAlignment.h
+  SpectrumCount.h
   DBSuitability.h
   TIC.h
 )

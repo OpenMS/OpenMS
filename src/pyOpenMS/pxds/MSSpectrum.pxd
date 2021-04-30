@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
 from Peak1D cimport *
 from String cimport *
 from RangeManager cimport *

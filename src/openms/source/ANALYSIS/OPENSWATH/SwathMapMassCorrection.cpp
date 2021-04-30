@@ -85,15 +85,15 @@ namespace OpenMS
     DefaultParamHandler("SwathMapMassCorrection")
   {
     defaults_.setValue("mz_extraction_window", -1.0, "M/z extraction window width");
-    defaults_.setValue("mz_extraction_window_ppm", "false", "Whether m/z extraction is in ppm", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("mz_extraction_window_ppm", ListUtils::create<String>("true,false"));
-    defaults_.setValue("ms1_im_calibration", "false", "Whether to use MS1 precursor data for the ion mobility calibration (default = false, uses MS2 / fragment ions for calibration)", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("ms1_im_calibration", ListUtils::create<String>("true,false"));
+    defaults_.setValue("mz_extraction_window_ppm", "false", "Whether m/z extraction is in ppm", {"advanced"});
+    defaults_.setValidStrings("mz_extraction_window_ppm", {"true","false"});
+    defaults_.setValue("ms1_im_calibration", "false", "Whether to use MS1 precursor data for the ion mobility calibration (default = false, uses MS2 / fragment ions for calibration)", {"advanced"});
+    defaults_.setValidStrings("ms1_im_calibration", {"true","false"});
     defaults_.setValue("im_extraction_window", -1.0, "Ion mobility extraction window width");
     defaults_.setValue("mz_correction_function", "none", "Type of normalization function for m/z calibration.");
-    defaults_.setValidStrings("mz_correction_function", ListUtils::create<String>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
+    defaults_.setValidStrings("mz_correction_function", {"none","regression_delta_ppm","unweighted_regression","weighted_regression","quadratic_regression","weighted_quadratic_regression","weighted_quadratic_regression_delta_ppm","quadratic_regression_delta_ppm"});
     defaults_.setValue("im_correction_function", "linear", "Type of normalization function for IM calibration.");
-    defaults_.setValidStrings("im_correction_function", ListUtils::create<String>("none,linear"));
+    defaults_.setValidStrings("im_correction_function", {"none","linear"});
 
     defaults_.setValue("debug_im_file", "", "Debug file for Ion Mobility calibration.");
     defaults_.setValue("debug_mz_file", "", "Debug file for m/z calibration.");
@@ -108,10 +108,10 @@ namespace OpenMS
     mz_extraction_window_ppm_ = param_.getValue("mz_extraction_window_ppm") == "true";
     ms1_im_ = param_.getValue("ms1_im_calibration") == "true";
     im_extraction_window_ = (double)param_.getValue("im_extraction_window");
-    mz_correction_function_ = param_.getValue("mz_correction_function");
-    im_correction_function_ = param_.getValue("im_correction_function");
-    debug_mz_file_ = param_.getValue("debug_mz_file");
-    debug_im_file_ = param_.getValue("debug_im_file");
+    mz_correction_function_ = param_.getValue("mz_correction_function").toString();
+    im_correction_function_ = param_.getValue("im_correction_function").toString();
+    debug_mz_file_ = param_.getValue("debug_mz_file").toString();
+    debug_im_file_ = param_.getValue("debug_im_file").toString();
   }
 
   void SwathMapMassCorrection::correctIM(

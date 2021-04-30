@@ -105,7 +105,7 @@ class TOPPNovorAdapter :
 {
 public:
   TOPPNovorAdapter() :
-    TOPPBase("NovorAdapter", "Template for Tool creation", false, 
+    TOPPBase("NovorAdapter", "Performs de novo sequencing of peptides from MS/MS data with Novor.", false, 
     {
       Citation{"Ma Bin",
                "Novor: Real-Time Peptide de Novo Sequencing Software",

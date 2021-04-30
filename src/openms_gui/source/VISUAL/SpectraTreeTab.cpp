@@ -434,7 +434,7 @@ namespace OpenMS
     // type or by the flag which is set).
     else if (cl.type == LayerData::DT_CHROMATOGRAM || cl.chromatogram_flag_set())
     {
-      LayerData::ConstExperimentSharedPtrType exp = (cl.chromatogram_flag_set()
+      LayerData::ConstExperimentSharedPtrType exp = (cl.chromatogram_flag_set() // if set, the actual full data is in getChromatogramData; the peakdata only contains a single spec
                                                      ? cl.getChromatogramData()
                                                      : cl.getPeakData());
       
@@ -483,10 +483,14 @@ namespace OpenMS
       }
 
       int precursor_idx = 0;
-      for (const auto& pc_indices : map_precursor_to_chrom_idx)
+      for (const auto& [pc, indx] : map_precursor_to_chrom_idx)
       {
-        const auto& pc = pc_indices.first;
-        const auto& indx = pc_indices.second;
+        // Top level precursor entry
+        toplevel_item = new QTreeWidgetItem();
+        toplevel_item->setText(ClmnChrom::TYPE, "Peptide");
+        toplevel_item->setData(ClmnChrom::TYPE, Qt::UserRole, vecToList(indx));
+        toplevel_item->setData(ClmnChrom::CHROM_INDEX, Qt::DisplayRole, precursor_idx++);
+        toplevel_item->setData(ClmnChrom::MZ, Qt::DisplayRole, pc.getMZ());
         // Show the peptide sequence if available, otherwise show the m/z and charge only
         QString description;
         if (pc.metaValueExists("peptide_sequence"))
@@ -497,16 +501,7 @@ namespace OpenMS
         {
           description = String(pc.getMetaValue("description")).toQString();
         }
-
-        // Top level precursor entry
-        toplevel_item = new QTreeWidgetItem();
-        toplevel_item->setText(ClmnChrom::TYPE, "Peptide");
-        toplevel_item->setData(ClmnChrom::TYPE, Qt::UserRole, vecToList(indx));
-        toplevel_item->setData(ClmnChrom::CHROM_INDEX, Qt::DisplayRole, precursor_idx++);
-        toplevel_item->setData(ClmnChrom::MZ, Qt::DisplayRole, pc.getMZ());
         toplevel_item->setText(ClmnChrom::DESCRIPTION, description);
-        //toplevel_item->setText(ClmnChrom::RT_START, QString::number(prod_it->second[0].front().getRT()));
-        //toplevel_item->setText(ClmnChrom::RT_END, QString::number(prod_it->second[0].back().getRT()));
         toplevel_item->setData(ClmnChrom::CHARGE, Qt::DisplayRole, pc.getCharge());
 
         toplevel_items.push_back(toplevel_item);
@@ -597,7 +592,7 @@ namespace OpenMS
   }
 
 
-  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp) const
+  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp, LayerData::DataType& current_type) const
   {
     exp.clear(true);
     QTreeWidgetItem* item = spectra_treewidget_->currentItem();
@@ -606,10 +601,12 @@ namespace OpenMS
     int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
     if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
     { // we currently show chromatogram data
+      current_type = LayerData::DT_CHROMATOGRAM;
       exp.addChromatogram(last_peakmap_->getChromatograms()[index]);
     }
     else
     {
+      current_type = LayerData::DT_PEAK;
       exp.addSpectrum(last_peakmap_->getSpectra()[index]);
     }
     return true;
