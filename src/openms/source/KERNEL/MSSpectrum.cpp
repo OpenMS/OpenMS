@@ -700,14 +700,29 @@ namespace OpenMS
     return a.getRT() < b.getRT();
   }
 
+  constexpr uint IM_FLOAT_DATA_ARRAY_INDEX = 0;
+
   bool MSSpectrum::containsIMData() const
   {
     const auto& s = *this;
     return (!s.getFloatDataArrays().empty() &&
-      ( s.getFloatDataArrays()[0].getName().hasPrefix("Ion Mobility") ||
-        s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
-        s.getFloatDataArrays()[0].getName() == "mean inverse reduced ion mobility array" ||
-        s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
+            (s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName().hasPrefix("Ion Mobility") ||
+             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "ion mobility array" ||
+             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "mean inverse reduced ion mobility array" ||
+             s.getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX].getName() == "ion mobility drift time")
       );
+  }
+  const MSSpectrum::FloatDataArray& MSSpectrum::getIMData() const
+  {
+    if (!this->containsIMData())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Cannot get ion mobility data. No float array with the correct name available."
+                                          " Number of float arrays: " +
+                                              String(this->getFloatDataArrays().size()));
+    }
+
+    return this->getFloatDataArrays()[IM_FLOAT_DATA_ARRAY_INDEX];
+
   }
 }

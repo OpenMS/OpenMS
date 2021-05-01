@@ -505,8 +505,13 @@ public:
     ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
     /// do the names of internal metadata arrays contain any hint of ion mobility data, e.g. 'Ion Mobility' 
+    /// (for spectra which represent an IM-frame)
     bool containsIMData() const;
 
+    /// get the Ion mobility data array (for spectra which represent an IM-frame)
+    /// @throws Exception::MissingInformation if IM data is not present
+    const MSSpectrum::FloatDataArray& getIMData() const;
+    
     //@}
 
 
