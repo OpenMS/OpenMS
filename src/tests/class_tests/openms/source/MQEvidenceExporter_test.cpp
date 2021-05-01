@@ -52,12 +52,12 @@ MQEvidence* ptr = nullptr;
 MQEvidence* null_ptr = nullptr;
 START_SECTION(MQEvidence())
 {
-    string x = "/buffer/ag_bsc/pmsb_2021/noske/test.txt";
+    string x = "/buffer/ag_bsc/pmsb_2021/musch/test.txt";
     ptr = new MQEvidence(x);
     TEST_NOT_EQUAL(ptr,null_ptr);
 }
 END_SECTION
-/*
+
 START_SECTION(exportFeatureMapTotxt())
 {
     FeatureMap e;
@@ -66,7 +66,7 @@ START_SECTION(exportFeatureMapTotxt())
     ptr->exportFeatureMapTotxt(e);
     delete ptr;
 }
-END_SECTION*/
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

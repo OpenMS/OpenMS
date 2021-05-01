@@ -34,11 +34,9 @@
 
 #pragma once
 
-#include <string>
+
 #include <fstream>
-#include <vector>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -50,10 +48,10 @@ private:
     std::string filename_;
     int id;
 public:
-    explicit MQEvidence(const std::string &_file);
+    explicit MQEvidence(const String &_file);
     ~MQEvidence();
     //std::fstream getFile() const;
     void export_header();
-    void exportRowFromFeature(const Feature &f, const ConsensusFeature& c );
-    void exportFeatureMapTotxt(const FeatureMap & feature_map, const ConsensusMap& cmap);
+    void exportRowFromFeature(const Feature &f/*, const ConsensusFeature& c */);
+    void exportFeatureMapTotxt(const FeatureMap & feature_map/*, const ConsensusMap& cmap*/);
 };
