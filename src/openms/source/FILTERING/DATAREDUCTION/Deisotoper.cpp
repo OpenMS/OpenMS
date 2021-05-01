@@ -200,7 +200,6 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
             // generate averagine distribution
             CoarseIsotopePatternGenerator gen(extensions.size() + 1);
             IsotopeDistribution distr = gen.estimateFromPeptideWeight(total_weight / total_intensity);
-            distr.sortByMass();// necessary?
 
             // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x));
             // normalize spectrum intensities as this is a density measure and the averagine distribution is also normalized to 1
