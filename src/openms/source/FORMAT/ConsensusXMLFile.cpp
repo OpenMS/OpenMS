@@ -139,13 +139,9 @@ namespace OpenMS
 
   void ConsensusXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-    String tag = sm_.convert(qname);
-    String parent_tag;
-    if (!open_tags_.empty())
-    {
-      parent_tag = open_tags_.back();
-    }
-    open_tags_.push_back(tag);
+    const String& parent_tag = (open_tags_.empty() ? "" : open_tags_.back());
+    open_tags_.push_back(sm_.convert(qname));
+    const String& tag = open_tags_.back();
 
     String tmp_str;
     if (tag == "map")
