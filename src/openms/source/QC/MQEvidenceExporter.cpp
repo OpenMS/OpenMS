@@ -32,7 +32,9 @@
 // $Authors: Valentin Noske, Vincent Musch$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/MQEvidenceExporter.h>/*
+#include <OpenMS/QC/MQEvidenceExporter.h>
+#include <OpenMS/SYSTEM/File.h>
+/*
 #include <string>
 #include <fstream>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -42,9 +44,14 @@ using namespace std;
 using namespace OpenMS;
 
 
+
 MQEvidence::MQEvidence(const string &file)
 {
     file_ = fstream(file, fstream::out);
+    if(!file_.good())
+    {
+        //TODO: exception
+    }
     export_header();
     id = 1;
 }
@@ -52,19 +59,9 @@ MQEvidence::MQEvidence(const string &file)
 MQEvidence::~MQEvidence() {
     file_.close();
 }
-/*
-std::fstream MQEvidence::getFile() const
-{
-    return file_;
-}*/
 
 void MQEvidence::export_header()
 {
-    if(!file_.good())
-    {
-        //TODO: exception
-    }
-    file_.clear();
     file_ << "id" << "\t";
     file_ << "Sequence" << "\t";
     file_ << "Length" << "\t";
@@ -73,7 +70,6 @@ void MQEvidence::export_header()
     file_ << "Oxidation (M)" << "\t";
     file_ << "Modified Sequence" << "\t";
     file_ << "Mass" << "\t";
-    //file_ << "MS/MS mz" << "\t";
     file_ << "Score" << "\t";
     file_ << "Delta score" << "\t";
     file_ << "Protein" << "\t";
@@ -185,7 +181,6 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     file_ << pep_seq.getMonoWeight() - (f.getCharge() * f.getMZ()) << "\t"; // Mass error
     file_ << max_score << "\t"; // Score
     file_ << delta_score << "\t"; // Delta score
-    //const vector<PeptideEvidence> & evidence = pep_hits_max.getPeptideEvidences(); //TODO: Fragen was das ist und ob wir es brauchen
     const set<String> &accessions = pep_hits_max.extractProteinAccessionsSet();
     for (const String &p : accessions) {
         file_ << p << ";"; // Protein
@@ -205,8 +200,8 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     if(uncalibrated_mz_error_ppm == "NA" && calibrated_mz_error_ppm == "NA"){
         double uncalibrated_mz_error_ppm = pep_hits_max.getMetaValue("uncalibrated_mz_ppm");
         double calibrated_mz_error_ppm = pep_hits_max.getMetaValue("calibrated_mz_ppm");
-        double u_mass_error = f.getCharge()*uncalibrated_mz_error_ppm;
-        double c_mass_error= f.getCharge()*calibrated_mz_error_ppm;
+        double u_mass_error = uncalibrated_mz_error_ppm;
+        double c_mass_error= calibrated_mz_error_ppm;
         double uncalibrated_calibrated_diff_ppm = uncalibrated_mz_error_ppm - calibrated_mz_error_ppm;
         file_ << c_mass_error << "\t"; // Mass error [ppm]
         file_ << u_mass_error<< "\t"; // Uncalibrated Mass error [ppm]
@@ -268,9 +263,8 @@ void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map)
     for (const Feature & f : feature_map)
     {
         exportRowFromFeature(f);
-        file_ << feature_map.getLoadedFilePath() << "\t"; // Raw File
+        file_ << File::basename(feature_map.getLoadedFilePath()) << "\t"; // Raw File
         file_ << "\n";
-
     }
 
 }

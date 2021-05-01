@@ -145,8 +145,7 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    //registerStringOption_("out_evidence", "String", "", "EvidenceTXT with QC information", false);
-    //setValidStrings_("out_evidence", {"string"});
+    registerStringOption_("out_evidence", "<Path>", "", "EvidenceTXT with QC information", false); // TODO: better description
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -230,6 +229,7 @@ protected:
     }
     fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
     for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
+    cmap.
 
 
     // check flags
