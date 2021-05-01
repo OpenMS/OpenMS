@@ -44,7 +44,6 @@ using namespace std;
 using namespace OpenMS;
 
 
-
 MQEvidence::MQEvidence(const string &file)
 {
     file_ = fstream(file, fstream::out);
@@ -93,11 +92,15 @@ void MQEvidence::export_header()
     file_ << " Calibrated retention time start" << "\t";
     file_ << " Calibrated retention time end" << "\t";
     file_ << "Retention time calibration" << "\t";
+    file_ << "Match time difference" << "\t";
+    file_ << "Match m/z difference" << "\t";
+    file_ << "MS/MS count" << "\t";
     file_ << "Raw file" << "\t";
     file_ << "\n";
 }
 
-void MQEvidence::exportRowFromFeature(const Feature &f) {
+void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature& c)
+{
 
     file_ << id << "\t";
     ++id;
@@ -197,7 +200,8 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     file_ << pep_ids[0].getExperimentLabel() << "\t"; // Type
     const String & uncalibrated_mz_error_ppm = pep_hits_max.getMetaValue("uncalibrated_mz_error_ppm","NA");
     const String & calibrated_mz_error_ppm = pep_hits_max.getMetaValue("calibrated_mz__error_ppm","NA");
-    if(uncalibrated_mz_error_ppm == "NA" && calibrated_mz_error_ppm == "NA"){
+    if(uncalibrated_mz_error_ppm == "NA" && calibrated_mz_error_ppm == "NA")
+    {
         double uncalibrated_mz_error_ppm = pep_hits_max.getMetaValue("uncalibrated_mz_ppm");
         double calibrated_mz_error_ppm = pep_hits_max.getMetaValue("calibrated_mz_ppm");
         double u_mass_error = uncalibrated_mz_error_ppm;
@@ -248,23 +252,33 @@ void MQEvidence::exportRowFromFeature(const Feature &f) {
     if(f.getMetaValue("rt_align","NA") != "NA")
     {
         file_ << f.getRT() - double(f.getMetaValue("rt_align"))<< "\t"; // Retention time calibration
+        file_ << double(f.getMetaValue("rt_align"))- c.getRT() << "\t"; // Match time diff
     }
     else
     {
         file_ << "NA" << "\t"; // Retention time calibration
+        file_ << "NA" << "\t"; // Match time diff
     }
+    file_ << f.getMZ() - c.getMZ() << "\t"; //Match mz diff
+    file_ << f.getPeptideIdentifications().size()<<"\t"; // MS/MS count
+
 
 }
 
 
-void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map)
+void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map, const ConsensusMap & cmap)
 {
-    //go trough all features
-    for (const Feature & f : feature_map)
+    if(feature_map.size() != cmap.size())
     {
-        exportRowFromFeature(f);
+        return; //TODO: Bielow fragen
+    }
+    //go trough all features
+    for (uint16_t it = 0; it <= feature_map.size(); ++it)
+    {
+        exportRowFromFeature(feature_map[it], cmap[it]);
         file_ << File::basename(feature_map.getLoadedFilePath()) << "\t"; // Raw File
         file_ << "\n";
+
     }
 
 }
