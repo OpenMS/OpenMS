@@ -247,7 +247,7 @@ START_SECTION(test_white_spaces)
 
         END_SECTION
 
-        START_SECTION([EXTRA] test_position) //
+        START_SECTION([EXTRA] test_position) 
                 // test if setPosition() works correctly
                 String tmp_filename;
                 NEW_TMP_FILE(tmp_filename);
