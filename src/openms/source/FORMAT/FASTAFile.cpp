@@ -90,27 +90,27 @@ namespace OpenMS
                     id += (char)c;
             }
         }
-            if (description_exists) keep_reading = true;
-            while(keep_reading)// reading the description
-            {
-                int c = sb->sbumpc();// get and advance to next char
-                switch (c)
-                {
-                    case '\n': //description finished
-                        keep_reading = false;
-                        break;
-                    case '\r':
-                        break;
-                    case '\t':
-                        break;
-                    case std::streambuf::traits_type::eof():
-                        infile_.setstate(std::ios::eofbit);
-                        return false;
-                    default:
-                        description += (char)c;
-                }
-            }
         if (id.empty()) return false;
+        if (description_exists) keep_reading = true;
+        while(keep_reading)// reading the description
+        {
+            int c = sb->sbumpc();// get and advance to next char
+            switch (c)
+            {
+                case '\n': //description finished
+                    keep_reading = false;
+                    break;
+                case '\r':
+                    break;
+                case '\t':
+                    break;
+                case std::streambuf::traits_type::eof():
+                    infile_.setstate(std::ios::eofbit);
+                    return false;
+                default:
+                    description += (char)c;
+            }
+        }
         keep_reading = true;
         while(keep_reading)//reading the sequence
         {
