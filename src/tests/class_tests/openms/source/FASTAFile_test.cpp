@@ -252,27 +252,31 @@ START_SECTION(test_white_spaces)
                 String tmp_filename;
                 NEW_TMP_FILE(tmp_filename);
                 FASTAFile file;
-                //vector<FASTAFile::FASTAEntry> data;
-                vector<pair<streampos, FASTAFile::FASTAEntry>> data;
+
+                vector<pair<streampos, FASTAFile::FASTAEntry>> data1;
+                vector<pair<streampos, FASTAFile::FASTAEntry>> data2;
                 FASTAFile::FASTAEntry temp_entry;
                 file.readStart(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"));
 
-                unsigned i =1;
-                while(i<5){ //read the first, say, 4 entries
+
+                for (int i=0; i<4; i++){
                 file.readNext(temp_entry);
-                data.push_back(std::make_pair(file.position(), temp_entry));//remember their FASTAEntry's as well as their position.
-                i++;}
-                file.setPosition(data[1].first); //reset the position to the, say, 2nd entry
-                while(i<8){ //read the next 3 entries
+                data1.push_back(std::make_pair(file.position(), temp_entry));
+                }
+                file.setPosition(data1[0].first);
+                for(int i=0; i<3; i++){
                     file.readNext(temp_entry);
-                    data.push_back(std::make_pair(file.position(), temp_entry));//and also remember their positions
-                    i++;
-                }//
+                    data2.push_back(std::make_pair(file.position(), temp_entry));
+                }
 
-                ABORT_IF(data.size() != 7 || data[1].second.sequence != data[4].second.sequence || data[6].first != data[3].first );
-                // die dritte Proteinsequenz in FASTAFile_test.fasta
-                TEST_EQUAL(data[5].second.sequence == string("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFYLKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGDAGEGEN"), true);
+                ABORT_IF(data1.size() != 4 || data2.size() != 3 );
 
+                for(Size i=1; i<data1.size(); i++) {
+                    TEST_EQUAL(data1[i].second.identifier, data2[i-1].second.identifier);
+                    TEST_EQUAL(data1[i].second.description, data2[i-1].second.description);
+                    TEST_EQUAL(data1[i].second.sequence, data2[i-1].second.sequence);
+                    TEST_EQUAL(data1[i].first, data2[i-1].first);
+                }
 
         END_SECTION
 
