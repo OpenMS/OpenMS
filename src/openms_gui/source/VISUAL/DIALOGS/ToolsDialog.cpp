@@ -169,33 +169,6 @@ namespace OpenMS
 
   ToolsDialog::~ToolsDialog()
   {
-<<<<<<< HEAD
-  }
-
-  Param ToolsDialog::getParamFromIni_(const String& tool_name)
-  {
-    QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
-    QProcess qp;
-    String executable = File::findSiblingTOPPExecutable(tool_name);
-    qp.start(executable.toQString(), args);
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-        QMessageBox::critical(this, "Error", (String("Could not execute '") + executable + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
-        // TODO handle error
-    }
-    else if (!File::exists(ini_file_))
-    {
-        QMessageBox::critical(this, "Error", (String("Could find requested INI file '") + ini_file_ + "'!").c_str());
-        // TODO handle error
-    }
-    Param tool_param;
-    ParamXMLFile paramFile;
-    paramFile.load((ini_file_).c_str(), tool_param);
-
-    return tool_param;
-=======
->>>>>>> origin/develop
   }
 
   std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
