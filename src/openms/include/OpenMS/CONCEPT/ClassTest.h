@@ -106,6 +106,13 @@ namespace OpenMS
         return true;
       }
 
+      /// This overload returns true; @c ParamValue will be converted to double by #TEST_REAL_SIMILAR.
+      inline bool OPENMS_DLLAPI
+      isRealType(const ParamValue&)
+      {
+          return true;
+      }
+
       /// This overload returns true; @c DataValue will be converted to double by #TEST_REAL_SIMILAR.
       inline bool OPENMS_DLLAPI
       isRealType(const DataValue&)

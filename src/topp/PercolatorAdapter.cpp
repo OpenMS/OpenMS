@@ -1039,14 +1039,13 @@ protected:
 
       if (cv_threads != 3) // default in percolator is 3
       {
-        // If a lower than default value is chosen the user needs to enforce it.
+        // If a lower than default value (3) is chosen the user needs to enforce it.
         // This ensures that existing workflows (which implicitly used 3 threads) don't slow down
         // if e.g. the OpenMS version and this adapter is updated.
-        if (cv_threads < 3 && !getFlag_("force"))
+        if (cv_threads > 3 || getFlag_("force"))
         { 
-          cv_threads = 3;
+          arguments << "--num-threads" << String(cv_threads).toQString();
         }
-        arguments << "--num-threads" << String(cv_threads).toQString();
       }
       
       double cpos = getDoubleOption_("cpos");

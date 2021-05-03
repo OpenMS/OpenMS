@@ -44,7 +44,6 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QRadioButton>
@@ -52,13 +51,10 @@
 #include <QtWidgets/QCheckBox>
 #include <QProcess>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 using namespace std;
 
@@ -67,6 +63,7 @@ namespace OpenMS
 
   ToolsDialog::ToolsDialog(
           QWidget* parent,
+          const Param& params,
           String ini_file,
           String default_dir,
           LayerData::DataType layer_type,
@@ -74,7 +71,8 @@ namespace OpenMS
     ) :
     QDialog(parent),
     ini_file_(ini_file),
-    default_dir_(default_dir)
+    default_dir_(default_dir),
+    params_(params)
   {
     auto main_grid = new QGridLayout(this);
 
@@ -96,17 +94,22 @@ namespace OpenMS
             {FileTypes::Type::CONSENSUSXML, LayerData::DataType::DT_CONSENSUS},
             {FileTypes::Type::IDXML, LayerData::DataType::DT_IDENT}
     };
-    // Get a map of all tools
-    const auto& tools = OpenMS::ToolHandler::getTOPPToolList();
-    for (const auto& tool : tools)
+    const auto& tools = ToolHandler::getTOPPToolList();
+    const auto& utils = ToolHandler::getUtilList();
+    for (auto& pair : tools)
     {
-      const String& tool_name = tool.first;
-      Param p = getParamFromIni_(tool_name);
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(p);
-      // Check if tool is compatible with the layer type
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
-        list << tool_name.toQString();
+        list << pair.first.toQString();
+      }
+    }
+    for (auto& pair : utils)
+    {
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
+      {
+        list << pair.first.toQString();
       }
     }
 
@@ -166,6 +169,7 @@ namespace OpenMS
 
   ToolsDialog::~ToolsDialog()
   {
+<<<<<<< HEAD
   }
 
   Param ToolsDialog::getParamFromIni_(const String& tool_name)
@@ -190,6 +194,8 @@ namespace OpenMS
     paramFile.load((ini_file_).c_str(), tool_param);
 
     return tool_param;
+=======
+>>>>>>> origin/develop
   }
 
   std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
@@ -275,9 +281,9 @@ namespace OpenMS
        editor_->clear();
        arg_map_.clear();
     }
-    arg_param_ = getParamFromIni_(getTool());
+    arg_param_ = params_.copy(getTool() + ":");
 
-    tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
+    tool_desc_->setText(String(arg_param_.getSectionDescription(getTool())).toQString());
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");

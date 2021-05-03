@@ -46,8 +46,8 @@ using namespace std;
 ElutionModelFitter::ElutionModelFitter():
   DefaultParamHandler("ElutionModelFitter")
 {
-  vector<String> truefalse = ListUtils::create<String>("true,false");
-  vector<String> advanced(1, "advanced");
+  std::vector<std::string> truefalse = {"true","false"};
+  std::vector<std::string> advanced = {"advanced"};
 
   defaults_.setValue("asymmetric", "false", "Fit an asymmetric (exponential-Gaussian hybrid) model? By default a symmetric (Gaussian) model is used.");
   defaults_.setValidStrings("asymmetric", truefalse);
