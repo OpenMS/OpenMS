@@ -39,20 +39,25 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <filesystem>
+#include <QtCore/QDir>
+
 
 using namespace std;
 using namespace OpenMS;
-namespace fs = std::filesystem;
 
 
 
-MQEvidence::MQEvidence(const std::string &path)
+
+MQEvidence::MQEvidence(const std::string &p)
 {
-    string folder = "/mq_out";
-    fs::create_directory(path);
+    if(p == "")
+    {
+        return;
+    }
+    QString path = QString::fromStdString(p);
+    QDir().mkpath(path);
 
-    string filename = folder + "/evidence.txt";
+    string filename = p +"/evidence.txt";
     file_ = fstream(filename, fstream::out);
     if(!file_.good())
     {
@@ -103,14 +108,14 @@ void MQEvidence::export_header()
     file_ << "Calibrated retention time end" << "\t";
     file_ << "Calibrated Retention Time" << "\t";
     file_ << "Retention time calibration" << "\t";
+    file_ << "MS/MS count" << "\t";
     file_ << "Match time difference" << "\t";
-    //file_ << "Match m/z difference" << "\t";
-    //file_ << "MS/MS count" << "\t";
+    file_ << "Match m/z difference" << "\t";
     file_ << "Raw file" << "\t";
     file_ << "\n";
 }
 
-bool MQEvidence::exportRowFromFeature(const Feature &f/*, const ConsensusFeature& c*/)
+bool MQEvidence::exportRowFromFeature(const Feature &f)
 {
 
 
@@ -277,25 +282,24 @@ bool MQEvidence::exportRowFromFeature(const Feature &f/*, const ConsensusFeature
     {
         file_ << "NA" << "\t"; // calibrated retention time
         file_ << "NA" << "\t"; // Retention time calibration
-        //file_ << "NA" << "\t"; // Match time diff
+
     }
-    //file_ << f.getMZ() - c.getMZ() << "\t"; //Match mz diff
+
     file_ << f.getPeptideIdentifications().size()<<"\t"; // MS/MS count
 
     return true;
 }
 
 
-void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map/*, const ConsensusMap & cmap*/)
-{/*
-    if(feature_map.size() != cmap.size())
+void MQEvidence::exportFeatureMapTotxt(const FeatureMap & feature_map, const ConsensusMap& cmap, const std::map<UInt64,Size> & fTc)
+{
+    for (const Feature &f : feature_map)
     {
-        return; //TODO: Bielow fragen
-    }*/
-    //go trough all features
-    for (uint16_t it = 0; it < feature_map.size(); ++it)
-    {
-        if(exportRowFromFeature(feature_map[it]/*, cmap[it]*/)) {
+        if(exportRowFromFeature(f)) {
+            const UInt64 &f_id = f.getUniqueId();
+            const Size &c_id = fTc.find(f_id)->second;
+            file_ << f.getRT() - cmap[c_id].getRT() << "\t";    //Match time diff
+            file_ << f.getMZ() - cmap[c_id].getMZ() << "\t";    //Match mz diff
             file_ << File::basename(feature_map.getLoadedFilePath()) << "\t"; // Raw File
             file_ << "\n";
         }

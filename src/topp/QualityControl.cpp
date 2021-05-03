@@ -145,7 +145,7 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    //registerStringOption_("out_evd", "<Path>", "", "EvidenceTXT with QC information", false); // TODO: better description
+    registerStringOption_("out_evd", "<Path>", "", "EvidenceTXT with QC information", false); // TODO: better description
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -220,14 +220,25 @@ protected:
     // Build a PepID Map to later find the corresponding PepID in the CMap
     //-------------------------------------------------------------
     multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
+
+    map<UInt64, Size> fid_to_cmapindex; // TODO: einbinden
+
     for (Size i = 0; i < cmap.size(); ++i)
     {
       fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
+
+      for (auto fh : cmap[i].getFeatures())
+      {
+        fid_to_cmapindex[fh.getUniqueId()] = i;
+      }
+
     }
     fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+
+
     for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
 
 
@@ -259,16 +270,13 @@ protected:
     // Loop through featuremaps...
     vector<PeptideIdentification> all_new_upep_ids;
 
-    /*
-    String out_evidence = getStringOption_("out_evd");
-    MQEvidence* evidence = nullptr;
-    if(!out_evidence.empty())
-    {
-       evidence = new MQEvidence(out_evidence);   //TODO: Mir fällt nichts besseres ein
-    }
-    */
 
-    MQEvidence test("/buffer/ag_bsc/pmsb_2021/musch/mq_out");
+    String out_evidence = getStringOption_("out_evd");
+    MQEvidence export_evidence(out_evidence);   //TODO: Mir fällt nichts besseres ein
+
+
+
+    //MQEvidence test("/buffer/ag_bsc/pmsb_2021/musch/mq_out");
 
     for (Size i = 0; i < number_exps; ++i)
     {
@@ -402,14 +410,14 @@ protected:
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
       }
 
-      test.exportFeatureMapTotxt(fmap_local);
+      //test.exportFeatureMapTotxt(fmap_local,cmap,fid_to_cmapindex);
 
-      /*
-      if(evidence != nullptr)
+
+      if(export_evidence.isValid())
       {
-        evidence -> exportFeatureMapTotxt(fmap_local,cmap);
+        export_evidence.exportFeatureMapTotxt(fmap_local,cmap,fid_to_cmapindex);
       }
-       */
+
     }
 
     //evidence -> ~MQEvidence();
