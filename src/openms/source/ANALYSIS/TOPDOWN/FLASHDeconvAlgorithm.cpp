@@ -1017,12 +1017,13 @@ namespace OpenMS {
 
         scoreAndFilterPeakGroups_();
 
-        if (ms_level_ == 1) {
-            //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
-            removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1]);
-            // } else {
-            //removeOverlappingPeakGroupsWithNominalMass_();
-        }
+        //if (ms_level_ == 1)
+        //{
+        //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
+        removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1], ms_level_ == 1 ? 1 : 0);
+        // } else {
+        //removeOverlappingPeakGroupsWithNominalMass_();
+        //}
 
         if (ms_level_ == 1) {
             while (!prev_rt_vector_.empty() &&
@@ -1653,11 +1654,20 @@ namespace OpenMS {
         deconvoluted_spectrum_.swap(merged_pg_vec);
     }
 
-    void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(const double tol) {
-        int iso_length = 1; // inclusive
+    void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(const double tol, const int iso_length) {
         std::vector<PeakGroup> filtered_pg_vec;
         filtered_pg_vec.reserve(deconvoluted_spectrum_.size());
         sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end());
+
+        for (Size i = 0; i < deconvoluted_spectrum_.size(); i++) {
+            if (i > 0 && deconvoluted_spectrum_[i - 1] == deconvoluted_spectrum_[i]) {
+                continue;
+            }
+            filtered_pg_vec.push_back(deconvoluted_spectrum_[i]);
+        }
+        deconvoluted_spectrum_.swap(filtered_pg_vec);
+        std::vector<PeakGroup>().swap(filtered_pg_vec);
+        filtered_pg_vec.reserve(deconvoluted_spectrum_.size());
 
         for (Size i = 0; i < deconvoluted_spectrum_.size(); i++) {
             bool select = true;
@@ -1687,14 +1697,21 @@ namespace OpenMS {
                 double off = Constants::ISOTOPE_MASSDIFF_55K_U * l;
                 for (; j < deconvoluted_spectrum_.size(); j++) {
                     auto &pgo = (deconvoluted_spectrum_)[j];
+
                     if (l != 0 && pgo.getMonoMass() - pg.getMonoMass() < off - mass_tolerance) {
                         continue;
                     }
 
-                    if (!select || pgo.getMonoMass() - pg.getMonoMass() > off + mass_tolerance) {
+                    if (pgo.getMonoMass() - pg.getMonoMass() > off + mass_tolerance) {
                         break;
                     }
                     select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
+                    if (!select) {
+                        break;
+                    }
+                }
+                if (!select) {
+                    break;
                 }
             }
 
@@ -1712,10 +1729,13 @@ namespace OpenMS {
                         continue;
                     }
 
-                    if (!select || pg.getMonoMass() - pgo.getMonoMass() > off + mass_tolerance) {
+                    if (pg.getMonoMass() - pgo.getMonoMass() > off + mass_tolerance) {
                         break;
                     }
                     select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
+                    if (!select) {
+                        break;
+                    }
                 }
             }
             if (!select) {

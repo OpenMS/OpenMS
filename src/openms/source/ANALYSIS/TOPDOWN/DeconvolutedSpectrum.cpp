@@ -312,15 +312,23 @@ namespace OpenMS {
             if (size >= 500) {
                 break;
             }
-
-            size++;
-            fs << std::fixed << std::setprecision(2);
-            fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t"
-               << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge())
-               //  << "\t" << log10(pg.precursorSNR+1e-10) << "\t" << log10(pg.precursorTotalSNR+1e-10)
-               //  << "\t" << log10(pg.maxSNR + 1e-10) << "\t" << log10(pg.total_snr_ + 1e-10)
-               << "\n";
-            fs << std::setprecision(-1);
+            std::set<int> charges;
+            for (auto &peaks : pg) {
+                charges.insert(peaks.abs_charge);
+            }
+            for (int charge : charges) {
+                size++;
+                fs << std::fixed << std::setprecision(2);
+                fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getChargeIntensity(charge) << "\t"
+                   << (pg.isPositive() ? charge : -charge)
+                   //  << "\t" << log10(pg.precursorSNR+1e-10) << "\t" << log10(pg.precursorTotalSNR+1e-10)
+                   //  << "\t" << log10(pg.maxSNR + 1e-10) << "\t" << log10(pg.total_snr_ + 1e-10)
+                   << "\n";
+                fs << std::setprecision(-1);
+                if (size >= 500) {
+                    break;
+                }
+            }
         }
 
         fs << "END IONS\n\n";

@@ -260,7 +260,7 @@ namespace OpenMS
     void scoreAndFilterPeakGroups_();
 
     /// filter out overlapping masses
-    void removeOverlappingPeakGroups_(const double tol);
+    void removeOverlappingPeakGroups_(const double tol, const int iso_length = 1);
 
     void removeOverlappingPeakGroupsWithNominalMass_();
 

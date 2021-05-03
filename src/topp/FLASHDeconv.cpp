@@ -46,7 +46,7 @@
 using namespace OpenMS;
 using namespace std;
 
-//#define DEBUG_EXTRA_PARAMTER
+#define DEBUG_EXTRA_PARAMTER
 
 //-------------------------------------------------------------
 // Doxygen docu
