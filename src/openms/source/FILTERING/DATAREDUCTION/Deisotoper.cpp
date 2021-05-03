@@ -39,6 +39,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 
 namespace OpenMS
 {
@@ -76,22 +78,14 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   { 
     Size max_num_peaks = used_for_open_search ? 1000 : 5000;
 
-    spec.sortByIntensity();
-    if (spec.size() > max_num_peaks || spec[0].getIntensity() == 0.0)
-    {
-      // establish intensity that is not accepted anymore
-      Peak1D::IntensityType unacceptable = (spec.size() > max_num_peaks) ? spec[spec.size() - max_num_peaks - 1].getIntensity() : 0;
+    // remove 0 intensity peaks
+    ThresholdMower threshold_mower_filter;
+    threshold_mower_filter.filterPeakSpectrum(spec);
 
-      std::vector<Size> idx;
-      idx.reserve(max_num_peaks); // prevent foreseeable reallocations
-      
-      for (Size spec_idx = spec.size() - 1; spec[spec_idx].getIntensity() > unacceptable; --spec_idx)
-      {
-        idx.push_back(spec_idx);
-      }
-
-      spec.select(idx);
-    }
+    // only keep max_num_peaks highest peaks
+    NLargest nlargest_filter = NLargest(max_num_peaks);
+    nlargest_filter.filterPeakSpectrum(spec);
+    
     spec.sortByPosition();
   }
 
@@ -145,7 +139,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
     if (features[current_peak] != -1) continue;
 
     // Monoisotopic peaks with intensity 0.0 interfere with averagine check when normalizing the spectrum peaks height
-    if (use_averagine_model && old_spectrum[current_peak].getIntensity() == 0.0) continue;
+    if (use_averagine_model && !rem_low_intensity && old_spectrum[current_peak].getIntensity() == 0.0) continue;
 
     const double current_mz = old_spectrum[current_peak].getMZ();
     if (add_up_intensity)
