@@ -199,7 +199,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    // Additional peaks that only fit m/z - wise should not disturb cluster formation
    spec.back().setIntensity(2); // intensity is a lot too high to fit correct distribution
    theo = spec;
-   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true);
+   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, false); // do not remove low intensities
    TEST_EQUAL(theo.size(), 3);
    TEST_REAL_SIMILAR(theo.back().getMZ(), add_mz); // last peak is still there
    
@@ -228,8 +228,8 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    spec.push_back(peak2);
    spec.sortByPosition();
    theo = spec;
-   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true);
-   TEST_EQUAL(theo.size(), 6); // two spectra, one before, one after one spectrum, two unassignable peaks
+   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, false); // do not remove low intensities
+   TEST_EQUAL(theo.size(), 6); // two spectra, one peak before, one after one spectrum, and two unassignable peaks
 
    // keep only deisotoped
    theo = spec;
