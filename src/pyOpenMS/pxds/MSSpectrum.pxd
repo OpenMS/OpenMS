@@ -90,10 +90,10 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         bool isSorted() nogil except + #wrap-doc:Returns true if the spectrum is sorte by m/z
 
-        int findNearest(double) nogil except + #wrap-doc:Returns the index of the closest peak in m/z
-        int findNearest(double, double) nogil except + #wrap-doc:Returns the index of the closest peak in the provided +/- m/z tolerance window (-1 if none match)
-        int findNearest(double, double, double) nogil except + #wrap-doc:Returns the index of the closest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)
-        int findHighestInWindow(double, double, double) nogil except + #wrap-doc:Returns the index of the highest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)
+        int findNearest(double mz) nogil except + #wrap-doc:Returns the index of the closest peak in m/z
+        int findNearest(double mz, double tolerance) nogil except + #wrap-doc:Returns the index of the closest peak in the provided +/- m/z tolerance window (-1 if none match)
+        int findNearest(double mz, double tolerance_left, double tolerance_right) nogil except + #wrap-doc:Returns the index of the closest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)
+        int findHighestInWindow(double mz, double tolerance_left, double tolerance_right) nogil except + #wrap-doc:Returns the index of the highest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)
 
         MSSpectrum select(libcpp_vector[ size_t ] & indices) nogil except + #wrap-doc:Subset the spectrum by indices. Also applies to associated data arrays if present.
 
