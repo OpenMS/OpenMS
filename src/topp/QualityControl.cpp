@@ -268,7 +268,7 @@ protected:
     }
     */
 
-    MQEvidence test("/buffer/ag_bsc/pmsb_2021/musch/test.txt");
+    MQEvidence test("/buffer/ag_bsc/pmsb_2021/musch/mq_out");
 
     for (Size i = 0; i < number_exps; ++i)
     {

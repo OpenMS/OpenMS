@@ -45,13 +45,12 @@ using namespace OpenMS;
 class OPENMS_DLLAPI MQEvidence{
 private:
     std::fstream file_;
-    std::string filename_;
     int id;
 public:
-    explicit MQEvidence(const String &_file);
+    explicit MQEvidence(const std::string & path);
     ~MQEvidence();
-    //std::fstream getFile() const;
+    bool isValid();
     void export_header();
-    void exportRowFromFeature(const Feature &f/*, const ConsensusFeature& c */);
+    bool exportRowFromFeature(const Feature &f/*, const ConsensusFeature& c */);
     void exportFeatureMapTotxt(const FeatureMap & feature_map/*, const ConsensusMap& cmap*/);
 };
