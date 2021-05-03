@@ -202,12 +202,16 @@ namespace OpenMS
 
         /**
          @brief Reads a protein entry from the current file position and returns the ID and sequence
+         @return Return true if the protein entry was read and saved successfully, false otherwise
          */
-        bool readEntry_(std::string& id, std::string& seq);
+        bool readEntry_(std::string& id, std::string& description, std::string& seq);
         std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()
         std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
-        Size entries_read_; ///< some internal book-keeping during reading
+        Size entries_read_{0}; ///< some internal book-keeping during reading
         std::streampos fileSize_{};///< total number of characters of filestream
+        std::string seq_;///< sequence of currently read protein
+        std::string id_;///< identifier of currently read protein
+        std::string description_;///< description of currently read protein
     };
 
 } // namespace OpenMS
