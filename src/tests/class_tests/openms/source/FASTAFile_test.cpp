@@ -259,7 +259,7 @@ START_SECTION(test_white_spaces)
                 file.readStart(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"));
 
 
-                for (int i=0; i<5; i++){
+                for (int i=0; i<4; i++){
                 file.readNext(temp_entry);
                 data1.push_back(std::make_pair(file.position(), temp_entry));
                 }
@@ -271,17 +271,12 @@ START_SECTION(test_white_spaces)
 
                 ABORT_IF(data1.size() != 4 || data2.size() != 3 );
 
-                for(int i=1; i<=data1.size(); i++) {
-                    TEST_EQUAL(data1[i].second.identifier == data2[i - 1].second.identifier, true);
-                    TEST_EQUAL(data1[i].second.description == data2[i - 1].second.description, true);
-                    TEST_EQUAL(data1[i].second.sequence == data2[i - 1].second.sequence, true);
-                    TEST_EQUAL(data2[i].first == data2[i - 1].first, true);
+                for(Size i=1; i<data1.size(); i++) {
+                    TEST_EQUAL(data1[i].second.identifier, data2[i-1].second.identifier);
+                    TEST_EQUAL(data1[i].second.description, data2[i-1].second.description);
+                    TEST_EQUAL(data1[i].second.sequence, data2[i-1].second.sequence);
+                    TEST_EQUAL(data1[i].first, data2[i-1].first);
                 }
-                //Brauchen wir die konkrete Stringvergleiche auch?
-
-                // die dritte Proteinsequenz in FASTAFile_test.fasta
-                //TEST_EQUAL(data[5].second.sequence == string("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFYLKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGDAGEGEN"), true);
-
 
         END_SECTION
 
