@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Nico Pfeifer, Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow, Tinatin Kasradze, Nora Wild $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -60,34 +60,36 @@ namespace OpenMS
         bool description_exists = true;
 
         if (sb->sbumpc() != '>') return false; //was in wrong position for reading ID
-        else
+        while(keep_reading)// reading the ID
         {
-            while(keep_reading)// reading the ID
+            int c = sb->sbumpc();// get and advance to next char
+            switch (c)
             {
-                int c = sb->sbumpc();// get and advance to next char
-                switch (c)
-                {
-                    case ' ':
-                        if (!id.empty())
-                        {
-                            keep_reading = false; //ID finished
-                        }
-                        break;
-                    case '\n': //ID finished and no description available
-                        keep_reading = false;
-                        description_exists = false;
-                        break;
-                    case '\r':
-                        break;
-                    case '\t':
-                        break;
-                    case std::streambuf::traits_type::eof():
-                        infile_.setstate(std::ios::eofbit);
-                        return false;
-                    default:
-                        id += (char)c;
-                }
+                case ' ':
+                    if (!id.empty())
+                    {
+                        keep_reading = false; //ID finished
+                    }
+                    break;
+                case '\t':
+                    if (!id.empty())
+                    {
+                        keep_reading = false; //ID finished
+                    }
+                    break;
+                case '\n': //ID finished and no description available
+                    keep_reading = false;
+                    description_exists = false;
+                    break;
+                case '\r':
+                    break;
+                case std::streambuf::traits_type::eof():
+                    infile_.setstate(std::ios::eofbit);
+                    return false;
+                default:
+                    id += (char)c;
             }
+        }
             if (description_exists) keep_reading = true;
             while(keep_reading)// reading the description
             {
@@ -108,8 +110,7 @@ namespace OpenMS
                         description += (char)c;
                 }
             }
-        }
-        if (id.empty() && description.empty()) return false;
+        if (id.empty()) return false;
         keep_reading = true;
         while(keep_reading)//reading the sequence
         {
