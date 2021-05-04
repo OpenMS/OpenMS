@@ -295,6 +295,13 @@ protected:
     const ParamValue& getValue(const std::string& key) const;
 
     /**
+      @brief Returns the type of a parameter.
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    */
+    ParamValue::ValueType getValueType(const std::string& key) const;
+
+    /**
       @brief Returns the whole parameter entry.
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
@@ -308,6 +315,14 @@ protected:
       @return True if the parameter exists, false otherwise.
     */
     bool exists(const std::string& key) const;
+
+    /**
+      @brief Checks whether a section is present.
+
+      @param key The key of the section to be searched for. May or may not contain ":" suffix.
+      @return True if the section exists, false otherwise.
+     */
+    bool hasSection(const std::string& key) const;
 
     /**
       @brief Find leaf node by name (if it exists).

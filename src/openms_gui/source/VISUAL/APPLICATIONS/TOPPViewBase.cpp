@@ -51,7 +51,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>                                     l
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -104,11 +104,8 @@
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QSplashScreen>
-#include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QToolTip>
@@ -118,7 +115,6 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <algorithm>
 #include <utility>
 
 using namespace std;
@@ -130,16 +126,16 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
-
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
                                                   FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
                                                   FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(QWidget* parent) :
+  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
+    scan_mode_(scan_mode),
     ws_(this),
     tab_bar_(this),
     recent_files_(),
@@ -1572,6 +1568,8 @@ namespace OpenMS
     // compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
 
+    bool tool_params_added = false;
+
     if (filename == "") { filename = default_ini_file; }
 
     // load preferences, if file exists
@@ -1587,14 +1585,13 @@ namespace OpenMS
       {
         error = true;
       }
-
       //apply preferences if they are of the current TOPPView version
       if (!error && tmp.exists("preferences:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
         {
-          setParameters(tmp);
+          setParameters(tmp.copy("preferences:"));
         }
         catch (Exception::InvalidParameter& /*e*/)
         {
@@ -1605,13 +1602,18 @@ namespace OpenMS
       {
         error = true;
       }
+      // Load tool/util params
+      if (!error && scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
+      {
+        param_.insert("tool_params:", tmp.copy("tool_params:", true));
+        tool_params_added = true;
+      }
 
       // set parameters to defaults when something is fishy with the parameters file
       if (error)
       {
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
-
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
       }
     }
@@ -1619,6 +1621,12 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
+    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
+    if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      tool_scanner_.loadParams();
+    }
+
     param_.setValue("PreferencesFile", filename);
 
     // set the recent files
@@ -1633,15 +1641,32 @@ namespace OpenMS
 
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
-
-    // save only the subsection that begins with "preferences:"
+    // Make sure TOPP tool/util params have been inserted
+    if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      addToolParamsToIni();
+    }
+    // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
     {
-      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), param_.copy("preferences:"));
+      Param p;
+      p.insert("preferences:", param_.copy("preferences:", true));
+      p.insert("tool_params:", param_.copy("tool_params:", true));
+      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), p);
     }
     catch (Exception::UnableToCreateFile& /*e*/)
     {
       cerr << "Unable to create INI File: '" << string(param_.getValue("PreferencesFile")) << "'" << endl;
+    }
+  }
+
+  void TOPPViewBase::addToolParamsToIni()
+  {
+    tool_scanner_.waitForParams();
+    param_.addSection("tool_params", "");
+    for (const auto& pair : tool_scanner_.getToolParams())
+    {
+      param_.insert("tool_params:", pair.second);
     }
   }
 
@@ -1698,7 +1723,11 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
+    if (!param_.hasSection("tool_params:"))
+    {
+      addToolParamsToIni();
+    }
+    ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {

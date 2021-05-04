@@ -207,9 +207,12 @@ namespace OpenMS
       p.setValue("preferences:idview:add_abundant_immonium_ions", fromCheckState(ai_ions[0]->checkState()), "Show abundant immonium ions");
 
       // if setParam() was not called before, param_ is empty and p is the only thing we have...
-      if (param_.empty()) param_ = p;
+      if (param_.empty()) 
+      {
+        param_ = p;
+      }
       // update with new values from 'p' to avoid loosing additional parameters and the existing descriptions already present in param_
-      else  if (!param_.update(p, true, true, true, true, OpenMS_Log_warn))
+      else if (!param_.update(p, true, true, true, true, OpenMS_Log_warn))
       { // fails if parameter types are incompatible, e.g. param_.getValue("checkbox") is STRING, but p.setValue("checkBox", 1), i.e. Int was stored.
         // You should see 'Parameter 'preferences:use_cached_ms2' has changed value type!' or similar in the console
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Storing parameters failed. This is a bug! Please report it!");
