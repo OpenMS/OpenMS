@@ -57,7 +57,7 @@ namespace OpenMS
   {
 
     BaseException::BaseException() noexcept :
-      std::runtime_error("unspecified error"),
+      std::runtime_error("unknown error"),
       file_("?"),
       line_(-1),
       function_("?"),
