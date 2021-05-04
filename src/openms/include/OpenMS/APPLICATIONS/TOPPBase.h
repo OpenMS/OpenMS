@@ -91,7 +91,7 @@ public:
       UnregisteredParameter(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "UnregisteredParameter", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -103,7 +103,7 @@ public:
       WrongParameterType(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "WrongParameterType", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -115,7 +115,7 @@ public:
       RequiredParameterNotGiven(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "RequiredParameterNotGiven", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
