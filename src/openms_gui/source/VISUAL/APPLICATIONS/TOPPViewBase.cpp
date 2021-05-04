@@ -2136,65 +2136,83 @@ namespace OpenMS
     updateMenu();
   }
 
+  /**
+    @brief Split a (TimsTOF) ion mobility frame (i.e. a spectrum concatenated from multiple spectra with different IM values) into separate spectra
+   
+    The input @p im_frame must have a floatDataArray where IM values are annotated. If not, an exception is thrown.
+
+    To get some coarser binning, choose a smaller @p number_of_bins. The default creates a new bin (=spectrum in the output) for each distinct ion mobility value.
+      
+    @param im_frame Concatenated spectrum representing a frame
+    @param number_of_bins In how many bins should ion mobility values be sliced? Default(-1) assigns all peaks with identical ion-mobility values to a separate spectrum.
+    @return IM frame split into multiple bins (= 1 spectrum per bin)
+
+    @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
+  */
+  MSExperiment splitByIonMobility(MSSpectrum& im_frame, UInt number_of_bins = -1)
+  {          
+    MSExperiment out;
+    // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
+    // can throw if IM float data array is missing
+    auto& im_data = im_frame.getIMData(); 
+    if (im_data.getName().find("1002815") != std::string::npos)
+    {
+      out.setIonMobilityUnit(MSExperiment::IMUnit::ONEKZERO);
+    }
+    else
+    {
+      out.setIonMobilityUnit(MSExperiment::IMUnit::MILLISEC);
+    }
+
+    if (im_data.empty())
+    {
+      return out;
+    }
+
+    // check if data is sorted by IM... if not, sort
+    if (!std::is_sorted(im_data.begin(), im_data.end()))
+    {
+      im_frame.sort([&im_data](const Size i1, const Size i2) {
+        return im_data[i1] < im_data[i2];
+      });
+    }
+
+    if (number_of_bins == -1)
+    { //
+
+    }
+    else
+    {
+      auto [min_IM, max_IM] = std::minmax_element(im_data.begin(), im_data.end());
+    }
+
+    // keep RT identical for all scans. Since this is how it should be...
+
+
+
+
+
+    return out;
+  }
+
   void TOPPViewBase::showCurrentPeaksAsIonMobility()
   {
-    double IM_BINNING = 1e5;
-
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
 
     // Get current spectrum
     auto spidx = layer.getCurrentSpectrumIndex();
-    MSSpectrum tmps = layer.getCurrentSpectrum();
-
-    if (!tmps.containsIMData())
-    {
-      std::cout << "Cannot display ion mobility data, no float array with the correct name 'Ion Mobility' available." <<
-        " Number of float arrays: " << tmps.getFloatDataArrays().size() << std::endl;
-      return;
-    }
-
-    // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
-    std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
-    auto im_arr = tmps.getFloatDataArrays()[0]; // the first array should be the IM array (see containsIMData)
-    for (Size k = 0;  k < tmps.size(); k++)
-    {
-      double im = im_arr[ k ];
-      if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
-      {
-        boost::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
-        news->setRT(im);
-        news->setMSLevel(1);
-        im_map[ int(im*IM_BINNING) ] = news;
-      }
-      im_map[ int(im*IM_BINNING) ]->push_back( tmps[k] );
-    }
-
-    // Add spectra into a MSExperiment, sort and prepare it for display
-    ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
-    for (const auto& s : im_map)
-    {
-      tmpe->addSpectrum( *(s.second) );
-    }
-    tmpe->sortSpectra();
-    tmpe->updateRanges();
-    tmpe->setMetaValue("is_ion_mobility", "true");
-    tmpe->setMetaValue("ion_mobility_unit", "ms");
+    
+    ExperimentSharedPtrType exp(new MSExperiment(splitByIonMobility(layer.getCurrentSpectrum())));
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
-    w->xAxis()->setLegend(PlotWidget::IM_MS_AXIS_TITLE);
-
-    if (im_arr.getName().find("1002815") != std::string::npos)
-    {
-      w->xAxis()->setLegend(PlotWidget::IM_ONEKZERO_AXIS_TITLE);
-      tmpe->setMetaValue("ion_mobility_unit", "1/K0");
-    }
+    w->xAxis()->setLegend("Ion Mobility [" + exp->getIonMobilityUnitAsString() + "]");
 
     String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
