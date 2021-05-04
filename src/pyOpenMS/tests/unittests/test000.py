@@ -224,6 +224,16 @@ def testAASequence():
     # has selenocysteine
     assert seq.getResidue(1) is not None
     assert seq.size() == 16
+
+    # test exception forwarding from C++ to python
+    # classes derived from std::runtime_exception can be caught in python
+    try:
+        seq.getResidue(1000) # does not exist
+    except RuntimeError:
+        print("Exception successfully triggered.")
+    else:
+        print("Error: Exception not triggered.")
+        assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
@@ -5431,6 +5441,3 @@ def testString():
     #m = ef.getElementalComposition()
     #assert m["C"] == 2
     #assert m["H"] == 5
-
-
- 

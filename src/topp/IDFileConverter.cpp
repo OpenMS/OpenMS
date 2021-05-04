@@ -322,7 +322,7 @@ protected:
           }
           catch (Exception::ConversionError& e)
           {
-            writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+            writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
@@ -368,7 +368,7 @@ protected:
               }
               catch (Exception::ConversionError& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
@@ -390,7 +390,7 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLog_(pe.getMessage() + String("(file: ") + *in_files_it + ")");
+          writeLog_(pe.what() + String("(file: ") + *in_files_it + ")");
           throw;
         }
         catch (...)
