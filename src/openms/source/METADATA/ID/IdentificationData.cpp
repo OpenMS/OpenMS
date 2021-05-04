@@ -59,7 +59,7 @@ namespace OpenMS
   {
     for (const auto& step : steps_and_scores)
     {
-      if ((step.processing_step_opt != boost::none) &&
+      if ((step.processing_step_opt != std::nullopt) &&
           (!isValidReference_(*step.processing_step_opt, processing_steps_)))
       {
         String msg = "invalid reference to a data processing step - register that first";

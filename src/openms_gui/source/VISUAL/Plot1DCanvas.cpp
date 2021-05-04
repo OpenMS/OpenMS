@@ -73,7 +73,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 
 #include <iostream>
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 using namespace std;
 
@@ -1348,7 +1348,7 @@ namespace OpenMS
     }
     lines.push_back(text.c_str() + QString::number(mz, 'f', precision) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
 
-    if (boost::math::isinf(it) || boost::math::isnan(it))
+    if (std::isinf(it) || std::isnan(it))
     {
       lines.push_back("Int ratio: n/a");
     }

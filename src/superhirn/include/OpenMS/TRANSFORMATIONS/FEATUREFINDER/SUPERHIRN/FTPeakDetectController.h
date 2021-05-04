@@ -81,7 +81,7 @@ private:
 
 public:
 
-    typedef std::pair<double, boost::shared_ptr<RawData> > Map;
+    typedef std::pair<double, std::shared_ptr<RawData> > Map;
     typedef std::vector<Map> Vec;
 
 //  static bool CREATE_FEATURE_ELUTION_PROFILES;

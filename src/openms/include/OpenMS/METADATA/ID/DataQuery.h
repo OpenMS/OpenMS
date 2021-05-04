@@ -36,7 +36,7 @@
 
 #include <OpenMS/METADATA/ID/MetaData.h>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 namespace OpenMS
 {
@@ -50,13 +50,13 @@ namespace OpenMS
       String data_id;
 
       // @TODO: make this non-optional (i.e. required)?
-      boost::optional<InputFileRef> input_file_opt;
+      std::optional<InputFileRef> input_file_opt;
 
       double rt, mz; // position
 
       explicit DataQuery(
         const String& data_id,
-        boost::optional<InputFileRef> input_file_opt = boost::none,
+        std::optional<InputFileRef> input_file_opt = std::nullopt,
         double rt = std::numeric_limits<double>::quiet_NaN(),
         double mz = std::numeric_limits<double>::quiet_NaN()):
         data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)

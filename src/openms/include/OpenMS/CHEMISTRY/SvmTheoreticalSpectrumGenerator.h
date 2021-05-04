@@ -148,10 +148,10 @@ public:
     struct SvmModelParameterSet
     {
       //pointers to the svm classification models (one per ion_type)
-      std::vector<boost::shared_ptr<SVMWrapper> > class_models;
+      std::vector<std::shared_ptr<SVMWrapper> > class_models;
 
       //pointers to the svm regression models (one per ion_type)
-      std::vector<boost::shared_ptr<SVMWrapper> > reg_models;
+      std::vector<std::shared_ptr<SVMWrapper> > reg_models;
 
       //The intensity for each ion type for the SVC mode
       std::map<Residue::ResidueType, double> static_intensities;

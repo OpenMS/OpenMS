@@ -143,7 +143,7 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   transition_group_map["group1"] = &transition_group;
 
   // Create a mock spectrum fitting to the transition group
-  boost::shared_ptr<PeakMap > exp(new PeakMap);
+  std::shared_ptr<PeakMap > exp(new PeakMap);
   {
     MSSpectrum spec;
     Peak1D p;

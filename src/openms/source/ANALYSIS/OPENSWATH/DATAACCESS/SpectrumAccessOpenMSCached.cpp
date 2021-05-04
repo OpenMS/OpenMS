@@ -55,9 +55,9 @@ namespace OpenMS
     // this only copies the indices and meta-data
   }
 
-  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSCached::lightClone() const
+  std::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSCached::lightClone() const
   {
-    return boost::shared_ptr<SpectrumAccessOpenMSCached>(new SpectrumAccessOpenMSCached(*this));
+    return std::shared_ptr<SpectrumAccessOpenMSCached>(new SpectrumAccessOpenMSCached(*this));
   }
 
   OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id)

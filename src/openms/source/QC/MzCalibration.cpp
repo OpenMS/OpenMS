@@ -63,7 +63,7 @@ namespace OpenMS
     {
       no_mzml_ = false;
       // check for Calibration
-      auto is_not_elem = [](const boost::shared_ptr<const OpenMS::DataProcessing> &dp)
+      auto is_not_elem = [](const std::shared_ptr<const OpenMS::DataProcessing> &dp)
       {
         return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0);
       };

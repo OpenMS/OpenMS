@@ -46,10 +46,10 @@ namespace OpenMS
         @brief Helper function to add constness to a vector of shared pointers
     */
     template <class T>
-    const std::vector<boost::shared_ptr<const T> >&
-    constifyPointerVector(const std::vector<boost::shared_ptr<T> >& vec) 
+    const std::vector<std::shared_ptr<const T> >&
+    constifyPointerVector(const std::vector<std::shared_ptr<T> >& vec) 
     {
-      return reinterpret_cast<const std::vector<boost::shared_ptr<const T> >&>(vec);
+      return reinterpret_cast<const std::vector<std::shared_ptr<const T> >&>(vec);
     }
 
 

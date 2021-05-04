@@ -113,7 +113,7 @@
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QWhatsThis>
 
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 #include <utility>
 
@@ -1094,7 +1094,7 @@ namespace OpenMS
     {
       mz_label_->setText("m/z: ");
     }
-    else if (boost::math::isinf(mz) || boost::math::isnan(mz))
+    else if (std::isinf(mz) || std::isnan(mz))
     {
       mz_label_->setText("m/z: n/a");
     }
@@ -1107,7 +1107,7 @@ namespace OpenMS
     {
       rt_label_->setText("RT: ");
     }
-    else if (boost::math::isinf(rt) || boost::math::isnan(rt))
+    else if (std::isinf(rt) || std::isnan(rt))
     {
       rt_label_->setText("RT: n/a");
     }
@@ -2183,14 +2183,14 @@ namespace OpenMS
     }
 
     // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
-    std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
+    std::map< int, std::shared_ptr<MSSpectrum> > im_map;
     auto im_arr = tmps.getFloatDataArrays()[0]; // the first array should be the IM array (see containsIMData)
     for (Size k = 0;  k < tmps.size(); k++)
     {
       double im = im_arr[ k ];
       if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
       {
-        boost::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
+        std::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
         news->setRT(im);
         news->setMSLevel(1);
         im_map[ int(im*IM_BINNING) ] = news;

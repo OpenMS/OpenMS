@@ -42,7 +42,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 
-#include <boost/optional.hpp>
+#include <optional>
 
 #include <map>
 #include <vector>
@@ -1084,7 +1084,7 @@ public:
 
     static std::map<String, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
 
-    static boost::optional<MzTabPSMSectionRow> PSMSectionRowFromPeptideID_(
+    static std::optional<MzTabPSMSectionRow> PSMSectionRowFromPeptideID_(
       PeptideIdentification const& pid,
       std::vector<ProteinIdentification const*> const& prot_id,
       std::map<String, size_t>& idrun_2_run_index,

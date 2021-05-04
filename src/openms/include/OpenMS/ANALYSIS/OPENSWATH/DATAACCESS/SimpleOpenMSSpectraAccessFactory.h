@@ -51,11 +51,11 @@ namespace OpenMS
   public:
 
     /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
-    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::PeakMap> exp);
+    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(std::shared_ptr<OpenMS::PeakMap> exp);
 
   private:
 
-    static bool isExperimentCached(boost::shared_ptr<OpenMS::PeakMap> exp);
+    static bool isExperimentCached(std::shared_ptr<OpenMS::PeakMap> exp);
   };
 }
 

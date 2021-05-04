@@ -55,7 +55,7 @@ namespace OpenMS
   class SUPERHIRN_DLLAPI FeatureFinderAlgorithmSHCtrl
   {
 public:
-    typedef std::pair<double, boost::shared_ptr<RawData> > MyMap;
+    typedef std::pair<double, std::shared_ptr<RawData> > MyMap;
     typedef std::vector<MyMap> Vec;
 
 

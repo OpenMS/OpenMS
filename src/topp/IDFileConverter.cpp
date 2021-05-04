@@ -55,7 +55,7 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+#include <cmath> // for "isnan"
 
 #ifdef _OPENMP
 #include <omp.h>

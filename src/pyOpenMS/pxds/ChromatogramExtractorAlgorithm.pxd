@@ -8,7 +8,7 @@ from SpectrumAccessQuadMZTransforming cimport *
 from ISpectrumAccess cimport *
 from ProgressLogger cimport *
 
-# typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
+# typedef std::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" namespace "OpenMS":
 

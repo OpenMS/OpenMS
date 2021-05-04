@@ -250,7 +250,7 @@ namespace Internal
     if (addCacheMetaValue)
     {
       // set dataprocessing on each spectrum/chromatogram
-      boost::shared_ptr< DataProcessing > dp = boost::shared_ptr< DataProcessing >(new DataProcessing);
+      std::shared_ptr< DataProcessing > dp = std::shared_ptr< DataProcessing >(new DataProcessing);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::FORMAT_CONVERSION);
       dp->setProcessingActions(actions);
@@ -293,7 +293,7 @@ namespace Internal
     if (addCacheMetaValue)
     {
       // set dataprocessing on each spectrum/chromatogram
-      boost::shared_ptr< DataProcessing > dp = boost::shared_ptr< DataProcessing >(new DataProcessing);
+      std::shared_ptr< DataProcessing > dp = std::shared_ptr< DataProcessing >(new DataProcessing);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::FORMAT_CONVERSION);
       dp->setProcessingActions(actions);

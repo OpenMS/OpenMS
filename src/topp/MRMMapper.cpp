@@ -165,7 +165,7 @@ protected:
 
     // add all data processing information to all the chromatograms
     DataProcessing dp_ = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);
-    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing(dp_));
+    DataProcessingPtr dp = std::shared_ptr<DataProcessing>(new DataProcessing(dp_));
     std::vector<MSChromatogram > chromatograms = output.getChromatograms();
     for (Size i=0; i<chromatograms.size(); ++i)
     {

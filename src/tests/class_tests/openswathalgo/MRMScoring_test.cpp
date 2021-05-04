@@ -88,18 +88,18 @@ void fill_mock_objects(MockMRMFeature * imrmfeature, std::vector<std::string>& n
   };
   std::vector<double> ms1intensity (arr3, arr3 + sizeof(arr3) / sizeof(arr3[0]) );
 
-  boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> ms1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f1_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f2_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> ms1_ptr = std::shared_ptr<MockFeature>(new MockFeature());
   f1_ptr->m_intensity_vec = intensity1;
   f2_ptr->m_intensity_vec = intensity2;
   ms1_ptr->m_intensity_vec = ms1intensity;
-  std::map<std::string, boost::shared_ptr<MockFeature> > features;
+  std::map<std::string, std::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;
   imrmfeature->m_features = features; // add features
 
-  std::map<std::string, boost::shared_ptr<MockFeature> > ms1_features;
+  std::map<std::string, std::shared_ptr<MockFeature> > ms1_features;
   ms1_features["ms1trace"] = ms1_ptr;
   imrmfeature->m_precursor_features = ms1_features; // add ms1 feature
 }
@@ -141,11 +141,11 @@ void fill_mock_objects2(MockMRMFeature * imrmfeature, std::vector<std::string>& 
   };
   std::vector<double> ms1intensity3 (arr5, arr5 + sizeof(arr5) / sizeof(arr5[0]) );
 
-  boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> ms1_f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> ms1_f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> ms1_f3_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f1_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f2_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> ms1_f1_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> ms1_f2_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> ms1_f3_ptr = std::shared_ptr<MockFeature>(new MockFeature());
 
   f1_ptr->m_intensity_vec = intensity1;
   f2_ptr->m_intensity_vec = intensity2;
@@ -153,12 +153,12 @@ void fill_mock_objects2(MockMRMFeature * imrmfeature, std::vector<std::string>& 
   ms1_f2_ptr->m_intensity_vec = ms1intensity2;
   ms1_f3_ptr->m_intensity_vec = ms1intensity3;
 
-  std::map<std::string, boost::shared_ptr<MockFeature> > features;
+  std::map<std::string, std::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;
   imrmfeature->m_features = features; // add features
 
-  std::map<std::string, boost::shared_ptr<MockFeature> > ms1_features;
+  std::map<std::string, std::shared_ptr<MockFeature> > ms1_features;
   ms1_features["ms1trace1"] = ms1_f1_ptr;
   ms1_features["ms1trace2"] = ms1_f2_ptr;
   ms1_features["ms1trace3"] = ms1_f3_ptr;
@@ -549,13 +549,13 @@ sum([ abs(a-b) for (a,b) in zip(nsqrtdata1, nsqrtdata2) ])
   MockMRMFeature * imrmfeature = new MockMRMFeature();
 
   // create mrmfeature, add "experimental" intensities
-  boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> f3_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f1_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f2_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f3_ptr = std::shared_ptr<MockFeature>(new MockFeature());
   f1_ptr->m_intensity = (float)782.38073;
   f2_ptr->m_intensity = (float)58.384506;
   f3_ptr->m_intensity = (float)58.384506;
-  std::map<std::string, boost::shared_ptr<MockFeature> > features;
+  std::map<std::string, std::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;
   features["group3"] = f2_ptr;
@@ -599,19 +599,19 @@ BOOST_AUTO_TEST_CASE(test_SN_score)
 {
   MRMScoring mrmscore;
   std::vector<OpenSwath::ISignalToNoisePtr> sn_estimators;
-  boost::shared_ptr<MockSignalToNoise> sn1 = boost::shared_ptr<MockSignalToNoise>(new MockSignalToNoise());
+  std::shared_ptr<MockSignalToNoise> sn1 = std::shared_ptr<MockSignalToNoise>(new MockSignalToNoise());
   sn1->m_sn_value = 500;
-  boost::shared_ptr<MockSignalToNoise> sn2 = boost::shared_ptr<MockSignalToNoise>(new MockSignalToNoise());
+  std::shared_ptr<MockSignalToNoise> sn2 = std::shared_ptr<MockSignalToNoise>(new MockSignalToNoise());
   sn2->m_sn_value = 1500;
   sn_estimators.push_back(sn1);
   sn_estimators.push_back(sn2);
 
   MockMRMFeature imrmfeature;
-  boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f1_ptr = std::shared_ptr<MockFeature>(new MockFeature());
+  std::shared_ptr<MockFeature> f2_ptr = std::shared_ptr<MockFeature>(new MockFeature());
   f1_ptr->m_rt = 1200;
   f2_ptr->m_rt = 1200;
-  std::map<std::string, boost::shared_ptr<MockFeature> > features;
+  std::map<std::string, std::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;
   imrmfeature.m_features = features;

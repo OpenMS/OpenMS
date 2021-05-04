@@ -40,7 +40,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <boost/math/special_functions/fpclassify.hpp>
+#include <cmath>
 
 
 ///////////////////////////
@@ -210,19 +210,19 @@ START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
 
 	tmp.setValue("emg:symmetry", 0.1);
 	em2.setParameters(tmp);
-	ABORT_IF(boost::math::isinf(em2.getIntensity(2.0)))
+	ABORT_IF(std::isinf(em2.getIntensity(2.0)))
 
 	tmp.setValue("emg:symmetry", 0.16);
 	em2.setParameters(tmp);
-	ABORT_IF(boost::math::isinf(em2.getIntensity(2.0)))
+	ABORT_IF(std::isinf(em2.getIntensity(2.0)))
 
 	tmp.setValue("emg:symmetry", 0.17);
 	em2.setParameters(tmp);
-	ABORT_IF(boost::math::isinf(float(!em2.getIntensity(2.0))))
+	ABORT_IF(std::isinf(float(!em2.getIntensity(2.0))))
 
 	tmp.setValue("emg:symmetry", 0.2);
 	em2.setParameters(tmp);
-	ABORT_IF(!boost::math::isinf(em2.getIntensity(2.0)))
+	ABORT_IF(!std::isinf(em2.getIntensity(2.0)))
 
 END_SECTION
 

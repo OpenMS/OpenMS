@@ -173,12 +173,12 @@ public:
     }
 
     /// returns the meta information of this experiment (const access)
-    boost::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const
+    std::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const
     {
-      return boost::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
+      return std::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
     }
 
-    boost::shared_ptr<PeakMap> getMetaData() const
+    std::shared_ptr<PeakMap> getMetaData() const
     {
       return meta_ms_experiment_;
     }
@@ -271,7 +271,7 @@ protected:
     /// The index of the underlying data file
     Internal::IndexedMzMLHandler indexed_mzml_file_;
     /// The meta-data
-    boost::shared_ptr<PeakMap> meta_ms_experiment_;
+    std::shared_ptr<PeakMap> meta_ms_experiment_;
     /// Mapping of chromatogram native ids to offsets
     std::unordered_map< std::string, Size > chromatograms_native_ids_;
     /// Mapping of spectra native ids to offsets

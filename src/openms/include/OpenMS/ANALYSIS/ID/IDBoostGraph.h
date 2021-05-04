@@ -333,7 +333,7 @@ namespace OpenMS
                 Size use_top_psms,
                 bool use_run_info,
                 bool best_psms_annotated,
-                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
+                const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
     IDBoostGraph(ProteinIdentification& proteins,
                 ConsensusMap& cmap,
@@ -341,7 +341,7 @@ namespace OpenMS
                 bool use_run_info,
                 bool use_unassigned_ids,
                 bool best_psms_annotated,
-                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
+                const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
 
     //TODO think about templating to avoid wrapping to std::function

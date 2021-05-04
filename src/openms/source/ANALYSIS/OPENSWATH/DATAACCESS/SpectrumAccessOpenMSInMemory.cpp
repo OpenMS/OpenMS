@@ -75,9 +75,9 @@ namespace OpenMS
     // this only copies the pointers and not the actual data ... 
   }
 
-  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSInMemory::lightClone() const
+  std::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSInMemory::lightClone() const
   {
-    return boost::shared_ptr<SpectrumAccessOpenMSInMemory>(new SpectrumAccessOpenMSInMemory(*this));
+    return std::shared_ptr<SpectrumAccessOpenMSInMemory>(new SpectrumAccessOpenMSInMemory(*this));
   }
 
   OpenSwath::SpectrumPtr SpectrumAccessOpenMSInMemory::getSpectrumById(int id)
