@@ -45,12 +45,14 @@ using namespace OpenMS;
 class OPENMS_DLLAPI MQEvidence{
 private:
     std::fstream file_;
-    int id;
+    int id_;
+    std::map<String,UInt64> protein_id_;
 public:
     explicit MQEvidence(const std::string & p);
     ~MQEvidence();
     bool isValid();
     void export_header();
+    UInt64 protein_group_id(const String &protein);
     bool exportRowFromFeature(const Feature &f);
     void exportFeatureMapTotxt(const FeatureMap & feature_map, const ConsensusMap& cmap, const std::map<UInt64,Size> & fTc);
 };

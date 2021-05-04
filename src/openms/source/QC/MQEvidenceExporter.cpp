@@ -50,21 +50,26 @@ using namespace OpenMS;
 
 MQEvidence::MQEvidence(const std::string &p)
 {
-    if(p == "")
+    if(p.empty())
     {
         return;
     }
-    QString path = QString::fromStdString(p);
-    QDir().mkpath(path);
-
-    string filename = p +"/evidence.txt";
-    file_ = fstream(filename, fstream::out);
-    if(!file_.good())
+    try
     {
-        //TODO: exception
+        QString path = QString::fromStdString(p);
+        QDir().mkpath(path);
+
+        string filename = p +"/evidence.txt";
+
+        file_ = fstream(filename, fstream::out);
+    }
+    catch(...)
+    {
+        OPENMS_LOG_FATAL_ERROR << "path or fstream failed" << std::endl;
+        return;
     }
     export_header();
-    id = 1;
+    id_ = 1;
 }
 
 MQEvidence::~MQEvidence() {
@@ -89,6 +94,7 @@ void MQEvidence::export_header()
     file_ << "Score" << "\t";
     file_ << "Delta score" << "\t";
     file_ << "Protein" << "\t";
+    file_ << "Protein group IDs" << "\t";
     file_ << "Charge" << "\t";
     file_ << "M/Z" << "\t";
     file_ << "Retention Time" << "\t";
@@ -114,6 +120,24 @@ void MQEvidence::export_header()
     file_ << "Raw file" << "\t";
     file_ << "\n";
 }
+
+UInt64 MQEvidence::protein_group_id(const String &protein)
+{
+    auto it = protein_id_.find(protein);
+    if(it == protein_id_.end())
+    {
+        protein_id_.emplace(protein, protein_id_.size()+1);
+        return protein_id_.size();
+    }
+    else
+    {
+        return it -> second;
+    }
+}
+
+
+
+
 
 bool MQEvidence::exportRowFromFeature(const Feature &f)
 {
@@ -148,8 +172,8 @@ bool MQEvidence::exportRowFromFeature(const Feature &f)
         return false;
     }
 
-    file_ << id << "\t"; //TODO: Abfrage is empty zuerst
-    ++id;
+    file_ << id_ << "\t";
+    ++id_;
     file_ << pep_seq.toUnmodifiedString() << "\t"; // Sequence
     file_ << pep_seq.size() << "\t"; // Length
     int oxidation = 0;
@@ -218,6 +242,11 @@ bool MQEvidence::exportRowFromFeature(const Feature &f)
     for (const String &p : accessions) {
         file_ << p << ";"; // Protein
     }
+    file_ << "\t";
+    for (const String &p : accessions) {
+        file_ << protein_group_id(p) << ";"; // Protein group ids
+    }
+
     file_ << "\t";
     file_ << f.getCharge() << "\t"; // Charge
 
