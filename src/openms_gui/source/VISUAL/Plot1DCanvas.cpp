@@ -747,7 +747,7 @@ namespace OpenMS
 
     // clear
     painter->fillRect(0, 0, this->width(), this->height(),
-                      QColor(param_.getValue("background_color").toQString()));
+                      QColor(String(param_.getValue("background_color").toString()).toQString()));
 
     // only fill background if no layer is present
     if (getLayerCount() == 0)
@@ -770,8 +770,8 @@ namespace OpenMS
       const ExperimentType::SpectrumType& spectrum = layer.getCurrentSpectrum();
 
       // get default icon and peak color
-      QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
-      QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
+      QPen icon_pen = QPen(QColor(String(layer.param.getValue("icon_color").toString()).toQString()), 1);
+      QPen pen(QColor(String(layer.param.getValue("peak_color").toString()).toQString()), 1);
       pen.setStyle(peak_penstyle_[i]);
 
       // TODO option for variable pen width
@@ -901,7 +901,7 @@ namespace OpenMS
         if (tmp != spectrum.end())
         {
           PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
-          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.getName().toQString(), QColor(layer.param.getValue("peak_color").toQString()));
+          Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.getName().toQString(), QColor(String(layer.param.getValue("peak_color").toString()).toQString()));
           item.draw(this, *painter);
         }
       }
@@ -998,7 +998,7 @@ namespace OpenMS
       }
       const ExperimentType::PeakType& sel = spec[peak.peak];
 
-      painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
+      painter.setPen(QPen(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()), 2));
 
       updatePercentageFactor_(layer_index);
 
@@ -1049,7 +1049,7 @@ namespace OpenMS
     QVector<qreal> dashes;
     dashes << 5 << 5 << 1 << 5;
     pen.setDashPattern(dashes);
-    pen.setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
+    pen.setColor(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()));
     painter.save();
     painter.setPen(pen);
     painter.drawLine(from, to);
@@ -1060,7 +1060,7 @@ namespace OpenMS
   {
     LayerData& layer = getLayer(layer_index);
     updatePercentageFactor_(layer_index);
-    QColor col{ QColor(layer.param.getValue("annotation_color").toQString()) };
+    QColor col{ QColor(String(layer.param.getValue("annotation_color").toString()).toQString()) };
     // 0: default pen; 1: selected pen
     QPen pen[2] = { col, col.lighter() };
 
@@ -1409,19 +1409,19 @@ namespace OpenMS
     ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
     ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
 
-    peak_color->setColor(QColor(layer.param.getValue("peak_color").toQString()));
-    icon_color->setColor(QColor(layer.param.getValue("icon_color").toQString()));
-    annotation_color->setColor(QColor(layer.param.getValue("annotation_color").toQString()));
-    bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
-    selected_color->setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
+    peak_color->setColor(QColor(String(layer.param.getValue("peak_color").toString()).toQString()));
+    icon_color->setColor(QColor(String(layer.param.getValue("icon_color").toString()).toQString()));
+    annotation_color->setColor(QColor(String(layer.param.getValue("annotation_color").toString()).toQString()));
+    bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
+    selected_color->setColor(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()));
 
     if (dlg.exec())
     {
-      layer.param.setValue("peak_color", peak_color->getColor().name());
-      layer.param.setValue("icon_color", icon_color->getColor().name());
-      layer.param.setValue("annotation_color", annotation_color->getColor().name());
-      param_.setValue("background_color", bg_color->getColor().name());
-      param_.setValue("highlighted_peak_color", selected_color->getColor().name());
+      layer.param.setValue("peak_color", peak_color->getColor().name().toStdString());
+      layer.param.setValue("icon_color", icon_color->getColor().name().toStdString());
+      layer.param.setValue("annotation_color", annotation_color->getColor().name().toStdString());
+      param_.setValue("background_color", bg_color->getColor().name().toStdString());
+      param_.setValue("highlighted_peak_color", selected_color->getColor().name().toStdString());
 
       emit preferencesChange();
     }
@@ -1608,7 +1608,7 @@ namespace OpenMS
         else if (result->text() == "Add peak annotation mz")
         {
           QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
-          addPeakAnnotation(near_peak, label, getCurrentLayer().param.getValue("peak_color").toQString());
+          addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
         }
         else if (result->text() == "Reset alignment")
         {
@@ -1672,7 +1672,7 @@ namespace OpenMS
     QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
     if (ok && !text.isEmpty())
     {
-      addPeakAnnotation(near_peak, text, QColor(getCurrentLayer().param.getValue("peak_color").toQString()));
+      addPeakAnnotation(near_peak, text, QColor(String(getCurrentLayer().param.getValue("peak_color").toString()).toQString()));
     }
   }
 
@@ -1692,7 +1692,7 @@ namespace OpenMS
     const LayerData& layer = getCurrentLayer();
 
     //determine proposed filename
-    String proposed_name = param_.getValue("default_path");
+    String proposed_name = param_.getValue("default_path").toString();
     if (!visible && !layer.filename.empty())
     {
       proposed_name = layer.filename;

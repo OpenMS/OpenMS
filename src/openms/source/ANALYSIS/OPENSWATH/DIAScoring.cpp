@@ -66,9 +66,9 @@ namespace OpenMS
     defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th or ppm.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
     defaults_.setValue("dia_extraction_unit", "Th", "DIA extraction window unit");
-    defaults_.setValidStrings("dia_extraction_unit", ListUtils::create<String>("Th,ppm"));
+    defaults_.setValidStrings("dia_extraction_unit", {"Th","ppm"});
     defaults_.setValue("dia_centroided", "false", "Use centroided DIA data.");
-    defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("dia_centroided", {"true","false"});
     defaults_.setValue("dia_byseries_intensity_min", 300.0, "DIA b/y series minimum intensity to consider.");
     defaults_.setMinFloat("dia_byseries_intensity_min", 0.0);
     defaults_.setValue("dia_byseries_ppm_diff", 10.0, "DIA b/y series minimal difference in ppm to consider.");

@@ -281,13 +281,13 @@ public:
     /// Returns a const reference to the annotations of the current spectrum (1D view)
     const Annotations1DContainer & getCurrentAnnotations() const
     {
-      return annotations_1d[current_spectrum_];
+      return annotations_1d[current_spectrum_idx_];
     }
 
     /// Returns a mutable reference to the annotations of the current spectrum (1D view)
     Annotations1DContainer & getCurrentAnnotations()
     {
-      return annotations_1d[current_spectrum_];
+      return annotations_1d[current_spectrum_idx_];
     }
 
     /// Returns a const reference to the annotations of the current spectrum (1D view)
@@ -320,13 +320,13 @@ public:
     /// Get the index of the current spectrum (1D view)
     Size getCurrentSpectrumIndex() const
     {
-      return current_spectrum_;
+      return current_spectrum_idx_;
     }
 
     /// Set the index of the current spectrum (1D view)
     void setCurrentSpectrumIndex(Size index)
     {
-      current_spectrum_ = index;
+      current_spectrum_idx_ = index;
       updateCache_();
     }
 
@@ -506,7 +506,7 @@ private:
     OSWDataSharedPtrType chrom_annotation_;
 
     /// Index of the current spectrum
-    Size current_spectrum_;
+    Size current_spectrum_idx_;
 
     /// Current cached spectrum
     ExperimentType::SpectrumType cached_spectrum_;

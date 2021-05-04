@@ -49,14 +49,14 @@ namespace OpenMS
     DefaultParamHandler("MSPFile")
   {
     defaults_.setValue("parse_headers", "false", "Flag whether header information should be parsed an stored for each spectrum");
-    vector<String> parse_strings{"true","false"};
+    vector<std::string> parse_strings{"true","false"};
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
     defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first (default for 1:1 correspondence in SpecLibSearcher) or all peak annotation information should be parsed and stored for each peak.");
     defaults_.setValidStrings("parse_firstpeakinfo_only", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
-    defaults_.setValidStrings("instrument", ListUtils::create<String>(",it,qtof,toftof"));
+    defaults_.setValidStrings("instrument", {"","it","qtof","toftof"});
 
     defaultsToParam_();
   }
@@ -90,7 +90,7 @@ namespace OpenMS
     // matches 2+ whitespaces or tabs or returns "   ", "\t", "\r"
     // Note: this is a hack because one of the encountered formats has single whitespaces in quotes.
     // TODO choose a format during construction of the class. If we actually knew how to call and define them.
-    const std::regex ws_rex("\\s{2,}|\\t|\\r");
+    const std::regex ws_rex(R"(\s{2,}|\t|\r)");
 
     exp.reset();
 
@@ -110,9 +110,9 @@ namespace OpenMS
     bool parse_headers(param_.getValue("parse_headers").toBool());
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
     bool parse_firstpeakinfo_only(param_.getValue("parse_firstpeakinfo_only").toBool());
-    String instrument((String)param_.getValue("instrument"));
+    std::string instrument((std::string)param_.getValue("instrument"));
     bool inst_type_correct(true);
-    bool spectrast_format(false);
+    [[maybe_unused]] bool spectrast_format(false); // TODO: implement usage
     Size spectrum_number = 0;
 
     PeakSpectrum spec;

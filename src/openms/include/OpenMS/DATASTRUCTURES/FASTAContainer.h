@@ -343,9 +343,9 @@ class DecoyHelper
 public:
   struct Result
   {
-    bool success; //< did >=40% of proteins have the *same* prefix or suffix
-    String name; //< on success, what was the decoy string?
-    bool is_prefix; //< on success, was it a prefix or suffix
+    bool success; ///< did more than 40% of proteins have the *same* prefix or suffix
+    String name; ///< on success, what was the decoy string?
+    bool is_prefix; ///< on success, was it a prefix or suffix
   };
 
   /**
