@@ -52,12 +52,14 @@ namespace OpenMS
       const auto &tools = ToolHandler::getTOPPToolList();
       const auto &utils = ToolHandler::getUtilList();
       // Launch threads for loading tool/util params.
-      for (auto&[name, description] : tools)
+      for (auto& tool : tools)
       {
+        const std::string name = tool.first;
         param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
       }
-      for (auto&[name, description] : utils)
+      for (auto& util : utils)
       {
+        const std::string name = util.first;
         param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name);
       }
       return true;

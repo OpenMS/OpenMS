@@ -28,105 +28,63 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Eugen Netz $
+// $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
+//
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
+///////////////////////////
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <string>
-#include <cstring>
+using namespace OpenMS;
+using namespace std;
 
-/**
-    @brief General helper macros
+///////////////////////////
 
-    @{
-*/
+START_TEST(FAIMSHelper, "$Id$")
 
-#define STRINGIFY(a) #a
+/////////////////////////////////////////////////////////////
 
-#ifdef _OPENMP
+FAIMSHelper* e_ptr = nullptr;
+FAIMSHelper* e_nullPointer = nullptr;
 
-// Pragma string literals are compiler-specific: 
-// gcc and clang use _Pragma while MSVS uses __pragma
-// the MSVS pragma does not need a string token somehow.
-#ifdef OPENMS_COMPILER_MSVC
-#define OPENMS_THREAD_CRITICAL(name) \
-    __pragma(omp critical (name))
-#else
-#define OPENMS_THREAD_CRITICAL(name) \
-    _Pragma( STRINGIFY( omp critical (name) ) )
-#endif
+START_SECTION((FAIMSHelper()))
+	e_ptr = new FAIMSHelper;
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+END_SECTION
 
-#else
+START_SECTION((~FAIMSHelper()))
+  delete e_ptr;
+END_SECTION
 
-#define OPENMS_THREAD_CRITICAL(name) 
+e_ptr = new FAIMSHelper();
 
-#endif
+START_SECTION((std::set<double> getCompensationVoltages(PeakMap& exp)))
+  delete e_ptr;
+  e_ptr = new FAIMSHelper();
+  MzMLFile IM_file;
+  PeakMap exp;
+  IM_file.load(OPENMS_GET_TEST_DATA_PATH("IM_FAIMS_test.mzML"), exp);
 
-/** @} */ // end of helpers
+  TEST_EQUAL(exp.getSpectra().size(), 19)
 
+  std::set<double> CVs = e_ptr->getCompensationVoltages(exp);
+  
+  TEST_EQUAL(CVs.size(), 3)
+  TEST_EQUAL(CVs.find(-65.0) == CVs.end(), 0)
+  TEST_EQUAL(CVs.find(-55.0) == CVs.end(), 0)
+  TEST_EQUAL(CVs.find(-45.0) == CVs.end(), 0)
 
-/**
-    @defgroup Conditions Condition macros
+END_SECTION
 
-    @brief Macros used for to enforce preconditions and postconditions.
+delete e_ptr;
 
-    These macros are enabled if debug info is enabled and optimization is disabled in configure.
-    Otherwise they are replaced by an empty string, so they won't cost any performance.
-
-    The macros throw Exception::Precondition or Exception::Postcondition respectively if the condition fails.
-
-    @ingroup Concept
-
-    @{
-*/
-
-#ifdef OPENMS_ASSERTIONS
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-#else
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message)
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message)
-
-#endif
-
-/** @} */ // end of Conditions
-
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

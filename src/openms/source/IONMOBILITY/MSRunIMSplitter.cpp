@@ -28,105 +28,53 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Eugen Netz $
+// $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/IONMOBILITY/MSRunIMSplitter.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <map>
 
+namespace OpenMS
+{
+  std::vector<PeakMap> MSRunIMSplitter::splitByFAIMSCV(PeakMap&& exp)
+  {
+    std::vector<PeakMap> split_peakmap;
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Exception.h>
+    // TODO test with any random PeakMap without FAIMS data.
+    // What breaks, how should it break?
+    std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
 
-#include <string>
-#include <cstring>
+    if (CVs.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not FAIMS data!");
+    }
 
-/**
-    @brief General helper macros
+    // create map to easily turn a CV value into a PeakMap index
+    std::map<double, size_t> cv2index;
+    size_t counter(0);
+    for (double cv : CVs)
+    {
+      cv2index[cv] = counter;
+      counter++;
+    }
 
-    @{
-*/
+    // make as many PeakMaps as there are different CVs and fill their Meta Data
+    split_peakmap.resize(CVs.size());
+    for (auto it = split_peakmap.begin(); it != split_peakmap.end(); ++it)
+    {
+      it->getExperimentalSettings() = exp.getExperimentalSettings();
+    }
 
-#define STRINGIFY(a) #a
+    // fill up the PeakMaps by moving spectra from the input PeakMap
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+      split_peakmap[cv2index[it->getDriftTime()]].addSpectrum(std::move(*it));
+    }
 
-#ifdef _OPENMP
+    return split_peakmap;
+  }
 
-// Pragma string literals are compiler-specific: 
-// gcc and clang use _Pragma while MSVS uses __pragma
-// the MSVS pragma does not need a string token somehow.
-#ifdef OPENMS_COMPILER_MSVC
-#define OPENMS_THREAD_CRITICAL(name) \
-    __pragma(omp critical (name))
-#else
-#define OPENMS_THREAD_CRITICAL(name) \
-    _Pragma( STRINGIFY( omp critical (name) ) )
-#endif
-
-#else
-
-#define OPENMS_THREAD_CRITICAL(name) 
-
-#endif
-
-/** @} */ // end of helpers
-
-
-/**
-    @defgroup Conditions Condition macros
-
-    @brief Macros used for to enforce preconditions and postconditions.
-
-    These macros are enabled if debug info is enabled and optimization is disabled in configure.
-    Otherwise they are replaced by an empty string, so they won't cost any performance.
-
-    The macros throw Exception::Precondition or Exception::Postcondition respectively if the condition fails.
-
-    @ingroup Concept
-
-    @{
-*/
-
-#ifdef OPENMS_ASSERTIONS
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-#else
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message)
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message)
-
-#endif
-
-/** @} */ // end of Conditions
-
+}  //end namespace OpenMS

@@ -28,105 +28,79 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Eugen Netz $
+// $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
+//
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+
+///////////////////////////
+
+#include <OpenMS/IONMOBILITY/MSRunIMSplitter.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
+using namespace OpenMS;
+using namespace std;
+
+///////////////////////////
+
+START_TEST(MSRunIMSplitter, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+MSRunIMSplitter* e_ptr = nullptr;
+MSRunIMSplitter* e_nullPointer = nullptr;
+
+START_SECTION((MSRunIMSplitter()))
+	e_ptr = new MSRunIMSplitter;
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+END_SECTION
+
+START_SECTION((~MSRunIMSplitter()))
+	delete e_ptr;
+END_SECTION
+
+e_ptr = new MSRunIMSplitter();
+
+START_SECTION((std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp)))
+	delete e_ptr;
+	e_ptr = new MSRunIMSplitter();
+  MzMLFile IM_file;
+  PeakMap exp;
+  IM_file.load(OPENMS_GET_TEST_DATA_PATH("IM_FAIMS_test.mzML"), exp);
+
+  TEST_EQUAL(exp.getSpectra().size(), 19)
+
+  vector<PeakMap> splitPeakMap = e_ptr->splitByFAIMSCV(std::move(exp));
+  TEST_EQUAL(splitPeakMap.size(), 3)
+
+	TEST_EQUAL(splitPeakMap[0].size(), 4)
+	TEST_EQUAL(splitPeakMap[1].size(), 9)
+	TEST_EQUAL(splitPeakMap[2].size(), 6)
+
+	for (PeakMap::Iterator it = splitPeakMap[0].begin(); it != splitPeakMap[0].end(); ++it)
+	{
+		TEST_EQUAL(it->getDriftTime(), -65.0)
+	}
+	for (PeakMap::Iterator it = splitPeakMap[1].begin(); it != splitPeakMap[1].end(); ++it)
+	{
+		TEST_EQUAL(it->getDriftTime(), -55.0)
+	}
+	for (PeakMap::Iterator it = splitPeakMap[2].begin(); it != splitPeakMap[2].end(); ++it)
+	{
+		TEST_EQUAL(it->getDriftTime(), -45.0)
+	}
+
+	TEST_EQUAL(splitPeakMap[1].getExperimentalSettings().getDateTime().toString(), "2019-09-07T09:40:04")
+
+END_SECTION
 
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Exception.h>
+delete e_ptr;
 
-#include <string>
-#include <cstring>
-
-/**
-    @brief General helper macros
-
-    @{
-*/
-
-#define STRINGIFY(a) #a
-
-#ifdef _OPENMP
-
-// Pragma string literals are compiler-specific: 
-// gcc and clang use _Pragma while MSVS uses __pragma
-// the MSVS pragma does not need a string token somehow.
-#ifdef OPENMS_COMPILER_MSVC
-#define OPENMS_THREAD_CRITICAL(name) \
-    __pragma(omp critical (name))
-#else
-#define OPENMS_THREAD_CRITICAL(name) \
-    _Pragma( STRINGIFY( omp critical (name) ) )
-#endif
-
-#else
-
-#define OPENMS_THREAD_CRITICAL(name) 
-
-#endif
-
-/** @} */ // end of helpers
-
-
-/**
-    @defgroup Conditions Condition macros
-
-    @brief Macros used for to enforce preconditions and postconditions.
-
-    These macros are enabled if debug info is enabled and optimization is disabled in configure.
-    Otherwise they are replaced by an empty string, so they won't cost any performance.
-
-    The macros throw Exception::Precondition or Exception::Postcondition respectively if the condition fails.
-
-    @ingroup Concept
-
-    @{
-*/
-
-#ifdef OPENMS_ASSERTIONS
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-#else
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message)
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message)
-
-#endif
-
-/** @} */ // end of Conditions
-
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
