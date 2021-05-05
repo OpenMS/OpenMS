@@ -159,7 +159,7 @@ namespace OpenMS
         void writeNext(const FASTAEntry& protein);
 
         /**
-        @brief Closes the file (flush). Called implicitly when FASTAFile object does out of scope.
+        @brief Closes the file (flush). Called implicitly when FASTAFile object goes out of scope.
         */
         void writeEnd();
 
