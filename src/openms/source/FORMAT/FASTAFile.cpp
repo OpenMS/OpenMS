@@ -40,17 +40,21 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 
-namespace OpenMS {
+namespace OpenMS
+{
   using namespace std;
 
-  FASTAFile::FASTAFile() {
+  FASTAFile::FASTAFile()
+  {
   }
 
-  FASTAFile::~FASTAFile() {
+  FASTAFile::~FASTAFile()
+  {
     // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
   }
 
-  bool FASTAFile::readEntry_(std::string &id, std::string &description, std::string &seq) {
+  bool FASTAFile::readEntry_(std::string &id, std::string &description, std::string &seq)
+  {
     std::streambuf *sb = infile_.rdbuf();
     bool keep_reading = true;
     bool description_exists = true;
@@ -59,10 +63,12 @@ namespace OpenMS {
     while (keep_reading) // reading the ID
     {
       int c = sb->sbumpc(); // get and advance to next char
-      switch (c) {
+      switch (c)
+      {
         case ' ':
         case '\t':
-          if (!id.empty()) {
+          if (!id.empty())
+          {
             keep_reading = false; // ID finished
           }
           break;
@@ -84,7 +90,8 @@ namespace OpenMS {
     while (keep_reading) //reading the description
     {
       int c = sb->sbumpc(); // get and advance to next char
-      switch (c) {
+      switch (c)
+      {
         case '\n': // description finished
           keep_reading = false;
           break;
@@ -103,7 +110,8 @@ namespace OpenMS {
     while (keep_reading) // reading the sequence
     {
       int c = sb->sbumpc(); // get and advance to next char
-      switch (c) {
+      switch (c)
+      {
         case '\n':
           if (sb->sgetc() == '>') // reaching the beginning of the next protein-entry
           {
@@ -118,7 +126,8 @@ namespace OpenMS {
           break;
         case std::streambuf::traits_type::eof():
           infile_.setstate(std::ios::eofbit);
-          if (seq.empty()) {
+          if (seq.empty())
+          {
             infile_.setstate(std::ios::badbit);
             return false;
           }
@@ -130,13 +139,16 @@ namespace OpenMS {
     return !seq.empty();
   }
 
-  void FASTAFile::readStart(const String &filename) {
+  void FASTAFile::readStart(const String &filename)
+  {
 
-    if (!File::exists(filename)) {
+    if (!File::exists(filename))
+    {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    if (!File::readable(filename)) {
+    if (!File::readable(filename))
+    {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
@@ -155,16 +167,25 @@ namespace OpenMS {
     entries_read_ = 0;
   }
 
-  bool FASTAFile::readNext(FASTAEntry &protein) {
-    if (infile_.eof()) {
+  bool FASTAFile::readNext(FASTAEntry &protein)
+  {
+    if (infile_.eof())
+    {
       return false;
     }
     seq_.clear();
     id_.clear();
     description_.clear();
-    if (!readEntry_(id_, description_, seq_)) {
-      if (entries_read_ == 0) seq_ = "The first entry could not be read!";
-      else seq_ = "Only " + String(entries_read_) + " proteins could be read. Parsing next record failed.";
+    if (!readEntry_(id_, description_, seq_))
+    {
+      if (entries_read_ == 0)
+      {
+        seq_ = "The first entry could not be read!";
+      }
+      else
+      {
+        seq_ = "Only " + String(entries_read_) + " proteins could be read. Parsing next record failed.";
+      }
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                   "Error while parsing FASTA file! " + seq_ + " Please check the file!");
     }
@@ -177,13 +198,16 @@ namespace OpenMS {
     return true;
   }
 
-  std::streampos FASTAFile::position() {
+  std::streampos FASTAFile::position()
+  {
     return infile_.tellg();
   }
 
 
-  bool FASTAFile::setPosition(const std::streampos &pos) {
-    if (pos <= fileSize_) {
+  bool FASTAFile::setPosition(const std::streampos &pos)
+  {
+    if (pos <= fileSize_)
+    {
       infile_.clear(); // when end of file is reached, otherwise it gets -1
       infile_.seekg(pos);
       return true;
@@ -191,24 +215,29 @@ namespace OpenMS {
     return false;
   }
 
-  bool FASTAFile::atEnd() {
+  bool FASTAFile::atEnd()
+  {
     return (infile_.peek() == std::streambuf::traits_type::eof());
   }
 
-  void FASTAFile::load(const String &filename, vector<FASTAEntry> &data) const {
+  void FASTAFile::load(const String &filename, vector<FASTAEntry> &data) const
+  {
     startProgress(0, 1, "Loading FASTA file");
     data.clear();
     FASTAEntry p;
     FASTAFile f;
     f.readStart(filename);
-    while (f.readNext(p)) {
+    while (f.readNext(p))
+    {
       data.push_back(std::move(p));
     }
     endProgress();
   }
 
-  void FASTAFile::writeStart(const String &filename) {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA)) {
+  void FASTAFile::writeStart(const String &filename)
+  {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
+    {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
                                           "invalid file extension; expected '" +
                                           FileTypes::typeToName(FileTypes::FASTA) + "'");
@@ -216,39 +245,46 @@ namespace OpenMS {
 
     outfile_.open(filename.c_str(), ofstream::out);
 
-    if (!outfile_.good()) {
+    if (!outfile_.good())
+    {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
   }
 
-  void FASTAFile::writeNext(const FASTAEntry &protein) {
+  void FASTAFile::writeNext(const FASTAEntry &protein)
+  {
     outfile_ << ">" << protein.identifier << " " << protein.description << "\n";
     const String &tmp(protein.sequence);
 
     int chunks(tmp.size() / 80); // number of complete chunks
     Size chunk_pos(0);
-    while (--chunks >= 0) {
+    while (--chunks >= 0)
+    {
       outfile_.write(&tmp[chunk_pos], 80);
       outfile_ << "\n";
       chunk_pos += 80;
     }
 
-    if (tmp.size() > chunk_pos) {
+    if (tmp.size() > chunk_pos)
+    {
       outfile_.write(&tmp[chunk_pos], tmp.size() - chunk_pos);
       outfile_ << "\n";
     }
   }
 
-  void FASTAFile::writeEnd() {
+  void FASTAFile::writeEnd()
+  {
     outfile_.close();
   }
 
-  void FASTAFile::store(const String &filename, const vector<FASTAEntry> &data) const {
+  void FASTAFile::store(const String &filename, const vector<FASTAEntry> &data) const
+  {
     startProgress(0, data.size(), "Writing FASTA file");
     FASTAFile f;
     f.writeStart(filename);
-    for (vector<FASTAEntry>::const_iterator it = data.begin(); it != data.end(); ++it) {
-      f.writeNext(*it);
+    for (const FASTAFile::FASTAEntry& it : data)
+    {
+      f.writeNext(it);
       nextProgress();
     }
     f.writeEnd(); // close file
