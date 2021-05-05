@@ -43,17 +43,8 @@
 namespace OpenMS
 {
   using namespace std;
-
-  FASTAFile::FASTAFile()
-  {
-  }
-
-  FASTAFile::~FASTAFile()
-  {
-    // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
-  }
-
-  bool FASTAFile::readEntry_(std::string &id, std::string &description, std::string &seq)
+  
+  bool FASTAFile::readEntry_(std::string& id, std::string& description, std::string& seq)
   {
     std::streambuf *sb = infile_.rdbuf();
     bool keep_reading = true;
@@ -85,9 +76,12 @@ namespace OpenMS
           id += (char) c;
       }
     }
+
     if (id.empty()) return false;
+
     if (description_exists) keep_reading = true;
-    while (keep_reading) //reading the description
+
+    while (keep_reading) // reading the description
     {
       int c = sb->sbumpc(); // get and advance to next char
       switch (c)
@@ -139,9 +133,8 @@ namespace OpenMS
     return !seq.empty();
   }
 
-  void FASTAFile::readStart(const String &filename)
+  void FASTAFile::readStart(const String& filename)
   {
-
     if (!File::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -167,15 +160,17 @@ namespace OpenMS
     entries_read_ = 0;
   }
 
-  bool FASTAFile::readNext(FASTAEntry &protein)
+  bool FASTAFile::readNext(FASTAEntry& protein)
   {
     if (infile_.eof())
     {
       return false;
     }
-    seq_.clear();
+
+    seq_.clear(); // Note: it is fine to clear() after std::move as it will turn the "valid but unspecified state" into a specified (the empty) one
     id_.clear();
     description_.clear();
+
     if (!readEntry_(id_, description_, seq_))
     {
       if (entries_read_ == 0)
@@ -191,9 +186,9 @@ namespace OpenMS
     }
     ++entries_read_;
 
-    protein.identifier = id_;
-    protein.description = description_;
-    protein.sequence = seq_;
+    protein.identifier = std::move(id_);
+    protein.description = std::move(description_);
+    protein.sequence = std::move(seq_);
 
     return true;
   }
@@ -203,8 +198,7 @@ namespace OpenMS
     return infile_.tellg();
   }
 
-
-  bool FASTAFile::setPosition(const std::streampos &pos)
+  bool FASTAFile::setPosition(const std::streampos& pos)
   {
     if (pos <= fileSize_)
     {
@@ -220,7 +214,7 @@ namespace OpenMS
     return (infile_.peek() == std::streambuf::traits_type::eof());
   }
 
-  void FASTAFile::load(const String &filename, vector<FASTAEntry> &data) const
+  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data) const
   {
     startProgress(0, 1, "Loading FASTA file");
     data.clear();
@@ -234,7 +228,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void FASTAFile::writeStart(const String &filename)
+  void FASTAFile::writeStart(const String& filename)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
     {
@@ -251,10 +245,10 @@ namespace OpenMS
     }
   }
 
-  void FASTAFile::writeNext(const FASTAEntry &protein)
+  void FASTAFile::writeNext(const FASTAEntry& protein)
   {
     outfile_ << ">" << protein.identifier << " " << protein.description << "\n";
-    const String &tmp(protein.sequence);
+    const String& tmp(protein.sequence);
 
     int chunks(tmp.size() / 80); // number of complete chunks
     Size chunk_pos(0);
@@ -277,7 +271,7 @@ namespace OpenMS
     outfile_.close();
   }
 
-  void FASTAFile::store(const String &filename, const vector<FASTAEntry> &data) const
+  void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
   {
     startProgress(0, data.size(), "Writing FASTA file");
     FASTAFile f;

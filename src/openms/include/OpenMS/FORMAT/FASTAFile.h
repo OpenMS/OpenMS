@@ -74,29 +74,18 @@ namespace OpenMS
             String description;
             String sequence;
 
-            FASTAEntry() :
-                    identifier(),
-                    description(),
-                    sequence()
-            {
-            }
+            FASTAEntry() = default;
 
-            FASTAEntry(String id, String desc, String seq) :
+            FASTAEntry(const String& id, const String& desc, const String& seq) :
                     identifier(id),
                     description(desc),
                     sequence(seq)
             {
             }
 
-            FASTAEntry(const FASTAEntry& rhs)
-                    :
-                    identifier(rhs.identifier),
-                    description(rhs.description),
-                    sequence(rhs.sequence)
-            {
-            }
+            FASTAEntry(const FASTAEntry& rhs) = default;
 
-            FASTAEntry(FASTAEntry&& rhs) noexcept
+            FASTAEntry(FASTAEntry&& rhs) noexcept 
                     :
                     identifier(::std::move(rhs.identifier)),
                     description(::std::move(rhs.description)),
@@ -104,14 +93,7 @@ namespace OpenMS
             {
             }
 
-            FASTAEntry& operator=(const FASTAEntry& rhs)
-            {
-                if (*this == rhs) return *this;
-                identifier = rhs.identifier;
-                description = rhs.description;
-                sequence = rhs.sequence;
-                return *this;
-            }
+            FASTAEntry& operator=(const FASTAEntry& rhs) = default;
 
             bool operator==(const FASTAEntry& rhs) const
             {
@@ -133,10 +115,10 @@ namespace OpenMS
         };
 
         /// Default constructor
-        FASTAFile();
+        FASTAFile() = default;
 
         /// Destructor
-        virtual ~FASTAFile();
+        virtual ~FASTAFile() = default;
 
         /**
           @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
