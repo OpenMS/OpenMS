@@ -52,7 +52,7 @@ MQEvidence* ptr = nullptr;
 MQEvidence* null_ptr = nullptr;
 START_SECTION(MQEvidence())
 {
-    string x = "/buffer/ag_bsc/pmsb_2021/musch/test.txt";
+    string x = "/buffer/ag_bsc/pmsb_2021/musch";
     ptr = new MQEvidence(x);
     TEST_NOT_EQUAL(ptr,null_ptr);
 }
@@ -60,10 +60,12 @@ END_SECTION
 
 START_SECTION(exportFeatureMapTotxt())
 {
+    ConsensusMap cmap{};
+    std::map<UInt64,Size> fTc{};
     FeatureMap e;
     FeatureXMLFile dfmap_file;
     dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
-    ptr->exportFeatureMapTotxt(e);
+    ptr->exportFeatureMapTotxt(e,cmap,fTc);
     delete ptr;
 }
 END_SECTION

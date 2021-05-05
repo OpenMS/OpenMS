@@ -53,6 +53,18 @@ public:
     bool isValid();
     void export_header();
     UInt64 protein_group_id(const String &protein);
-    bool exportRowFromFeature(const Feature &f);
-    void exportFeatureMapTotxt(const FeatureMap & feature_map, const ConsensusMap& cmap, const std::map<UInt64,Size> & fTc);
+    bool peptide_hits(
+            const std::vector<PeptideIdentification> & pep_ids,
+            std::vector<PeptideHit> & pep_hit,
+            std::vector<PeptideHit>::iterator & pep_hits_iterator);
+
+    void exportRowFromFeature(
+            const Feature &f,
+            const ConsensusFeature &c,
+            const String & raw_file);
+
+    void exportFeatureMapTotxt(
+            const FeatureMap & feature_map,
+            const ConsensusMap& cmap,
+            const std::map<UInt64,Size> & fTc);
 };
