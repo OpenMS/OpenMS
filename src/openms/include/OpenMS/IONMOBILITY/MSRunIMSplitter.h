@@ -28,105 +28,41 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Eugen Netz $
+// $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
 #pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <vector>
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Exception.h>
+namespace OpenMS
+{
 
-#include <string>
-#include <cstring>
+    /**
+      @brief This class splits PeakMaps by IM values
 
-/**
-    @brief General helper macros
+      Contains a function to split a PeakMap by FAIMS compensation voltages.
+    */
+    class OPENMS_DLLAPI MSRunIMSplitter
+    {
+    public:
+      virtual ~MSRunIMSplitter() {}
 
-    @{
-*/
+      /**
+        @brief Splits a PeakMap into one PeakMap per FAIMS CV value
 
-#define STRINGIFY(a) #a
+        This only works with a PeakMap that has a FAIMS compensation voltage
+        associated with each spectrum.
+        The spectra from the original PeakMap are moved to new PeakMaps,
+        so the original PeakMap is unusable afterwards.
 
-#ifdef _OPENMP
+        @param exp The PeakMap
+        @return Several maps, split by CVs
+        @throws Exception::MissingInformation if @p exp is not FAIMS data
+      */
+      static std::vector<PeakMap> splitByFAIMSCV(PeakMap&& exp);
+    };
 
-// Pragma string literals are compiler-specific: 
-// gcc and clang use _Pragma while MSVS uses __pragma
-// the MSVS pragma does not need a string token somehow.
-#ifdef OPENMS_COMPILER_MSVC
-#define OPENMS_THREAD_CRITICAL(name) \
-    __pragma(omp critical (name))
-#else
-#define OPENMS_THREAD_CRITICAL(name) \
-    _Pragma( STRINGIFY( omp critical (name) ) )
-#endif
-
-#else
-
-#define OPENMS_THREAD_CRITICAL(name) 
-
-#endif
-
-/** @} */ // end of helpers
-
-
-/**
-    @defgroup Conditions Condition macros
-
-    @brief Macros used for to enforce preconditions and postconditions.
-
-    These macros are enabled if debug info is enabled and optimization is disabled in configure.
-    Otherwise they are replaced by an empty string, so they won't cost any performance.
-
-    The macros throw Exception::Precondition or Exception::Postcondition respectively if the condition fails.
-
-    @ingroup Concept
-
-    @{
-*/
-
-#ifdef OPENMS_ASSERTIONS
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-#else
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message)
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message)
-
-#endif
-
-/** @} */ // end of Conditions
-
+} //end namespace OpenMS

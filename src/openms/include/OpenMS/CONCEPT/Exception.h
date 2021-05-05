@@ -40,6 +40,7 @@
 #include <iosfwd>
 #include <new>
 #include <string>
+#include <stdexcept>
 
 namespace OpenMS
 {
@@ -87,7 +88,7 @@ namespace OpenMS
       @ingroup Exceptions
     */
     class OPENMS_DLLAPI BaseException :
-      public std::exception
+      public std::runtime_error
     {
 public:
 
@@ -118,9 +119,6 @@ public:
       /// Returns the name of the exception
       const char* getName() const noexcept;
 
-      /// Returns the error message of the exception
-      const char* what() const noexcept override;
-
       /// Returns the line number where it occurred
       int getLine() const noexcept;
 
@@ -132,9 +130,6 @@ public:
 
       /// Returns the message
       const char* getMessage() const noexcept;
-
-      /// Modify the exception's error message
-      void setMessage(const std::string& message) noexcept;
 
       //@}
 
@@ -151,9 +146,6 @@ protected:
 
       /// The name of the exception.
       std::string name_;
-
-      /// A more detailed description of the exception's cause.
-      std::string what_;
     };
 
     /**

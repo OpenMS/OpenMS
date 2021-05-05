@@ -28,105 +28,38 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Eugen Netz $
+// $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
 #pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <set>
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Exception.h>
+namespace OpenMS
+{
 
-#include <string>
-#include <cstring>
+    /**
+      @brief Helper functions for FAIMS data
 
-/**
-    @brief General helper macros
+      FAIMSHelper contains convenience functions to deal with FAIMS
+      compensation voltages and related data.
 
-    @{
-*/
+    */
+    class OPENMS_DLLAPI FAIMSHelper
+    {
+    public:
+      virtual ~FAIMSHelper() {}
 
-#define STRINGIFY(a) #a
+      /**
+        @brief Get all FAIMS compensation voltages that occur in a PeakMap
 
-#ifdef _OPENMP
+        If the data is not FAIMS, an empty set will be returned.
 
-// Pragma string literals are compiler-specific: 
-// gcc and clang use _Pragma while MSVS uses __pragma
-// the MSVS pragma does not need a string token somehow.
-#ifdef OPENMS_COMPILER_MSVC
-#define OPENMS_THREAD_CRITICAL(name) \
-    __pragma(omp critical (name))
-#else
-#define OPENMS_THREAD_CRITICAL(name) \
-    _Pragma( STRINGIFY( omp critical (name) ) )
-#endif
+        @param exp The PeakMap with FAIMS data
+      */
+      static std::set<double> getCompensationVoltages(const PeakMap& exp);
+    };
 
-#else
-
-#define OPENMS_THREAD_CRITICAL(name) 
-
-#endif
-
-/** @} */ // end of helpers
-
-
-/**
-    @defgroup Conditions Condition macros
-
-    @brief Macros used for to enforce preconditions and postconditions.
-
-    These macros are enabled if debug info is enabled and optimization is disabled in configure.
-    Otherwise they are replaced by an empty string, so they won't cost any performance.
-
-    The macros throw Exception::Precondition or Exception::Postcondition respectively if the condition fails.
-
-    @ingroup Concept
-
-    @{
-*/
-
-#ifdef OPENMS_ASSERTIONS
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message) \
-  if (!(condition)) \
-  { \
-    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
-  } \
-
-#else
-
-/**
-    @brief Precondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_PRECONDITION(condition, message)
-
-/**
-    @brief Postcondition macro.
-
-    @hideinitializer
-*/
-#define OPENMS_POSTCONDITION(condition, message)
-
-#endif
-
-/** @} */ // end of Conditions
-
+} //end namespace OpenMS
