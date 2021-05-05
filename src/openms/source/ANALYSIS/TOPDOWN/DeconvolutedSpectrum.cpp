@@ -249,7 +249,7 @@ namespace OpenMS {
         if (ms_level > 1) {
             if (precursor_peak_group_.empty()
                 || precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge()) < snr_threshold
-                //|| precursor_peak_group_.getQScore() < .25
+                //|| QScore::getQScore(&precursor_peak_group_, precursor_peak_.getCharge())< .25
                     ) {
                 return;
             }
@@ -317,6 +317,9 @@ namespace OpenMS {
                 charges.insert(peaks.abs_charge);
             }
             for (int charge : charges) {
+                if (pg.getChargeIntensity(charge) <= 0) {
+                    continue;
+                }
                 size++;
                 fs << std::fixed << std::setprecision(2);
                 fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getChargeIntensity(charge) << "\t"
@@ -512,11 +515,22 @@ namespace OpenMS {
                 double max_intensity = .0;
                 const LogMzPeak *tmp_precursor = nullptr;
 
+                int c = int(.5 + pg.getMonoMass() / start_mz);
+                bool contained = true;
+
                 for (auto &tmp_peak:pg) {
-                    if (tmp_peak.mz < start_mz) {
+                    if (tmp_peak.abs_charge != c) {
                         continue;
                     }
+                    //if(abs(tmp_peak.mz - precursor_peak_.getMZ())>1e-2){
+                    //    continue;
+                    //}
+                    if (tmp_peak.mz < start_mz) {
+                        contained = false;
+                        break;
+                    }
                     if (tmp_peak.mz > end_mz) {
+                        contained = false;
                         break;
                     }
                     if (tmp_peak.intensity < max_intensity) {
@@ -527,7 +541,7 @@ namespace OpenMS {
                     //sum_int += tmp_peak.intensity * tmp_peak.intensity;
                 }
 
-                if (tmp_precursor == nullptr) {
+                if (!contained || tmp_precursor == nullptr) {
                     continue;
                 }
 /*

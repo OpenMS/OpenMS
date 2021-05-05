@@ -1660,9 +1660,14 @@ namespace OpenMS {
         sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end());
 
         for (Size i = 0; i < deconvoluted_spectrum_.size(); i++) {
-            if (i > 0 && deconvoluted_spectrum_[i - 1] == deconvoluted_spectrum_[i]) {
-                continue;
+            if (i > 0) {
+                if (abs(deconvoluted_spectrum_[i - 1].getMonoMass() - deconvoluted_spectrum_[i].getMonoMass()) < 1e-3
+                    &&
+                    deconvoluted_spectrum_[i - 1].getIntensity() >= deconvoluted_spectrum_[i].getIntensity()) {
+                    continue;
+                }
             }
+
             filtered_pg_vec.push_back(deconvoluted_spectrum_[i]);
         }
         deconvoluted_spectrum_.swap(filtered_pg_vec);
@@ -1705,7 +1710,7 @@ namespace OpenMS {
                     if (pgo.getMonoMass() - pg.getMonoMass() > off + mass_tolerance) {
                         break;
                     }
-                    select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
+                    select &= pg.getIsotopeCosine() >= pgo.getIsotopeCosine();
                     if (!select) {
                         break;
                     }
@@ -1732,7 +1737,7 @@ namespace OpenMS {
                     if (pg.getMonoMass() - pgo.getMonoMass() > off + mass_tolerance) {
                         break;
                     }
-                    select &= pg.getIsotopeCosine() > pgo.getIsotopeCosine();
+                    select &= pg.getIsotopeCosine() >= pgo.getIsotopeCosine();
                     if (!select) {
                         break;
                     }
