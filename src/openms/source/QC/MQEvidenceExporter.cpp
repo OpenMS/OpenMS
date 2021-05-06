@@ -67,7 +67,7 @@ MQEvidence::MQEvidence(const std::string &p)
         throw; // Exception::FileNotWritable();
     }
     export_header();
-    id_ = 1;
+    id_ = 0;
 }
 
 MQEvidence::~MQEvidence() {
