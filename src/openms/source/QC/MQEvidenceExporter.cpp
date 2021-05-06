@@ -146,8 +146,9 @@ bool MQEvidence::peptide_hits(
     {
         return false;
     }
-
-    for (const PeptideIdentification &it: pep_ids) {
+    pep_hits.clear();
+    for (const PeptideIdentification &it: pep_ids)
+    {
         pep_hits.insert(pep_hits.end(), it.getHits().begin(), it.getHits().end());
     }
     if (pep_hits.empty()) {
@@ -377,9 +378,13 @@ void MQEvidence::exportFeatureMapTotxt(
     {
         const UInt64 &f_id = f.getUniqueId();
         const auto &c_id = fTc.find(f_id);
-        ConsensusFeature cf();
+        const auto & cf = ConsensusFeature();
         if(c_id != fTc.end()) {
             exportRowFromFeature(f, cmap[c_id -> second], raw_file);
+        }
+        else
+        {
+            exportRowFromFeature(f, cf, raw_file);
         }
     }
 
