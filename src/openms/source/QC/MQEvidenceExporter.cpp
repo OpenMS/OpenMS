@@ -390,7 +390,6 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
 void MQEvidence::exportFeatureMapTotxt(
         const FeatureMap & feature_map,
         const ConsensusMap& cmap)
-        //const std::map<UInt64,Size> & fTc)
 {
     if(!isValid())
     {

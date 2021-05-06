@@ -221,8 +221,6 @@ protected:
     //-------------------------------------------------------------
     multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
 
-    //map<UInt64, Size> fid_to_cmapindex; // TODO: einbinden
-
     for (Size i = 0; i < cmap.size(); ++i)
     {
       fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
@@ -230,10 +228,6 @@ protected:
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
 
-      /*for (auto fh : cmap[i].getFeatures())
-      {
-        fid_to_cmapindex[fh.getUniqueId()] = i;
-      }*/
 
     }
     fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);

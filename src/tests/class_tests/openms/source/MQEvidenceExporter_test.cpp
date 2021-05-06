@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/test_config.h>
 
@@ -60,12 +61,20 @@ END_SECTION
 
 START_SECTION(exportFeatureMapTotxt())
 {
-    ConsensusMap cmap{};
-    std::map<UInt64,Size> fTc{};
-    FeatureMap e;
-    FeatureXMLFile dfmap_file;
-    dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
-    ptr->exportFeatureMapTotxt(e,cmap,fTc);
+
+    ConsensusMap cmap;
+    ConsensusXMLFile file;
+    file.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), cmap);
+    std::vector<FeatureMap> fmaps = cmap.split(ConsensusMap::SplitMeta::COPY_ALL);
+    FeatureMap fmap = fmaps[0];
+    //FeatureMap fmap;
+    //FeatureXMLFile dfmap_file;
+    //dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), fmap);
+    ptr->exportFeatureMapTotxt(fmap,cmap);
+
+
+
+    //TEST_FILE_EQUAL()
     delete ptr;
 }
 END_SECTION
