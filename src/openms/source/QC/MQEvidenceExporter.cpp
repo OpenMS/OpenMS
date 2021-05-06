@@ -164,6 +164,30 @@ bool MQEvidence::peptide_hits(
 
 }
 
+std::map<UInt64, Size> MQEvidence::fid_to_cmapindex(const ConsensusMap & cmap)
+{
+    map<UInt64, Size> f_to_ci;
+    for(Size i = 0; i < cmap.size(); ++i)
+    {
+        for(const auto & fh : cmap[i].getFeatures())
+        {
+            f_to_ci[fh.getUniqueId()] = i;
+        }
+    }
+    return f_to_ci;
+}
+
+String path_deleter(const String & path)
+{
+    String raw_file;
+    UInt64 i = path.size()-1;
+    while(path[i] != 47 && path[i] != 92) //ASCII Code "/" "\"
+    {
+        raw_file = path[i] + raw_file;
+        --i;
+    }
+    return raw_file;
+}
 
 
 
@@ -365,15 +389,26 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
 
 void MQEvidence::exportFeatureMapTotxt(
         const FeatureMap & feature_map,
-        const ConsensusMap& cmap,
-        const std::map<UInt64,Size> & fTc)
+        const ConsensusMap& cmap)
+        //const std::map<UInt64,Size> & fTc)
 {
     if(!isValid())
     {
         OpenMS_Log_error << "MqEvidence object is not valid." << endl;
         return;
     }
-    String raw_file = File::basename(feature_map.getLoadedFilePath());
+    const std::map<UInt64,Size> & fTc = fid_to_cmapindex(cmap);
+    String raw_file;
+    StringList spectra_data;
+    feature_map.getPrimaryMSRunPath(spectra_data);
+    if(!spectra_data.empty())
+    {
+        raw_file = path_deleter(spectra_data[0]);
+    }
+    else
+    {
+        raw_file = path_deleter(feature_map.getLoadedFilePath());
+    }
     for (const Feature &f : feature_map)
     {
         const UInt64 &f_id = f.getUniqueId();

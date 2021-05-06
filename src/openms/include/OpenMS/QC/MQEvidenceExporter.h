@@ -53,6 +53,9 @@ public:
     bool isValid();
     void export_header();
     UInt64 protein_group_id(const String &protein);
+
+    std::map<UInt64, Size> fid_to_cmapindex(const ConsensusMap & cmap);
+
     bool peptide_hits(
             const std::vector<PeptideIdentification> & pep_ids,
             std::vector<PeptideHit> & pep_hit,
@@ -65,6 +68,6 @@ public:
 
     void exportFeatureMapTotxt(
             const FeatureMap & feature_map,
-            const ConsensusMap& cmap,
-            const std::map<UInt64,Size> & fTc);
+            const ConsensusMap& cmap);
+            //const std::map<UInt64,Size> & fTc);
 };
