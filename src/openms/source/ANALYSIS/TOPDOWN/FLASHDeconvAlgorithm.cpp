@@ -1019,8 +1019,11 @@ namespace OpenMS {
 
         //if (ms_level_ == 1)
         //{
-        //removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
+        //
         removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1], ms_level_ == 1 ? 1 : 0);
+        //if (ms_level_ == 1) {
+        //    removeHarmonicPeakGroups_(tolerance_[ms_level_ - 1]);
+        //}
         // } else {
         //removeOverlappingPeakGroupsWithNominalMass_();
         //}
@@ -1592,7 +1595,7 @@ namespace OpenMS {
         std::vector<double> pg_masses;
         pg_masses.reserve(deconvoluted_spectrum_.size());
         for (auto &peakGroup : deconvoluted_spectrum_) {
-            pg_masses.push_back(peakGroup.getMonoMass());
+            pg_masses.push_back(avg_.getAverageMassDelta(peakGroup.getMonoMass()) + peakGroup.getMonoMass());
         }
         for (auto &pg : deconvoluted_spectrum_) {
             bool select = true;
@@ -1614,7 +1617,8 @@ namespace OpenMS {
             for (int h = 2; h <= 3; h++) {
                 for (int k = 0; k < 2; k++) {
                     for (int i = -2; i <= 2; ++i) {
-                        double omass = pg.getMonoMass() + i * Constants::ISOTOPE_MASSDIFF_55K_U;
+                        double omass = avg_.getAverageMassDelta(pg.getMonoMass()) + pg.getMonoMass() +
+                                       i * Constants::ISOTOPE_MASSDIFF_55K_U;
                         double harmonic_mass = k == 0 ? omass * h : omass / h;
                         double mass_tolerance = 2 * std::max(omass, harmonic_mass) * tol;
                         auto iter = std::lower_bound(pg_masses.begin(), pg_masses.end(),
@@ -1628,10 +1632,12 @@ namespace OpenMS {
                                     continue;
                                 }
 
-                                if (!select || pgo.getMonoMass() - harmonic_mass > mass_tolerance) {
+                                if (!select ||
+                                    avg_.getAverageMassDelta(pgo.getMonoMass()) + pgo.getMonoMass() - harmonic_mass >
+                                    mass_tolerance) {
                                     break;
                                 }
-                                select &= pg.getIntensity() >= pgo.getIntensity();
+                                select &= pg.getSNR() >= pgo.getSNR();
                                 if (!select) {
                                     break;
                                 }

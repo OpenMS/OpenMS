@@ -833,11 +833,10 @@ protected:
             }
             if (out_topfd_streams.size() > ms_level - 1) {
                 deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);
-                //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 100000, avg, 2);
                 //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 200000, avg, .5);
                 //double precursor_offset = ((double) rand() / (RAND_MAX)) * 90 + 10; // 10 - 100
                 //precursor_offset = ((double) rand() / (RAND_MAX))>.5? precursor_offset : -precursor_offset;
-                //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], scan_number + 300000, avg, 1, precursor_offset);
+                //deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold, 1, precursor_offset);
             }
 
             //deconvoluted_spectrum_.clearPeakGroupsChargeInfo();
