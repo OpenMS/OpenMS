@@ -36,15 +36,14 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/QC/MQEvidenceExporter.h>
 
 ///////////////////////////
-#include <OpenMS/QC/MQEvidenceExporter.h>
 ///////////////////////////
 
 START_TEST(MQEvidence, "$ID$")
 
 using namespace OpenMS;
-using namespace std;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -53,12 +52,13 @@ MQEvidence* ptr = nullptr;
 MQEvidence* null_ptr = nullptr;
 START_SECTION(MQEvidence())
 {
-    string x = "/buffer/ag_bsc/pmsb_2021/musch";
+    String x = "/buffer/ag_bsc/pmsb_2021/musch";
     ptr = new MQEvidence(x);
     TEST_NOT_EQUAL(ptr,null_ptr);
 }
 END_SECTION
-
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 START_SECTION(exportFeatureMapTotxt())
 {
 

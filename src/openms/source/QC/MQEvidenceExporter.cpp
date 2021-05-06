@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/MQEvidenceExporter.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <string>
 #include <fstream>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -42,7 +40,6 @@
 #include <QtCore/QDir>
 
 
-using namespace std;
 using namespace OpenMS;
 
 
@@ -54,7 +51,7 @@ MQEvidence::MQEvidence(const std::string &p)
     {
         return;
     }
-    string filename = p +"/evidence.txt";
+    String filename = p +"/evidence.txt";
     try
     {
         QString path = QString::fromStdString(p);
@@ -62,12 +59,12 @@ MQEvidence::MQEvidence(const std::string &p)
 
 
 
-        file_ = fstream(filename, fstream::out);
+        file_ = std::fstream(filename, std::fstream::out);
     }
     catch(...)
     {
         OPENMS_LOG_FATAL_ERROR << filename << " wasn’t created" << std::endl;
-        throw;
+        throw; // Exception::FileNotWritable();
     }
     export_header();
     id_ = 1;
@@ -138,9 +135,9 @@ UInt64 MQEvidence::protein_group_id(const String &protein)
 
 
 bool MQEvidence::peptide_hits(
-        const vector<PeptideIdentification> & pep_ids,
-        vector<PeptideHit> & pep_hits,
-        vector<PeptideHit>::iterator & pep_hits_iterator)
+        const std::vector<PeptideIdentification> & pep_ids,
+        std::vector<PeptideHit> & pep_hits,
+        std::vector<PeptideHit>::iterator & pep_hits_iterator)
 {
     if(pep_ids.empty())
     {
@@ -166,7 +163,7 @@ bool MQEvidence::peptide_hits(
 
 std::map<UInt64, Size> MQEvidence::fid_to_cmapindex(const ConsensusMap & cmap)
 {
-    map<UInt64, Size> f_to_ci;
+    std::map<UInt64, Size> f_to_ci;
     for(Size i = 0; i < cmap.size(); ++i)
     {
         for(const auto & fh : cmap[i].getFeatures())
@@ -193,10 +190,10 @@ String path_deleter(const String & path)
 
 void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &c, const String & raw_file)
 {
-    const vector<PeptideIdentification> &pep_ids_f = f.getPeptideIdentifications();
-    const vector<PeptideIdentification> &pep_ids_c = c.getPeptideIdentifications();
-    vector<PeptideHit> pep_hits;
-    vector<PeptideHit>::iterator pep_hits_iterator;
+    const std::vector<PeptideIdentification> &pep_ids_f = f.getPeptideIdentifications();
+    const std::vector<PeptideIdentification> &pep_ids_c = c.getPeptideIdentifications();
+    std::vector<PeptideHit> pep_hits;
+    std::vector<PeptideHit>::iterator pep_hits_iterator;
 
     UInt64 pep_ids_size = 0;
     String type;
@@ -241,7 +238,7 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
     }
     else
     {
-        set<String> modifications;
+        std::set<String> modifications;
         if(pep_seq.hasNTerminalModification())
         {
             const String &n_terminal_modification = pep_seq.getNTerminalModificationName();
@@ -294,7 +291,7 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
     {
         file_ << "NA" << "\t"; // delta score
     }
-    const set<String> &accessions = pep_hits_max.extractProteinAccessionsSet();
+    const std::set<String> &accessions = pep_hits_max.extractProteinAccessionsSet();
     for (const String &p : accessions) {
         file_ << p << ";"; // Protein
     }
@@ -393,8 +390,8 @@ void MQEvidence::exportFeatureMapTotxt(
 {
     if(!isValid())
     {
-        OpenMS_Log_error << "MqEvidence object is not valid." << endl;
-        return;
+        OpenMS_Log_error << "MqEvidence object is not valid." << std::endl;
+        throw; //Exception::FileNotWritable();
     }
     const std::map<UInt64,Size> & fTc = fid_to_cmapindex(cmap);
     String raw_file;
