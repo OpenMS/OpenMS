@@ -70,7 +70,7 @@ namespace OpenMS {
         }
         rt_window_ = inputs["RT_window"][0];
         qscore_threshold_ = inputs["score_threshold"][0];
-        charge_snr_threshold_ = 1;
+        snr_threshold_ = 1;
         Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
         // overwrite algorithm default so we export everything (important for copying back MSstats results)
         fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
@@ -260,8 +260,11 @@ namespace OpenMS {
                 if (pg.getQScore() < qscore_threshold_) {
                     break;
                 }
+                if (pg.getSNR() < snr_threshold_) {
+                    continue;
+                }
 
-                if (pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
+                if (pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold_) {
                     continue;
                 }
 
@@ -298,7 +301,7 @@ namespace OpenMS {
                             }
                             double t_snr = pg.getChargeSNR(t_charge);
 
-                            if (t_snr < charge_snr_threshold_) {
+                            if (t_snr < snr_threshold_) {
                                 continue;
                             }
                             qscore = t_qscore;
@@ -316,7 +319,7 @@ namespace OpenMS {
                     continue;
                 }
 
-                if (pg.getChargeSNR(charge) < charge_snr_threshold_) {
+                if (pg.getChargeSNR(charge) < snr_threshold_) {
                     continue;
                 }
 
@@ -363,7 +366,7 @@ if (i == 1 && pg.getQScore() < qscore_threshold_) {
 break;
 }
 
-if (i == 1 && pg.getChargeSNR(pg.getRepAbsCharge()) < charge_snr_threshold_) {
+if (i == 1 && pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold_) {
 continue;
 }
 int mz = (int) round(

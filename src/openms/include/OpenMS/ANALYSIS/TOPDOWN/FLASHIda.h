@@ -152,7 +152,7 @@ namespace OpenMS {
 
         std::map<int, std::vector<double>> target_nominal_masses_;
         std::set<double> target_masses_;
-        double charge_snr_threshold_ = 1.0;
+        double snr_threshold_ = 1.0;
         //const double snr_threshold = 0.0;
         //const double isotope_cosine_threshold = 0;
     };
