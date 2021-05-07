@@ -317,7 +317,7 @@ namespace OpenMS
     for (const String& key : keys)
     {
       if (key.compare(0, adapter.size(), adapter) != 0) continue; // does adapter appear in meta value key?
-      p.setValue(key, search_params.getMetaValue(key));
+      p.setValue(key, search_params.getMetaValue(key).toString());
     }
 
     OPENMS_LOG_DEBUG << "Parameters for the following adapter were found: " << adapter << endl;

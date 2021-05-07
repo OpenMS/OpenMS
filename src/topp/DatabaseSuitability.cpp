@@ -207,11 +207,12 @@ protected:
     vector<PeptideIdentification> novo_peps;
     x.load(in_novo, novo_prots, novo_peps);
 
+    FASTAFile f;
     vector<FASTAFile::FASTAEntry> database;
-    FASTAFile::load(db, database);
+    f.load(db, database);
 
     vector<FASTAFile::FASTAEntry> novo_database;
-    FASTAFile::load(novo_db, novo_database);
+    f.load(novo_db, novo_database);
 
     //-------------------------------------------------------------
     // calculations
