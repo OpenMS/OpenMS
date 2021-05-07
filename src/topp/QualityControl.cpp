@@ -403,7 +403,7 @@ protected:
 
       if(export_evidence.isValid())
       {
-        export_evidence.exportFeatureMapTotxt(fmap_local,cmap);//fid_to_cmapindex);
+        export_evidence.exportFeatureMapTotxt(fmap_local,cmap);
       }
 
     }

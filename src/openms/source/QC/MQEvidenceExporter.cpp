@@ -308,7 +308,15 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
     file_ << (f.getConvexHull().getBoundingBox().maxX() - f.getConvexHull().getBoundingBox().minX())/60 << "\t"; // Retention length in min.
     file_ << f.getIntensity() << "\t"; // Intensity
     file_ << f.getWidth()/60 << "\t";  // Resolution in min.
-    file_ << pep_hits_max.getMetaValue("is_contaminant", "NA") << "\t"; // Potential contaminant
+    String pot_containment = pep_hits_max.getMetaValue("is_contaminant", "NA");
+    if(pot_containment == "1")
+    {
+        file_ << "+" << "\t";   // Potential contaminant
+    }
+    else
+    {
+        file_ << "\t";
+    }
 
     file_<< type << "\t"; // Type
 
