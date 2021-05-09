@@ -221,6 +221,26 @@ protected:
     //-------------------------------------------------------------
     multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
 
+    for (const ConsensusFeature &c : cmap)
+    {
+      std::vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
+      if(pep_ids.size() > 0)
+      {
+        pep_ids[0].sort();
+        const String &seq = pep_ids[0].getHits()[0].getSequence().toString();
+        for (UInt32 a = 1; a < pep_ids.size(); ++a)
+        {
+          pep_ids[a].sort();
+          const String &seq_comp = pep_ids[a].getHits()[0].getSequence().toString();
+          if (seq != seq_comp)
+          {
+            std::cerr<<"Error, Peptide Identification is not definite."<<"\n";
+            throw;
+          }
+        }
+      }
+    }
+
     for (Size i = 0; i < cmap.size(); ++i)
     {
       fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
