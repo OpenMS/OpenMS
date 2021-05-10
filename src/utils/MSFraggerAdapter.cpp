@@ -394,7 +394,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    if (getStringOption_(TOPPMSFraggerAdapter::license) != "yes")
+    if (getStringOption_(TOPPMSFraggerAdapter::license) != "yes" && !getFlag_"test"))
     {
       _fatalError("MSFragger may only be used upon acceptance of license terms.");
     }
