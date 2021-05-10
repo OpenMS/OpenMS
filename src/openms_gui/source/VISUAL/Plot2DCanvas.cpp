@@ -1140,12 +1140,12 @@ namespace OpenMS
     map<int, float> mzsum;
 
     UInt peak_count = 0;
-    double intensity_max = 0.0;
-    double intensity_sum = 0.0;
+    Peak1D::IntensityType intensity_max = 0.0;
+    double total_intensity_sum = 0.0; // double because sum could get large
 
     // divide visible range into 100 bins (much faster than using a constant, e.g. 0.05, leading to many peaks for large maps without more information)
-    float range = visible_area_.maxPosition()[0] - visible_area_.minPosition()[0];
-    float mult = 100.0f / (range <= 0 ? 1 : range);
+    float mz_range = visible_area_.maxPosition()[0] - visible_area_.minPosition()[0];
+    float mult = 100.0f / (mz_range <= 0 ? 1 : mz_range);
 
     for (auto i = layer->getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
          i != layer->getPeakData()->areaEndConst();
@@ -1154,16 +1154,19 @@ namespace OpenMS
       PeakIndex pi = i.getPeakIndex();
       if (layer->filters.passes((*layer->getPeakData())[pi.spectrum], pi.peak))
       {
-        // sum
+        // summary stats
         ++peak_count;
-        intensity_sum += i->getIntensity();
+        total_intensity_sum += i->getIntensity();
+        intensity_max = max(intensity_max, i->getIntensity());
+        
+        // binning for m/z
         mzint[int(i->getMZ() * mult)] += i->getIntensity();
+        // ... to later obtain an average m/z value
         mzcount[int(i->getMZ() * mult)]++;
         mzsum[int(i->getMZ() * mult)] += i->getMZ();
 
+        // binning in RT (one value per scan)
         rt[i.getRT()] += i->getIntensity();
-        // max
-        intensity_max = max(intensity_max, (double)(i->getIntensity()));
       }
     }
 
@@ -1213,7 +1216,7 @@ namespace OpenMS
       emit showProjectionHorizontal(projection_rt_sptr);
       emit showProjectionVertical(projection_mz_sptr);
     }
-    showProjectionInfo(peak_count, intensity_sum, intensity_max);
+    showProjectionInfo(peak_count, total_intensity_sum, intensity_max);
   }
 
   bool Plot2DCanvas::finishAdding_()
