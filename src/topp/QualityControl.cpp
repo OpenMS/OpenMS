@@ -213,7 +213,7 @@ protected:
 
     // mztab writer requires single PIs per CF
     // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
-    // check for identical IDs of the ConsensusFeatures in Export from evidence.txt
+    // check for identical IDs of the ConsensusFeatures in Export from MQEvidence_result.txt
     IDConflictResolverAlgorithm::resolve(cmap);
 
     //-------------------------------------------------------------
