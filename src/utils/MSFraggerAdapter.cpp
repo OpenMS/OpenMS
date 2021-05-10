@@ -100,6 +100,8 @@ class TOPPMSFraggerAdapter final :
 {
 public:
 
+  static const String license;
+
   static const String java_executable;
   static const String java_heapmemory;
   static const String executable;
