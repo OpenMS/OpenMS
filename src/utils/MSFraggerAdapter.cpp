@@ -193,17 +193,18 @@ public:
   TOPPMSFraggerAdapter() :
     TOPPBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
                                   "Important note:\n"
-                                  "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute the\n"
-                                  "MS Fragger application developed by Michigan within the OpenMS Pipeline and make available\n"
+                                  "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute    \n"
+                                  "the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available \n"
                                   "for use on related service offerings supported by the University of Tubingen and the Center for\n"
-                                  "Integrative Bioinformatics.\n"
-                                  "Per the license agreement the use of the pipeline and associated materials is for academic\n"
-                                  "research, non-commercial or educational purposes. Any commercial use inquiries\n"
-                                  "must be directed to the University of Michigan Technology Transfer Office at\n"
-                                  "techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the\n"
+                                  "Integrative Bioinformatics.                                                                    \n"
+                                  "Per the license agreement the use of the pipeline and associated materials is for academic     \n"
+                                  "research, non-commercial or educational purposes. Any commercial use inquiries                 \n"
+                                  "must be directed to the University of Michigan Technology Transfer Office at                   \n"
+                                  "techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       \n"
                                   "University of Michigan.\n"
                                   "\n"
-                                  "Please see the supplied license file License.txt for details.\n"    
+                                  "For details, please see the supplied license file or                                           \n
+				  "https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           \n"    
     , false,
              {
                  {"Kong AT, Leprevost FV, Avtonomov DM, Mellacheruvu D, Nesvizhskii AI",
@@ -231,7 +232,7 @@ protected:
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
     // License agreement
-    registerStringOption_(TOPPMSFraggerAdapter::license, "<license>", "no", "Set to yes, if you have read and agreed to the MSFragger license terms.", true, false);
+    registerStringOption_(TOPPMSFraggerAdapter::license, "<license>", "", "Set to yes, if you have read and agreed to the MSFragger license terms.", true, false);
     setValidStrings_(TOPPMSFraggerAdapter::license, {"yes","no"});
 
     // Java executable
