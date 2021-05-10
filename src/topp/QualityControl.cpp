@@ -211,6 +211,11 @@ protected:
     }
     FeatureMap* fmap;
 
+    // mztab writer requires single PIs per CF
+    // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
+    // check for identical IDs of the ConsensusFeatures in Export from evidence.txt
+    IDConflictResolverAlgorithm::resolve(cmap);
+
     //-------------------------------------------------------------
     // prot/pepID-identifier -->  ms-run-path
     //-------------------------------------------------------------
@@ -221,25 +226,6 @@ protected:
     //-------------------------------------------------------------
     multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
 
-    for (const ConsensusFeature &c : cmap)
-    {
-      std::vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
-      if(pep_ids.size() > 0)
-      {
-        pep_ids[0].sort();
-        const String &seq = pep_ids[0].getHits()[0].getSequence().toString();
-        for (UInt32 a = 1; a < pep_ids.size(); ++a)
-        {
-          pep_ids[a].sort();
-          const String &seq_comp = pep_ids[a].getHits()[0].getSequence().toString();
-          if (seq != seq_comp)
-          {
-            std::cerr<<"Error, Peptide Identification is not definite."<<"\n";
-            throw;
-          }
-        }
-      }
-    }
 
     for (Size i = 0; i < cmap.size(); ++i)
     {
@@ -254,6 +240,8 @@ protected:
 
 
     for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
+
+
 
 
     // check flags
@@ -429,9 +417,6 @@ protected:
     }
 
 
-    // mztab writer requires single PIs per CF
-    // adds 'feature_id' metavalue to all PIs before moving them to remember the uniqueID of the CF
-    IDConflictResolverAlgorithm::resolve(cmap);
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
     bool incomplete_features {false};

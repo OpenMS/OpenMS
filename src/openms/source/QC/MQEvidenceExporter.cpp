@@ -197,7 +197,7 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
 
     UInt64 pep_ids_size = 0;
     String type;
-
+    //pep_ids_f[0].getIdentifier();
     if(peptide_hits(pep_ids_f, pep_hits, pep_hits_iterator))
     {
         pep_ids_size = pep_ids_f.size();
@@ -338,7 +338,7 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
     else if(calibrated_mz_error_ppm == "NA")
     {
         file_ << "NA" << "\t"; // Mass error [mDa]
-        file_ <<  OpenMS::Math::ppmToMass(double(uncalibrated_mz_error_ppm),f.getMZ())*1000 << "\t"; // Uncalibrated Mass error [mDa]
+        file_ <<  OpenMS::Math::ppmToMass(double(uncalibrated_mz_error_ppm),f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
         file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
         file_ << "NA"  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
 
@@ -346,17 +346,17 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
     }
     else if(uncalibrated_mz_error_ppm == "NA")
     {
-        file_ << OpenMS::Math::ppmToMass(double(calibrated_mz_error_ppm),f.getMZ())*1000 << "\t"; // Mass error [mDa]
+        file_ << OpenMS::Math::ppmToMass(double(calibrated_mz_error_ppm),f.getMZ()) << "\t"; // Mass error [Da]
         file_ << "NA" << "\t"; // Uncalibrated Mass error [mDa]
         file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
         file_ << "NA"  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
     }
     else
     {
-        file_ << OpenMS::Math::ppmToMass(double(calibrated_mz_error_ppm),f.getMZ())*1000 << "\t"; // Mass error [mDa]
-        file_ << OpenMS::Math::ppmToMass(double(uncalibrated_mz_error_ppm),f.getMZ())*1000 << "\t"; // Uncalibrated Mass error [mDa]
+        file_ << OpenMS::Math::ppmToMass(double(calibrated_mz_error_ppm),f.getMZ()) << "\t"; // Mass error [Da]
+        file_ << OpenMS::Math::ppmToMass(double(uncalibrated_mz_error_ppm),f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
         file_ << double(uncalibrated_mz_error_ppm)-double(calibrated_mz_error_ppm) << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-        file_ << OpenMS::Math::ppmToMass((double(uncalibrated_mz_error_ppm)-double(calibrated_mz_error_ppm)),f.getMZ())*1000  << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+        file_ << OpenMS::Math::ppmToMass((double(uncalibrated_mz_error_ppm)-double(calibrated_mz_error_ppm)),f.getMZ())  << "\t"; // Uncalibrated - Calibrated m/z [Da]
     }
 
 

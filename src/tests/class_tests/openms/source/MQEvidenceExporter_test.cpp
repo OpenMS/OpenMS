@@ -63,10 +63,10 @@ START_SECTION(exportFeatureMapTotxt())
 {
 
     ConsensusMap cmap;
-    ConsensusXMLFile file;
-    file.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), cmap);
+    ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap);
     std::vector<FeatureMap> fmaps = cmap.split(ConsensusMap::SplitMeta::COPY_ALL);
     FeatureMap fmap = fmaps[0];
+    
     //FeatureMap fmap;
     //FeatureXMLFile dfmap_file;
     //dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), fmap);
