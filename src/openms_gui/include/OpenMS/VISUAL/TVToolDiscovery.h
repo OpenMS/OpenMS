@@ -47,7 +47,6 @@ namespace OpenMS
 
      @details All tools and utils listed in the ToolHandler class are considered.
 
-     @example
      @code
      TVToolDiscovery scanner;
      scanner.loadParams();
