@@ -540,6 +540,11 @@ namespace OpenMS
     return drift_time_unit_;
   }
 
+  String MSSpectrum::getDriftTimeUnitasString() const
+  {
+    return Precursor::NamesOfDriftTimeUnit[drift_time_unit_];
+  }
+
   void MSSpectrum::setDriftTimeUnit(DriftTimeUnit dt)
   {
     drift_time_unit_ = dt;

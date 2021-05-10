@@ -227,6 +227,9 @@ public:
     */
     DriftTimeUnit getDriftTimeUnit() const;
 
+    /// returns the ion mobility drift time unit as string
+    String getDriftTimeUnitasString() const;
+
     /**
       @brief Sets the ion mobility drift time unit
     */
