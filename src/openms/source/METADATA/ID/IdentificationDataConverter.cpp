@@ -114,7 +114,7 @@ namespace OpenMS
         parent.description = hit.getDescription();
         // coverage comes in percents, -1 for missing; we want 0 to 1:
         parent.coverage = max(hit.getCoverage(), 0.0) / 100.0;
-        static_cast<MetaInfoInterface&>(parent) = hit;
+        parent.addMetaValues(hit);
         ID::AppliedProcessingStep applied(step_ref);
         applied.scores[prot_score_ref] = hit.getScore();
         parent.steps_and_scores.push_back(applied);
@@ -214,7 +214,7 @@ namespace OpenMS
       }
       obs.rt = pep.getRT();
       obs.mz = pep.getMZ();
-      static_cast<MetaInfoInterface&>(obs) = pep;
+      obs.addMetaValues(pep);
       if (pep.metaValueExists("spectrum_reference"))
       {
         obs.data_id = pep.getMetaValue("spectrum_reference");
@@ -241,7 +241,11 @@ namespace OpenMS
       // PeptideHit:
       for (const PeptideHit& hit : pep.getHits())
       {
-        if (hit.getSequence().empty()) continue;
+        if (hit.getSequence().empty())
+        {
+          OPENMS_LOG_WARN << "Warning: Trying to import PeptideHit without a sequence. This should not happen!" << std::endl;
+          continue;
+        }
         ID::IdentifiedPeptide peptide(hit.getSequence());
         peptide.addProcessingStep(step_ref);
         for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
@@ -253,17 +257,17 @@ namespace OpenMS
           // this will merge information if the protein already exists:
           ID::ParentSequenceRef parent_ref =
             id_data.registerParentSequence(parent);
-          ID::ParentMatch match(evidence.getStart(), evidence.getEnd(),
-                                        evidence.getAABefore(),
-                                        evidence.getAAAfter());
-          peptide.parent_matches[parent_ref].insert(match);
+          ID::ParentMatch parent_match(evidence.getStart(), evidence.getEnd(),
+                                       evidence.getAABefore(),
+                                       evidence.getAAAfter());
+          peptide.parent_matches[parent_ref].insert(parent_match);
         }
         ID::IdentifiedPeptideRef peptide_ref =
           id_data.registerIdentifiedPeptide(peptide);
 
         ID::ObservationMatch match(peptide_ref, obs_ref);
         match.charge = hit.getCharge();
-        static_cast<MetaInfoInterface&>(match) = hit;
+        match.addMetaValues(hit);
         if (!hit.getPeakAnnotations().empty())
         {
           match.peak_annotations[step_ref] = hit.getPeakAnnotations();
@@ -310,6 +314,14 @@ namespace OpenMS
         // most recent step (with primary score) goes last:
         match.addProcessingStep(applied);
         id_data.registerObservationMatch(match);
+/*        for (const auto& m : id_data.getObservationMatches())
+        {
+          const auto& pep_ref = m.identified_molecule_var.getIdentifiedPeptideRef();
+          if (fabs(m.observation_ref->mz - pep_ref->sequence.getMZ(m.charge)) > 3)
+          {
+            std::cerr << "InSIDE IDC after register: STH WENT WRONG WITH " << pep_ref->sequence.toString() << std::endl;
+          }
+        }*/
       }
     }
     progresslogger.endProgress();
@@ -334,7 +346,7 @@ namespace OpenMS
            id_data.getObservationMatches())
     {
       PeptideHit hit;
-      static_cast<MetaInfoInterface&>(hit) = input_match;
+      hit.addMetaValues(input_match);
       const ID::IdentifiedMolecule& molecule_var = input_match.identified_molecule_var;
       const ID::ParentMatches* parent_matches_ptr = nullptr;
       if (molecule_var.getMoleculeType() == ID::MoleculeType::PROTEIN)
@@ -366,18 +378,17 @@ namespace OpenMS
       {
         hit.setMetaValue("adduct", (*input_match.adduct_opt)->getName());
       }
-      // @TODO: is this needed? don't we copy over all meta values above?
-      if (input_match.metaValueExists(ppm_error_name))
-      {
-        hit.setMetaValue(ppm_error_name,
-                         input_match.getMetaValue(ppm_error_name));
-      }
 
       // generate hits in different ID runs for different processing steps:
-      for (ID::AppliedProcessingStep applied : input_match.steps_and_scores)
+      for (const ID::AppliedProcessingStep& applied : input_match.steps_and_scores)
       {
         // @TODO: allow peptide hits without scores?
-        if (applied.scores.empty()) continue;
+        if (applied.scores.empty())
+        {
+          OPENMS_LOG_WARN << "Warning: trying to export ObservationMatch without score. Skipping.." << std::endl;
+          continue;
+        }
+
         PeptideHit hit_copy = hit;
         vector<pair<ID::ScoreTypeRef, double>> scores =
           applied.getScoresInOrder();
@@ -404,29 +415,29 @@ namespace OpenMS
     // order steps by date, if available:
     set<StepOpt, StepOptCompare> steps;
 
-    for (const auto& psm : psm_data)
+    for (const auto& obsref_stepopt2vechits_scoretype : psm_data)
     {
-      const ID::Observation& obs = *psm.first.first;
+      const ID::Observation& obs = *obsref_stepopt2vechits_scoretype.first.first;
       PeptideIdentification peptide;
-      static_cast<MetaInfoInterface&>(peptide) = obs;
+      peptide.addMetaValues(obs);
       // set RT and m/z if they aren't missing (NaN):
       if (obs.rt == obs.rt) peptide.setRT(obs.rt);
       if (obs.mz == obs.mz) peptide.setMZ(obs.mz);
       peptide.setMetaValue("spectrum_reference", obs.data_id);
-      peptide.setHits(psm.second.first);
-      const ID::ScoreType& score_type = *psm.second.second;
+      peptide.setHits(obsref_stepopt2vechits_scoretype.second.first);
+      const ID::ScoreType& score_type = *obsref_stepopt2vechits_scoretype.second.second;
       peptide.setScoreType(score_type.cv_term.getName());
       peptide.setHigherScoreBetter(score_type.higher_better);
-      if (psm.first.second) // processing step given
+      if (obsref_stepopt2vechits_scoretype.first.second) // processing step given
       {
-        peptide.setIdentifier(String(Size(&(**psm.first.second))));
+        peptide.setIdentifier(String(Size(&(**obsref_stepopt2vechits_scoretype.first.second))));
       }
       else
       {
         peptide.setIdentifier("dummy");
       }
       peptides.push_back(peptide);
-      steps.insert(psm.first.second);
+      steps.insert(obsref_stepopt2vechits_scoretype.first.second);
     }
     // sort peptide IDs by RT and m/z to improve reproducibility:
     sort(peptides.begin(), peptides.end(), PepIDCompare());
@@ -446,14 +457,15 @@ namespace OpenMS
       {
         hit.setCoverage(ProteinHit::COVERAGE_UNKNOWN);
       }
-      static_cast<MetaInfoInterface&>(hit) = parent;
+      hit.clearMetaInfo();
+      hit.addMetaValues(parent);
       if (!parent.metaValueExists("target_decoy"))
       {
         hit.setMetaValue("target_decoy", parent.is_decoy ? "decoy" : "target");
       }
 
       // generate hits in different ID runs for different processing steps:
-      for (ID::AppliedProcessingStep applied : parent.steps_and_scores)
+      for (const ID::AppliedProcessingStep& applied : parent.steps_and_scores)
       {
         if (applied.scores.empty() && !steps.count(applied.processing_step_opt))
         {
@@ -1028,6 +1040,9 @@ namespace OpenMS
                                                      bool clear_original)
   {
     Size id_counter = 0;
+    // Adds dummy Obs.Match for features with ID but no matches. Adds "IDConverter_trace" meta value
+    // to Matches for every feature/subfeature they are contained in
+    // e.g. 3,1,2 for a Match in subfeature 2 of subfeature 1 of feature 3
     for (Size i = 0; i < features.size(); ++i)
     {
       handleFeatureExport_(features[i], IntList(1, i),
@@ -1065,9 +1080,9 @@ namespace OpenMS
             IntList indexes = hit.getMetaValue(key);
             hit.removeMetaValue(key);
             Feature* feat_ptr = &features.at(indexes[0]);
-            for (Size i = 1; i < indexes.size(); ++i)
+            for (Size k = 1; k < indexes.size(); ++k)
             {
-              feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
+              feat_ptr = &feat_ptr->getSubordinates()[indexes[k]];
             }
             features_to_hits[feat_ptr].insert(j);
             assigned_hits[j] = true;
@@ -1116,7 +1131,7 @@ namespace OpenMS
   }
 
   void IdentificationDataConverter::handleFeatureExport_(
-    Feature& feature, IntList indexes, IdentificationData& id_data, Size& id_counter)
+    Feature& feature, const IntList& indexes, IdentificationData& id_data, Size& id_counter)
   {
     if (feature.getIDMatches().empty() && feature.hasPrimaryID())
     {

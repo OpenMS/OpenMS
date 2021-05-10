@@ -311,6 +311,15 @@ protected:
     registerFullParam_(combined);
   }
 
+  bool checkPepID_(const PeptideIdentification& id){
+    if (fabs(id.getMZ() - id.getHits()[0].getSequence().getMZ(id.getHits()[0].getCharge())) > 3)
+    {
+      std::cerr << "Something went terribly wrong for id " + id.getHits()[0].getSequence().toString() << std::endl;
+      return false;
+    }
+    return true;
+  }
+
   // Map between mzML file and corresponding id file
   // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
@@ -1058,6 +1067,7 @@ protected:
       //////////////////////////////////////////////////////
       // Transfer aligned IDs
       //////////////////////////////////////////////////////
+      Size c = 0;
       if (!transfered_ids.empty())
       {
         OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.")
@@ -1072,8 +1082,12 @@ protected:
         {
            PeptideIdentification trans = it->second;
            trans.setIdentifier(protein_ids[0].getIdentifier());
+           //TODO carry over proteins, carry over File info, or pass it otherwise to FFID!
+           // otherwise we might have an invalid idXML with missing proteins and overlapping spectrum_refs
            peptide_ids.push_back(trans);
+           c++;
         }
+        std::cout << "TRANSFERRING " << c << "IDs" << std::endl;
       }
 
       //////////////////////////////////////////
@@ -1129,9 +1143,30 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
+/*      bool ok = true;
+      for (const auto& id : peptide_ids)
+      {
+        ok &= checkPepID_(id);
+      }
+      if(!ok) std::cerr << "ALREADY WRONG BEFORE IMPORT" << std::endl;*/
+
+      if (c > 0)
+      {
+        IdXMLFile().store("debug_fraction_" + String(ms_files.first) + "_IDs_after_transfer.idXML", protein_ids, peptide_ids);
+      }
+
       IdentificationData id_data, id_data_ext;
       IdentificationDataConverter::importIDs(id_data, protein_ids, peptide_ids);
       IdentificationDataConverter::importIDs(id_data_ext, ext_protein_ids, ext_peptide_ids);
+/*      for (const auto& obs_match : id_data.getObservationMatches())
+      {
+        const auto& pep_ref = obs_match.identified_molecule_var.getIdentifiedPeptideRef();
+        if (fabs(obs_match.observation_ref->mz - pep_ref->sequence.getMZ(obs_match.charge)) > 3)
+        {
+          std::cerr << "STH WENT WRONG WITH " << pep_ref->sequence.toString() << std::endl;
+        }
+      }*/
+
       if (!seeds.empty())
       {
         ffi.convertSeeds(seeds, id_data);
@@ -1141,6 +1176,14 @@ protected:
 
       // convert IDs in feature map to Peptide-/ProteinIdentification:
       IdentificationDataConverter::exportFeatureIDs(fm);
+
+/*      ok = true;
+      for (const auto& id : fm.getUnassignedPeptideIdentifications())
+      {
+        ok &= checkPepID_(id);
+      }
+
+      if(!ok) std::cerr << "WRONG" << std::endl;*/
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
@@ -1154,6 +1197,14 @@ protected:
 
       IDConflictResolverAlgorithm::resolve(fm,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
+
+/*      ok = true;
+      for (const auto& id : fm.getUnassignedPeptideIdentifications())
+      {
+        ok &= checkPepID_(id);
+      }
+
+      if(!ok) std::cerr << "WRONG" << std::endl;*/
 
       feature_maps.push_back(std::move(fm));
 
@@ -1222,6 +1273,13 @@ protected:
 
     // sort list of peptide identifications in each consensus feature by map index
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
+
+/*    bool ok = true;
+    for (const auto& id : consensus_fraction.getUnassignedPeptideIdentifications())
+    {
+      ok &= checkPepID_(id);
+    }
+    if(!ok) std::cerr << "WRONG after fraction linking" << std::endl; */
 
     if (debug_level_ >= 666)
     {
@@ -1825,6 +1883,13 @@ protected:
       }
     }
 
+    bool ok = true;
+    for (const auto& id : consensus.getUnassignedPeptideIdentifications())
+    {
+      ok &= checkPepID_(id);
+    }
+
+    if(!ok) std::cerr << "WRONG after linking" << std::endl;
     //-------------------------------------------------------------
     // ID related algorithms
     // TODO we could switch to work on the IDs in ConsensusXML
