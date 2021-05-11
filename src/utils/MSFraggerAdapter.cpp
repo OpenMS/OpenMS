@@ -203,7 +203,7 @@ public:
                                   "techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       \n"
                                   "University of Michigan.\n"
                                   "\n"
-                                  "For details, please see the supplied license file or                                           \n
+                                  "For details, please see the supplied license file or                                           \n"
 				  "https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           \n"    
     , false,
              {
