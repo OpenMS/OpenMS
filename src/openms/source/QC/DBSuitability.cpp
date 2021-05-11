@@ -107,15 +107,6 @@ namespace OpenMS
       break;
     }
 
-    Param p;
-    p.setValue("use_all_hits", "true");
-    p.setValue("add_decoy_peptides", "true");
-    p.setValue("add_decoy_proteins", "true");
-
-    FalseDiscoveryRate fdr;
-    fdr.setParameters(p);
-    fdr.apply(pep_ids);
-
     // calculate suitability
     results_.push_back(SuitabilityData());
     SuitabilityData& suitability_data_full = results_.back();
@@ -269,9 +260,16 @@ namespace OpenMS
     return true;
   }
 
-  bool DBSuitability::passesFDR_(const PeptideHit& hit, double FDR) const
+  bool DBSuitability::checkScoreBetterThanThreshold_(const PeptideHit& hit, double threshold, bool higher_score_better) const
   {
-    if (hit.getScore() > FDR) return false;
+    if (higher_score_better)
+    {
+      if (hit.getScore() < threshold)
+        return false;
+      return true;
+    }
+    if (hit.getScore() > threshold)
+      return false;
     return true;
   }
 
@@ -405,26 +403,6 @@ namespace OpenMS
       id_file.store(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids);
     }
 
-    // calculate q-values
-    FalseDiscoveryRate fdr;
-    Param p(fdr.getParameters());
-    if (!p.exists("use_all_hits") || !p.exists("add_decoy_peptides") || !p.exists("add_decoy_proteins"))
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR parameters probably changed. 'use_all_hits', 'add_decoy_peptides' or 'add_decoy_proteins' not found.");
-    }
-    p.setValue("use_all_hits", "true");
-    p.setValue("add_decoy_peptides", "true");
-    p.setValue("add_decoy_proteins", "true");
-
-    fdr.setParameters(p);
-    OPENMS_LOG_DEBUG << "Calculating q-values ..." << endl << endl;
-    fdr.apply(pep_ids);
-
-    if (keep_files)
-    {
-      id_file.store(tmp_dir.getPath() + "indexed_post_FDR.idXML", prot_ids, pep_ids);
-    }
-
     return pep_ids;
   }
 
@@ -462,12 +440,24 @@ namespace OpenMS
   {
     bool no_re_rank = param_.getValue("no_rerank").toBool();
     double cut_off_fract = param_.getValue("reranking_cutoff_percentile");
-    double FDR = param_.getValue("FDR");
 
     if (pep_ids.empty())
     {
       OPENMS_LOG_WARN << "No peptide identifications found in given idXML! No calculations performed." << endl;
       return;
+    }
+
+    bool hsb = pep_ids[0].isHigherScoreBetter();
+
+    // calculate score that corresponds to the FDR cut-off
+    double score_cut_off;
+    {
+      vector<PeptideIdentification> ids_copy(pep_ids);
+
+      FalseDiscoveryRate fdr;
+      fdr.apply(ids_copy);
+
+      score_cut_off = getScoreMatchingFDR_(ids_copy, param_.getValue("FDR"), pep_ids[0].getScoreType() + "_score", hsb);
     }
 
     if (!no_re_rank)
@@ -491,7 +481,7 @@ namespace OpenMS
       if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
       // skip if top hit is out ouf FDR
-      if (!passesFDR_(top_hit, FDR)) continue;
+      if (!checkScoreBetterThanThreshold_(top_hit, score_cut_off, hsb)) continue;
 
       // check if top hit is found in de novo protein
       if (!isNovoHit_(top_hit)) // top hit is db hit
@@ -505,7 +495,7 @@ namespace OpenMS
       for (UInt i = 1; i < hits.size(); ++i)
       {
         // check for FDR
-        if (!passesFDR_(hits[i], FDR)) break;
+        if (!checkScoreBetterThanThreshold_(hits[i], score_cut_off, hsb)) break;
 
         // check if target, also check for "target+decoy" value
         String td_info(hits[i].getMetaValue("target_decoy"));
@@ -672,10 +662,70 @@ namespace OpenMS
       novo_data.push_back(num_top_novo);
       novo_hits_to_data[num_top_novo] = i;
     }
+    
+    std::sort(novo_data.begin(), novo_data.end());
 
-    Size median_novo_hits = ceil(Math::median(novo_data.begin(), novo_data.end()));
+    return novo_hits_to_data.at(novo_data[ceil(novo_data.size() / 2)]);
+  }
 
-    return novo_hits_to_data.at(median_novo_hits);
+  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const
+  {
+    double worst_score = DBL_MAX;
+    if (!higher_score_better)
+    {
+      worst_score = -DBL_MAX;
+    }
+
+    for (const auto& id: pep_ids)
+    {
+      const vector<PeptideHit>& hits = id.getHits();
+
+      if (hits.empty()) continue;
+
+      if (id.getScoreType() != "q-value") // did FDR run?
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification.");
+      }
+
+      const PeptideHit& top_hit = hits[0]; // get first hit
+
+      if (!checkScoreBetterThanThreshold_(top_hit, FDR, false)) continue; // does this hit make the FDR?
+
+      // extract score from metavalues
+      double score = worst_score;
+
+      vector<String> meta_keys;
+      top_hit.getKeys(meta_keys);
+      for (const String& key : meta_keys)
+      {
+        if (key.find(score_name) != String::npos)
+        {
+          score = top_hit.getMetaValue(key);
+        }
+      }
+
+      if (score == worst_score)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'" + score_name + "' not found. The given score name has to exist as a meta value.");
+      }
+
+      
+      // is this score the worst score yet?
+      if (higher_score_better)
+      {
+        if (score < worst_score)
+        {
+          worst_score = score;
+        }
+        continue;
+      }
+      if (score > worst_score)
+      {
+        worst_score = score;
+      }
+      continue;
+    }
+    return worst_score;
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)

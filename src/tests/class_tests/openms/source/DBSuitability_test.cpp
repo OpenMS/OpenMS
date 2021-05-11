@@ -277,7 +277,7 @@ END_SECTION
 
 DBSuitability_friend private_suit;
 
-START_SECTION(std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double subsampling_rate))
+START_SECTION(std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double subsampling_rate) const)
 {
   vector<FASTAFile::FASTAEntry> fasta;
   FASTAFile::FASTAEntry entry;
@@ -309,7 +309,7 @@ START_SECTION(std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::
 }
 END_SECTION
 
-START_SECTION(void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta))
+START_SECTION(void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const)
 {
   vector<FASTAFile::FASTAEntry> fasta;
   FASTAFile::FASTAEntry entry;
@@ -324,7 +324,7 @@ START_SECTION(void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta))
 }
 END_SECTION
 
-START_SECTION(double calculateCorrectionFactor_(const DBSuitability::SuitabilityData& data, const DBSuitability::SuitabilityData& data_sampled, double sampling_rate))
+START_SECTION(double calculateCorrectionFactor_(const DBSuitability::SuitabilityData& data, const DBSuitability::SuitabilityData& data_sampled, double sampling_rate) const)
 {
   DBSuitability::SuitabilityData full_data;
   DBSuitability::SuitabilityData subsampled_data;
@@ -344,6 +344,99 @@ START_SECTION(double calculateCorrectionFactor_(const DBSuitability::Suitability
   TEST_EQUAL(factor, 2.5);
   TEST_EXCEPTION(Exception::Precondition, private_suit.calculateCorrectionFactor(full_data, subsampled_data, 2));
   TEST_EXCEPTION(Exception::Precondition, private_suit.calculateCorrectionFactor(full_data, subsampled_data, -1));
+}
+END_SECTION
+
+START_SECTION(UInt numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1) const)
+{
+  PeptideEvidence ev1("PROTEIN_1", 0, 0, '[', ']');
+  PeptideEvidence ev2("PROTEIN_2", 0, 0, '[', ']');
+  PeptideEvidence ev3("PROTEIN_3", 0, 0, '[', ']');
+  PeptideEvidence ev4("PROTEIN_4", 0, 0, '[', ']');
+  PeptideEvidence ev5("DECOY_PROTEIN", 0, 0, '[', ']');
+
+  PeptideHit hit1;
+  hit1.setPeptideEvidences({ev1, ev1, ev2});
+  hit1.setMetaValue("target_decoy", "target");
+  PeptideHit hit2;
+  hit2.setPeptideEvidences({ev4, ev3, ev5});
+  hit2.setMetaValue("target_decoy", "target+decoy");
+  PeptideHit hit3;
+  hit3.setPeptideEvidences({ev3, ev2, ev3});
+  hit3.setMetaValue("target_decoy", "target");
+  PeptideHit hit4;
+  hit4.setPeptideEvidences({ev5});
+  hit4.setMetaValue("target_decoy", "decoy");
+  PeptideHit empty_hit;
+
+  PeptideIdentification id1;
+  id1.setHits({hit1, hit2});
+  PeptideIdentification id2;
+  id2.setHits({hit3});
+  PeptideIdentification id3;
+  id3.setHits({hit4});
+  PeptideIdentification empty_id;
+  PeptideIdentification id_hit_without_info;
+  id_hit_without_info.setHits({empty_hit});
+
+  vector<PeptideIdentification> ids({id1, id2, empty_id, id3});
+
+  TEST_EQUAL(private_suit.numberOfUniqueProteins(ids), 3);
+  TEST_EQUAL(private_suit.numberOfUniqueProteins(ids, 5), 4);
+  TEST_EXCEPTION(Exception::MissingInformation, private_suit.numberOfUniqueProteins({id_hit_without_info}));
+}
+END_SECTION
+
+START_SECTION(Size getIndexWithMedianNovoHits_(const std::vector<SuitabilityData>& data) const)
+{
+  DBSuitability::SuitabilityData d1;
+  d1.num_top_novo = 10;
+  DBSuitability::SuitabilityData d2;
+  d2.num_top_novo = 20;
+  DBSuitability::SuitabilityData d3;
+  d3.num_top_novo = 15;
+  DBSuitability::SuitabilityData d4;
+  d4.num_top_novo = 40;
+
+  TEST_EQUAL(private_suit.getIndexWithMedianNovoHits({d1, d2, d3}), 2);
+  TEST_EQUAL(private_suit.getIndexWithMedianNovoHits({d1, d2, d3, d4}), 1);
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getIndexWithMedianNovoHits({}));
+}
+END_SECTION
+
+START_SECTION(double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const)
+{
+  PeptideHit hit1;
+  hit1.setScore(0.01);
+  hit1.setMetaValue("some_score", 120);
+  PeptideHit hit2;
+  hit2.setScore(0.04);
+  hit2.setMetaValue("some_score", 80);
+  PeptideHit hit3;
+  hit3.setScore(0.5);
+  hit3.setMetaValue("some_score", 5);
+  PeptideHit hit4;
+  hit4.setScore(0.05);
+  hit4.setMetaValue("some_score", 75);
+
+  PeptideIdentification id1;
+  id1.setScoreType("q-value");
+  id1.setHits({hit1});
+  PeptideIdentification id2;
+  id2.setScoreType("q-value");
+  id2.setHits({hit2});
+  PeptideIdentification id3;
+  id3.setScoreType("q-value");
+  id3.setHits({hit3});
+  PeptideIdentification id4;
+  id4.setScoreType("q-value");
+  id4.setHits({hit4});
+
+  TEST_EQUAL(private_suit.getScoreMatchingFDR({id1, id2, id3, id4}, 0.05, "some_score", true), 75);
+  TEST_EQUAL(private_suit.getScoreMatchingFDR({id1, id2, id3, id4}, 0.05, "some", false), 120);
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getScoreMatchingFDR({id1}, 0.05, "e-value", false));
+  id1.setScoreType("e-value");
+  TEST_EXCEPTION(Exception::Precondition, private_suit.getScoreMatchingFDR({id1}, 0.05, "some_score", false));
 }
 END_SECTION
 

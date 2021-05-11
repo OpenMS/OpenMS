@@ -290,15 +290,14 @@ namespace OpenMS
     bool isNovoHit_(const PeptideHit& hit) const;
 
     /**
-    * @brief Tests if a PeptideHit has a lower q-value than the given FDR threshold, i.e. passes FDR
+    * @brief Tests if a PeptideHit has a score better than the given threshold
     *
-    * Q-value is searched at score and at meta-value level.
-    *
-    * @param hit            PepHit in question
-    * @param FDR            FDR threshold to check against
-    * @returns              true/false
+    * @param hit                    PepHit in question
+    * @param threshold              threshold to check against
+    * @param higher_score_better    true/false depending if a higher or a lower score is better
+    * @returns                      true/false
     */
-    bool passesFDR_(const PeptideHit& hit, double FDR) const;
+    bool checkScoreBetterThanThreshold_(const PeptideHit& hit, double threshold, bool higher_score_better) const;
 
     /**
     * @brief Looks through meta values of SearchParameters to find out which search adapter was used
@@ -429,8 +428,27 @@ namespace OpenMS
     * @returns        index to object with median number of de novo hits
     */
     Size getIndexWithMedianNovoHits_(const std::vector<SuitabilityData>& data) const;
+
+    /**
+    * @brief Extracts the worst score that still makes a FDR (q-value) threshold
+    *
+    * This can be used to 'convert' a FDR threshold to a threshold for the desired score (score and FDR need to be dependent)
+    *
+    * @param pep_ids              vector of PeptideIdentifications
+    * @param FDR                  FDR threshold, hits with a worse q-value score aren't looked at
+    * @param score_name           name of the score to search for
+    *                             The score name doesn't need to be the exact metavalue name, but a metavalue key should contain it.
+    *                             i.e. "e-value" as metavalue "e-value_score"
+    * @param higher_score_better  true/false depending if a higher or lower score (@score_name) is better
+    * @returns                    the worst score that is still in the FDR threshold
+    *
+    * @throws                     IllegalArgument if @score_name isn't found in the metavalues
+    * @throws                     Precondition if main score of @pep_ids isn't 'q-value'
+    */
+    double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const;
   };
 
+  // friend class to test private member functions
   class DBSuitability_friend
   {
   public:
@@ -453,8 +471,23 @@ namespace OpenMS
       return suit_.calculateCorrectionFactor_(data, data_sampled, sampling_rate);
     }
 
+    UInt numberOfUniqueProteins(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1)
+    {
+      return suit_.numberOfUniqueProteins_(peps, number_of_hits);
+    }
+
+    Size getIndexWithMedianNovoHits(const std::vector<DBSuitability::SuitabilityData>& data)
+    {
+      return suit_.getIndexWithMedianNovoHits_(data);
+    }
+
+    double getScoreMatchingFDR(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better)
+    {
+      return suit_.getScoreMatchingFDR_(pep_ids, FDR, score_name, higher_score_better);
+    }
+
     /* Not tested:
-      getDecoyDiff_, getDecoyCutOff_, isNovoHit_, passesFDR_
+      getDecoyDiff_, getDecoyCutOff_, isNovoHit_, checkScoreBetterThanThreshold_
       Reason: These functions are essential to the normal suitability calculation and if something would not work, the test for 'compute' would fail.
 
       extractSearchAdapterInfoFromMetaValues_, writeIniFile_, extractScore_
@@ -464,6 +497,7 @@ namespace OpenMS
       Reason: This function simulates a whole workflow and testing it would be to complicated.
     */
 
+  private:
     DBSuitability suit_;
   };
 }
