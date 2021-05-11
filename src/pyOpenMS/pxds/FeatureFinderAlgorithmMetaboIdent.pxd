@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
 
         MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieve chromatograms (empty if run was not executed)
 
-        const TargetedExperiment& getLibrary() nogil except + #wrap-doc:Retrieve the assay library (e.g., to store as TraML, empty if run was not executed)
+        const TargetedExperiment& getLibrary () nogil except + #wrap-doc:Retrieve the assay library (e.g., to store as TraML, empty if run was not executed)
         
         const TransformationDescription& getTransformations() nogil except + #wrap-doc:Retrieve deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
 
@@ -51,7 +51,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         String formula
         double mass
         libcpp_vector[ Int ] charges
-        libcpp_vector[ doubles ] rts
-        libcpp_vector[ doubles ] rt_ranges
-        libcpp_vector[ doubles ] iso_distrib
+        libcpp_vector[ double ] rts
+        libcpp_vector[ double ] rt_ranges
+        libcpp_vector[ double ] iso_distrib
         
