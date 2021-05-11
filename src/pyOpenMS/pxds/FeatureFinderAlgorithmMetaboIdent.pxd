@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         void setMSData(MSExperiment & input) nogil except + #wrap-doc:Set spectra
         const MSExperiment& getMSData() nogil except + #wrap-doc:Get spectra
 
-        void run(const libcpp_vector[ FeatureFinderAlgorithmMetaboIdent_Row ] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
+        void run(const libcpp_vector[ Row ] metaboIdentTable, FeatureMap& features) nogil except + #wrap-doc:Run the experiment
 
         MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieve chromatograms (empty if run was not executed)
 
@@ -42,15 +42,16 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
 
         size_t getNShared() nogil except + #wrap-doc:Retrieve number of features with shared identifications
 
-    cdef cppclass FeatureFinderAlgorithmMetaboIdent_Row "OpenMS::FeatureFinderAlgorithmMetaboIdent::Row":
+cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS::FeatureFinderAlgorithmMetaboIdent":
 
-        FeatureFinderAlgorithmMetaboIdent_Row() nogil except +
-        FeatureFinderAlgorithmMetaboIdent_Row(FeatureFinderAlgorithmMetaboIdent_Row) nogil except + #wrap-ignore
+    cdef cppclass Row:
+
+        Row() nogil except +
 
         String name
         String formula
         double mass
-        libcpp_vector[ Int ] charges
+        libcpp_vector[ int ] charges
         libcpp_vector[ double ] rts
         libcpp_vector[ double ] rt_ranges
         libcpp_vector[ double ] iso_distrib

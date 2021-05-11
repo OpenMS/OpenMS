@@ -56,6 +56,10 @@ class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
 public:
   struct Row 
   {
+    Row()
+    {
+    }
+    
     String name;
     String formula;
     double mass;
