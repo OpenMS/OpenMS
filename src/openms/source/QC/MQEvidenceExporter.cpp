@@ -64,7 +64,7 @@ MQEvidence::MQEvidence(const std::string &p)
     catch(...)
     {
         OPENMS_LOG_FATAL_ERROR << filename << " wasn’t created" << std::endl;
-        throw; // Exception::FileNotWritable();
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out_evd");
     }
     export_header();
     id_ = 0;
@@ -399,7 +399,7 @@ void MQEvidence::exportFeatureMapTotxt(
     if(!isValid())
     {
         OpenMS_Log_error << "MqEvidence object is not valid." << std::endl;
-        throw; //Exception::FileNotWritable();
+        throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out_evd");
     }
     const std::map<UInt64,Size> & fTc = fid_to_cmapindex(cmap);
     String raw_file;

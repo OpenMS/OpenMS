@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
+#include <filesystem>
 
 ///////////////////////////
 ///////////////////////////
@@ -50,10 +51,12 @@ using namespace OpenMS;
 
 MQEvidence* ptr = nullptr;
 MQEvidence* null_ptr = nullptr;
+std::string tmp_path = P_tmpdir;
+
 START_SECTION(MQEvidence())
 {
-    String x = "/buffer/ag_bsc/pmsb_2021/musch";
-    ptr = new MQEvidence(x);
+    //String x = "/buffer/ag_bsc/pmsb_2021/noske/OpenMS/src/tests/class_tests/openms/data";
+    ptr = new MQEvidence(tmp_path);
     TEST_NOT_EQUAL(ptr,null_ptr);
 }
 END_SECTION
@@ -64,20 +67,20 @@ START_SECTION(exportFeatureMapTotxt())
 
     ConsensusMap cmap;
     ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap);
-    std::vector<FeatureMap> fmaps = cmap.split(ConsensusMap::SplitMeta::COPY_ALL);
-    FeatureMap fmap = fmaps[0];
-    
-    //FeatureMap fmap;
-    //FeatureXMLFile dfmap_file;
-    //dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), fmap);
-    ptr->exportFeatureMapTotxt(fmap,cmap);
-
-
-
-    //TEST_FILE_EQUAL()
-    delete ptr;
+    FeatureMap fmap_one;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap_one);
+    ptr->exportFeatureMapTotxt(fmap_one,cmap);
+    FeatureMap fmap_two;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.featureXML"), fmap_two);
+    ptr->exportFeatureMapTotxt(fmap_two,cmap);
+    FeatureMap fmap_three;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), fmap_three);
+    ptr->exportFeatureMapTotxt(fmap_three,cmap);
+    String filename = tmp_path + "/evidence.txt";
+    TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
 }
 END_SECTION
+delete ptr;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
