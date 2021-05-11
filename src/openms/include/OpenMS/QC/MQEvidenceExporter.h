@@ -40,33 +40,33 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-using namespace OpenMS;
+
 
 class OPENMS_DLLAPI MQEvidence{
 private:
     std::fstream file_;
     int id_;
-    std::map<String,UInt64> protein_id_;
+    std::map<OpenMS::String,OpenMS::UInt64> protein_id_;
 public:
     explicit MQEvidence(const std::string & p);
     ~MQEvidence();
     bool isValid();
     void export_header();
-    UInt64 protein_group_id(const String &protein);
+    OpenMS::UInt64 protein_group_id(const OpenMS::String &protein);
 
-    std::map<UInt64, Size> fid_to_cmapindex(const ConsensusMap & cmap);
+    std::map<OpenMS::UInt64, OpenMS::Size> fid_to_cmapindex(const OpenMS::ConsensusMap & cmap);
 
     bool peptide_hits(
-            const std::vector<PeptideIdentification> & pep_ids,
-            std::vector<PeptideHit> & pep_hit,
-            std::vector<PeptideHit>::iterator & pep_hits_iterator);
+            const std::vector<OpenMS::PeptideIdentification> & pep_ids,
+            std::vector<OpenMS::PeptideHit> & pep_hit,
+            std::vector<OpenMS::PeptideHit>::iterator & pep_hits_iterator);
 
     void exportRowFromFeature(
-            const Feature &f,
-            const ConsensusFeature &c,
-            const String & raw_file);
+            const OpenMS::Feature &f,
+            const OpenMS::ConsensusFeature &c,
+            const OpenMS::String & raw_file);
 
     void exportFeatureMapTotxt(
-            const FeatureMap & feature_map,
-            const ConsensusMap& cmap);
+            const OpenMS::FeatureMap & feature_map,
+            const OpenMS::ConsensusMap& cmap);
 };

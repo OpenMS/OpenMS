@@ -203,6 +203,8 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
         pep_ids_size = pep_ids_f.size();
         type = "MULTI-MSMS";
     }
+    else if()
+    {}
     else if(peptide_hits(pep_ids_c, pep_hits, pep_hits_iterator))
     {
         pep_ids_size = pep_ids_c.size();

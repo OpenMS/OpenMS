@@ -481,7 +481,7 @@ private:
     }
     return files;
   }
-  /*
+/*
   void fillConsensusPepIDMap_(vector<PeptideIdentification>& cpep_ids,
                               const map<String, StringList>& identifier_to_msrunpath,
                               multimap<String, PeptideIdentification*>& customID_to_cpepID) const
@@ -524,9 +524,9 @@ private:
       if (f_pep_id.getHits().empty()) continue;
 
       String UID = PeptideIdentification::fill_fidentifier_to_msrunpath(f_pep_id,fidentifier_to_msrunpath);
-      /*
+
       // for empty PIs which were created by a metric
-      if (f_pep_id.getHits().empty()) continue;
+      /*if (f_pep_id.getHits().empty()) continue;
 
       String UID;
       const auto& ms_run_path = fidentifier_to_msrunpath.at(f_pep_id.getIdentifier());

@@ -37,13 +37,14 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+
 
 #include <string>
 #include <map>
 
 namespace OpenMS
 {
+    class ConsensusMap;
   /**
     @brief Represents the peptide hits for a spectrum
 
@@ -52,7 +53,6 @@ namespace OpenMS
       can belong to one ProteinIdentification. The general information about a
       PeptideIdentification has to be looked up in the corresponding ProteinIndentification, using
       the unique <i>identifier</i> that links the two.
-
       When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
       of the precursor spectrum can be accessed using getRT() and getMZ().
       This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
