@@ -3,7 +3,7 @@
 using namespace std;
 namespace OpenMS
 {
-  NeedlemanWunsch(ScoringMatrix matrix, int penalty)
+  NeedlemanWunsch::NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix matrix, int penalty)
 {
   gapPenalty_ = penalty;
   switch(matrix)
@@ -22,7 +22,7 @@ namespace OpenMS
   }
 }
 
-int NeedlemanWunsch::getIndex_(char& a const, char& b const) const //noch optimieren
+int NeedlemanWunsch::getIndex_(const char& a, const char& b) const //noch optimieren
 {
 vector<pair<char,int>> vec =
     {
@@ -61,12 +61,12 @@ int NeedlemanWunsch::align_(const String& seq1, const String& seq2)
     matrix[i*(seq2len_+1)]=i*gapPenalty_;
   for (unsigned i =0; i<=seq2len_;++i)//horizontale mit gapkosten initialieren
     matrix[i]=i*gapPenalty_;
-  for (unsigned i=1;i<=seq1len_;++1)
+  for (unsigned i=1;i<=seq1len_;++i)
   {
     for (unsigned j=1;j<=seq2len_;++j)
     {
       matrix[i*(seq2len_ +1)+j]=max(max((matrix[i*(seq2len_+1)+j-1]+gapPenalty_), (matrix[(i-1)*(seq2len_+1)+j]+gapPenalty)),
-                                    (matrix[(i-1)*(seq2len_+1)+j-1])+ *matrixPtr_[getIndex_(seq1[i], seq2[j])])
+                                    (matrix[(i-1)*(seq2len_+1)+j-1])+ *matrixPtr_[getIndex_(seq1[i-1], seq2[j-1])])
     }
   }
   return matrix[(seq1len_+1)*(seq2len_+1)-1];

@@ -61,22 +61,23 @@ std::vector<int> PAM30MS
 namespace OpenMS
 {
   class OPENMS_DLLAPI NeedlemanWunsch
-      {
-          public:
-          enum ScoringMatrix
+  {
+    public:
+      enum ScoringMatrix
           {
-            PAM30MSMatrix,
-            identityMatrix
-          };
+              PAM30MSMatrix,
+              identityMatrix
+            };
 
-          NeedlemanWunsch(ScoringMatrix matrix, int penalty);
-          int align_(const String& seq1, const String& seq2);
+            NeedlemanWunsch(ScoringMatrix matrix, int penalty);
+            ~NeedlemanWunsch()=default;
+            int align_(const String& seq1, const String& seq2);
 
           private:
-          int getIndex_(char& a const, char& b const) const;
-          unsigned seq1len_ = 0;
-          unsigned seq2len_ = 0;
-          int gapPenalty_ = 0;
-          std::vector<int>* matrixPtr_ = nullptr;
-      };
+            int getIndex_(const char& a, const char& b) const;
+            unsigned seq1len_ = 0;
+            unsigned seq2len_ = 0;
+            int gapPenalty_ = 0;
+            std::vector<int>* matrixPtr_ = nullptr;
+  };
 }
