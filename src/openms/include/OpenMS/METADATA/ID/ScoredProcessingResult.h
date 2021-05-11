@@ -104,7 +104,7 @@ namespace OpenMS
       }
 
       /// Merge in data from another object
-      ScoredProcessingResult& operator+=(const ScoredProcessingResult& other)
+      ScoredProcessingResult& merge(const ScoredProcessingResult& other)
       {
         // merge applied processing steps and scores:
         for (const auto& step : other.steps_and_scores)

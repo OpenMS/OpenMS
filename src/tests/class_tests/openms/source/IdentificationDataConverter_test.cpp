@@ -223,15 +223,15 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
 
   TEST_EQUAL(peptides_in.size(), peptides_out.size());
   // order of ids is different, check that every output one is in the input:
-  TEST_EQUAL(all_of(peptides_out.begin(), peptides_out.end(), [&peptides_in, &mzrtcomp](const PeptideIdentification& hit)
+  TEST_EQUAL(all_of(peptides_out.begin(), peptides_out.end(), [&peptides_in, &mzrtcomp](const PeptideIdentification& hit) -> bool
   {
-    return std::find_if(peptides_in.begin(), peptides_in.end(), std::bind(mzrtcomp, hit, _1)) != peptides_in.end();
+    return std::find_if(peptides_in.begin(), peptides_in.end(), std::bind(mzrtcomp, hit, std::placeholders::_1)) != peptides_in.end();
   }), true);
 
   // and the other way round!
-  TEST_EQUAL(all_of(peptides_in.begin(), peptides_in.end(), [&peptides_out, &mzrtcomp](const PeptideIdentification& hit)
+  TEST_EQUAL(all_of(peptides_in.begin(), peptides_in.end(), [&peptides_out, &mzrtcomp](const PeptideIdentification& hit) -> bool
   {
-    return std::find_if(peptides_out.begin(), peptides_out.end(), std::bind(mzrtcomp, hit, _1)) != peptides_out.end();
+    return std::find_if(peptides_out.begin(), peptides_out.end(), std::bind(mzrtcomp, hit, std::placeholders::_1)) != peptides_out.end();
   }), true);
 
   // filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.idXML");

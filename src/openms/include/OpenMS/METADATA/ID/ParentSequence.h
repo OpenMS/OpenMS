@@ -77,11 +77,33 @@ namespace OpenMS
 
       ParentSequence(const ParentSequence&) = default;
 
-      ParentSequence& operator+=(const ParentSequence& other)
+      ParentSequence& merge(const ParentSequence& other)
       {
-        ScoredProcessingResult::operator+=(other);
-        if (sequence.empty()) sequence = other.sequence;
-        if (description.empty()) description = other.description;
+        ScoredProcessingResult::merge(other);
+        if (sequence.empty()) 
+        {
+          sequence = other.sequence;
+        } 
+        else if (sequence != other.sequence)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, 
+                                        "Trying to overwrite ParentSequence sequence with conflicting value.", 
+                                        sequence);
+        } 
+
+        if (description.empty())
+        {
+          description = other.description;
+        } 
+        else if (description != other.description)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, 
+                                        "Trying to overwrite ParentSequence description with conflicting value.", 
+                                        description);
+        } 
+
         if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
         // @TODO: what about coverage? (not reliable if we're merging data)
 

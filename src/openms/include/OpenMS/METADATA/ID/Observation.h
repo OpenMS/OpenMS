@@ -71,7 +71,7 @@ namespace OpenMS
       }
 
       /// Merge in data from another object
-      Observation& operator+=(const Observation& other)
+      Observation& merge(const Observation& other)
       {
         // merge meta info - existing entries may be overwritten:
         std::vector<UInt> keys;

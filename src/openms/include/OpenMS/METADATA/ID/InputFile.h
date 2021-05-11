@@ -67,11 +67,18 @@ namespace OpenMS
       InputFile(const InputFile& other) = default;
 
       /// Merge in data from another object
-      InputFile& operator+=(const InputFile& other)
+      InputFile& merge(const InputFile& other)
       {
         if (experimental_design_id.empty())
         {
           experimental_design_id = other.experimental_design_id;
+        }
+        else if (experimental_design_id != other.experimental_design_id)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, 
+                                        "Trying to overwrite InputFile experimental design id with conflicting value.", 
+                                        experimental_design_id);
         }
         primary_files.insert(other.primary_files.begin(),
                              other.primary_files.end());

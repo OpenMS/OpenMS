@@ -771,7 +771,7 @@ namespace OpenMS
       {
         container.modify(result.first, [&element](ElementType& existing)
                          {
-                           existing += element;
+                           existing.merge(element);
                          });
       }
 

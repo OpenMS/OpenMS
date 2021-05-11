@@ -106,7 +106,7 @@ namespace OpenMS
     {
       input_files_.modify(result.first, [&file](InputFile& existing)
                           {
-                            existing += file;
+                            existing.merge(file);
                           });
     }
 
@@ -239,7 +239,7 @@ namespace OpenMS
     {
       observations_.modify(result.first, [&obs](Observation& existing)
                            {
-                             existing += obs;
+                             existing.merge(obs);
                            });
     }
 
