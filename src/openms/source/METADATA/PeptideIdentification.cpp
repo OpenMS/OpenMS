@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 using namespace std;
 
@@ -269,6 +270,73 @@ namespace OpenMS
     }
     return filtered;
   }
+
+  std::multimap<String, PeptideIdentification*> PeptideIdentification::fillConsensusPepIDMap(const ConsensusMap &cmap)
+  {
+    multimap<String, PeptideIdentification*> customID_to_cpepID{};
+
+    ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
+    const map<String, StringList>& identifier_to_msrunpath = mp_c.identifier_to_msrunpath;
+
+
+    std::vector<PeptideIdentification> cpep_ids{};
+    for(Size i = 0; i < cmap.size(); ++i)
+    {
+      cpep_ids.insert(cpep_ids.end(), cmap[i].getPeptideIdentifications().begin(),
+                      cmap[0].getPeptideIdentifications().end());
+    }
+    cpep_ids.insert(cpep_ids.end(), cmap.getUnassignedPeptideIdentifications().begin(),
+                    cmap.getUnassignedPeptideIdentifications().end());
+
+    for (PeptideIdentification &cpep_id : cpep_ids)
+    {
+        if (!cpep_id.metaValueExists("spectrum_reference"))
+        {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "Spectrum reference missing at PeptideIdentification.");
+        }
+        const auto &ms_run_path = identifier_to_msrunpath.at(cpep_id.getIdentifier());
+
+        String UID; //< unique ID to identify the PepID
+        if (ms_run_path.size() == 1)
+        {
+            UID = ms_run_path[0] + cpep_id.getMetaValue("spectrum_reference").toString();
+        }
+        else if (cpep_id.metaValueExists("map_index"))
+        {
+            UID = cpep_id.getMetaValue("map_index").toString() +
+                  cpep_id.getMetaValue("spectrum_reference").toString();
+        }
+        else
+        {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "Multiple files in a run, but no map_index in PeptideIdentification found.");
+        }
+        customID_to_cpepID.insert(make_pair(UID, &cpep_id));
+
+    }
+    return customID_to_cpepID;
+  }
+
+  String PeptideIdentification::fill_fidentifier_to_msrunpath(const PeptideIdentification& f_pep_id,
+                           const std::map<String, StringList>& fidentifier_to_msrunpath)
+  {
+
+      String UID;
+      const auto &ms_run_path = fidentifier_to_msrunpath.at(f_pep_id.getIdentifier());
+      if (ms_run_path.size() == 1) {
+          UID = ms_run_path[0] + f_pep_id.getMetaValue("spectrum_reference").toString();
+      } else if (f_pep_id.metaValueExists("map_index")) {
+          UID = f_pep_id.getMetaValue("map_index").toString() +
+                f_pep_id.getMetaValue("spectrum_reference").toString();
+      } else {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "Multiple files in a run, but no map_index in PeptideIdentification found.");
+      }
+
+      return UID;
+  }
+
   
 } // namespace OpenMS
 

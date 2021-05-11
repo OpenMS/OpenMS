@@ -227,16 +227,19 @@ protected:
     multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
 
 
+    customID_to_cpepID = PeptideIdentification::fillConsensusPepIDMap(cmap);
+
     for (Size i = 0; i < cmap.size(); ++i)
     {
-      fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+      //fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+
       // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
 
 
     }
-    fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+    //fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
 
 
     for (auto& pep_id : cmap.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
@@ -478,7 +481,7 @@ private:
     }
     return files;
   }
-  
+  /*
   void fillConsensusPepIDMap_(vector<PeptideIdentification>& cpep_ids,
                               const map<String, StringList>& identifier_to_msrunpath,
                               multimap<String, PeptideIdentification*>& customID_to_cpepID) const
@@ -506,15 +509,22 @@ private:
       }
       customID_to_cpepID.insert(make_pair(UID, &cpep_id));
     }
-  }
+  }*/
 
 
   void addPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
     const multimap<String, PeptideIdentification*>& customID_to_pepID,
     const map<String, StringList>& fidentifier_to_msrunpath) const
   {
+
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
     {
+
+      // for empty PIs which were created by a metric
+      if (f_pep_id.getHits().empty()) continue;
+
+      String UID = PeptideIdentification::fill_fidentifier_to_msrunpath(f_pep_id,fidentifier_to_msrunpath);
+      /*
       // for empty PIs which were created by a metric
       if (f_pep_id.getHits().empty()) continue;
 
@@ -531,7 +541,7 @@ private:
       else
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }
+      }*/
 
       const auto range = customID_to_pepID.equal_range(UID);
 

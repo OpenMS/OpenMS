@@ -37,6 +37,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <string>
 #include <map>
@@ -128,9 +129,9 @@ public:
     /// sets the peptide score orientation
     void setHigherScoreBetter(bool value);
 
-    /// returns the identifier
+    /// Returns the identifier which links this PI to its corresponding ProteinIdentification
     const String& getIdentifier() const;
-    /// sets the identifier
+    /// sets the identifier which links this PI to its corresponding ProteinIdentification
     void setIdentifier(const String& id);
 
     /// returns the base name which links to underlying peak map
@@ -165,6 +166,12 @@ public:
 
     /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
+
+    //TODO: beschreibung noch schreiben
+    static std::multimap<String, PeptideIdentification*> fillConsensusPepIDMap(const ConsensusMap &cmap);
+
+    static String fill_fidentifier_to_msrunpath(const PeptideIdentification& f_pep_id,
+                                                const std::map<String, StringList>& fidentifier_to_msrunpath);
 
 protected:
 
