@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
+#include <OpenMS/ANALYSIS/SEQUENCE/NeedlemanWunsch.h>
 
 using namespace std;
 
@@ -40,46 +41,34 @@ namespace OpenMS
 {
   ConsensusIDAlgorithmPEPMatrix::ConsensusIDAlgorithmPEPMatrix()
   {
-    setName("ConsensusIDAlgorithmPEPMatrix"); // DefaultParamHandler
-
+    setName("ConsensusIDAlgorithmPEPMatrix");
     defaults_.setValue("matrix", "identity", "Substitution matrix to use for alignment-based similarity scoring");
-    defaults_.setValidStrings("matrix", {"identity","PAM30MS"});
+    defaults_.setValidStrings("matrix", {"identity", "PAM30MS"});
     defaults_.setValue("penalty", 5, "Alignment gap penalty (the same value is used for gap opening and extension)");
     defaults_.setMinInt("penalty", 1);
 
     defaultsToParam_();
 
-    ::seqan::resize(rows(alignment_), 2);
-  }
-
-
-  void ConsensusIDAlgorithmPEPMatrix::updateMembers_()
-  {
-    ConsensusIDAlgorithmSimilarity::updateMembers_();
-
-    // alignment scoring using SeqAn/similarity matrices:
-    std::string matrix = param_.getValue("matrix");
+    string matrix = param_.getValue("matrix"); //muss ja enum sein...
     int penalty = param_.getValue("penalty");
-    scoring_method_ = SeqAnScore(-penalty, -penalty);
+
     if (matrix == "identity")
     {
-      ::seqan::setDefaultScoreMatrix(scoring_method_, 
-                                     ::seqan::AdaptedIdentity());
+      NeedlemanWunsch::ScoringMatrix enumMatrix = NeedlemanWunsch::identityMatrix;
+      NeedlemanWunsch object(enumMatrix, penalty);
     }
     else if (matrix == "PAM30MS")
     {
-      ::seqan::setDefaultScoreMatrix(scoring_method_, ::seqan::PAM30MS());
+      NeedlemanWunsch::ScoringMatrix enumMatrix = NeedlemanWunsch::PAM30MSMatrix;
+      NeedlemanWunsch object(enumMatrix, penalty);
     }
     else
     {
       String msg = "Matrix '" + matrix + "' is not known! Valid choices are: "
-        "'identity', 'PAM30MS'.";
+                                         "'identity', 'PAM30MS'.";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
-
-    // new parameters may affect the similarity calculation, so clear cache:
-    similarities_.clear();
   }
 
 
@@ -90,30 +79,13 @@ namespace OpenMS
     String unmod_seq1 = seq1.toUnmodifiedString();
     String unmod_seq2 = seq2.toUnmodifiedString();
     if (unmod_seq1 == unmod_seq2) return 1.0;
-    // order of sequences matters for cache look-up:
-    if (unmod_seq1 > unmod_seq2) swap(unmod_seq1, unmod_seq2);
-    seq1 = AASequence::fromString(unmod_seq1);
-    seq2 = AASequence::fromString(unmod_seq2);
-    pair<AASequence, AASequence> seq_pair = make_pair(seq1, seq2);
-    SimilarityCache::iterator pos = similarities_.find(seq_pair);
-    if (pos != similarities_.end()) return pos->second; // score found in cache
-    
-    // use SeqAn similarity scoring:
-    SeqAnSequence seqan_seq1 = unmod_seq1.c_str();
-    SeqAnSequence seqan_seq2 = unmod_seq2.c_str();
-    // seq. 1 against itself:
-    ::seqan::assignSource(row(alignment_, 0), seqan_seq1);
-    ::seqan::assignSource(row(alignment_, 1), seqan_seq1);
-    double score_self1 = globalAlignment(alignment_, scoring_method_,
-                                         ::seqan::NeedlemanWunsch());
-    // seq. 1 against seq. 2:
-    ::seqan::assignSource(row(alignment_, 1), seqan_seq2);
-    double score_sim = globalAlignment(alignment_, scoring_method_, 
-                                       ::seqan::NeedlemanWunsch());
-    // seq. 2 against itself:
-    ::seqan::assignSource(row(alignment_, 0), seqan_seq2);
-    double score_self2 = globalAlignment(alignment_, scoring_method_,
-                                         ::seqan::NeedlemanWunsch());
+   // if (unmod_seq1 > unmod_seq2) swap(unmod_seq1, unmod_seq2);
+
+
+    int score_self1 = object.align_(unmod_seq1, unmod_seq1);
+    int score_sim = object.align_(unmod_seq1, unmod_seq2);
+    int score_self2 = object.align_(unmod_seq2, unmod_seq2);
+
     if (score_sim < 0)
     {
       score_sim = 0;
@@ -122,8 +94,6 @@ namespace OpenMS
     {
       score_sim /= min(score_self1, score_self2); // normalize
     }
-    similarities_[seq_pair] = score_sim; // cache the similarity score
-
     return score_sim;
   }
 
