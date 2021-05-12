@@ -318,7 +318,7 @@ namespace OpenMS
     return customID_to_cpepID;
   }
 
-  String PeptideIdentification::fill_fidentifier_to_msrunpath(const PeptideIdentification& f_pep_id,
+  String PeptideIdentification::build_uid_from_pep_id(const PeptideIdentification& f_pep_id,
                            const std::map<String, StringList>& fidentifier_to_msrunpath)
   {
 

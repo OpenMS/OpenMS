@@ -136,6 +136,38 @@ UInt64 MQEvidence::protein_group_id(const String &protein)
 
 bool MQEvidence::peptide_hits(
         const std::vector<PeptideIdentification> & pep_ids,
+        std::vector<std::pair<PeptideHit, uint16_t>> & pep_hits,
+        std::vector<std::pair<PeptideHit, uint16_t>>::iterator & pep_hits_iterator)
+{
+    if(pep_ids.empty())
+    {
+        return false;
+    }
+    pep_hits.clear();
+    for (uint16_t i = 0; i < pep_ids.size(); ++i)
+    {
+        std::vector<PeptideHit> temp = pep_ids[i].getHits();
+        for(uint16_t j = 0; j < temp.size(); ++j)
+        {
+            pep_hits.emplace_back(std::make_pair(temp[j],i));
+        }
+    }
+    if (pep_hits.empty()) {
+        return false;
+    }
+    pep_hits_iterator = max_element(pep_hits.begin(), pep_hits.end(),
+                                    [](std::pair<PeptideHit,uint16_t> a, std::pair<PeptideHit,uint16_t> b) {
+                                        return a.first.getScore() < b.first.getScore();
+                                    });
+
+
+    return !pep_hits_iterator[0].first.getSequence().empty();
+
+}
+
+/*
+bool MQEvidence::peptide_hits(
+        const std::vector<PeptideIdentification> & pep_ids,
         std::vector<PeptideHit> & pep_hits,
         std::vector<PeptideHit>::iterator & pep_hits_iterator)
 {
@@ -159,7 +191,7 @@ bool MQEvidence::peptide_hits(
 
     return !pep_hits_iterator[0].getSequence().empty();
 
-}
+}*/
 
 std::map<UInt64, Size> MQEvidence::fid_to_cmapindex(const ConsensusMap & cmap)
 {
@@ -188,23 +220,42 @@ String path_deleter(const String & path)
 
 
 
-void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &c, const String & raw_file)
+void MQEvidence::exportRowFromFeature(
+        const Feature &f,
+        const ConsensusFeature &c,
+        const String & raw_file,
+        const std::multimap<String, PeptideIdentification*> &UIDs,
+        const ProteinIdentification::Mapping &mp_f)
 {
     const std::vector<PeptideIdentification> &pep_ids_f = f.getPeptideIdentifications();
     const std::vector<PeptideIdentification> &pep_ids_c = c.getPeptideIdentifications();
-    std::vector<PeptideHit> pep_hits;
-    std::vector<PeptideHit>::iterator pep_hits_iterator;
+    std::vector<std::pair<PeptideHit,uint16_t>> pep_hits;
+    std::vector<std::pair<PeptideHit,uint16_t>>::iterator pep_hits_iterator;
 
     UInt64 pep_ids_size = 0;
     String type;
     //pep_ids_f[0].getIdentifier();
     if(peptide_hits(pep_ids_f, pep_hits, pep_hits_iterator))
     {
-        pep_ids_size = pep_ids_f.size();
-        type = "MULTI-MSMS";
+        PeptideIdentification best_pep_id = pep_ids_f[pep_hits_iterator[0].second];
+        String best_uid = PeptideIdentification::build_uid_from_pep_id(best_pep_id, mp_f.identifier_to_msrunpath);
+        if(UIDs.find(best_uid) != UIDs.end())
+        {
+            pep_ids_size = pep_ids_f.size();
+            type = "MULTI-MSMS";
+        }
+        else if(peptide_hits(pep_ids_c, pep_hits, pep_hits_iterator))
+        {
+            pep_ids_size = pep_ids_c.size();
+            type = "MULTI-MATCH";
+        }
+        else
+        {
+            return;
+        }
     }
-    else if()
-    {}
+    //else if()
+    //{}
     else if(peptide_hits(pep_ids_c, pep_hits, pep_hits_iterator))
     {
         pep_ids_size = pep_ids_c.size();
@@ -215,7 +266,8 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
         return;
     }
 
-    const PeptideHit &pep_hits_max = pep_hits_iterator[0]; // the best hit referring to score
+    const PeptideHit &pep_hits_max = pep_hits_iterator[0].first; // the best hit referring to score
+
 
     const double & max_score = pep_hits_max.getScore();
 
@@ -285,7 +337,7 @@ void MQEvidence::exportRowFromFeature(const Feature &f, const ConsensusFeature &
     file_ << max_score << "\t"; // Score
     if(pep_hits.size() >= 2)
     {
-        const PeptideHit &pep_hits_max2 = pep_hits_iterator[1]; // the second best hit
+        const PeptideHit &pep_hits_max2 = pep_hits_iterator[1].first; // the second best hit
 
         file_ << pep_hits_max.getScore()-pep_hits_max2.getScore() << "\t"; // Delta score
     }
@@ -415,17 +467,22 @@ void MQEvidence::exportFeatureMapTotxt(
     {
         raw_file = path_deleter(feature_map.getLoadedFilePath());
     }
+    ProteinIdentification::Mapping mp_f;
+    mp_f.create(feature_map.getProteinIdentifications());
+
+    std::multimap<String, PeptideIdentification*>UIDs = PeptideIdentification::fillConsensusPepIDMap(cmap);
+
     for (const Feature &f : feature_map)
     {
         const UInt64 &f_id = f.getUniqueId();
         const auto &c_id = fTc.find(f_id);
         const auto & cf = ConsensusFeature();
         if(c_id != fTc.end()) {
-            exportRowFromFeature(f, cmap[c_id -> second], raw_file);
+            exportRowFromFeature(f, cmap[c_id -> second], raw_file, UIDs, mp_f);
         }
         else
         {
-            exportRowFromFeature(f, cf, raw_file);
+            exportRowFromFeature(f, cf, raw_file, UIDs, mp_f);
         }
     }
 

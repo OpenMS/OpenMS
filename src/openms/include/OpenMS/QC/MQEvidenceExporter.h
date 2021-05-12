@@ -55,16 +55,22 @@ public:
     OpenMS::UInt64 protein_group_id(const OpenMS::String &protein);
 
     std::map<OpenMS::UInt64, OpenMS::Size> fid_to_cmapindex(const OpenMS::ConsensusMap & cmap);
-
+/*
     bool peptide_hits(
             const std::vector<OpenMS::PeptideIdentification> & pep_ids,
             std::vector<OpenMS::PeptideHit> & pep_hit,
             std::vector<OpenMS::PeptideHit>::iterator & pep_hits_iterator);
-
+*/
+    bool peptide_hits(
+            const std::vector<OpenMS::PeptideIdentification> & pep_ids,
+            std::vector<std::pair<OpenMS::PeptideHit, uint16_t>> & pep_hits,
+            std::vector<std::pair<OpenMS::PeptideHit, uint16_t>>::iterator & pep_hits_iterator);
     void exportRowFromFeature(
             const OpenMS::Feature &f,
             const OpenMS::ConsensusFeature &c,
-            const OpenMS::String & raw_file);
+            const OpenMS::String & raw_file,
+            const std::multimap<OpenMS::String, OpenMS::PeptideIdentification*> &UIDs,
+            const OpenMS::ProteinIdentification::Mapping &mp_f);
 
     void exportFeatureMapTotxt(
             const OpenMS::FeatureMap & feature_map,

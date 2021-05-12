@@ -523,7 +523,7 @@ private:
       // for empty PIs which were created by a metric
       if (f_pep_id.getHits().empty()) continue;
 
-      String UID = PeptideIdentification::fill_fidentifier_to_msrunpath(f_pep_id,fidentifier_to_msrunpath);
+      String UID = PeptideIdentification::build_uid_from_pep_id(f_pep_id,fidentifier_to_msrunpath);
 
       // for empty PIs which were created by a metric
       /*if (f_pep_id.getHits().empty()) continue;
