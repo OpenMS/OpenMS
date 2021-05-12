@@ -83,7 +83,7 @@ namespace OpenMS
         {
           sequence = other.sequence;
         } 
-        else if (sequence != other.sequence)
+        else if (!other.sequence.empty() && sequence != other.sequence) // differ and none is empty
         {
           throw Exception::InvalidValue(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, 
@@ -95,7 +95,7 @@ namespace OpenMS
         {
           description = other.description;
         } 
-        else if (description != other.description)
+        else if (!other.description.empty() && description != other.description) // differ and none is empty
         {
           throw Exception::InvalidValue(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, 

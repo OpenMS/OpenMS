@@ -73,7 +73,7 @@ namespace OpenMS
         {
           experimental_design_id = other.experimental_design_id;
         }
-        else if (experimental_design_id != other.experimental_design_id)
+        else if (!other.experimental_design_id.empty() && experimental_design_id != other.experimental_design_id)
         {
           throw Exception::InvalidValue(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, 

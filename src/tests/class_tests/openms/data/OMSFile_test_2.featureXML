@@ -42,10 +42,10 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_2" >
+		<PeptideHit score="4324.433" sequence="H" charge="23" aa_after="Y" protein_refs="PH_2">
+		</PeptideHit>
 		<PeptideHit score="4324.433" sequence="G" charge="23" aa_after="Y" protein_refs="PH_2">
 			<UserParam type="int" name="label" value="19"/>
-		</PeptideHit>
-		<PeptideHit score="4324.433" sequence="H" charge="23" aa_after="Y" protein_refs="PH_2">
 		</PeptideHit>
 		<UserParam type="int" name="label" value="18"/>
 	</UnassignedPeptideIdentification>
@@ -86,10 +86,10 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_4" >
+				<PeptideHit score="4324.433" sequence="D" charge="23" aa_after="Y" protein_refs="PH_2">
+				</PeptideHit>
 				<PeptideHit score="4324.433" sequence="C" charge="23" aa_after="Y" protein_refs="PH_2">
 					<UserParam type="int" name="label" value="19"/>
-				</PeptideHit>
-				<PeptideHit score="4324.433" sequence="D" charge="23" aa_after="Y" protein_refs="PH_2">
 				</PeptideHit>
 				<UserParam type="int" name="label" value="18"/>
 			</PeptideIdentification>

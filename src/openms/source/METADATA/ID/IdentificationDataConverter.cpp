@@ -144,8 +144,9 @@ namespace OpenMS
           new_group.scores[score_ref] = group.probability;
           for (const String& acc : group.accessions)
           {
-            ID::ParentSequence parent(acc);
-            ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
+            // note: protein referenced from indistinguishable group was already registered
+            ID::ParentSequenceRef ref = id_data.getParentSequences().find(acc);
+            OPENMS_POSTCONDITION("Protein ID referenced from indistinguishable group is missing.", ref !=id_data.getParentSequences().end()); 
             new_group.parent_refs.insert(ref);
           }
           grouping.groups.insert(new_group);
@@ -174,8 +175,9 @@ namespace OpenMS
           new_group.scores[score_ref] = group.probability;
           for (const String& acc : group.accessions)
           {
-            ID::ParentSequence parent(acc);
-            ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
+            // note: protein referenced from general protein group was already registered
+            ID::ParentSequenceRef ref = id_data.getParentSequences().find(acc);
+            OPENMS_POSTCONDITION("Protein ID referenced from general protein group is missing.", ref !=id_data.getParentSequences().end()); 
             new_group.parent_refs.insert(ref);
           }
           grouping.groups.insert(new_group);
@@ -251,12 +253,16 @@ namespace OpenMS
         for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
         {
           const String& accession = evidence.getProteinAccession();
+
           if (accession.empty()) continue;
+
           ID::ParentSequence parent(accession);
           parent.addProcessingStep(step_ref);
+
           // this will merge information if the protein already exists:
           ID::ParentSequenceRef parent_ref =
             id_data.registerParentSequence(parent);
+
           ID::ParentMatch parent_match(evidence.getStart(), evidence.getEnd(),
                                        evidence.getAABefore(),
                                        evidence.getAAAfter());
