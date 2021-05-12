@@ -430,7 +430,7 @@ namespace OpenMS
     Size getIndexWithMedianNovoHits_(const std::vector<SuitabilityData>& data) const;
 
     /**
-    * @brief Extracts the worst score that still makes a FDR (q-value) threshold
+    * @brief Extracts the worst score that still passes a FDR (q-value) threshold
     *
     * This can be used to 'convert' a FDR threshold to a threshold for the desired score (score and FDR need to be dependent)
     *

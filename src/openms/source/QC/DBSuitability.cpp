@@ -315,7 +315,7 @@ namespace OpenMS
     for (const String& key : keys)
     {
       if (key.compare(0, adapter.size(), adapter) != 0) continue; // does adapter appear in meta value key?
-      p.setValue(key, search_params.getMetaValue(key).toString());
+      p.setValue(key, search_params.getMetaValue(key));
     }
 
     OPENMS_LOG_DEBUG << "Parameters for the following adapter were found: " << adapter << endl;
@@ -457,7 +457,7 @@ namespace OpenMS
       FalseDiscoveryRate fdr;
       fdr.apply(ids_copy);
 
-      score_cut_off = getScoreMatchingFDR_(ids_copy, param_.getValue("FDR"), pep_ids[0].getScoreType() + "_score", hsb);
+      score_cut_off = getScoreMatchingFDR_(ids_copy, param_.getValue("FDR"), pep_ids[0].getScoreType(), hsb);
     }
 
     if (!no_re_rank)
@@ -692,7 +692,8 @@ namespace OpenMS
       if (!checkScoreBetterThanThreshold_(top_hit, FDR, false)) continue; // does this hit make the FDR?
 
       // extract score from metavalues
-      double score = worst_score;
+      double score;
+      bool score_found = false;
 
       vector<String> meta_keys;
       top_hit.getKeys(meta_keys);
@@ -701,10 +702,12 @@ namespace OpenMS
         if (key.find(score_name) != String::npos)
         {
           score = top_hit.getMetaValue(key);
+          score_found = true;
+          break;
         }
       }
 
-      if (score == worst_score)
+      if (!score_found)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'" + score_name + "' not found. The given score name has to exist as a meta value.");
       }
