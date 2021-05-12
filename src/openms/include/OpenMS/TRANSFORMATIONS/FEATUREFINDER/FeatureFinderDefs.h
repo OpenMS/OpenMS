@@ -67,18 +67,16 @@ namespace OpenMS
     {
 public:
       NoSuccessor(const char * file, int line, const char * function, const IndexPair & index) :
-        BaseException(file, line, function, "NoSuccessor", String("there is no successor/predecessor for the given Index: ") + String(index_.first) + "/" + String(index_.second)),
+        BaseException(file, line, function, "NoSuccessor", String("there is no successor/predecessor for the given Index: ") + String(index.first) + "/" + String(index.second)),
         index_(index)
       {
-        Exception::GlobalExceptionHandler::getInstance().setMessage(what());
+        Exception::GlobalExceptionHandler::setMessage(what());
       }
 
-      ~NoSuccessor() throw() override
-      {
-      }
+      ~NoSuccessor() noexcept override = default;
 
 protected:
-      IndexPair index_;            // index without successor/predecessor
+      IndexPair index_; // index without successor/predecessor
     };
   };
 }
