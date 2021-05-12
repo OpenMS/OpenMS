@@ -528,8 +528,8 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
   labels.push_back(1);
   labels.push_back(2);
-  sequences.push_back("ACNNGTATCA");
-  sequences.push_back("AACNNGTACCA");
+  sequences.emplace_back("ACNNGTATCA");
+  sequences.emplace_back("AACNNGTACCA");
 	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
 	kernel_matrix = svm.computeKernelMatrix(data, data);
 	svm.train(data);
@@ -550,6 +550,7 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 	TEST_EQUAL(kernel_matrix->y[0], 1)
 	TEST_EQUAL(kernel_matrix->y[1], 2)
 
+  LibSVMEncoder::destroyProblem(kernel_matrix);
 END_SECTION
 
 START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const SVMData &problem2)))

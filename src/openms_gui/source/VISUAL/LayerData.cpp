@@ -92,7 +92,7 @@ namespace OpenMS
     peak_map_(new ExperimentType()),
     on_disc_peaks(new OnDiscMSExperiment()),
     chromatogram_map_(new ExperimentType()),
-    current_spectrum_(0),
+    current_spectrum_idx_(0),
     cached_spectrum_()
   {
     annotations_1d.resize(1);
@@ -168,13 +168,13 @@ namespace OpenMS
 
   void LayerData::updateCache_()
   {
-    if (peak_map_->getNrSpectra() > current_spectrum_ && (*peak_map_)[current_spectrum_].size() > 0)
+    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && (*peak_map_)[current_spectrum_idx_].size() > 0)
     {
-      cached_spectrum_ = (*peak_map_)[current_spectrum_];
+      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_];
     }
-    else if (on_disc_peaks->getNrSpectra() > current_spectrum_)
+    else if (on_disc_peaks->getNrSpectra() > current_spectrum_idx_)
     {
-      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
+      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_idx_);
     }
   }
 
@@ -238,7 +238,7 @@ namespace OpenMS
 
   const LayerData::ExperimentType::SpectrumType LayerData::getSpectrum(Size spectrum_idx) const
   {
-    if (spectrum_idx == current_spectrum_) return cached_spectrum_;
+    if (spectrum_idx == current_spectrum_idx_) return cached_spectrum_;
 
     if ((*peak_map_)[spectrum_idx].size() > 0)
     {
@@ -257,7 +257,7 @@ namespace OpenMS
     if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
 
     // get mutable access to the spectrum
-    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
+    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
 
     int ms_level = spectrum.getMSLevel();
 
@@ -291,7 +291,7 @@ namespace OpenMS
       else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
       {
         // copy user annotations to fragment annotation vector
-        const Annotations1DContainer & las = getAnnotations(current_spectrum_);
+        const Annotations1DContainer & las = getAnnotations(current_spectrum_idx_);
 
         // no annotations so we don't need to synchronize
         bool has_peak_annotation(false);
@@ -344,7 +344,7 @@ namespace OpenMS
     bool annotations_changed(false);
 
     // regular expression for a charge at the end of the annotation
-    QRegExp reg_exp("([\\+|\\-]\\d+)$");
+    QRegExp reg_exp(R"(([\+|\-]\d+)$)");
 
     // for each annotation item on the canvas
     for (auto& a : las)
@@ -438,7 +438,7 @@ namespace OpenMS
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
     // get mutable access to the spectrum
-    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
+    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
@@ -548,7 +548,7 @@ namespace OpenMS
     assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorPeptideID(nullptr)));
     assign(std::unique_ptr<LayerAnnotatorBase>(new LayerAnnotatorOSW(nullptr)));
 
-    return std::move(ptr);
+    return ptr; // Note: no std::move here needed because of copy elision
   }
 
   std::unique_ptr<LayerAnnotatorBase> LayerAnnotatorBase::getAnnotatorWhichSupports(const String& filename)

@@ -77,7 +77,7 @@ namespace OpenMS
 
   void MapAlignmentAlgorithmIdentification::checkParameters_(Size runs)
   {
-    min_run_occur_ = param_.getValue("min_run_occur");
+    min_run_occur_ = (int)param_.getValue("min_run_occur");
 
     // reference is not counted as a regular run:
     if (!reference_.empty()) runs++;
@@ -96,7 +96,7 @@ namespace OpenMS
     // score type may have been set by reference already - don't overwrite it:
     if (score_cutoff_ && score_type_.empty())
     {
-      score_type_ = param_.getValue("score_type");
+      score_type_ = (std::string)param_.getValue("score_type");
     }
     min_score_ = param_.getValue("min_score");
     use_adducts_ = param_.getValue("use_adducts").toBool();
@@ -292,7 +292,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No reference RT information left after filtering");
     }
 
-    double max_rt_shift = param_.getValue("max_rt_shift");
+    double max_rt_shift = (double)param_.getValue("max_rt_shift");
     if (max_rt_shift <= 1)
     {
       // compute max. allowed shift from overall retention time range:

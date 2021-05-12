@@ -84,7 +84,6 @@ namespace OpenMS
     tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", "ID Processing");
     tools_map["IsobaricAnalyzer"] = Internal::ToolDescription("IsobaricAnalyzer", "Quantitation");
     tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
-    tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Identification");
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
     tools_map["LuciphorAdapter"] = Internal::ToolDescription("LuciphorAdapter", "ID Processing");
     tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
@@ -221,6 +220,7 @@ namespace OpenMS
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", util_category);
+    util_map["OpenMSDatabasesInfo"] = Internal::ToolDescription("OpenMSDatabasesInfo", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
     util_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", "Targeted Experiments");
     util_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", "Targeted Experiments");

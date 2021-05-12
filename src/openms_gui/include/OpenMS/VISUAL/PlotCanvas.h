@@ -923,6 +923,8 @@ protected:
         @brief Intensity scaling factor for 'snap to maximum intensity mode'.
 
         In this mode the highest currently visible intensity is treated like the maximum overall intensity.
+
+        One entry per layer.
     */
     std::vector<double> snap_factors_;
 

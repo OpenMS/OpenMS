@@ -49,6 +49,31 @@ namespace OpenMS
   namespace Internal
   {
 
+    // Specializations for character types, released by XMLString::release
+    template<> void shared_xerces_ptr<char>::doRelease_(char* item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    template<> void shared_xerces_ptr<XMLCh>::doRelease_(XMLCh* item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    // Specializations for character types, which needs to be
+    // released by XMLString::release
+    template <>
+    void unique_xerces_ptr<char>::doRelease_(char*& item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
+    template <>
+    void unique_xerces_ptr<XMLCh>::doRelease_(XMLCh*& item)
+    {
+      xercesc::XMLString::release(&item);
+    }
+
     XMLHandler::XMLHandler(const String & filename, const String & version) :
       file_(filename),
       version_(version),
@@ -84,9 +109,9 @@ namespace OpenMS
       if (mode == LOAD)
       {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
-	// test if file has the wrong extension and is therefore passed to the wrong parser
+	      // test if file has the wrong extension and is therefore passed to the wrong parser
         // only makes sense if we are loading/parsing a file
-	FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
         FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
         if (ft_name != ft_content)
         {
