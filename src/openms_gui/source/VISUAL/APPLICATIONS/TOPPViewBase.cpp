@@ -91,6 +91,9 @@
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
 
+
+#include <OpenMS/MATH/STATISTICS/Histogram.h>
+
 //Qt
 #include <QCloseEvent>
 #include <QPainter>
@@ -2178,21 +2181,12 @@ namespace OpenMS
 
     @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
   */
-  MSExperiment splitByIonMobility(MSSpectrum& im_frame, UInt number_of_bins = -1)
+  MSExperiment splitByIonMobility(MSSpectrum im_frame, UInt number_of_bins = -1)
   {          
     MSExperiment out;
     // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
     // can throw if IM float data array is missing
     auto& im_data = im_frame.getIMData(); 
-    if (im_data.getName().find("1002815") != std::string::npos)
-    {
-      out.setIonMobilityUnit(MSExperiment::IMUnit::ONEKZERO);
-    }
-    else
-    {
-      out.setIonMobilityUnit(MSExperiment::IMUnit::MILLISEC);
-    }
-
     if (im_data.empty())
     {
       return out;
@@ -2206,21 +2200,62 @@ namespace OpenMS
       });
     }
 
+    
+    using IMV_t = MSSpectrum::FloatDataArray::value_type;
+    out.clear(true);
+    // adds a new spectrum with drift time to `out`
+    auto addBinnedSpec = [&out, &im_frame](double drift_time_avg) {
+      out.addSpectrum(MSSpectrum());
+      auto& spec = out.getSpectra().back();
+      // copy drift-time unit from parent scan
+      spec.setDriftTime(drift_time_avg);
+      spec.setDriftTimeUnit(im_frame.getDriftTimeUnit());
+      // keep RT identical for all scans, since they are from the same IM-frame
+      //spec.setRT(im_frame.getRT());
+      spec.setRT(drift_time_avg); // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
+      // keep MSlevel
+      spec.setMSLevel(im_frame.getMSLevel());
+      return &spec;
+    };
+
+    MSSpectrum* last_spec{};
     if (number_of_bins == -1)
-    { //
+    { // Separate spec for each IM value:
+      OPENMS_PRECONDITION(std::is_sorted(im_data.begin(), im_data.end()), "we sorted it... what happened???");
+      IMV_t im_last = std::numeric_limits<IMV_t>::max();
+      for (Size i = 0; i < im_data.size(); ++i)// is sorted now!
+      {
+        const IMV_t im = im_data[i];
+        if (im != im_last)
+        {
+          im_last = im;
+          last_spec = addBinnedSpec(im);
+        }
+        last_spec->push_back(im_frame[i]); // copy the peak
+      }
 
     }
     else
     {
-      auto [min_IM, max_IM] = std::minmax_element(im_data.begin(), im_data.end());
+      auto min_IM = im_data.front();
+      auto max_IM = im_data.back();
+      Histogram<double, double> hist(min_IM, max_IM, (max_IM - min_IM) / number_of_bins);
+      out.reserveSpaceSpectra(number_of_bins);
+      Size i_data = 0;
+      for (Size i_bin = 0; i_bin < number_of_bins; ++i_bin)
+      {
+        last_spec = addBinnedSpec(hist.centerOfBin(i_bin));
+        double right_end_of_bin = hist.rightBorderOfBin(i_bin);
+        while (i_data < im_data.size() && im_data[i_data] < right_end_of_bin)
+        {
+          last_spec->push_back(im_frame[i_data]);// copy the peak
+          ++i_data; // next peak
+        }
+      }
+      assert(i_data == im_data.size());
     }
 
-    // keep RT identical for all scans. Since this is how it should be...
-
-
-
-
-
+    out.updateRanges();
     return out;
   }
 
@@ -2241,7 +2276,7 @@ namespace OpenMS
     {
       return;
     }
-    w->xAxis()->setLegend("Ion Mobility [" + exp->getIonMobilityUnitAsString() + "]");
+    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitasString() + "]");
 
     String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
