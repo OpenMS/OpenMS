@@ -67,8 +67,7 @@ namespace OpenMS
         MoleculeType molecule_type = MoleculeType::PROTEIN,
         const String& sequence = "", const String& description = "",
         double coverage = 0.0, bool is_decoy = false,
-        const AppliedProcessingSteps& steps_and_scores =
-        AppliedProcessingSteps()):
+        const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()):
         ScoredProcessingResult(steps_and_scores), accession(accession),
         molecule_type(molecule_type), sequence(sequence),
         description(description), coverage(coverage), is_decoy(is_decoy)
@@ -88,8 +87,8 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, 
-                                        "Trying to overwrite ParentSequence sequence with conflicting value.", 
-                                        sequence);
+                                        "Trying to overwrite ParentSequence sequence '" + sequence + "' with conflicting value.", 
+                                        other.sequence);
         } 
 
         if (description.empty())
@@ -100,8 +99,8 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, 
-                                        "Trying to overwrite ParentSequence description with conflicting value.", 
-                                        description);
+                                        "Trying to overwrite ParentSequence description '" + description + "' with conflicting value.", 
+                                        other.description);
         } 
 
         if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
