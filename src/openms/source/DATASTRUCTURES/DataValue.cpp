@@ -620,6 +620,35 @@ namespace OpenMS
     return data_.ssize_;
   }
 
+  DataValue::operator ParamValue() const
+  {
+    switch (value_type_)
+    {
+      case EMPTY_VALUE:
+        return ParamValue();
+      case INT_VALUE:
+        return ParamValue(int(*this));
+      case DOUBLE_VALUE:
+        return ParamValue(double(*this));
+      case STRING_VALUE:
+        return ParamValue(std::string(*this));
+      case INT_LIST:
+        return ParamValue(this->toIntList());
+      case DOUBLE_LIST:
+        return ParamValue(this->toDoubleList());
+      case STRING_LIST:
+        // DataValue uses OpenMS::String while ParamValue uses std:string.
+        // Therefore the StringList isn't castable.
+        vector<std::string> v;
+        for (const String& s : this->toStringList())
+        {
+          v.push_back(s);
+        }
+        return ParamValue(v);
+    }
+    throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
+  }
+
   DataValue::operator std::string() const
   {
     if (value_type_ != STRING_VALUE)
