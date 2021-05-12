@@ -372,27 +372,13 @@ namespace OpenMS
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+      return;
     }
-    else
-    {
-      //sort index list
-      std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
-      sorted_indices.reserve(ContainerType::size());
-      for (Size i = 0; i < ContainerType::size(); ++i)
-      {
-        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
-      }
-      std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
 
-      // extract list of indices
-      std::vector<Size> select_indices;
-      select_indices.reserve(sorted_indices.size());
-      for (Size i = 0; i < sorted_indices.size(); ++i)
-      {
-        select_indices.push_back(sorted_indices[i].second);
-      }
-      select(select_indices);
-    }
+    // sort index list
+    sort([this](const Size i1, const Size i2) -> bool {
+      return this->operator[](i1).getPosition() < this->operator[](i2).getPosition();
+    });
   }
 
   void MSSpectrum::sortByIntensity(bool reverse)
@@ -410,35 +396,23 @@ namespace OpenMS
       {
         std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
       }
+      return;
+    }
+
+    // sort index list
+    if (reverse)
+    {
+      this->sort([this](const Size i1, const Size i2) -> bool 
+      {
+        return this->operator[](i2).getIntensity() < this->operator[](i1).getIntensity();
+      });
     }
     else
     {
-      // sort index list
-      std::vector<std::pair<PeakType::IntensityType, Size> > sorted_indices;
-      sorted_indices.reserve(ContainerType::size());
-      for (Size i = 0; i < ContainerType::size(); ++i)
-      {
-        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(), i));
-      }
-
-      if (reverse)
-      {
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >()));
-      }
-      else
-      {
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >());
-      }
-
-      // extract list of indices
-      std::vector<Size> select_indices;
-      select_indices.reserve(sorted_indices.size());
-      for (Size i = 0; i < sorted_indices.size(); ++i)
-      {
-        select_indices.push_back(sorted_indices[i].second);
-      }
-      select(select_indices);
-    }
+      this->sort([this](const Size i1, const Size i2) -> bool {
+        return this->operator[](i1).getIntensity() < this->operator[](i2).getIntensity();
+      });
+    };
   }
 
   bool MSSpectrum::isSorted() const

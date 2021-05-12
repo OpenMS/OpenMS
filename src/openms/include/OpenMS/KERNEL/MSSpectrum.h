@@ -322,6 +322,39 @@ public:
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
 
+    /// Checks if container is sorted by a certain user-defined property.
+    /// You can pass any lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
+    /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
+    /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)
+    template<class Predicate>
+    bool isSorted(const Predicate& lambda) const
+    {
+      using pv = value_type*;
+      auto value_2_index_wrapper = [this, &lambda](const value_type& value1, const value_type& value2) {
+        // translate values into indices (this relies on no copies being made!)
+        const Size index1 = (&value1) - (&this->front());
+        const Size index2 = (&value2) - (&this->front());
+        // just make sure the pointers above are actually pointing to a Peak inside our container
+        assert(index1 < this->size()); 
+        assert(index2 < this->size());
+        return lambda(index1, index2);
+      }; 
+      return std::is_sorted(this->begin(), this->end(), value_2_index_wrapper);
+    }
+
+    /// Sort by a user-definded property
+    /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
+    /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
+    /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)
+    template<class Predicate> 
+    void sort(const Predicate& lambda)
+    {
+      std::vector<Size> indices(this->size());
+      std::iota(indices.begin(), indices.end(), 0);
+      std::stable_sort(indices.begin(), indices.end(), lambda);
+      select(indices);
+    }
+
     //@}
 
     ///@name Searching a peak or peak range
