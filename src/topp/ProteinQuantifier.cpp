@@ -814,7 +814,7 @@ protected:
       // protein inference results in the consensusXML or from external ID-only file?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
-          (!consensus.getProteinIdentifications()[0].getHits().empty()))
+          consensus.getProteinIdentifications()[0].hasInferenceData())
       {
         proteins_ = consensus.getProteinIdentifications()[0];
         inference_in_cxml = true;
