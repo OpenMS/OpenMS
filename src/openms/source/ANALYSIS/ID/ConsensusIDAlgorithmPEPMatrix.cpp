@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-#include <OpenMS/ANALYSIS/SEQUENCE/NeedlemanWunsch.h>
+#include <iostream>//wieder rausnehmen
 
 using namespace std;
 
@@ -49,16 +49,18 @@ namespace OpenMS
 
     defaultsToParam_();
 
-    string matrix = param_.getValue("matrix"); //muss ja enum sein...
+    string matrix = param_.getValue("matrix");
     int penalty = param_.getValue("penalty");
 
     if (matrix == "identity")
     {
+      cout<<"ich war hier identity"<<endl;
       NeedlemanWunsch::ScoringMatrix enumMatrix = NeedlemanWunsch::identityMatrix;
       NeedlemanWunsch object(enumMatrix, penalty);
     }
     else if (matrix == "PAM30MS")
     {
+      cout<<"ich war hier pam"<<endl;
       NeedlemanWunsch::ScoringMatrix enumMatrix = NeedlemanWunsch::PAM30MSMatrix;
       NeedlemanWunsch object(enumMatrix, penalty);
     }
@@ -82,9 +84,9 @@ namespace OpenMS
    // if (unmod_seq1 > unmod_seq2) swap(unmod_seq1, unmod_seq2);
 
 
-    int score_self1 = object.align_(unmod_seq1, unmod_seq1);
-    int score_sim = object.align_(unmod_seq1, unmod_seq2);
-    int score_self2 = object.align_(unmod_seq2, unmod_seq2);
+    double score_self1 = object.align_(unmod_seq1, unmod_seq1);
+    double score_sim = object.align_(unmod_seq1, unmod_seq2);
+    double score_self2 = object.align_(unmod_seq2, unmod_seq2);
 
     if (score_sim < 0)
     {
@@ -92,7 +94,7 @@ namespace OpenMS
     }
     else
     {
-      score_sim /= min(score_self1, score_self2); // normalize
+      score_sim/=min(score_self1, score_self2); // normalize //was ist wenn man durch 0 teilt hier?
     }
     return score_sim;
   }

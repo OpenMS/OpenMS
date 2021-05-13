@@ -38,6 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
+#include <iostream>//wieder rausnehmen
 
 using namespace OpenMS;
 using namespace std;
@@ -70,6 +71,15 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 }
 END_SECTION
 
+START_SECTION(double getSimilarity_(AASequence seq1,
+                  AASequence seq2))
+{
+  ConsensusIDAlgorithmPEPMatrix object2= ConsensusIDAlgorithmPEPMatrix();//konstruktor
+  AASequence seq1=AASequence::fromString("ATLIGQLAIQQ");
+  AASequence seq2=AASequence::fromString("ATLIGALDQQQ");
+  cout<<object2.getSimilarity_(seq1, seq2)<<endl;
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
