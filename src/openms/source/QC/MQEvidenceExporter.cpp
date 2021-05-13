@@ -254,8 +254,6 @@ void MQEvidence::exportRowFromFeature(
             return;
         }
     }
-    //else if()
-    //{}
     else if(peptide_hits(pep_ids_c, pep_hits, pep_hits_iterator))
     {
         pep_ids_size = pep_ids_c.size();
@@ -448,7 +446,7 @@ void MQEvidence::exportRowFromFeature(
 
 void MQEvidence::exportFeatureMapTotxt(
         const FeatureMap & feature_map,
-        const ConsensusMap& cmap)
+        ConsensusMap& cmap)
 {
     if(!isValid())
     {

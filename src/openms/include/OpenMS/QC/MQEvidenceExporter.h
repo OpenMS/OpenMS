@@ -74,5 +74,5 @@ public:
 
     void exportFeatureMapTotxt(
             const OpenMS::FeatureMap & feature_map,
-            const OpenMS::ConsensusMap& cmap);
+            OpenMS::ConsensusMap& cmap);
 };
