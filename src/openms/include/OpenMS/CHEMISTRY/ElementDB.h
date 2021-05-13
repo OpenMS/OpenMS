@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow $
+// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
 
@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 
 #include <map>
+#include <string>
 
 namespace OpenMS
 {
@@ -81,22 +82,22 @@ public:
     static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
-    const Map<String, const Element *> & getNames() const;
+    const std::map<std::string, const Element *> & getNames() const;
 
     /// returns a hashmap that contains symbols mapped to pointers to the elements
-    const Map<String, const Element *> & getSymbols() const;
+    const std::map<std::string, const Element *> & getSymbols() const;
 
     /// returns a hashmap that contains atomic numbers mapped to pointers of the elements
-    const Map<UInt, const Element *> & getAtomicNumbers() const;
+    const std::map<unsigned int, const Element *> & getAtomicNumbers() const;
 
     /** returns a pointer to the element with name or symbol given in parameter name;
         *	if no element exists with that name or symbol 0 is returned
         *	@param name: name or symbol of the element
     */
-    const Element * getElement(const String & name) const;
+    const Element * getElement(const std::string & name) const;
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
-    const Element * getElement(UInt atomic_number) const;
+    const Element * getElement(unsigned int atomic_number) const;
 
     //@}
 
@@ -104,10 +105,10 @@ public:
     */
     //@{
     /// returns true if the db contains an element with the given name
-    bool hasElement(const String & name) const;
+    bool hasElement(const std::string& name) const;
 
     /// returns true if the db contains an element with the given atomic_number
-    bool hasElement(UInt atomic_number) const;
+    bool hasElement(unsigned int atomic_number) const;
     //@}
 
 protected:
@@ -116,34 +117,37 @@ protected:
 
             @throw throws exception ParseError
      */
-    IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass);
+    IsotopeDistribution parseIsotopeDistribution_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
     /*_ calculates the average weight based on isotope abundance and mass
      */
-    double calculateAvgWeight_(const Map<UInt, double> & Z_to_abundance, const Map<UInt, double> & Z_to_mass);
+    double calculateAvgWeight_(const std::map<unsigned int, double> & abundance, const std::map<unsigned int, double> & mass);
 
     /*_ calculates the mono weight based on the smallest isotope mass
      */
-    double calculateMonoWeight_(const Map<UInt, double> & Z_to_mass);
+    double calculateMonoWeight_(const std::map<unsigned int, double> & Z_to_mass);
 
 	// constructs element objects
-    void storeElements();
+    void storeElements_();
+
+  // build element objects from given abundances, masses, name, symbol, and atomic number
+    void buildElement_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
   // add element objects to documentation maps
-    void addElementToMaps(const String& name, const String& symbol, const UInt an, const Element* e);
+    void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, const Element* e);
 
   // constructs isotope objects
-    void storeIsotopes(const String& name, const String& symbol, const UInt an, const Map<UInt, double>& Z_to_mass, const IsotopeDistribution& isotopes);
+    void storeIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
 
     /*_ resets all containers
      */
     void clear_();
 
-    Map<String, const Element *> names_;
+    std::map<std::string, const Element *> names_;
 
-    Map<String, const Element *> symbols_;
+    std::map<std::string, const Element *> symbols_;
 
-    Map<UInt, const Element *> atomic_numbers_;
+    std::map<unsigned int, const Element *> atomic_numbers_;
 
 private:
     ElementDB();
