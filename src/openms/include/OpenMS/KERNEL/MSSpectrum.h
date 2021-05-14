@@ -329,7 +329,6 @@ public:
     template<class Predicate>
     bool isSorted(const Predicate& lambda) const
     {
-      using pv = value_type*;
       auto value_2_index_wrapper = [this, &lambda](const value_type& value1, const value_type& value2) {
         // translate values into indices (this relies on no copies being made!)
         const Size index1 = (&value1) - (&this->front());
