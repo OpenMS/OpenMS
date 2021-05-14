@@ -80,15 +80,15 @@ namespace OpenMS
 
   const Element* ElementDB::getElement(const string& name) const
   {
-    if (names_.count(name) == 1)
+    if (auto entry = names_.find(name); entry != names_.end())
     {
-      return names_.at(name);
+      return entry->second;
     }
     else
     {
-      if (symbols_.count(name) == 1)
+      if (auto entry = symbols_.find(name); entry != symbols_.end())
       {
-        return symbols_.at(name);
+        return entry->second;
       }
     }
     return nullptr;
@@ -96,9 +96,9 @@ namespace OpenMS
 
   const Element* ElementDB::getElement(unsigned int atomic_number) const
   {
-    if (atomic_numbers_.count(atomic_number) == 1)
+    if (auto entry = atomic_numbers_.find(atomic_number); entry != atomic_numbers_.end())
     {
-      return atomic_numbers_.at(atomic_number);
+      return entry->second;
     }
     return nullptr;
   }
@@ -549,14 +549,8 @@ namespace OpenMS
     
     vector<unsigned int> keys;
     for (map<unsigned int, double>::const_iterator it = abundance.begin(); it != abundance.end(); ++it)
-    {
-      keys.push_back(it->first);
-    }
-
-    // calculate weighted average
-    for (vector<unsigned int>::iterator it = keys.begin(); it != keys.end(); ++it)
-    {
-      dist.push_back(Peak1D(mass.at(*it) , abundance.at(*it)));
+    { 
+      dist.push_back(Peak1D(mass.at(it->first) , abundance.at(it->first)));
     }
 
     IsotopeDistribution iso_dist;
