@@ -61,7 +61,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    Precursor();
+    Precursor() = default;
     /// Copy constructor
     Precursor(const Precursor&) = default;
 
@@ -72,7 +72,7 @@ public:
     /// Move constructor
     Precursor(Precursor&&) noexcept;
     /// Destructor
-    ~Precursor() override;
+    ~Precursor() override = default;
 
     /// Assignment operator
     Precursor& operator=(const Precursor&) = default;

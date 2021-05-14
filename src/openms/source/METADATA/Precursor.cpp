@@ -43,11 +43,6 @@ namespace OpenMS
   const std::string Precursor::NamesOfActivationMethodShort[] = { "CID", "PSD", "PD", "SID", "BIRD", "ECD", "IMD", "SORI", "HCID", "LCID", "PHD", "ETD", "PQD" };
   const std::string Precursor::NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV"};
 
-
-  Precursor::Precursor()
-  {
-  }
-
   Precursor::Precursor(Precursor&& rhs) noexcept :
       CVTermList(std::move(rhs)),
       Peak1D(std::move(rhs)),
@@ -64,11 +59,7 @@ namespace OpenMS
   {
   }
 
-  Precursor::~Precursor()
-  {
-  }
-
-  bool Precursor::operator==(const Precursor & rhs) const
+  bool Precursor::operator==(const Precursor& rhs) const
   {
     return activation_methods_ == rhs.activation_methods_ &&
            activation_energy_ == rhs.activation_energy_ &&
@@ -84,17 +75,17 @@ namespace OpenMS
            CVTermList::operator==(rhs);
   }
 
-  bool Precursor::operator!=(const Precursor & rhs) const
+  bool Precursor::operator!=(const Precursor& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const set<Precursor::ActivationMethod> & Precursor::getActivationMethods() const
+  const set<Precursor::ActivationMethod>& Precursor::getActivationMethods() const
   {
     return activation_methods_;
   }
 
-  set<Precursor::ActivationMethod> & Precursor::getActivationMethods()
+  set<Precursor::ActivationMethod>& Precursor::getActivationMethods()
   {
     return activation_methods_;
   }
