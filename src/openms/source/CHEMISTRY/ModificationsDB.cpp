@@ -830,4 +830,16 @@ namespace OpenMS
     });
   }
 
+  void ModificationsDB::writeTSV(String const& filename)
+  {
+    std::ofstream ofs(filename, std::ofstream::out);
+    ofs << "FullId\tFullName\tUnimodAccession\tOrigin/AA\tTerminusSpecificity\tDiffMonoMass\n";
+    ResidueModification tmp;
+    for (const auto& mod : mods_)
+    {
+      ofs << mod->getFullId() << "\t" << mod->getFullName() << "\t" << mod->getUniModAccession() << "\t" << mod->getOrigin() << "\t"
+      << tmp.getTermSpecificityName(mod->getTermSpecificity()) << "\t"
+      << mod->getDiffMonoMass() << "\n";
+    }
+  }
 } // namespace OpenMS

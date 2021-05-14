@@ -111,12 +111,12 @@ namespace OpenMS
   TransitionTSVFile::TransitionTSVFile() :
     DefaultParamHandler("TransitionTSVFile")
   {
-    defaults_.setValue("retentionTimeInterpretation", "iRT", "How to interpret the provided retention time (the retention time column can either be interpreted to be in iRT, minutes or seconds)", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("retentionTimeInterpretation", ListUtils::create<String>("iRT,seconds,minutes"));
-    defaults_.setValue("override_group_label_check", "false", "Override an internal check that assures that all members of the same PeptideGroupLabel have the same PeptideSequence (this ensures that only different isotopic forms of the same peptide can be grouped together in the same label group). Only turn this off if you know what you are doing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("override_group_label_check", ListUtils::create<String>("true,false"));
-    defaults_.setValue("force_invalid_mods", "false", "Force reading even if invalid modifications are encountered (OpenMS may not recognize the modification)", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("force_invalid_mods", ListUtils::create<String>("true,false"));
+    defaults_.setValue("retentionTimeInterpretation", "iRT", "How to interpret the provided retention time (the retention time column can either be interpreted to be in iRT, minutes or seconds)", {"advanced"});
+    defaults_.setValidStrings("retentionTimeInterpretation", {"iRT","seconds","minutes"});
+    defaults_.setValue("override_group_label_check", "false", "Override an internal check that assures that all members of the same PeptideGroupLabel have the same PeptideSequence (this ensures that only different isotopic forms of the same peptide can be grouped together in the same label group). Only turn this off if you know what you are doing.", {"advanced"});
+    defaults_.setValidStrings("override_group_label_check", {"true","false"});
+    defaults_.setValue("force_invalid_mods", "false", "Force reading even if invalid modifications are encountered (OpenMS may not recognize the modification)", {"advanced"});
+    defaults_.setValidStrings("force_invalid_mods", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -129,7 +129,7 @@ namespace OpenMS
 
   void TransitionTSVFile::updateMembers_()
   {
-    retentionTimeInterpretation_ = param_.getValue("retentionTimeInterpretation");
+    retentionTimeInterpretation_ = param_.getValue("retentionTimeInterpretation").toString();
     override_group_label_check_ = param_.getValue("override_group_label_check").toBool();
     force_invalid_mods_ = param_.getValue("force_invalid_mods").toBool();
   }

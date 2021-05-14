@@ -744,23 +744,23 @@ protected:
     struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
 
 
-    DataValue dv = param_.getValue("penalties:position");
-    if (dv.isEmpty() || dv.toString() == "")
+    ParamValue pv = param_.getValue("penalties:position");
+    if (pv.isEmpty() || pv.toString() == "")
       penalties.pos = 0.;
     else
-      penalties.pos = (float)dv;
+      penalties.pos = (float)pv;
 
-    dv = param_.getValue("penalties:left_width");
-    if (dv.isEmpty() || dv.toString() == "")
+    pv = param_.getValue("penalties:left_width");
+    if (pv.isEmpty() || pv.toString() == "")
       penalties.lWidth = 1.;
     else
-      penalties.lWidth = (float)dv;
+      penalties.lWidth = (float)pv;
 
-    dv = param_.getValue("penalties:right_width");
-    if (dv.isEmpty() || dv.toString() == "")
+    pv = param_.getValue("penalties:right_width");
+    if (pv.isEmpty() || pv.toString() == "")
       penalties.rWidth = 1.;
     else
-      penalties.rWidth = (float)dv;
+      penalties.rWidth = (float)pv;
 #ifdef DEBUG_2D
     std::cout << penalties.pos << " "
               << penalties.rWidth << " "
@@ -776,11 +776,11 @@ protected:
     // std::cout << "---------------------------------------------------------------\n\n\n\n";
 
     UInt max_iteration;
-    dv = param_.getValue("iterations");
-    if (dv.isEmpty() || dv.toString() == "")
+    pv = param_.getValue("iterations");
+    if (pv.isEmpty() || pv.toString() == "")
       max_iteration = 15;
     else
-      max_iteration = (UInt)dv;
+      max_iteration = (UInt)pv;
 
     std::vector<PeakShape> peak_shapes;
 

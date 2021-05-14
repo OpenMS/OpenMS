@@ -220,7 +220,7 @@ protected:
     catch (Exception::MissingInformation& e)
     {
       OPENMS_LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information:\n"
-      << e.getMessage();
+      << e.what();
       return INCOMPATIBLE_INPUT_DATA;
     }
 

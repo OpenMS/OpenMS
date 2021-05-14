@@ -539,7 +539,6 @@ namespace OpenMS
       Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
       names_[iso_name] = iso_e;
       symbols_[iso_symbol] = iso_e;
-
     } 
   }
 

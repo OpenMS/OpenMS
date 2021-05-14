@@ -71,18 +71,16 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/LogWindow.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -90,35 +88,33 @@
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 //Qt
-#include <QtCore/QSettings>
+#include <QCloseEvent>
+#include <QPainter>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
+#include <QtCore/QSettings>
 #include <QtCore/QTime>
 #include <QtCore/QUrl>
+#include <QTextCodec>
 #include <QtWidgets/QCheckBox>
-#include <QCloseEvent>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
-#include <QPainter>
 #include <QtWidgets/QSplashScreen>
-#include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
-#include <QtWidgets/QToolTip>
 #include <QtWidgets/QToolButton>
+#include <QtWidgets/QToolTip>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
 #include <QtWidgets/QWhatsThis>
-#include <QTextCodec>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <algorithm>
 #include <utility>
 
 using namespace std;
@@ -130,16 +126,16 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
-
   /// supported types which can be opened with File-->Open
   const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
                                                   FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
-                                                  FileTypes::DTA, FileTypes::DTA2D,
-                                                  FileTypes::BZ2, FileTypes::GZ });
+                                                  FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
+                                                  FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(QWidget* parent) :
+  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
+    scan_mode_(scan_mode),
     ws_(this),
     tab_bar_(this),
     recent_files_(),
@@ -446,7 +442,7 @@ namespace OpenMS
     loadPreferences();
 
     // set current path
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     // update the menu
     updateMenu();
@@ -467,20 +463,20 @@ namespace OpenMS
   {
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-    defaults_.setValidStrings("preferences:default_map_view", ListUtils::create<String>("2d,3d"));
+    defaults_.setValidStrings("preferences:default_map_view", {"2d","3d"});
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
-    defaults_.setValidStrings("preferences:intensity_cutoff", ListUtils::create<String>("on,off"));
+    defaults_.setValidStrings("preferences:intensity_cutoff", {"on","off"});
     defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-    defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<String>("none,ask,update automatically"));
+    defaults_.setValidStrings("preferences:on_file_change", {"none","ask","update automatically"});
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:topp_cleanup", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms2", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms2", {"true","false"});
     defaults_.setValue("preferences:use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms1", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("preferences:use_cached_ms1", {"true","false"});
     // 1d view
     defaults_.insert("preferences:1d:", Plot1DCanvas(Param()).getDefaults());
     defaults_.setSectionDescription("preferences:1d", "Settings for single spectrum view.");
@@ -559,6 +555,9 @@ namespace OpenMS
     ConsensusMapSharedPtrType consensus_map_sptr(consensus_map);
 
     vector<PeptideIdentification> peptides;
+    // not needed in data but for auto annotation
+    vector<ProteinIdentification> proteins;
+    String annotate_path;
 
     LayerData::DataType data_type;
 
@@ -567,8 +566,8 @@ namespace OpenMS
     // lock the GUI - no interaction possible when loading...
     GUIHelpers::GUILock glock(this);
 
-    bool cache_ms2_on_disc = ((String)param_.getValue("preferences:use_cached_ms2") == "true");
-    bool cache_ms1_on_disc = ((String)param_.getValue("preferences:use_cached_ms1") == "true");
+    bool cache_ms2_on_disc = (param_.getValue("preferences:use_cached_ms2") == "true");
+    bool cache_ms1_on_disc = (param_.getValue("preferences:use_cached_ms1") == "true");
 
     try
     {
@@ -584,7 +583,6 @@ namespace OpenMS
       }
       else if (file_type == FileTypes::IDXML)
       {
-        vector<ProteinIdentification> proteins; // not needed later
         IdXMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
@@ -613,6 +611,46 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
+
+        if (!proteins.empty())
+        {
+          StringList paths;
+          proteins[0].getPrimaryMSRunPath(paths);
+
+          for (const String &path : paths)
+          {
+            if (File::exists(path) && fh.getType(path) == FileTypes::MZML)
+            {
+              annotate_path = path;
+            }
+          }
+          // annotation could not be found in file reference
+          if (annotate_path.empty())
+          {
+            // try to find file with same path & name but with mzML extension
+            auto target = fh.swapExtension(abs_filename, FileTypes::Type::MZML);
+            if (File::exists(target))
+            {
+              annotate_path = target;
+            }
+          }
+
+          if (!annotate_path.empty())
+          {
+            // open dialog for annotation on load
+            QMessageBox msg_box;
+            auto spectra_file_name = File::basename(annotate_path);
+            msg_box.setText("Spectra data for identification data was found.");
+            msg_box.setInformativeText(String("Annotate spectra in " + spectra_file_name + "?").toQString());
+            msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            msg_box.setDefaultButton(QMessageBox::Yes);
+            auto ret = msg_box.exec();
+            if (ret == QMessageBox::No)
+            { // no annotation performed
+              annotate_path = "";
+            }
+          }
+        }
         data_type = LayerData::DT_IDENT;
       }
       else if (file_type == FileTypes::MZIDENTML)
@@ -654,7 +692,6 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          MzMLFile f;
           Internal::IndexedMzMLHandler indexed_mzml_file_;
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
@@ -697,7 +734,7 @@ namespace OpenMS
           }
         }
 
-        // Load all data into memory
+        // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
@@ -734,6 +771,27 @@ namespace OpenMS
     }
 
     glock.unlock();
+
+    if (!annotate_path.empty())
+    {
+      auto load_res = addDataFile(annotate_path, false, false);
+      if (load_res == LOAD_RESULT::OK)
+      {
+        auto l = getCurrentLayer();
+        if (l)
+        {
+          bool success = l->annotate(peptides, proteins);
+          if (success)
+          {
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+          }
+          else
+          {
+            log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", "Annotation failed.");
+          }
+        }
+      }
+    }
 
     addData(feature_map_sptr, 
       consensus_map_sptr, 
@@ -776,9 +834,9 @@ namespace OpenMS
                              Size spectrum_id)
   {
     // initialize flags with defaults from the parameters
-    bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view") == "2d");
+    bool maps_as_2d = (param_.getValue("preferences:default_map_view") == "2d");
     bool maps_as_1d = false;
-    bool use_intensity_cutoff = ((String)param_.getValue("preferences:intensity_cutoff") == "on");
+    bool use_intensity_cutoff = (param_.getValue("preferences:intensity_cutoff") == "on");
     bool is_dia_data = false;
 
     // feature, consensus feature and identifications can be merged
@@ -1510,6 +1568,8 @@ namespace OpenMS
     // compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
 
+    bool tool_params_added = false;
+
     if (filename == "") { filename = default_ini_file; }
 
     // load preferences, if file exists
@@ -1525,14 +1585,13 @@ namespace OpenMS
       {
         error = true;
       }
-
       //apply preferences if they are of the current TOPPView version
       if (!error && tmp.exists("preferences:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
         {
-          setParameters(tmp);
+          setParameters(tmp.copy("preferences:"));
         }
         catch (Exception::InvalidParameter& /*e*/)
         {
@@ -1543,13 +1602,18 @@ namespace OpenMS
       {
         error = true;
       }
+      // Load tool/util params
+      if (!error && scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
+      {
+        param_.insert("tool_params:", tmp.copy("tool_params:", true));
+        tool_params_added = true;
+      }
 
       // set parameters to defaults when something is fishy with the parameters file
       if (error)
       {
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
-
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
       }
     }
@@ -1557,6 +1621,12 @@ namespace OpenMS
     {
       cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
+    // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
+    if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      tool_scanner_.loadParams();
+    }
+
     param_.setValue("PreferencesFile", filename);
 
     // set the recent files
@@ -1568,18 +1638,35 @@ namespace OpenMS
     // replace recent files
     param_.removeAll("preferences:RecentFiles");
     param_.insert("preferences:RecentFiles:", recent_files_.getAsParam());
-    
+
     // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
-
-    // save only the subsection that begins with "preferences:"
+    // Make sure TOPP tool/util params have been inserted
+    if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
+    {
+      addToolParamsToIni();
+    }
+    // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
     {
-      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), param_.copy("preferences:"));
+      Param p;
+      p.insert("preferences:", param_.copy("preferences:", true));
+      p.insert("tool_params:", param_.copy("tool_params:", true));
+      ParamXMLFile().store(string(param_.getValue("PreferencesFile")), p);
     }
     catch (Exception::UnableToCreateFile& /*e*/)
     {
       cerr << "Unable to create INI File: '" << string(param_.getValue("PreferencesFile")) << "'" << endl;
+    }
+  }
+
+  void TOPPViewBase::addToolParamsToIni()
+  {
+    tool_scanner_.waitForParams();
+    param_.addSection("tool_params", "");
+    for (const auto& pair : tool_scanner_.getToolParams())
+    {
+      param_.insert("tool_params:", pair.second);
     }
   }
 
@@ -1636,7 +1723,11 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
+    if (!param_.hasSection("tool_params:"))
+    {
+      addToolParamsToIni();
+    }
+    ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -2003,7 +2094,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2528,14 +2619,14 @@ namespace OpenMS
       else if (spec_view != nullptr)
       {
         ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-        if (spec_view->getSelectedScan(*new_exp_sptr))
+        if (LayerData::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
         {
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
           const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, new_exp_sptr->getNrSpectra() > 0 ? LayerData::DT_PEAK : LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.getName(), new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
       else if (source == nullptr)
@@ -2567,7 +2658,7 @@ namespace OpenMS
     }
 
     //reset
-    current_path_ = param_.getValue("preferences:default_path");
+    current_path_ = param_.getValue("preferences:default_path").toString();
 
     //update if the current layer has a path associated
     if (getActiveCanvas() && getActiveCanvas()->getLayerCount() != 0 && getActiveCanvas()->getCurrentLayer().filename != "")
@@ -2621,11 +2712,11 @@ namespace OpenMS
     Size layer_index = slp.second;
 
     bool user_wants_update = false;
-    if ((String)(param_.getValue("preferences:on_file_change")) == "update automatically") //automatically update
+    if (param_.getValue("preferences:on_file_change") == "update automatically") //automatically update
     {
       user_wants_update = true;
     }
-    else if ((String)(param_.getValue("preferences:on_file_change")) == "ask") //ask the user if the layer should be updated
+    else if (param_.getValue("preferences:on_file_change") == "ask") //ask the user if the layer should be updated
     {
       if (watcher_msgbox_ == true) // we already have a dialog for that opened... do not ask again
       {
