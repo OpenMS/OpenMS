@@ -126,7 +126,6 @@ END_SECTION
 
 START_SECTION((static String basename(const String &file)))
   TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"), "bluff.h");
-  TEST_EQUAL(File::basename("c:\\config\\bla\\tuff.h"), "tuff.h");
 END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
