@@ -216,20 +216,22 @@ namespace OpenMS
   IdentificationData::ObservationRef
   IdentificationData::registerObservation(const Observation& obs)
   {
-    // reference to spectrum or feature is required:
-    if (!no_checks_ && obs.data_id.empty())
+    if (!no_checks_)
     {
-      String msg = "missing identifier in observation";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
-    }
-    // ref. to input file may be missing, but must otherwise be valid:
-    if (!no_checks_ && obs.input_file_opt &&
-        !isValidReference_(*obs.input_file_opt, input_files_))
-    {
-      String msg = "invalid reference to an input file - register that first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      // reference to spectrum or feature is required:
+      if (obs.data_id.empty())
+      {
+        String msg = "missing identifier in observation";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      // ref. to input file must be valid:
+      if (!isValidReference_(obs.input_file, input_files_))
+      {
+        String msg = "invalid reference to an input file - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
     }
 
     // can't use "insertIntoMultiIndex_" because Observation doesn't have the
@@ -972,10 +974,7 @@ namespace OpenMS
     {
       // update internal references:
       Observation copy = *other_ref;
-      if (copy.input_file_opt)
-      {
-        copy.input_file_opt = trans.input_file_refs[*copy.input_file_opt];
-      }
+      copy.input_file = trans.input_file_refs[copy.input_file];
       trans.observation_refs[other_ref] = registerObservation(copy);
     }
     // parent sequences:
