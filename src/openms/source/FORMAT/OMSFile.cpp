@@ -724,9 +724,9 @@ namespace OpenMS
     {
       query.bindValue(":id", Key(&obs)); // use address as primary key
       query.bindValue(":data_id", obs.data_id.toQString());
-      if (obs.input_file_opt)
+      if (obs.input_file)
       {
-        query.bindValue(":input_file_id", Key(&(**obs.input_file_opt)));
+        query.bindValue(":input_file_id", Key(&(*obs.input_file)));
       }
       else
       {
@@ -1998,12 +1998,8 @@ namespace OpenMS
 
     while (query.next())
     {
-      ID::Observation obs(query.value("data_id").toString());
       QVariant input_file_id = query.value("input_file_id");
-      if (!input_file_id.isNull())
-      {
-        obs.input_file_opt = input_file_refs_[input_file_id.toLongLong()];
-      }
+      ID::Observation obs(query.value("data_id").toString(), input_file_refs_[input_file_id.toLongLong()]);
       QVariant rt = query.value("rt");
       if (!rt.isNull()) obs.rt = rt.toDouble();
       QVariant mz = query.value("mz");

@@ -201,19 +201,21 @@ namespace OpenMS
       progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step.at(id);
-      ID::Observation obs(""); // fill in "data_id" later
+
+      ID::InputFileRef input_file_ref;
       if (!step_ref->input_file_refs.empty())
       {
         // @TODO: what if there's more than one input file?
-        obs.input_file_opt = step_ref->input_file_refs[0];
+        input_file_ref = step_ref->input_file_refs[0];
       }
       else
       {
         String file = "UNKNOWN_INPUT_FILE_" + id;
-        ID::InputFileRef file_ref =
-          id_data.registerInputFile(ID::InputFile(file));
-        obs.input_file_opt = file_ref;
+        input_file_ref = id_data.registerInputFile(ID::InputFile(file));
       }
+
+      ID::Observation obs("", input_file_ref); // fill in "data_id" later
+      
       obs.rt = pep.getRT();
       obs.mz = pep.getMZ();
       obs.addMetaValues(pep);
@@ -307,9 +309,9 @@ namespace OpenMS
           ID::ProcessingSoftwareRef software_ref =
             id_data.registerProcessingSoftware(software);
           ID::ProcessingStep sub_step(software_ref);
-          if (obs.input_file_opt)
+          if (obs.input_file)
           {
-            sub_step.input_file_refs.push_back(*obs.input_file_opt);
+            sub_step.input_file_refs.push_back(obs.input_file);
           }
           ID::ProcessingStepRef sub_step_ref =
             id_data.registerProcessingStep(sub_step);

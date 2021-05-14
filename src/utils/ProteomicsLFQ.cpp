@@ -1143,12 +1143,12 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-/*      bool ok = true;
+      bool ok = true;
       for (const auto& id : peptide_ids)
       {
         ok &= checkPepID_(id);
       }
-      if(!ok) std::cerr << "ALREADY WRONG BEFORE IMPORT" << std::endl;*/
+      if(!ok) std::cerr << "ALREADY WRONG BEFORE IMPORT" << std::endl;
 
       if (c > 0)
       {
@@ -1177,13 +1177,12 @@ protected:
       // convert IDs in feature map to Peptide-/ProteinIdentification:
       IdentificationDataConverter::exportFeatureIDs(fm);
 
-/*      ok = true;
+      ok = true;
       for (const auto& id : fm.getUnassignedPeptideIdentifications())
       {
         ok &= checkPepID_(id);
       }
-
-      if(!ok) std::cerr << "WRONG" << std::endl;*/
+      if(!ok) std::cerr << "WRONG" << std::endl;
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
@@ -1198,13 +1197,12 @@ protected:
       IDConflictResolverAlgorithm::resolve(fm,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
 
-/*      ok = true;
+      ok = true;
       for (const auto& id : fm.getUnassignedPeptideIdentifications())
       {
         ok &= checkPepID_(id);
       }
-
-      if(!ok) std::cerr << "WRONG" << std::endl;*/
+      if(!ok) std::cerr << "WRONG" << std::endl;
 
       feature_maps.push_back(std::move(fm));
 
@@ -1274,12 +1272,12 @@ protected:
     // sort list of peptide identifications in each consensus feature by map index
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
 
-/*    bool ok = true;
+    bool ok = true;
     for (const auto& id : consensus_fraction.getUnassignedPeptideIdentifications())
     {
       ok &= checkPepID_(id);
     }
-    if(!ok) std::cerr << "WRONG after fraction linking" << std::endl; */
+    if(!ok) std::cerr << "WRONG after fraction linking" << std::endl; 
 
     if (debug_level_ >= 666)
     {
@@ -1882,8 +1880,8 @@ protected:
     {
       ok &= checkPepID_(id);
     }
-
     if(!ok) std::cerr << "WRONG after linking" << std::endl;
+
     //-------------------------------------------------------------
     // ID related algorithms
     // TODO we could switch to work on the IDs in ConsensusXML
