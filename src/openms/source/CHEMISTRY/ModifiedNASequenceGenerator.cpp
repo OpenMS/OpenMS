@@ -89,7 +89,7 @@ namespace OpenMS
 
 
   void ModifiedNASequenceGenerator::addModToSequences_(
-    vector<ModSeqInfo>& temp_seqs, Size n_temp_seqs,
+    vector<ModSeqInfo_>& temp_seqs, Size n_temp_seqs,
     vector<NASequence>& finished_seqs,
     const function<bool(NASequence&, Int&)>& applyMod)
   {
@@ -159,7 +159,7 @@ namespace OpenMS
     }
 
     // buffer of sequences that can accept further mods. (and how many):
-    vector<ModSeqInfo> temp_seqs;
+    vector<ModSeqInfo_> temp_seqs;
     // starting with the original sequence, add one (more) possible mod. each time:
     temp_seqs.emplace_back(seq, max_var_mods, max_missed_cleavages);
     for (ConstRibonucleotidePtr mod : compatible_5p_mods)

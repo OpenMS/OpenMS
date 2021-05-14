@@ -80,15 +80,15 @@ namespace OpenMS
 
   protected:
     /// Sequence with modification information
-    struct ModSeqInfo
+    struct ModSeqInfo_
     {
       NASequence seq; //< sequence (unmodified or partially modified)
       Size var_mods_left; //< number of var. mods that can still be applied
       Int missed_cleavages_left; //< for inosine/RNase T1 special case
 
       /// C'tor for convenience
-      ModSeqInfo(NASequence seq, Size var_mods_left,
-                 Int missed_cleavages_left = -1):
+      ModSeqInfo_(NASequence seq, Size var_mods_left,
+                  Int missed_cleavages_left = -1):
         seq(seq), var_mods_left(var_mods_left),
         missed_cleavages_left(missed_cleavages_left)
       {
@@ -107,7 +107,7 @@ namespace OpenMS
        After the modification is applied, each new sequence is appended either to @p temp_seqs or @p finished_seqs, depending on whether the max. number of variable mods has been reached.
     */
     static void addModToSequences_(
-      std::vector<ModSeqInfo>& temp_seqs, Size n_temp_seqs,
+      std::vector<ModSeqInfo_>& temp_seqs, Size n_temp_seqs,
       std::vector<NASequence>& finished_seqs,
       const std::function<bool(NASequence&, Int&)>& applyMod);
   };
