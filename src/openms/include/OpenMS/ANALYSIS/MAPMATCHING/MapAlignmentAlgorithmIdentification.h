@@ -89,7 +89,7 @@ public:
       // set these here because "checkParameters_" may not have been called yet:
       use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       score_cutoff_ = param_.getValue("score_cutoff").toBool();
-      score_type_ = param_.getValue("score_type");
+      score_type_ = param_.getValue("score_type").toString();
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
       if (reference_.empty())

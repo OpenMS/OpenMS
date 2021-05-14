@@ -96,7 +96,7 @@ namespace OpenMS
     // score type may have been set by reference already - don't overwrite it:
     if (score_cutoff_ && score_type_.empty())
     {
-      score_type_ = param_.getValue("score_type");
+      score_type_ = param_.getValue("score_type").toString();
     }
     min_score_ = param_.getValue("min_score");
     use_adducts_ = param_.getValue("use_adducts").toBool();
