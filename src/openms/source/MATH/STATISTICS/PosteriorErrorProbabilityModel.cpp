@@ -37,7 +37,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -64,11 +64,11 @@ namespace OpenMS
       correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
       negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
     {
-      defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", ListUtils::create<String>("advanced,output file"));
-      defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", ListUtils::create<String>("advanced"));
-      defaults_.setValue("incorrectly_assigned", "Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("incorrectly_assigned", ListUtils::create<String>("Gumbel,Gauss"));
+      defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", {"advanced","output file"});
+      defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", {"advanced"});
+      defaults_.setValue("incorrectly_assigned", "Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.", {"advanced"});
+      defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", {"advanced"});
+      defaults_.setValidStrings("incorrectly_assigned", {"Gumbel","Gauss"});
       defaults_.setValue("neg_log_delta",6, "The negative logarithm of the convergence threshold for the likelihood increase.");
       defaults_.setValue("outlier_handling","ignore_iqr_outliers", "What to do with outliers:\n"
                                                                    "- ignore_iqr_outliers: ignore outliers outside of 3*IQR from Q1/Q3 for fitting\n"
@@ -117,12 +117,12 @@ namespace OpenMS
       //-------------------------------------------------------------
       // create files for output
       //-------------------------------------------------------------
-      bool output_plots  = (param_.getValue("out_plot").toString().trim().length() > 0);
+      bool output_plots  = (String(param_.getValue("out_plot").toString()).trim().length() > 0);
       TextFile file;
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(param_.getValue("out_plot").toString().toQString());
+        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
         if (!dir.cdUp())
         {
           OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
@@ -233,7 +233,7 @@ namespace OpenMS
           formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
           formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
           // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-          file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+          file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         }
         //update maximum likelihood
         maxlike = new_maxlike;
@@ -252,9 +252,9 @@ namespace OpenMS
         String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; // String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
         String formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
         // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-        file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
-        file.store((String)param_.getValue("out_plot"));
-        tryGnuplot((String)param_.getValue("out_plot"));
+        file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        file.store((std::string)param_.getValue("out_plot"));
+        tryGnuplot((std::string)param_.getValue("out_plot"));
       }
       return good_fit;
     }
@@ -304,12 +304,12 @@ namespace OpenMS
       //-------------------------------------------------------------
       // create files for output
       //-------------------------------------------------------------
-      bool output_plots  = (param_.getValue("out_plot").toString().trim().length() > 0);
+      bool output_plots  = (String(param_.getValue("out_plot").toString()).trim().length() > 0);
       TextFile file;
       if (output_plots)
       {
         // create output directory (if not already present)
-        QDir dir(param_.getValue("out_plot").toString().toQString());
+        QDir dir(String(param_.getValue("out_plot").toString()).toQString());
         if (!dir.cdUp())
         {
           OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
@@ -409,7 +409,7 @@ namespace OpenMS
           formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
           formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
           // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-          file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+          file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         }
         //update maximum likelihood
         maxlike = new_maxlike;
@@ -435,9 +435,9 @@ namespace OpenMS
         String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; // String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
         String formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
         // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-        file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
-        file.store((String)param_.getValue("out_plot"));
-        tryGnuplot((String)param_.getValue("out_plot"));
+        file.addLine("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        file.store((std::string)param_.getValue("out_plot"));
+        tryGnuplot((std::string)param_.getValue("out_plot"));
       }
       return good_fit;
     }
@@ -653,7 +653,7 @@ namespace OpenMS
         it->setY(it->getY() / (x_scores.size()  * dividing_score));
         data_points << (String(it->getX()) + "\t" + it->getY());
       }
-      data_points.store((String)param_.getValue("out_plot") + "_scores.txt");
+      data_points.store((std::string)param_.getValue("out_plot") + "_scores.txt");
 
       TextFile file;
       file << "set terminal pdf color solid linewidth 2.0 rounded";
@@ -664,11 +664,11 @@ namespace OpenMS
       //TODO: file<<"set title ";
       file << "set key off";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file <<  "set output '" + (String)param_.getValue("out_plot") + ".pdf'";
+      file <<  "set output '" + (std::string)param_.getValue("out_plot") + ".pdf'";
       String formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + String(negative_prior_); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
       String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << ("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2);
+      file << ("plot '" + (std::string)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2);
       return file;
     }
 
@@ -777,7 +777,7 @@ namespace OpenMS
         temp_ += (*it)[2];
         data_points << temp_;
       }
-      data_points.store((String)param_.getValue("out_plot") + "_target_decoy_scores.txt");
+      data_points.store((std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt");
       TextFile file;
       file << "set terminal pdf color solid linewidth 2.0 rounded";
       //file<<"set style empty solid 0.5 border -1";
@@ -787,14 +787,14 @@ namespace OpenMS
       //TODO: file<<"set title ";
       file << "set key off";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << String("set output '") +  (String)param_.getValue("out_plot") + "_target_decoy.pdf'";
+      file << "set output '" + (std::string)param_.getValue("out_plot") + "_target_decoy.pdf'";
       String formula1, formula2;
       formula1 = getGumbelGnuplotFormula(getIncorrectlyAssignedFitResult()) + "* " + String(getNegativePrior()); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
       formula2 = getGaussGnuplotFormula(getCorrectlyAssignedFitResult()) + "* (1 - " + String(getNegativePrior()) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << ("plot '" + (String)param_.getValue("out_plot") + "_target_decoy_scores.txt'   using 1:3  with boxes fill solid 0.8 noborder, \"" + (String)param_.getValue("out_plot") + "_target_decoy_scores.txt\"  using 1:2  with boxes, " + formula1 + " , " + formula2);
-      file.store((String)param_.getValue("out_plot") + "_target_decoy");
-      tryGnuplot((String)param_.getValue("out_plot") + "_target_decoy");
+      file << ("plot '" + (std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt'   using 1:3  with boxes fill solid 0.8 noborder, \"" + (std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt\"  using 1:2  with boxes, " + formula1 + " , " + formula2);
+      file.store((std::string)param_.getValue("out_plot") + "_target_decoy");
+      tryGnuplot((std::string)param_.getValue("out_plot") + "_target_decoy");
     }
 
     void PosteriorErrorProbabilityModel::tryGnuplot(const String& gp_file)
@@ -873,7 +873,7 @@ namespace OpenMS
       }
     }
 
-    double PosteriorErrorProbabilityModel::getScore_(const StringList& requested_score_types, const PeptideHit & hit, const String& actual_score_type)
+    double PosteriorErrorProbabilityModel::getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type)
     {
         for (const auto& requested_score_type : requested_score_types)
         {

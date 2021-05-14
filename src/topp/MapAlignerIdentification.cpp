@@ -161,7 +161,7 @@ private:
   {
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
 
     try
     {
@@ -172,7 +172,7 @@ private:
       if (getFlag_("force"))
       {
         OPENMS_LOG_ERROR
-          << "Error: alignment failed. Details:\n" << err.getMessage()
+          << "Error: alignment failed. Details:\n" << err.what()
           << "\nSince 'force' is set, processing will continue using 'identity' transformations."
           << endl;
         model_type = "identity";

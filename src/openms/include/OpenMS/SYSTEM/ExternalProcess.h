@@ -74,6 +74,15 @@ namespace OpenMS
       FAILED_TO_START ///< executable not found or not enough access rights for user
     };
 
+    /// Open mode for the process.
+    enum class IO_MODE
+    {
+        NO_IO, ///< No read nor write access
+        READ_ONLY,
+        WRITE_ONLY,
+        READ_WRITE
+    };
+
     /// default Ctor; callbacks for stdout/stderr are empty
     ExternalProcess();
 
@@ -94,14 +103,15 @@ namespace OpenMS
       @param verbose Report the call command and errors via the callbacks (default: false)
       @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
       @param[out] error_string Message to display to the user if something went wrong (if return != SUCCESS)
+      @param io_mode Open mode for the process (read access, write access, ...)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
-    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg);
+    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode = IO_MODE::READ_WRITE);
     
     /**
       @brief Same as other overload, just without a returned error message
      */
-    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose);
+    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, IO_MODE io_mode = IO_MODE::READ_WRITE);
 
   private slots:
     void processStdOut_();
