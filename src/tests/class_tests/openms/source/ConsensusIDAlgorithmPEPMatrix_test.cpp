@@ -74,7 +74,7 @@ END_SECTION
 START_SECTION(double getSimilarity_(AASequence seq1,
                   AASequence seq2))
 {
-  ConsensusIDAlgorithmPEPMatrix object2= ConsensusIDAlgorithmPEPMatrix();//konstruktor
+  ConsensusIDAlgorithmPEPMatrix object2= ConsensusIDAlgorithmPEPMatrix();
   AASequence seq1=AASequence::fromString("ATLIGQLAIQQ");
   AASequence seq2=AASequence::fromString("ATLIGALDQQQ");
   cout<<object2.getSimilarity_(seq1, seq2)<<endl;

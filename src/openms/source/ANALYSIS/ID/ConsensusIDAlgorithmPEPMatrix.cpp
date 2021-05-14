@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-#include <iostream>//wieder rausnehmen
 
 using namespace std;
 
@@ -41,36 +40,6 @@ namespace OpenMS
 {
   ConsensusIDAlgorithmPEPMatrix::ConsensusIDAlgorithmPEPMatrix()
   {
-    setName("ConsensusIDAlgorithmPEPMatrix");
-    defaults_.setValue("matrix", "identity", "Substitution matrix to use for alignment-based similarity scoring");
-    defaults_.setValidStrings("matrix", {"identity", "PAM30MS"});
-    defaults_.setValue("penalty", 5, "Alignment gap penalty (the same value is used for gap opening and extension)");
-    defaults_.setMinInt("penalty", 1);
-
-    defaultsToParam_();
-
-    string matrix = param_.getValue("matrix");
-    int penalty = param_.getValue("penalty");
-
-    if (matrix == "identity")
-    {
-      cout<<"ich war hier identity"<<endl;
-      NeedlemanWunsch::ScoringMatrix enumMatrix = NeedlemanWunsch::identityMatrix;
-      NeedlemanWunsch object(enumMatrix, penalty);
-    }
-    else if (matrix == "PAM30MS")
-    {
-      cout<<"ich war hier pam"<<endl;
-      NeedlemanWunsch::ScoringMatrix enumMatrix = NeedlemanWunsch::PAM30MSMatrix;
-      NeedlemanWunsch object(enumMatrix, penalty);
-    }
-    else
-    {
-      String msg = "Matrix '" + matrix + "' is not known! Valid choices are: "
-                                         "'identity', 'PAM30MS'.";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       msg);
-    }
   }
 
 
@@ -81,12 +50,11 @@ namespace OpenMS
     String unmod_seq1 = seq1.toUnmodifiedString();
     String unmod_seq2 = seq2.toUnmodifiedString();
     if (unmod_seq1 == unmod_seq2) return 1.0;
-   // if (unmod_seq1 > unmod_seq2) swap(unmod_seq1, unmod_seq2);
+    if (unmod_seq1 < unmod_seq2) swap(unmod_seq1, unmod_seq2);
 
-
-    double score_self1 = object.align_(unmod_seq1, unmod_seq1);
-    double score_sim = object.align_(unmod_seq1, unmod_seq2);
-    double score_self2 = object.align_(unmod_seq2, unmod_seq2);
+    double score_self1 = object_.align_(unmod_seq1, unmod_seq1);
+    double score_sim = object_.align_(unmod_seq1, unmod_seq2);
+    double score_self2 = object_.align_(unmod_seq2, unmod_seq2);
 
     if (score_sim < 0)
     {
@@ -94,7 +62,7 @@ namespace OpenMS
     }
     else
     {
-      score_sim/=min(score_self1, score_self2); // normalize //was ist wenn man durch 0 teilt hier?
+      score_sim /= min(score_self1, score_self2); // normalize
     }
     return score_sim;
   }

@@ -54,19 +54,19 @@ namespace OpenMS
   public:
     /// Default constructor
     ConsensusIDAlgorithmPEPMatrix();
+
     /// Sequence similarity based on substitution matrix (ignores PTMs)
     double getSimilarity_(AASequence seq1, AASequence seq2) override; //danach wieder zu private machen (nur zum Testen)
+
   private:
 
-    NeedlemanWunsch object= NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::identityMatrix ,-5);
+    NeedlemanWunsch object_ = NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::identityMatrix , -5); //initialization //bisher wird hier die Matrix gewählt
 
     /// Not implemented
     ConsensusIDAlgorithmPEPMatrix(const ConsensusIDAlgorithmPEPMatrix&);
 
     /// Not implemented
     ConsensusIDAlgorithmPEPMatrix& operator=(const ConsensusIDAlgorithmPEPMatrix&);
-
-
 
   };
 
