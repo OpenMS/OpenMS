@@ -1647,7 +1647,7 @@ namespace OpenMS
     // Make sure TOPP tool/util params have been inserted
     if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
-      addToolParamsToIni();
+      addToolParamsToIni_();
     }
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
@@ -1663,7 +1663,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::addToolParamsToIni()
+  void TOPPViewBase::addToolParamsToIni_()
   {
     tool_scanner_.waitForParams();
     param_.addSection("tool_params", "");
@@ -1728,7 +1728,7 @@ namespace OpenMS
     }
     if (!param_.hasSection("tool_params:"))
     {
-      addToolParamsToIni();
+      addToolParamsToIni_();
     }
     ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
 
