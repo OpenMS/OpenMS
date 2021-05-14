@@ -127,10 +127,13 @@ public:
       public MetaInfoInterface
     {
       /// Default constructor
-      ColumnHeader();
+      ColumnHeader() = default;
 
       /// Copy constructor
-      ColumnHeader(const ColumnHeader&);
+      ColumnHeader(const ColumnHeader&) = default;
+
+      /// Copy assignment
+      ColumnHeader& operator=(const ColumnHeader&) = default;
 
       /// File name of the mzML file
       String filename;
@@ -138,9 +141,9 @@ public:
       String label;
       /// @brief Number of elements (features, peaks, ...).
       /// This is e.g. used to check for correct element indices when writing a consensus map TODO fix that
-      Size size;
+      Size size = 0;
       /// Unique id of the file
-      UInt64 unique_id;
+      UInt64 unique_id = UniqueIdInterface::INVALID;
 
       unsigned getLabelAsUInt(const String& experiment_type) const
       {

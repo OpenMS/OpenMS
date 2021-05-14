@@ -45,25 +45,6 @@
 
 namespace OpenMS
 {
-
-  ConsensusMap::ColumnHeader::ColumnHeader() :
-    MetaInfoInterface(),
-    filename(),
-    label(),
-    size(0),
-    unique_id(UniqueIdInterface::INVALID)
-  {
-  }
-
-  ConsensusMap::ColumnHeader::ColumnHeader(const ConsensusMap::ColumnHeader& other) :
-    MetaInfoInterface(other),
-    filename(other.filename),
-    label(other.label),
-    size(other.size),
-    unique_id(other.unique_id)
-  {
-  }
-
   ConsensusMap::ConsensusMap() :
     Base(),
     MetaInfoInterface(),

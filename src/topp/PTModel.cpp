@@ -564,6 +564,11 @@ protected:
                                                          output_flag,
                                                          "performances_" + digest + ".txt");
 
+      if (temp_type == SVMWrapper::OLIGO)
+      {
+        LibSVMEncoder::destroyProblem(encoded_training_sample);
+      }
+
       String debug_string = "Best parameters found in cross validation:";
 
       for (parameters_iterator = optimized_parameters.begin();

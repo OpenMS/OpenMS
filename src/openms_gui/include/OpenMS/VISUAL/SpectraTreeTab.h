@@ -61,21 +61,24 @@ namespace OpenMS
 public:
     /// Constructor
     SpectraTreeTab(QWidget * parent = nullptr);
+
     /// Destructor
     ~SpectraTreeTab() = default;
 
-    // docu in base class
-    bool hasData(const LayerData* layer);
+    /// docu in base class
+    bool hasData(const LayerData* layer) override;
 
     /// refresh the table using data from @p cl
     void updateEntries(LayerData* cl) override;
+    
     /// remove all visible data
     void clear() override;
 
     /// Return a copy of the currently selected spectrum/chrom (for drag'n'drop to new window)
     /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)
     /// If no spectrum/chrom is selected, false is returned and @p exp is empty
-    bool getSelectedScan(MSExperiment& exp) const;
+    /// @param current_type Either DT_PEAK or DT_CHROMATOGRAM, depending on what is currently shown
+    bool getSelectedScan(MSExperiment& exp, LayerData::DataType& current_type) const;
 
 signals:
     void spectrumSelected(int);

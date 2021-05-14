@@ -17,6 +17,7 @@ set(concept_executables_list
 )
 set(qc_executables_list
   Contaminants_test
+  DBSuitability_test
   FragmentMassError_test
   FWHM_test
   MissedCleavages_test
@@ -24,9 +25,9 @@ set(qc_executables_list
   Ms2SpectrumStats_test
   MzCalibration_test
   PeptideMass_test
+  PSMExplainedIonCurrent_test
   QCBase_test
   RTAlignment_test
-  DBSuitability_test
   TIC_test
 )
 
@@ -67,6 +68,7 @@ set(datastructures_executables_list
   #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
+  ParamValue_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test
@@ -529,6 +531,7 @@ set(analysis_executables_list
   OfflinePrecursorIonSelection_test
   PeptideIndexing_test
   PeptideAndProteinQuant_test
+  PeptideProteinResolution_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
@@ -569,6 +572,7 @@ set(analysis_executables_list
 set(applications_executables_list
   INIUpdater_test
   #MapAlignerBase_test
+  SearchEngineBase_test
   TOPPBase_test
   ToolHandler_test
   ParameterInformation_test
@@ -629,6 +633,11 @@ set(transformations_executables_list
   EmgScoring_test
 )
 endif(NOT DISABLE_OPENSWATH)
+
+set(ionmobility_executables_list
+  FAIMSHelper_test
+  MSRunIMSplitter_test
+)
 
 set(simulation_executables_list
   DetectabilitySimulation_test
@@ -721,6 +730,7 @@ set(TEST_executables
     ${analysis_executables_list}
     ${applications_executables_list}
     ${transformations_executables_list}
+    ${ionmobility_executables_list}
     ${simulation_executables_list}
     ${swath_executables_list}
     ${qc_executables_list}
