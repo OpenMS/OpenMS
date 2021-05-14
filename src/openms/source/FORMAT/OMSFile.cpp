@@ -707,7 +707,7 @@ namespace OpenMS
     createTable_("ID_Observation",
                  "id INTEGER PRIMARY KEY NOT NULL, "                    \
                  "data_id TEXT NOT NULL, "                              \
-                 "input_file_id INTEGER, "                              \
+                 "input_file_id INTEGER NOT NULL, "                     \
                  "rt REAL, "                                            \
                  "mz REAL, "                                            \
                  "UNIQUE (data_id, input_file_id), "                    \
@@ -724,14 +724,8 @@ namespace OpenMS
     {
       query.bindValue(":id", Key(&obs)); // use address as primary key
       query.bindValue(":data_id", obs.data_id.toQString());
-      if (obs.input_file)
-      {
-        query.bindValue(":input_file_id", Key(&(*obs.input_file)));
-      }
-      else
-      {
-        query.bindValue(":input_file_id", QVariant(QVariant::String)); // NULL
-      }
+      query.bindValue(":input_file_id", Key(&(*obs.input_file)));
+
       if (obs.rt == obs.rt)
       {
         query.bindValue(":rt", obs.rt);
@@ -1999,7 +1993,8 @@ namespace OpenMS
     while (query.next())
     {
       QVariant input_file_id = query.value("input_file_id");
-      ID::Observation obs(query.value("data_id").toString(), input_file_refs_[input_file_id.toLongLong()]);
+      ID::Observation obs(query.value("data_id").toString(),
+                          input_file_refs_[input_file_id.toLongLong()]);
       QVariant rt = query.value("rt");
       if (!rt.isNull()) obs.rt = rt.toDouble();
       QVariant mz = query.value("mz");

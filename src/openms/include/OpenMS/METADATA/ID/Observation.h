@@ -34,7 +34,9 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -54,7 +56,7 @@ namespace OpenMS
       /// Spectrum or feature ID (from the file referenced by @t input_file)
       String data_id;
 
-      /// reference to the mandatory input file
+      /// Reference to the input file
       InputFileRef input_file;
 
       double rt, mz; //< Position

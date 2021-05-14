@@ -83,15 +83,9 @@ namespace OpenMS
     defaults_.setMinFloat("extract:mz_window", 0.0);
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each target molecule assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
-
     defaults_.setValue("extract:max_isotopes", "false", "Be default, isotopes are extracted starting from the monoisotope. Set this flag to extract the most abundant isotopes instead. (Not relevant if advanced parameter 'extract:isotope_pmin' is used.)");
     defaults_.setValidStrings("extract:max_isotopes", {"true","false"});
-
-    defaults_.setValue(
-      "extract:isotope_pmin",
-      0.0, 
-      "Minimum probability for an isotope to be included in the assay for a peptide. If set, this parameter takes precedence over 'extract:n_isotopes'.",
-      {"advanced"});
+    defaults_.setValue("extract:isotope_pmin", 0.0, "Minimum probability for an isotope to be included in the assay for a molecule. If set, this parameter takes precedence over 'extract:n_isotopes'.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("extract:isotope_pmin", 0.0);
     defaults_.setMaxFloat("extract:isotope_pmin", 1.0);
     defaults_.setValue(
