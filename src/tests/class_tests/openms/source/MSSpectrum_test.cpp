@@ -169,10 +169,10 @@ START_SECTION((double getDriftTimeUnit() const ))
 }
 END_SECTION
 
-START_SECTION((double getDriftTimeUnit() const))
+START_SECTION((double getDriftTimeUnitAsString() const))
 {
   MSSpectrum s;
-  TEST_EQUAL(s.getDriftTimeUnitasString(), "<NONE>");
+  TEST_EQUAL(s.getDriftTimeUnitAsString(), "<NONE>");
 }
 END_SECTION
 
@@ -182,7 +182,7 @@ START_SECTION((void setDriftTimeUnit(double dt)))
   MSSpectrum s;
   s.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::MILLISECOND);
   TEST_EQUAL(s.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND);
-  TEST_EQUAL(s.getDriftTimeUnitasString(), "ms");
+  TEST_EQUAL(s.getDriftTimeUnitAsString(), "ms");
 }
 END_SECTION
 

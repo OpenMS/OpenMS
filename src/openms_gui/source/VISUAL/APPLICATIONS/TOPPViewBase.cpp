@@ -2276,7 +2276,7 @@ namespace OpenMS
     {
       return;
     }
-    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitasString() + "]");
+    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitAsString() + "]");
 
     String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
