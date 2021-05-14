@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <cstdint> // for "uintptr_t"
+
 namespace OpenMS
 {
   namespace IdentificationDataInternal
