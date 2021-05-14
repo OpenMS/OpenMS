@@ -163,7 +163,7 @@ namespace OpenMS
     candidates_out_ = param_.getValue("candidates_out");
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::run(const FeatureFinderAlgorithmMetaboIdent::MetaboIdentTable& metaboIdentTable, FeatureMap& features)
+  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::Row>& metaboIdentTable, FeatureMap& features)
   {
     for (const FeatureFinderAlgorithmMetaboIdent::Row& r : metaboIdentTable)
     {

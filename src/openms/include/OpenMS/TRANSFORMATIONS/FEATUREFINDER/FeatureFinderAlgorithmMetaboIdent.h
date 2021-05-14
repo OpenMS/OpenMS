@@ -54,28 +54,40 @@ class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
   public DefaultParamHandler
 {
 public:
-  struct Row 
-  {
-    Row()
-    {
-    }
-    
+  struct OPENMS_DLLAPI Row 
+  {    
+    Row(const String& _name, 
+        const String& _formula, 
+        double _mass, 
+        const std::vector<int>& _charges, 
+        const std::vector<double>& _rts, 
+        const std::vector<double>& _rt_ranges, 
+        const std::vector<double>& _iso_distrib):
+      name(_name),
+      formula(_formula),
+      mass(_mass),
+      charges(_charges),
+      rts(_rts),
+      rt_ranges(_rt_ranges),
+      iso_distrib(_iso_distrib)
+      {        
+      }
+
+
     String name;
     String formula;
     double mass;
-    std::vector<Int> charges;
+    std::vector<int> charges;
     std::vector<double> rts;
     std::vector<double> rt_ranges;
     std::vector<double> iso_distrib;
   };
-  
-  using MetaboIdentTable = std::vector<Row>;
 
   /// default constructor
   FeatureFinderAlgorithmMetaboIdent();
 
   /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature
-  void run(const MetaboIdentTable& metaboIdentTable, FeatureMap& features);
+  void run(const std::vector<Row>& metaboIdentTable, FeatureMap& features);
 
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }

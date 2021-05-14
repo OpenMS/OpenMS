@@ -42,11 +42,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
 
         size_t getNShared() nogil except + #wrap-doc:Retrieve number of features with shared identifications
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS::FeatureFinderAlgorithmMetaboIdent":
-
-    cdef cppclass Row:
-
-        Row() nogil except +
+    cdef cppclass Row "OpenMS::FeatureFinderAlgorithmMetaboIdent::Row":
+        # wrap-attach:FeatureFinderAlgorithmMetaboIdent
+        
+        Row(String name, String formula, double mass, libcpp_vector[ int ] charges, libcpp_vector[ double ] rts, libcpp_vector[ double ] rt_ranges, libcpp_vector[ double ] iso_distrib) nogil except + #wrap-doc:Represents a compound in the ID table 
 
         String name
         String formula
@@ -55,4 +54,3 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         libcpp_vector[ double ] rts
         libcpp_vector[ double ] rt_ranges
         libcpp_vector[ double ] iso_distrib
-        

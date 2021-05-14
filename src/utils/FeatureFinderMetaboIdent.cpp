@@ -169,12 +169,10 @@ protected:
 
   ProgressLogger prog_log_; ///< progress logger
 
-  using MetaboIdentTable = FeatureFinderAlgorithmMetaboIdent::MetaboIdentTable;
-
   /// Read input file with information about targets
-  MetaboIdentTable readTargets_(const String& in_path)
+  vector<FeatureFinderAlgorithmMetaboIdent::Row> readTargets_(const String& in_path)
   {
-    MetaboIdentTable metaboIdentTable;
+    vector<FeatureFinderAlgorithmMetaboIdent::Row> metaboIdentTable;
 
     const string header =
       "CompoundName\tSumFormula\tMass\tCharge\tRetentionTime\tRetentionTimeRange\tIsoDistribution";
@@ -221,16 +219,13 @@ protected:
                          << " - skipping this line." << endl;
         continue;
       }
-
-      FeatureFinderAlgorithmMetaboIdent::Row r;
-      r.name = name;
-      r.formula = parts[1];
-      r.mass = parts[2].toDouble();
-      r.charges = ListUtils::create<Int>(parts[3]);
-      r.rts = ListUtils::create<double>(parts[4]);
-      r.rt_ranges = ListUtils::create<double>(parts[5]);
-      r.iso_distrib = ListUtils::create<double>(parts[6]);
-      metaboIdentTable.push_back(r);
+      metaboIdentTable.push_back(FeatureFinderAlgorithmMetaboIdent::Row(name,
+                                                                        parts[1],
+                                                                        parts[2].toDouble(),
+                                                                        ListUtils::create<Int>(parts[3]),
+                                                                        ListUtils::create<double>(parts[4]),
+                                                                        ListUtils::create<double>(parts[5]),
+                                                                        ListUtils::create<double>(parts[6])));
     }
     return metaboIdentTable;
   }
@@ -254,7 +249,7 @@ protected:
     // load input
     //-------------------------------------------------------------
     OPENMS_LOG_INFO << "Loading targets and creating assay library..." << endl;
-    MetaboIdentTable table = readTargets_(id);
+    auto table = readTargets_(id);
 
     FeatureFinderAlgorithmMetaboIdent ff_mident;
     // copy (command line) tool parameters that match the algorithm parameters back to the algorithm
