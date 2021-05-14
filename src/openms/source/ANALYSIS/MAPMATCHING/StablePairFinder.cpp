@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (features without ID's always match; only the best hit per peptide identification is considered).");
-    defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_identifications", {"true","false"});
 
     defaults_.insert("", FeatureDistance().getDefaults());
 
@@ -71,7 +71,7 @@ namespace OpenMS
     V_("@@@ StablePairFinder::updateMembers_()");
 
     second_nearest_gap_ = param_.getValue("second_nearest_gap");
-    use_IDs_ = String(param_.getValue("use_identifications")) == "true";
+    use_IDs_ = param_.getValue("use_identifications").toBool();
   }
 
   void StablePairFinder::run(const std::vector<ConsensusMap>& input_maps,
