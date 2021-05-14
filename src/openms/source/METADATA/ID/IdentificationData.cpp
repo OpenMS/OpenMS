@@ -95,7 +95,7 @@ namespace OpenMS
   IdentificationData::InputFileRef
   IdentificationData::registerInputFile(const InputFile& file)
   {
-    if (!no_checks_ && file.name.empty())
+    if (file.name.empty()) // key may not be empty
     {
       String msg = "input file must have a name";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
