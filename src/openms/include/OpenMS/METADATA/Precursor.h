@@ -60,7 +60,24 @@ namespace OpenMS
   {
 
 public:
-    // RULE of 0 for Ctor, Dtor, ...
+    /// Constructor
+    Precursor();
+    /// Copy constructor
+    Precursor(const Precursor&) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
+    /// Move constructor
+    Precursor(Precursor&&) noexcept;
+    /// Destructor
+    ~Precursor() override;
+
+    /// Assignment operator
+    Precursor& operator=(const Precursor&) = default;
+    /// Move assignment operator
+    Precursor& operator=(Precursor&&) & = default;
 
 
     /// Method of activation
