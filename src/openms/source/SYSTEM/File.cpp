@@ -306,13 +306,15 @@ namespace OpenMS
 
   String File::basename(const String& file)
   {
-    QFileInfo fi(file.toQString());
+    // need to convert to '/' seps always, otherwise the full string is returned for a windows path+file on Linux/Mac
+    QFileInfo fi(QDir::fromNativeSeparators(file.toQString()));
     return fi.fileName();
   }
 
   String File::path(const String& file)
   {
-    QFileInfo fi(file.toQString());
+    // need to convert to native seps, otherwise the full string is returned for a windows path+file on Linux/Mac
+    QFileInfo fi(QDir::fromNativeSeparators(file.toQString()));
     return fi.path();
   }
 

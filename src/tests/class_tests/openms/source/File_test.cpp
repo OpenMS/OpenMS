@@ -121,11 +121,13 @@ START_SECTION((static String absolutePath(const String &file)))
 END_SECTION
 
 START_SECTION((static String path(const String &file)))
-  NOT_TESTABLE
+TEST_EQUAL(File::path("/source/config/bla/bluff.h"), "/source/config/bla");
+TEST_EQUAL(File::path("c:\\config\\bla\\tuff.h"), "c:/config/bla");
 END_SECTION
 
 START_SECTION((static String basename(const String &file)))
-  TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"), "bluff.h");
+  TEST_EQUAL(File::basename("/source/config/bla/bluff.h"), "bluff.h");
+  TEST_EQUAL(File::basename("c:\\config\\bla\\tuff.h"), "tuff.h");
 END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
