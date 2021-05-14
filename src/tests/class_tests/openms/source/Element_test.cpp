@@ -40,7 +40,7 @@
 
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/DATASTRUCTURES/string.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
 
