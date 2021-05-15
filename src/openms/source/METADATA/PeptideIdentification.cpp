@@ -272,64 +272,53 @@ namespace OpenMS
     return filtered;
   }
 
-  void PeptideIdentification::fillConsensusPepIDMap_help(vector<PeptideIdentification>& cpep_ids,
-                              const map<String, StringList>& identifier_to_msrunpath,
-                              multimap<String, PeptideIdentification*>& customID_to_cpepID) {
-    for (PeptideIdentification &cpep_id : cpep_ids)
-    {
-      if (!cpep_id.metaValueExists("spectrum_reference"))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Spectrum reference missing at PeptideIdentification.");
-      }
-      const auto &ms_run_path = identifier_to_msrunpath.at(cpep_id.getIdentifier());
-
-      String UID; //< unique ID to identify the PepID
-      if (ms_run_path.size() == 1)
-      {
-        UID = ms_run_path[0] + cpep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else if (cpep_id.metaValueExists("map_index"))
-      {
-        UID = cpep_id.getMetaValue("map_index").toString() + cpep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }
-      customID_to_cpepID.insert(make_pair(UID, &cpep_id));
-    }
-  }
-
-  std::multimap<String, PeptideIdentification*> PeptideIdentification::fillConsensusPepIDMap(ConsensusMap &cmap)
+  std::multimap<String, std::pair<Size, Size>> PeptideIdentification::fillConsensusPepIDMap(const ConsensusMap &cmap)
   {
-    multimap<String, PeptideIdentification*> customID_to_cpepID{};
+    multimap<String, std::pair<Size, Size>> customID_to_cpepID{};
 
     ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
     const map<String, StringList>& identifier_to_msrunpath = mp_c.identifier_to_msrunpath;
 
-      for (Size i = 0; i < cmap.size(); ++i)
-      {
-          PeptideIdentification::fillConsensusPepIDMap_help(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+    auto lamda = [](const vector<PeptideIdentification>& cpep_ids,
+                    const map<String, StringList>& identifier_to_msrunpath,
+                    multimap<String, std::pair<Size, Size>>& customID_to_cpepID,
+                    Size cf_index)
+    {
+        Size pep_index = 0;
+        for (const PeptideIdentification &cpep_id : cpep_ids)
+        {
+          std::pair<Size, Size> index = {cf_index,pep_index};
+          auto x = buildUIDFromPepID(cpep_id, identifier_to_msrunpath);
+          customID_to_cpepID.insert(make_pair(x, index));
+          ++pep_index;
+        }
+    };
 
-      }
-      PeptideIdentification::fillConsensusPepIDMap_help(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+    for (Size i = 0; i < cmap.size(); ++i)
+    {
+        lamda(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, i);
+    }
+    lamda(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, -1);// TODO: Bielow fragen?
 
     return customID_to_cpepID;
   }
 
-  String PeptideIdentification::build_uid_from_pep_id(const PeptideIdentification& f_pep_id,
+  String PeptideIdentification::buildUIDFromPepID(const PeptideIdentification& pep_id,
                            const std::map<String, StringList>& fidentifier_to_msrunpath)
   {
 
+      if (!pep_id.metaValueExists("spectrum_reference"))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Spectrum reference missing at PeptideIdentification.");
+      }
       String UID;
-      const auto &ms_run_path = fidentifier_to_msrunpath.at(f_pep_id.getIdentifier());
+      const auto &ms_run_path = fidentifier_to_msrunpath.at(pep_id.getIdentifier());
       if (ms_run_path.size() == 1) {
-          UID = ms_run_path[0] + f_pep_id.getMetaValue("spectrum_reference").toString();
-      } else if (f_pep_id.metaValueExists("map_index")) {
-          UID = f_pep_id.getMetaValue("map_index").toString() +
-                f_pep_id.getMetaValue("spectrum_reference").toString();
+          UID = ms_run_path[0] + pep_id.getMetaValue("spectrum_reference").toString();
+      } else if (pep_id.metaValueExists("map_index")) {
+          UID = pep_id.getMetaValue("map_index").toString() +
+                pep_id.getMetaValue("spectrum_reference").toString();
       } else {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                               "Multiple files in a run, but no map_index in PeptideIdentification found.");
