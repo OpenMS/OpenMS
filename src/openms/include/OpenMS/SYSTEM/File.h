@@ -152,7 +152,7 @@ public:
     /// Returns the basename of the file (without the path).
     static String basename(const String& file);
 
-    /// Returns the path of the file (without the file name).
+    /// Returns the path of the file (without the file name and without path separator).
     static String path(const String& file);
 
     /// Return true if the file exists and is readable

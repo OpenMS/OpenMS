@@ -305,17 +305,14 @@ namespace OpenMS
   }
 
   String File::basename(const String& file)
-  {
-    // need to convert to '/' seps always, otherwise the full string is returned for a windows path+file on Linux/Mac
-    QFileInfo fi(QDir::fromNativeSeparators(file.toQString()));
-    return fi.fileName();
+  { // using well-defined overflow of unsigned ints here if path separator is not found
+    return file.substr(file.find_last_of("\\/") + 1);
   }
 
   String File::path(const String& file)
   {
-    // need to convert to native seps, otherwise the full string is returned for a windows path+file on Linux/Mac
-    QFileInfo fi(QDir::fromNativeSeparators(file.toQString()));
-    return fi.path();
+    size_t pos = file.find_last_of("\\/");
+    return pos == string::npos ? "" : file.substr(0, pos);
   }
 
   bool File::readable(const String& file)
