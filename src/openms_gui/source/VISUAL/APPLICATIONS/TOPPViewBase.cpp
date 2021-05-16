@@ -2219,7 +2219,7 @@ namespace OpenMS
     };
 
     MSSpectrum* last_spec{};
-    if (number_of_bins == -1)
+    if (number_of_bins == (UInt)-1)
     { // Separate spec for each IM value:
       OPENMS_PRECONDITION(std::is_sorted(im_data.begin(), im_data.end()), "we sorted it... what happened???");
       IMV_t im_last = std::numeric_limits<IMV_t>::max();
