@@ -5,18 +5,15 @@ tasks:
         git submodule update --init THIRDPARTY &&
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
-        mkdir -p build && pushd build && cmake -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ &&
-        make -j16 && popd
+        mkdir -p build && pushd build && cmake -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../
       prebuild: >
-        git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
-        git submodule update --init THIRDPARTY &&
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
-        mkdir -p build && pushd build && cmake -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ &&
-        make -j16 OpenMS && popd
+        pushd build && make -j7 OpenMS TOPP && popd
       command:  >
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
-        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
+        pushd build && make -j7 all && popd
 image:
   file: .gitpod.Dockerfile
 github:
