@@ -224,7 +224,7 @@ protected:
     //-------------------------------------------------------------
     // Build a PepID Map to later find the corresponding PepID in the CMap
     //-------------------------------------------------------------
-    multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
+    multimap<String, std::pair<Size, Size>> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
 
 
     customID_to_cpepID = PeptideIdentification::fillConsensusPepIDMap(cmap);
@@ -513,8 +513,9 @@ private:
 
 
   void addPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
-    const multimap<String, PeptideIdentification*>& customID_to_pepID,
-    const map<String, StringList>& fidentifier_to_msrunpath) const
+    const multimap<String, pair<Size, Size>>& customID_to_pepID,
+    const map<String, StringList>& fidentifier_to_msrunpath,
+    ConsensusMap& cmap) const
   {
 
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
@@ -523,7 +524,7 @@ private:
       // for empty PIs which were created by a metric
       if (f_pep_id.getHits().empty()) continue;
 
-      String UID = PeptideIdentification::build_uid_from_pep_id(f_pep_id,fidentifier_to_msrunpath);
+      String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id,fidentifier_to_msrunpath);
 
       // for empty PIs which were created by a metric
       /*if (f_pep_id.getHits().empty()) continue;
@@ -548,11 +549,13 @@ private:
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
         // copy all MetaValues that are at PepID level
-        it_pep->second->addMetaValues(f_pep_id);
+        //it_pep->second->addMetaValues(f_pep_id);
+        cmap[it_pep->second.first].getPeptideIdentifications()[it_pep->second.second].addMetaValues(f_pep_id);
 
         // copy all MetaValues that are at best Hit level
         //TODO check if first = best assumption is met!
-        (it_pep->second)->getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        //(it_pep->second)->getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        cmap[it_pep->second.first].getPeptideIdentifications()[it_pep->second.second].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
       }
     }
   }

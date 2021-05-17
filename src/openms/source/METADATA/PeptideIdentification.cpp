@@ -298,7 +298,7 @@ namespace OpenMS
     {
         lamda(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, i);
     }
-    lamda(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, -1);// TODO: Bielow fragen?
+    lamda(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID, -1);
 
     return customID_to_cpepID;
   }
