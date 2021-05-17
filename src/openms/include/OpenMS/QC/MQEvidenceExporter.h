@@ -36,10 +36,12 @@
 
 
 #include <fstream>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
+
 
 
 class OPENMS_DLLAPI MQEvidence{
@@ -51,28 +53,33 @@ public:
     explicit MQEvidence(const std::string & p);
     ~MQEvidence();
     bool isValid();
-    void export_header();
-    OpenMS::UInt64 protein_group_id(const OpenMS::String &protein);
+    void exportHeader();
+    OpenMS::UInt64 proteinGroupId(const OpenMS::String &protein);
 
-    std::map<OpenMS::UInt64, OpenMS::Size> fid_to_cmapindex(const OpenMS::ConsensusMap & cmap);
-/*
-    bool peptide_hits(
-            const std::vector<OpenMS::PeptideIdentification> & pep_ids,
-            std::vector<OpenMS::PeptideHit> & pep_hit,
-            std::vector<OpenMS::PeptideHit>::iterator & pep_hits_iterator);
-*/
-    bool peptide_hits(
-            const std::vector<OpenMS::PeptideIdentification> & pep_ids,
-            std::vector<std::pair<OpenMS::PeptideHit, uint16_t>> & pep_hits,
-            std::vector<std::pair<OpenMS::PeptideHit, uint16_t>>::iterator & pep_hits_iterator);
+    std::map<OpenMS::UInt64, OpenMS::Size> mapFeatureIDtoConsensusID(const OpenMS::ConsensusMap & cmap);
+
+    std::pair<OpenMS::Size , const OpenMS::PeptideHit *> getBestPeptideHit(const std::vector<OpenMS::PeptideIdentification>& pep_ids);
+
+    bool exportFeaturePepId(
+            const std::multimap<OpenMS::String, OpenMS::PeptideIdentification*> &UIDs,
+            const OpenMS::ProteinIdentification::Mapping &mp_f,
+            const OpenMS::Feature & f,
+            const OpenMS::PeptideHit* & best);
+
+    bool exportConsensusFeaturePepId(
+            OpenMS::ConsensusMap cmap,
+            OpenMS::Int64 c_feature_number,
+            const OpenMS::PeptideHit* & best);
+
     void exportRowFromFeature(
             const OpenMS::Feature &f,
-            const OpenMS::ConsensusFeature &c,
+            const OpenMS::ConsensusMap cmap,
+            const OpenMS::Int64 c_feature_number,
             const OpenMS::String & raw_file,
             const std::multimap<OpenMS::String, OpenMS::PeptideIdentification*> &UIDs,
             const OpenMS::ProteinIdentification::Mapping &mp_f);
 
     void exportFeatureMapTotxt(
             const OpenMS::FeatureMap & feature_map,
-            OpenMS::ConsensusMap& cmap);
+            const OpenMS::ConsensusMap& cmap);
 };

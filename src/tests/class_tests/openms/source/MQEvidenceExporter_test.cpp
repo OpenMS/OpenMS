@@ -35,9 +35,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/test_config.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
-#include <filesystem>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 ///////////////////////////
@@ -49,38 +48,38 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MQEvidence* ptr = nullptr;
-MQEvidence* null_ptr = nullptr;
-std::string tmp_path = P_tmpdir;
+File::TempDir dir;
+const String path = dir.getPath();
 
 START_SECTION(MQEvidence())
 {
-    //String x = "/buffer/ag_bsc/pmsb_2021/noske/OpenMS/src/tests/class_tests/openms/data";
-    ptr = new MQEvidence(tmp_path);
+    MQEvidence* ptr = nullptr;
+    MQEvidence* null_ptr = nullptr;
+    ptr = new MQEvidence(path);
     TEST_NOT_EQUAL(ptr,null_ptr);
+    delete ptr;
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION(exportFeatureMapTotxt())
 {
-
+    MQEvidence evd(path);
     ConsensusMap cmap;
     ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap);
     FeatureMap fmap_one;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap_one);
-    ptr->exportFeatureMapTotxt(fmap_one,cmap);
+    evd.exportFeatureMapTotxt(fmap_one,cmap);
     FeatureMap fmap_two;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.featureXML"), fmap_two);
-    ptr->exportFeatureMapTotxt(fmap_two,cmap);
+    evd.exportFeatureMapTotxt(fmap_two,cmap);
     FeatureMap fmap_three;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), fmap_three);
-    ptr->exportFeatureMapTotxt(fmap_three,cmap);
-    String filename = tmp_path + "/evidence.txt";
+    evd.exportFeatureMapTotxt(fmap_three,cmap);
+    String filename = path + "/evidence.txt";
     TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
 }
 END_SECTION
-delete ptr;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
