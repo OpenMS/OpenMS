@@ -168,13 +168,10 @@ public:
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
     //TODO: beschreibung noch schreiben
-    static std::multimap<String, PeptideIdentification*> fillConsensusPepIDMap(ConsensusMap &cmap);
+    static std::multimap<String, std::pair<Size, Size>> fillConsensusPepIDMap(const ConsensusMap &cmap);
 
-    static String build_uid_from_pep_id(const PeptideIdentification& f_pep_id,
-                                                const std::map<String, StringList>& fidentifier_to_msrunpath);
-    static void fillConsensusPepIDMap_help(std::vector<PeptideIdentification>& cpep_ids,
-                                   const std::map<String, StringList>& identifier_to_msrunpath,
-                                   std::multimap<String, PeptideIdentification*>& customID_to_cpepID);
+    static String buildUIDFromPepID(const PeptideIdentification& pep_id,
+                                    const std::map<String, StringList>& fidentifier_to_msrunpath);
 
 protected:
 
