@@ -312,7 +312,11 @@ namespace OpenMS
   String File::path(const String& file)
   {
     size_t pos = file.find_last_of("\\/");
-    return pos == string::npos ? "" : file.substr(0, pos);
+    // do NOT return an empty string, because this leads to issues when in generic code you do:
+    // String new_path = path("a.txt") + '/' + basename("a.txt");
+    // , as this would lead to "/a.txt", i.e. create a wrong absolute path from a relative name
+    String no_path = "."; 
+    return pos == string::npos ? no_path : file.substr(0, pos);
   }
 
   bool File::readable(const String& file)
