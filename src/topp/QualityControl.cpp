@@ -404,12 +404,12 @@ protected:
       //-------------------------------------------------------------
 
       // copy MetaValues of unassigned PepIDs
-      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
+      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
 
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : *fmap)
       {
-        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
+        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath,cmap);
       }
 
       if(export_evidence.isValid())
@@ -512,8 +512,9 @@ private:
   }*/
 
 
-  void addPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
-    const multimap<String, pair<Size, Size>>& customID_to_pepID,
+  void addPepIDMetaValues_(
+    const vector<PeptideIdentification>& f_pep_ids,
+    const multimap<String, pair<Size, Size>>& customID_to_cpepID,
     const map<String, StringList>& fidentifier_to_msrunpath,
     ConsensusMap& cmap) const
   {
@@ -539,12 +540,12 @@ private:
       {
         UID = f_pep_id.getMetaValue("map_index").toString() + f_pep_id.getMetaValue("spectrum_reference").toString();
       }
-      else
+      elsecustom
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
       }*/
 
-      const auto range = customID_to_pepID.equal_range(UID);
+      const auto range = customID_to_cpepID.equal_range(UID);
 
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
