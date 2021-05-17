@@ -146,13 +146,12 @@ namespace OpenMS
 
       @param featureinfo Path to featureXML
       @param spectra Input of MSExperiment with spectra information
-      @param fp_map_kd KDTree used for query and match spectra with features
+      @param fm_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
       @param feature_mapping Empty FeatureToMs2Indices
       */
       void preprocessingSirius(const String& featureinfo,
                                const MSExperiment& spectra,
-                               vector<FeatureMap>& v_fp,
-                               KDTreeFeatureMaps& fp_map_kd,
+                               FeatureMapping::FeatureMappingInfo& fm_info,
                                FeatureMapping::FeatureToMs2Indices& feature_mapping);
 
       /**
@@ -194,7 +193,7 @@ namespace OpenMS
       explicit ParameterModifier(const String &param_name, SiriusAdapterAlgorithm *enclose) :
               openms_param_name(param_name), enclose(enclose) {}
 
-      void withValidStrings(initializer_list<String> choices)
+      void withValidStrings(initializer_list<std::string> choices)
       {
         enclose->defaults_.setValidStrings(openms_param_name, choices);
       }
@@ -220,7 +219,7 @@ namespace OpenMS
     protected:
       ParameterModifier parameter(
               const String &parameter_name,
-              const DataValue &default_value,
+              const ParamValue &default_value,
               const String &parameter_description);
       void flag(
               const String &parameter_name,

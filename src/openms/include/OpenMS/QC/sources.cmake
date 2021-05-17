@@ -11,8 +11,10 @@ set(sources_list_h
   Ms2SpectrumStats.h
   MzCalibration.h
   PeptideMass.h
+  PSMExplainedIonCurrent.h
   QCBase.h
   RTAlignment.h
+  SpectrumCount.h
   DBSuitability.h
   TIC.h
 )

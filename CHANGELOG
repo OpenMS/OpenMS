@@ -19,6 +19,7 @@ Adapters/Third-party support:
 - Added basic Triqler export
 - ParamEditor with more convenient StringList editing  (#5135)
 - TOPPAS: add a `recent files` submenu
+- removed InspectAdapter
 
 Further fixes:
 - support for GLPK 5.x (#5127)

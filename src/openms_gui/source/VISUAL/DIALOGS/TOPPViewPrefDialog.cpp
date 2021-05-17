@@ -36,6 +36,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <ui_TOPPViewPrefDialog.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtWidgets/QFileDialog>
 
@@ -66,24 +68,24 @@ namespace OpenMS
       // Set dialog entries from current parameter object (default values)
 
       // default
-      ui_->default_path->setText(param_.getValue("preferences:default_path").toQString());
+      ui_->default_path->setText(String(param_.getValue("preferences:default_path").toString()).toQString());
       ui_->default_path_current->setChecked(param_.getValue("preferences:default_path_current").toBool());
       ui_->use_cached_ms1->setChecked(param_.getValue("preferences:use_cached_ms1").toBool());
       ui_->use_cached_ms2->setChecked(param_.getValue("preferences:use_cached_ms2").toBool());
    
-      ui_->map_default->setCurrentIndex(ui_->map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
-      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));
-      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));
+      ui_->map_default->setCurrentIndex(ui_->map_default->findText(String(param_.getValue("preferences:default_map_view").toString()).toQString()));
+      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(String(param_.getValue("preferences:intensity_cutoff").toString()).toQString()));
+      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(String(param_.getValue("preferences:on_file_change").toString()).toQString()));
 
       // 1D view
-      ui_->color_1D->setColor(QColor(param_.getValue("preferences:1d:peak_color").toQString()));
-      ui_->selected_1D->setColor(QColor(param_.getValue("preferences:1d:highlighted_peak_color").toQString()));
-      ui_->icon_1D->setColor(QColor(param_.getValue("preferences:1d:icon_color").toQString()));
+      ui_->color_1D->setColor(QColor(String(param_.getValue("preferences:1d:peak_color").toString()).toQString()));
+      ui_->selected_1D->setColor(QColor(String(param_.getValue("preferences:1d:highlighted_peak_color").toString()).toQString()));
+      ui_->icon_1D->setColor(QColor(String(param_.getValue("preferences:1d:icon_color").toString()).toQString()));
 
       // 2D view
       ui_->peak_2D->gradient().fromString(param_.getValue("preferences:2d:dot:gradient"));
-      ui_->mapping_2D->setCurrentIndex(ui_->mapping_2D->findText(param_.getValue("preferences:2d:mapping_of_mz_to").toQString()));
-      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(param_.getValue("preferences:2d:dot:feature_icon").toQString()));
+      ui_->mapping_2D->setCurrentIndex(ui_->mapping_2D->findText(String(param_.getValue("preferences:2d:mapping_of_mz_to").toString()).toQString()));
+      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(String(param_.getValue("preferences:2d:dot:feature_icon").toString()).toQString()));
       ui_->feature_icon_size_2D->setValue((Int)param_.getValue("preferences:2d:dot:feature_icon_size"));
 
       // 3D view
@@ -149,23 +151,23 @@ namespace OpenMS
     Param TOPPViewPrefDialog::getParam() const
     {
       Param p; 
-      p.setValue("preferences:default_path", ui_->default_path->text());
-      p.setValue("preferences:default_path_current", ui_->default_path_current->isChecked());
+      p.setValue("preferences:default_path", ui_->default_path->text().toStdString());
+      p.setValue("preferences:default_path_current", fromCheckState(ui_->default_path_current->checkState()));
 
-      p.setValue("preferences:use_cached_ms1", ui_->use_cached_ms1->isChecked());
-      p.setValue("preferences:use_cached_ms2", ui_->use_cached_ms2->isChecked());
+      p.setValue("preferences:use_cached_ms1", fromCheckState(ui_->use_cached_ms1->checkState()));
+      p.setValue("preferences:use_cached_ms2", fromCheckState(ui_->use_cached_ms2->checkState()));
 
-      p.setValue("preferences:default_map_view", ui_->map_default->currentText());
-      p.setValue("preferences:intensity_cutoff", ui_->map_cutoff->currentText());
-      p.setValue("preferences:on_file_change", ui_->on_file_change->currentText());
+      p.setValue("preferences:default_map_view", ui_->map_default->currentText().toStdString());
+      p.setValue("preferences:intensity_cutoff", ui_->map_cutoff->currentText().toStdString());
+      p.setValue("preferences:on_file_change", ui_->on_file_change->currentText().toStdString());
 
-      p.setValue("preferences:1d:peak_color", ui_->color_1D->getColor().name());
-      p.setValue("preferences:1d:highlighted_peak_color", ui_->selected_1D->getColor().name());
-      p.setValue("preferences:1d:icon_color", ui_->icon_1D->getColor().name());
+      p.setValue("preferences:1d:peak_color", ui_->color_1D->getColor().name().toStdString());
+      p.setValue("preferences:1d:highlighted_peak_color", ui_->selected_1D->getColor().name().toStdString());
+      p.setValue("preferences:1d:icon_color", ui_->icon_1D->getColor().name().toStdString());
 
       p.setValue("preferences:2d:dot:gradient", ui_->peak_2D->gradient().toString());
-      p.setValue("preferences:2d:mapping_of_mz_to", ui_->mapping_2D->currentText());
-      p.setValue("preferences:2d:dot:feature_icon", ui_->feature_icon_2D->currentText());
+      p.setValue("preferences:2d:mapping_of_mz_to", ui_->mapping_2D->currentText().toStdString());
+      p.setValue("preferences:2d:dot:feature_icon", ui_->feature_icon_2D->currentText().toStdString());
       p.setValue("preferences:2d:dot:feature_icon_size", ui_->feature_icon_size_2D->value());
 
       p.setValue("preferences:3d:dot:gradient", ui_->peak_3D->gradient().toString());
@@ -204,9 +206,18 @@ namespace OpenMS
       p.setValue("preferences:idview:add_isotopes", fromCheckState(ic_ions[0]->checkState()), "Show isotopes");
       p.setValue("preferences:idview:add_abundant_immonium_ions", fromCheckState(ai_ions[0]->checkState()), "Show abundant immonium ions");
 
-      if (param_.empty()) param_ = p; // if setParam() was not called before, param_ is empty and p is the only thing we have...
-      else param_.update(p, false); // update with new values from 'p' to avoid loosing additional parameters and the existing descriptions already present in param_
-
+      // if setParam() was not called before, param_ is empty and p is the only thing we have...
+      if (param_.empty()) 
+      {
+        param_ = p;
+      }
+      // update with new values from 'p' to avoid loosing additional parameters and the existing descriptions already present in param_
+      else if (!param_.update(p, true, true, true, true, OpenMS_Log_warn))
+      { // fails if parameter types are incompatible, e.g. param_.getValue("checkbox") is STRING, but p.setValue("checkBox", 1), i.e. Int was stored.
+        // You should see 'Parameter 'preferences:use_cached_ms2' has changed value type!' or similar in the console
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Storing parameters failed. This is a bug! Please report it!");
+      }
+        
       return param_;
     }
 
