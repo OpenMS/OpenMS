@@ -260,8 +260,6 @@ namespace OpenMS
       {
         contaminants_file = File::find(contaminants_file);
       }
-      if (!File::readable(contaminants_file))
-        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, contaminants_file);
       // read & parse file:
       TextFile tf(contaminants_file, true);
       contaminants_.clear();

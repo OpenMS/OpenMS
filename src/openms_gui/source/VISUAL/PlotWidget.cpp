@@ -37,12 +37,12 @@
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QScrollBar>
 #include <QCloseEvent>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
 #include <QtCore/QMimeData>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QScrollBar>
 
 using namespace std;
 

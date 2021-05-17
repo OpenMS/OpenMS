@@ -115,8 +115,10 @@ namespace OpenMS
           {
             // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
             rpath.ensureLastChar('/');
-          } else {
-            std::cerr << "Path extracted from Executable Path does not exist! Returning empty string!\n";
+          } 
+          else 
+          {
+            std::cerr << "Path '" << rpath << "' extracted from Executable Path '" << path << "' does not exist! Returning empty string!\n";
             rpath = "";
           }
         } else {
@@ -305,15 +307,18 @@ namespace OpenMS
   }
 
   String File::basename(const String& file)
-  {
-    QFileInfo fi(file.toQString());
-    return fi.fileName();
+  { // using well-defined overflow of unsigned ints here if path separator is not found
+    return file.substr(file.find_last_of("\\/") + 1);
   }
 
   String File::path(const String& file)
   {
-    QFileInfo fi(file.toQString());
-    return fi.path();
+    size_t pos = file.find_last_of("\\/");
+    // do NOT return an empty string, because this leads to issues when in generic code you do:
+    // String new_path = path("a.txt") + '/' + basename("a.txt");
+    // , as this would lead to "/a.txt", i.e. create a wrong absolute path from a relative name
+    String no_path = "."; 
+    return pos == string::npos ? no_path : file.substr(0, pos);
   }
 
   bool File::readable(const String& file)

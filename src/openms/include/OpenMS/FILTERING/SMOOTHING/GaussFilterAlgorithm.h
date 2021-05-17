@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
-#include <OpenMS/INTERFACES/ISpectrumAccess.h>
 #include <cmath>
 #include <vector>
 

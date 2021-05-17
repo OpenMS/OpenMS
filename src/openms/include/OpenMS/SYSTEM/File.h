@@ -150,9 +150,14 @@ public:
     static String absolutePath(const String& file);
 
     /// Returns the basename of the file (without the path).
+    /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
+    /// However, '/path/some_entity/' will return ''.
     static String basename(const String& file);
 
-    /// Returns the path of the file (without the file name).
+    /// Returns the path of the file (without the file name and without path separator).
+    /// If just a filename is given without any path, then "." is returned.
+    /// No checking is done on the filesystem, i.e. '/path/some_entity' will return '/path', irrespective of 'some_entity' is a file or a directory.
+    /// However, '/path/some_entity/' will return '/path/some_entity'.
     static String path(const String& file);
 
     /// Return true if the file exists and is readable

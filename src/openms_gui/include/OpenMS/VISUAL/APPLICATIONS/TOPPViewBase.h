@@ -541,7 +541,7 @@ protected:
     String current_path_;
 
     /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
-    void addToolParamsToIni();
+    void addToolParamsToIni_();
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
