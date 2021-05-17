@@ -131,7 +131,7 @@ void MQEvidence::exportHeader()
  * Description:
  * Returns a distinct number for each protein
  */
-UInt64 MQEvidence::proteinGroupId(const String &protein)
+UInt64 MQEvidence::proteinGroupID(const String &protein)
 {
     auto it = protein_id_.find(protein);
     if(it == protein_id_.end())
@@ -211,10 +211,13 @@ String pathDeleter(const String & path)
  * changes the pointer of the best hit to the best hit
  * of the PeptideIdentifications of the Feature
  */
-bool MQEvidence::exportFeaturePepId(
-        const std::multimap<String, PeptideIdentification*> &UIDs,
+bool MQEvidence::exportFeaturePepID(
+        const ConsensusMap &cmap,
+        const Int64 c_feature_number,
+        const std::multimap<OpenMS::String, std::pair<OpenMS::Size,OpenMS::Size>> &UIDs,
         const ProteinIdentification::Mapping &mp_f,
-        const Feature & f, const PeptideHit* & best)
+        const Feature & f,
+        const PeptideHit* & best)
 {
     const std::vector<PeptideIdentification> &pep_ids_f = f.getPeptideIdentifications();
     if(pep_ids_f.empty())
@@ -223,8 +226,22 @@ bool MQEvidence::exportFeaturePepId(
     }
     std::pair<Size,const PeptideHit*> hit = getBestPeptideHit(pep_ids_f);
     best = hit.second;
-    PeptideIdentification best_pep_id = pep_ids_f[hit.first];
-    String best_uid = PeptideIdentification::build_uid_from_pep_id(best_pep_id, mp_f.identifier_to_msrunpath);
+    const PeptideIdentification & best_pep_id = pep_ids_f[hit.first];
+    String best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f.identifier_to_msrunpath);
+    const auto range = UIDs.equal_range(best_uid);
+    for (auto it_pep = range.first; it_pep != range.second; ++it_pep)
+    {
+        if(c_feature_number != it_pep->second.first)
+        {
+            return false;
+        }
+        const String & seq = best->getSequence().toString();
+        const String & seq_comp = cmap[it_pep->second.first].getPeptideIdentifications()[it_pep->second.second].getHits()[0].getSequence().toString();
+        if(seq != seq_comp)
+        {
+            return false;
+        }
+    }
     return true;
 
 
@@ -235,12 +252,12 @@ bool MQEvidence::exportFeaturePepId(
  * Description:
  * export one Feature as one row in MQEvidence.txt
  */
-bool MQEvidence::exportConsensusFeaturePepId(
-        ConsensusMap cmap,
-        Int64 c_feature_number,
+bool MQEvidence::exportConsensusFeaturePepID(
+        const ConsensusMap &cmap,
+        const Int64 c_feature_number,
         const PeptideHit* & best)
 {
-    if(c_feature_number == -1)
+    if(c_feature_number == -1) //ConsensusFeature does not exist?
     {
         return false;
     }
@@ -259,21 +276,21 @@ bool MQEvidence::exportConsensusFeaturePepId(
  */
 void MQEvidence::exportRowFromFeature(
         const Feature &f,
-        const ConsensusMap cmap,
+        const ConsensusMap &cmap,
         const Int64 c_feature_number,
-        const String & raw_file,
-        const std::multimap<String, PeptideIdentification*> &UIDs,
+        const String &raw_file,
+        const std::multimap<String, std::pair<Size, Size>> &UIDs,
         const ProteinIdentification::Mapping &mp_f)
 {
     const PeptideHit * pep_hits_max; // the best hit referring to score
     UInt64 pep_ids_size = 0;
     String type;
-    if(exportFeaturePepId(UIDs, mp_f, f, pep_hits_max))
+    if(exportFeaturePepID(cmap, c_feature_number, UIDs, mp_f, f, pep_hits_max))
     {
         pep_ids_size = f.getPeptideIdentifications().size();
         type = "MULTI-MSMS";
     }
-    else if(exportConsensusFeaturePepId(cmap, c_feature_number, pep_hits_max))
+    else if(exportConsensusFeaturePepID(cmap, c_feature_number, pep_hits_max))
     {
         pep_ids_size = cmap[c_feature_number].getPeptideIdentifications().size();
         type = "MULTI-MATCH";
@@ -355,7 +372,7 @@ void MQEvidence::exportRowFromFeature(
     }
     file_ << "\t";
     for (const String &p : accessions) {
-        file_ << proteinGroupId(p) << ";"; // Protein group ids
+        file_ << proteinGroupID(p) << ";"; // Protein group ids
     }
 
     file_ << "\t";
@@ -482,7 +499,7 @@ void MQEvidence::exportFeatureMapTotxt(
     ProteinIdentification::Mapping mp_f;
     mp_f.create(feature_map.getProteinIdentifications());
 
-    std::multimap<String, PeptideIdentification*>UIDs = PeptideIdentification::fillConsensusPepIDMap(cmap);
+    std::multimap<String, std::pair<Size, Size>>UIDs = PeptideIdentification::fillConsensusPepIDMap(cmap);
 
     for (const Feature &f : feature_map)
     {
