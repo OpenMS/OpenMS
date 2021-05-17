@@ -53,7 +53,7 @@ END_SECTION
 START_SECTION(void setPenalty_(const ScoringMatrix& matrix))
 {
   NeedlemanWunsch object = NeedlemanWunsch(NeedlemanWunsch::ScoringMatrix::PAM30MSMatrix, -5);
-  //object.setPenalty_(5); //exeption abfangen
+  TEST_EXCEPTION(Exception::IllegalArgument, object.setPenalty_(5))
   object.setPenalty_(-1);
   TEST_EQUAL(object.align_(seq1, seq2), 113);
   TEST_EQUAL(object.getPenalty_(), -1);
