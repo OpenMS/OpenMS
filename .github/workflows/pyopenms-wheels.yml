@@ -19,6 +19,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.18.x'
         
     - name: Reduce PATH
       run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -336,22 +340,22 @@ jobs:
               # Somehow auditwheel is broken and we get the wrong libraries here for
               # libcrypto and libssl, lets go and fix it ...
               # auditwheel now adds the libraries to the root pyopenms.libs directory
-              #yum install -y zip
-              #pushd wheelhouse
-              #for whl in pyopenms*.whl
-                #do
-                #mkdir -p fix
-                  #cp $whl fix/fix.zip
-                  #pushd fix
-                  #unzip fix.zip
+              yum install -y zip
+              pushd wheelhouse
+              for whl in pyopenms*.whl
+                do
+                  mkdir -p fix
+                  cp $whl fix/fix.zip
+                  pushd fix
+                  unzip fix.zip
                     #/usr/bin/cp /lib64/libssl.so.10  pyopenms.libs/libssl-*
                     #/usr/bin/cp /lib64/libcrypto.so.10  pyopenms.libs/libcrypto-*
-                    #zip -r ../$whl pyopenms/
-                    #popd
-                  #rm -rf fix
-                  #done
-                #popd
-              #mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+                  zip -r ../$whl pyopenms/
+                  popd
+                  rm -rf fix
+                done
+              popd
+              mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
             popd
 
     - uses: actions/upload-artifact@v1
