@@ -38,7 +38,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String& SpectrumLookup::default_scan_regexp = "=(?<SCAN>\\d+)$";
+  const String& SpectrumLookup::default_scan_regexp = R"(=(?<SCAN>\d+)$)";
 
   const String& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
 
@@ -267,33 +267,38 @@ namespace OpenMS
     // "scan=NUMBER" 
     if (std::find(scan.begin(), scan.end(), native_id_type_accession) != scan.end())
     {
-      regexp = std::string("scan=(?<GROUP>\\d+)");
+      regexp = std::string(R"(scan=(?<GROUP>\d+))");
     }
     // id="sample=1 period=1 cycle=96 experiment=1" - this will be described by a combination of (cycle * 1000 + experiment)
     else if (native_id_type_accession == "MS:1000770") // WIFF nativeID format
     {
-      regexp = std::string("cycle=(?<GROUP>\\d+).experiment=(?<GROUP>\\d+)");
+      regexp = std::string(R"(cycle=(?<GROUP>\d+).experiment=(?<GROUP>\d+))");
       subgroups = {1, 2};
     }
     // "file=NUMBER"
     else if (std::find(file.begin(), file.end(), native_id_type_accession) != file.end())
     {
-      regexp = std::string("file=(?<GROUP>\\d+)");
+      regexp = std::string(R"(file=(?<GROUP>\d+))");
     }
     // "index=NUMBER"
     else if (native_id_type_accession == "MS:1000774")
     {
-      regexp = std::string("index=(?<GROUP>\\d+)");
+      regexp = std::string(R"(index=(?<GROUP>\d+))");
+    }
+    // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
+    else if (native_id_type_accession == "MS:1001508")
+    {
+      regexp = std::string(R"(scanId=(?<GROUP>\d+))");
     }
     // "spectrum=NUMBER"
     else if (native_id_type_accession == "MS:1000777")
     {
-      regexp = std::string("spectrum=(?<GROUP>\\d+)");
+      regexp = std::string(R"(spectrum=(?<GROUP>\d+))");
     }
     // NUMBER 
     else if (native_id_type_accession == "MS:1001530")  
     {
-      regexp = std::string("(?<GROUP>\\d+)");
+      regexp = std::string(R"((?<GROUP>\d+))");
     }
     else
     {

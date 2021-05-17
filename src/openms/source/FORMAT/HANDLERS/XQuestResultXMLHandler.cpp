@@ -217,7 +217,7 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
     {
-      String tag = XMLString::transcode(qname);
+      String tag = StringManager::convert(qname);
       if (tag == "xquest_results")
       {
         if (!this->is_openpepxl_)
@@ -237,7 +237,7 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
-      String tag = XMLString::transcode(qname);
+      String tag = StringManager::convert(qname);
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {

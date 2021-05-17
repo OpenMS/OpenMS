@@ -1,6 +1,6 @@
 ### example CMakeLists.txt to develop C++ programs using OpenMS
 project("Example_Project_using_OpenMS")
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0)
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. Main.cpp)
 set(my_executables

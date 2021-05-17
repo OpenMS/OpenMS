@@ -130,7 +130,7 @@ public:
       }
 
       /// Destructor.
-      ~LinearInterpolation() {}
+      ~LinearInterpolation() = default;
 
       // ----------------------------------------------------------------------
 

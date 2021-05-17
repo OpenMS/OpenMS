@@ -559,7 +559,7 @@ namespace OpenMS
       prot_id_.setSearchParameters(parameters_[ref]);
 
       //date
-      prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
+      prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
 
       // set identifier (with UID to make downstream merging of prot_ids possible)
       // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)

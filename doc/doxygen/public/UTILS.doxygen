@@ -53,7 +53,6 @@
   - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
 
   <b>File Handling</b>
-  - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
   - @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
   - @subpage UTILS_MzMLSplitter - Splits an mzML file into multiple parts.

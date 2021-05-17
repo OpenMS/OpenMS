@@ -85,8 +85,8 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 
   // handling of modifications:
   Param params = ptr->getParameters();
-  params.setValue("fixed_modifications", ListUtils::create<String>("Carbamidomethyl (C),Phospho (S)"));
-  params.setValue("variable_modifications", ListUtils::create<String>("Oxidation (M),Deamidated (N),Deamidated (Q)"));
+  params.setValue("fixed_modifications", std::vector<std::string>{"Carbamidomethyl (C)","Phospho (S)"});
+  params.setValue("variable_modifications", std::vector<std::string>{"Oxidation (M)","Deamidated (N)","Deamidated (Q)"});
   ptr->setParameters(params);
 
   stringstream ss;

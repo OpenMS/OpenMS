@@ -224,6 +224,16 @@ def testAASequence():
     # has selenocysteine
     assert seq.getResidue(1) is not None
     assert seq.size() == 16
+
+    # test exception forwarding from C++ to python
+    # classes derived from std::runtime_exception can be caught in python
+    try:
+        seq.getResidue(1000) # does not exist
+    except RuntimeError:
+        print("Exception successfully triggered.")
+    else:
+        print("Error: Exception not triggered.")
+        assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
     assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
@@ -4525,10 +4535,16 @@ def testTransformationModels():
      TransformationModelInterpolated.getParameters
      TransformationModelLinear.getDefaultParameters
      TransformationModelLinear.getParameters
+     TransformationModelBSpline.getDefaultParameters
+     TransformationModelBSpline.getParameters
+     TransformationModelLowess.getDefaultParameters
+     TransformationModelLowess.getParameters
+     NB: THIS TEST STOPS AFTER THE FIRST FAILURE
     """
     for clz in [pyopenms.TransformationModelLinear,
                 pyopenms.TransformationModelBSpline,
-                pyopenms.TransformationModelInterpolated]:
+                pyopenms.TransformationModelInterpolated,
+                pyopenms.TransformationModelLowess]:
         p = pyopenms.Param()
         data = [ pyopenms.TM_DataPoint(9.0, 8.9),
                  pyopenms.TM_DataPoint(5.0, 6.0),
@@ -5290,7 +5306,7 @@ def testExperimentalDesign():
     fourplex_fractionated_design = pyopenms.ExperimentalDesign()
     ed_dirname = os.path.dirname(os.path.abspath(__file__))
     ed_filename = os.path.join(ed_dirname, "ExperimentalDesign_input_2.tsv").encode()
-    fourplex_fractionated_design = f.load(ed_filename, False)
+    fourplex_fractionated_design = pyopenms.ExperimentalDesignFile.load(ed_filename, False)
     assert fourplex_fractionated_design.getNumberOfSamples() == 8
     assert fourplex_fractionated_design.getNumberOfFractions() == 3
     assert fourplex_fractionated_design.getNumberOfLabels() == 4
@@ -5406,3 +5422,5 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
+
+    

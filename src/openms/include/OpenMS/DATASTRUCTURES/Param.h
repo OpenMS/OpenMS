@@ -34,19 +34,15 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <iosfwd>
 #include <set>
+#include <string>
+#include <map>
 
 namespace OpenMS
 {
-
-  template <class Key, class T>
-  class Map;
 
   namespace Logger
   {
@@ -80,7 +76,7 @@ public:
       /// Default constructor
       ParamEntry();
       /// Constructor with name, description, value and advanced flag
-      ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t = StringList());
+      ParamEntry(const std::string& n, const ParamValue& v, const std::string& d, const std::vector<std::string>& t = std::vector<std::string>());
       /// Copy constructor
       ParamEntry(const ParamEntry&) = default;
       /// Move constructor
@@ -94,25 +90,25 @@ public:
       ParamEntry& operator=(ParamEntry&&) & = default;
 
       /// Check if 'value' fulfills restrictions
-      bool isValid(String& message) const;
+      bool isValid(std::string& message) const;
       /// Equality operator (only name and value are compared)
       bool operator==(const ParamEntry& rhs) const;
 
       /// Name of the entry
-      String name;
+      std::string name;
       /// Description of the entry
-      String description;
+      std::string description;
       /// Value associated with the entry
-      DataValue value;
+      ParamValue value;
       /// Tags list, used e.g. for advanced parameter tag
-      std::set<String> tags;
+      std::set<std::string> tags;
       ///@name Restrictions to accepted values (used in checkDefaults)
       //@{
       double min_float; ///< Default: - std::numeric_limits<double>::max()
       double max_float; ///< Default: std::numeric_limits<double>::max()
-      Int min_int; ///< Default: - std::numeric_limits<Int>::max()
-      Int max_int; ///< Default: std::numeric_limits<Int>::max()
-      std::vector<String> valid_strings; ///< Default: empty
+      int min_int; ///< Default: - std::numeric_limits<Int>::max()
+      int max_int; ///< Default: std::numeric_limits<Int>::max()
+      std::vector<std::string> valid_strings; ///< Default: empty
       //@}
     };
 
@@ -131,7 +127,7 @@ public:
       /// Default constructor
       ParamNode();
       /// Constructor with name and description
-      ParamNode(const String& n, const String& d);
+      ParamNode(const std::string& n, const std::string& d);
       /// Copy constructor
       ParamNode(const ParamNode&) = default;
       /// Move constructor
@@ -152,39 +148,39 @@ public:
 
         Returns the end iterator if no entry is found
       */
-      EntryIterator findEntry(const String& name);
+      EntryIterator findEntry(const std::string& name);
       /**
         @brief Look up subnode of this node (local search)
 
         Returns the end iterator if no entry is found
       */
-      NodeIterator findNode(const String& name);
+      NodeIterator findNode(const std::string& name);
       /**
         @brief Look up the parent node of the entry or node corresponding to @p name (tree search)
 
         Returns 0 if no entry is found
       */
-      ParamNode* findParentOf(const String& name);
+      ParamNode* findParentOf(const std::string& name);
       /**
         @brief Look up the entry corresponding to @p name (tree search)
 
         Returns 0 if no entry is found
       */
-      ParamEntry* findEntryRecursive(const String& name);
+      ParamEntry* findEntryRecursive(const std::string& name);
 
       ///Inserts a @p node with the given @p prefix
-      void insert(const ParamNode& node, const String& prefix = "");
+      void insert(const ParamNode& node, const std::string& prefix = "");
       ///Inserts an @p entry with the given @p prefix
-      void insert(const ParamEntry& entry, const String& prefix = "");
+      void insert(const ParamEntry& entry, const std::string& prefix = "");
       ///Returns the number of entries in the whole subtree
-      Size size() const;
+      size_t size() const;
       ///Returns the name suffix of a @p key (the part behind the last ':' character)
-      String suffix(const String& key) const;
+      std::string suffix(const std::string& key) const;
 
       /// Name of the node
-      String name;
+      std::string name;
       /// Description of the node
-      String description;
+      std::string description;
       /// Entries (leafs) in the node
       std::vector<ParamEntry> entries;
       /// Subnodes
@@ -201,7 +197,7 @@ public:
       struct OPENMS_DLLAPI TraceInfo
       {
         /// Constructor with name, description, and open flag
-        inline TraceInfo(const String& n, const String& d, bool o) :
+        inline TraceInfo(const std::string& n, const std::string& d, bool o) :
           name(n),
           description(d),
           opened(o)
@@ -209,9 +205,9 @@ public:
         }
 
         /// name of the node
-        String name;
+        std::string name;
         /// description of the node
-        String description;
+        std::string description;
         /// If it was opened (true) or closed (false)
         bool opened;
       };
@@ -235,7 +231,7 @@ public:
       /// Equality operator
       bool operator!=(const ParamIterator& rhs) const;
       /// Returns the absolute path of the current element (including all sections)
-      String getName() const;
+      std::string getName() const;
       /// Returns the traceback of the opened and closed sections
       const std::vector<TraceInfo>& getTrace() const;
 
@@ -243,7 +239,7 @@ protected:
       /// Pointer to the root node
       const Param::ParamNode* root_;
       /// Index of the current ParamEntry (-1 means invalid)
-      Int current_;
+      int current_;
       /// Pointers to the ParamNodes we are in
       std::vector<const Param::ParamNode*> stack_;
       /// Node traversal data during last ++ operation.
@@ -289,21 +285,28 @@ protected:
       @param description Verbose description of the parameter
       @param tags list of tags associated to this parameter
     */
-    void setValue(const String& key, const DataValue& value, const String& description = "", const StringList& tags = StringList());
+    void setValue(const std::string& key, const ParamValue& value, const std::string& description = "", const std::vector<std::string>& tags = std::vector<std::string>());
 
     /**
       @brief Returns a value of a parameter.
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
-    const DataValue& getValue(const String& key) const;
+    const ParamValue& getValue(const std::string& key) const;
+
+    /**
+      @brief Returns the type of a parameter.
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    */
+    ParamValue::ValueType getValueType(const std::string& key) const;
 
     /**
       @brief Returns the whole parameter entry.
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
-    const ParamEntry& getEntry(const String& key) const;
+    const ParamEntry& getEntry(const std::string& key) const;
 
     /**
       @brief Tests if a parameter is set (expecting its fully qualified name, e.g., TextExporter:1:proteins_only)
@@ -311,7 +314,15 @@ protected:
       @param key The fully qualified name of the parameter to check.
       @return True if the parameter exists, false otherwise.
     */
-    bool exists(const String& key) const;
+    bool exists(const std::string& key) const;
+
+    /**
+      @brief Checks whether a section is present.
+
+      @param key The key of the section to be searched for. May or may not contain ":" suffix.
+      @return True if the section exists, false otherwise.
+     */
+    bool hasSection(const std::string& key) const;
 
     /**
       @brief Find leaf node by name (if it exists).
@@ -319,7 +330,7 @@ protected:
       @param leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.
       @return Returns end() if leaf does not exist.
     */
-    ParamIterator findFirst(const String& leaf) const;
+    ParamIterator findFirst(const std::string& leaf) const;
 
     /**
       @brief Find next leaf node by name (if it exists), not considering the @p start_leaf
@@ -328,7 +339,7 @@ protected:
       @param start_leaf The already found leaf, that should not be considered during this search.
       @return Returns end() if leaf does not exist.
     */
-    ParamIterator findNext(const String& leaf, const ParamIterator& start_leaf) const;
+    ParamIterator findNext(const std::string& leaf, const ParamIterator& start_leaf) const;
     //@}
 
     ///@name Tags handling
@@ -342,7 +353,7 @@ protected:
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
       @exception Exception::InvalidValue is thrown if the tag contain a comma character.
     */
-    void addTag(const String& key, const String& tag);
+    void addTag(const std::string& key, const std::string& tag);
 
     /**
       @brief Adds the tags in the list @p tags to the entry @p key
@@ -350,7 +361,7 @@ protected:
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
       @exception Exception::InvalidValue is thrown if a tag contain a comma character.
     */
-    void addTags(const String& key, const StringList& tags);
+    void addTags(const std::string& key, const std::vector<std::string>& tags);
 
     /**
       @brief Returns if the parameter @p key has a tag
@@ -360,21 +371,21 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
-    bool hasTag(const String& key, const String& tag) const;
+    bool hasTag(const std::string& key, const std::string& tag) const;
 
     /**
       @brief Returns the tags of entry @p key
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
-    StringList getTags(const String& key) const;
+    std::vector<std::string> getTags(const std::string& key) const;
 
     /**
       @brief Removes all tags from the entry @p key
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
-    void clearTags(const String& key);
+    void clearTags(const std::string& key);
     //@}
 
 
@@ -386,7 +397,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
-    const String& getDescription(const String& key) const;
+    const std::string& getDescription(const std::string& key) const;
 
     /**
       @brief Sets a description for an existing section
@@ -396,28 +407,28 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if the section does not exists.
     */
-    void setSectionDescription(const String& key, const String& description);
+    void setSectionDescription(const std::string& key, const std::string& description);
 
     /**
       @brief Returns the description corresponding to the section with name @p key.
 
       If the section does not exist an empty string is returned.
     */
-    const String& getSectionDescription(const String& key) const;
+    const std::string& getSectionDescription(const std::string& key) const;
 
     /**
     @brief Adds a parameter section under the path @p key with the given @p description.
 
     If the section already exists, the description is only overwritten if not empty.
     */
-    void addSection(const String& key, const String& description);
+    void addSection(const std::string& key, const std::string& description);
     //@}
 
     ///@name Manipulation of the whole parameter set
     //@{
 
     ///Returns the number of entries (leafs).
-    Size size() const;
+    size_t size() const;
 
     ///Returns if there are no entries.
     bool empty() const;
@@ -427,7 +438,7 @@ protected:
 
     /// Insert all values of @p param and adds the prefix @p prefix.
     /// You should append ':' to prefix manually when you want it to be a section.
-    void insert(const String& prefix, const Param& param);
+    void insert(const std::string& prefix, const Param& param);
 
     /**
       @brief Remove the entry @p key or a section @p key (when suffix is ':')
@@ -438,7 +449,7 @@ protected:
       If an empty internal node remains, the tree is pruned until every node has either a successor node
       or a leaf, i.e. no naked nodes remain.
     */
-    void remove(const String& key);
+    void remove(const std::string& key);
 
     /**
       @brief Remove all entries that start with @p prefix
@@ -448,7 +459,7 @@ protected:
       If an empty internal node remains, the tree is pruned until every node has either a successor node
       or a leaf, i.e. no naked nodes remain.
     */
-    void removeAll(const String& prefix);
+    void removeAll(const std::string& prefix);
 
     /**
       @brief Returns a new Param object containing all entries that start with @p prefix.
@@ -457,7 +468,7 @@ protected:
              Otherwise not only nodes, but as well values with that prefix are copied.
       @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
     */
-    Param copy(const String& prefix, bool remove_prefix = false) const;
+    Param copy(const std::string& prefix, bool remove_prefix = false) const;
 
     /**
       @brief Returns a new Param object containing all entries in the given subset.
@@ -528,7 +539,7 @@ protected:
 
       @see checkDefaults
     */
-    void setDefaults(const Param& defaults, const String& prefix = "", bool showMessage = false);
+    void setDefaults(const Param& defaults, const std::string& prefix = "", bool showMessage = false);
 
     /**
       @brief Checks the current parameter entries against given @p defaults
@@ -549,7 +560,7 @@ protected:
 
       @exception Exception::InvalidParameter is thrown if errors occur during the check
     */
-    void checkDefaults(const String& name, const Param& defaults, const String& prefix = "") const;
+    void checkDefaults(const std::string& name, const Param& defaults, const std::string& prefix = "") const;
     //@}
 
     ///@name Restriction handling
@@ -562,7 +573,7 @@ protected:
       @exception Exception::InvalidParameter is thrown, if one of the strings contains a comma character
       @exception Exception::ElementNotFound exception is thrown, if the parameter is no string parameter
     */
-    void setValidStrings(const String& key, const std::vector<String>& strings);
+    void setValidStrings(const std::string& key, const std::vector<std::string>& strings);
 
     /**
       @brief Sets the minimum value for the integer or integer list parameter @p key.
@@ -571,7 +582,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMinInt(const String& key, Int min);
+    void setMinInt(const std::string& key, int min);
 
     /**
       @brief Sets the maximum value for the integer or integer list parameter @p key.
@@ -580,7 +591,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMaxInt(const String& key, Int max);
+    void setMaxInt(const std::string& key, int max);
 
     /**
       @brief Sets the minimum value for the floating point or floating point list parameter @p key.
@@ -589,7 +600,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMinFloat(const String& key, double min);
+    void setMinFloat(const std::string& key, double min);
 
     /**
       @brief Sets the maximum value for the floating point or floating point list parameter @p key.
@@ -598,7 +609,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMaxFloat(const String& key, double max);
+    void setMaxFloat(const std::string& key, double max);
     //@}
 
     ///@name Command line parsing
@@ -621,7 +632,7 @@ protected:
       @param argv argv variable from command line
       @param prefix prefix for all options
     */
-    void parseCommandLine(const int argc, const char** argv, const String& prefix = "");
+    void parseCommandLine(const int argc, const char** argv, const std::string& prefix = "");
 
     /**
       @brief Parses command line arguments to specified key locations.
@@ -636,7 +647,7 @@ protected:
       @param misc key where a StringList of all non-option arguments are stored
       @param unknown key where a StringList of all unknown options are stored
     */
-    void parseCommandLine(const int argc, const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument, const Map<String, String>& options_with_multiple_argument, const String& misc = "misc", const String& unknown = "unknown");
+    void parseCommandLine(const int argc, const char** argv, const std::map<std::string, std::string>& options_with_one_argument, const std::map<std::string, std::string>& options_without_argument, const std::map<std::string, std::string>& options_with_multiple_argument, const std::string& misc = "misc", const std::string& unknown = "unknown");
 
     //@}
 
@@ -647,7 +658,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown for unset parameters
     */
-    ParamEntry& getEntry_(const String& key) const;
+    ParamEntry& getEntry_(const std::string& key) const;
 
     /// Constructor from a node which is used as root node
     Param(const Param::ParamNode& node);

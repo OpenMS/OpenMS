@@ -28,6 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <iostream>
 
@@ -43,7 +44,7 @@ Int main()
   param.setValue("file:data:min_int", 0);
   param.setValue("file:data:max_int", 16459);
 
-  cout << "Name   : " << (String)(param.getValue("file:name")) << endl;
+  cout << "Name   : " << (string)(param.getValue("file:name")) << endl;
   cout << "Size   : " << (float)(param.getValue("file:size(MB)")) << endl;
   cout << "Min int: " << (UInt)(param.getValue("file:data:min_int")) << endl;
   cout << "Max int: " << (UInt)(param.getValue("file:data:max_int")) << endl;

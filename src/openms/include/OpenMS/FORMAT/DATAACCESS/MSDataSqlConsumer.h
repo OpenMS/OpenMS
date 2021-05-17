@@ -72,12 +72,13 @@ namespace OpenMS
         Opens the SQLite file and writes the tables.
 
         @param filename The filename of the SQLite database
+        @param run_id Unique identifier which links the sqMass and OSW file
         @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
         @param full_meta Whether to write the full meta-data in the SQLite header
         @param lossy_compression Whether to use lossy compression (numpress)
         @param linear_mass_acc Desired mass accuracy for RT or m/z space (absolute value)
       */
-      MSDataSqlConsumer(String filename, int buffer_size = 500, bool full_meta = true, bool lossy_compression=false, double linear_mass_acc=1e-4);
+      MSDataSqlConsumer(const String& sql_filename, UInt64 run_id, int buffer_size = 500, bool full_meta = true, bool lossy_compression=false, double linear_mass_acc=1e-4);
 
       /**
         @brief Destructor

@@ -91,7 +91,7 @@ public:
       UnregisteredParameter(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "UnregisteredParameter", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -103,7 +103,7 @@ public:
       WrongParameterType(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "WrongParameterType", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -115,7 +115,7 @@ public:
       RequiredParameterNotGiven(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "RequiredParameterNotGiven", parameter)
       {
-        GlobalExceptionHandler::getInstance().setMessage(what_);
+        GlobalExceptionHandler::getInstance().setMessage(what());
       }
 
     };
@@ -163,6 +163,14 @@ public:
       INTERNAL_ERROR,
       UNEXPECTED_RESULT
     };
+
+
+
+    /// No default constructor
+    TOPPBase() = delete;
+
+    /// No default copy constructor.
+    TOPPBase(const TOPPBase&) = delete;
 
     /**
       @brief Constructor
@@ -212,12 +220,6 @@ private:
 
     /// Location in the ini file where to look for parameters.
     String const ini_location_;
-
-    /// No default constructor.  It is "declared away".
-    TOPPBase();
-
-    /// No default copy constructor.  It is "declared away".
-    TOPPBase(const TOPPBase&);
 
     /// All parameters relevant to this invocation of the program.
     Param param_;
@@ -352,7 +354,7 @@ private:
     bool getParamAsBool_(const String& key) const;
 
     /**
-      @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
+      @brief Return the value @p key of parameters as DataValue. ParamValue::EMPTY indicates that a parameter was not found.
 
       Parameters are searched in this order:
       -# command line
@@ -362,7 +364,7 @@ private:
 
       where "some_key" == key in the examples.
     */
-    const DataValue& getParam_(const String& key) const;
+    const ParamValue& getParam_(const String& key) const;
 
     /**
       @brief Get the part of a parameter name that makes up the subsection

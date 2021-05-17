@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <Wm5Vector2.h>
 #include <Wm5ApprLineFit2.h>
@@ -154,13 +155,13 @@ namespace OpenMS
     params.setValue("symmetric_regression", "false", "Perform linear regression"
                                                      " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
     params.setValidStrings("symmetric_regression",
-                           ListUtils::create<String>("true,false"));
+                           {"true","false"});
     params.setValue("x_weight", "", "Weight x values");
     params.setValidStrings("x_weight",
-                           ListUtils::create<String>("1/x,1/x2,ln(x),"));
+                           {"1/x","1/x2","ln(x)",""});
     params.setValue("y_weight", "", "Weight y values");
     params.setValidStrings("y_weight",
-                           ListUtils::create<String>("1/y,1/y2,ln(y),"));
+                           {"1/y","1/y2","ln(y)",""});
     params.setValue("x_datum_min", 1e-15, "Minimum x value");
     params.setValue("x_datum_max", 1e15, "Maximum x value");
     params.setValue("y_datum_min", 1e-15, "Minimum y value");

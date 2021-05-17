@@ -723,6 +723,34 @@ START_SECTION((static void removePeptidesWithMatchingModifications(vector<Peptid
 }
 END_SECTION
 
+START_SECTION((static void removePeptidesWithMatchingRegEx(vector<PeptideIdentification>& peptides, const String& regex)))
+{
+  vector<PeptideIdentification> peptides = global_peptides;
+  String re{"[BJXZ]"};
+
+  IDFilter::removePeptidesWithMatchingRegEx(peptides, re);
+  TEST_EQUAL(peptides == global_peptides, true); // no changes
+
+  PeptideHit aaa_hit1;
+  aaa_hit1.setSequence(AASequence::fromString("BBBBB"));
+  PeptideHit aaa_hit2;
+  aaa_hit2.setSequence(AASequence::fromString("JJJJJ"));
+  PeptideHit aaa_hit3;
+  aaa_hit3.setSequence(AASequence::fromString("XXXXX"));
+  peptides[0].getHits().push_back(aaa_hit1);
+  peptides[0].getHits().push_back(aaa_hit2);
+  peptides[0].getHits().push_back(aaa_hit3);
+
+  TEST_EQUAL(peptides == global_peptides, false); // added aaa peptides
+  TEST_EQUAL(peptides[0].getHits().size(), 14);
+
+  IDFilter::removePeptidesWithMatchingRegEx(peptides, re);
+  /// aaa peptides should now be removed
+  TEST_EQUAL(peptides == global_peptides, true);
+  TEST_EQUAL(peptides[0].getHits().size(), 11);
+}
+END_SECTION
+
 START_SECTION((static void keepPeptidesWithMatchingModifications(vector<PeptideIdentification>& peptides, const set<String>& modifications)))
 {
   vector<PeptideIdentification> peptides = global_peptides;

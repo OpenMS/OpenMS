@@ -45,7 +45,7 @@ namespace OpenMS
       defaults_.setValue("annotate_origin",
                          "true",
                          "If true, adds a map_index MetaValue to the PeptideIDs to annotate the IDRun they came from.");
-      defaults_.setValidStrings("annotate_origin", ListUtils::create<String>("true,false"));
+      defaults_.setValidStrings("annotate_origin", {"true","false"});
       defaultsToParam_();
     }
 

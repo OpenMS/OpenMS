@@ -1,0 +1,10 @@
+Name: seqan-pipe
+Author: David Weese <david.weese@fu-berlin.de>
+Maintainer: David Weese <david.weese@fu-berlin.de>
+License: BSD 3-clause
+Copyright: 2006-2013, FU Berlin
+Status: mature
+Description: Pipelined I/O.
+ This module contains the Pipe and Pool classes as well as various
+ implementations.  The code is used for the external I/O functionality of SeqAn.
+ Besides other things, this class contains the external sorting algorithm.

@@ -157,7 +157,7 @@ public:
     /// returns whether spectra are empty
     inline bool empty() const
     {
-      return indexed_mzml_file_.getNrSpectra() == 0;
+      return getNrSpectra() == 0;
     }
 
     /// get the total number of spectra available

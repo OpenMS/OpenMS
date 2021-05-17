@@ -230,14 +230,14 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
-# Enable SIRIUS_test (SiriusAdapter) 
+# Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
 #------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for fingerid (SiriusAdapter)" ON)
+option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" ON)
 
 #------------------------------------------------------------------------------
 # Enable CSI:FingerID_test (SiriusAdapter)
 #------------------------------------------------------------------------------
-option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
+option(ENABLE_FINGERID_TEST "Enable test for CSI:FingerID (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable Coverage
@@ -268,6 +268,17 @@ set(BUILD_SHARED_LIBS true)
 # Host directory for referencing from subprojects
 set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+# The additional / is important to remove the last character from the path.
+# Note that it does not matter if the OS uses / or \, because we are only
+# saving the path size.
+string(LENGTH "${PROJECT_SOURCE_DIR}/" CF_SOURCE_PATH_SIZE)
+string(LENGTH "${PROJECT_BINARY_DIR}/" BINARY_PATH_SIZE)
+# Since the path's length is used to cut away a path, and OPENMS_FILENAME might be used in configured files in the build tree
+# , taking the convervative approach here, to make sure we do not cut away too much, no matter if origin is source or build tree
+if (BINARY_PATH_SIZE LESS CF_SOURCE_PATH_SIZE)
+  set(CF_SOURCE_PATH_SIZE ${BINARY_PATH_SIZE})
+endif()
 
 #------------------------------------------------------------------------------
 # CMake Utitlities
@@ -383,7 +394,7 @@ endif()
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
-	## copy build.bat to root of binary dir to enable convenient invokation (instead of typing path to source dir all the time)
+	## copy build.bat to root of binary dir to enable convenient invocation (instead of typing path to source dir all the time)
 	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
 		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
 	endif()

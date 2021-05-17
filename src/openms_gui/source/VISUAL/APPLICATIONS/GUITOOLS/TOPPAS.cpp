@@ -68,12 +68,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-
-using namespace OpenMS;
-using namespace std;
 
 //STL
 #include <iostream>
@@ -87,6 +85,8 @@ using namespace std;
 #   include <Windows.h>
 #endif
 
+using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 // command line name of this tool
@@ -115,7 +115,7 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 int main(int argc, const char** argv)
 {
   // list of all the valid options
-  Map<String, String> valid_options, valid_flags, option_lists;
+  std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
@@ -146,7 +146,7 @@ int main(int argc, const char** argv)
     // if TOPPAS is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
     // if this is the only unknown option it will be ignored .. maybe this should be solved directly
     // in Param.h
-    if (!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
+    if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
     {
       OPENMS_LOG_ERROR << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
       print_usage(OpenMS_Log_error);
@@ -185,12 +185,12 @@ int main(int argc, const char** argv)
 
     if (param.exists("ini"))
     {
-      mw->loadPreferences((String)param.getValue("ini"));
+      mw->loadPreferences(param.getValue("ini").toString());
     }
 
     if (param.exists("misc"))
     {
-      mw->loadFiles(param.getValue("misc"), &splash_screen);
+      mw->loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
     else 
     {

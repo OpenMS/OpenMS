@@ -46,6 +46,7 @@
 		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
+		<userParam name="sqMassRunID" type="xsd:integer" value="0"/>
 		<chromatogramList count="5" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="tr1" index="0" defaultArrayLength="59">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
@@ -234,13 +235,13 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tr1">3193</offset>
-		<offset idRef="tr3">6565</offset>
-		<offset idRef="tr2">9847</offset>
-		<offset idRef="tr4">12643</offset>
-		<offset idRef="tr5">15439</offset>
+		<offset idRef="tr1">3256</offset>
+		<offset idRef="tr3">6628</offset>
+		<offset idRef="tr2">9910</offset>
+		<offset idRef="tr4">12706</offset>
+		<offset idRef="tr5">15502</offset>
 	</index>
 </indexList>
-<indexListOffset>18268</indexListOffset>
+<indexListOffset>18331</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

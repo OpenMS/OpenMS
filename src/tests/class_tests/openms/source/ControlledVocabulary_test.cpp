@@ -188,6 +188,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm()))
 {
   cvterm = new ControlledVocabulary::CVTerm();
   TEST_NOT_EQUAL(cvterm, cvtermNullPointer)
+  delete cvterm;
 }
 END_SECTION
 
@@ -298,20 +299,6 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm& operator=(const CVTerm &rh
   TEST_EQUAL(b.xref_type == a.xref_type, true)
   TEST_EQUAL(b.xref_binary, a.xref_binary)
   TEST_EQUAL(b.units == a.units, true)
-
-  a = a;
-
-  TEST_STRING_EQUAL(a.name,a.name)
-  TEST_STRING_EQUAL(a.id,a.id)
-  TEST_EQUAL(a.parents == a.parents, true)
-  TEST_EQUAL(a.children == a.children, true)
-  TEST_EQUAL(a.obsolete, a.obsolete)
-  TEST_STRING_EQUAL(a.description,a.description)
-  TEST_EQUAL(a.synonyms, a.synonyms)
-  TEST_EQUAL(a.unparsed, a.unparsed)
-  TEST_EQUAL(a.xref_type == a.xref_type, true)
-  TEST_EQUAL(a.xref_binary, a.xref_binary)
-  TEST_EQUAL(a.units == a.units, true)
 }
 END_SECTION
 

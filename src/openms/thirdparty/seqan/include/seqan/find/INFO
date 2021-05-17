@@ -1,0 +1,13 @@
+Name: seqan-find
+Author: Andreas Gogol-Doering <andreas.doering@mdc-berlin.de>
+Author: David Weese <david.weese@fu-berlin.de>
+Author: Manuel Holtgrewe <manuel.holtgrewe@fu-berlin.de>
+Maintainer: Manuel Holtgrewe <manuel.holtgrewe@fu-berlin.de>
+License: BSD 3-clause
+Copyright: 2006-2013, FU Berlin
+Status: mature
+Description: SeqAn core module with online string search algorithms.
+ The find module contains the basic types and interface functions for online
+ string search algorithm, together with implementations of approximate (with
+ Hamming distance, Levenshtein distance and score-based error models) and
+ implementations of string search algorithms for one or multiple patterns.

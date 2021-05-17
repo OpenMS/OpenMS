@@ -87,7 +87,7 @@ public:
     void score(OpenSwath::SpectrumPtr spec,
                const std::vector<OpenSwath::LightTransition>& lt,
                double& dotprod,
-               double& manhattan);
+               double& manhattan) const;
 
     /**
       @brief Compute manhattan and dotprod score for all spectra which can be accessed by

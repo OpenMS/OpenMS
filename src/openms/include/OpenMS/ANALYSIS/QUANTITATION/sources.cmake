@@ -9,6 +9,7 @@ IsobaricNormalizer.h
 IsobaricQuantifier.h
 IsobaricQuantifierStatistics.h
 IsobaricQuantitationMethod.h
+IsotopeLabelingMDVs.h
 ItraqConstants.h
 ItraqEightPlexQuantitationMethod.h
 ItraqFourPlexQuantitationMethod.h

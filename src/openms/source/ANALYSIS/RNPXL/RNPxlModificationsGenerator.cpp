@@ -455,7 +455,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       }
       else
       {
-        OPENMS_LOG_DEBUG << "ambigious " << nucleotide_style_formula << endl;
+        OPENMS_LOG_DEBUG << "ambiguous " << nucleotide_style_formula << endl;
       }
     }
 

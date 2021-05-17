@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="info" description="">
     <ITEM name="num_vertices" value="7" type="int" description="" required="false" advanced="false" />
     <ITEM name="num_edges" value="6" type="int" description="" required="false" advanced="false" />
@@ -13,16 +13,16 @@
         <LISTITEM value="../BSA/BSA2.mzML"/>
         <LISTITEM value="../BSA/BSA3.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-140" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-140.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-160.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="1" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="FeatureFinderCentroided" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-140" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-40" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-140.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-40.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureFinderCentroided&apos;">
         <ITEM name="in" value="" type="input-file" description="input file" required="true" advanced="false" supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false" supported_formats="*.featureXML" />
@@ -40,45 +40,45 @@
             <ITEM name="bins" value="10" type="int" description="Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.#br#This parameter should be decreased, if the algorithm is used on small regions of a map." required="false" advanced="false" restrictions="1:" />
           </NODE>
           <NODE name="mass_trace" description="Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).">
-            <ITEM name="mz_tolerance" value="0.005" type="double" description="Tolerated m/z deviation of peaks belonging to the same mass trace.#br#It should be larger than the m/z resolution of the instrument.#br#This value must be smaller than that 1/charge_high!" required="false" advanced="false" restrictions="0:" />
+            <ITEM name="mz_tolerance" value="5.0e-03" type="double" description="Tolerated m/z deviation of peaks belonging to the same mass trace.#br#It should be larger than the m/z resolution of the instrument.#br#This value must be smaller than that 1/charge_high!" required="false" advanced="false" restrictions="0.0:" />
             <ITEM name="min_spectra" value="7" type="int" description="Number of spectra that have to show a similar peak mass in a mass trace." required="false" advanced="false" restrictions="1:" />
             <ITEM name="max_missing" value="1" type="int" description="Number of consecutive spectra where a high mass deviation or missing peak is acceptable.#br#This parameter should be well below &apos;min_spectra&apos;!" required="false" advanced="false" restrictions="0:" />
-            <ITEM name="slope_bound" value="0.5" type="double" description="The maximum slope of mass trace intensities when extending from the highest peak.#br#This parameter is important to seperate overlapping elution peaks.#br#It should be increased if feature elution profiles fluctuate a lot." required="false" advanced="false" restrictions="0:" />
+            <ITEM name="slope_bound" value="0.5" type="double" description="The maximum slope of mass trace intensities when extending from the highest peak.#br#This parameter is important to separate overlapping elution peaks.#br#It should be increased if feature elution profiles fluctuate a lot." required="false" advanced="false" restrictions="0.0:" />
           </NODE>
           <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).">
             <ITEM name="charge_low" value="2" type="int" description="Lowest charge to search for." required="false" advanced="false" restrictions="1:" />
             <ITEM name="charge_high" value="3" type="int" description="Highest charge to search for." required="false" advanced="false" restrictions="1:" />
-            <ITEM name="mz_tolerance" value="0.005" type="double" description="Tolerated m/z deviation from the theoretical isotopic pattern.#br#It should be larger than the m/z resolution of the instrument.#br#This value must be smaller than that 1/charge_high!" required="false" advanced="false" restrictions="0:" />
-            <ITEM name="intensity_percentage" value="10" type="double" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present." required="false" advanced="true" restrictions="0:100" />
-            <ITEM name="intensity_percentage_optional" value="0.1" type="double" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." required="false" advanced="true" restrictions="0:100" />
-            <ITEM name="optional_fit_improvement" value="2" type="double" description="Minimal percental improvement of isotope fit to allow leaving out an optional peak." required="false" advanced="true" restrictions="0:100" />
-            <ITEM name="mass_window_width" value="25" type="double" description="Window width in Dalton for precalculation of estimated isotope distributions." required="false" advanced="true" restrictions="1:200" />
-            <ITEM name="abundance_12C" value="98.93" type="double" description="Rel. abundance of the light carbon. Modify if labeled." required="false" advanced="true" restrictions="0:100" />
-            <ITEM name="abundance_14N" value="99.632" type="double" description="Rel. abundance of the light nitrogen. Modify if labeled." required="false" advanced="true" restrictions="0:100" />
+            <ITEM name="mz_tolerance" value="5.0e-03" type="double" description="Tolerated m/z deviation from the theoretical isotopic pattern.#br#It should be larger than the m/z resolution of the instrument.#br#This value must be smaller than that 1/charge_high!" required="false" advanced="false" restrictions="0.0:" />
+            <ITEM name="intensity_percentage" value="10.0" type="double" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present." required="false" advanced="true" restrictions="0.0:100.0" />
+            <ITEM name="intensity_percentage_optional" value="0.1" type="double" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." required="false" advanced="true" restrictions="0.0:100.0" />
+            <ITEM name="optional_fit_improvement" value="2.0" type="double" description="Minimal percental improvement of isotope fit to allow leaving out an optional peak." required="false" advanced="true" restrictions="0.0:100.0" />
+            <ITEM name="mass_window_width" value="25.0" type="double" description="Window width in Dalton for precalculation of estimated isotope distributions." required="false" advanced="true" restrictions="1.0:200.0" />
+            <ITEM name="abundance_12C" value="98.930000000000007" type="double" description="Rel. abundance of the light carbon. Modify if labeled." required="false" advanced="true" restrictions="0.0:100.0" />
+            <ITEM name="abundance_14N" value="99.632000000000005" type="double" description="Rel. abundance of the light nitrogen. Modify if labeled." required="false" advanced="true" restrictions="0.0:100.0" />
           </NODE>
           <NODE name="seed" description="Settings that determine which peaks are considered a seed">
-            <ITEM name="min_score" value="0.8" type="double" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." required="false" advanced="false" restrictions="0:1" />
+            <ITEM name="min_score" value="0.8" type="double" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." required="false" advanced="false" restrictions="0.0:1.0" />
           </NODE>
           <NODE name="fit" description="Settings for the model fitting">
             <ITEM name="max_iterations" value="500" type="int" description="Maximum number of iterations of the fit." required="false" advanced="true" restrictions="1:" />
           </NODE>
           <NODE name="feature" description="Settings for the features (intensity, quality assessment, ...)">
-            <ITEM name="min_score" value="0.7" type="double" description="Feature score threshold for a feature to be reported.#br#The feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks." required="false" advanced="false" restrictions="0:1" />
-            <ITEM name="min_isotope_fit" value="0.8" type="double" description="Minimum isotope fit of the feature before model fitting." required="false" advanced="true" restrictions="0:1" />
-            <ITEM name="min_trace_score" value="0.5" type="double" description="Trace score threshold.#br#Traces below this threshold are removed after the model fitting.#br#This parameter is important for features that overlap in m/z dimension." required="false" advanced="true" restrictions="0:1" />
-            <ITEM name="min_rt_span" value="0.333" type="double" description="Minimum RT span in relation to extended area that has to remain after model fitting." required="false" advanced="true" restrictions="0:1" />
+            <ITEM name="min_score" value="0.7" type="double" description="Feature score threshold for a feature to be reported.#br#The feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks." required="false" advanced="false" restrictions="0.0:1.0" />
+            <ITEM name="min_isotope_fit" value="0.8" type="double" description="Minimum isotope fit of the feature before model fitting." required="false" advanced="true" restrictions="0.0:1.0" />
+            <ITEM name="min_trace_score" value="0.5" type="double" description="Trace score threshold.#br#Traces below this threshold are removed after the model fitting.#br#This parameter is important for features that overlap in m/z dimension." required="false" advanced="true" restrictions="0.0:1.0" />
+            <ITEM name="min_rt_span" value="0.333" type="double" description="Minimum RT span in relation to extended area that has to remain after model fitting." required="false" advanced="true" restrictions="0.0:1.0" />
             <ITEM name="max_rt_span" value="2.5" type="double" description="Maximum RT span in relation to extended area that the model is allowed to have." required="false" advanced="true" restrictions="0.5:" />
             <ITEM name="rt_shape" value="symmetric" type="string" description="Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used." required="false" advanced="true" restrictions="symmetric,asymmetric" />
-            <ITEM name="max_intersection" value="0.35" type="double" description="Maximum allowed intersection of features." required="false" advanced="true" restrictions="0:1" />
+            <ITEM name="max_intersection" value="0.35" type="double" description="Maximum allowed intersection of features." required="false" advanced="true" restrictions="0.0:1.0" />
             <ITEM name="reported_mz" value="monoisotopic" type="string" description="The mass type that is reported for features.#br#&apos;maximum&apos; returns the m/z value of the highest mass trace.#br#&apos;average&apos; returns the intensity-weighted average m/z value of all contained peaks.#br#&apos;monoisotopic&apos; returns the monoisotopic m/z value derived from the fitted isotope model." required="false" advanced="false" restrictions="maximum,average,monoisotopic" />
           </NODE>
           <NODE name="user-seed" description="Settings for user-specified seeds.">
-            <ITEM name="rt_tolerance" value="5" type="double" description="Allowed RT deviation of seeds from the user-specified seed position." required="false" advanced="false" restrictions="0:" />
-            <ITEM name="mz_tolerance" value="1.1" type="double" description="Allowed m/z deviation of seeds from the user-specified seed position." required="false" advanced="false" restrictions="0:" />
-            <ITEM name="min_score" value="0.5" type="double" description="Overwrites &apos;seed:min_score&apos; for user-specified seeds. The cutoff is typically a bit lower in this case." required="false" advanced="false" restrictions="0:1" />
+            <ITEM name="rt_tolerance" value="5.0" type="double" description="Allowed RT deviation of seeds from the user-specified seed position." required="false" advanced="false" restrictions="0.0:" />
+            <ITEM name="mz_tolerance" value="1.1" type="double" description="Allowed m/z deviation of seeds from the user-specified seed position." required="false" advanced="false" restrictions="0.0:" />
+            <ITEM name="min_score" value="0.5" type="double" description="Overwrites &apos;seed:min_score&apos; for user-specified seeds. The cutoff is typically a bit lower in this case." required="false" advanced="false" restrictions="0.0:1.0" />
           </NODE>
           <NODE name="debug" description="">
-            <ITEM name="pseudo_rt_shift" value="500" type="double" description="Pseudo RT shift used when ." required="false" advanced="true" restrictions="1:" />
+            <ITEM name="pseudo_rt_shift" value="500.0" type="double" description="Pseudo RT shift used when ." required="false" advanced="true" restrictions="1.0:" />
           </NODE>
         </NODE>
       </NODE>
@@ -91,22 +91,22 @@
         <LISTITEM value="../BSA/BSA2_OMSSA.idXML"/>
         <LISTITEM value="../BSA/BSA3_OMSSA.idXML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="60" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="60.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-160.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="3" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="IDMapper" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="60" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="-40" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="60.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-40.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;IDMapper&apos;">
         <ITEM name="id" value="" type="input-file" description="Protein/peptide identifications file" required="true" advanced="false" supported_formats="*.mzid,*.idXML" />
         <ITEM name="in" value="" type="input-file" description="Feature map/consensus map file" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
         <ITEM name="out" value="" type="output-file" description="Output file (the format depends on the input file format)." required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
-        <ITEM name="rt_tolerance" value="5" type="double" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." required="false" advanced="false" restrictions="0:" />
-        <ITEM name="mz_tolerance" value="20" type="double" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." required="false" advanced="false" restrictions="0:" />
+        <ITEM name="rt_tolerance" value="5.0" type="double" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." required="false" advanced="false" restrictions="0.0:" />
+        <ITEM name="mz_tolerance" value="20.0" type="double" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." required="false" advanced="false" restrictions="0.0:" />
         <ITEM name="mz_measure" value="ppm" type="string" description="Unit of &apos;mz_tolerance&apos;." required="false" advanced="false" restrictions="ppm,Da" />
         <ITEM name="mz_reference" value="precursor" type="string" description="Source of m/z values for peptide identifications. If &apos;precursor&apos;, the precursor-m/z from the idXML is used. If &apos;peptide&apos;,#br#masses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.#br#(&apos;peptide&apos; should be used together with &apos;feature:use_centroid_mz&apos; to avoid false-positive matches.)" required="false" advanced="false" restrictions="precursor,peptide" />
         <ITEM name="ignore_charge" value="false" type="bool" description="For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature." required="false" advanced="true" />
@@ -134,8 +134,8 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_name" value="FeatureLinkerUnlabeled" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="60" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="260" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="60.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="260.0" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureLinkerUnlabeled&apos;">
         <ITEMLIST name="in" type="input-file" description="input files separated by blanks" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML">
         </ITEMLIST>
@@ -149,24 +149,24 @@
         <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="algorithm" description="Algorithm parameters section">
-          <ITEM name="second_nearest_gap" value="2" type="double" description="Only link features whose distance to the second nearest neighbors (for both sides) is larger by &apos;second_nearest_gap&apos; than the distance between the matched pair itself." required="false" advanced="false" restrictions="1:" />
+          <ITEM name="second_nearest_gap" value="2.0" type="double" description="Only link features whose distance to the second nearest neighbors (for both sides) is larger by &apos;second_nearest_gap&apos; than the distance between the matched pair itself." required="false" advanced="false" restrictions="1.0:" />
           <ITEM name="use_identifications" value="false" type="bool" description="Never link features that are annotated with different peptides (features without ID&apos;s always match; only the best hit per peptide identification is considered)." required="false" advanced="false" />
           <ITEM name="ignore_charge" value="false" type="bool" description="false [default]: pairing requires equal charge state (or at least one unknown charge &apos;0&apos;); true: Pairing irrespective of charge state" required="false" advanced="false" />
           <ITEM name="ignore_adduct" value="true" type="string" description="true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts" required="false" advanced="false" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
-            <ITEM name="max_difference" value="100" type="double" description="Never pair features with a larger RT distance (in seconds)." required="false" advanced="false" restrictions="0:" />
-            <ITEM name="exponent" value="1" type="double" description="Normalized RT differences ([0-1], relative to &apos;max_difference&apos;) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
-            <ITEM name="weight" value="1" type="double" description="Final RT distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="max_difference" value="100.0" type="double" description="Never pair features with a larger RT distance (in seconds)." required="false" advanced="false" restrictions="0.0:" />
+            <ITEM name="exponent" value="1.0" type="double" description="Normalized RT differences ([0-1], relative to &apos;max_difference&apos;) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0.0:" />
+            <ITEM name="weight" value="1.0" type="double" description="Final RT distances are weighted by this factor" required="false" advanced="true" restrictions="0.0:" />
           </NODE>
           <NODE name="distance_MZ" description="Distance component based on m/z differences">
-            <ITEM name="max_difference" value="0.3" type="double" description="Never pair features with larger m/z distance (unit defined by &apos;unit&apos;)" required="false" advanced="false" restrictions="0:" />
+            <ITEM name="max_difference" value="0.3" type="double" description="Never pair features with larger m/z distance (unit defined by &apos;unit&apos;)" required="false" advanced="false" restrictions="0.0:" />
             <ITEM name="unit" value="Da" type="string" description="Unit of the &apos;max_difference&apos; parameter" required="false" advanced="false" restrictions="Da,ppm" />
-            <ITEM name="exponent" value="2" type="double" description="Normalized ([0-1], relative to &apos;max_difference&apos;) m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
-            <ITEM name="weight" value="1" type="double" description="Final m/z distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="exponent" value="2.0" type="double" description="Normalized ([0-1], relative to &apos;max_difference&apos;) m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0.0:" />
+            <ITEM name="weight" value="1.0" type="double" description="Final m/z distances are weighted by this factor" required="false" advanced="true" restrictions="0.0:" />
           </NODE>
           <NODE name="distance_intensity" description="Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)">
-            <ITEM name="exponent" value="1" type="double" description="Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
-            <ITEM name="weight" value="0" type="double" description="Final intensity distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="exponent" value="1.0" type="double" description="Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0.0:" />
+            <ITEM name="weight" value="0.0" type="double" description="Final intensity distances are weighted by this factor" required="false" advanced="true" restrictions="0.0:" />
             <ITEM name="log_transform" value="disabled" type="string" description="Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))" required="false" advanced="true" restrictions="enabled,disabled" />
           </NODE>
         </NODE>
@@ -175,14 +175,14 @@
     <NODE name="6" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="-120" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="260" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-120.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="260.0" type="double" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="4" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
       <ITEM name="toppas_type" value="merger" type="string" description="" required="false" advanced="false" />
-      <ITEM name="x_pos" value="60" type="double" description="" required="false" advanced="false" />
-      <ITEM name="y_pos" value="100" type="double" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="60.0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="100.0" type="double" description="" required="false" advanced="false" />
       <ITEM name="round_based" value="false" type="string" description="" required="false" advanced="false" />
     </NODE>
   </NODE>

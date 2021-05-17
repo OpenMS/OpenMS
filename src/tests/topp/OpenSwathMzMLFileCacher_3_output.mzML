@@ -216,6 +216,7 @@
 		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
+		<userParam name="sqMassRunID" type="xsd:integer" value="0"/>
 		<spectrumList count="59" defaultDataProcessingRef="dp_sp_0">
 			<spectrum id="scan=876" index="0" defaultArrayLength="1764" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
@@ -2761,67 +2762,67 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=876">16021</offset>
-		<offset idRef="scan=877">46922</offset>
-		<offset idRef="scan=878">75422</offset>
-		<offset idRef="scan=879">107077</offset>
-		<offset idRef="scan=880">135984</offset>
-		<offset idRef="scan=881">161015</offset>
-		<offset idRef="scan=882">187198</offset>
-		<offset idRef="scan=883">211940</offset>
-		<offset idRef="scan=884">236127</offset>
-		<offset idRef="scan=885">257318</offset>
-		<offset idRef="scan=886">278625</offset>
-		<offset idRef="scan=887">298664</offset>
-		<offset idRef="scan=888">318224</offset>
-		<offset idRef="scan=889">337324</offset>
-		<offset idRef="scan=890">360340</offset>
-		<offset idRef="scan=891">380476</offset>
-		<offset idRef="scan=892">407976</offset>
-		<offset idRef="scan=893">435668</offset>
-		<offset idRef="scan=894">465116</offset>
-		<offset idRef="scan=895">488680</offset>
-		<offset idRef="scan=896">511284</offset>
-		<offset idRef="scan=897">534684</offset>
-		<offset idRef="scan=898">556568</offset>
-		<offset idRef="scan=899">577556</offset>
-		<offset idRef="scan=900">599996</offset>
-		<offset idRef="scan=901">621448</offset>
-		<offset idRef="scan=902">645249</offset>
-		<offset idRef="scan=903">670557</offset>
-		<offset idRef="scan=904">699305</offset>
-		<offset idRef="scan=905">727205</offset>
-		<offset idRef="scan=906">757824</offset>
-		<offset idRef="scan=907">792253</offset>
-		<offset idRef="scan=908">822025</offset>
-		<offset idRef="scan=909">850629</offset>
-		<offset idRef="scan=910">880625</offset>
-		<offset idRef="scan=911">911341</offset>
-		<offset idRef="scan=912">946922</offset>
-		<offset idRef="scan=913">980423</offset>
-		<offset idRef="scan=914">1011407</offset>
-		<offset idRef="scan=915">1042811</offset>
-		<offset idRef="scan=916">1072231</offset>
-		<offset idRef="scan=917">1097406</offset>
-		<offset idRef="scan=918">1123866</offset>
-		<offset idRef="scan=919">1148658</offset>
-		<offset idRef="scan=920">1175994</offset>
-		<offset idRef="scan=921">1195669</offset>
-		<offset idRef="scan=922">1222621</offset>
-		<offset idRef="scan=923">1249417</offset>
-		<offset idRef="scan=924">1271253</offset>
-		<offset idRef="scan=925">1296257</offset>
-		<offset idRef="scan=926">1317389</offset>
-		<offset idRef="scan=927">1340569</offset>
-		<offset idRef="scan=928">1368421</offset>
-		<offset idRef="scan=929">1389697</offset>
-		<offset idRef="scan=930">1416505</offset>
-		<offset idRef="scan=931">1440961</offset>
-		<offset idRef="scan=932">1467673</offset>
-		<offset idRef="scan=933">1496853</offset>
-		<offset idRef="scan=934">1529073</offset>
+		<offset idRef="scan=876">16084</offset>
+		<offset idRef="scan=877">46985</offset>
+		<offset idRef="scan=878">75485</offset>
+		<offset idRef="scan=879">107140</offset>
+		<offset idRef="scan=880">136047</offset>
+		<offset idRef="scan=881">161078</offset>
+		<offset idRef="scan=882">187261</offset>
+		<offset idRef="scan=883">212003</offset>
+		<offset idRef="scan=884">236190</offset>
+		<offset idRef="scan=885">257381</offset>
+		<offset idRef="scan=886">278688</offset>
+		<offset idRef="scan=887">298727</offset>
+		<offset idRef="scan=888">318287</offset>
+		<offset idRef="scan=889">337387</offset>
+		<offset idRef="scan=890">360403</offset>
+		<offset idRef="scan=891">380539</offset>
+		<offset idRef="scan=892">408039</offset>
+		<offset idRef="scan=893">435731</offset>
+		<offset idRef="scan=894">465179</offset>
+		<offset idRef="scan=895">488743</offset>
+		<offset idRef="scan=896">511347</offset>
+		<offset idRef="scan=897">534747</offset>
+		<offset idRef="scan=898">556631</offset>
+		<offset idRef="scan=899">577619</offset>
+		<offset idRef="scan=900">600059</offset>
+		<offset idRef="scan=901">621511</offset>
+		<offset idRef="scan=902">645312</offset>
+		<offset idRef="scan=903">670620</offset>
+		<offset idRef="scan=904">699368</offset>
+		<offset idRef="scan=905">727268</offset>
+		<offset idRef="scan=906">757887</offset>
+		<offset idRef="scan=907">792316</offset>
+		<offset idRef="scan=908">822088</offset>
+		<offset idRef="scan=909">850692</offset>
+		<offset idRef="scan=910">880688</offset>
+		<offset idRef="scan=911">911404</offset>
+		<offset idRef="scan=912">946985</offset>
+		<offset idRef="scan=913">980486</offset>
+		<offset idRef="scan=914">1011470</offset>
+		<offset idRef="scan=915">1042874</offset>
+		<offset idRef="scan=916">1072294</offset>
+		<offset idRef="scan=917">1097469</offset>
+		<offset idRef="scan=918">1123929</offset>
+		<offset idRef="scan=919">1148721</offset>
+		<offset idRef="scan=920">1176057</offset>
+		<offset idRef="scan=921">1195732</offset>
+		<offset idRef="scan=922">1222684</offset>
+		<offset idRef="scan=923">1249480</offset>
+		<offset idRef="scan=924">1271316</offset>
+		<offset idRef="scan=925">1296320</offset>
+		<offset idRef="scan=926">1317452</offset>
+		<offset idRef="scan=927">1340632</offset>
+		<offset idRef="scan=928">1368484</offset>
+		<offset idRef="scan=929">1389760</offset>
+		<offset idRef="scan=930">1416568</offset>
+		<offset idRef="scan=931">1441024</offset>
+		<offset idRef="scan=932">1467736</offset>
+		<offset idRef="scan=933">1496916</offset>
+		<offset idRef="scan=934">1529136</offset>
 	</index>
 </indexList>
-<indexListOffset>1562572</indexListOffset>
+<indexListOffset>1562635</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

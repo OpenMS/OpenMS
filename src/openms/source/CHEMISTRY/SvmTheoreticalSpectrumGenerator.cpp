@@ -174,42 +174,42 @@ namespace OpenMS
     defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");
 
     defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
-    defaults_.setValidStrings("add_isotopes", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_isotopes", {"true","false"});
 
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
 
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_metainfo", {"true","false"});
 
     defaults_.setValue("add_first_prefix_ion", "false", "If set to true e.g. b1 ions are added");
-    defaults_.setValidStrings("add_first_prefix_ion", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_first_prefix_ion", {"true","false"});
 
     defaults_.setValue("hide_y_ions", "false", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("hide_y_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_y_ions", {"true","false"});
 
     defaults_.setValue("hide_y2_ions", "false", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("hide_y2_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_y2_ions", {"true","false"});
 
     defaults_.setValue("hide_b_ions", "false", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("hide_b_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_b_ions", {"true","false"});
 
     defaults_.setValue("hide_b2_ions", "false", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("hide_b2_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_b2_ions", {"true","false"});
 
     defaults_.setValue("hide_a_ions", "false", "Add peaks of a-ions to the spectrum");
-    defaults_.setValidStrings("hide_a_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_a_ions", {"true","false"});
 
     defaults_.setValue("hide_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    defaults_.setValidStrings("hide_c_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_c_ions", {"true","false"});
 
     defaults_.setValue("hide_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    defaults_.setValidStrings("hide_x_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_x_ions", {"true","false"});
 
     defaults_.setValue("hide_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    defaults_.setValidStrings("hide_z_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_z_ions", {"true","false"});
 
     defaults_.setValue("hide_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    defaults_.setValidStrings("hide_losses", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_losses", {"true","false"});
 
     // intensity options of the ions
     defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
@@ -516,7 +516,7 @@ namespace OpenMS
 
   void SvmTheoreticalSpectrumGenerator::load()
   {
-    String svm_info_file = param_.getValue("model_file_name");
+    String svm_info_file = String(param_.getValue("model_file_name").toString());
     if (!File::readable(svm_info_file)) // look in OPENMS_DATA_PATH
     {
       svm_info_file = File::find(svm_info_file);

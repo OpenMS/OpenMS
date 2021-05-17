@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {

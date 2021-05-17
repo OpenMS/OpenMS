@@ -205,6 +205,35 @@ namespace OpenMS
       }
       return median(diffs.begin(), diffs.end(), false);
     }
+    
+    /**
+      @brief mean absolute deviation (MeanAbsoluteDeviation)
+
+      Computes the MeanAbsoluteDeviation, defined as
+
+      MeanAbsoluteDeviation = mean( | x_i - mean(x) | ) for a vector x with indices i in [1,n].
+
+      For efficiency, you must provide the mean separately, in order to avoid potentially duplicate efforts (usually one
+      computes the mean anyway externally).
+      
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param mean_of_numbers The precomputed mean of range @p begin - @p end.
+      @return the MeanAbsoluteDeviation
+
+      @ingroup MathFunctionsStatistics
+
+    */
+    template <typename IteratorType>
+    double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)
+    {
+      double mean {0};
+      for (IteratorType it = begin; it != end; ++it)
+      {
+        mean += fabs(*it - mean_of_numbers);
+      }
+      return mean / std::distance(begin, end);
+    }
 
     /**
        @brief Calculates the first quantile of a range of values

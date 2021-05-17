@@ -135,9 +135,8 @@ namespace OpenMS
     tmp.insert("", this->param_); // get non-labeling options
 
     vector<String> products = Factory<BaseLabeler>::registeredProducts();
-
     tmp.setValue("Labeling:type", "labelfree", "Select the labeling type you want for your experiment");
-    tmp.setValidStrings("Labeling:type", products);
+    tmp.setValidStrings("Labeling:type", ListUtils::create<std::string>(products));
 
     for (vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
     {
@@ -204,7 +203,7 @@ namespace OpenMS
     raw_sim.loadContaminants(); // check if the file is valid (if not, an error is raised here instead of half-way through simulation)
 
 
-    String labeling = param_.getValue("Labeling:type");
+    String labeling = param_.getValue("Labeling:type").toString();
     labeler_ = Factory<BaseLabeler>::create(labeling);
     Param labeling_parameters = param_.copy("Labeling:" + labeling + ":", true);
     labeler_->setParameters(labeling_parameters);

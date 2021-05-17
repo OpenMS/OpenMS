@@ -64,6 +64,13 @@ namespace OpenMS
       QVAL,
     };
 
+    /// Checks if the given @p score_name is of ScoreType @p type
+    bool isScoreType(const String& score_name, const ScoreType& type)
+    {
+      const std::set<String>& possible_types = type_to_str_[type];
+      return possible_types.find(score_name) != possible_types.end();
+    }
+
     /// Switches all main scores in all hits in @p id according to
     /// the settings in the param object of the switcher class
     template <typename IDType>

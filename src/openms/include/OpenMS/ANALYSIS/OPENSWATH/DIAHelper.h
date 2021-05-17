@@ -101,45 +101,60 @@ namespace OpenMS
                                    std::vector<double>& bseries,
                                    std::vector<double>& yseries,
                                    TheoreticalSpectrumGenerator const * g,
-                                   UInt charge = 1u);
+                                   int charge = 1);
 
     /// for SWATH -- get the theoretical b and y series masses for a sequence
     OPENMS_DLLAPI void getTheorMasses(const AASequence& a,
                                       std::vector<double>& masses,
                                       TheoreticalSpectrumGenerator const * g,
-                                      UInt charge = 1u);
+                                      int charge = 1);
 
     /// get averagine distribution given mass
     OPENMS_DLLAPI void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec,
-                                         const double charge = 1.,
+                                         std::vector<std::pair<double, double> >& isotopes_spec,
+                                         const int charge = 1,
                                          const int nr_isotopes = 4,
                                          const double mannmass = 1.00048);
 
     /// simulate spectrum from AASequence
     OPENMS_DLLAPI void simulateSpectrumFromAASequence(const AASequence& aa,
-                                        std::vector<double>& firstIsotopeMasses, //[out]
-                                        std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                                        std::vector<double>& first_isotope_masses, //[out]
+                                        std::vector<std::pair<double, double> >& isotope_masses, //[out]
                                         TheoreticalSpectrumGenerator const * g,
-                                        double charge = 1.);
+                                        int charge = 1);
 
     /// modify masses by charge
     OPENMS_DLLAPI void modifyMassesByCharge(const std::vector<std::pair<double, double> >& masses, //![in]
                               std::vector<std::pair<double, double> >& modmass, //!< [out]
-                              double charge = 1.);
+                              int charge = 1);
+
+    /// add (potentially negative) pre-isotope weights to spectrum
+    OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& first_isotope_masses,
+                              std::vector<std::pair<double, double> >& isotope_spec, // output
+                              UInt nr_peaks = 2, //nr of pre-isotope peaks
+                              double pre_isotope_peaks_weight = -0.5, // weight of pre-isotope peaks
+                              double mannmass = 1.000482, //
+                              int charge = 1);
 
     /// add negative pre-isotope weights to spectrum
-    OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
-                              std::vector<std::pair<double, double> >& isotopeSpec, // output
-                              UInt nrpeaks = 2, //nr of pre-isotope peaks
-                              double preIsotopePeaksWeight = -0.5, // weight of pre-isotope peaks
-                              double mannmass = 1.000482, //
-                              double charge = 1.);
+    OPENMS_DLLAPI void addPreisotopeWeights(double mz,
+                                            std::vector<std::pair<double, double> >& isotope_spec, // output
+                                            UInt nr_peaks = 2, //nr of pre-isotope peaks
+                                            double pre_isotope_peaks_weight = -0.5, // weight of pre-isotope peaks
+                                            double mannmass = 1.000482, //
+                                            int charge = 1);
 
-    /// given an experimental spectrum add isotope pattern.
+    /// given an experimental spectrum, add averagine isotope pattern for every peak. Old + new peaks are pushed to
+    /// @p isotopeMasses
     OPENMS_DLLAPI void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
-                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                          double charge = 1.);
+                          std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                          Size nr_isotopes, int charge = 1);
+
+    /// given a peak of experimental mz and intensity, add averagine isotope pattern to a "spectrum".
+    /// Old + new peaks are pushed to @p isotopeMasses
+    OPENMS_DLLAPI void addSinglePeakIsotopes2Spec(double mz, double ity,
+                                                  std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                                  Size nr_isotopes, int charge);
 
     /// sorts vector of pairs by first
     OPENMS_DLLAPI void sortByFirst(std::vector<std::pair<double, double> >& tmp);

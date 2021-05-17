@@ -78,7 +78,14 @@
             <SearchModification residues="C" massDelta="57.021465" fixedMod="true">
                 <cvParam accession="UNIMOD:4" cvRef="UNIMOD" name="Carbamidomethyl"/>
             </SearchModification>
-        </ModificationParams>
+            <!-- this protein N-term mod will only be found in ModificationsDB if the parser successfully assigns it as PROTEIN N-Term (and not only N-Term) -->
+            <SearchModification fixedMod="true" massDelta="87.99828" residues=".">
+              <SpecificityRules>
+                <cvParam cvRef="PSI-MS" accession="MS:1002057" name="modification specificity protein N-term"/>
+              </SpecificityRules>
+              <cvParam cvRef="UNIMOD" accession="UNIMOD:126" name="Xlink:DTSSP[88]"/>
+            </SearchModification>
+      </ModificationParams>
         <Enzymes>
             <Enzyme missedCleavages="1000" semiSpecific="false" id="Tryp">
                 <EnzymeName>

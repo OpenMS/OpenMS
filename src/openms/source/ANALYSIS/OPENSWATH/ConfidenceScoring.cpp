@@ -47,7 +47,7 @@ namespace OpenMS
       if (n_decoys_ == 0) return; // list is already initialized
       // somewhat inefficient to shuffle the whole list when we only need a random
       // sample, but easy to do...
-      random_shuffle(decoy_index_.begin(), decoy_index_.end(), rand_gen_);
+      shuffler_.portable_random_shuffle(decoy_index_.begin(), decoy_index_.end());
     }
 
     // double rmsd_(DoubleList x, DoubleList y)

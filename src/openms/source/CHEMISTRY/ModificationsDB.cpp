@@ -327,7 +327,6 @@ namespace OpenMS
     return index;
   }
 
-
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
@@ -365,6 +364,62 @@ namespace OpenMS
           mods.push_back(m);
         }
       }
+    }
+  }
+
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    std::map<std::pair<double,Size>, const String&> diff_idx2mods;
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    double diff = 0;
+    Size cnt = 0;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        diff = fabs(m->getDiffMonoMass() - mass);
+        if ((diff <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          diff_idx2mods.emplace(make_pair(diff, cnt++), m->getFullId());
+        }
+      }
+    }
+    for (const auto& foo_mod : diff_idx2mods)
+    {
+      mods.push_back(foo_mod.second);
+    }
+  }
+
+  void ModificationsDB::searchModificationsByDiffMonoMassSorted(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    std::map<std::pair<double,Size>, const ResidueModification*> diff_idx2mods;
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    double diff = 0;
+    Size cnt = 0;
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        diff = fabs(m->getDiffMonoMass() - mass);
+        if ((diff <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          diff_idx2mods.emplace(make_pair(diff, cnt++), m);
+        }
+      }
+    }
+    for (const auto& foo_mod : diff_idx2mods)
+    {
+      mods.push_back(foo_mod.second);
     }
   }
 
@@ -775,4 +830,16 @@ namespace OpenMS
     });
   }
 
+  void ModificationsDB::writeTSV(String const& filename)
+  {
+    std::ofstream ofs(filename, std::ofstream::out);
+    ofs << "FullId\tFullName\tUnimodAccession\tOrigin/AA\tTerminusSpecificity\tDiffMonoMass\n";
+    ResidueModification tmp;
+    for (const auto& mod : mods_)
+    {
+      ofs << mod->getFullId() << "\t" << mod->getFullName() << "\t" << mod->getUniModAccession() << "\t" << mod->getOrigin() << "\t"
+      << tmp.getTermSpecificityName(mod->getTermSpecificity()) << "\t"
+      << mod->getDiffMonoMass() << "\n";
+    }
+  }
 } // namespace OpenMS

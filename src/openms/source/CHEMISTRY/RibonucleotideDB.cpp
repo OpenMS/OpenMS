@@ -117,7 +117,7 @@ namespace OpenMS
       {
         OPENMS_LOG_ERROR << "Error: Failed to parse input line " << line_count
                   << ". Reason:\n" << e.getName()
-                  << " - " << e.getMessage() << "\nSkipping this line." << endl;
+                  << " - " << e.what() << "\nSkipping this line." << endl;
       }
     }
   }

@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/KERNEL/Peak2D.h>
 
@@ -146,7 +147,7 @@ protected:
       @param stringlist The StringList to convert.
       @return An isotope correction matrix as Matrix<double>.
     */
-    Matrix<double> stringListToIsotopCorrectionMatrix_(const StringList& stringlist) const;
+    Matrix<double> stringListToIsotopCorrectionMatrix_(const std::vector<String>& stringlist) const;
   };
 } // namespace
 

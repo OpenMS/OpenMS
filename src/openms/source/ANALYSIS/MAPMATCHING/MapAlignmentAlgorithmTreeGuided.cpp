@@ -69,7 +69,7 @@ namespace OpenMS
   {
     align_algorithm_.setParameters(param_.copy("align_algorithm:", true));
     model_param_ = param_.copy("model:",true);
-    model_type_ = param_.getValue("model_type");
+    model_type_ = param_.getValue("model_type").toString();
     model_param_ = model_param_.copy(model_type_+":", true);
   }
 

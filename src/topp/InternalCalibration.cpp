@@ -355,6 +355,10 @@ protected:
     Size RANSAC_initial_points = model_type.hasSubstring("linear") ? 2 : 3;
     Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:threshold"), getIntOption_("RANSAC:pc_inliers"), true);
     MZTrafoModel::setRANSACParams(p);
+    if (getFlag_("test"))
+    {
+      MZTrafoModel::setRANSACSeed(0);
+    }
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 

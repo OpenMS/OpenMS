@@ -106,6 +106,13 @@ namespace OpenMS
         return true;
       }
 
+      /// This overload returns true; @c ParamValue will be converted to double by #TEST_REAL_SIMILAR.
+      inline bool OPENMS_DLLAPI
+      isRealType(const ParamValue&)
+      {
+          return true;
+      }
+
       /// This overload returns true; @c DataValue will be converted to double by #TEST_REAL_SIMILAR.
       inline bool OPENMS_DLLAPI
       isRealType(const DataValue&)
@@ -1057,16 +1064,16 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       command;                                                                            \
     }                                                                                     \
-    catch (exception_type& et)                                                             \
+    catch (exception_type& et)                                                            \
     {                                                                                     \
-      if (std::string(et.getMessage()) != std::string(message))                           \
+      if (std::string(et.what()) != std::string(message))                                 \
       {                                                                                   \
         TEST::exception = 4;                                                              \
-        TEST::exception_message = et.getMessage();                                        \
+        TEST::exception_message = et.what();                                              \
       }                                                                                   \
       else TEST::exception = 1;                                                           \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException& e)                                          \
+    catch (::OpenMS::Exception::BaseException& e)                                         \
     {                                                                                     \
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \

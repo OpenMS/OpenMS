@@ -284,7 +284,7 @@ protected:
   {
     set<ConstRibonucleotidePtr> modifications;
     auto db_ptr = RibonucleotideDB::getInstance();
-    boost::regex double_digits("(\\d)(?=\\d)");
+    boost::regex double_digits(R"((\d)(?=\d))");
     for (String m : mod_names)
     {
       ConstRibonucleotidePtr mod = 0;

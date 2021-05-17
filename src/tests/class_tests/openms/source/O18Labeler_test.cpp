@@ -145,13 +145,13 @@ END_SECTION
 START_SECTION((void preCheck(Param &param) const ))
 {
   Param p;
-  p.setValue("Digestion:enzyme","Trypsin","Test Param", ListUtils::create<String>(""));
+  p.setValue("Digestion:enzyme","Trypsin","Test Param", {});
 
   O18Labeler labeler;
   labeler.preCheck(p);
 
   Param p_Exception;
-  p_Exception.setValue("Digestion:enzyme","not-Trypsin","Test Param", ListUtils::create<String>(""));
+  p_Exception.setValue("Digestion:enzyme","not-Trypsin","Test Param",{});
   TEST_EXCEPTION(Exception::InvalidParameter, labeler.preCheck(p_Exception))
 }
 END_SECTION

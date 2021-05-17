@@ -71,6 +71,17 @@ namespace OpenMS
     /// strings corresponding to enum Requires
     static const std::string names_of_requires[];
 
+    enum class ToleranceUnit
+    {
+      AUTO,
+      PPM,
+      DA,
+      SIZE_OF_TOLERANCEUNIT
+    };
+    /// strings corresponding to enum ToleranceUnit
+    static const std::string names_of_toleranceUnit[];
+
+
     /**
      * @brief Map to find a spectrum via its NativeID
     */

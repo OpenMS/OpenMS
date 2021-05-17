@@ -1,6 +1,5 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
-from DataValue cimport *
 from ConvexHull2D cimport *
 from PeptideIdentification cimport *
 from BaseFeature cimport *

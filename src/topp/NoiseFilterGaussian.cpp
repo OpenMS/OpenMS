@@ -233,7 +233,7 @@ public:
     }
     catch (Exception::IllegalArgument & e)
     {
-      writeLog_(String("Error: ") + e.getMessage());
+      writeLog_(String("Error: ") + e.what());
       return INCOMPATIBLE_INPUT_DATA;
     }
 

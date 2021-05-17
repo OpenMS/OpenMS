@@ -86,6 +86,9 @@ namespace OpenMS
     /// original string used for parsing
     const String& getName() const;
 
+    /// get molecular multiplier (mono, dimer, trimer)
+    UInt getMolMultiplier() const;
+
     /// EF of adduct itself. Useful for comparison with feature adduct annotation
     const EmpiricalFormula& getEmpiricalFormula() const;
 

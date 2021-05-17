@@ -127,7 +127,7 @@ namespace OpenMS
           return;
       }
 
-      error(LOAD, "ToolDescriptionHandler::startElement(): Unkown element found: '" + tag_ + "', ignoring.");
+      error(LOAD, "ToolDescriptionHandler::startElement(): Unknown element found: '" + tag_ + "', ignoring.");
     }
 
     void ToolDescriptionHandler::characters(const XMLCh * const chars, const XMLSize_t length)
@@ -165,7 +165,7 @@ namespace OpenMS
         tde_.working_directory = sm_.convert(chars);
 
       else
-        error(LOAD, "ToolDescriptionHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
+        error(LOAD, "ToolDescriptionHandler::characters: Unknown character section found: '" + tag_ + "', ignoring.");
     }
 
     void ToolDescriptionHandler::endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname)

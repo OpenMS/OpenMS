@@ -39,6 +39,7 @@
 
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtCore/QVector>
 

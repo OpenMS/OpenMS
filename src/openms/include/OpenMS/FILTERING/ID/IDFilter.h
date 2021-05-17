@@ -79,10 +79,10 @@ namespace OpenMS
 public:
 
     /// Constructor
-    IDFilter();
+    IDFilter() = default;
 
     /// Destructor
-    virtual ~IDFilter();
+    virtual ~IDFilter() = default;
 
     /// Typedefs
     typedef std::map<Int, PeptideHit*> ChargeToPepHitP;
@@ -1060,6 +1060,10 @@ public:
     static void removePeptidesWithMatchingModifications(
       std::vector<PeptideIdentification>& peptides,
       const std::set<String>& modifications);
+
+    static void removePeptidesWithMatchingRegEx(
+      std::vector<PeptideIdentification>& peptides,
+      const String& regex);
 
     /// Keeps only peptide hits that have at least one of the given modifications
     static void keepPeptidesWithMatchingModifications(

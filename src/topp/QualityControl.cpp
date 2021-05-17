@@ -56,6 +56,7 @@
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/MzCalibration.h>
 #include <OpenMS/QC/PeptideMass.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
@@ -164,7 +165,7 @@ protected:
     vector<FASTAFile::FASTAEntry> contaminants;
     if (!in_contaminants.empty())
     {
-      FASTAFile::load(in_contaminants, contaminants);
+      FASTAFile().load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
     ConsensusMap cmap;
@@ -230,9 +231,9 @@ protected:
     bool all_target_flag = getFlag_("MS2_id_rate:assume_all_target");
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
-    auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
-    auto idx = std::distance(FragmentMassError::names_of_toleranceUnit, it);
-    auto tolerance_unit = FragmentMassError::ToleranceUnit(idx);
+    auto it = std::find(QCBase::names_of_toleranceUnit, QCBase::names_of_toleranceUnit + (int) QCBase::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
+    auto idx = std::distance(QCBase::names_of_toleranceUnit, it);
+    auto tolerance_unit = QCBase::ToleranceUnit(idx);
 
 
     // Instantiate the QC metrics
@@ -244,6 +245,7 @@ protected:
     MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     PeptideMass qc_pepmass;
+    PSMExplainedIonCurrent qc_psm_corr;
     TIC qc_tic;
     Ms2SpectrumStats qc_ms2stats;
     MzMLFile mzml_file;
@@ -252,6 +254,7 @@ protected:
 
     // Loop through featuremaps...
     vector<PeptideIdentification> all_new_upep_ids;
+    vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
     {
       //-------------------------------------------------------------
@@ -328,9 +331,14 @@ protected:
         qc_pepmass.compute(*fmap);
       }
 
+      if (qc_psm_corr.isRunnable(status))
+      {
+        qc_psm_corr.compute(*fmap, exp, spec_map, tolerance_unit, tolerance_value);
+      }
+
       if (qc_tic.isRunnable(status))
       {
-        qc_tic.compute(exp);
+        tic_results.push_back(qc_tic.compute(exp));
       }
 
       if (qc_ms2stats.isRunnable(status))
@@ -416,7 +424,7 @@ protected:
     {
       MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
       MzTabMetaData meta = mztab.getMetaData();
-      qc_tic.addMetaDataMetricsToMzTab(meta);
+      qc_tic.addMetaDataMetricsToMzTab(meta, tic_results);
       qc_ms2ir.addMetaDataMetricsToMzTab(meta);
       mztab.setMetaData(meta);
 

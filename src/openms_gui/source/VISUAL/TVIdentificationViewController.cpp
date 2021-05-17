@@ -251,7 +251,7 @@ namespace OpenMS
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
                                                          QString(),
                                                          cols[i],
-                                                         current_layer.param.getValue("peak_color").toQString());
+                                                         String(current_layer.param.getValue("peak_color").toString()).toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)

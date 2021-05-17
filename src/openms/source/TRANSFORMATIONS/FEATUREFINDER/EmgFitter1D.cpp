@@ -153,7 +153,7 @@ namespace OpenMS
     return *this;
   }
 
-  EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -200,7 +200,7 @@ namespace OpenMS
     retention_ = x_init[3];
 
     // build model
-    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EmgModel"));
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("EmgModel")));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
@@ -231,7 +231,6 @@ namespace OpenMS
     {
       correlation = -1.0;
     }
-
     return correlation;
   }
 

@@ -548,7 +548,7 @@ START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min
 
 END_SECTION
 
-START_SECTION(void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions))
+START_SECTION(void filterMinMaxTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions))
 {
   TraMLFile traml;
   TargetedExperiment targeted_exp;
@@ -563,7 +563,7 @@ START_SECTION(void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp,
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.detectingTransitionsCompound(targeted_exp1, min_transitions, max_transitions);
+  mrma.filterMinMaxTransitionsCompound(targeted_exp1, min_transitions, max_transitions);
 
   String test1;
   NEW_TMP_FILE(test1);

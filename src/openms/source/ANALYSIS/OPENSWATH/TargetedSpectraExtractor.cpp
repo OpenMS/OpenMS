@@ -112,10 +112,10 @@ namespace OpenMS
     );
 
     params.setValue("mz_unit_is_Da", "true", "Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.");
-    params.setValidStrings("mz_unit_is_Da", ListUtils::create<String>("false,true"));
+    params.setValidStrings("mz_unit_is_Da", {"false","true"});
 
     params.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
-    params.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
+    params.setValidStrings("use_gauss", {"false","true"});
 
     params.setValue("peak_height_min", 0.0, "Used in pickSpectrum(), a peak's intensity needs to be >= peak_height_min_ for it to be picked.");
     params.setMinFloat("peak_height_min", 0.0);

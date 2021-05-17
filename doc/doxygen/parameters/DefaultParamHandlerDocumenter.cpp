@@ -189,18 +189,22 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
   ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
 
   if (!table_only)
+  {
     f << "<B>Parameters of this class are:</B><BR><BR>\n";
+  }
   f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
   f << "<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
   String type, description, restrictions;
   for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
   {
     restrictions = "";
-    if (it->value.valueType() == DataValue::INT_VALUE || it->value.valueType() == DataValue::INT_LIST)
+    if (it->value.valueType() == ParamValue::INT_VALUE || it->value.valueType() == ParamValue::INT_LIST)
     {
       type = "int";
-      if (it->value.valueType() == DataValue::INT_LIST)
+      if (it->value.valueType() == ParamValue::INT_LIST)
+      {
         type += " list";
+      }
 
       //restrictions
       bool first = true;
@@ -212,14 +216,16 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       if (it->max_int != (numeric_limits<Int>::max)())
       {
         if (!first)
+        {
           restrictions += ' ';
+        }          
         restrictions += String("max: ") + it->max_int;
       }
     }
-    else if (it->value.valueType() == DataValue::DOUBLE_VALUE || it->value.valueType() == DataValue::DOUBLE_LIST)
+    else if (it->value.valueType() == ParamValue::DOUBLE_VALUE || it->value.valueType() == ParamValue::DOUBLE_LIST)
     {
       type = "float";
-      if (it->value.valueType() == DataValue::DOUBLE_LIST)
+      if (it->value.valueType() == ParamValue::DOUBLE_LIST)
         type += " list";
 
       //restrictions
@@ -236,10 +242,10 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         restrictions += String("max: ") + it->max_float;
       }
     }
-    else if (it->value.valueType() == DataValue::STRING_VALUE || it->value.valueType() == DataValue::STRING_LIST)
+    else if (it->value.valueType() == ParamValue::STRING_VALUE || it->value.valueType() == ParamValue::STRING_LIST)
     {
       type = "string";
-      if (it->value.valueType() == DataValue::STRING_LIST)
+      if (it->value.valueType() == ParamValue::STRING_LIST)
         type += " list";
 
       //restrictions
@@ -289,7 +295,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
     }
 
     //replace # and @ in values
-    String value = it->value;
+    String value = it->value.toString(true);
     value.substitute("@", "XXnot_containedXX");
     value.substitute("XXnot_containedXX", "@@");
     value.substitute("#", "XXnot_containedXX");
@@ -480,7 +486,7 @@ int main(int argc, char** argv)
   // some classes require a QApplication
   QApplication app(argc, argv);
 
-  DOCME(TOPPViewBase);
+  DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
   DOCME2(Plot1DCanvas, Plot1DCanvas(Param(), nullptr));

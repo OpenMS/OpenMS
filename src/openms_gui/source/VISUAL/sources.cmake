@@ -64,6 +64,7 @@ TVDIATreeTabController.cpp
 TVIdentificationViewController.cpp
 TVSpectraViewController.cpp
 TVControllerBase.cpp
+TVToolDiscovery.cpp
 )
 
 ### add path to the filenames

@@ -9,6 +9,7 @@ IsobaricNormalizer.cpp
 IsobaricQuantifier.cpp
 IsobaricQuantifierStatistics.cpp
 IsobaricQuantitationMethod.cpp
+IsotopeLabelingMDVs.cpp
 ItraqConstants.cpp
 ItraqEightPlexQuantitationMethod.cpp
 ItraqFourPlexQuantitationMethod.cpp

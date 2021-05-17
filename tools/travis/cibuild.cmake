@@ -5,17 +5,21 @@
 # define build name&co for easier identification on CDash
 set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}")
 
-set(CTEST_SITE "travis-ci-build-server")
+set(CTEST_SITE "$ENV{CI_PROVIDER}")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
-set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
+set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/bld")
+set(CTEST_CONFIGURATION_TYPE "$ENV{BUILD_TYPE}")
+set(CTEST_BUILD_CONFIGURATION "$ENV{BUILD_TYPE}")
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
 message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 
 set(INITIAL_CACHE
-"CMAKE_PREFIX_PATH=$ENV{OS_PREFIX_PATH}
-OPENMS_CONTRIB_LIBS=$ENV{SOURCE_DIRECTORY}/contrib
-BOOST_USE_STATIC=Off
+"
+Boost_DEBUG=OFF
+CMAKE_PREFIX_PATH=$ENV{OS_PREFIX_PATH}
+OPENMS_CONTRIB_LIBS=$ENV{CONTRIB_BUILD_DIRECTORY}
+BOOST_USE_STATIC=$ENV{USE_STATIC_BOOST}
 CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
 ENABLE_TUTORIALS=Off
 ENABLE_GCC_WERROR=On
@@ -36,6 +40,15 @@ ADDRESS_SANITIZER=$ENV{ADDRESS_SANITIZER}
 WITH_THERMORAWFILEPARSER_TEST=Off"
 )
 
+set(OWN_OPTIONS "")
+if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
+  set(INITIAL_CACHE 
+"${INITIAL_CACHE}
+CMAKE_GENERATOR_PLATFORM=x64"
+  )
+  set(OWN_OPTIONS "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
+endif()
+
 # create cache
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" ${INITIAL_CACHE})
 
@@ -54,21 +67,21 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     ".*qsharedpointer_impl.h:595:43.*"
     )
 
+
 # try to speed up the builds so we don't get killed
-set(CTEST_BUILD_FLAGS -j5)
+set(CTEST_BUILD_FLAGS "$ENV{BUILD_FLAGS}")
 
 ## speed up compile time on GCC
 if (CMAKE_COMPILER_IS_GNUCXX)
 	add_compile_options(-O0)
 endif()
 
-# we want makefiles
-set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
+set(CTEST_CMAKE_GENERATOR "$ENV{CMAKE_GENERATOR}")
 
 # run the classical CTest suite without update
 # travis-ci handles this for us
 ctest_start     (Continuous)
-ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
+ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
@@ -78,7 +91,7 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
   endif()
 else()
-	set(_build_errors 0)
+  set(_build_errors 0)
 endif()
 
 ## build lib&executables, run tests

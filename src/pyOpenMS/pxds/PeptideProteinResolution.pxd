@@ -22,6 +22,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
                                        peptides) nogil except +
 
 
+# COMMENT: wrap static methods
+cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS::PeptideProteinResolution":        
+        # static members
+        void run(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) nogil except +  #wrap-attach:PeptideProteinResolution
+
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS":
     
     cdef cppclass PeptideProteinResolution_ConnectedComponent "OpenMS::ConnectedComponent":

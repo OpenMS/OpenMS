@@ -89,7 +89,7 @@ namespace OpenMS
   {
     defaults_.setValue("precursor:mass_tolerance", 10.0, "Width of precursor mass tolerance window");
 
-    StringList precursor_mass_tolerance_unit_valid_strings;
+    std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
     precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
     precursor_mass_tolerance_unit_valid_strings.push_back("Da");
 
@@ -107,7 +107,7 @@ namespace OpenMS
 
     defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
 
-    StringList fragment_mass_tolerance_unit_valid_strings;
+    std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     fragment_mass_tolerance_unit_valid_strings.push_back("Da");
 
@@ -118,23 +118,25 @@ namespace OpenMS
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
-    defaults_.setValidStrings("modifications:fixed", all_mods);
-    defaults_.setValue("modifications:variable", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
-    defaults_.setValidStrings("modifications:variable", all_mods);
+
+    defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+    defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+    defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
 
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
+
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
-    defaults_.setValidStrings("enzyme", all_enzymes);
+    defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
 
-    defaults_.setValue("annotate:PSM", StringList{}, "Annotations added to each PSM.");
-    defaults_.setValidStrings("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
+    defaults_.setValue("annotate:PSM", std::vector<std::string>{}, "Annotations added to each PSM.");
+    defaults_.setValidStrings("annotate:PSM", std::vector<std::string>{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -152,7 +154,7 @@ namespace OpenMS
   void SimpleSearchEngineAlgorithm::updateMembers_()
   {
     precursor_mass_tolerance_ = param_.getValue("precursor:mass_tolerance");
-    precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit");
+    precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit").toString();
 
     precursor_min_charge_ = param_.getValue("precursor:min_charge");
     precursor_max_charge_ = param_.getValue("precursor:max_charge");
@@ -161,25 +163,25 @@ namespace OpenMS
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
 
-    fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit");
+    fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
-    modifications_fixed_ = param_.getValue("modifications:fixed");
+    modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
 
-    modifications_variable_ = param_.getValue("modifications:variable");
+    modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
 
     modifications_max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
 
-    enzyme_ = param_.getValue("enzyme");
+    enzyme_ = param_.getValue("enzyme").toString();
 
     peptide_min_size_ = param_.getValue("peptide:min_size");
     peptide_max_size_ = param_.getValue("peptide:max_size");
     peptide_missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
-    peptide_motif_ = param_.getValue("peptide:motif");
+    peptide_motif_ = param_.getValue("peptide:motif").toString();
 
     report_top_hits_ = param_.getValue("report:top_hits");
 
     decoys_ = param_.getValue("decoys") == "true";
-    annotate_psm_ = param_.getValue("annotate:PSM");
+    annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
   }
 
   // static
@@ -466,10 +468,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
 #endif
 
-    startProgress(0, 1, "Load database from FASTA file...");
     vector<FASTAFile::FASTAEntry> fasta_db;
-    FASTAFile::load(in_db, fasta_db);
-    endProgress();
+    FASTAFile().load(in_db, fasta_db);
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
@@ -492,7 +492,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
-      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      Math::RandomShuffler shuffler;
+      shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
       digestor.setMissedCleavages(peptide_missed_cleavages_);
     }

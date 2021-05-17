@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" na
         TransformationModelBSpline(TransformationModelBSpline) nogil except + #wrap-ignore
 
         TransformationModelBSpline(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
-
+        void getDefaultParameters(Param &) nogil except +
         double evaluate(double value) nogil except +
 
-cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS::TransformationModelBSpline":
-
-    void getDefaultParameters(Param& params) nogil except +  # wrap-attach:TransformationModelBSpline
+# COMMENT: wrap static methods
+#cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS::TransformationModelBSpline":
+#    void getDefaultParameters(Param& params) nogil except +  # wrap-attach:TransformationModelBSpline

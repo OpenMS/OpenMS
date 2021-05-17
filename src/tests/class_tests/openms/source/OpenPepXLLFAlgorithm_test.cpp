@@ -89,7 +89,7 @@ PeakMap spectra;
 
 OpenPepXLLFAlgorithm search_algorithm;
 Param algo_param = search_algorithm.getParameters();
-algo_param.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)"));
+algo_param.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
 search_algorithm.setParameters(algo_param);
 
 // run algorithm

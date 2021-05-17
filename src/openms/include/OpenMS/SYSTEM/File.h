@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/config.h>
 #include <cstdlib>
+#include <mutex>
 
 
 namespace OpenMS
@@ -352,6 +353,7 @@ private:
         TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
         TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         StringList filenames_;
+        std::mutex mtx_;
     };
 
 

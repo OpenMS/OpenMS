@@ -1,5 +1,5 @@
 project("IsoSpec")
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 
 set(my_sources
 cwrapper.cpp

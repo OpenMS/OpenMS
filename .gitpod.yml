@@ -1,12 +1,15 @@
 tasks:
-  - init:     cp -r .vscode-gitpod .vscode && echo "Welcome!" 
-    prebuild: git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
-              git submodule update --init THIRDPARTY &&
-              export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
-              export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
-              mkdir -p build && pushd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ && make -j16 && popd
-    command:  export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
-              export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
+  - init: >
+      cp -r .vscode-gitpod .vscode && echo "Welcome!" 
+      git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
+      git submodule update --init THIRDPARTY &&
+      export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
+      export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
+      mkdir -p build && pushd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ &&
+      make -j16 && popd
+    command:  >
+      export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
+      export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
 image:
   file: .gitpod.Dockerfile
 github:
@@ -37,3 +40,4 @@ vscode:
     - cschlosser.doxdocgen@0.7.2:g0DIKlW09t+j2Xi04fzrAA==
     - hbenl.vscode-test-explorer@2.19.2:8rKHUShFJJd0UivektEkng==
     - fredericbonnet.cmake-test-adapter@0.10.0:Fb9mp0fAtp8s6LKtpzJAyw==
+    - notskm.clang-tidy@0.5.1:+QMYmPGGWj0QCN6sba42Vw==

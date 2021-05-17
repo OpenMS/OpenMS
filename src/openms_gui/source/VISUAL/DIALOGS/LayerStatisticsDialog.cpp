@@ -190,34 +190,32 @@ namespace OpenMS
     ui_->table_->setCellWidget(0, 4, button);
     connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
 
-
     // add computed stats about meta infos in the FloatDataArrays of the spectra to the table
-    for (std::map<String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); ++it)
+    for (const auto& [name, meta_stats_value] : meta_array_stats_)
     {
       ui_->table_->setRowCount(ui_->table_->rowCount() + 1);
-      String name = it->first;
 
       item = new QTableWidgetItem();
       item->setText(name.toQString());
       ui_->table_->setVerticalHeaderItem(ui_->table_->rowCount() - 1, item);
 
       item = new QTableWidgetItem();
-      item->setText(QString::number(it->second.count));
+      item->setText(QString::number(meta_stats_value.count));
       ui_->table_->setItem(ui_->table_->rowCount() - 1, 0, item);
 
       item = new QTableWidgetItem();
-      item->setText(QString::number(it->second.min, 'f', 2));
+      item->setText(QString::number(meta_stats_value.min, 'f', 2));
       ui_->table_->setItem(ui_->table_->rowCount() - 1, 1, item);
 
       item = new QTableWidgetItem();
-      item->setText(QString::number(it->second.max, 'f', 2));
+      item->setText(QString::number(meta_stats_value.max, 'f', 2));
       ui_->table_->setItem(ui_->table_->rowCount() - 1, 2, item);
 
       item = new QTableWidgetItem();
-      item->setText(QString::number(it->second.avg, 'f', 2));
+      item->setText(QString::number(meta_stats_value.avg, 'f', 2));
       ui_->table_->setItem(ui_->table_->rowCount() - 1, 3, item);
 
-      if (it->second.count >= 2 && it->second.min < it->second.max)
+      if (meta_stats_value.count >= 2 && meta_stats_value.min < meta_stats_value.max)
       {
         button = new QPushButton(name.toQString(), ui_->table_);
         ui_->table_->setCellWidget(ui_->table_->rowCount() - 1, 4, button);

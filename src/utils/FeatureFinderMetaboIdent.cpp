@@ -88,6 +88,8 @@ using namespace std;
 
    <B>Input format</B>
 
+   Spectra are expected in centroided or profile mode. Only MS1 level spectra are considered for feature detection.
+
    The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
    This file has to start with the following header line, defining its columns:
    <pre>

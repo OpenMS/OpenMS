@@ -14,15 +14,15 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="3">
-			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="file:///Users/pfeuffer/git/OpenMS-inference-src/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="file:///home/sachsenb/OMS/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0e3787759e3b0d2ca8e321527f759879f94a4829" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
 			</sourceFile>
-			<sourceFile id="sf_sp_0" name="FileMerger_6_input1.mzML" location="file:///Users/pfeuffer/git/OpenMS-inference-src/src/tests/topp">
+			<sourceFile id="sf_sp_0" name="FileMerger_6_input1.mzML" location="file:///home/sachsenb/OMS/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="f5a1cab79a193929ad5b9535e8a792365f5b699b" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_2" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
@@ -245,11 +245,11 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=0">8821</offset>
-		<offset idRef="spectrum=1">12030</offset>
-		<offset idRef="spectrum=2">15853</offset>
+		<offset idRef="spectrum=0">8789</offset>
+		<offset idRef="spectrum=1">11998</offset>
+		<offset idRef="spectrum=2">15821</offset>
 	</index>
 </indexList>
-<indexListOffset>16692</indexListOffset>
+<indexListOffset>16660</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

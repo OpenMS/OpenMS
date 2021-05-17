@@ -103,7 +103,7 @@ namespace OpenMS
           std::cerr << "Warning: Could not determine modification with delta mass " <<
             it->mono_mass_delta << " for peptide " << peptide.sequence <<
             " at position " << it->location << std::endl;
-          std::cerr << "Skipping this modifcation" << std::endl;
+          std::cerr << "Skipping this modification" << std::endl;
         }
       }
       return aas;

@@ -184,7 +184,7 @@ namespace OpenMS
     }
     for (auto it = write_this.begin(); it != write_this.end(); it++)
     {
-      write_here.setMetaValue(prefix_ + (*it).name, (*it).value);
+      write_here.setMetaValue(prefix_ + (*it).name, DataValue((*it).value));
     }
   }
 

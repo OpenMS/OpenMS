@@ -118,8 +118,8 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML,mzML",
-                                                 REF_RESTRICTED);
+    TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_("featureXML,mzML",
+                                                            REF_RESTRICTED);
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

@@ -82,7 +82,7 @@ public:
     LevMarqFitter1D() :
       Fitter1D()
     {
-      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
+      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", {"advanced"});
     }
 
     /// copy constructor

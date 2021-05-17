@@ -187,8 +187,7 @@ public:
     */
     ///@{
     /// Comparator by intensity
-    struct IntensityLess :
-      std::binary_function<Peak1D, Peak1D, bool>
+    struct IntensityLess
     {
       inline bool operator()(Peak1D const & left, Peak1D const & right) const
       {
@@ -213,8 +212,7 @@ public:
     };
 
     /// Comparator by m/z position.
-    struct MZLess :
-      public std::binary_function<Peak1D, Peak1D, bool>
+    struct MZLess
     {
       inline bool operator()(const Peak1D & left, const Peak1D & right) const
       {
@@ -239,8 +237,7 @@ public:
     };
 
     /// Comparator by position. As this class has dimension 1, this is basically an alias for MZLess.
-    struct PositionLess :
-      public std::binary_function<Peak1D, Peak1D, bool>
+    struct PositionLess
     {
       inline bool operator()(const Peak1D & left, const Peak1D & right) const
       {

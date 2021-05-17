@@ -99,12 +99,17 @@
     '+' character between the file names. The following command opens three
     files in three layers of the same window:
     @code TOPPView file1.mzML + file2.mzML + file3.mzML@endcode
-    Without the '+' the files would be opened in three different windows.
+    Without the '+' the files would be opened in three different tabs.
 
     The color gradient used to display a file can be changed by adding one of
     several '@' commands. The following command opens the file with a white-to-black
     gradient:
     @code TOPPView file1.mzML @bw@endcode
+    
+    Automatic annotation of a layer with ID data (.osw files etc) can be performed by using the '!' character.
+    This will treat the next filename as annotation to the previous layer
+    The following command opens two layers in the same tab, with the first layer being annotated:
+    @code TOPPView file1.mzML ! file1.idXML + file2.mzML@endcode
 
     For more information on command line parameters call:
     @code TOPPView --help@endcode

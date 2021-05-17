@@ -571,7 +571,17 @@ START_SECTION((static ExperimentalDesign fromFeatureMap(const FeatureMap &f)))
 }
 END_SECTION
 
+START_SECTION((isValid_()))
+{
 
+  String foo = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong.tsv");
+  TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(foo,false));
+  String bar = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_2.tsv");
+  TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(bar,false));
+  String baz = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_3.tsv");
+  TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(baz,false));
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

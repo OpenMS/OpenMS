@@ -30,16 +30,6 @@ def testContainers():
     _test_container(pyopenms.MSExperiment, pyopenms.MSSpectrum, "addSpectrum")
     _test_container(pyopenms.FeatureMap, pyopenms.Feature)
 
-
-def testParamEntry():
-    # as ParamEntry::isValid takes "String &" as input argument, which
-    # can not be implemened by a Python string, here no automatic
-    # conversion from a basestring should happen:
-    p = pyopenms.ParamEntry()
-    message = pyopenms.String()
-    assert p.isValid(message)
-    assert message.c_str() == b""
-
 def testConvexHull2D():
     h = pyopenms.ConvexHull2D()
 

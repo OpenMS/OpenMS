@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Chris Bielow $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project("OpenMS_tests")
 
 option(ENABLE_STYLE_TESTING "Enables checking of code convention violations (cpplint) and static code analysis (cppchecker). Note that this will disable the regular test system." OFF)

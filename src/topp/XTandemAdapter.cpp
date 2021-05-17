@@ -32,7 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -132,11 +132,11 @@ using namespace std;
 
 
 class TOPPXTandemAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPXTandemAdapter() :
-    TOPPBase("XTandemAdapter", "Annotates MS/MS spectra using X! Tandem.")
+    SearchEngineBase("XTandemAdapter", "Annotates MS/MS spectra using X! Tandem.")
   {
   }
 
@@ -211,7 +211,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
+    String in = getRawfileName();
     String out = getStringOption_("out");
     String xml_out = getStringOption_("xml_out");
     if (xml_out.empty() && out.empty())
@@ -231,21 +231,7 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    String db_name(getStringOption_("database"));
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
+    String db_name = getDBFilename();
 
     /// check if X!Tandem is available (warn early, since loading/storing of mzML below will delay the error -- which is not user friendly)
     String xtandem_executable = getStringOption_("xtandem_executable");
@@ -256,22 +242,6 @@ protected:
     mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
     mzml_file.setLogType(log_type_);
     mzml_file.load(in, exp);
-
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-    }
-
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
-    {
-      if (!getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the 'force' flag.");
-      }
-    }
 
     ofstream tax_out(tandem_taxonomy_filename.c_str());
     tax_out << "<?xml version=\"1.0\"?>" << "\n";

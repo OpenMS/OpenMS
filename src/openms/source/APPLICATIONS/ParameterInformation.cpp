@@ -36,7 +36,7 @@
 
 namespace OpenMS
 {
-  ParameterInformation::ParameterInformation(const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values) :
+  ParameterInformation::ParameterInformation(const String& n, ParameterTypes t, const String& arg, const ParamValue& def, const String& desc, bool req, bool adv, const StringList& tag_values) :
     name(n),
     type(t),
     default_value(def),

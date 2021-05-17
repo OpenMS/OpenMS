@@ -59,16 +59,16 @@ namespace OpenMS
   {
 public:
     /// default constructor
-    FeatureHypothesis();
+    FeatureHypothesis() = default;
 
     /// default destructor
-    ~FeatureHypothesis();
+    ~FeatureHypothesis() = default;
 
     /// copy constructor
-    FeatureHypothesis(const FeatureHypothesis&);
+    FeatureHypothesis(const FeatureHypothesis&) = default;
 
     /// assignment operator
-    FeatureHypothesis& operator=(const FeatureHypothesis& rhs);
+    FeatureHypothesis& operator=(const FeatureHypothesis& rhs) = default;
 
     // getter & setter
     Size getSize() const;
@@ -104,6 +104,9 @@ public:
     double getMonoisotopicFeatureIntensity(bool) const;
     double getSummedFeatureIntensity(bool) const;
 
+    /// return highest apex of all isotope traces
+    double getMaxIntensity(bool smoothed = false) const;
+
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
     std::vector< OpenMS::MSChromatogram > getChromatograms(UInt64 feature_id) const;
@@ -113,9 +116,9 @@ private:
     // pointers of MassTraces contained in isotopic pattern
     std::vector<const MassTrace*> iso_pattern_;
 
-    double feat_score_;
+    double feat_score_{};
 
-    SignedSize charge_;
+    SignedSize charge_{};
   };
 
   class OPENMS_DLLAPI CmpMassTraceByMZ
@@ -311,7 +314,7 @@ e conditions are fulfilled. Mainly the
     void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM parameters
-    svm_model* isotope_filt_svm_;
+    svm_model* isotope_filt_svm_ = nullptr;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
 

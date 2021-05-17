@@ -429,7 +429,9 @@ if __name__=='__main__':
   }
   std::sort(test_pairs.begin(), test_pairs.end());
 
-  test_pairs_out = Math::RANSAC<Math::RansacModelLinear>::ransac(test_pairs, 2, 1200, 100*100, 10, false, myRNG);
+  Math::RANSAC<Math::RansacModelLinear> r;
+  //TODO set seed
+  test_pairs_out = r.ransac(test_pairs, 2, 1200, 100*100, 10, false);
   std::sort(test_pairs_out.begin(), test_pairs_out.end());
   for (Size i = 0; i < test_pairs_out.size(); ++i)
   {

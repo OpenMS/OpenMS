@@ -124,7 +124,7 @@ void TestTOPPView::testGui()
   // register a GUI logger
   Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
 
-  TOPPViewBase tv;
+  TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
   tv.show();
   QApplication::processEvents();
 

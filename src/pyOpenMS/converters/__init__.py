@@ -12,5 +12,6 @@ def register_converters():
     special_converters.append(OpenMSMapConverter())
     special_converters.append(CVTermMapConverter())
     special_converters.append(OpenMSDataValue())
+    special_converters.append(OpenMSParamValue())
     special_converters.append(OpenMSDPosition2())
     special_converters.append(OpenMSDPosition2Vector())

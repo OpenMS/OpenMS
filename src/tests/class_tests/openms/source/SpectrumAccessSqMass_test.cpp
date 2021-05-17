@@ -60,7 +60,7 @@ OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAcc
 
 START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -71,7 +71,7 @@ END_SECTION
 
 START_SECTION(SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   std::vector<int> indices;
   indices.push_back(1);
@@ -84,7 +84,7 @@ END_SECTION
 
 START_SECTION(SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -135,7 +135,7 @@ END_SECTION
 
 START_SECTION(size_t getNrSpectra() const)
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_EQUAL(ptr->getNrSpectra(), 2)
@@ -144,7 +144,7 @@ END_SECTION
 
 START_SECTION(boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_EQUAL(ptr->getNrSpectra(), 2)
@@ -156,7 +156,7 @@ END_SECTION
 
 START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   {
     ptr = new SpectrumAccessSqMass(handler);

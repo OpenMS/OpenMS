@@ -48,39 +48,6 @@
 
 namespace OpenMS
 {
-  FeatureHypothesis::FeatureHypothesis() :
-    iso_pattern_(),
-    feat_score_(),
-    charge_()
-  {
-
-  }
-
-  FeatureHypothesis::~FeatureHypothesis()
-  {
-
-  }
-
-  FeatureHypothesis::FeatureHypothesis(const FeatureHypothesis& fh) :
-    iso_pattern_(fh.iso_pattern_),
-    feat_score_(fh.feat_score_),
-    charge_(fh.charge_)
-  {
-
-  }
-
-  FeatureHypothesis& FeatureHypothesis::operator=(const FeatureHypothesis& rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    iso_pattern_ = rhs.iso_pattern_;
-    feat_score_ = rhs.feat_score_;
-    charge_ = rhs.charge_;
-
-    return *this;
-  }
-
   void FeatureHypothesis::addMassTrace(const MassTrace& mt_ptr)
   {
     iso_pattern_.push_back(&mt_ptr);
@@ -104,6 +71,20 @@ namespace OpenMS
       int_sum += iso_pattern_[i]->getIntensity(smoothed);
     }
     return int_sum;
+  }
+
+  double FeatureHypothesis::getMaxIntensity(bool smoothed) const
+  {
+    double int_max(0.0);
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      const double height = iso_pattern_[i]->getMaxIntensity(smoothed);
+      if (int_max < height) 
+      {
+        int_max = height;
+      }
+    }
+    return int_max;
   }
 
   Size FeatureHypothesis::getNumFeatPoints() const
@@ -289,36 +270,36 @@ namespace OpenMS
   FeatureFindingMetabo::FeatureFindingMetabo() :
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
-    defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced")); // 5.0
-    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // 6.5
+    defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", {"advanced"}); // 5.0
+    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", {"advanced"}); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
     defaults_.setValue("charge_upper_bound", 3, "Highest charge state to consider"); // 3
     defaults_.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds)."); // 5.0
-    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("report_summed_ints", ListUtils::create<String>("false,true"));
+    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", {"advanced"});
+    defaults_.setValidStrings("report_summed_ints", {"false","true"});
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
-    defaults_.setValidStrings("enable_RT_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("enable_RT_filtering", {"false","true"});
 
     defaults_.setValue("isotope_filtering_model", "metabolites (5% RMS)", "Remove/score candidate assemblies based on isotope intensities. SVM isotope models for metabolites were trained with either 2% or 5% RMS error. For peptides, an averagine cosine scoring is used. Select the appropriate noise model according to the quality of measurement or MS device.");
-    defaults_.setValidStrings("isotope_filtering_model", ListUtils::create<String>("metabolites (2% RMS),metabolites (5% RMS),peptides,none"));
+    defaults_.setValidStrings("isotope_filtering_model", {"metabolites (2% RMS)","metabolites (5% RMS)","peptides","none"});
 
     defaults_.setValue("mz_scoring_13C", "false", "Use the 13C isotope peak position (~1.003355 Da) as the expected shift in m/z for isotope mass traces (highly recommended for lipidomics!). Disable for general metabolites (as described in Kenar et al. 2014, MCP.).");
-    defaults_.setValidStrings("mz_scoring_13C", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("mz_scoring_13C", {"false","true"});
 
-    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("use_smoothed_intensities", ListUtils::create<String>("false,true"));
+    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", {"advanced"});
+    defaults_.setValidStrings("use_smoothed_intensities", {"false","true"});
     
     defaults_.setValue("report_convex_hulls", "false", "Augment each reported feature with the convex hull of the underlying mass traces (increases featureXML file size considerably).");
-    defaults_.setValidStrings("report_convex_hulls", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("report_convex_hulls", {"false","true"});
 
     defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (Output in mzml).");
-    defaults_.setValidStrings("report_chromatograms", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("report_chromatograms", {"false","true"});
 
     defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
-    defaults_.setValidStrings("remove_single_traces", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("remove_single_traces", {"false","true"});
 
     defaults_.setValue("mz_scoring_by_elements", "false", "Use the m/z range of the assumed elements to detect isotope peaks. A expected m/z range is computed from the isotopes of the assumed elements. If enabled, this ignores 'mz_scoring_13C'");
-    defaults_.setValidStrings("mz_scoring_by_elements", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("mz_scoring_by_elements", {"false","true"});
 
     defaults_.setValue("elements", "CHNOPS", "Elements assumes to be present in the sample (this influences isotope detection).");
 
@@ -329,7 +310,10 @@ namespace OpenMS
 
   FeatureFindingMetabo::~FeatureFindingMetabo()
   {
-
+    if (isotope_filt_svm_ != nullptr)
+    {
+      svm_free_and_destroy_model(&isotope_filt_svm_);
+    }
   }
 
   void FeatureFindingMetabo::updateMembers_()
@@ -344,7 +328,7 @@ namespace OpenMS
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     enable_RT_filtering_ = param_.getValue("enable_RT_filtering").toBool();
     
-    isotope_filtering_model_ = param_.getValue("isotope_filtering_model");
+    isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
 
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
@@ -492,6 +476,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Loading " + model_filename + " failed", model_filename);
     }
+
 
     std::ifstream ifs(scale_filename.c_str());
 
@@ -1042,6 +1027,7 @@ namespace OpenMS
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
+      f.setMetaValue("max_height", feat_hypos[hypo_idx].getMaxIntensity(use_smoothed_intensities_));
 
       // store isotope intensities
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));

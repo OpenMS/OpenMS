@@ -158,6 +158,50 @@ class OpenMSDataValue(TypeConverterBase):
                     |    raise Exception("DataValue instance has invalid value type %d" % _type)
                 """, locals())
 
+class OpenMSParamValue(TypeConverterBase):
+
+    def get_base_types(self):
+        return "ParamValue",
+
+    def matches(self, cpp_type):
+        return  not cpp_type.is_ptr and not cpp_type.is_ref
+
+    def matching_python_type(self, cpp_type):
+        return ""
+
+    def type_check_expression(self, cpp_type, argument_var):
+        return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
+
+    def input_conversion(self, cpp_type, argument_var, arg_num):
+        call_as = "deref(ParamValue(%s).inst.get())" % argument_var
+        return "", call_as, ""
+
+    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
+        # this one is slow as it uses construction of python type ParamValue for
+        # delegating conversion to this type, which reduces code below:
+        return Code().add("""
+                    |cdef ParamValue _value = ParamValue.__new__(ParamValue)
+                    |_value.inst = shared_ptr[_ParamValue](new _ParamValue($input_cpp_var))
+                    |cdef int _type = $input_cpp_var.valueType()
+                    |cdef object $output_py_var
+                    |if _type == ValueType.STRING_VALUE:
+                    |    $output_py_var = _value.toString()
+                    |elif _type == ValueType.INT_VALUE:
+                    |    $output_py_var = _value.toInt()
+                    |elif _type == ValueType.DOUBLE_VALUE:
+                    |    $output_py_var = _value.toDouble()
+                    |elif _type == ValueType.INT_LIST:
+                    |    $output_py_var = _value.toIntVector()
+                    |elif _type == ValueType.DOUBLE_LIST:
+                    |    $output_py_var = _value.toDoubleVector()
+                    |elif _type == ValueType.STRING_LIST:
+                    |    $output_py_var = _value.toStringVector()
+                    |elif _type == ValueType.EMPTY_VALUE:
+                    |    $output_py_var = None
+                    |else:
+                    |    raise Exception("ParamValue instance has invalid value type %d" % _type)
+                """, locals())
+
 
 class OpenMSStringConverter(TypeConverterBase):
 

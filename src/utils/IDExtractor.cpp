@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <algorithm>
 #include <iostream>
@@ -55,8 +56,8 @@ using namespace std;
 
     @brief Extracts 'n' peptides randomly or best 'n' from idXML files.
 
-  Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
-  from idXML files.
+    Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
+    from idXML files.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -79,7 +80,7 @@ public:
 
   }
 
-  static bool compareIDsWithScores(pair<double, PeptideIdentification> a, pair<double, PeptideIdentification> b)
+  static bool compareIDsWithScores(pair<double, PeptideIdentification>& a, pair<double, PeptideIdentification>& b)
   {
     if (a.second.isHigherScoreBetter())
     {
@@ -100,7 +101,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerIntOption_("number_of_peptides", "<int>", 10, "Number of randomly chosen peptides", false);
     setMinInt_("number_of_peptides", 1);
-    registerIntOption_("number_of_rand_invokations", "<int>", 0, "Number of rand invocations before random draw", false);
+    registerIntOption_("number_of_rand_invokations", "<int>", 0, "Number of rand invocations before random draw (basically a seed)", false);
     setMinInt_("number_of_rand_invokations", 0);
     registerFlag_("best_hits", "If this flag is set the best n peptides are chosen.");
   }
@@ -153,7 +154,7 @@ protected:
     {
       for (Size i = 0; i < identifications.size(); ++i)
       {
-        identifications_with_scores.push_back(make_pair(identifications[i].getHits()[0].getScore(), identifications[i]));
+        identifications_with_scores.emplace_back(identifications[i].getHits()[0].getScore(), identifications[i]);
       }
       sort(identifications_with_scores.begin(), identifications_with_scores.end(), TOPPIDExtractor::compareIDsWithScores);
       it = identifications_with_scores.begin();
@@ -185,11 +186,8 @@ protected:
       {
         indices[i] = i;
       }
-      for (Size i = 0; i < number_of_rand_invokations; ++i)
-      {
-        rand();
-      }
-      random_shuffle(indices.begin(), indices.end());
+      Math::RandomShuffler r(number_of_rand_invokations);
+      r.portable_random_shuffle(indices.begin(), indices.end());
 
       Size index = 0;
       while (chosen_ids.size() < number_of_peptides && index < indices.size())

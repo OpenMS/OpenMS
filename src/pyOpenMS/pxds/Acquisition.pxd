@@ -1,7 +1,6 @@
 from libcpp cimport bool
 from MetaInfoInterface cimport *
 from libcpp.vector cimport vector as libcpp_vector
-from DataValue cimport *
 from String cimport *
 
 cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":

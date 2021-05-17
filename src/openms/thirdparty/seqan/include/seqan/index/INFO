@@ -1,0 +1,12 @@
+Name: seqan-index
+Author: David Weese <david.weese@fu-berlin.de>
+Author: Birte Kehr <birte.kehr@fu-berlin.de>
+Author: Jochen Singer <jochen.singer@fu-berlin.de>
+Maintainer: David Weese <david.weese@fu-berlin.de>
+License: BSD 3-clause
+Copyright: 2006-2013, FU Berlin
+Status: mature
+Description: Index data structures.
+ This module contains index data structures such as q-gram indices, and extended
+ suffix arrays as well as algorithms for building and using them.  It also
+ contains the semiglobal and local SWIFT implementations.

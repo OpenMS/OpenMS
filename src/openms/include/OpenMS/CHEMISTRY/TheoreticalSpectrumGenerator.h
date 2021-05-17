@@ -90,7 +90,16 @@ namespace OpenMS
      */
     //@{
     /// Generates a spectrum for a peptide sequence, with the ion types that are set in the tool parameters
-    virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge) const;
+    /// If precursor_charge is set to 0 max_charge + 1 will be used.
+    /// @throw Exception::InvalidParameter   if precursor_charge < max_charge
+    virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge = 0) const;
+
+    /// Generates a spectrum for a peptide sequence based on activation method and precursor charge.
+    /// Activation method 'CID' or 'HCID' will generate only b- and y-ions.
+    /// Activation method 'ECD' or 'ETD' will generate only c- and z-ions.
+    /// If precursor charge is greater than 2 ions with charge 1 & 2 will be generated, else only ions of charge 1 will appear in the spectrum.
+    /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCID', 'ECD' or 'ETD'.
+    static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge);
 
     /// overwrite
     void updateMembers_() override;

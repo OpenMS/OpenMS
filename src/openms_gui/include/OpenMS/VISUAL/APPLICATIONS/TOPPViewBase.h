@@ -48,6 +48,7 @@
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 
 //STL
 #include <map>
@@ -151,10 +152,33 @@ public:
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
+    /// Used for deciding whether new tool/util params should be generated or reused from TOPPView's ini file
+    enum class TOOL_SCAN
+    {
+      /**
+         TVToolDiscovery does not generate params for each tool/util unless they are absolutely needed and could not be
+         extracted from TOPPView's ini file. This may be useful for testing.
+      */
+      SKIP_SCAN,
+      /// Only generate params for each tool/util if TOPPView's last ini file has an older version. (Default behaviour)
+      SCAN_IF_NEWER_VERSION,
+      /// Forces TVToolDiscovery to generate params and using them instead of the params in TOPPView's ini file
+      FORCE_SCAN
+    };
+
     ///Constructor
-    TOPPViewBase(QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
+
+    enum class LOAD_RESULT
+    {
+      OK,
+      FILE_NOT_FOUND,       ///< file did not exist
+      FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined                                                
+      FILETYPE_UNSUPPORTED, ///< filetype is known, but the format not supported as layer data
+      LOAD_ERROR            ///< an error occurred while loading the file
+    };
 
     /**
       @brief Opens and displays data from a file
@@ -168,7 +192,7 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    LOAD_RESULT addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /**
       @brief Adds a peak or feature map to the viewer
@@ -218,6 +242,9 @@ public:
 
     /// Returns the active Layer data (0 if no layer is active)
     const LayerData* getCurrentLayer() const;
+
+    /// Returns the active Layer data (0 if no layer is active)
+    LayerData* getCurrentLayer();
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
@@ -413,6 +440,11 @@ protected:
     /// Log output window
     LogWindow* log_;
 
+    /// Determines TVToolDiscovery scans for tool/utils and generates new params.
+    TOOL_SCAN scan_mode_;
+    /// Scans for tools/utils and generates a param for each.
+    TVToolDiscovery tool_scanner_;
+
     /** @name Toolbar
     */
     //@{
@@ -507,6 +539,9 @@ protected:
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
+
+    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
+    void addToolParamsToIni();
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D

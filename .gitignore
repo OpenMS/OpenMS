@@ -1,5 +1,6 @@
 qrc_resources.cxx
 DartConfiguration.tcl
+.cache/*
 /**/*.cmake
 /**/*.canno
 Testing
@@ -23,7 +24,9 @@ src/.DS_Store
 src/openms/.DS_Store
 .vscode
 contrib-build
+contrib_build
 openms-build
+openms_build
 *.swp
 cmake-build-debug
 cmake-build-release

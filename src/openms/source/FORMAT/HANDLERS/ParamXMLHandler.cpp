@@ -74,7 +74,7 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        StringList tags = ListUtils::create<String>(tags_string);
+        std::vector<std::string> tags = ListUtils::create<std::string>(tags_string);
 
         //advanced
         String advanced_string;
@@ -161,7 +161,7 @@ namespace OpenMS
             else if (type == "string")
             {
               val.split(',', parts);
-              param_.setValidStrings(name, parts);
+              param_.setValidStrings(name, ListUtils::create<std::string>(parts));
             }
             else if (type == "float" || type == "double")
             {
@@ -198,7 +198,7 @@ namespace OpenMS
             std::vector<String> parts;
 
             val.split(',', parts);
-            param_.setValidStrings(name, parts);
+            param_.setValidStrings(name, ListUtils::create<std::string>(parts));
           }
         }
 
@@ -223,7 +223,7 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        list_.tags = ListUtils::create<String>(tags_string);
+        list_.tags = ListUtils::create<std::string>(tags_string);
         
         
         //parse name/type
@@ -338,7 +338,7 @@ namespace OpenMS
           if (list_.restrictions_index != -1)
           {
             list_.restrictions.split(',', parts);
-            param_.setValidStrings(list_.name, parts);
+            param_.setValidStrings(list_.name, ListUtils::create<std::string>(parts));
           }
         }
         else if (list_.type == "int")

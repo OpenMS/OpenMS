@@ -44,12 +44,12 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("charge", 1, "Charge state of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
+    defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});
+    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", {"advanced"});
+    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", {"advanced"});
+    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", {"advanced"});
+    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", {"advanced"});
 
     defaultsToParam_();
   }
@@ -75,7 +75,7 @@ namespace OpenMS
     return *this;
   }
 
-  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // build model
     if (charge_ == 0)
@@ -97,7 +97,7 @@ namespace OpenMS
       max_bb += stdev;
 
 
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -109,7 +109,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("ExtendedIsotopeModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("ExtendedIsotopeModel")));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

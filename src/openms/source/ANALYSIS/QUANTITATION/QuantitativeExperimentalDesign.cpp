@@ -58,7 +58,7 @@ namespace OpenMS
     defaults_.setValue("designer:file", "File", "Identifier for the file name.");
 
     defaults_.setValue("designer:separator", "tab", "Separator, which should be used to split a row into columns");
-    defaults_.setValidStrings("designer:separator", ListUtils::create<String>("tab,semi-colon,comma,whitespace"));
+    defaults_.setValidStrings("designer:separator", {"tab","semi-colon","comma","whitespace"});
 
     defaults_.setSectionDescription("designer", "Additional options for quantitative experimental design");
 
@@ -163,12 +163,11 @@ namespace OpenMS
           // generate a new ID:
           DateTime date_time = prot_it->getDateTime();
           String new_id;
-          String search_engine = prot_it->getSearchEngine();
-          
+          String search_engine = prot_it->getSearchEngine();          
           do
           {
             date_time = date_time.addSecs(1);
-            new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
+            new_id = search_engine + "_" + date_time.toString();
           } while (used_ids.find(new_id) != used_ids.end());
 
           OPENMS_LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
@@ -228,8 +227,8 @@ namespace OpenMS
   void QuantitativeExperimentalDesign::analyzeHeader_(UInt& expCol, UInt& fileCol, StringList& header)
   {
     // read parameter
-    String experiment = param_.getValue("designer:experiment");
-    String fileName = param_.getValue("designer:file");
+    std::string experiment = param_.getValue("designer:experiment");
+    std::string fileName = param_.getValue("designer:file");
 
     // iterate through header strings to look for matching identifier
     UInt col = 0;
@@ -260,7 +259,7 @@ namespace OpenMS
   void QuantitativeExperimentalDesign::getSeparator_(String& separator)
   {
     // get separator from parameter setting
-    String sep = param_.getValue("designer:separator");
+    std::string sep = param_.getValue("designer:separator");
 
     // assign
     if (sep.compare("tab") == 0)

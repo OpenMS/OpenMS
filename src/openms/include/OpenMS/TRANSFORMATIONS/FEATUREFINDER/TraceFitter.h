@@ -84,7 +84,7 @@ protected:
     TraceFitter(const TraceFitter& source);
 
     /// assignment operator
-    virtual TraceFitter& operator=(const TraceFitter& source);
+    TraceFitter& operator=(const TraceFitter& source);
 
     /// destructor
     ~TraceFitter() override;
@@ -130,7 +130,7 @@ protected:
      * @param trace the mass trace for which the value should be computed
      * @param k  use the position of the k-th peak to compute the value
      */
-    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k);
+    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k) const;
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span

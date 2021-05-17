@@ -137,8 +137,7 @@ public:
     bool operator!=(const FeatureHandle& i) const;
 
     /// Comparator by map and unique id
-    struct IndexLess :
-      std::binary_function<FeatureHandle, FeatureHandle, bool>
+    struct IndexLess
     {
       bool operator()(FeatureHandle const& left, FeatureHandle const& right) const;
     };

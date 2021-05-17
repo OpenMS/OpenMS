@@ -164,7 +164,7 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
   // Set parameter for fitter
   egh_fitter.setParameters( egh_param );
 
-  InterpolationModel* fitted_egh_model = nullptr;
+  std::unique_ptr<InterpolationModel> fitted_egh_model;
 
   // Construct model for rt
   egh_quality = egh_fitter.fit1d(data_to_fit, fitted_egh_model);

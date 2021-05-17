@@ -210,6 +210,8 @@ protected:
 
   bool quantify_decoys_;
 
+  const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
+
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):
@@ -229,8 +231,8 @@ protected:
 
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const;
 
-  /// get regions in which peptide elutes (ideally only one) by clustering RT elution times
-  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions) const;
+  /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
+  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
 
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,
@@ -249,7 +251,8 @@ protected:
 
   /// creates an assay library out of the peptide sequences and their RT elution windows
   /// the PeptideMap is mutable since we clear it on-the-go
-  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map);
+  /// @param clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
+  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
   /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
   /// Make sure it stays valid until destruction of the class.

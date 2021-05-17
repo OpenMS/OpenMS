@@ -51,7 +51,7 @@ class CoinModel;
 #define GLP_PROB_DEFINED
 // depending on the glpk version
 // define glp_prob as forward or struct
-#if OPENMS_GLPK_VERSION_MINOR < 48
+#if OPENMS_GLPK_VERSION_MAJOR == 4 && OPENMS_GLPK_VERSION_MINOR < 48
 typedef struct
 {
   double _opaque_prob[100];

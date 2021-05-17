@@ -21,10 +21,10 @@ def _addDataProcessing(item, params, action):
     sw.setName(os.path.basename(sys.argv[0]))
     sw.setVersion(pms.VersionInfo.getVersion())
     p.setSoftware(sw)
-    p.setCompletionTime(pms.DateTime.now())
+    p.setCompletionTime(pms.DateTime.now()) # TODO: check if this is the reason for the many data processing entries
 
     for k, v in params.asDict().items():
-        p.setMetaValue("parameter: "+k, v)
+        p.setMetaValue(b"parameter: "+k, v)
 
     dp.append(p)
     item.setDataProcessing(dp)

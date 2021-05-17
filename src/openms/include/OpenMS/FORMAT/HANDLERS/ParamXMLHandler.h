@@ -76,10 +76,10 @@ protected:
       {
         String name;
         String type;
-        StringList stringlist;
+        std::vector<std::string> stringlist;
         IntList intlist;
         DoubleList doublelist;
-        StringList tags;
+        std::vector<std::string> tags;
         String description;
         String restrictions;
         Int restrictions_index;

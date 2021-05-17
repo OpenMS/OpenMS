@@ -92,16 +92,16 @@ public:
     ~PeakPickerCWT() override;
 
     /**
-                @brief Applies the peak picking algorithm to a single spectrum.
+        @brief Applies the peak picking algorithm to a single spectrum.
 
-                Picks the peaks in the input spectrum and writes the resulting peaks to the output container.
+        Picks the peaks in the input spectrum and writes the resulting peaks to the output container.
     */
     void pick(const MSSpectrum & input, MSSpectrum & output) const;
 
     /**
-                @brief Picks the peaks in an MSExperiment.
+        @brief Picks the peaks in an MSExperiment.
 
-                Picks the peaks successive in every scan in the spectrum range. The detected peaks are stored in the output MSExperiment.
+        Picks the peaks successive in every scan in the spectrum range. The detected peaks are stored in the output MSExperiment.
 
         @throws Exception::UnableToFit() if peak width cannot be determined (if estimation is set to auto)
     */

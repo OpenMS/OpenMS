@@ -56,7 +56,7 @@ namespace OpenMS
     defaults.setMinInt("max_gd_iter", 0);
 
     defaults.setValue("compute_additional_points", "true", "Whether additional points should be added when fitting EMG peak model.");
-    defaults.setValidStrings("compute_additional_points", ListUtils::create<String>("true,false"));
+    defaults.setValidStrings("compute_additional_points", {"true","false"});
   }
 
   void EmgGradientDescent::updateMembers_()

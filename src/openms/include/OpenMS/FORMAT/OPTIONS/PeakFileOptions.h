@@ -51,6 +51,8 @@ public:
     PeakFileOptions();
     ///Copy constructor
     PeakFileOptions(const PeakFileOptions &);
+    ///Copy assignment
+    PeakFileOptions& operator=(const PeakFileOptions&) = default;
     ///Destructor
     ~PeakFileOptions();
 

@@ -395,6 +395,11 @@ namespace OpenMS
     // This is the case if we have at least one fraction group with >= 2 fractions
     bool isFractionated() const;
 
+    /// filters the MSFileSection to only include a given subset of files whose basenames
+    /// are given with @p bns
+    /// @return number of files that have been filtered
+    Size filterByBasenames(const std::set<String>& bns);
+
     /// @returns whether all fraction groups have the same number of fractions
     bool sameNrOfMSFilesPerFraction() const;
 

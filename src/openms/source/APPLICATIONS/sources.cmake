@@ -3,11 +3,12 @@ set(directory source/APPLICATIONS)
 
 ### list all filenames of the directory here
 set(sources_list
+ConsoleUtils.cpp
 INIUpdater.cpp
+ParameterInformation.cpp
+SearchEngineBase.cpp
 ToolHandler.cpp
 TOPPBase.cpp
-ParameterInformation.cpp
-ConsoleUtils.cpp
 )
 
 ### add path to the filenames

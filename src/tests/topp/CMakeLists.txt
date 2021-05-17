@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP_tests")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 #
 # README:
@@ -997,6 +997,18 @@ set_tests_properties("TOPP_IDFileConverter_30_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_31" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_31_input.mzid -out IDFileConverter_31_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_31_out1" ${DIFF} -in1 IDFileConverter_31_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_31_output.idXML)
 set_tests_properties("TOPP_IDFileConverter_31_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_31")
+# Test FASTA to MzML
+# default parameters
+add_test("TOPP_IDFileConverter_32" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_32_input.FASTA -out IDFileConverter_32_output.tmp -out_type mzML)
+add_test("TOPP_IDFileConverter_32_File_Conversion" ${TOPP_BIN_PATH}/FileConverter -test -in IDFileConverter_32_output.tmp -out IDFileConverter_32_output_mgf.tmp -out_type mgf)
+set_tests_properties("TOPP_IDFileConverter_32_File_Conversion" PROPERTIES DEPENDS "TOPP_IDFileConverter_32")
+add_test("TOPP_IDFileConverter_32_out1" ${DIFF} -in1 IDFileConverter_32_output_mgf.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_32_output.mgf -whitelist "TITLE")
+set_tests_properties("TOPP_IDFileConverter_32_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_32_File_Conversion")
+add_test("TOPP_IDFileConverter_33" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_32_input.FASTA -out IDFileConverter_33_output.tmp -out_type mzML -fasta_to_mzml:missed_cleavages 1 -fasta_to_mzml:precursor_charge 3)
+add_test("TOPP_IDFileConverter_33_File_Conversion" ${TOPP_BIN_PATH}/FileConverter -test -in IDFileConverter_33_output.tmp -out IDFileConverter_33_output_mgf.tmp -out_type mgf)
+set_tests_properties("TOPP_IDFileConverter_33_File_Conversion" PROPERTIES DEPENDS "TOPP_IDFileConverter_33")
+add_test("TOPP_IDFileConverter_33_out1" ${DIFF} -in1 IDFileConverter_33_output_mgf.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_33_output.mgf  -whitelist "TITLE")
+set_tests_properties("TOPP_IDFileConverter_33_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_33_File_Conversion")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1983,16 +1995,6 @@ add_test("TOPP_RTPredict_5_out1" ${DIFF} -in1 RTPredict_5_output.tmp -in2 ${DATA
 set_tests_properties("TOPP_RTPredict_5_out1" PROPERTIES DEPENDS "TOPP_RTPredict_5")
 
 #------------------------------------------------------------------------------
-# InspectAdapter tests
-add_test("TOPP_InspectAdapter_1" ${TOPP_BIN_PATH}/InspectAdapter -test -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/Inspect.mzXML -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -inspect_in -out InspectAdapter_2_output.tmp)
-add_test("TOPP_InspectAdapter_1_out1" ${DIFF} -whitelist "spectra," "db," -in1 InspectAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in )
-set_tests_properties("TOPP_InspectAdapter_1_out1" PROPERTIES DEPENDS "TOPP_InspectAdapter_1")
-
-add_test("TOPP_InspectAdapter_2" ${TOPP_BIN_PATH}/InspectAdapter -test -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/Inspect.mzData -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -inspect_in -out InspectAdapter_3_output.tmp)
-add_test("TOPP_InspectAdapter_2_out1" ${DIFF} -whitelist "spectra," "db," -in1 InspectAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in )
-set_tests_properties("TOPP_InspectAdapter_2_out1" PROPERTIES DEPENDS "TOPP_InspectAdapter_2")
-
-#------------------------------------------------------------------------------
 # SeedListGenerator tests
 add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out SeedListGenerator_1_output.tmp)
 add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -in1 SeedListGenerator_1_output.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
@@ -2519,6 +2521,10 @@ set_tests_properties("TOPP_MzTabExporter_6_out" PROPERTIES DEPENDS "TOPP_MzTabEx
 add_test("TOPP_MzTabExporter_7" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_7_input.consensusXML -out MzTabExporter_7_output.tmp)
 add_test("TOPP_MzTabExporter_7_out" ${DIFF} -in1 MzTabExporter_7_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_7_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
 set_tests_properties("TOPP_MzTabExporter_7_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_7")
+
+add_test("TOPP_MzTabExporter_8" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_6_input.idXML -export_all_psms -out MzTabExporter_8_output.tmp)
+add_test("TOPP_MzTabExporter_8_out" ${DIFF} -in1 MzTabExporter_8_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_8_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_8_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_8")
 #------------------------------------------------------------------------------
 # OpenPepXL test
 add_test("TOPP_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -ini ${DATA_DIR_TOPP}/OpenPepXL_input.ini -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
@@ -2631,23 +2637,23 @@ set_tests_properties("UTILS_AccurateMassSearch_3_out1" PROPERTIES DEPENDS "UTILS
 
 # AssayGeneratorMetabo
 # use FeatureFinderMetabo data
-add_test("UTILS_AssayGeneratorMetabo_1" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output.tmp.tsv -min_transitions 1)
+add_test("UTILS_AssayGeneratorMetabo_1" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output.tmp.tsv -min_transitions 1 -max_transitions 3)
 add_test("UTILS_AssayGeneratorMetabo_1_out1" ${DIFF} -in1 AssayGeneratorMetabo_ffm_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_output.tsv)
 set_tests_properties("UTILS_AssayGeneratorMetabo_1_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_1")
 # use AccurateMassSearch data
-add_test("UTILS_AssayGeneratorMetabo_2" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output.tmp.tsv -min_transitions 1)
+add_test("UTILS_AssayGeneratorMetabo_2" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output.tmp.tsv -min_transitions 1 -max_transitions 3)
 add_test("UTILS_AssayGeneratorMetabo_2_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_output.tsv)
 set_tests_properties("UTILS_AssayGeneratorMetabo_2_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_2")
 # use FeatureFinderMetabo data with method consenesus_spectrum
-add_test("UTILS_AssayGeneratorMetabo_3" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1)
+add_test("UTILS_AssayGeneratorMetabo_3" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1 -max_transitions 3)
 add_test("UTILS_AssayGeneratorMetabo_3_out1" ${DIFF} -in1 AssayGeneratorMetabo_ffm_output_consensus.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_output_consensus.tsv)
 set_tests_properties("UTILS_AssayGeneratorMetabo_3_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_3")
 # use AccurateMassSearch data with method consensus_spectrum
-add_test("UTILS_AssayGeneratorMetabo_4" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1)
+add_test("UTILS_AssayGeneratorMetabo_4" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output_consensus.tmp.tsv -method consensus_spectrum -min_transitions 1 -max_transitions 3)
 add_test("UTILS_AssayGeneratorMetabo_4_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_output_consensus.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_output_consensus.tsv)
 set_tests_properties("UTILS_AssayGeneratorMetabo_4_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_4")
 # use AccurateMassSearch data with method consensus_spectrum and use_known_unkowns
-add_test("UTILS_AssayGeneratorMetabo_5" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_uku_output_consensus.tmp.tsv -method consensus_spectrum -use_known_unknowns -min_transitions 1)
+add_test("UTILS_AssayGeneratorMetabo_5" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_uku_output_consensus.tmp.tsv -method consensus_spectrum -use_known_unknowns -min_transitions 1 -max_transitions 3)
 add_test("UTILS_AssayGeneratorMetabo_5_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_uku_output_consensus.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_uku_output_consensus.tsv)
 set_tests_properties("UTILS_AssayGeneratorMetabo_5_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_5")
 add_test("UTILS_AssayGeneratorMetabo_6" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_uku_output_consensus.tsv  -out AssayGeneratorMetabo_ams_uku_output_consensus_traml.tmp.TraML)
@@ -2883,8 +2889,6 @@ set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_2_out_4" ${DIFF}  -in1 BSA_plusTransfer.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_2_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
 
-
-
 add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
@@ -2903,6 +2907,7 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
          -Alignment:align_algorithm:max_rt_shift 0
+         -Linking:min_nr_diffs_per_bin 10
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -targeted_only false
@@ -2915,7 +2920,7 @@ add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -threads 1
          -proteinFDR 0.3
          -test
-         -debug 5
+         -debug 0
          )
 add_test("UTILS_ProteomicsLFQ_3_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_plusSeeds_plusTransfer.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_3_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_3")
@@ -3032,6 +3037,39 @@ set_tests_properties("UTILS_ProteomicsLFQ_6_out_1" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_6_out_2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sc_decoys.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_6_out.mzTab )
 set_tests_properties("UTILS_ProteomicsLFQ_6_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_6")
 
+add_test("UTILS_ProteomicsLFQ_7" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -transfer_ids false
+         -mass_recalibration false
+         -out_cxml BSA_sub.consensusXML.tmp
+         -out_msstats BSA_sub.csv.tmp
+         -out BSA_sub.mzTab.tmp
+         -out_triqler BSA_sub.tsv.tmp
+         -threads 1
+         -proteinFDR 0.8
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_7_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_7_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_7")
+add_test("UTILS_ProteomicsLFQ_7_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_7_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_7")
+add_test("UTILS_ProteomicsLFQ_7_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sub.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_7_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_7")
+add_test("UTILS_ProteomicsLFQ_7_out_4" ${DIFF} -in1 BSA_sub.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.tsv )
+set_tests_properties("UTILS_ProteomicsLFQ_7_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_7")
+
+
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
 add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
@@ -3059,7 +3097,6 @@ add_test("UTILS_Epifany_3_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 
 set_tests_properties("UTILS_Epifany_3_out" PROPERTIES DEPENDS "UTILS_Epifany_3")
 
 #------------------------------------------------------------------------------
-# PSMFeatureExtractor
 add_test("UTILS_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type idXML -out PSMFeatureExtractor_1_out.tmp)
 add_test("UTILS_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 PSMFeatureExtractor_1_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
 
@@ -3072,3 +3109,14 @@ add_test("UTILS_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVe
 add_test("UTILS_PSMFeatureExtractor_4" ${TOPP_BIN_PATH}/THIRDPARTY/PSMFeatureExtractor -test -in_single ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_4_out.tmp)
 add_test("UTILS_PSMFeatureExtractor_4_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 PSMFeatureExtractor_4_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_4_out.idXML)
 
+=======
+# QCCalculator:
+# test for qcML file export
+add_test("UTILS_QCCalculator_1" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -out QCCalculator_1.qcML)
+add_test("UTILS_QCCalculator_1_out" ${DIFF} -in1 QCCalculator_1.qcML -in2 ${DATA_DIR_TOPP}/QCCalculator_1_output.qcML)
+set_tests_properties("UTILS_QCCalculator_1_out" PROPERTIES DEPENDS "UTILS_QCCalculator_1")
+
+# test for mzQC file export
+add_test("UTILS_QCCalculator_2" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -label label -name name -address address -description description -out QCCalculator_2.mzQC)
+add_test("UTILS_QCCalculator_2_out" ${DIFF} -whitelist "creationDate" "location" -in1 QCCalculator_2.mzQC -in2 ${DATA_DIR_TOPP}/QCCalculator_2_output.mzQC)
+set_tests_properties("UTILS_QCCalculator_2_out" PROPERTIES DEPENDS "UTILS_QCCalculator_2")

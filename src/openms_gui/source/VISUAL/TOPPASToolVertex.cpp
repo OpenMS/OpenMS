@@ -182,7 +182,7 @@ namespace OpenMS
       QFile q_old_ini(old_ini_file);
       changed = q_ini.size() != q_old_ini.size();
     }
-    setToolTip(param_.getSectionDescription(name_).toQString());
+    setToolTip(String(param_.getSectionDescription(name_)).toQString());
 
     return changed;
   }
@@ -293,7 +293,7 @@ namespace OpenMS
     {
       if (it->tags.count(search_tag))
       {
-        StringList valid_types(it->valid_strings);
+        StringList valid_types(ListUtils::toStringList<std::string>(it->valid_strings));
         for (Size i = 0; i < valid_types.size(); ++i)
         {
           if (!valid_types[i].hasPrefix("*."))
@@ -307,11 +307,11 @@ namespace OpenMS
         IOInfo io_info;
         io_info.param_name = it.getName();
         io_info.valid_types = valid_types;
-        if (it->value.valueType() == DataValue::STRING_LIST)
+        if (it->value.valueType() == ParamValue::STRING_LIST)
         {
           io_info.type = IOInfo::IOT_LIST;
         }
-        else if (it->value.valueType() == DataValue::STRING_VALUE)
+        else if (it->value.valueType() == ParamValue::STRING_VALUE)
         {
           io_info.type = IOInfo::IOT_FILE;
         }
@@ -549,9 +549,9 @@ namespace OpenMS
         }
         else
         {
-          if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
+          if (param_tmp.getValue(param_name).valueType() == ParamValue::STRING_LIST)
           {
-            param_tmp.setValue(param_name, StringListUtils::fromQStringList(file_list));
+            param_tmp.setValue(param_name, ListUtils::create<std::string>(StringListUtils::fromQStringList(file_list)));
           }
           else
           {
@@ -593,9 +593,9 @@ namespace OpenMS
         }
         else
         {
-          if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
+          if (param_tmp.getValue(param_name).valueType() == ParamValue::STRING_LIST)
           {
-            param_tmp.setValue(param_name, StringListUtils::fromQStringList(output_files));
+            param_tmp.setValue(param_name, ListUtils::create<std::string>(StringListUtils::fromQStringList(output_files)));
           }
           else
           {
@@ -1235,7 +1235,7 @@ namespace OpenMS
   void TOPPASToolVertex::writeParam_(const Param& param, const QString& ini_file)
   {
     Param save_param;
-    save_param.setValue(name_ + ":1:toppas_dummy", DataValue("blub"));
+    save_param.setValue(name_ + ":1:toppas_dummy", "blub");
     save_param.insert(name_ + ":1:", param);
     save_param.remove(name_ + ":1:toppas_dummy");
     save_param.setSectionDescription(name_ + ":1", "Instance '1' section for '" + name_ + "'");

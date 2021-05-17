@@ -160,7 +160,7 @@ private:
   {
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
 
     try
     {
@@ -171,7 +171,7 @@ private:
       if (getFlag_("force"))
       {
         OPENMS_LOG_ERROR
-          << "Error: alignment failed. Details:\n" << err.getMessage()
+          << "Error: alignment failed. Details:\n" << err.what()
           << "\nSince 'force' is set, processing will continue using 'identity' transformations."
           << endl;
         model_type = "identity";
@@ -261,7 +261,7 @@ private:
   void registerOptionsAndFlags_() override
   {
     String formats = "featureXML,consensusXML,idXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
+    TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));

@@ -467,6 +467,11 @@ namespace OpenMS
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
   }
 
+  void TargetedExperiment::sortTransitionsByName()
+  {
+    std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::NameLess());
+  }
+
   bool TargetedExperiment::containsInvalidReferences() const
   {
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;

@@ -32,7 +32,7 @@
 // $Authors: Dilek Dere, Mathias Walzer, Petra Gutenbrunner, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -83,7 +83,7 @@
     The following MS-GF+ version is required: <b>MS-GF+ 2019/07/03</b>. Older versions will not work properly, giving
     an error: <em>[Error] Invalid parameter: -maxMissedCleavages.</em>
     
-    Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
+    Input spectra for MS-GF+ have to be centroided; profile spectra will raise an error in the adapter.
 
     The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
     generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
@@ -122,11 +122,11 @@ using namespace OpenMS;
 using namespace std;
 
 class MSGFPlusAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   MSGFPlusAdapter() :
-    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
+    SearchEngineBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
@@ -156,7 +156,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,mgf,ms2"));
+    setValidFormats_("in", {"mzML", "mzXML", "mgf", "ms2" });
     registerOutputFile_("out", "<file>", "", "Output file", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
@@ -340,22 +340,6 @@ protected:
         primary_ms_run_path_.push_back(exp_name);
       }
 
-      if (exp.getSpectra().empty())
-      {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-      }
-
-      // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-      if (spectrum_type == SpectrumSettings::PROFILE)
-      {
-        if (!getFlag_("force"))
-        {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-        }
-      }
-
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         String id = it->getNativeID(); // expected format: "... scan=#"
@@ -446,7 +430,7 @@ protected:
     // parse parameters
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
+    String in = getRawfileName();
     String out = getStringOption_("out");
     String mzid_out = getStringOption_("mzid_out");
     if (mzid_out.empty() && out.empty())
@@ -456,20 +440,7 @@ protected:
     }
 
     String java_executable = getStringOption_("java_executable");
-    String db_name = getStringOption_("database");
-    if (!File::readable(db_name))
-    {
-      String full_db_name;
-      try
-      {
-        full_db_name = File::findDatabase(db_name);
-      }
-      catch (...)
-      {
-        return ILLEGAL_PARAMETERS;
-      }
-      db_name = full_db_name;
-    }
+    String db_name = getDBFilename();
 
     vector<String> fixed_mods = getStringList_("fixed_modifications");
     vector<String> variable_mods = getStringList_("variable_modifications");

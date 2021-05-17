@@ -58,7 +58,7 @@ START_SECTION(ParameterInformation())
 
 	TEST_EQUAL(ptr->name, "")
   TEST_EQUAL(ptr->type, ParameterInformation::NONE)
-  TEST_EQUAL(ptr->default_value, DataValue())
+  TEST_EQUAL(ptr->default_value, ParamValue())
 	TEST_EQUAL(ptr->description, "")
   TEST_EQUAL(ptr->argument, "")
   TEST_EQUAL(ptr->required, true)

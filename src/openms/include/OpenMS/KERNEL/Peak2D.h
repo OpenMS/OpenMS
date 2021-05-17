@@ -246,8 +246,7 @@ public:
     */
     ///@{
     /// Comparator by intensity
-    struct IntensityLess :
-      std::binary_function<Peak2D, Peak2D, bool>
+    struct IntensityLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {
@@ -272,8 +271,7 @@ public:
     };
 
     /// Comparator by RT position
-    struct RTLess :
-      std::binary_function<Peak2D, Peak2D, bool>
+    struct RTLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {
@@ -298,8 +296,7 @@ public:
     };
 
     /// Comparator by m/z position
-    struct MZLess :
-      std::binary_function<Peak2D, Peak2D, bool>
+    struct MZLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {
@@ -324,8 +321,7 @@ public:
     };
 
     /// Comparator by position. Lexicographical comparison (first RT then m/z) is done.
-    struct PositionLess :
-      public std::binary_function<Peak2D, Peak2D, bool>
+    struct PositionLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {

@@ -105,7 +105,7 @@ namespace OpenMS
       @return Number of calibration masses found
 
     */
-    Size fillCalibrants(const PeakMap exp,
+    Size fillCalibrants(const PeakMap& exp,
                         const std::vector<InternalCalibration::LockMass>& ref_masses,
                         double tol_ppm,
                         bool lock_require_mono,
