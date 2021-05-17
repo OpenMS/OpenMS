@@ -116,7 +116,7 @@ namespace OpenMS
             // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
             rpath.ensureLastChar('/');
           } else {
-            std::cerr << "Path extracted from Executable Path does not exist! Returning empty string!\n";
+            std::cerr << "Path '" << rpath << "' extracted from Executable Path '" << path << "' does not exist! Returning empty string!\n";
             rpath = "";
           }
         } else {
