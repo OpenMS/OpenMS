@@ -76,11 +76,19 @@ MQEvidence::~MQEvidence() {
     file_.close();
 }
 
+/*
+ * Description:
+ * Checks if it is possible to add text to the stream
+ */
 bool MQEvidence::isValid()
 {
     return !!file_;
 }
 
+/*
+ * Description:
+ * Writes the header of the MQEvidence file
+ */
 void MQEvidence::exportHeader()
 {
     file_ << "id" << "\t";
@@ -119,7 +127,10 @@ void MQEvidence::exportHeader()
     file_ << "Raw file" << "\t";
     file_ << "\n";
 }
-
+/*
+ * Description:
+ * Returns a distinct number for each protein
+ */
 UInt64 MQEvidence::proteinGroupId(const String &protein)
 {
     auto it = protein_id_.find(protein);
@@ -134,7 +145,12 @@ UInt64 MQEvidence::proteinGroupId(const String &protein)
     }
 }
 
-
+/*
+ * Description:
+ * Returns a pair that includes the index of the PeptideIdentification
+ * the best PeptideHit is refering to and a pointer to the best PeptideHit itself
+ *
+ */
 std::pair<Size , const PeptideHit *> MQEvidence::getBestPeptideHit(const std::vector<PeptideIdentification>& pep_ids)
 {   const PeptideHit * best = &pep_ids[0].getHits()[0];
     Size pep_id = 0;
@@ -153,33 +169,10 @@ std::pair<Size , const PeptideHit *> MQEvidence::getBestPeptideHit(const std::ve
 }
 
 /*
-bool MQEvidence::peptide_hits(
-        const std::vector<PeptideIdentification> & pep_ids,
-        std::vector<PeptideHit> & pep_hits,
-        std::vector<PeptideHit>::iterator & pep_hits_iterator)
-{
-    if(pep_ids.empty())
-    {
-        return false;
-    }
-    pep_hits.clear();
-    for (const PeptideIdentification &it: pep_ids)
-    {
-        pep_hits.insert(pep_hits.end(), it.getHits().begin(), it.getHits().end());
-    }
-    if (pep_hits.empty()) {
-        return false;
-    }
-    pep_hits_iterator = max_element(pep_hits.begin(), pep_hits.end(),
-            [](PeptideHit a, PeptideHit b) {
-                return a.getScore() < b.getScore();
-            });
-
-
-    return !pep_hits_iterator[0].getSequence().empty();
-
-}*/
-
+ * Description:
+ * Returns a map that includes the information
+ * which feature is mapped to which consensus feature
+ */
 std::map<UInt64, Size> MQEvidence::mapFeatureIDtoConsensusID(const ConsensusMap & cmap)
 {
     std::map<UInt64, Size> f_to_ci;
@@ -193,6 +186,11 @@ std::map<UInt64, Size> MQEvidence::mapFeatureIDtoConsensusID(const ConsensusMap 
     return f_to_ci;
 }
 
+/*
+ * Description:
+ * Input is the path of a file.
+ * Function returns the filename without the information about the path
+ */
 String pathDeleter(const String & path)
 {
     String raw_file;
@@ -205,6 +203,14 @@ String pathDeleter(const String & path)
     return raw_file;
 }
 
+/*
+ * Description:
+ * Checks if a PeptideIdentification of a Feature can be used
+ * for the Export
+ * Returns true for yes and false for no
+ * changes the pointer of the best hit to the best hit
+ * of the PeptideIdentifications of the Feature
+ */
 bool MQEvidence::exportFeaturePepId(
         const std::multimap<String, PeptideIdentification*> &UIDs,
         const ProteinIdentification::Mapping &mp_f,
@@ -225,6 +231,10 @@ bool MQEvidence::exportFeaturePepId(
 
 }
 
+/*
+ * Description:
+ * export one Feature as one row in MQEvidence.txt
+ */
 bool MQEvidence::exportConsensusFeaturePepId(
         ConsensusMap cmap,
         Int64 c_feature_number,
@@ -243,7 +253,10 @@ bool MQEvidence::exportConsensusFeaturePepId(
 
 }
 
-
+/*
+ * Description:
+ * export Feature as one row in MQEvidence.txt
+ */
 void MQEvidence::exportRowFromFeature(
         const Feature &f,
         const ConsensusMap cmap,
@@ -441,7 +454,10 @@ void MQEvidence::exportRowFromFeature(
 
 }
 
-
+/*
+ * Description:
+ * export all Features as one row in MQEvidence.txt
+ */
 void MQEvidence::exportFeatureMapTotxt(
         const FeatureMap & feature_map,
         const ConsensusMap& cmap)
@@ -477,7 +493,7 @@ void MQEvidence::exportFeatureMapTotxt(
         }
         else
         {
-            exportRowFromFeature(f, cmap, -1, raw_file, UIDs, mp_f);
+            exportRowFromFeature(f, cmap, -1, raw_file, UIDs, mp_f); // Feature is not mapped to a ConsensusFeature
         }
     }
 
