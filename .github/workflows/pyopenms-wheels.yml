@@ -8,7 +8,7 @@ on:
   push:
     tags:
       - 'Release*'
-    branches: [ nightly, pyopenms3 ]
+    branches: [ nightly, pyopenms3, py_nightly_test ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -336,22 +336,22 @@ jobs:
               # Somehow auditwheel is broken and we get the wrong libraries here for
               # libcrypto and libssl, lets go and fix it ...
               # auditwheel now adds the libraries to the root pyopenms.libs directory
-              yum install -y zip
-              pushd wheelhouse
-                for whl in pyopenms*.whl
-                do
-                  mkdir -p fix
-                  cp $whl fix/fix.zip
-                  pushd fix
-                    unzip fix.zip
-                    /usr/bin/cp /lib64/libssl.so.10  pyopenms.libs/libssl-*
-                    /usr/bin/cp /lib64/libcrypto.so.10  pyopenms.libs/libcrypto-*
-                    zip -r ../$whl pyopenms/
-                  popd
-                  rm -rf fix
-                done
-              popd
-              mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+              #yum install -y zip
+              #pushd wheelhouse
+              #for whl in pyopenms*.whl
+                #do
+                #mkdir -p fix
+                  #cp $whl fix/fix.zip
+                  #pushd fix
+                  #unzip fix.zip
+                    #/usr/bin/cp /lib64/libssl.so.10  pyopenms.libs/libssl-*
+                    #/usr/bin/cp /lib64/libcrypto.so.10  pyopenms.libs/libcrypto-*
+                    #zip -r ../$whl pyopenms/
+                    #popd
+                  #rm -rf fix
+                  #done
+                #popd
+              #mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
             popd
 
     - uses: actions/upload-artifact@v1
