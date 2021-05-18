@@ -1064,6 +1064,8 @@ protected:
       vector<ProteinIdentification> ext_protein_ids;
       vector<PeptideIdentification> ext_peptide_ids;
 
+      IdentificationData id_data, id_data_ext;
+
       //////////////////////////////////////////////////////
       // Transfer aligned IDs
       //////////////////////////////////////////////////////
@@ -1076,16 +1078,26 @@ protected:
         MapAlignmentTransformer::transformRetentionTimes(peptide_ids, transformations[fraction_group - 1]);
         MapAlignmentTransformer::transformRetentionTimes(ms_centroided, transformations[fraction_group - 1]);
 
+        //consensus_fraction.getIdentifier and getLoadedFilePath seems to be empty
+        auto tmpfileref = id_data.registerInputFile(IdentificationData::InputFile("fraction"+String(fraction)+".consensusXML")); // "temporary" ConsensusXML for this fraction
         // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to peptide_ids
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto& it = range.first; it != range.second; ++it)
         {
-           PeptideIdentification trans = it->second;
-           trans.setIdentifier(protein_ids[0].getIdentifier());
-           //TODO carry over proteins, carry over File info, or pass it otherwise to FFID!
-           // otherwise we might have an invalid idXML with missing proteins and overlapping spectrum_refs
-           peptide_ids.push_back(trans);
-           c++;
+          //TODO refactor into member of IDDataConverter "convertPeptideID" or something
+          IdentificationData::Observation obs{it->second.getMetaValue("feature_id"), tmpfileref, it->second.getMZ(), it->second.getRT()};
+          auto obs_ref = id_data.registerObservation(obs);
+          IdentificationData::IdentifiedPeptide pep{it->second.getHits()[0].getSequence()};
+          for (const auto& ev : it->second.getHits()[0].getPeptideEvidences())
+          {
+            IdentificationData::ParentSequence prot {ev.getProteinAccession()}; //TODO add more information about the proteins if available (TD, coverage, processing ..)
+            auto prot_ref = id_data.registerParentSequence(prot);
+            IdentificationData::ParentMatch pm {static_cast<Size>(ev.getStart()), static_cast<Size>(ev.getEnd()), ev.getAABefore(), ev.getAAAfter()};
+            pep.parent_matches[prot_ref].insert(pm);
+          }
+          auto pep_ref = id_data.registerIdentifiedPeptide(pep);
+          IdentificationData::ObservationMatch obs_match{pep_ref, obs_ref, it->second.getHits()[0].getCharge()}; //TODO add processing steps?
+          c++;
         }
         std::cout << "TRANSFERRING " << c << "IDs" << std::endl;
       }
@@ -1155,7 +1167,6 @@ protected:
         IdXMLFile().store("debug_fraction_" + String(ms_files.first) + "_IDs_after_transfer.idXML", protein_ids, peptide_ids);
       }
 
-      IdentificationData id_data, id_data_ext;
       IdentificationDataConverter::importIDs(id_data, protein_ids, peptide_ids);
       IdentificationDataConverter::importIDs(id_data_ext, ext_protein_ids, ext_peptide_ids);
 /*      for (const auto& obs_match : id_data.getObservationMatches())
