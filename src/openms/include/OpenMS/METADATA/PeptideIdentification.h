@@ -167,9 +167,26 @@ public:
     /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
-    //TODO: beschreibung noch schreiben
+      /**
+        @brief ASHORTDESCRIPTION_HERE
+
+        LONGER_DESCRIPTION HERE
+
+        @param cmap ConsensusMap for purpose XYZ...
+
+        @return Returns true if ...
+      */
     static std::multimap<String, std::pair<Size, Size>> fillConsensusPepIDMap(const ConsensusMap &cmap);
 
+      /**
+        @brief ASHORTDESCRIPTION_HERE
+
+        LONGER_DESCRIPTION HERE
+
+        @param cmap ConsensusMap for purpose XYZ...
+
+        @return Returns true if ...
+      */
     static String buildUIDFromPepID(const PeptideIdentification& pep_id,
                                     const std::map<String, StringList>& fidentifier_to_msrunpath);
 

@@ -43,7 +43,7 @@
 
 using namespace OpenMS;
 
-MQEvidence::MQEvidence(const std::string &p)
+MQEvidence::MQEvidence(const String &p)
 {
     if(p.empty())
     {
