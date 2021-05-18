@@ -300,7 +300,6 @@ namespace OpenMS
 
     averagine_ = solver_.estimateFromPeptideWeight(mass);
     IsotopeDistribution::ContainerType help(averagine_.getContainer());
-    IsotopeDistribution::ContainerType::iterator iter;
 
     if (size != nullptr)
     {

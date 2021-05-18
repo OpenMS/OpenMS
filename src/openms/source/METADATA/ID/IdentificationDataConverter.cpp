@@ -202,18 +202,45 @@ namespace OpenMS
       const String& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step.at(id);
       ID::Observation obs(""); // fill in "data_id" later
-      if (!step_ref->input_file_refs.empty())
+      if (!pep.getBaseName().empty())
       {
-        // @TODO: what if there's more than one input file?
-        obs.input_file_opt = step_ref->input_file_refs[0];
+        const auto file_ref = id_data.registerInputFile(ID::InputFile(pep.getBaseName()));
+        obs.input_file_opt = file_ref;
       }
       else
       {
-        String file = "UNKNOWN_INPUT_FILE_" + id;
-        ID::InputFileRef file_ref =
-          id_data.registerInputFile(ID::InputFile(file));
-        obs.input_file_opt = file_ref;
+        if (!step_ref->input_file_refs.empty())
+        {
+          if (step_ref->input_file_refs.size() > 1)
+          {
+            if (pep.metaValueExists("id_merge_idx"))
+            {
+              obs.input_file_opt = step_ref->input_file_refs[pep.getMetaValue("id_merge_idx")];
+            }
+            else
+            {
+              throw Exception::ElementNotFound(
+                  __FILE__,
+                  __LINE__,
+                  OPENMS_PRETTY_FUNCTION,
+                  "Multiple file origins in ProteinIdentification Run but no 'id_merge_idx' metavalue in PeptideIdentification."
+                  );
+            }
+          }
+          else // one file in the ProteinIdentification Run only
+          {
+            obs.input_file_opt = step_ref->input_file_refs[0];
+          }
+        }
+        else
+        {
+          String file = "UNKNOWN_INPUT_FILE_" + id;
+          ID::InputFileRef file_ref =
+              id_data.registerInputFile(ID::InputFile(file));
+          obs.input_file_opt = file_ref;
+        }
       }
+
       obs.rt = pep.getRT();
       obs.mz = pep.getMZ();
       obs.addMetaValues(pep);
