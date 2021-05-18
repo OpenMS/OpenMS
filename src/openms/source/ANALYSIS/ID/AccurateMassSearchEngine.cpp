@@ -1202,7 +1202,7 @@ namespace OpenMS
     // database names might have changed, so parse files again before next query
     is_initialized_ = false;
 
-    legacyID_ = (String)param_.getValue("id_format") == "legacy";
+    legacyID_ = param_.getValue("id_format") == "legacy";
   }
 
 /// private methods
