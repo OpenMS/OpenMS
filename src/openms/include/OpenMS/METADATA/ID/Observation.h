@@ -34,7 +34,9 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -51,27 +53,26 @@ namespace OpenMS
     */
     struct Observation: public MetaInfoInterface
     {
-      /// Spectrum or feature ID (from the file referenced by @t input_file_opt)
+      /// Spectrum or feature ID (from the file referenced by @t input_file)
       String data_id;
 
-      /// (Optional) reference to the input file
-      boost::optional<InputFileRef> input_file_opt;
-      // @TODO: make this non-optional (i.e. required)?
+      /// Reference to the input file
+      InputFileRef input_file;
 
       double rt, mz; //< Position
 
       /// Constructor
       explicit Observation(
         const String& data_id,
-        boost::optional<InputFileRef> input_file_opt = boost::none,
+        const InputFileRef& input_file,
         double rt = std::numeric_limits<double>::quiet_NaN(),
         double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
+        data_id(data_id), input_file(input_file), rt(rt), mz(mz)
       {
       }
 
       /// Merge in data from another object
-      Observation& operator+=(const Observation& other)
+      Observation& merge(const Observation& other)
       {
         // merge meta info - existing entries may be overwritten:
         std::vector<UInt> keys;
@@ -93,8 +94,8 @@ namespace OpenMS
         boost::multi_index::ordered_unique<
           boost::multi_index::composite_key<
             Observation,
-            boost::multi_index::member<Observation, boost::optional<InputFileRef>,
-                                       &Observation::input_file_opt>,
+            boost::multi_index::member<Observation, InputFileRef,
+                                       &Observation::input_file>,
             boost::multi_index::member<Observation, String,
                                        &Observation::data_id>>>>
       > Observations;

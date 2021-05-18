@@ -2997,10 +2997,11 @@ protected:
     bool cluster_flag = getFlag_("cluster");
 
     // read descriptions from FASTA and create map for fast annotation
-    OPENMS_LOG_INFO << "loading sequences..." << endl;
     String in_fasta = getStringOption_("in_fasta");
     vector<FASTAFile::FASTAEntry> fasta_entries;
-    FASTAFile::load(in_fasta, fasta_entries);
+    FASTAFile fasta_file;
+    fasta_file.setLogType(log_type_);
+    fasta_file.load(in_fasta, fasta_entries);
     map<String, String> proteinid_to_description;
     for (vector<FASTAFile::FASTAEntry>::const_iterator it = fasta_entries.begin(); it != fasta_entries.end(); ++it)
     {

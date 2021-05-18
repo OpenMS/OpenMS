@@ -157,6 +157,9 @@ public:
     /// Copy constructor
     OPENMS_DLLAPI FeatureMap(const FeatureMap& source);
 
+    /// Move constructor
+    OPENMS_DLLAPI FeatureMap(FeatureMap&& source);
+
     /// Destructor
     OPENMS_DLLAPI ~FeatureMap() override;
     //@}

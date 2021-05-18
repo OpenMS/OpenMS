@@ -99,11 +99,33 @@ namespace OpenMS
 
       ObservationMatch(const ObservationMatch&) = default;
 
-      ObservationMatch& operator+=(const ObservationMatch& other)
+      ObservationMatch& merge(const ObservationMatch& other)
       {
-        ScoredProcessingResult::operator+=(other);
-        if (charge == 0) charge = other.charge;
-        if (!adduct_opt) adduct_opt = other.adduct_opt;
+        ScoredProcessingResult::merge(other);
+        if (charge == 0) 
+        {
+          charge = other.charge;
+        }
+        else if (charge != other.charge)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, 
+                                        "Trying to overwrite ObservationMatch charge with conflicting value.", 
+                                        String(charge));
+        }
+
+        if (!adduct_opt) 
+        {
+          adduct_opt = other.adduct_opt;
+        }
+        else if (adduct_opt != other.adduct_opt)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, 
+                                        "Trying to overwrite ObservationMatch adduct_opt with conflicting value.", 
+                                        (*adduct_opt)->getName());
+        }
+
         peak_annotations.insert(other.peak_annotations.begin(),
                                 other.peak_annotations.end());
         return *this;

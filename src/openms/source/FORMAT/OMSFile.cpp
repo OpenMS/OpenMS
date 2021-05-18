@@ -707,7 +707,7 @@ namespace OpenMS
     createTable_("ID_Observation",
                  "id INTEGER PRIMARY KEY NOT NULL, "                    \
                  "data_id TEXT NOT NULL, "                              \
-                 "input_file_id INTEGER, "                              \
+                 "input_file_id INTEGER NOT NULL, "                     \
                  "rt REAL, "                                            \
                  "mz REAL, "                                            \
                  "UNIQUE (data_id, input_file_id), "                    \
@@ -724,14 +724,8 @@ namespace OpenMS
     {
       query.bindValue(":id", Key(&obs)); // use address as primary key
       query.bindValue(":data_id", obs.data_id.toQString());
-      if (obs.input_file_opt)
-      {
-        query.bindValue(":input_file_id", Key(&(**obs.input_file_opt)));
-      }
-      else
-      {
-        query.bindValue(":input_file_id", QVariant(QVariant::String)); // NULL
-      }
+      query.bindValue(":input_file_id", Key(&(*obs.input_file)));
+
       if (obs.rt == obs.rt)
       {
         query.bindValue(":rt", obs.rt);
@@ -1158,6 +1152,9 @@ namespace OpenMS
         return Key(&(*molecule_var.getIdentifiedCompoundRef()));
       case ID::MoleculeType::RNA:
         return Key(&(*molecule_var.getIdentifiedOligoRef()));
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -1995,12 +1992,9 @@ namespace OpenMS
 
     while (query.next())
     {
-      ID::Observation obs(query.value("data_id").toString());
       QVariant input_file_id = query.value("input_file_id");
-      if (!input_file_id.isNull())
-      {
-        obs.input_file_opt = input_file_refs_[input_file_id.toLongLong()];
-      }
+      ID::Observation obs(query.value("data_id").toString(),
+                          input_file_refs_[input_file_id.toLongLong()]);
       QVariant rt = query.value("rt");
       if (!rt.isNull()) obs.rt = rt.toDouble();
       QVariant mz = query.value("mz");

@@ -95,7 +95,7 @@ namespace OpenMS
   IdentificationData::InputFileRef
   IdentificationData::registerInputFile(const InputFile& file)
   {
-    if (!no_checks_ && file.name.empty())
+    if (!no_checks_ && file.name.empty()) // key may not be empty
     {
       String msg = "input file must have a name";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -106,7 +106,7 @@ namespace OpenMS
     {
       input_files_.modify(result.first, [&file](InputFile& existing)
                           {
-                            existing += file;
+                            existing.merge(file);
                           });
     }
 
@@ -216,20 +216,23 @@ namespace OpenMS
   IdentificationData::ObservationRef
   IdentificationData::registerObservation(const Observation& obs)
   {
-    // reference to spectrum or feature is required:
-    if (!no_checks_ && obs.data_id.empty())
+
+    if (!no_checks_)
     {
-      String msg = "missing identifier in observation";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
-    }
-    // ref. to input file may be missing, but must otherwise be valid:
-    if (!no_checks_ && obs.input_file_opt &&
-        !isValidReference_(*obs.input_file_opt, input_files_))
-    {
-      String msg = "invalid reference to an input file - register that first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      // reference to spectrum or feature is required:
+      if (obs.data_id.empty())
+      {
+        String msg = "missing identifier in observation";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      // ref. to input file must be valid:
+      if (!isValidReference_(obs.input_file, input_files_))
+      {
+        String msg = "invalid reference to an input file - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
     }
 
     // can't use "insertIntoMultiIndex_" because Observation doesn't have the
@@ -239,7 +242,7 @@ namespace OpenMS
     {
       observations_.modify(result.first, [&obs](Observation& existing)
                            {
-                             existing += obs;
+                             existing.merge(obs);
                            });
     }
 
@@ -510,35 +513,45 @@ namespace OpenMS
 
 
   vector<IdentificationData::ObservationMatchRef>
-  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref) const
+  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
+                                                 bool require_score) const
   {
     vector<ObservationMatchRef> results;
     pair<double, bool> best_score = make_pair(0.0, false);
     ObservationMatchRef best_ref = observation_matches_.end();
+    Size n_matches = 1; // number of matches for current observation
+    // matches for same observation appear consecutively, so just iterate:
     for (ObservationMatchRef ref = observation_matches_.begin();
-         ref != observation_matches_.end(); ++ref)
+         ref != observation_matches_.end(); ++ref, ++n_matches)
     {
       pair<double, bool> current_score = ref->getScore(score_ref);
-      if ((best_ref != observation_matches_.end()) &&
-          (ref->observation_ref != best_ref->observation_ref))
+      if (current_score.second && (!best_score.second ||
+                                   score_ref->isBetterScore(current_score.first,
+                                                           best_score.first)))
       {
-        // finalize previous query:
-        if (best_score.second) results.push_back(best_ref);
+        // new best score for the current observation:
         best_score = current_score;
         best_ref = ref;
       }
-      else if (current_score.second &&
-               (!best_score.second ||
-                score_ref->isBetterScore(current_score.first,
-                                         best_score.first)))
+      // peek ahead:
+      ObservationMatchRef next = ref;
+      ++next;
+      if ((next == observation_matches_.end()) ||
+          (next->observation_ref != ref->observation_ref))
       {
-        // new best score for the current query:
-        best_score = current_score;
-        best_ref = ref;
+        // last match for this observation - finalize:
+        if (best_score.second)
+        {
+          results.push_back(best_ref);
+        }
+        else if (!require_score && (n_matches == 1))
+        {
+          results.push_back(ref); // only match for this observation
+        }
+        best_score.second = false;
+        n_matches = 0; // will be incremented by for-loop
       }
     }
-    // finalize last query:
-    if (best_score.second) results.push_back(best_ref);
 
     return results;
   }
@@ -962,10 +975,7 @@ namespace OpenMS
     {
       // update internal references:
       Observation copy = *other_ref;
-      if (copy.input_file_opt)
-      {
-        copy.input_file_opt = trans.input_file_refs[*copy.input_file_opt];
-      }
+      copy.input_file = trans.input_file_refs[copy.input_file];
       trans.observation_refs[other_ref] = registerObservation(copy);
     }
     // parent sequences:

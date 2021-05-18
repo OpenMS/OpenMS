@@ -118,7 +118,7 @@ namespace OpenMS
     defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
 
     defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
-    defaults_.setValidStrings("q_try", ListUtils::create<String>("feature,heuristic,all"));
+    defaults_.setValidStrings("q_try", {"feature","heuristic","all"});
 
     defaults_.setValue("retention_max_diff", 1.0, "Maximum allowed RT difference between any two features if their relation shall be determined");
     defaults_.setValue("retention_max_diff_local", 1.0, "Maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
@@ -126,10 +126,10 @@ namespace OpenMS
     defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass tolerance per feature. Defines a symmetric tolerance window around the feature. When looking at possible feature pairs, the allowed feature-wise errors are combined for consideration of possible adduct shifts. For ppm tolerances, each window is based on the respective observed feature mz (instead of putative experimental mzs causing the observed one)!");
     defaults_.setMinFloat("mass_max_diff", 0.0);
     defaults_.setValue("unit", "Da", "Unit of the 'max_difference' parameter");
-    defaults_.setValidStrings("unit", ListUtils::create<String>("Da,ppm"));
+    defaults_.setValidStrings("unit", {"Da","ppm"});
 
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
-    defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.4,Na:+:0.25,NH4:+:0.25,K:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
+    defaults_.setValue("potential_adducts", std::vector<std::string>{"H:+:0.4","Na:+:0.25","NH4:+:0.25","K:+:0.1","H-2O-1:0:0.05"}, "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("use_minority_bound", "true", "Prune the considered adduct transitions by transition probabilities.");
@@ -141,13 +141,13 @@ namespace OpenMS
     defaults_.setMaxFloat("min_rt_overlap", 1);
 
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
-    defaults_.setValidStrings("intensity_filter", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("intensity_filter", {"true","false"});
 
     defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");
 
-    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", ListUtils::create<String>("advanced"));
+    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", {"advanced"});
 
-    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", {"advanced"});
     defaults_.setMinInt("verbose_level", 0);
     defaults_.setMaxInt("verbose_level", 3);
 
@@ -158,8 +158,8 @@ namespace OpenMS
   {
     map_label_.clear();
     map_label_inverse_.clear();
-    map_label_inverse_[param_.getValue("default_map_label")] = 0; // default virtual map (for unlabeled experiments)
-    map_label_[0] = param_.getValue("default_map_label");
+    map_label_inverse_[param_.getValue("default_map_label").toString()] = 0; // default virtual map (for unlabeled experiments)
+    map_label_[0] = param_.getValue("default_map_label").toString();
 
     if (param_.getValue("q_try") == "feature")
       q_try_ = QFROMFEATURE;
@@ -169,7 +169,7 @@ namespace OpenMS
       q_try_ = QALL;
 
 
-    StringList potential_adducts_s = param_.getValue("potential_adducts");
+    StringList potential_adducts_s = ListUtils::toStringList<std::string>(param_.getValue("potential_adducts"));
     potential_adducts_.clear();
 
     bool had_nonzero_RT = false; // adducts with RT-shift > 0 ?
@@ -543,7 +543,7 @@ namespace OpenMS
             }
             else
             {
-              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid tolerance unit! " + String(param_.getValue("unit"))  + "\n");
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid tolerance unit! " + param_.getValue("unit").toString()  + "\n");
             }
 
             //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?

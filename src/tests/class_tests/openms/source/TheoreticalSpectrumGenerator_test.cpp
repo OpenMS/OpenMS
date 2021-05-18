@@ -474,6 +474,59 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
 
 END_SECTION
 
+START_SECTION(static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge))
+  MSSpectrum spec;
+  Precursor prec;
+
+  // Test CID/HCID
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::CID, AASequence::fromString("HFYLWCP"), 1);
+  ABORT_IF(spec.size() != 11);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 116.0706);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 219.0797);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 285.1346);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 405.1591);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 448.1979);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 518.2431);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 561.2819);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 681.3064);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 747.3613);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 828.3749);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 850.3704);
+
+  spec.clear(true);
+
+  // Test ECD/ETD
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::ECD, AASequence::fromString("HFYLWCP"), 1);
+  ABORT_IF(spec.size() != 11);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 99.044);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 202.0532);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 302.1611);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 388.1325);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 465.2244);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 501.2166);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 578.3085);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 664.2799);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 764.3878);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 811.3483);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 867.397);
+
+  spec.clear(true);
+
+  // Test precursor_charge > 2
+  spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::HCID, AASequence::fromString("PEP"), 3);
+  ABORT_IF(spec.size() != 6);
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 58.5389);
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 114.0549);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 116.0706);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 123.0602);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 227.1026);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 245.1131);
+
+  // Test not supported activation method
+  TEST_EXCEPTION(Exception::InvalidParameter, TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::SORI, AASequence::fromString("PEP"), 1));
+
+END_SECTION
+
 START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative element frequencies))
 {
   // this tests for the loss of CONH2 on Arginine, however it is not clear how

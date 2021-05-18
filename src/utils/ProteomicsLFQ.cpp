@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MSstatsFile.h>
 #include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
@@ -310,6 +311,15 @@ protected:
     registerFullParam_(combined);
   }
 
+  bool checkPepID_(const PeptideIdentification& id){
+    if (fabs(id.getMZ() - id.getHits()[0].getSequence().getMZ(id.getHits()[0].getCharge())) > 3)
+    {
+      std::cerr << "Something went terribly wrong for id " + id.getHits()[0].getSequence().toString() << std::endl;
+      return false;
+    }
+    return true;
+  }
+
   // Map between mzML file and corresponding id file
   // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
@@ -538,7 +548,7 @@ protected:
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
       Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
-      String model_type = model_params.getValue("type");
+      String model_type = model_params.getValue("type").toString();
       model_params = model_params.copy(model_type + ":", true);
 
       try
@@ -568,7 +578,7 @@ protected:
         if (getFlag_("force"))
         {
           OPENMS_LOG_ERROR
-            << "Error: alignment failed. Details:\n" << err.getMessage()
+            << "Error: alignment failed. Details:\n" << err.what()
             << "\nProcessing will continue using 'identity' transformations."
             << endl;
           model_type = "identity";
@@ -639,7 +649,7 @@ protected:
             transformations[i]);
         } catch (Exception::IllegalArgument& e)
         {
-          OPENMS_LOG_WARN << e.getMessage() << endl;
+          OPENMS_LOG_WARN << e.what() << endl;
         }
 
         if (debug_level_ > 666)
@@ -1057,6 +1067,7 @@ protected:
       //////////////////////////////////////////////////////
       // Transfer aligned IDs
       //////////////////////////////////////////////////////
+      Size c = 0;
       if (!transfered_ids.empty())
       {
         OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.")
@@ -1071,8 +1082,12 @@ protected:
         {
            PeptideIdentification trans = it->second;
            trans.setIdentifier(protein_ids[0].getIdentifier());
+           //TODO carry over proteins, carry over File info, or pass it otherwise to FFID!
+           // otherwise we might have an invalid idXML with missing proteins and overlapping spectrum_refs
            peptide_ids.push_back(trans);
+           c++;
         }
+        std::cout << "TRANSFERRING " << c << "IDs" << std::endl;
       }
 
       //////////////////////////////////////////
@@ -1093,10 +1108,13 @@ protected:
       StringList sl;
       sl.push_back(mz_file);
       seeds.setPrimaryMSRunPath(sl);
+      seeds.setLoadedFilePath(sl[0]); // fills path in DocumentIdentifier - needed in function convertSeeds
 
       if (getStringOption_("targeted_only") == "false")
       {
-        calculateSeeds_(ms_centroided, seeds, median_fwhm);
+        calculateSeeds_(ms_centroided, seeds, median_fwhm); // resets LoadedFilePath()
+        seeds.setPrimaryMSRunPath(sl);
+        seeds.setLoadedFilePath(sl[0]);
         if (debug_level_ > 666)
         {
           FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
@@ -1110,6 +1128,7 @@ protected:
       StringList feature_msfile_ref;
       feature_msfile_ref.push_back(mz_file);
       fm.setPrimaryMSRunPath(feature_msfile_ref);
+      fm.setLoadedFilePath(feature_msfile_ref[0]);
 
       FeatureFinderIdentificationAlgorithm ffi;
       ffi.getMSData().swap(ms_centroided);
@@ -1124,19 +1143,50 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
+      bool ok = true;
+      for (const auto& id : peptide_ids)
+      {
+        ok &= checkPepID_(id);
+      }
+      if(!ok) std::cerr << "ALREADY WRONG BEFORE IMPORT" << std::endl;
+
+      if (c > 0)
+      {
+        IdXMLFile().store("debug_fraction_" + String(ms_files.first) + "_IDs_after_transfer.idXML", protein_ids, peptide_ids);
+      }
+
       IdentificationData id_data, id_data_ext;
       IdentificationDataConverter::importIDs(id_data, protein_ids, peptide_ids);
       IdentificationDataConverter::importIDs(id_data_ext, ext_protein_ids, ext_peptide_ids);
-      if (!seeds.empty()) ffi.convertSeeds(seeds, id_data);
+/*      for (const auto& obs_match : id_data.getObservationMatches())
+      {
+        const auto& pep_ref = obs_match.identified_molecule_var.getIdentifiedPeptideRef();
+        if (fabs(obs_match.observation_ref->mz - pep_ref->sequence.getMZ(obs_match.charge)) > 3)
+        {
+          std::cerr << "STH WENT WRONG WITH " << pep_ref->sequence.toString() << std::endl;
+        }
+      }*/
 
-      FeatureMap tmp = fm;
-      ffi.run(tmp, id_data, id_data_ext);
+      if (!seeds.empty())
+      {
+        ffi.convertSeeds(seeds, id_data);
+      }
+
+      ffi.run(fm, id_data, id_data_ext);
+
       // convert IDs in feature map to Peptide-/ProteinIdentification:
-      IdentificationDataConverter::exportFeatureIDs(tmp);
+      IdentificationDataConverter::exportFeatureIDs(fm);
+
+      ok = true;
+      for (const auto& id : fm.getUnassignedPeptideIdentifications())
+      {
+        ok &= checkPepID_(id);
+      }
+      if(!ok) std::cerr << "WRONG" << std::endl;
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
-      for (auto & f : tmp)
+      for (auto & f : fm)
       {
         //TODO keep FWHM meta value for QC
         f.clearMetaInfo();
@@ -1144,10 +1194,17 @@ protected:
         f.setConvexHulls({});
       }
 
-      IDConflictResolverAlgorithm::resolve(tmp,
+      IDConflictResolverAlgorithm::resolve(fm,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
 
-      feature_maps.push_back(tmp);
+      ok = true;
+      for (const auto& id : fm.getUnassignedPeptideIdentifications())
+      {
+        ok &= checkPepID_(id);
+      }
+      if(!ok) std::cerr << "WRONG" << std::endl;
+
+      feature_maps.push_back(std::move(fm));
 
       if (debug_level_ > 666)
       {
@@ -1214,6 +1271,13 @@ protected:
 
     // sort list of peptide identifications in each consensus feature by map index
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
+
+    bool ok = true;
+    for (const auto& id : consensus_fraction.getUnassignedPeptideIdentifications())
+    {
+      ok &= checkPepID_(id);
+    }
+    if(!ok) std::cerr << "WRONG after fraction linking" << std::endl; 
 
     if (debug_level_ >= 666)
     {
@@ -1394,14 +1458,8 @@ protected:
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
     if (greedy_group_resolution)
     {
-      PeptideProteinResolution ppr{};
-      ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
-      ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
-      // TODO maybe move the removal as an option into the PPResolution class
+      PeptideProteinResolution::run(inferred_protein_ids, inferred_peptide_ids);
       // TODO add an option to calculate FDR including those "second best protein hits"?
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
       if (debug_level_ >= 666)
       {
         IdXMLFile().store("debug_mergedIDsGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
@@ -1714,7 +1772,7 @@ protected:
 
         if (e != EXECUTION_OK) { return e; }
 
-        if (getStringOption_("transfer_ids") != "false")
+        if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
         {
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
           // needs to occur in >= 50% of all runs for transfer
@@ -1816,6 +1874,13 @@ protected:
         }
       }
     }
+
+    bool ok = true;
+    for (const auto& id : consensus.getUnassignedPeptideIdentifications())
+    {
+      ok &= checkPepID_(id);
+    }
+    if(!ok) std::cerr << "WRONG after linking" << std::endl;
 
     //-------------------------------------------------------------
     // ID related algorithms

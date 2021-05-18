@@ -132,6 +132,9 @@ namespace OpenMS
             return getIdentifiedCompoundRef()->identifier; // or use "name"?
           case MoleculeType::RNA:
             return getIdentifiedOligoRef()->sequence.toString();
+          default:
+            throw Exception::NotImplemented(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION);
         }
       }
 
@@ -139,21 +142,24 @@ namespace OpenMS
       {
         switch (getMoleculeType())
         {
-        case MoleculeType::PROTEIN:
-        {
-          auto type = static_cast<Residue::ResidueType>(fragment_type);
-          return getIdentifiedPeptideRef()->sequence.getFormula(type, charge);
-        }
-        case MoleculeType::COMPOUND:
-        {
-          // @TODO: what about fragment type and charge?
-          return getIdentifiedCompoundRef()->formula;
-        }
-        case MoleculeType::RNA:
-        {
-          auto type = static_cast<NASequence::NASFragmentType>(fragment_type);
-          return getIdentifiedOligoRef()->sequence.getFormula(type, charge);
-        }
+          case MoleculeType::PROTEIN:
+          {
+            auto type = static_cast<Residue::ResidueType>(fragment_type);
+            return getIdentifiedPeptideRef()->sequence.getFormula(type, charge);
+          }
+          case MoleculeType::COMPOUND:
+          {
+            // @TODO: what about fragment type and charge?
+            return getIdentifiedCompoundRef()->formula;
+          }
+          case MoleculeType::RNA:
+          {
+            auto type = static_cast<NASequence::NASFragmentType>(fragment_type);
+            return getIdentifiedOligoRef()->sequence.getFormula(type, charge);
+          }
+          default:
+            throw Exception::NotImplemented(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION);
         }
       }
 

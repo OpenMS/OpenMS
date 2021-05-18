@@ -32,11 +32,10 @@
 
     <b>Pre-Requisites (Software)</b>
     <ul>
-      <li><b>Visual Studio</b>: VS2015 and above are supported, but we thoroughly recommend <b>VS2019</b> (faster compilation, faster executables and it fixes a bug in OpenMP multithreading - see <a href="https://github.com/OpenMS/OpenMS/issues/4389" target="_new">issue #4389</a>).
-             The C++ Express editions should work as well, we tested VSE2015 Update 3.
-        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier, due to missing C11 support). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
+      <li><b>Visual Studio</b>: Microsoft Visual Studio (Community) 2019 or above
+        <br><b>Not supported are MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li><b>CMake</b>: Have at least CMake 3.1 or greater installed (see http://www.cmake.org). For building with our contrib package please use 3.14+. <br>
+      <li><b>CMake</b>: Have at least CMake 3.14+ or greater installed (see http://www.cmake.org). <br>
 	      CMake's Generator (-G flag) also must support your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
@@ -51,7 +50,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, SeqAn, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -65,6 +64,7 @@
     If you plan to use the development version of %OpenMS, clone %OpenMS and checkout the optional contrib submodule with
     \code
     git clone https://github.com/OpenMS/OpenMS
+    cd OpenMS
     git submodule update --init contrib
     \endcode
     to obtain the latest potentially unstable version.
@@ -258,7 +258,7 @@
     Be aware that the order of directories in the PATH variable determines which dll or executable is used, if no absolute path was given when the executable was called.
     So the PATH might need to be updated (add/delete/reorder entries) if you are working with multiple installations or configurations of %OpenMS.
 
-    @section install_win_topp Building the TOPP tools
+  @section install_win_topp Building the TOPP tools
 
     TOPP is a toolset for the analysis of HPLC-MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
     <br>
@@ -269,34 +269,73 @@
 
   @section install_win_testing_openms Testing your OpenMS/TOPP installation
 
-  Each class in %OpenMS and each TOPP tool has a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
-  go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
-  For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
-  You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
-  Single tests can be run with <tt>ctest -R &lt;testnameregex&gt;</tt>, e.g. <tt>ctest -R Base64_test</tt>.
-  For more syntax on CTest look at the online documentation at http://cmake.org/.
+    Each class in %OpenMS and each TOPP tool has a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
+    go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
+    For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
+    You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
+    Single tests can be run with <tt>ctest -R &lt;testnameregex&gt;</tt>, e.g. <tt>ctest -R Base64_test</tt>.
+    For more syntax on CTest look at the online documentation at http://cmake.org/.
 
   @section install_win_cmdline_openms Building OpenMS on the commandline
 
-  The Visual Studio solution files can contain many targets, which makes the IDE a bit sluggish especially when starting up the first time.
-  The %OpenMS class tests are by far the largest.
+    The Visual Studio solution files can contain many targets, which makes the IDE a bit sluggish especially when starting up the first time.
+    The %OpenMS class tests are by far the largest.
 
-  If you just want to compile the library or executables, it's usually faster to use the commandline. Visual Studio solution files can be used here as well,
-  as arguments to <tt>MSBuild.exe</tt>, e.g.
+    If you just want to compile the library or executables, it's usually faster to use the commandline. Visual Studio solution files can be used here as well,
+    as arguments to <tt>MSBuild.exe</tt>, e.g.
+    \code
+    MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
+    \endcode
+  
+  Example:
   \code
-  MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
+  MSBuild.exe OpenMS_host.sln
   \endcode
 
-  @note Since the call can be a bit lengthy, there is a batch file in
-  <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
-  there by cmake for convenience), which allows to build the most important
-  targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
-  notation. Call it without arguments to see its usage help text. For example
-  to build only the %OpenMS library in release mode, call
+    @note Since the call can be a bit lengthy, there is a batch file in
+    <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
+    there by cmake for convenience), which allows to build the most important
+    targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
+    notation. Call it without arguments to see its usage help text. For example
+    to build only the %OpenMS library in release mode, call
 
-  \code
-  build OpenMS r
-  \endcode
+    \code
+    build OpenMS r
+    \endcode
 
+  @section install_win_create_installer Creating an installer 
+  
+    <ol>
+      <li> Download <a href="https://sourceforge.net/projects/nsis/" target="_blank">NSIS</a> (we tested nsis-3.06.1 successfully) and extract it somewhere
 
+      <li> Install the <a href="https://nsis.sourceforge.io/Special_Builds" target="_blank">large-string-build NSIS installer</a> on top (just extract into the same directory as NSIS; and use a matching version!).
+           This is required for PATH manipulation of up to 8k length; the default NSIS handles up to 1k strings, which might be too short and potentially leads to a broken PATH environment variable.
+      
+      <li> Install the <a href="https://github.com/SuperPat45/UltraModernUI" target="_blank">UltraModernUI-plugin</a> on top (just extract into the same directory as NSIS). 
+           We tested <a href="https://github.com/SuperPat45/UltraModernUI/releases/tag/2.0b6" target="_blank">version 2.0b6</a> successfully.
+
+      <li> Add the NSIS folder (which contains 'makensis.exe') to your PATH, so CMake can find it.
+
+      <li> Checkout the <a href="https://github.com/OpenMS/THIRDPARTY" target="_blank">THIRDPARTY GitHub Repository</a> and flatten the structure for the target platform, e.g. copy all subdirectories in <tt>./all/</tt> to <tt>./Windows/64bit/</tt>.
+
+      <li> Configure %OpenMS as usual with additional flags <tt>SEARCH_ENGINES_DIRECTORY</tt> (for the flattened THIRDPARTY directory) and <tt>PACKAGE_TYPE="nsis"</tt>, 
+      e.g.
+      \code
+      cd <build-tree>
+      cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
+      \endcode
+      
+      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <code>[OpenMS_build]\bin\Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
+      \code
+      cd <build-tree>
+      build.bat - r
+      \endcode
+
+      <li> Create the installer package
+      \code
+      cd <build-tree>
+      cmake --build . --target dist
+      \endcode
+    </ol>
+  
 */

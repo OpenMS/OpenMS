@@ -43,7 +43,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
@@ -54,7 +53,6 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
-#include <random>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -70,12 +68,12 @@ namespace OpenMS
     DefaultParamHandler("FeatureFinderIdentificationAlgorithm"),
     n_internal_targets_(0), n_external_targets_(0), n_seed_targets_(0)
   {
-    StringList output_file_tags;
+    std::vector<std::string> output_file_tags;
     output_file_tags.push_back("output file");
 
     defaults_.setValue("candidates_out", "", "Optional output file with feature candidates.", output_file_tags);
 
-    defaults_.setValue("debug", 0, "Debug level for feature detection.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("debug", 0, "Debug level for feature detection.", {"advanced"});
     defaults_.setMinInt("debug", 0);
 
     defaults_.setValue("extract:batch_size", 5000, "Number of target molecules to consider in each batch of chromatogram extraction."
@@ -86,15 +84,15 @@ namespace OpenMS
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each target molecule assay.");
     defaults_.setMinInt("extract:n_isotopes", 2);
     defaults_.setValue("extract:max_isotopes", "false", "Be default, isotopes are extracted starting from the monoisotope. Set this flag to extract the most abundant isotopes instead. (Not relevant if advanced parameter 'extract:isotope_pmin' is used.)");
-    defaults_.setValidStrings("extract:max_isotopes", ListUtils::create<String>("true,false"));
-    defaults_.setValue("extract:isotope_pmin", 0.0, "Minimum probability for an isotope to be included in the assay for a molecule. If set, this parameter takes precedence over 'extract:n_isotopes'.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("extract:max_isotopes", {"true", "false"});
+    defaults_.setValue("extract:isotope_pmin", 0.0, "Minimum probability for an isotope to be included in the assay for a molecule. If set, this parameter takes precedence over 'extract:n_isotopes'.", {"advanced"});
     defaults_.setMinFloat("extract:isotope_pmin", 0.0);
     defaults_.setMaxFloat("extract:isotope_pmin", 1.0);
     defaults_.setValue(
       "extract:rt_quantile",
       0.95,
       "Quantile of the RT deviations between aligned internal and external IDs to use for scaling the RT extraction window",
-      ListUtils::create<String>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("extract:rt_quantile", 0.0);
     defaults_.setMaxFloat("extract:rt_quantile", 1.0);
 
@@ -102,7 +100,7 @@ namespace OpenMS
       "extract:rt_window",
       0.0,
       "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.",
-      ListUtils::create<String>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
@@ -113,14 +111,14 @@ namespace OpenMS
       "detect:min_peak_width",
       0.2,
       "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.",
-      ListUtils::create<String>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("detect:min_peak_width", 0.0);
 
     defaults_.setValue(
       "detect:signal_to_noise",
       0.8,
       "Signal-to-noise threshold for OpenSWATH feature detection",
-       ListUtils::create<String>("advanced"));
+       {"advanced"});
     defaults_.setMinFloat("detect:signal_to_noise", 0.1);
     defaults_.setValue("detect:mapping_tolerance", 0.0, "RT tolerance (plus/minus) for mapping molecule IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.");
     defaults_.setMinFloat("detect:mapping_tolerance", 0.0);
@@ -131,13 +129,13 @@ namespace OpenMS
     defaults_.setValue("svm:samples", 0, "Number of observations to use for training ('0' for all)");
     defaults_.setMinInt("svm:samples", 0);
     defaults_.setValue("svm:no_selection", "false", "By default, roughly the same number of positive and negative observations, with the same intensity distribution, are selected for training. This aims to reduce biases, but also reduces the amount of training data. Set this flag to skip this procedure and consider all available observations (subject to 'svm:samples').");
-    defaults_.setValidStrings("svm:no_selection", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("svm:no_selection", {"true","false"});
     defaults_.setValue("svm:xval_out", "", "Output file: SVM cross-validation (parameter optimization) results", output_file_tags);
-    defaults_.setValidStrings("svm:xval_out", ListUtils::create<String>("csv"));
+    defaults_.setValidStrings("svm:xval_out", {"csv"});
     defaults_.insert("svm:", SimpleSVM().getParameters());
 
     defaults_.setValue("quantify_decoys", "false", "Whether decoy peptides should be quantified (true) or skipped (false).");
-    defaults_.setValidStrings("quantify_decoys", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("quantify_decoys", {"true","false"});
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
@@ -149,20 +147,20 @@ namespace OpenMS
       "svm:predictors",
       score_metavalues,
       "Names of OpenSWATH scores to use as predictors for the SVM (comma-separated list)",
-      ListUtils::create<String>("advanced"));
+      {"advanced"});
 
     defaults_.setValue(
       "svm:min_prob",
       0.0,
       "Minimum probability of correctness, as predicted by the SVM, required to retain a feature candidate",
-      ListUtils::create<String>("advanced"));
+      {"advanced"});
     defaults_.setMinFloat("svm:min_prob", 0.0);
     defaults_.setMaxFloat("svm:min_prob", 1.0);
 
     defaults_.setSectionDescription("svm", "Parameters for scoring features using a support vector machine (SVM)");
 
     // parameters for model fitting (via ElutionModelFitter):
-    StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
+    std::vector<std::string> models = {"symmetric","asymmetric","none"};
     defaults_.setValue("model:type", models[0], "Type of elution model to fit to features");
     defaults_.setValidStrings("model:type", models);
     defaults_.insert("model:", ElutionModelFitter().getParameters()); // copy parameters
@@ -407,7 +405,6 @@ namespace OpenMS
     }
   }
 
-
   // represent seeds in IdentificationData format
   void FeatureFinderIdentificationAlgorithm::convertSeeds(
     const FeatureMap& seeds, IdentificationData& id_data, Size n_overlap_traces)
@@ -417,8 +414,7 @@ namespace OpenMS
 
     ID::ProcessingSoftware software("FeatureFinderIdentification",
                                         VersionInfo::getVersion());
-    ID::ProcessingSoftwareRef sw_ref =
-      id_data.registerProcessingSoftware(software);
+    ID::ProcessingSoftwareRef sw_ref = id_data.registerProcessingSoftware(software);
     ID::InputFile input(seeds.getLoadedFilePath());
     ID::InputFileRef file_ref = id_data.registerInputFile(input);
     ID::ProcessingStep step(sw_ref, {file_ref});
@@ -454,7 +450,7 @@ namespace OpenMS
         // RT or MZ values of seed match in range -> target already exists -> don't add seed
         double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * ref->mz : mz_window_;
         if ((fabs(seed_rt - ref->rt) <= rt_tolerance) &&
-            any_of(isotopes_mz.begin(), isotopes_mz.end(), [=](double isotope_mz)
+            any_of(isotopes_mz.begin(), isotopes_mz.end(), [&](double isotope_mz)
             {
               return fabs(isotope_mz - ref->mz) <= th_tolerance;
             }))
@@ -495,17 +491,17 @@ namespace OpenMS
     OPENMS_LOG_INFO << seeds_added << " seeds without RT and m/z overlap with existing IDs added" << endl;
   }
 
-
   pair<String, Int> FeatureFinderIdentificationAlgorithm::extractTargetID_(
     const Feature& feature, bool extract_charge)
   {
-    String target_id = feature.getMetaValue("PeptideRef");
+    String target_id = feature.getMetaValue("PeptideRef"); // e.g. "PEP:XXXXX/2#1"
     Size pos_slash = target_id.rfind('/');
     Int charge = 0;
     if (extract_charge)
     {
       Size pos_hash = target_id.find('#', pos_slash + 2);
-      charge = target_id.substr(pos_slash + 1, pos_hash).toInt();
+      // second arg. to "substr" is "count", not "end_pos"!
+      charge = target_id.substr(pos_slash + 1, pos_hash - pos_slash - 1).toInt();
     }
     return make_pair(target_id.substr(0, pos_slash), charge);
   }
@@ -543,45 +539,11 @@ namespace OpenMS
       String target_id = extractTargetID_(feature).first;
       target_id = target_id.substr(target_id.find(':') + 1); // remove type prefix
       feature.setMetaValue("label", target_id);
-
-      if (feature.getPeptideIdentifications().empty())
-      {
-        // add "dummy" identification:
-        PeptideIdentification pep_id;
-        pep_id.setMetaValue("FFId_category", "inferred");
-        pep_id.setRT(feature.getRT());
-        pep_id.setMZ(feature.getMZ());
-        PeptideHit hit;
-        hit.setCharge(feature.getCharge());
-        String target_id = extractTargetID_(feature).first;
-        const TargetData& target_data = target_map_.at(target_id);
-        if (target_id.hasPrefix("PEP:")) // actual peptide
-        {
-          ID::IdentifiedPeptideRef ref = target_data.molecule.getIdentifiedPeptideRef();
-          hit.setSequence(ref->sequence);
-          IdentificationDataConverter::exportParentMatches(ref->parent_matches, hit);
-        }
-        else
-        {
-          hit.setMetaValue("label", target_data.molecule.toString());
-          if (target_id.hasPrefix("RNA:"))
-          {
-            ID::IdentifiedOligoRef ref = target_data.molecule.getIdentifiedOligoRef();
-            IdentificationDataConverter::exportParentMatches(ref->parent_matches, hit);
-          }
-        }
-        if (target_data.adduct) // adduct
-        {
-          hit.setMetaValue("adduct", (*target_data.adduct)->getName());
-        }
-        pep_id.insertHit(hit);
-        feature.getPeptideIdentifications().push_back(pep_id);
-      }
     }
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
 
-    //TODO MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
+    // TODO: MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
     // Would be nice if we could only do the fitting once, since it is one of the bottlenecks.
     // What is the intention of this post-processing here anyway? Does it filter anything?
     // If so, why not filter based on the corresponding Swath/MRM score?
@@ -1262,18 +1224,18 @@ namespace OpenMS
 
     mapping_tolerance_ = param_.getValue("detect:mapping_tolerance");
 
-    elution_model_ = param_.getValue("model:type");
+    elution_model_ = param_.getValue("model:type").toString();
     // SVM related parameters
     svm_min_prob_ = param_.getValue("svm:min_prob");
     svm_predictor_names_ = ListUtils::create<String>(param_.getValue("svm:predictors").toString());
-    svm_xval_out_ = param_.getValue("svm:xval_out");
+    svm_xval_out_ = param_.getValue("svm:xval_out").toString();
     svm_quality_cutoff = param_.getValue("svm:min_prob");
     svm_n_parts_ = param_.getValue("svm:xval");
     svm_n_samples_ = param_.getValue("svm:samples");
 
     // debug
     debug_level_ = param_.getValue("debug");
-    candidates_out_ = param_.getValue("candidates_out");
+    candidates_out_ = param_.getValue("candidates_out").toString();
 
     // quantification of decoys
     quantify_decoys_ = param_.getValue("quantify_decoys").toBool();
@@ -1486,7 +1448,7 @@ namespace OpenMS
     svm.setParameters(svm_params);
     svm.setup(predictors, training_labels);
     if (!svm_xval_out_.empty()) svm.writeXvalResults(svm_xval_out_);
-    if ((debug_level_ > 0) && String(svm_params.getValue("kernel")) == "linear")
+    if ((debug_level_ > 0) && svm_params.getValue("kernel") == "linear")
     {
       map<String, double> feature_weights;
       svm.getFeatureWeights(feature_weights);

@@ -501,8 +501,14 @@ namespace OpenMS
     /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
-    /// Return the best match for each observation, according to a given score type
-    std::vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const;
+    /*!
+      @brief Return the best match for each observation, according to a given score type
+
+      @param score_ref Score type to use
+      @param require_score Exclude matches without score of this type, even if they are the only matches for their observations?
+    */
+    std::vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref,
+                                                                bool require_score = false) const;
     // @TODO: this currently doesn't take molecule type into account - should it?
 
     /// Get range of matches (cf. @p equal_range) for a given observation
@@ -765,7 +771,7 @@ namespace OpenMS
       {
         container.modify(result.first, [&element](ElementType& existing)
                          {
-                           existing += element;
+                           existing.merge(element);
                          });
       }
 

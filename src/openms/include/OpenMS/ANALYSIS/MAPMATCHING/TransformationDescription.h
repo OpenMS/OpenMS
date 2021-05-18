@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iostream>
 #include <map>
@@ -79,7 +80,7 @@ public:
       // copy assignment
       TransformationStatistics& operator=(const TransformationStatistics& rhs) = default;
 
-      const std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};
+      std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};  // TODO: use constexpr array
       double xmin = 0; ///< smallest x value before transformation
       double xmax = 0; ///< largest x value before transformation
       double ymin = 0; ///< smallest y value before transformation

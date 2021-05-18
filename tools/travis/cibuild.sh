@@ -1,4 +1,5 @@
 #!/bin/bash
+export CI_PROVIDER="Travis-CI"
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
   bash tools/travis/lnx-cibuild.sh
 elif [ "$TRAVIS_OS_NAME" = "osx" ]; then

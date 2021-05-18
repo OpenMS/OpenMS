@@ -228,10 +228,7 @@ namespace OpenMS
       xsm.charge.set(match.charge);
       xsm.exp_mass_to_charge.set(query.mz);
       xsm.calc_mass_to_charge.set(calc_mass / abs(match.charge));
-      if (query.input_file_opt)
-      {
-        xsm.spectra_ref.setMSFile(file_map[*query.input_file_opt]);
-      }
+      xsm.spectra_ref.setMSFile(file_map[query.input_file]);
       xsm.spectra_ref.setSpecRef(query.data_id);
       // optional column for adduct:
       if (match.adduct_opt)
@@ -295,7 +292,7 @@ namespace OpenMS
                                      std::vector<PeptideIdentification>& peptides,
                                      Size& id_counter, bool clear_original);
 
-    static void handleFeatureExport_(Feature& feature, IntList indexes,
+    static void handleFeatureExport_(Feature& feature, const IntList& indexes,
                                      IdentificationData& id_data, Size& id_counter);
   };
 }

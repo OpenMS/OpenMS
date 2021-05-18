@@ -50,19 +50,19 @@ namespace OpenMS
     DefaultParamHandler("FalseDiscoveryRate")
   {
     defaults_.setValue("no_qvalues", "false", "If 'true' strict FDRs will be calculated instead of q-values (the default)");
-    defaults_.setValidStrings("no_qvalues", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("no_qvalues", {"true","false"});
     defaults_.setValue("use_all_hits", "false", "If 'true' not only the first hit, but all are used (peptides only)");
-    defaults_.setValidStrings("use_all_hits", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_all_hits", {"true","false"});
     defaults_.setValue("split_charge_variants", "false", "If 'true' charge variants are treated separately (for peptides of combined target/decoy searches only).");
-    defaults_.setValidStrings("split_charge_variants", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("split_charge_variants", {"true","false"});
     defaults_.setValue("treat_runs_separately", "false", "If 'true' different search runs are treated separately (for peptides of combined target/decoy searches only).");
-    defaults_.setValidStrings("treat_runs_separately", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("treat_runs_separately", {"true","false"});
     defaults_.setValue("add_decoy_peptides", "false", "If 'true' decoy peptides will be written to output file, too. The q-value is set to the closest target score.");
-    defaults_.setValidStrings("add_decoy_peptides", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_decoy_peptides", {"true","false"});
     defaults_.setValue("add_decoy_proteins", "false", "If 'true' decoy proteins will be written to output file, too. The q-value is set to the closest target score.");
-    defaults_.setValidStrings("add_decoy_proteins", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_decoy_proteins", {"true","false"});
     defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
-    defaults_.setValidStrings("conservative", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("conservative", {"true","false"});
     //defaults_.setValue("equality_epsilon", 0, "The epsilon under which two scores are considered equal.");
     //defaults_.setMinFloat("equality_epsilon", 0.0);
     defaultsToParam_();

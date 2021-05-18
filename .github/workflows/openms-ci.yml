@@ -1,0 +1,301 @@
+# This is a basic workflow to help you get started with Actions
+
+name: openms-ci
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ develop ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build-win:
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+
+    - name: Reduce PATH
+      run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.12.6' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
+        host: 'windows' # default: win64_msvc2017_64
+        target: 'desktop'
+        install-deps: 'true'
+        modules: 'qtsvg'
+        cached: 'false'
+
+    # https://github.com/marketplace/actions/visual-studio-shell
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+
+    - name: Cache contrib
+      id: cache-contrib-win
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/OpenMS/contrib
+        key: ${{ runner.os }}-contrib
+
+    - name: Load contrib build
+      if: steps.cache-contrib-win.outputs.cache-hit != 'true'
+      run: |
+          cd OpenMS/contrib
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
+          tar -xzf contribbld.tar.gz
+          rm contribbld.tar.gz
+
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      run: |
+        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
+        ref=${ref#"refs/heads/"}
+        ref=${ref#"refs/"}
+        ref=${ref//\//-}
+        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+      id: extract_branch
+    - name: Extract PR number
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      id: extract_pr
+      
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.8
+      with:
+        cmake-version: '3.20.x'
+        
+    - name: Tests windows
+      shell: bash
+      run: |
+          cmake --version
+          
+          #run openms tests
+          mkdir $GITHUB_WORKSPACE/OpenMS/bld/
+          ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
+
+          FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
+          if [ "$FAILED_TEST" -gt "0" ] ; then
+            echo "$FAILED_TEST tests failed"
+            exit -1
+          fi
+
+      env:
+          CMAKE_GENERATOR: "Visual Studio 16 2019"
+          CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          CI_PROVIDER: "GitHub-Actions"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Windows-testClass-testTOPP"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "ON"
+          ENABLE_CLASS_TESTING: "ON"
+          WITH_GUI: "ON"
+          ADDRESS_SANITIZER: "Off"
+          BUILD_TYPE: "Release"
+          OPENMP: "Off"
+          USE_STATIC_BOOST: "On"
+          BUILD_FLAGS: "-p:CL_MPCount=2"
+
+
+  build-macos:
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.12.7'
+        host: 'mac'
+        target: 'desktop'
+        install-deps: 'true'
+        modules: 'qtsvg'
+        cached: 'false'
+
+    - name: Install build tools
+      run: brew install autoconf automake libtool
+
+    - name: Cache contrib
+      id: cache-contrib-os
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/OpenMS/contrib
+        key: ${{ runner.os }}-contrib
+
+    - name: Load contrib build
+      if: steps.cache-contrib-os.outputs.cache-hit != 'true'
+      run: |
+          cd OpenMS/contrib
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
+          tar -xzf contribbld.tar.gz
+          rm contribbld.tar.gz
+
+    - name: Fix contrib install names
+      shell: bash 
+      run: |
+          for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
+          do
+            install_name_tool -id $lib $lib
+          done
+
+          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
+          pushd $Qt5_Dir/include
+            for f in $Qt5_Dir/lib/*.framework/Headers
+            do
+              lnknm=$(basename "${f%/*}" ".framework")
+              ln -s $f $lnknm
+            done
+            for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
+            do
+              install_name_tool -id $f $f
+            done
+            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
+          popd
+
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      run: |
+        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
+        ref=${ref#"refs/heads/"}
+        ref=${ref#"refs/"}
+        ref=${ref//\//-}
+        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+      id: extract_branch
+    - name: Extract PR number
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      id: extract_pr
+    - name: Build and test osx
+      run: |
+          export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
+          mkdir $GITHUB_WORKSPACE/OpenMS/bld/
+          ## TODO allow changing of ctest build site in cmake
+          ## TODO potentially parse some OS infos and add to build name
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+
+          FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
+          if [ "$FAILED_TEST" -gt "0" ] ; then
+            echo "$FAILED_TEST tests failed"
+            exit -1
+          fi
+      env:
+          CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_GENERATOR: "Unix Makefiles"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          BUILD_NAME: "${{ env.RUN_NAME }}-macOS-testClass-testTOPP"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "ON"
+          ENABLE_CLASS_TESTING: "ON"
+          WITH_GUI: "ON"
+          ADDRESS_SANITIZER: "Off"
+          BUILD_TYPE: "Release"
+          OPENMP: "On"
+          USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j3"
+
+  build-lnx:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container: openms/manylinux:latest
+
+    steps:
+    # Cancels older builds if still running
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+
+    - uses: actions/checkout@v2
+      name: Checkout sources
+      with:
+        path: OpenMS
+
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      run: |
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
+        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
+        ref=${ref#"refs/heads/"}
+        ref=${ref#"refs/"}
+        ref=${ref//\//-}
+        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+      id: extract_branch
+    - name: Extract PR number
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: |
+        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        yum -y install jq
+        echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      id: extract_pr
+      
+      #  open step log to get ssh access
+      #  If the CI has failed and the branch is ci-debug then start a tmate
+      #  session. SSH rendezvous point is emited continuously in the job output.
+      #  hack needed to fix apt dependency
+#    - name: "Debug: Package dependancies for tmate"
+#      run: |
+#        yum install -y xz
+#        ln -s /bin/true /bin/apt-get      
+#      
+#    - name: "Debug: Start tmate"
+#      uses: mxschmitt/action-tmate@v3.3
+#      with:
+#        limit-access-to-actor: true
+#        sudo: false
+
+    - name: Install Xvfb package
+      run: |
+            yum -y install xorg-x11-server-Xvfb
+ 
+    - name: Build and test lnx
+      run: |
+            export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
+            mkdir $GITHUB_WORKSPACE/OpenMS/bld/
+            ## TODO allow changing of ctest build site in cmake
+            ## TODO potentially parse some OS infos and add to build name
+            ## TODO allow changing Contrib path to get rid of the extra cmake file!
+            dbus-uuidgen > /var/lib/dbus/machine-id
+            xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+
+            FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
+            if [ "$FAILED_TEST" -gt "0" ] ; then
+              echo "$FAILED_TEST tests failed"
+              exit -1
+            fi
+
+      env:
+          CONTRIB_BUILD_DIRECTORY: "/contrib-build"
+          CI_PROVIDER: "GitHub-Actions"
+          CMAKE_GENERATOR: "Unix Makefiles"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
+          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
+          ENABLE_STYLE_TESTING: "OFF"
+          ENABLE_TOPP_TESTING: "ON"
+          ENABLE_CLASS_TESTING: "ON"
+          WITH_GUI: "ON"
+          ADDRESS_SANITIZER: "Off"
+          BUILD_TYPE: "Release"
+          OPENMP: "On"
+          USE_STATIC_BOOST: "Off"
+          BUILD_FLAGS: "-j2"

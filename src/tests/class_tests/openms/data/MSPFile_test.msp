@@ -92,3 +92,21 @@ Num peaks: 14
 1339.6	2514	"y13/-0.06 2/2 7.9"
 1410.0	1046	"b14/0.37 2/2 14.2"
 1522.6	4039	"b15/-0.12 2/2 33.2"
+
+Name: AAAAAAGAGPEMVR/2_2(0,A,Acetyl)(11,M,Oxidation)
+MW: 1301.6400
+Comment: Spec=Consensus Pep=Tryptic Mods=2(0,A,Acetyl)(11,M,Oxidation) Fullname=-.AAAAAAGAGPEMVR.G Charge=2 Parent=650.820 Inst=it Mz_diff=0.210 Mz_exact=650.8199 Mz_av=651.234 Protein="tr|A8CZ64|A8CZ64_HUMAN Extracellular signal-regulated kinase-2 splice variant [Homo sapiens]" Pse
+Num peaks: 97
+200.0   39      "a3/-0.12"
+300.1   258     "b3/-0.02,y2-H2O/-0.08"
+400.3   566     "?"
+500.3   94      "y4^2/-0.34"
+
+Name: AAAAAAVGPGAGGAGSAVPGGAGPCATVSVFPGAR/3_2(0,A,Acetyl)(24,C,CAM)
+MW: 2951.4800
+Comment: Spec=Consensus Pep=Tryptic Mods=2(0,A,Acetyl)(24,C,CAM) Fullname=-.AAAAAAVGPGAGGAGSAVPGGAGPCATVSVFPGAR.L Charge=3 Parent=983.827 Inst=it Mz_diff=0.343 Mz_exact=983.8266 Mz_av=984.434 Protein="sp|Q86X55|CARM1_HUMAN Histone-arginine methyltransferase CARM1 [Homo sapiens]" Pse
+Num peaks: 171
+300.0   285     "b4/-0.16"
+400.2   449     "b5/0.00"
+500.3   823     "?"
+600.2   866     "b6/-0.03"
