@@ -334,10 +334,7 @@ namespace OpenMS
           ID::ProcessingSoftwareRef software_ref =
             id_data.registerProcessingSoftware(software);
           ID::ProcessingStep sub_step(software_ref);
-          if (obs.input_file_opt)
-          {
-            sub_step.input_file_refs.push_back(*obs.input_file_opt);
-          }
+          sub_step.input_file_refs.push_back(obs.input_file);
           ID::ProcessingStepRef sub_step_ref =
             id_data.registerProcessingStep(sub_step);
           sub_applied.processing_step_opt = sub_step_ref;
