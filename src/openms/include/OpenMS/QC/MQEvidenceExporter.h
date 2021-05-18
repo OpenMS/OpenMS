@@ -34,15 +34,11 @@
 
 #pragma once
 
-
 #include <fstream>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-
-
 
 class OPENMS_DLLAPI MQEvidence{
 private:

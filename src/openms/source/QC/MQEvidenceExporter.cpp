@@ -38,14 +38,10 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QDir>
 
-
-
 using namespace OpenMS;
-
-
-
 
 MQEvidence::MQEvidence(const std::string &p)
 {
@@ -72,7 +68,8 @@ MQEvidence::MQEvidence(const std::string &p)
     id_ = 0;
 }
 
-MQEvidence::~MQEvidence() {
+MQEvidence::~MQEvidence()
+{
     file_.close();
 }
 
@@ -165,7 +162,6 @@ std::pair<Size , const PeptideHit *> MQEvidence::getBestPeptideHit(const std::ve
         }
     }
     return std::make_pair(pep_id,best);
-
 }
 
 /*
@@ -184,23 +180,6 @@ std::map<UInt64, Size> MQEvidence::mapFeatureIDtoConsensusID(const ConsensusMap 
         }
     }
     return f_to_ci;
-}
-
-/*
- * Description:
- * Input is the path of a file.
- * Function returns the filename without the information about the path
- */
-String pathDeleter(const String & path)
-{
-    String raw_file;
-    UInt64 i = path.size()-1;
-    while(path[i] != 47 && path[i] != 92) //ASCII Code "/" "\"
-    {
-        raw_file = path[i] + raw_file;
-        --i;
-    }
-    return raw_file;
 }
 
 /*
@@ -243,9 +222,6 @@ bool MQEvidence::exportFeaturePepID(
         }
     }
     return true;
-
-
-
 }
 
 /*
@@ -301,9 +277,6 @@ void MQEvidence::exportRowFromFeature(
     }
 
     const double & max_score = pep_hits_max->getScore();
-
-
-
     const AASequence &pep_seq = pep_hits_max->getSequence();
 
     if (pep_seq.empty())
@@ -363,8 +336,6 @@ void MQEvidence::exportRowFromFeature(
     }
     file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
     file_ << pep_seq.getMonoWeight() << "\t"; // Mass
-
-
     file_ << max_score << "\t"; // Score
     const std::set<String> &accessions = pep_hits_max->extractProteinAccessionsSet();
     for (const String &p : accessions) {
@@ -377,7 +348,6 @@ void MQEvidence::exportRowFromFeature(
 
     file_ << "\t";
     file_ << f.getCharge() << "\t"; // Charge
-
     file_ << f.getMZ() << "\t"; // MZ
     file_ << f.getRT()/60 << "\t"; // Retention time in min.
     file_ << (f.getConvexHull().getBoundingBox().maxX() - f.getConvexHull().getBoundingBox().minX())/60 << "\t"; // Retention length in min.
@@ -394,7 +364,6 @@ void MQEvidence::exportRowFromFeature(
     }
 
     file_<< type << "\t"; // Type
-
     file_ << pep_hits_max->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
 
     const double & uncalibrated_mz_error_ppm = pep_hits_max->getMetaValue("uncalibrated_mz_error_ppm",-1);
@@ -438,8 +407,6 @@ void MQEvidence::exportRowFromFeature(
         file_ << double(uncalibrated_mz_error_ppm)-double(calibrated_mz_error_ppm) << "\t"; // Uncalibrated - Calibrated m/z [ppm]
         file_ << OpenMS::Math::ppmToMass((double(uncalibrated_mz_error_ppm)-double(calibrated_mz_error_ppm)),f.getMZ())  << "\t"; // Uncalibrated - Calibrated m/z [Da]
     }
-
-
     f.getMetaValue("rt_align_start","NA") == "NA" ? file_ << "NA" << "\t" : file_ << double(f.getMetaValue("rt_align_start"))/60 << "\t"; //  Calibrated retention time start
     f.getMetaValue("rt_align_end","NA") == "NA" ? file_ << "NA" << "\t" : file_ << double(f.getMetaValue("rt_align_end"))/60 << "\t"; // Calibrated retention time end
     if(f.getMetaValue("rt_align","NA") != "NA")
@@ -452,9 +419,7 @@ void MQEvidence::exportRowFromFeature(
     {
         file_ << "NA" << "\t"; // calibrated retention time
         file_ << "NA" << "\t"; // Retention time calibration
-
     }
-
     file_ << pep_ids_size<<"\t"; // MS/MS count
     if(c_feature_number == -1)
     {
@@ -468,7 +433,6 @@ void MQEvidence::exportRowFromFeature(
     }
     file_ << raw_file << "\t"; // Raw File
     file_ << "\n";
-
 }
 
 /*
@@ -490,11 +454,11 @@ void MQEvidence::exportFeatureMapTotxt(
     feature_map.getPrimaryMSRunPath(spectra_data);
     if(!spectra_data.empty())
     {
-        raw_file = pathDeleter(spectra_data[0]);
+        raw_file = File::basename(spectra_data[0]);
     }
     else
     {
-        raw_file = pathDeleter(feature_map.getLoadedFilePath());
+        raw_file = File::basename(feature_map.getLoadedFilePath());
     }
     ProteinIdentification::Mapping mp_f;
     mp_f.create(feature_map.getProteinIdentifications());
@@ -513,5 +477,4 @@ void MQEvidence::exportFeatureMapTotxt(
             exportRowFromFeature(f, cmap, -1, raw_file, UIDs, mp_f); // Feature is not mapped to a ConsensusFeature
         }
     }
-
 }

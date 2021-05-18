@@ -282,14 +282,14 @@ namespace OpenMS
     auto lamda = [](const vector<PeptideIdentification>& cpep_ids,
                     const map<String, StringList>& identifier_to_msrunpath,
                     multimap<String, std::pair<Size, Size>>& customID_to_cpepID,
-                    Size cf_index)
+                    const Size& cf_index)
     {
         Size pep_index = 0;
         for (const PeptideIdentification &cpep_id : cpep_ids)
         {
           std::pair<Size, Size> index = {cf_index,pep_index};
-          auto x = buildUIDFromPepID(cpep_id, identifier_to_msrunpath);
-          customID_to_cpepID.insert(make_pair(x, index));
+          auto uid = buildUIDFromPepID(cpep_id, identifier_to_msrunpath);
+          customID_to_cpepID.insert(make_pair(uid, index));
           ++pep_index;
         }
     };

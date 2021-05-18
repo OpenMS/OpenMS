@@ -145,7 +145,7 @@ protected:
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
-    registerStringOption_("out_evd", "<Path>", "/buffer/ag_bsc/pmsb_2021/musch/mq_out", "EvidenceTXT with QC information", false); // TODO: better description
+    registerStringOption_("out_evd", "<Path>", "/buffer/ag_bsc/pmsb_2021/noske/mq_out", "EvidenceTXT with QC information", false); // TODO: better description
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -277,6 +277,7 @@ protected:
 
 
     String out_evidence = getStringOption_("out_evd");
+    std::cout << out_evidence<<"\n";
     MQEvidence export_evidence(out_evidence);
 
 
@@ -419,8 +420,6 @@ protected:
 
     }
 
-
-
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
     bool incomplete_features {false};
     auto f =
@@ -481,36 +480,6 @@ private:
     }
     return files;
   }
-/*
-  void fillConsensusPepIDMap_(vector<PeptideIdentification>& cpep_ids,
-                              const map<String, StringList>& identifier_to_msrunpath,
-                              multimap<String, PeptideIdentification*>& customID_to_cpepID) const
-  {
-    for (PeptideIdentification& cpep_id : cpep_ids)
-    {
-      if (!cpep_id.metaValueExists("spectrum_reference"))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum reference missing at PeptideIdentification.");
-      }
-      const auto& ms_run_path = identifier_to_msrunpath.at(cpep_id.getIdentifier());
-
-      String UID; //< unique ID to identify the PepID
-      if (ms_run_path.size() == 1)
-      {
-        UID = ms_run_path[0] + cpep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else if (cpep_id.metaValueExists("map_index"))
-      {
-        UID = cpep_id.getMetaValue("map_index").toString() + cpep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }
-      customID_to_cpepID.insert(make_pair(UID, &cpep_id));
-    }
-  }*/
-
 
   void addPepIDMetaValues_(
     const vector<PeptideIdentification>& f_pep_ids,
@@ -518,45 +487,30 @@ private:
     const map<String, StringList>& fidentifier_to_msrunpath,
     ConsensusMap& cmap) const
   {
-
     for (const PeptideIdentification& f_pep_id : f_pep_ids)
     {
-
       // for empty PIs which were created by a metric
       if (f_pep_id.getHits().empty()) continue;
-
       String UID = PeptideIdentification::buildUIDFromPepID(f_pep_id,fidentifier_to_msrunpath);
-
-      // for empty PIs which were created by a metric
-      /*if (f_pep_id.getHits().empty()) continue;
-
-      String UID;
-      const auto& ms_run_path = fidentifier_to_msrunpath.at(f_pep_id.getIdentifier());
-      if (ms_run_path.size() == 1)
-      {
-        UID = ms_run_path[0] + f_pep_id.getMetaValue("spectrum_reference").toString();
-      }
-      else if (f_pep_id.metaValueExists("map_index"))
-      {
-        UID = f_pep_id.getMetaValue("map_index").toString() + f_pep_id.getMetaValue("spectrum_reference").toString();
-      }
-      elsecustom
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
-      }*/
-
       const auto range = customID_to_cpepID.equal_range(UID);
 
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
         // copy all MetaValues that are at PepID level
-        //it_pep->second->addMetaValues(f_pep_id);
-        cmap[it_pep->second.first].getPeptideIdentifications()[it_pep->second.second].addMetaValues(f_pep_id);
-
         // copy all MetaValues that are at best Hit level
         //TODO check if first = best assumption is met!
-        //(it_pep->second)->getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
-        cmap[it_pep->second.first].getPeptideIdentifications()[it_pep->second.second].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        Size cf_index = it_pep->second.first;     //ConsensusFeature Index
+        Size pi_index = it_pep->second.second;    //PeptideIdentification Index
+        if(cf_index != Size(-1))
+        {
+          cmap[cf_index].getPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
+          cmap[cf_index].getPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        }
+        else
+        {
+          cmap.getUnassignedPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
+          cmap.getUnassignedPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        }
       }
     }
   }
