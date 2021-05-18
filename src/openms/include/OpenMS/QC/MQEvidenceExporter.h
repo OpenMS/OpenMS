@@ -80,7 +80,7 @@ private:
       @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
       in the vector of ConsensusMap
     */
-    std::map<OpenMS::UInt64, OpenMS::Size> mapFeatureIDtoConsensusID(const OpenMS::ConsensusMap & cmap);
+    std::map<OpenMS::UInt64, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex(const OpenMS::ConsensusMap & cmap);
 
     /**
       @brief ASHORTDESCRIPTION_HERE
@@ -111,12 +111,12 @@ private:
 
       @return Returns true if the functions succeeds.
     */
-    bool exportFeaturePepID(
-            const OpenMS::ConsensusMap &cmap,
+    bool hasValidPepID(
+            const OpenMS::Feature & f,
+            //const OpenMS::ConsensusMap &cmap,
             const OpenMS::Int64 c_feature_number,
             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>> &UIDs,
             const OpenMS::ProteinIdentification::Mapping &mp_f,
-            const OpenMS::Feature & f,
             const OpenMS::PeptideHit* & best);
 
     /**
@@ -136,10 +136,9 @@ private:
 
       @return Returns true if the functions succeeds.
     */
-    bool exportConsensusFeaturePepID(
-            const OpenMS::ConsensusMap &cmap,
-            const OpenMS::Int64 c_feature_number,
-            const OpenMS::PeptideHit* & best);
+    bool hasPeptideIdentifications(
+            const OpenMS::ConsensusFeature& cf,
+            const OpenMS::PeptideHit*& best);
 
     /**
       @brief Export one Feature as a row in MQEvidence.txt
@@ -196,6 +195,6 @@ public:
       @return Returns true if ...
     */
     void exportFeatureMapTotxt(
-            const OpenMS::FeatureMap & feature_map,
+            const OpenMS::FeatureMap& feature_map,
             const OpenMS::ConsensusMap& cmap);
 };
