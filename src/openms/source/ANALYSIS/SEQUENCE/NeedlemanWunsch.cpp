@@ -6,7 +6,7 @@
 using namespace std;
 namespace OpenMS
 {
-    std::vector<int> adaptedIdentityNew // Name noch zu ändern
+    std::vector<vector<int>> adaptedIdentityNew // Name noch zu ändern
             {
 
                     //        A  B  C  D  E  F  G  H  I  K  L  M  N  P  Q  R  S  T  V  W  X  Y  Z
