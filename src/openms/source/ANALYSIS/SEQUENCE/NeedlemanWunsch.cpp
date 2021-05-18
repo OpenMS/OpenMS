@@ -200,9 +200,21 @@ int NeedlemanWunsch::getPenalty_() const
 {
     return gapPenalty_;
 }
+int NeedlemanWunsch::getIndexNEW_(const char&a) const //Falls wir die Matrizen als vector<vector<int>> haben, rufen wir getIndexNEW_ 2x auf (für Matrix[i][j])
+{
+    //                         0    1    2    3    4    5    6    7    8    9    10   11  12   13    14   15   16   17   18  19   20   21    22
+    vector<char> alphabet = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z' };
+    int index = 0;
 
+    for(Size i=0; i<alphabet.size(); i++)
+    {
+        if(alphabet[i] == a) index = i;
+    }
+    return index;
+}
 int NeedlemanWunsch::getIndex_(const char& a, const char& b) const //noch optimieren (Tina)
 {
+
 vector<pair<char,int>> vec =
     {
         {'A', 0}, {'R', 1}, {'N', 2},

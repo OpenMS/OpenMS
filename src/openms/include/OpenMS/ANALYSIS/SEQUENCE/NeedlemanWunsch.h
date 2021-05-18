@@ -30,6 +30,7 @@ namespace OpenMS
     int getPenalty_() const;
 
   private:
+    int getIndexNEW_(const char& a) const; // falls wir mit Matrix[i][j] Elementen arbeiten
     int getIndex_(const char& a, const char& b) const;
     unsigned seq1len_ = 0;
     unsigned seq2len_ = 0;
